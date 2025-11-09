@@ -45,6 +45,26 @@ interface FamilyValue {
   tradition: string;
 }
 
+interface BlogPost {
+  id: string;
+  title: string;
+  author: string;
+  date: string;
+  category: string;
+  excerpt: string;
+  likes: number;
+  comments: number;
+}
+
+interface Tradition {
+  id: string;
+  title: string;
+  description: string;
+  frequency: string;
+  icon: string;
+  participants: string[];
+}
+
 export default function Index() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
     { id: '1', name: 'Александр', role: 'Муж', workload: 65, avatar: '👨', points: 450, level: 5, achievements: ['early_bird', 'helper', 'chef'] },
@@ -66,6 +86,120 @@ export default function Index() {
     { id: '1', title: 'День рождения Елены', date: '15 ноября', type: 'birthday', daysLeft: 6 },
     { id: '2', title: 'Годовщина свадьбы', date: '20 ноября', type: 'anniversary', daysLeft: 11 },
     { id: '3', title: 'День рождения Максима', date: '03 декабря', type: 'birthday', daysLeft: 24 }
+  ]);
+
+  const [blogPosts] = useState<BlogPost[]>([
+    {
+      id: '1',
+      title: 'Как справиться с детскими истериками: 5 проверенных методов',
+      author: 'Психолог Мария Иванова',
+      date: '7 ноября 2025',
+      category: 'Воспитание',
+      excerpt: 'Детские истерики — нормальная часть развития. Важно понимать причины и реагировать правильно...',
+      likes: 234,
+      comments: 45
+    },
+    {
+      id: '2',
+      title: 'Распределение обязанностей: найти баланс между супругами',
+      author: 'Семейный терапевт Анна Петрова',
+      date: '5 ноября 2025',
+      category: 'Отношения',
+      excerpt: 'Справедливое распределение домашних дел — основа гармонии в паре. Обсуждайте ожидания открыто...',
+      likes: 189,
+      comments: 32
+    },
+    {
+      id: '3',
+      title: 'Семейные традиции: зачем они нужны и как их создать',
+      author: 'Психолог Дмитрий Соколов',
+      date: '3 ноября 2025',
+      category: 'Традиции',
+      excerpt: 'Традиции создают чувство принадлежности и безопасности. Начните с малого — еженедельного ужина...',
+      likes: 312,
+      comments: 67
+    },
+    {
+      id: '4',
+      title: 'Личные границы в семье: как говорить "нет" без чувства вины',
+      author: 'Коуч Елена Смирнова',
+      date: '1 ноября 2025',
+      category: 'Психология',
+      excerpt: 'Здоровые границы — не эгоизм, а забота о себе и семье. Учитесь отказывать уважительно...',
+      likes: 276,
+      comments: 54
+    },
+    {
+      id: '5',
+      title: 'Как поддержать подростка в переходном возрасте',
+      author: 'Психолог Ольга Кузнецова',
+      date: '30 октября 2025',
+      category: 'Подростки',
+      excerpt: 'Переходный возраст — испытание для всей семьи. Сохраняйте связь через уважение и принятие...',
+      likes: 198,
+      comments: 41
+    },
+    {
+      id: '6',
+      title: 'Эмоциональное выгорание родителей: признаки и решения',
+      author: 'Психотерапевт Игорь Волков',
+      date: '28 октября 2025',
+      category: 'Здоровье',
+      excerpt: 'Выгорание родителей — реальная проблема. Не игнорируйте сигналы тела и просите помощь...',
+      likes: 345,
+      comments: 78
+    }
+  ]);
+
+  const [traditions] = useState<Tradition[]>([
+    {
+      id: '1',
+      title: 'Семейный ужин по воскресеньям',
+      description: 'Каждое воскресенье вся семья собирается за большим столом, готовим вместе любимые блюда',
+      frequency: 'Еженедельно',
+      icon: '🍽️',
+      participants: ['Александр', 'Елена', 'Максим', 'София']
+    },
+    {
+      id: '2',
+      title: 'Пятничный киновечер',
+      description: 'По пятницам выбираем фильм всей семьей, готовим попкорн и проводим вечер вместе',
+      frequency: 'Еженедельно',
+      icon: '🎬',
+      participants: ['Александр', 'Елена', 'Максим', 'София']
+    },
+    {
+      id: '3',
+      title: 'Утренние объятия',
+      description: 'Начинаем каждый день с семейных объятий и пожеланий хорошего дня',
+      frequency: 'Ежедневно',
+      icon: '🤗',
+      participants: ['Александр', 'Елена', 'Максим', 'София']
+    },
+    {
+      id: '4',
+      title: 'День рождения с сюрпризами',
+      description: 'Украшаем дом шариками, готовим любимое блюдо именинника и дарим самодельные открытки',
+      frequency: 'По случаю',
+      icon: '🎂',
+      participants: ['Александр', 'Елена', 'Максим', 'София']
+    },
+    {
+      id: '5',
+      title: 'Субботняя уборка с музыкой',
+      description: 'Убираемся все вместе под любимые песни, превращая работу в веселье',
+      frequency: 'Еженедельно',
+      icon: '🎵',
+      participants: ['Александр', 'Елена', 'Максим', 'София']
+    },
+    {
+      id: '6',
+      title: 'Летние походы на природу',
+      description: 'Каждое лето выбираемся на природу с палатками, костром и песнями под гитару',
+      frequency: 'Сезонно',
+      icon: '🏕️',
+      participants: ['Александр', 'Елена', 'Максим', 'София']
+    }
   ]);
 
   const [familyValues] = useState<FamilyValue[]>([
@@ -251,25 +385,33 @@ export default function Index() {
         </div>
 
         <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 h-14">
-            <TabsTrigger value="members" className="text-base">
-              <Icon name="Users" className="mr-2" size={18} />
-              Члены семьи
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto lg:h-14">
+            <TabsTrigger value="members" className="text-sm lg:text-base py-3">
+              <Icon name="Users" className="mr-1 lg:mr-2" size={16} />
+              Семья
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="text-base">
-              <Icon name="CheckSquare" className="mr-2" size={18} />
-              Обязанности
+            <TabsTrigger value="tasks" className="text-sm lg:text-base py-3">
+              <Icon name="CheckSquare" className="mr-1 lg:mr-2" size={16} />
+              Задачи
             </TabsTrigger>
-            <TabsTrigger value="rating" className="text-base">
-              <Icon name="Trophy" className="mr-2" size={18} />
+            <TabsTrigger value="rating" className="text-sm lg:text-base py-3">
+              <Icon name="Trophy" className="mr-1 lg:mr-2" size={16} />
               Рейтинг
             </TabsTrigger>
-            <TabsTrigger value="values" className="text-base">
-              <Icon name="Sparkles" className="mr-2" size={18} />
+            <TabsTrigger value="traditions" className="text-sm lg:text-base py-3">
+              <Icon name="Calendar" className="mr-1 lg:mr-2" size={16} />
+              Традиции
+            </TabsTrigger>
+            <TabsTrigger value="values" className="text-sm lg:text-base py-3">
+              <Icon name="Sparkles" className="mr-1 lg:mr-2" size={16} />
               Ценности
             </TabsTrigger>
-            <TabsTrigger value="dates" className="text-base">
-              <Icon name="Heart" className="mr-2" size={18} />
+            <TabsTrigger value="community" className="text-sm lg:text-base py-3">
+              <Icon name="BookOpen" className="mr-1 lg:mr-2" size={16} />
+              Блог
+            </TabsTrigger>
+            <TabsTrigger value="dates" className="text-sm lg:text-base py-3">
+              <Icon name="Heart" className="mr-1 lg:mr-2" size={16} />
               Даты
             </TabsTrigger>
           </TabsList>
@@ -483,6 +625,99 @@ export default function Index() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="traditions" className="space-y-4">
+            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Icon name="Calendar" className="text-blue-600" size={28} />
+                      Наши семейные традиции
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">Ритуалы, которые объединяют нашу семью</p>
+                  </div>
+                  <Button className="bg-gradient-to-r from-blue-500 to-cyan-500">
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Добавить традицию
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {traditions.map((tradition, index) => (
+                    <Card 
+                      key={tradition.id}
+                      className="animate-fade-in bg-white hover:shadow-xl transition-all hover:scale-[1.02] border-2 border-blue-200"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <CardHeader>
+                        <div className="text-center">
+                          <div className="text-6xl mb-3">{tradition.icon}</div>
+                          <CardTitle className="text-lg">{tradition.title}</CardTitle>
+                          <Badge className="mt-2 bg-blue-100 text-blue-800 border-blue-300">
+                            {tradition.frequency}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <p className="text-sm text-center text-muted-foreground leading-relaxed">
+                          {tradition.description}
+                        </p>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-xs font-semibold text-blue-900 mb-2">Участники:</p>
+                          <div className="flex gap-1 flex-wrap">
+                            {tradition.participants.map((participant, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {participant}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-6 bg-white rounded-lg border-2 border-blue-300">
+                  <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Icon name="Lightbulb" className="text-blue-600" size={22} />
+                    Почему традиции важны?
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex gap-3">
+                      <Icon name="Heart" className="text-red-500 flex-shrink-0 mt-1" size={20} />
+                      <div>
+                        <p className="font-medium text-sm">Укрепляют связи</p>
+                        <p className="text-xs text-muted-foreground">Регулярные ритуалы создают чувство единства</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Icon name="Shield" className="text-blue-500 flex-shrink-0 mt-1" size={20} />
+                      <div>
+                        <p className="font-medium text-sm">Дают стабильность</p>
+                        <p className="text-xs text-muted-foreground">Предсказуемость создаёт ощущение безопасности</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Icon name="Star" className="text-yellow-500 flex-shrink-0 mt-1" size={20} />
+                      <div>
+                        <p className="font-medium text-sm">Создают воспоминания</p>
+                        <p className="text-xs text-muted-foreground">Особые моменты остаются в памяти навсегда</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Icon name="Users" className="text-green-500 flex-shrink-0 mt-1" size={20} />
+                      <div>
+                        <p className="font-medium text-sm">Передают ценности</p>
+                        <p className="text-xs text-muted-foreground">Традиции учат детей важным жизненным принципам</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="values" className="space-y-4">
             <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
               <CardHeader>
@@ -578,6 +813,103 @@ export default function Index() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="community" className="space-y-4">
+            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-pink-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Icon name="BookOpen" className="text-orange-600" size={28} />
+                      Сообщество и блог
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">Советы экспертов по семейным вопросам</p>
+                  </div>
+                  <Button variant="outline" className="border-orange-300">
+                    <Icon name="Rss" className="mr-2" size={16} />
+                    Подписаться
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-6 flex gap-2 flex-wrap">
+                  <Badge className="bg-orange-100 text-orange-800 border-orange-300 cursor-pointer">Все</Badge>
+                  <Badge variant="outline" className="cursor-pointer">Воспитание</Badge>
+                  <Badge variant="outline" className="cursor-pointer">Отношения</Badge>
+                  <Badge variant="outline" className="cursor-pointer">Психология</Badge>
+                  <Badge variant="outline" className="cursor-pointer">Традиции</Badge>
+                  <Badge variant="outline" className="cursor-pointer">Здоровье</Badge>
+                </div>
+
+                <div className="space-y-4">
+                  {blogPosts.map((post, index) => (
+                    <Card 
+                      key={post.id}
+                      className="animate-fade-in bg-white hover:shadow-lg transition-all cursor-pointer"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="secondary" className="text-xs">{post.category}</Badge>
+                              <span className="text-xs text-muted-foreground">{post.date}</span>
+                            </div>
+                            <CardTitle className="text-lg hover:text-orange-600 transition-colors">
+                              {post.title}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground mt-2">{post.excerpt}</p>
+                            <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Icon name="User" size={14} />
+                                {post.author}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Icon name="ThumbsUp" size={14} className="text-orange-500" />
+                                {post.likes}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Icon name="MessageCircle" size={14} className="text-blue-500" />
+                                {post.comments}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-6 bg-white rounded-lg border-2 border-orange-300">
+                  <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Icon name="Users" className="text-orange-600" size={22} />
+                    Присоединяйтесь к сообществу
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-3xl font-bold text-orange-600">12,450</div>
+                      <p className="text-sm text-muted-foreground">Активных семей</p>
+                    </div>
+                    <div className="text-center p-4 bg-pink-50 rounded-lg">
+                      <div className="text-3xl font-bold text-pink-600">340</div>
+                      <p className="text-sm text-muted-foreground">Статей экспертов</p>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-3xl font-bold text-purple-600">8,920</div>
+                      <p className="text-sm text-muted-foreground">Обсуждений</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-center text-muted-foreground mb-4">
+                    Делитесь опытом, задавайте вопросы и получайте поддержку от других семей
+                  </p>
+                  <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500">
+                    <Icon name="MessageSquare" className="mr-2" size={16} />
+                    Начать обсуждение
+                  </Button>
                 </div>
               </CardContent>
             </Card>
