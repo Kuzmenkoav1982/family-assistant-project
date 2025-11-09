@@ -193,6 +193,40 @@ interface CalendarEvent {
   attendees?: string[];
 }
 
+interface FamilyTreeMember {
+  id: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  birthDate: string;
+  deathDate?: string;
+  age?: number;
+  photo?: string;
+  avatar: string;
+  generation: number;
+  parentIds: string[];
+  spouseId?: string;
+  placeOfBirth?: string;
+  occupation?: string;
+  bio?: string;
+  achievements?: string[];
+  gallery?: string[];
+  documents?: {
+    id: string;
+    title: string;
+    type: string;
+    url: string;
+    uploadDate: string;
+  }[];
+  education?: string;
+  hobbies?: string[];
+  importantDates?: {
+    date: string;
+    event: string;
+  }[];
+}
+
 export default function Index() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
     { 
@@ -923,6 +957,171 @@ export default function Index() {
     return days;
   };
 
+  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>([
+    {
+      id: 'gt1',
+      fullName: 'Иван Петрович Смирнов',
+      firstName: 'Иван',
+      lastName: 'Смирнов',
+      middleName: 'Петрович',
+      birthDate: '1935-03-15',
+      deathDate: '2018-11-20',
+      age: 83,
+      avatar: '👴',
+      generation: 1,
+      parentIds: [],
+      spouseId: 'gt2',
+      placeOfBirth: 'Москва, СССР',
+      occupation: 'Инженер-конструктор',
+      bio: 'Работал на авиационном заводе, создавал чертежи самолётов. Ветеран труда.',
+      achievements: ['Орден Трудового Красного Знамени', 'Заслуженный инженер РФ', '35 лет стажа'],
+      gallery: ['/placeholder.jpg', '/placeholder.jpg', '/placeholder.jpg'],
+      education: 'МВТУ им. Баумана, факультет авиастроения',
+      hobbies: ['Шахматы', 'Рыбалка', 'Чтение технической литературы'],
+      importantDates: [
+        { date: '1958-06-20', event: 'Окончание института' },
+        { date: '1960-09-12', event: 'Свадьба с Марией' },
+        { date: '1985-05-01', event: 'Получение ордена' }
+      ],
+      documents: [
+        { id: 'd1', title: 'Трудовая книжка', type: 'pdf', url: '/docs/labor-book.pdf', uploadDate: '2024-01-15' },
+        { id: 'd2', title: 'Диплом МВТУ', type: 'pdf', url: '/docs/diploma.pdf', uploadDate: '2024-01-15' }
+      ]
+    },
+    {
+      id: 'gt2',
+      fullName: 'Мария Александровна Смирнова',
+      firstName: 'Мария',
+      lastName: 'Смирнова',
+      middleName: 'Александровна',
+      birthDate: '1938-07-22',
+      age: 86,
+      avatar: '👵',
+      generation: 1,
+      parentIds: [],
+      spouseId: 'gt1',
+      placeOfBirth: 'Ленинград, СССР',
+      occupation: 'Учитель начальных классов',
+      bio: 'Преподавала в школе № 215 более 40 лет. Почётный работник образования.',
+      achievements: ['Отличник народного просвещения', 'Ветеран труда', '42 года педагогического стажа'],
+      gallery: ['/placeholder.jpg', '/placeholder.jpg'],
+      education: 'Ленинградский педагогический институт',
+      hobbies: ['Вязание', 'Садоводство', 'Пение в хоре'],
+      importantDates: [
+        { date: '1960-09-12', event: 'Свадьба с Иваном' },
+        { date: '1962-04-10', event: 'Рождение дочери Ольги' }
+      ]
+    },
+    {
+      id: 'gp1',
+      fullName: 'Ольга Ивановна Васильева',
+      firstName: 'Ольга',
+      lastName: 'Васильева',
+      middleName: 'Ивановна',
+      birthDate: '1962-04-10',
+      age: 62,
+      avatar: '👩',
+      generation: 2,
+      parentIds: ['gt1', 'gt2'],
+      spouseId: 'gp2',
+      placeOfBirth: 'Москва, СССР',
+      occupation: 'Врач-педиатр',
+      bio: 'Работает в детской поликлинике. Кандидат медицинских наук.',
+      achievements: ['Кандидат медицинских наук', 'Врач высшей категории'],
+      gallery: ['/placeholder.jpg'],
+      education: 'Первый МГМУ им. Сеченова',
+      hobbies: ['Йога', 'Чтение детективов', 'Путешествия']
+    },
+    {
+      id: 'gp2',
+      fullName: 'Сергей Николаевич Васильев',
+      firstName: 'Сергей',
+      lastName: 'Васильев',
+      middleName: 'Николаевич',
+      birthDate: '1960-12-05',
+      age: 64,
+      avatar: '👨',
+      generation: 2,
+      parentIds: [],
+      spouseId: 'gp1',
+      placeOfBirth: 'Тула, СССР',
+      occupation: 'Предприниматель',
+      bio: 'Владелец сети продуктовых магазинов.',
+      education: 'Московский государственный университет, экономический факультет',
+      hobbies: ['Гольф', 'Коллекционирование монет']
+    },
+    {
+      id: '1',
+      fullName: 'Александр Сергеевич Васильев',
+      firstName: 'Александр',
+      lastName: 'Васильев',
+      middleName: 'Сергеевич',
+      birthDate: '1985-09-18',
+      age: 39,
+      avatar: '👨',
+      generation: 3,
+      parentIds: ['gp1', 'gp2'],
+      spouseId: '2',
+      placeOfBirth: 'Москва, Россия',
+      occupation: 'IT-менеджер',
+      bio: 'Руководит командой разработчиков в крупной IT-компании.',
+      education: 'МГТУ им. Баумана, программная инженерия',
+      hobbies: ['Бег', 'Настольные игры', 'Фотография']
+    },
+    {
+      id: '2',
+      fullName: 'Елена Викторовна Васильева',
+      firstName: 'Елена',
+      lastName: 'Васильева',
+      middleName: 'Викторовна',
+      birthDate: '1988-03-25',
+      age: 36,
+      avatar: '👩',
+      generation: 3,
+      parentIds: [],
+      spouseId: '1',
+      placeOfBirth: 'Санкт-Петербург, Россия',
+      occupation: 'Дизайнер интерьеров',
+      bio: 'Работает в дизайн-студии, специализируется на квартирах и домах.',
+      education: 'Строгановская академия, дизайн среды',
+      hobbies: ['Рисование', 'Йога', 'Кулинария']
+    },
+    {
+      id: '3',
+      fullName: 'Максим Александрович Васильев',
+      firstName: 'Максим',
+      lastName: 'Васильев',
+      middleName: 'Александрович',
+      birthDate: '2013-06-12',
+      age: 11,
+      avatar: '👦',
+      generation: 4,
+      parentIds: ['1', '2'],
+      placeOfBirth: 'Москва, Россия',
+      occupation: 'Школьник',
+      bio: 'Учится в 5 классе, увлекается робототехникой и программированием.',
+      hobbies: ['Робототехника', 'Программирование', 'Футбол']
+    },
+    {
+      id: '4',
+      fullName: 'София Александровна Васильева',
+      firstName: 'София',
+      lastName: 'Васильева',
+      middleName: 'Александровна',
+      birthDate: '2016-11-08',
+      age: 8,
+      avatar: '👧',
+      generation: 4,
+      parentIds: ['1', '2'],
+      placeOfBirth: 'Москва, Россия',
+      occupation: 'Школьница',
+      bio: 'Учится во 2 классе, любит танцевать и рисовать.',
+      hobbies: ['Танцы', 'Рисование', 'Чтение сказок']
+    }
+  ]);
+
+  const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
+
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([
     {
       id: '1',
@@ -1479,10 +1678,14 @@ export default function Index() {
         </Card>
 
         <Tabs defaultValue="members" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-11 h-auto lg:h-14">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-12 h-auto lg:h-14">
             <TabsTrigger value="members" className="text-sm lg:text-base py-3">
               <Icon name="Users" className="mr-1 lg:mr-2" size={16} />
               Семья
+            </TabsTrigger>
+            <TabsTrigger value="tree" className="text-sm lg:text-base py-3">
+              <Icon name="Network" className="mr-1 lg:mr-2" size={16} />
+              Древо
             </TabsTrigger>
             <TabsTrigger value="tasks" className="text-sm lg:text-base py-3">
               <Icon name="CheckSquare" className="mr-1 lg:mr-2" size={16} />
@@ -1600,6 +1803,156 @@ export default function Index() {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="tree" className="space-y-6">
+            <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-3xl flex items-center gap-3">
+                    <Icon name="Network" className="text-emerald-600" size={32} />
+                    Семейное древо
+                  </CardTitle>
+                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-500">
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Добавить члена семьи
+                  </Button>
+                </div>
+                <p className="text-muted-foreground mt-2">
+                  История вашей семьи в 4 поколениях
+                </p>
+              </CardHeader>
+              <CardContent>
+                {[1, 2, 3, 4].map(generation => {
+                  const members = familyTree.filter(m => m.generation === generation);
+                  if (members.length === 0) return null;
+                  
+                  return (
+                    <div key={generation} className="mb-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-lg px-4 py-2">
+                          {generation === 1 && '👴👵 Прабабушки и прадедушки'}
+                          {generation === 2 && '👨‍👩‍👧‍👦 Бабушки и дедушки'}
+                          {generation === 3 && '👫 Родители'}
+                          {generation === 4 && '👶 Дети'}
+                        </Badge>
+                        <div className="h-px flex-1 bg-gradient-to-r from-emerald-300 to-transparent"></div>
+                      </div>
+                      
+                      <div className={`grid gap-4 ${
+                        generation === 1 ? 'grid-cols-1 md:grid-cols-2' :
+                        generation === 2 ? 'grid-cols-1 md:grid-cols-2' :
+                        generation === 3 ? 'grid-cols-1 md:grid-cols-2' :
+                        'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                      }`}>
+                        {members.map((member, idx) => {
+                          const calculateAge = (birthDate: string, deathDate?: string) => {
+                            const birth = new Date(birthDate);
+                            const end = deathDate ? new Date(deathDate) : new Date();
+                            return Math.floor((end.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+                          };
+
+                          const years = member.deathDate 
+                            ? `${birthDate.split('-')[0]} - ${member.deathDate.split('-')[0]}`
+                            : `${member.birthDate.split('-')[0]} - н.в.`;
+
+                          const age = member.age || calculateAge(member.birthDate, member.deathDate);
+                          const ageText = member.deathDate 
+                            ? `${age} лет` 
+                            : `${age} ${age % 10 === 1 && age !== 11 ? 'год' : age % 10 >= 2 && age % 10 <= 4 && (age < 10 || age > 20) ? 'года' : 'лет'}`;
+
+                          return (
+                            <Card 
+                              key={member.id}
+                              className="animate-fade-in hover:shadow-xl transition-all cursor-pointer border-2 border-emerald-200 hover:border-emerald-400 overflow-hidden group"
+                              style={{ animationDelay: `${idx * 0.1}s` }}
+                              onClick={() => setSelectedTreeMember(member)}
+                            >
+                              <div className="relative">
+                                <div className="h-32 bg-gradient-to-br from-emerald-200 via-teal-200 to-cyan-200 flex items-center justify-center">
+                                  {member.photo ? (
+                                    <img src={member.photo} alt={member.fullName} className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg" />
+                                  ) : (
+                                    <div className="text-7xl group-hover:scale-110 transition-transform">{member.avatar}</div>
+                                  )}
+                                </div>
+                                {member.deathDate && (
+                                  <Badge className="absolute top-2 right-2 bg-gray-600 text-white">
+                                    <Icon name="Cross" size={12} className="mr-1" />
+                                    Память
+                                  </Badge>
+                                )}
+                              </div>
+                              
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-lg leading-tight">{member.fullName}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{years} ({ageText})</p>
+                              </CardHeader>
+                              
+                              <CardContent className="pt-2">
+                                <div className="space-y-2 text-sm">
+                                  {member.occupation && (
+                                    <div className="flex items-center gap-2">
+                                      <Icon name="Briefcase" size={14} className="text-emerald-600 flex-shrink-0" />
+                                      <span className="line-clamp-1">{member.occupation}</span>
+                                    </div>
+                                  )}
+                                  
+                                  {member.placeOfBirth && (
+                                    <div className="flex items-center gap-2">
+                                      <Icon name="MapPin" size={14} className="text-emerald-600 flex-shrink-0" />
+                                      <span className="line-clamp-1">{member.placeOfBirth}</span>
+                                    </div>
+                                  )}
+                                  
+                                  {member.bio && (
+                                    <p className="text-muted-foreground line-clamp-2 text-xs mt-2">
+                                      {member.bio}
+                                    </p>
+                                  )}
+                                  
+                                  {member.achievements && member.achievements.length > 0 && (
+                                    <div className="flex items-center gap-1 mt-2">
+                                      <Icon name="Award" size={14} className="text-amber-500 flex-shrink-0" />
+                                      <Badge variant="outline" className="text-xs">{member.achievements.length} достижений</Badge>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <Button 
+                                  className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 group-hover:from-emerald-600 group-hover:to-teal-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTreeMember(member);
+                                  }}
+                                >
+                                  <Icon name="Eye" className="mr-2" size={16} />
+                                  Открыть профиль
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                <Card className="bg-gradient-to-br from-emerald-100 to-teal-100 border-2 border-emerald-300 mt-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Info" className="text-emerald-600" size={20} />
+                      О семейном древе
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-2">
+                    <p>• <strong>Всего членов семьи:</strong> {familyTree.length} человек в 4 поколениях</p>
+                    <p>• Нажмите на карточку, чтобы увидеть полную биографию, фотографии и документы</p>
+                    <p>• Добавляйте новых членов семьи и храните историю вашего рода</p>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-4">
@@ -3070,6 +3423,245 @@ export default function Index() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <Dialog open={selectedTreeMember !== null} onOpenChange={() => setSelectedTreeMember(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            {selectedTreeMember && (
+              <>
+                <DialogHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      {selectedTreeMember.photo ? (
+                        <img 
+                          src={selectedTreeMember.photo} 
+                          alt={selectedTreeMember.fullName} 
+                          className="w-32 h-32 rounded-full object-cover border-4 border-emerald-500 shadow-lg"
+                        />
+                      ) : (
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-emerald-200 to-teal-200 flex items-center justify-center border-4 border-emerald-500 shadow-lg">
+                          <span className="text-6xl">{selectedTreeMember.avatar}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <DialogTitle className="text-3xl mb-2">{selectedTreeMember.fullName}</DialogTitle>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p className="text-lg">
+                          {selectedTreeMember.birthDate.split('-').reverse().join('.')} 
+                          {selectedTreeMember.deathDate && ` - ${selectedTreeMember.deathDate.split('-').reverse().join('.')}`}
+                          {' '}({selectedTreeMember.age} 
+                          {selectedTreeMember.age && (selectedTreeMember.age % 10 === 1 && selectedTreeMember.age !== 11 ? ' год' : 
+                            selectedTreeMember.age % 10 >= 2 && selectedTreeMember.age % 10 <= 4 && (selectedTreeMember.age < 10 || selectedTreeMember.age > 20) ? ' года' : ' лет')})
+                        </p>
+                        {selectedTreeMember.placeOfBirth && (
+                          <div className="flex items-center gap-2">
+                            <Icon name="MapPin" size={16} className="text-emerald-600" />
+                            <span>Место рождения: {selectedTreeMember.placeOfBirth}</span>
+                          </div>
+                        )}
+                        {selectedTreeMember.occupation && (
+                          <div className="flex items-center gap-2">
+                            <Icon name="Briefcase" size={16} className="text-emerald-600" />
+                            <span>{selectedTreeMember.occupation}</span>
+                          </div>
+                        )}
+                      </div>
+                      {selectedTreeMember.deathDate && (
+                        <Badge className="mt-2 bg-gray-600 text-white">
+                          <Icon name="Cross" size={12} className="mr-1" />
+                          Светлая память
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-6 mt-6">
+                  {selectedTreeMember.bio && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="User" className="text-emerald-600" size={20} />
+                          Биография
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm leading-relaxed">{selectedTreeMember.bio}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {selectedTreeMember.education && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="GraduationCap" className="text-emerald-600" size={20} />
+                          Образование
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">{selectedTreeMember.education}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {selectedTreeMember.achievements && selectedTreeMember.achievements.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="Award" className="text-amber-600" size={20} />
+                          Достижения и награды
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {selectedTreeMember.achievements.map((achievement, idx) => (
+                            <div key={idx} className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
+                              <Icon name="Star" size={16} className="text-amber-600 flex-shrink-0" />
+                              <span className="text-sm">{achievement}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {selectedTreeMember.hobbies && selectedTreeMember.hobbies.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="Heart" className="text-rose-600" size={20} />
+                          Увлечения
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedTreeMember.hobbies.map((hobby, idx) => (
+                            <Badge key={idx} variant="outline" className="text-sm">{hobby}</Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {selectedTreeMember.importantDates && selectedTreeMember.importantDates.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="Calendar" className="text-blue-600" size={20} />
+                          Важные даты
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {selectedTreeMember.importantDates.map((item, idx) => (
+                            <div key={idx} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                              <Icon name="CalendarCheck" size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <p className="font-semibold text-sm">{item.event}</p>
+                                <p className="text-xs text-muted-foreground">{item.date.split('-').reverse().join('.')}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {selectedTreeMember.gallery && selectedTreeMember.gallery.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="Image" className="text-purple-600" size={20} />
+                          Фотогалерея
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {selectedTreeMember.gallery.map((photo, idx) => (
+                            <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-emerald-500 transition-colors cursor-pointer">
+                              <img src={photo} alt={`Фото ${idx + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform" />
+                            </div>
+                          ))}
+                        </div>
+                        <Button className="w-full mt-4 bg-purple-500 hover:bg-purple-600">
+                          <Icon name="Upload" className="mr-2" size={16} />
+                          Загрузить фото
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {selectedTreeMember.documents && selectedTreeMember.documents.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Icon name="FileText" className="text-indigo-600" size={20} />
+                          Документы
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {selectedTreeMember.documents.map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <Icon name="File" size={20} className="text-indigo-600" />
+                                <div>
+                                  <p className="font-semibold text-sm">{doc.title}</p>
+                                  <p className="text-xs text-muted-foreground">Загружено: {doc.uploadDate}</p>
+                                </div>
+                              </div>
+                              <Button size="sm" variant="outline">
+                                <Icon name="Download" className="mr-2" size={14} />
+                                Скачать
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <Button className="w-full mt-4 bg-indigo-500 hover:bg-indigo-600">
+                          <Icon name="Upload" className="mr-2" size={16} />
+                          Загрузить документ
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <Card className="bg-gradient-to-br from-emerald-100 to-teal-100 border-2 border-emerald-300">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Icon name="Users" className="text-emerald-600" size={20} />
+                        Связи
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                      {selectedTreeMember.parentIds.length > 0 && (
+                        <p>
+                          <strong>Родители:</strong>{' '}
+                          {selectedTreeMember.parentIds.map(id => {
+                            const parent = familyTree.find(m => m.id === id);
+                            return parent?.fullName;
+                          }).filter(Boolean).join(', ')}
+                        </p>
+                      )}
+                      {selectedTreeMember.spouseId && (
+                        <p>
+                          <strong>Супруг(а):</strong>{' '}
+                          {familyTree.find(m => m.id === selectedTreeMember.spouseId)?.fullName}
+                        </p>
+                      )}
+                      {familyTree.filter(m => m.parentIds.includes(selectedTreeMember.id)).length > 0 && (
+                        <p>
+                          <strong>Дети:</strong>{' '}
+                          {familyTree.filter(m => m.parentIds.includes(selectedTreeMember.id)).map(m => m.fullName).join(', ')}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
