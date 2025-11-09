@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,16 @@ interface Task {
   completed: boolean;
   category: string;
   points: number;
+  reminderTime?: string;
+  shoppingList?: string[];
+}
+
+interface Reminder {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  time: string;
+  notified: boolean;
 }
 
 interface ImportantDate {
@@ -74,13 +84,47 @@ export default function Index() {
   ]);
 
   const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'Приготовить ужин', assignee: 'Елена', completed: false, category: 'Кухня', points: 30 },
+    { id: '1', title: 'Приготовить ужин', assignee: 'Елена', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00' },
     { id: '2', title: 'Вынести мусор', assignee: 'Александр', completed: true, category: 'Дом', points: 10 },
-    { id: '3', title: 'Сделать уроки', assignee: 'Максим', completed: false, category: 'Учеба', points: 25 },
+    { id: '3', title: 'Сделать уроки', assignee: 'Максим', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00' },
     { id: '4', title: 'Убрать комнату', assignee: 'София', completed: false, category: 'Дом', points: 20 },
-    { id: '5', title: 'Купить продукты', assignee: 'Александр', completed: false, category: 'Покупки', points: 15 },
+    { id: '5', title: 'Купить продукты', assignee: 'Александр', completed: false, category: 'Покупки', points: 15, reminderTime: '17:30', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Сыр', 'Яблоки', 'Картофель'] },
     { id: '6', title: 'Постирать белье', assignee: 'Елена', completed: false, category: 'Дом', points: 20 }
   ]);
+
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const [currentNotification, setCurrentNotification] = useState<Reminder | null>(null);
+
+  useEffect(() => {
+    const checkReminders = () => {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      tasks.forEach(task => {
+        if (!task.completed && task.reminderTime === currentTime) {
+          const existingReminder = reminders.find(r => r.taskId === task.id && r.notified);
+          if (!existingReminder) {
+            const newReminder: Reminder = {
+              id: Date.now().toString(),
+              taskId: task.id,
+              taskTitle: task.title,
+              time: currentTime,
+              notified: false
+            };
+            setCurrentNotification(newReminder);
+            setShowNotification(true);
+            setReminders(prev => [...prev, { ...newReminder, notified: true }]);
+          }
+        }
+      });
+    };
+
+    const interval = setInterval(checkReminders, 60000);
+    checkReminders();
+
+    return () => clearInterval(interval);
+  }, [tasks, reminders]);
 
   const [importantDates] = useState<ImportantDate[]>([
     { id: '1', title: 'День рождения Елены', date: '15 ноября', type: 'birthday', daysLeft: 6 },
@@ -290,6 +334,58 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50">
+      {showNotification && currentNotification && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <Card className="border-orange-500 border-2 shadow-2xl bg-gradient-to-br from-orange-100 to-yellow-100 min-w-[320px]">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Icon name="Bell" className="text-orange-600 animate-bounce" size={24} />
+                  <CardTitle className="text-lg">Напоминание!</CardTitle>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowNotification(false)}
+                  className="h-6 w-6 p-0"
+                >
+                  <Icon name="X" size={16} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="font-medium mb-2">{currentNotification.taskTitle}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <Icon name="Clock" size={14} />
+                Время: {currentNotification.time}
+              </div>
+              {tasks.find(t => t.id === currentNotification.taskId)?.shoppingList && (
+                <div className="bg-white rounded-lg p-3 border border-orange-300">
+                  <p className="font-semibold text-sm mb-2 flex items-center gap-1">
+                    <Icon name="ShoppingCart" size={14} />
+                    Список покупок:
+                  </p>
+                  <ul className="space-y-1">
+                    {tasks.find(t => t.id === currentNotification.taskId)?.shoppingList?.map((item, idx) => (
+                      <li key={idx} className="text-sm flex items-center gap-2">
+                        <Icon name="Check" size={12} className="text-green-600" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <Button 
+                className="w-full mt-3 bg-gradient-to-r from-orange-500 to-yellow-500"
+                onClick={() => setShowNotification(false)}
+              >
+                Понятно
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8 animate-fade-in">
           <div className="flex items-center justify-between mb-2">
@@ -516,10 +612,42 @@ export default function Index() {
                         <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
                           {task.title}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <Badge variant="secondary" className="text-xs">{task.category}</Badge>
                           <span className="text-xs text-muted-foreground">• {task.assignee}</span>
                           <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 text-xs">+{task.points} ⭐</Badge>
+                          {task.reminderTime && (
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-300 text-xs flex items-center gap-1">
+                              <Icon name="Bell" size={10} />
+                              {task.reminderTime}
+                            </Badge>
+                          )}
+                          {task.shoppingList && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs flex items-center gap-1 cursor-pointer hover:bg-blue-200">
+                                  <Icon name="ShoppingCart" size={10} />
+                                  Список ({task.shoppingList.length})
+                                </Badge>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2">
+                                    <Icon name="ShoppingCart" size={20} />
+                                    Список покупок
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-2 mt-4">
+                                  {task.shoppingList.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                                      <Checkbox className="h-4 w-4" />
+                                      <span className="text-sm">{item}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                         </div>
                       </div>
                       <Button variant="ghost" size="sm">
