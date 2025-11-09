@@ -75,6 +75,26 @@ interface Tradition {
   participants: string[];
 }
 
+interface MealOption {
+  id: string;
+  name: string;
+  description: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner';
+  icon: string;
+  cookingTime: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  votes: { [memberId: string]: boolean };
+}
+
+interface MealVoting {
+  id: string;
+  title: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner';
+  date: string;
+  options: MealOption[];
+  status: 'active' | 'completed';
+}
+
 export default function Index() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
     { id: '1', name: 'Александр', role: 'Муж', workload: 65, avatar: '👨', points: 450, level: 5, achievements: ['early_bird', 'helper', 'chef'] },
@@ -95,6 +115,87 @@ export default function Index() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [showNotification, setShowNotification] = useState(false);
   const [currentNotification, setCurrentNotification] = useState<Reminder | null>(null);
+
+  const [mealVotings, setMealVotings] = useState<MealVoting[]>([
+    {
+      id: '1',
+      title: 'Что приготовить на ужин сегодня?',
+      mealType: 'dinner',
+      date: '9 ноября',
+      status: 'active',
+      options: [
+        {
+          id: '1',
+          name: 'Паста карбонара',
+          description: 'Классическая итальянская паста с беконом и сливочным соусом',
+          mealType: 'dinner',
+          icon: '🍝',
+          cookingTime: '30 мин',
+          difficulty: 'easy',
+          votes: { '1': true, '2': true }
+        },
+        {
+          id: '2',
+          name: 'Куриные котлеты с пюре',
+          description: 'Сочные котлеты из куриного филе с нежным картофельным пюре',
+          mealType: 'dinner',
+          icon: '🍗',
+          cookingTime: '45 мин',
+          difficulty: 'medium',
+          votes: { '3': true, '4': true }
+        },
+        {
+          id: '3',
+          name: 'Запечённая рыба с овощами',
+          description: 'Лёгкое и полезное блюдо с сезонными овощами',
+          mealType: 'dinner',
+          icon: '🐟',
+          cookingTime: '40 мин',
+          difficulty: 'easy',
+          votes: {}
+        }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Завтрак на выходные',
+      mealType: 'breakfast',
+      date: '10 ноября',
+      status: 'active',
+      options: [
+        {
+          id: '4',
+          name: 'Блинчики с начинкой',
+          description: 'Пышные блинчики с вареньем, сгущёнкой или творогом',
+          mealType: 'breakfast',
+          icon: '🥞',
+          cookingTime: '25 мин',
+          difficulty: 'easy',
+          votes: { '1': true }
+        },
+        {
+          id: '5',
+          name: 'Омлет с овощами',
+          description: 'Богатый белком завтрак с болгарским перцем и помидорами',
+          mealType: 'breakfast',
+          icon: '🍳',
+          cookingTime: '15 мин',
+          difficulty: 'easy',
+          votes: { '2': true, '3': true }
+        },
+        {
+          id: '6',
+          name: 'Овсянка с фруктами',
+          description: 'Полезная каша с бананами, ягодами и орехами',
+          mealType: 'breakfast',
+          icon: '🥣',
+          cookingTime: '10 мин',
+          difficulty: 'easy',
+          votes: { '4': true }
+        }
+      ]
+    }
+  ]);
 
   useEffect(() => {
     const checkReminders = () => {
@@ -329,6 +430,53 @@ export default function Index() {
     return 'text-green-500';
   };
 
+  const toggleVote = (votingId: string, optionId: string, memberId: string) => {
+    setMealVotings(votings => 
+      votings.map(voting => {
+        if (voting.id === votingId) {
+          return {
+            ...voting,
+            options: voting.options.map(option => {
+              if (option.id === optionId) {
+                const newVotes = { ...option.votes };
+                if (newVotes[memberId]) {
+                  delete newVotes[memberId];
+                } else {
+                  newVotes[memberId] = true;
+                }
+                return { ...option, votes: newVotes };
+              }
+              return option;
+            })
+          };
+        }
+        return voting;
+      })
+    );
+  };
+
+  const getVoteCount = (votes: { [key: string]: boolean }) => {
+    return Object.keys(votes).length;
+  };
+
+  const getMealTypeLabel = (type: string) => {
+    switch (type) {
+      case 'breakfast': return 'Завтрак';
+      case 'lunch': return 'Обед';
+      case 'dinner': return 'Ужин';
+      default: return type;
+    }
+  };
+
+  const getDifficultyLabel = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'Легко';
+      case 'medium': return 'Средне';
+      case 'hard': return 'Сложно';
+      default: return difficulty;
+    }
+  };
+
   const completedTasksCount = tasks.filter(t => t.completed).length;
   const completionRate = Math.round((completedTasksCount / tasks.length) * 100);
 
@@ -501,6 +649,10 @@ export default function Index() {
             <TabsTrigger value="values" className="text-sm lg:text-base py-3">
               <Icon name="Sparkles" className="mr-1 lg:mr-2" size={16} />
               Ценности
+            </TabsTrigger>
+            <TabsTrigger value="meals" className="text-sm lg:text-base py-3">
+              <Icon name="ChefHat" className="mr-1 lg:mr-2" size={16} />
+              Меню
             </TabsTrigger>
             <TabsTrigger value="community" className="text-sm lg:text-base py-3">
               <Icon name="BookOpen" className="mr-1 lg:mr-2" size={16} />
@@ -1038,6 +1190,175 @@ export default function Index() {
                     <Icon name="MessageSquare" className="mr-2" size={16} />
                     Начать обсуждение
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="meals" className="space-y-4">
+            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Icon name="ChefHat" className="text-green-600" size={28} />
+                      Семейное меню
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">Голосуйте за любимые блюда всей семьёй</p>
+                  </div>
+                  <Button className="bg-gradient-to-r from-green-500 to-emerald-500">
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Предложить блюдо
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {mealVotings.map((voting, vIndex) => (
+                    <Card key={voting.id} className="animate-fade-in bg-white border-2 border-green-200" style={{ animationDelay: `${vIndex * 0.1}s` }}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-xl">{voting.title}</CardTitle>
+                            <div className="flex items-center gap-3 mt-2">
+                              <Badge className="bg-green-100 text-green-800 border-green-300">
+                                {getMealTypeLabel(voting.mealType)}
+                              </Badge>
+                              <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                <Icon name="Calendar" size={14} />
+                                {voting.date}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                {voting.status === 'active' ? 'Активно' : 'Завершено'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {voting.options.map((option, oIndex) => {
+                            const voteCount = getVoteCount(option.votes);
+                            const isLeader = voteCount > 0 && voting.options.every(o => getVoteCount(o.votes) <= voteCount);
+                            
+                            return (
+                              <Card 
+                                key={option.id}
+                                className={`animate-fade-in hover:shadow-lg transition-all ${isLeader && voteCount > 0 ? 'border-2 border-green-500 bg-green-50' : 'border border-gray-200'}`}
+                                style={{ animationDelay: `${(vIndex * 0.1) + (oIndex * 0.05)}s` }}
+                              >
+                                <CardHeader>
+                                  <div className="text-center">
+                                    <div className="text-5xl mb-2">{option.icon}</div>
+                                    <CardTitle className="text-lg">{option.name}</CardTitle>
+                                    {isLeader && voteCount > 0 && (
+                                      <Badge className="mt-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                                        🏆 Лидер
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                  <p className="text-sm text-center text-muted-foreground min-h-[40px]">
+                                    {option.description}
+                                  </p>
+                                  
+                                  <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <Icon name="Clock" size={12} />
+                                      {option.cookingTime}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Icon name="Gauge" size={12} />
+                                      {getDifficultyLabel(option.difficulty)}
+                                    </div>
+                                  </div>
+
+                                  <div className="bg-white border border-green-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-sm font-semibold">Голоса:</span>
+                                      <Badge className="bg-green-100 text-green-800 border-green-300">
+                                        {voteCount} из {familyMembers.length}
+                                      </Badge>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      {familyMembers.map(member => {
+                                        const hasVoted = option.votes[member.id];
+                                        return (
+                                          <button
+                                            key={member.id}
+                                            onClick={() => toggleVote(voting.id, option.id, member.id)}
+                                            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${
+                                              hasVoted 
+                                                ? 'bg-green-100 border-2 border-green-500 scale-110' 
+                                                : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
+                                            }`}
+                                            title={member.name}
+                                          >
+                                            <div className="text-2xl">{member.avatar}</div>
+                                            {hasVoted && <Icon name="Check" size={14} className="text-green-600" />}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  <Button 
+                                    className={`w-full ${voteCount > 0 ? 'bg-gradient-to-r from-green-500 to-emerald-500' : ''}`}
+                                    variant={voteCount > 0 ? 'default' : 'outline'}
+                                  >
+                                    <Icon name="ThumbsUp" className="mr-2" size={16} />
+                                    {voteCount > 0 ? `${voteCount} голос${voteCount > 1 ? 'а' : ''}` : 'Голосовать'}
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+
+                        <div className="mt-4 p-4 bg-white rounded-lg border border-green-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Icon name="Info" size={18} className="text-green-600" />
+                              <span className="text-sm font-medium">Совет:</span>
+                            </div>
+                            <Button variant="ghost" size="sm">
+                              <Icon name="MessageCircle" className="mr-2" size={14} />
+                              Обсудить в чате
+                            </Button>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Нажмите на аватар члена семьи, чтобы проголосовать за блюдо от его имени
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-6 bg-white rounded-lg border-2 border-green-300">
+                  <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Icon name="Lightbulb" className="text-green-600" size={22} />
+                    Популярные идеи для меню
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Button variant="outline" className="justify-start h-auto py-3 flex-col items-start">
+                      <div className="text-2xl mb-1">🍕</div>
+                      <span className="text-xs">Пицца</span>
+                    </Button>
+                    <Button variant="outline" className="justify-start h-auto py-3 flex-col items-start">
+                      <div className="text-2xl mb-1">🍜</div>
+                      <span className="text-xs">Супы</span>
+                    </Button>
+                    <Button variant="outline" className="justify-start h-auto py-3 flex-col items-start">
+                      <div className="text-2xl mb-1">🥗</div>
+                      <span className="text-xs">Салаты</span>
+                    </Button>
+                    <Button variant="outline" className="justify-start h-auto py-3 flex-col items-start">
+                      <div className="text-2xl mb-1">🍰</div>
+                      <span className="text-xs">Десерты</span>
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
