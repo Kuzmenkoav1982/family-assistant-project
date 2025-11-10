@@ -13,42 +13,14 @@ import FamilySetup from "./components/FamilySetup";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('user');
-    
-    if (token && storedUser) {
-      const user = JSON.parse(storedUser);
-      setCurrentUser(user);
-      
-      fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=verify', {
-        headers: {
-          'X-Auth-Token': token
-        }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setIsAuthenticated(true);
-            setNeedsSetup(!user.family_id);
-          } else {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
+    setIsAuthenticated(true);
+    setIsLoading(false);
   }, []);
 
   const handleAuthSuccess = (token: string, user: any) => {

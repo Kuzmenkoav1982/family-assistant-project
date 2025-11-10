@@ -35,31 +35,9 @@ export function useTasks() {
     setLoading(true);
     setError(null);
     
-    try {
-      const url = completed !== undefined 
-        ? `${API_URL}?completed=${completed}`
-        : API_URL;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-Auth-Token': getAuthToken()
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        setTasks(Array.isArray(data.tasks) ? data.tasks : []);
-      } else {
-        setError(data.error || 'Ошибка загрузки задач');
-        setTasks([]);
-      }
-    } catch (err) {
-      setError('Ошибка сети при загрузке задач');
-      setTasks([]);
-    } finally {
-      setLoading(false);
-    }
+    setTasks([]);
+    setLoading(false);
+    return;
   };
 
   const createTask = async (taskData: Partial<Task>) => {
