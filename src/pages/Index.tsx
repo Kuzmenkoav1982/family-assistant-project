@@ -69,7 +69,6 @@ export default function Index() {
     return (saved as ThemeType) || 'middle';
   });
   const [showThemeSelector, setShowThemeSelector] = useState(false);
-  const [showProjectInfo, setShowProjectInfo] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [welcomeText, setWelcomeText] = useState('');
 
@@ -87,7 +86,7 @@ export default function Index() {
   }, [tasks]);
 
   useEffect(() => {
-    const fullText = "Добро пожаловать в Семейный Органайзер! Место, где ваша семья становится командой.";
+    const fullText = "Добро пожаловать в Семейный Органайзер! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций и истории семьи.";
     let currentIndex = 0;
     
     const typingTimer = setInterval(() => {
@@ -97,29 +96,14 @@ export default function Index() {
       } else {
         clearInterval(typingTimer);
       }
-    }, 50);
+    }, 40);
     
     const hideTimer = setTimeout(() => {
       setShowWelcome(false);
-    }, 9000);
+    }, 14000);
 
     return () => {
       clearInterval(typingTimer);
-      clearTimeout(hideTimer);
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowProjectInfo(true);
-    }, 10000);
-
-    const hideTimer = setTimeout(() => {
-      setShowProjectInfo(false);
-    }, 18000);
-
-    return () => {
-      clearTimeout(timer);
       clearTimeout(hideTimer);
     };
   }, []);
@@ -393,10 +377,10 @@ export default function Index() {
                 Семейный Органайзер
               </h1>
               
-              <div className="min-h-[120px] flex items-center justify-center">
-                <p className="text-2xl md:text-3xl text-gray-700 font-medium leading-relaxed">
+              <div className="min-h-[200px] flex items-center justify-center px-4">
+                <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl">
                   {welcomeText}
-                  <span className="inline-block w-1 h-8 bg-purple-600 ml-1 animate-pulse"></span>
+                  <span className="inline-block w-1 h-7 bg-purple-600 ml-1 animate-pulse"></span>
                 </p>
               </div>
               
@@ -501,28 +485,9 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="relative inline-block">
-            <h1 className={`${themeClasses.headingFont} font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-4 animate-fade-in`}>
-              Семейный Органайзер
-            </h1>
-            
-            {showProjectInfo && (
-              <Card className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-2xl animate-fade-in">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Icon name="Target" className="text-blue-600 flex-shrink-0 mt-1" size={24} />
-                    <div>
-                      <h3 className="font-bold text-blue-900 mb-2">Цель проекта:</h3>
-                      <p className="text-sm text-blue-800 leading-relaxed">
-                        Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, 
-                        бережная передача семейных традиций и истории семьи
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          <h1 className={`${themeClasses.headingFont} font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-4 animate-fade-in`}>
+            Семейный Органайзер
+          </h1>
           
           <p className="text-lg lg:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
             Управление семейной жизнью с AI-помощником
