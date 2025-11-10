@@ -43,8 +43,13 @@ import {
   getWeekDays,
 } from '@/data/mockData';
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
+import { LoginScreen } from '@/components/LoginScreen';
 
 export default function Index() {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
+    return localStorage.getItem('currentUserId');
+  });
+  
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(() => {
     const saved = localStorage.getItem('familyMembers');
     return saved ? JSON.parse(saved) : initialFamilyMembers;
@@ -64,7 +69,6 @@ export default function Index() {
   const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
   const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
-  const [selectedUserId] = useState<string>('1');
   const [newMessage, setNewMessage] = useState('');
   const [calendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
@@ -74,6 +78,22 @@ export default function Index() {
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [welcomeText, setWelcomeText] = useState('');
+
+  const handleLogin = (memberId: string) => {
+    setCurrentUserId(memberId);
+    localStorage.setItem('currentUserId', memberId);
+  };
+
+  const handleLogout = () => {
+    setCurrentUserId(null);
+    localStorage.removeItem('currentUserId');
+  };
+
+  const currentUser = familyMembers.find(m => m.id === currentUserId);
+
+  if (!currentUserId || !currentUser) {
+    return <LoginScreen familyMembers={familyMembers} onLogin={handleLogin} />;
+  }
 
   useEffect(() => {
     localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
@@ -443,7 +463,19 @@ export default function Index() {
         </Card>
 
         <header className="text-center mb-8 relative">
-          <div className="flex justify-center items-start mb-4 lg:mb-0">
+          <div className="flex justify-between items-start mb-4 lg:mb-0">
+            <div className="lg:absolute lg:top-0 lg:left-4">
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="border-2 border-orange-300 hover:bg-orange-50"
+                size="sm"
+              >
+                <Icon name="LogOut" className="mr-2" size={16} />
+                Выход ({currentUser.name})
+              </Button>
+            </div>
+            
             <div className="lg:absolute lg:top-0 lg:right-4">
               <Button
                 onClick={() => setShowThemeSelector(!showThemeSelector)}
@@ -640,7 +672,7 @@ export default function Index() {
                 selectedTreeMember={selectedTreeMember}
                 setSelectedTreeMember={setSelectedTreeMember}
                 aiRecommendations={aiRecommendations}
-                selectedUserId={selectedUserId}
+                selectedUserId={currentUserId}
                 newMessage={newMessage}
                 setNewMessage={setNewMessage}
                 toggleTask={toggleTask}
