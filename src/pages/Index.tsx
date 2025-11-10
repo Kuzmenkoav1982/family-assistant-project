@@ -82,6 +82,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
+  const currentUserId = currentUser?.id || user.member_id || '';
 
   const handleLogoutLocal = () => {
     onLogout?.();
