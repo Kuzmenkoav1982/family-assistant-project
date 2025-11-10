@@ -16,25 +16,6 @@ import type {
   AIRecommendation,
 } from '@/types/family.types';
 
-export function getWeekDays() {
-  const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-  const today = new Date();
-  const result = [];
-  
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    result.push({
-      day: days[date.getDay() === 0 ? 6 : date.getDay() - 1],
-      date: date.getDate(),
-      fullDate: date.toISOString().split('T')[0],
-      isToday: i === 0
-    });
-  }
-  
-  return result;
-}
-
 export const initialFamilyMembers: FamilyMember[] = [
   { 
     id: '1', 
