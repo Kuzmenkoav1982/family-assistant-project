@@ -15,19 +15,28 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True
+    return conn
+
+def escape_string(value: Any) -> str:
+    if value is None:
+        return 'NULL'
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, bool):
+        return 'TRUE' if value else 'FALSE'
+    return "'" + str(value).replace("'", "''") + "'"
 
 def verify_token(token: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"""
+    query = f"""
         SELECT user_id FROM {SCHEMA}.sessions 
-        WHERE token = %s AND expires_at > CURRENT_TIMESTAMP
-        """,
-        (token,)
-    )
+        WHERE token = {escape_string(token)} AND expires_at > CURRENT_TIMESTAMP
+    """
+    cur.execute(query)
     session = cur.fetchone()
     cur.close()
     conn.close()
@@ -38,33 +47,29 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"""
+    query = f"""
         SELECT family_id FROM {SCHEMA}.family_members 
-        WHERE user_id = %s LIMIT 1
-        """,
-        (user_id,)
-    )
+        WHERE user_id = {escape_string(user_id)} LIMIT 1
+    """
+    cur.execute(query)
     member = cur.fetchone()
     cur.close()
     conn.close()
     
-    return str(member['family_id']) if member else None
+    return str(member['family_id']) if member and member['family_id'] else None
 
 def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"""
+    query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
                photo_url, points, level, workload, age, created_at, updated_at
         FROM {SCHEMA}.family_members
-        WHERE family_id = %s
+        WHERE family_id = {escape_string(family_id)}
         ORDER BY created_at ASC
-        """,
-        (family_id,)
-    )
+    """
+    cur.execute(query)
     members = cur.fetchall()
     cur.close()
     conn.close()
@@ -76,30 +81,27 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        cur.execute(
-            f"""
+        query = f"""
             INSERT INTO {SCHEMA}.family_members
             (family_id, name, role, relationship, avatar, avatar_type, 
              photo_url, points, level, workload, age)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id, name, role, relationship, avatar, points, level, workload
-            """,
-            (
-                family_id,
-                data.get('name', ''),
-                data.get('role', 'Член семьи'),
-                data.get('relationship', ''),
-                data.get('avatar', '👤'),
-                data.get('avatar_type', 'emoji'),
-                data.get('photo_url'),
-                data.get('points', 0),
-                data.get('level', 1),
-                data.get('workload', 0),
-                data.get('age')
+            VALUES (
+                {escape_string(family_id)},
+                {escape_string(data.get('name', ''))},
+                {escape_string(data.get('role', 'Член семьи'))},
+                {escape_string(data.get('relationship', ''))},
+                {escape_string(data.get('avatar', '👤'))},
+                {escape_string(data.get('avatar_type', 'emoji'))},
+                {escape_string(data.get('photo_url'))},
+                {escape_string(data.get('points', 0))},
+                {escape_string(data.get('level', 1))},
+                {escape_string(data.get('workload', 0))},
+                {escape_string(data.get('age'))}
             )
-        )
+            RETURNING id, name, role, relationship, avatar, points, level, workload
+        """
+        cur.execute(query)
         member = cur.fetchone()
-        conn.commit()
         cur.close()
         conn.close()
         
@@ -108,7 +110,6 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             'member': dict(member)
         }
     except Exception as e:
-        conn.rollback()
         cur.close()
         conn.close()
         return {'error': str(e)}
@@ -118,23 +119,18 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        cur.execute(
-            f"SELECT id FROM {SCHEMA}.family_members WHERE id = %s AND family_id = %s",
-            (member_id, family_id)
-        )
+        check_query = f"SELECT id FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
+        cur.execute(check_query)
         if not cur.fetchone():
             cur.close()
             conn.close()
             return {'error': 'Член семьи не найден'}
         
         fields = []
-        values = []
-        
         for field in ['name', 'role', 'relationship', 'avatar', 'avatar_type', 
                       'photo_url', 'points', 'level', 'workload', 'age']:
             if field in data:
-                fields.append(f"{field} = %s")
-                values.append(data[field])
+                fields.append(f"{field} = {escape_string(data[field])}")
         
         if not fields:
             cur.close()
@@ -142,18 +138,16 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             return {'error': 'Нет данных для обновления'}
         
         fields.append("updated_at = CURRENT_TIMESTAMP")
-        values.extend([member_id, family_id])
         
         query = f"""
             UPDATE {SCHEMA}.family_members 
             SET {', '.join(fields)}
-            WHERE id = %s AND family_id = %s
+            WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}
             RETURNING id, name, role, relationship, avatar, points, level, workload
         """
         
-        cur.execute(query, tuple(values))
+        cur.execute(query)
         member = cur.fetchone()
-        conn.commit()
         cur.close()
         conn.close()
         
@@ -162,7 +156,6 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             'member': dict(member)
         }
     except Exception as e:
-        conn.rollback()
         cur.close()
         conn.close()
         return {'error': str(e)}
@@ -172,10 +165,8 @@ def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        cur.execute(
-            f"SELECT user_id FROM {SCHEMA}.family_members WHERE id = %s AND family_id = %s",
-            (member_id, family_id)
-        )
+        query = f"SELECT user_id FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
+        cur.execute(query)
         member = cur.fetchone()
         
         if not member:
@@ -188,17 +179,13 @@ def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
             conn.close()
             return {'error': 'Нельзя удалить члена семьи с привязанным аккаунтом'}
         
-        cur.execute(
-            f"UPDATE {SCHEMA}.family_members SET family_id = NULL WHERE id = %s",
-            (member_id,)
-        )
-        conn.commit()
+        delete_query = f"UPDATE {SCHEMA}.family_members SET family_id = NULL WHERE id = {escape_string(member_id)}"
+        cur.execute(delete_query)
         cur.close()
         conn.close()
         
         return {'success': True}
     except Exception as e:
-        conn.rollback()
         cur.close()
         conn.close()
         return {'error': str(e)}
@@ -215,7 +202,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     headers = {
@@ -224,14 +212,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
     
     try:
-        token = event.get('headers', {}).get('X-Auth-Token', '')
+        token = event.get('headers', {}).get('X-Auth-Token', '') or event.get('headers', {}).get('x-auth-token', '')
         user_id = verify_token(token)
         
         if not user_id:
             return {
                 'statusCode': 401,
                 'headers': headers,
-                'body': json.dumps({'error': 'Требуется авторизация'})
+                'body': json.dumps({'error': 'Требуется авторизация'}),
+                'isBase64Encoded': False
             }
         
         family_id = get_user_family_id(user_id)
@@ -241,13 +230,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 200,
                     'headers': headers,
-                    'body': json.dumps({'members': []})
+                    'body': json.dumps({'members': []}),
+                    'isBase64Encoded': False
                 }
             members = get_family_members(family_id)
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps({'members': members}, default=str)
+                'body': json.dumps({'members': members}, default=str),
+                'isBase64Encoded': False
             }
         
         elif method == 'POST':
@@ -255,7 +246,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 403,
                     'headers': headers,
-                    'body': json.dumps({'error': 'Пользователь не состоит в семье'})
+                    'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
+                    'isBase64Encoded': False
                 }
             body = json.loads(event.get('body', '{}'))
             result = add_family_member(family_id, body)
@@ -264,13 +256,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': headers,
-                    'body': json.dumps(result)
+                    'body': json.dumps(result),
+                    'isBase64Encoded': False
                 }
             
             return {
                 'statusCode': 201,
                 'headers': headers,
-                'body': json.dumps(result, default=str)
+                'body': json.dumps(result, default=str),
+                'isBase64Encoded': False
             }
         
         elif method == 'PUT':
@@ -278,7 +272,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 403,
                     'headers': headers,
-                    'body': json.dumps({'error': 'Пользователь не состоит в семье'})
+                    'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
+                    'isBase64Encoded': False
                 }
             body = json.loads(event.get('body', '{}'))
             member_id = body.get('id')
@@ -287,7 +282,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': headers,
-                    'body': json.dumps({'error': 'Требуется ID члена семьи'})
+                    'body': json.dumps({'error': 'Требуется ID члена семьи'}),
+                    'isBase64Encoded': False
                 }
             
             result = update_family_member(member_id, family_id, body)
@@ -296,13 +292,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 404 if 'не найден' in result['error'] else 400,
                     'headers': headers,
-                    'body': json.dumps(result)
+                    'body': json.dumps(result),
+                    'isBase64Encoded': False
                 }
             
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps(result, default=str)
+                'body': json.dumps(result, default=str),
+                'isBase64Encoded': False
             }
         
         elif method == 'DELETE':
@@ -310,7 +308,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 403,
                     'headers': headers,
-                    'body': json.dumps({'error': 'Пользователь не состоит в семье'})
+                    'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
+                    'isBase64Encoded': False
                 }
             params = event.get('queryStringParameters', {})
             member_id = params.get('id')
@@ -319,7 +318,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': headers,
-                    'body': json.dumps({'error': 'Требуется ID члена семьи'})
+                    'body': json.dumps({'error': 'Требуется ID члена семьи'}),
+                    'isBase64Encoded': False
                 }
             
             result = delete_family_member(member_id, family_id)
@@ -328,24 +328,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': headers,
-                    'body': json.dumps(result)
+                    'body': json.dumps(result),
+                    'isBase64Encoded': False
                 }
             
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps(result)
+                'body': json.dumps(result),
+                'isBase64Encoded': False
             }
         
         return {
             'statusCode': 405,
             'headers': headers,
-            'body': json.dumps({'error': 'Метод не поддерживается'})
+            'body': json.dumps({'error': 'Метод не поддерживается'}),
+            'isBase64Encoded': False
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
             'headers': headers,
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
         }
