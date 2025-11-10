@@ -626,7 +626,7 @@ export default function Index({ onLogout }: IndexProps) {
                 familyMembers={familyMembers}
                 setFamilyMembers={setFamilyMembers}
                 tasks={tasks}
-                setTasks={setTasks}
+                setTasks={() => console.warn('setTasks deprecated, tasks managed by useTasks hook')}
                 traditions={traditions}
                 familyValues={familyValues}
                 blogPosts={blogPosts}
