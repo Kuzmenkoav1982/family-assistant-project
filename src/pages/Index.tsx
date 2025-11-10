@@ -54,6 +54,15 @@ export default function Index({ onLogout }: IndexProps) {
   const { tasks, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
+  console.log('Index render:', { 
+    familyMembers, 
+    familyMembersCount: familyMembers?.length,
+    tasks,
+    tasksCount: tasks?.length,
+    membersLoading, 
+    tasksLoading 
+  });
+  
   const setFamilyMembers = (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
@@ -353,9 +362,22 @@ export default function Index({ onLogout }: IndexProps) {
   const themeClasses = getThemeClasses(currentTheme);
 
   const totalPoints = familyMembers.reduce((sum, member) => sum + member.points, 0);
-  const avgWorkload = Math.round(familyMembers.reduce((sum, member) => sum + member.workload, 0) / familyMembers.length);
-  const completedTasks = tasks.filter(t => t.completed).length;
-  const totalTasks = tasks.length;
+  const avgWorkload = familyMembers.length > 0 
+    ? Math.round(familyMembers.reduce((sum, member) => sum + member.workload, 0) / familyMembers.length)
+    : 0;
+  const completedTasks = (tasks || []).filter(t => t.completed).length;
+  const totalTasks = (tasks || []).length;
+
+  if (membersLoading || tasksLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Загрузка данных семьи...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
