@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "Send verification code",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "send_verification",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Request password reset",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "request_reset",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

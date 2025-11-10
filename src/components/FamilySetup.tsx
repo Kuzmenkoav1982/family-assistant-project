@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
 interface FamilySetupProps {
@@ -10,12 +11,26 @@ interface FamilySetupProps {
   onSetupComplete: () => void;
 }
 
+const RELATIONSHIPS = [
+  'Отец', 'Мать', 'Сын', 'Дочь',
+  'Муж', 'Жена', 
+  'Дедушка', 'Бабушка', 'Внук', 'Внучка',
+  'Брат', 'Сестра',
+  'Дядя', 'Тётя', 'Племянник', 'Племянница',
+  'Прадедушка', 'Прабабушка', 'Правнук', 'Правнучка',
+  'Двоюродный брат', 'Двоюродная сестра',
+  'Зять', 'Невестка', 'Тесть', 'Тёща', 'Свёкор', 'Свекровь',
+  'Другое'
+];
+
 export default function FamilySetup({ user, onSetupComplete }: FamilySetupProps) {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user.email?.split('@')[0] || user.phone?.slice(-4) || '',
     role: 'Владелец',
+    relationship: '',
+    customRelationship: '',
     avatar: '👤'
   });
 
@@ -91,6 +106,35 @@ export default function FamilySetup({ user, onSetupComplete }: FamilySetupProps)
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="relationship">Степень родства</Label>
+                    <Select 
+                      value={profileData.relationship} 
+                      onValueChange={(value) => setProfileData({ ...profileData, relationship: value, customRelationship: '' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите родство" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RELATIONSHIPS.map((rel) => (
+                          <SelectItem key={rel} value={rel}>{rel}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {profileData.relationship === 'Другое' && (
+                    <div className="space-y-2 animate-fade-in">
+                      <Label htmlFor="customRelationship">Укажите своё родство</Label>
+                      <Input
+                        id="customRelationship"
+                        placeholder="Например: Опекун, Крёстный"
+                        value={profileData.customRelationship}
+                        onChange={(e) => setProfileData({ ...profileData, customRelationship: e.target.value })}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
                     <Label>Выберите аватар</Label>
                     <div className="grid grid-cols-5 gap-2">
                       {avatars.map((emoji) => (
@@ -115,7 +159,7 @@ export default function FamilySetup({ user, onSetupComplete }: FamilySetupProps)
                   onClick={() => setStep(2)} 
                   className="w-full" 
                   size="lg"
-                  disabled={!profileData.name.trim()}
+                  disabled={!profileData.name.trim() || !profileData.relationship || (profileData.relationship === 'Другое' && !profileData.customRelationship.trim())}
                 >
                   <Icon name="ArrowRight" className="mr-2" size={20} />
                   Продолжить
@@ -129,6 +173,9 @@ export default function FamilySetup({ user, onSetupComplete }: FamilySetupProps)
                   <div className="text-7xl">{profileData.avatar}</div>
                   <h3 className="text-2xl font-bold">{profileData.name}</h3>
                   <p className="text-lg text-gray-600">{profileData.role}</p>
+                  <p className="text-md text-gray-500">
+                    {profileData.relationship === 'Другое' ? profileData.customRelationship : profileData.relationship}
+                  </p>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-6 space-y-4">

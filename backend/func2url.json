@@ -1,4 +1,6 @@
 {
+  "user-management": "https://functions.poehali.dev/db70be67-64af-4e9d-ab90-8485ed49c99f",
+  "family-invites": "https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d",
   "tasks": "https://functions.poehali.dev/638290a3-bc43-46ef-9ca1-1e80b72544bf",
   "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0",
   "alice-webhook": "https://functions.poehali.dev/06ed580e-0fae-4278-a2cc-e5f626486d18"
