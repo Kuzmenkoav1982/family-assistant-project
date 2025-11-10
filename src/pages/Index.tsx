@@ -54,15 +54,6 @@ export default function Index({ onLogout }: IndexProps) {
   const { tasks, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
-  console.log('Index render:', { 
-    familyMembers, 
-    familyMembersCount: familyMembers?.length,
-    tasks,
-    tasksCount: tasks?.length,
-    membersLoading, 
-    tasksLoading 
-  });
-  
   const setFamilyMembers = (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
@@ -98,6 +89,11 @@ export default function Index({ onLogout }: IndexProps) {
   };
 
   useEffect(() => {
+    if (!tasks || !Array.isArray(tasks)) {
+      setReminders([]);
+      return;
+    }
+    
     const newReminders: Reminder[] = tasks
       .filter(task => !task.completed && task.reminderTime)
       .map(task => ({
