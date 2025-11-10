@@ -723,10 +723,53 @@ export function FamilyTabsContent({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
                     +{task.points} баллов
                   </Badge>
+                  {task.completed && task.isRecurring && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-xs border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          <Icon name="X" size={14} className="mr-1" />
+                          Отменить
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Отменить повторение задачи?</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground">
+                            Вы уверены, что хотите отменить создание следующей повторяющейся задачи "{task.title}"?
+                          </p>
+                          <p className="text-sm font-medium">
+                            Это отменит только следующее повторение. Текущая задача останется выполненной.
+                          </p>
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="outline" onClick={() => {}}>
+                              Закрыть
+                            </Button>
+                            <Button 
+                              variant="destructive"
+                              onClick={() => {
+                                setTasks(prevTasks => prevTasks.filter(t => {
+                                  const isNextOccurrence = t.id.startsWith(`${task.id}-`) && !t.completed;
+                                  return !isNextOccurrence;
+                                }));
+                              }}
+                            >
+                              Отменить повторение
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               </CardContent>
             </Card>

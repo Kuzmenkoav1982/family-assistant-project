@@ -118,16 +118,74 @@ export default function Index() {
   }, [reminders]);
 
   const toggleTask = (taskId: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === taskId) {
-        const newCompleted = !task.completed;
-        if (newCompleted) {
-          addPoints(task.assignee, task.points);
+    setTasks(prevTasks => {
+      return prevTasks.map(task => {
+        if (task.id === taskId) {
+          const newCompleted = !task.completed;
+          
+          if (newCompleted) {
+            addPoints(task.assignee, task.points);
+            
+            if (task.isRecurring && task.recurringPattern) {
+              const nextDate = getNextOccurrenceDate(task);
+              if (nextDate) {
+                const newTask: Task = {
+                  ...task,
+                  id: `${task.id}-${Date.now()}`,
+                  completed: false,
+                  nextOccurrence: nextDate,
+                };
+                
+                setTimeout(() => {
+                  setTasks(prev => [...prev, newTask]);
+                }, 100);
+              }
+            }
+          }
+          
+          return { ...task, completed: newCompleted };
         }
-        return { ...task, completed: newCompleted };
-      }
-      return task;
-    }));
+        return task;
+      });
+    });
+  };
+
+  const getNextOccurrenceDate = (task: Task): string | undefined => {
+    if (!task.recurringPattern) return undefined;
+    
+    const now = new Date();
+    const { frequency, interval, daysOfWeek, endDate } = task.recurringPattern;
+    
+    if (endDate && new Date(endDate) < now) return undefined;
+    
+    const next = new Date(now);
+    
+    switch (frequency) {
+      case 'daily':
+        next.setDate(next.getDate() + interval);
+        break;
+      case 'weekly':
+        if (daysOfWeek && daysOfWeek.length > 0) {
+          const currentDay = next.getDay();
+          const sortedDays = [...daysOfWeek].sort((a, b) => a - b);
+          const nextDay = sortedDays.find(d => d > currentDay) || sortedDays[0];
+          const daysToAdd = nextDay > currentDay 
+            ? nextDay - currentDay 
+            : 7 - currentDay + nextDay;
+          next.setDate(next.getDate() + daysToAdd);
+        } else {
+          next.setDate(next.getDate() + 7 * interval);
+        }
+        break;
+      case 'monthly':
+        next.setMonth(next.getMonth() + interval);
+        break;
+      case 'yearly':
+        next.setFullYear(next.getFullYear() + interval);
+        break;
+    }
+    
+    return next.toISOString().split('T')[0];
   };
 
   const addPoints = (memberName: string, points: number) => {

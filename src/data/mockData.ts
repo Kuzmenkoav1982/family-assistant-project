@@ -116,13 +116,13 @@ export const initialFamilyMembers: FamilyMember[] = [
 ];
 
 export const initialTasks: Task[] = [
-  { id: '1', title: 'Приготовить ужин', assignee: 'Елена', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00' },
-  { id: '2', title: 'Вынести мусор', assignee: 'Александр', completed: true, category: 'Дом', points: 10 },
-  { id: '3', title: 'Сделать уроки', assignee: 'Максим', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00' },
-  { id: '4', title: 'Убрать комнату', assignee: 'София', completed: false, category: 'Дом', points: 20 },
+  { id: '1', title: 'Приготовить ужин', assignee: 'Елена', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '2', title: 'Вынести мусор', assignee: 'Александр', completed: true, category: 'Дом', points: 10, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [1, 4] }, nextOccurrence: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0] },
+  { id: '3', title: 'Сделать уроки', assignee: 'Максим', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '4', title: 'Убрать комнату', assignee: 'София', completed: false, category: 'Дом', points: 20, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [6] }, nextOccurrence: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0] },
   { id: '5', title: 'Полить цветы', assignee: 'Виктор', completed: false, category: 'Сад', points: 15 },
   { id: '6', title: 'Купить продукты', assignee: 'Александр', completed: false, category: 'Покупки', points: 20, reminderTime: '12:00', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Овощи'] },
-  { id: '7', title: 'Испечь пирог', assignee: 'Анна', completed: false, category: 'Кухня', points: 35 },
+  { id: '7', title: 'Испечь пирог', assignee: 'Анна', completed: false, category: 'Кухня', points: 35, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [0] }, nextOccurrence: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0] },
 ];
 
 export const initialChildrenProfiles: ChildProfile[] = [
