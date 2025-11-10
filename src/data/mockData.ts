@@ -822,64 +822,71 @@ export function getWeekDays() {
   return days;
 }
 
-export const initialCalendarEvents: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Футбольная тренировка Максима',
-    description: 'Еженедельная тренировка в спортивном центре',
-    date: getWeekDays()[1].fullDate,
-    time: '16:00',
-    createdBy: '2',
-    createdByName: 'Елена',
-    createdByAvatar: '👩',
-    visibility: 'family',
-    category: 'Спорт',
-    color: 'bg-green-100',
-    attendees: ['3']
-  },
-  {
-    id: '2',
-    title: 'Балет Софии',
-    description: 'Занятие в школе танца',
-    date: getWeekDays()[2].fullDate,
-    time: '16:30',
-    createdBy: '2',
-    createdByName: 'Елена',
-    createdByAvatar: '👩',
-    visibility: 'family',
-    category: 'Творчество',
-    color: 'bg-pink-100',
-    attendees: ['4']
-  },
-  {
-    id: '3',
-    title: 'Родительское собрание',
-    description: 'Собрание в школе',
-    date: getWeekDays()[3].fullDate,
-    time: '18:00',
-    createdBy: '2',
-    createdByName: 'Елена',
-    createdByAvatar: '👩',
-    visibility: 'family',
-    category: 'Школа',
-    color: 'bg-blue-100',
-    attendees: ['1', '2']
-  },
-  {
-    id: '4',
-    title: 'Семейный ужин',
-    description: 'Воскресный обед всей семьей',
-    date: getWeekDays()[6].fullDate,
-    time: '14:00',
-    createdBy: '1',
-    createdByName: 'Александр',
-    createdByAvatar: '👨',
-    visibility: 'family',
-    category: 'Семья',
-    color: 'bg-yellow-100',
-    attendees: ['1', '2', '3', '4', '5', '6']
+export const initialCalendarEvents: CalendarEvent[] = (() => {
+  const weekDays = getWeekDays();
+  if (!weekDays || weekDays.length < 7) {
+    return [];
   }
-];
+  
+  return [
+    {
+      id: '1',
+      title: 'Футбольная тренировка Максима',
+      description: 'Еженедельная тренировка в спортивном центре',
+      date: weekDays[1]?.fullDate || '',
+      time: '16:00',
+      createdBy: '2',
+      createdByName: 'Елена',
+      createdByAvatar: '👩',
+      visibility: 'family',
+      category: 'Спорт',
+      color: 'bg-green-100',
+      attendees: ['3']
+    },
+    {
+      id: '2',
+      title: 'Балет Софии',
+      description: 'Занятие в школе танца',
+      date: weekDays[2]?.fullDate || '',
+      time: '16:30',
+      createdBy: '2',
+      createdByName: 'Елена',
+      createdByAvatar: '👩',
+      visibility: 'family',
+      category: 'Творчество',
+      color: 'bg-pink-100',
+      attendees: ['4']
+    },
+    {
+      id: '3',
+      title: 'Родительское собрание',
+      description: 'Собрание в школе',
+      date: weekDays[3]?.fullDate || '',
+      time: '18:00',
+      createdBy: '2',
+      createdByName: 'Елена',
+      createdByAvatar: '👩',
+      visibility: 'family',
+      category: 'Школа',
+      color: 'bg-blue-100',
+      attendees: ['1', '2']
+    },
+    {
+      id: '4',
+      title: 'Семейный ужин',
+      description: 'Воскресный обед всей семьей',
+      date: weekDays[6]?.fullDate || '',
+      time: '14:00',
+      createdBy: '1',
+      createdByName: 'Александр',
+      createdByAvatar: '👨',
+      visibility: 'family',
+      category: 'Семья',
+      color: 'bg-yellow-100',
+      attendees: ['1', '2', '3', '4', '5', '6']
+    }
+  ];
+})();
 
 export const initialAIRecommendations: AIRecommendation[] = [
   // Александр - 39 лет, взрослый мужчина

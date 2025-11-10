@@ -49,12 +49,14 @@ export function useTasks() {
       const data = await response.json();
       
       if (response.ok) {
-        setTasks(data.tasks || []);
+        setTasks(Array.isArray(data.tasks) ? data.tasks : []);
       } else {
         setError(data.error || 'Ошибка загрузки задач');
+        setTasks([]);
       }
     } catch (err) {
       setError('Ошибка сети при загрузке задач');
+      setTasks([]);
     } finally {
       setLoading(false);
     }

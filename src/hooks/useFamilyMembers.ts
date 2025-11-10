@@ -40,12 +40,14 @@ export function useFamilyMembers() {
       const data = await response.json();
       
       if (response.ok) {
-        setMembers(data.members || []);
+        setMembers(Array.isArray(data.members) ? data.members : []);
       } else {
         setError(data.error || 'Ошибка загрузки членов семьи');
+        setMembers([]);
       }
     } catch (err) {
       setError('Ошибка сети при загрузке членов семьи');
+      setMembers([]);
     } finally {
       setLoading(false);
     }
