@@ -18,7 +18,8 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    familyName: ''
   });
   
   const [loginData, setLoginData] = useState({
@@ -51,7 +52,8 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
         body: JSON.stringify({
           email: registerData.email || undefined,
           phone: registerData.phone || undefined,
-          password: registerData.password
+          password: registerData.password,
+          family_name: registerData.familyName || undefined
         })
       });
       
@@ -197,6 +199,17 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
                     placeholder="+79991234567"
                     value={registerData.phone}
                     onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="reg-family">Название семьи (необязательно)</Label>
+                  <Input
+                    id="reg-family"
+                    type="text"
+                    placeholder="Семья Ивановых"
+                    value={registerData.familyName}
+                    onChange={(e) => setRegisterData({ ...registerData, familyName: e.target.value })}
                   />
                 </div>
                 

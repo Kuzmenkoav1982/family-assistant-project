@@ -34,7 +34,7 @@ def validate_phone(phone: str) -> bool:
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-def register_user(email: Optional[str], phone: Optional[str], password: str) -> Dict[str, Any]:
+def register_user(email: Optional[str], phone: Optional[str], password: str, family_name: Optional[str] = None) -> Dict[str, Any]:
     if not email and not phone:
         return {'error': 'Email или телефон обязательны'}
     
@@ -50,50 +50,80 @@ def register_user(email: Optional[str], phone: Optional[str], password: str) -> 
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    password_hash = hash_password(password)
-    
-    if email:
-        cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE email = %s", (email,))
-        if cur.fetchone():
-            cur.close()
-            conn.close()
-            return {'error': 'Email уже зарегистрирован'}
-    
-    if phone:
-        cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE phone = %s", (phone,))
-        if cur.fetchone():
-            cur.close()
-            conn.close()
-            return {'error': 'Телефон уже зарегистрирован'}
-    
-    cur.execute(
-        f"INSERT INTO {SCHEMA}.users (email, phone, password_hash, is_verified) VALUES (%s, %s, %s, %s) RETURNING id, email, phone, created_at",
-        (email, phone, password_hash, True)
-    )
-    user = cur.fetchone()
-    conn.commit()
-    
-    token = generate_token()
-    expires_at = datetime.now() + timedelta(days=30)
-    
-    cur.execute(
-        f"INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at) VALUES (%s, %s, %s)",
-        (user['id'], token, expires_at)
-    )
-    conn.commit()
-    
-    cur.close()
-    conn.close()
-    
-    return {
-        'success': True,
-        'token': token,
-        'user': {
-            'id': str(user['id']),
-            'email': user['email'],
-            'phone': user['phone']
+    try:
+        password_hash = hash_password(password)
+        
+        if email:
+            cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE email = %s", (email,))
+            if cur.fetchone():
+                cur.close()
+                conn.close()
+                return {'error': 'Email уже зарегистрирован'}
+        
+        if phone:
+            cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE phone = %s", (phone,))
+            if cur.fetchone():
+                cur.close()
+                conn.close()
+                return {'error': 'Телефон уже зарегистрирован'}
+        
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.users (email, phone, password_hash, is_verified) VALUES (%s, %s, %s, %s) RETURNING id, email, phone, created_at",
+            (email, phone, password_hash, True)
+        )
+        user = cur.fetchone()
+        conn.commit()
+        
+        default_family_name = family_name or f"Семья {email or phone}"
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.families (name) VALUES (%s) RETURNING id, name",
+            (default_family_name,)
+        )
+        family = cur.fetchone()
+        conn.commit()
+        
+        member_name = email.split('@')[0] if email else phone[-4:]
+        cur.execute(
+            f"""
+            INSERT INTO {SCHEMA}.family_members 
+            (family_id, user_id, name, role, points, level, workload, avatar, avatar_type) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """,
+            (family['id'], user['id'], member_name, 'Владелец', 0, 1, 0, '👤', 'emoji')
+        )
+        member = cur.fetchone()
+        conn.commit()
+        
+        token = generate_token()
+        expires_at = datetime.now() + timedelta(days=30)
+        
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at) VALUES (%s, %s, %s)",
+            (user['id'], token, expires_at)
+        )
+        conn.commit()
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'token': token,
+            'user': {
+                'id': str(user['id']),
+                'email': user['email'],
+                'phone': user['phone'],
+                'family_id': str(family['id']),
+                'family_name': family['name'],
+                'member_id': str(member['id'])
+            }
         }
-    }
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка регистрации: {str(e)}'}
 
 def login_user(login: str, password: str) -> Dict[str, Any]:
     conn = get_db_connection()
@@ -119,6 +149,18 @@ def login_user(login: str, password: str) -> Dict[str, Any]:
         conn.close()
         return {'error': 'Неверный пароль'}
     
+    cur.execute(
+        f"""
+        SELECT fm.family_id, f.name as family_name, fm.id as member_id
+        FROM {SCHEMA}.family_members fm
+        JOIN {SCHEMA}.families f ON fm.family_id = f.id
+        WHERE fm.user_id = %s
+        LIMIT 1
+        """,
+        (user['id'],)
+    )
+    family_info = cur.fetchone()
+    
     token = generate_token()
     expires_at = datetime.now() + timedelta(days=30)
     
@@ -137,14 +179,21 @@ def login_user(login: str, password: str) -> Dict[str, Any]:
     cur.close()
     conn.close()
     
+    user_data = {
+        'id': str(user['id']),
+        'email': user['email'],
+        'phone': user['phone']
+    }
+    
+    if family_info:
+        user_data['family_id'] = str(family_info['family_id'])
+        user_data['family_name'] = family_info['family_name']
+        user_data['member_id'] = str(family_info['member_id'])
+    
     return {
         'success': True,
         'token': token,
-        'user': {
-            'id': str(user['id']),
-            'email': user['email'],
-            'phone': user['phone']
-        }
+        'user': user_data
     }
 
 def verify_token(token: str) -> Optional[Dict[str, Any]]:
@@ -218,7 +267,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = register_user(
                     body.get('email'),
                     body.get('phone'),
-                    body.get('password', '')
+                    body.get('password', ''),
+                    body.get('family_name')
                 )
                 if 'error' in result:
                     return {

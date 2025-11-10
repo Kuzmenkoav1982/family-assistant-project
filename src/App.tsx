@@ -8,16 +8,24 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthForm from "./components/AuthForm";
+import FamilySetup from "./components/FamilySetup";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (token) {
+    const storedUser = localStorage.getItem('user');
+    
+    if (token && storedUser) {
+      const user = JSON.parse(storedUser);
+      setCurrentUser(user);
+      
       fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=verify', {
         headers: {
           'X-Auth-Token': token
@@ -27,6 +35,7 @@ const App = () => {
         .then(data => {
           if (data.success) {
             setIsAuthenticated(true);
+            setNeedsSetup(!user.family_id);
           } else {
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
@@ -43,7 +52,13 @@ const App = () => {
   }, []);
 
   const handleAuthSuccess = (token: string, user: any) => {
+    setCurrentUser(user);
     setIsAuthenticated(true);
+    setNeedsSetup(!user.family_id);
+  };
+  
+  const handleSetupComplete = () => {
+    setNeedsSetup(false);
   };
 
   const handleLogout = () => {
@@ -79,10 +94,12 @@ const App = () => {
             <Route 
               path="/" 
               element={
-                isAuthenticated ? (
-                  <Index onLogout={handleLogout} />
-                ) : (
+                !isAuthenticated ? (
                   <Navigate to="/auth" replace />
+                ) : needsSetup ? (
+                  <Navigate to="/setup" replace />
+                ) : (
+                  <Index onLogout={handleLogout} />
                 )
               } 
             />
@@ -90,9 +107,25 @@ const App = () => {
               path="/auth" 
               element={
                 isAuthenticated ? (
-                  <Navigate to="/" replace />
+                  needsSetup ? (
+                    <Navigate to="/setup" replace />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
                 ) : (
                   <AuthForm onAuthSuccess={handleAuthSuccess} />
+                )
+              } 
+            />
+            <Route 
+              path="/setup" 
+              element={
+                !isAuthenticated ? (
+                  <Navigate to="/auth" replace />
+                ) : !needsSetup ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <FamilySetup user={currentUser} onSetupComplete={handleSetupComplete} />
                 )
               } 
             />
