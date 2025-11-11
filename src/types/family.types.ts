@@ -1,3 +1,20 @@
+export interface MoodStatus {
+  emoji: string;
+  label: string;
+  message?: string;
+  timestamp: string;
+}
+
+export interface Dream {
+  id: string;
+  title: string;
+  description?: string;
+  targetAmount?: number;
+  savedAmount?: number;
+  icon?: string;
+  createdAt: string;
+}
+
 export interface FamilyMember {
   id: string;
   name: string;
@@ -15,6 +32,9 @@ export interface FamilyMember {
     dislikes: string[];
   };
   responsibilities?: string[];
+  moodStatus?: MoodStatus;
+  dreams?: Dream[];
+  piggyBank?: number;
 }
 
 export interface Task {

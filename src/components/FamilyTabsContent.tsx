@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
+import { ChildDreamsDialog } from '@/components/ChildDreamsDialog';
 import { useState } from 'react';
 import type {
   FamilyMember,
@@ -334,6 +335,17 @@ export function FamilyTabsContent({
                     <div>
                       <CardTitle className="text-xl">{member.name}</CardTitle>
                       <p className="text-sm text-muted-foreground">{member.role}</p>
+                      {member.moodStatus && (
+                        <div className="mt-2 flex items-center gap-2 bg-blue-50 px-2 py-1 rounded-md">
+                          <span className="text-2xl">{member.moodStatus.emoji}</span>
+                          <div className="text-xs">
+                            <p className="font-medium text-blue-900">{member.moodStatus.label}</p>
+                            {member.moodStatus.message && (
+                              <p className="text-blue-700">{member.moodStatus.message}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
@@ -387,6 +399,114 @@ export function FamilyTabsContent({
                   </div>
                   
                   <div className="flex gap-2 mt-4 pt-3 border-t">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 border-blue-300 hover:bg-blue-50"
+                        >
+                          <Icon name="Smile" size={14} className="mr-1" />
+                          Настроение
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Как настроение у {member.name}?</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-3 gap-3">
+                            {[
+                              { emoji: '😊', label: 'Радостно' },
+                              { emoji: '😄', label: 'Отлично' },
+                              { emoji: '🤗', label: 'Счастлив' },
+                              { emoji: '😌', label: 'Спокойно' },
+                              { emoji: '🤔', label: 'Задумчиво' },
+                              { emoji: '😐', label: 'Нормально' },
+                              { emoji: '😢', label: 'Грустно' },
+                              { emoji: '😔', label: 'Печально' },
+                              { emoji: '😰', label: 'Переживаю' },
+                              { emoji: '😤', label: 'Раздражён' },
+                              { emoji: '😴', label: 'Устал' },
+                              { emoji: '🤒', label: 'Плохо' },
+                            ].map((mood) => (
+                              <button
+                                key={mood.emoji}
+                                className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 hover:border-blue-400 hover:bg-blue-50 transition-all"
+                                onClick={() => {
+                                  const updatedMembers = familyMembers.map(m =>
+                                    m.id === member.id
+                                      ? {
+                                          ...m,
+                                          moodStatus: {
+                                            emoji: mood.emoji,
+                                            label: mood.label,
+                                            timestamp: new Date().toISOString(),
+                                          },
+                                        }
+                                      : m
+                                  );
+                                  setFamilyMembers(updatedMembers);
+                                }}
+                              >
+                                <span className="text-4xl">{mood.emoji}</span>
+                                <span className="text-xs font-medium">{mood.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Добавить сообщение (необязательно)
+                            </label>
+                            <Input
+                              placeholder="Что происходит?"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && member.moodStatus) {
+                                  const updatedMembers = familyMembers.map(m =>
+                                    m.id === member.id
+                                      ? {
+                                          ...m,
+                                          moodStatus: {
+                                            ...m.moodStatus!,
+                                            message: e.currentTarget.value,
+                                          },
+                                        }
+                                      : m
+                                  );
+                                  setFamilyMembers(updatedMembers);
+                                }
+                              }}
+                            />
+                          </div>
+                          {member.moodStatus && (
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => {
+                                const updatedMembers = familyMembers.map(m =>
+                                  m.id === member.id ? { ...m, moodStatus: undefined } : m
+                                );
+                                setFamilyMembers(updatedMembers);
+                              }}
+                            >
+                              <Icon name="X" size={14} className="mr-1" />
+                              Убрать статус
+                            </Button>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    {member.age && member.age < 18 && (
+                      <ChildDreamsDialog
+                        child={member}
+                        onUpdate={(updatedChild) => {
+                          const updatedMembers = familyMembers.map(m =>
+                            m.id === updatedChild.id ? updatedChild : m
+                          );
+                          setFamilyMembers(updatedMembers);
+                        }}
+                      />
+                    )}
                     <Button
                       variant="outline"
                       size="sm"

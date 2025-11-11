@@ -426,36 +426,6 @@ export default function Index({ onLogout }: IndexProps) {
       
       <div className={`min-h-screen ${themeClasses.background} p-4 lg:p-8 ${themeClasses.baseFont} transition-all duration-700 ease-in-out`}>
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-        <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50 animate-fade-in">
-          <CardContent className="py-6">
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold mb-2">🚀 Помогите нам стать лучше!</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Это демо-проект семейного органайзера. Ваше мнение поможет понять, нужно ли развивать этот проект дальше.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                size="lg"
-                onClick={() => handleFeedbackButton('will_use')}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
-              >
-                <Icon name="ThumbsUp" className="mr-2" size={20} />
-                Буду использовать этот проект
-              </Button>
-              <Button 
-                size="lg"
-                variant="destructive"
-                onClick={() => handleFeedbackButton('not_interested')}
-                className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
-              >
-                <Icon name="ThumbsDown" className="mr-2" size={20} />
-                Не интересно
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         <header className="text-center mb-8 relative">
           <div className="flex justify-between items-start mb-4 lg:mb-0">
             <div className="lg:absolute lg:top-0 lg:left-4 flex gap-2">
