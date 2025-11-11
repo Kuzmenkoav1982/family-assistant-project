@@ -14,10 +14,7 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [registerMethod, setRegisterMethod] = useState<'email' | 'phone'>('email');
-  
   const [registerData, setRegisterData] = useState({
-    email: '',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -25,7 +22,7 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
   });
   
   const [loginData, setLoginData] = useState({
-    login: '',
+    phone: '',
     password: ''
   });
 
@@ -33,14 +30,13 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
     e.preventDefault();
     setError('');
     
-    if (registerData.password !== registerData.confirmPassword) {
-      setError('Пароли не совпадают');
+    if (!registerData.phone) {
+      setError('Укажите номер телефона');
       return;
     }
     
-    const credential = registerMethod === 'email' ? registerData.email : registerData.phone;
-    if (!credential) {
-      setError(`Укажите ${registerMethod === 'email' ? 'email' : 'телефон'}`);
+    if (registerData.password !== registerData.confirmPassword) {
+      setError('Пароли не совпадают');
       return;
     }
     
@@ -48,13 +44,10 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
     
     try {
       const requestBody = {
-        email: registerMethod === 'email' ? registerData.email : undefined,
-        phone: registerMethod === 'phone' ? registerData.phone : undefined,
+        phone: registerData.phone,
         password: registerData.password,
         family_name: registerData.familyName || undefined
       };
-      
-      console.log('Попытка регистрации:', { method: registerMethod, credential });
       
       const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=register', {
         method: 'POST',
@@ -64,22 +57,16 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
         body: JSON.stringify(requestBody)
       });
       
-      console.log('Статус регистрации:', response.status);
-      
       const data = await response.json();
-      console.log('Данные регистрации:', data);
       
       if (data.error) {
         setError(data.error);
-        console.error('Ошибка регистрации:', data.error);
       } else {
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        console.log('Успешная регистрация, переход к настройке');
         onAuthSuccess(data.token, data.user);
       }
     } catch (err) {
-      console.error('Исключение при регистрации:', err);
       setError('Ошибка при регистрации: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsLoading(false);
@@ -89,35 +76,33 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    if (!loginData.phone) {
+      setError('Укажите номер телефона');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      console.log('Попытка входа с данными:', { login: loginData.login });
-      
       const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(loginData)
+        body: JSON.stringify({ login: loginData.phone, password: loginData.password })
       });
       
-      console.log('Статус ответа:', response.status);
-      
       const data = await response.json();
-      console.log('Данные ответа:', data);
       
       if (data.error) {
         setError(data.error);
-        console.error('Ошибка входа:', data.error);
       } else {
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        console.log('Успешный вход, токен сохранён');
         onAuthSuccess(data.token, data.user);
       }
     } catch (err) {
-      console.error('Исключение при входе:', err);
       setError('Ошибка при входе: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsLoading(false);
@@ -135,7 +120,7 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
           </div>
           <CardTitle className="text-3xl text-center">Семейный Органайзер</CardTitle>
           <CardDescription className="text-center">
-            Войдите или зарегистрируйтесь для доступа к функциям
+            Войдите по номеру телефона
           </CardDescription>
         </CardHeader>
         
@@ -149,12 +134,13 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login">Email или телефон</Label>
+                  <Label htmlFor="phone">Телефон</Label>
                   <Input
-                    id="login"
-                    placeholder="example@mail.com или +79991234567"
-                    value={loginData.login}
-                    onChange={(e) => setLoginData({ ...loginData, login: e.target.value })}
+                    id="phone"
+                    type="tel"
+                    placeholder="+79991234567"
+                    value={loginData.phone}
+                    onChange={(e) => setLoginData({ ...loginData, phone: e.target.value })}
                     required
                   />
                 </div>
@@ -195,50 +181,17 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
             
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
-                <div className="flex gap-2 mb-4">
-                  <Button
-                    type="button"
-                    variant={registerMethod === 'email' ? 'default' : 'outline'}
-                    onClick={() => setRegisterMethod('email')}
-                    className="flex-1"
-                  >
-                    Email
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={registerMethod === 'phone' ? 'default' : 'outline'}
-                    onClick={() => setRegisterMethod('phone')}
-                    className="flex-1"
-                  >
-                    Телефон
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="reg-phone">Телефон</Label>
+                  <Input
+                    id="reg-phone"
+                    type="tel"
+                    placeholder="+79991234567"
+                    value={registerData.phone}
+                    onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                    required
+                  />
                 </div>
-                
-                {registerMethod === 'email' ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email</Label>
-                    <Input
-                      id="reg-email"
-                      type="email"
-                      placeholder="example@mail.com"
-                      value={registerData.email}
-                      onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-phone">Телефон</Label>
-                    <Input
-                      id="reg-phone"
-                      type="tel"
-                      placeholder="+79991234567"
-                      value={registerData.phone}
-                      onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="reg-family">Название семьи (необязательно)</Label>

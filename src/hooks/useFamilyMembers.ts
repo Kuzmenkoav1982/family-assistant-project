@@ -30,9 +30,27 @@ export function useFamilyMembers() {
     setLoading(true);
     setError(null);
     
-    setMembers([]);
-    setLoading(false);
-    return;
+    try {
+      const response = await fetch(API_URL, {
+        headers: {
+          'X-Auth-Token': getAuthToken()
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.members) {
+        setMembers(data.members);
+      } else {
+        setMembers([]);
+        setError(data.error || 'Ошибка загрузки членов семьи');
+      }
+    } catch (err) {
+      setMembers([]);
+      setError('Ошибка соединения с сервером');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addMember = async (memberData: Partial<FamilyMember>) => {

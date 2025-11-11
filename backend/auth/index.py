@@ -34,18 +34,12 @@ def validate_phone(phone: str) -> bool:
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-def register_user(email: Optional[str], phone: Optional[str], password: str, family_name: Optional[str] = None) -> Dict[str, Any]:
-    if not email and not phone:
-        return {'error': 'Email или телефон обязательны'}
+def register_user(phone: str, password: str, family_name: Optional[str] = None) -> Dict[str, Any]:
+    if not phone:
+        return {'error': 'Телефон обязателен'}
     
-    if email and phone:
-        return {'error': 'Укажите только email ИЛИ телефон, не оба сразу'}
-    
-    if email and not validate_email(email):
-        return {'error': 'Некорректный email'}
-    
-    if phone and not validate_phone(phone):
-        return {'error': 'Некорректный телефон'}
+    if not validate_phone(phone):
+        return {'error': 'Некорректный номер телефона'}
     
     if len(password) < 6:
         return {'error': 'Пароль должен быть минимум 6 символов'}
@@ -56,28 +50,20 @@ def register_user(email: Optional[str], phone: Optional[str], password: str, fam
     try:
         password_hash = hash_password(password)
         
-        if email:
-            cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE email = %s", (email,))
-            if cur.fetchone():
-                cur.close()
-                conn.close()
-                return {'error': 'Email уже зарегистрирован'}
-        
-        if phone:
-            cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE phone = %s", (phone,))
-            if cur.fetchone():
-                cur.close()
-                conn.close()
-                return {'error': 'Телефон уже зарегистрирован'}
+        cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE phone = %s", (phone,))
+        if cur.fetchone():
+            cur.close()
+            conn.close()
+            return {'error': 'Телефон уже зарегистрирован'}
         
         cur.execute(
             f"INSERT INTO {SCHEMA}.users (email, phone, password_hash, is_verified) VALUES (%s, %s, %s, %s) RETURNING id, email, phone, created_at",
-            (email, phone, password_hash, True)
+            (None, phone, password_hash, True)
         )
         user = cur.fetchone()
         conn.commit()
         
-        default_family_name = family_name or f"Семья {email or phone}"
+        default_family_name = family_name or f"Семья {phone}"
         cur.execute(
             f"INSERT INTO {SCHEMA}.families (name) VALUES (%s) RETURNING id, name",
             (default_family_name,)
@@ -85,7 +71,7 @@ def register_user(email: Optional[str], phone: Optional[str], password: str, fam
         family = cur.fetchone()
         conn.commit()
         
-        member_name = email.split('@')[0] if email else phone[-4:]
+        member_name = phone[-4:]
         cur.execute(
             f"""
             INSERT INTO {SCHEMA}.family_members 
@@ -268,8 +254,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'POST':
             if path == 'register':
                 result = register_user(
-                    body.get('email'),
-                    body.get('phone'),
+                    body.get('phone', ''),
                     body.get('password', ''),
                     body.get('family_name')
                 )

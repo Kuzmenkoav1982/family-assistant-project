@@ -1,11 +1,11 @@
 {
   "tests": [
     {
-      "name": "Register new user with email",
+      "name": "Register new user with phone",
       "method": "POST",
       "path": "/?action=register",
       "body": {
-        "email": "test@example.com",
+        "phone": "+79991234567",
         "password": "test123456"
       },
       "expectedStatus": 201,
@@ -14,7 +14,7 @@
         "token": "string",
         "user": {
           "id": "string",
-          "email": "string"
+          "phone": "string"
         }
       },
       "bodyMatcher": "partial"
@@ -24,7 +24,7 @@
       "method": "POST",
       "path": "/?action=login",
       "body": {
-        "login": "test@example.com",
+        "login": "+79991234567",
         "password": "test123456"
       },
       "expectedStatus": 200,
@@ -39,7 +39,7 @@
       "method": "POST",
       "path": "/?action=login",
       "body": {
-        "login": "test@example.com",
+        "login": "+79991234567",
         "password": "wrongpassword"
       },
       "expectedStatus": 401,

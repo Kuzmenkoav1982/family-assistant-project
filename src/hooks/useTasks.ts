@@ -35,9 +35,28 @@ export function useTasks() {
     setLoading(true);
     setError(null);
     
-    setTasks([]);
-    setLoading(false);
-    return;
+    try {
+      const url = completed !== undefined ? `${API_URL}?completed=${completed}` : API_URL;
+      const response = await fetch(url, {
+        headers: {
+          'X-Auth-Token': getAuthToken()
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.tasks) {
+        setTasks(data.tasks);
+      } else {
+        setTasks([]);
+        setError(data.error || 'Ошибка загрузки задач');
+      }
+    } catch (err) {
+      setTasks([]);
+      setError('Ошибка соединения с сервером');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createTask = async (taskData: Partial<Task>) => {
