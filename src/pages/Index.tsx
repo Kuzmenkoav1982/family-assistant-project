@@ -498,7 +498,7 @@ export default function Index({ onLogout }: IndexProps) {
             </div>
           </div>
 
-          <h1 className={`${themeClasses.headingFont} font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-4 animate-fade-in`}>
+          <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-3 mt-2 animate-fade-in`}>
             Семейный Органайзер
           </h1>
           
