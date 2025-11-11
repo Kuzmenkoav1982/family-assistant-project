@@ -214,10 +214,16 @@ def login_user(login: str, password: str) -> Dict[str, Any]:
         return {'error': f'Ошибка входа: {str(e)}'}
 
 def verify_token(token: str) -> Optional[Dict[str, Any]]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
+    if not token:
+        return None
+    
+    conn = None
+    cur = None
     
     try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
         select_session = f"""
             SELECT s.user_id, s.expires_at, u.email, u.phone,
                    fm.family_id, f.name as family_name, fm.id as member_id
@@ -230,9 +236,6 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         """
         cur.execute(select_session)
         session = cur.fetchone()
-        
-        cur.close()
-        conn.close()
         
         if not session:
             return None
@@ -250,9 +253,13 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         
         return user_data
     except Exception as e:
-        cur.close()
-        conn.close()
+        print(f"verify_token error: {str(e)}")
         return None
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 def logout_user(token: str) -> Dict[str, Any]:
     conn = get_db_connection()
@@ -374,9 +381,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     except Exception as e:
+        print(f"Handler error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {
             'statusCode': 500,
             'headers': headers,
-            'body': json.dumps({'error': str(e)}),
+            'body': json.dumps({'error': f'Server error: {str(e)}'}),
             'isBase64Encoded': False
         }
