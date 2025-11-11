@@ -428,7 +428,7 @@ export default function Index({ onLogout }: IndexProps) {
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
         <header className="text-center mb-8 relative">
           <div className="flex justify-between items-start mb-4 lg:mb-0">
-            <div className="lg:absolute lg:top-0 lg:left-4 flex gap-2">
+            <div className="lg:absolute lg:top-0 lg:left-4 flex flex-col gap-2">
               <Button
                 onClick={handleLogoutLocal}
                 variant="outline"
