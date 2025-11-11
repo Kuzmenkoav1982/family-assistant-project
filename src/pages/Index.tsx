@@ -84,7 +84,10 @@ export default function Index({ onLogout }: IndexProps) {
     return (saved as ThemeType) || 'middle';
   });
   const [showThemeSelector, setShowThemeSelector] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    return !hasSeenWelcome;
+  });
   const [welcomeText, setWelcomeText] = useState('');
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -114,6 +117,8 @@ export default function Index({ onLogout }: IndexProps) {
   }, [tasks]);
 
   useEffect(() => {
+    if (!showWelcome) return;
+    
     const fullText = "Добро пожаловать в Семейный Органайзер! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций и истории семьи.";
     let currentIndex = 0;
     
@@ -128,13 +133,14 @@ export default function Index({ onLogout }: IndexProps) {
     
     const hideTimer = setTimeout(() => {
       setShowWelcome(false);
+      localStorage.setItem('hasSeenWelcome', 'true');
     }, 14000);
 
     return () => {
       clearInterval(typingTimer);
       clearTimeout(hideTimer);
     };
-  }, []);
+  }, [showWelcome]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -387,7 +393,10 @@ export default function Index({ onLogout }: IndexProps) {
       {showWelcome && (
         <div 
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in cursor-pointer"
-          onClick={() => setShowWelcome(false)}
+          onClick={() => {
+            setShowWelcome(false);
+            localStorage.setItem('hasSeenWelcome', 'true');
+          }}
         >
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
           
