@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import { useNavigate } from 'react-router-dom';
 import { useTasks } from '@/hooks/useTasks';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import type {
@@ -50,6 +51,7 @@ interface IndexProps {
 }
 
 export default function Index({ onLogout }: IndexProps) {
+  const navigate = useNavigate();
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembers();
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   
@@ -464,6 +466,15 @@ export default function Index({ onLogout }: IndexProps) {
               >
                 <Icon name="LogOut" className="mr-2" size={16} />
                 Выход ({currentUser?.name || 'Пользователь'})
+              </Button>
+              <Button
+                onClick={() => navigate('/instructions')}
+                variant="outline"
+                className="border-2 border-blue-300 hover:bg-blue-50"
+                size="sm"
+              >
+                <Icon name="BookOpen" className="mr-2" size={16} />
+                Инструкции
               </Button>
               <SettingsMenu />
             </div>

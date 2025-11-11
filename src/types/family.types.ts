@@ -24,6 +24,7 @@ export interface Task {
   completed: boolean;
   category: string;
   points: number;
+  deadline?: string;
   reminderTime?: string;
   shoppingList?: string[];
   isRecurring?: boolean;

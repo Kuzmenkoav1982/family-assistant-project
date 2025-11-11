@@ -684,19 +684,43 @@ export function FamilyTabsContent({
                 Добавить задачу
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Новая задача</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const title = formData.get('title') as string;
+                const assigneeId = formData.get('assignee') as string;
+                const deadline = formData.get('deadline') as string;
+                const category = formData.get('category') as string;
+                const points = parseInt(formData.get('points') as string) || 10;
+                
+                const assignee = familyMembers.find(m => m.id === assigneeId);
+                
+                const newTask: Task = {
+                  id: Date.now().toString(),
+                  title,
+                  assignee: assignee?.name || '',
+                  completed: false,
+                  category: category || 'Дом',
+                  points,
+                  deadline: deadline || undefined,
+                };
+                
+                setTasks([...tasks, newTask]);
+                (e.target as HTMLFormElement).reset();
+              }} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Название задачи</label>
-                  <Input placeholder="Например: Полить цветы" />
+                  <label className="block text-sm font-medium mb-2">Название задачи *</label>
+                  <Input name="title" placeholder="Например: Постирать джинсы" required />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Исполнитель</label>
-                  <select className="w-full border rounded-md p-2">
+                  <label className="block text-sm font-medium mb-2">Исполнитель *</label>
+                  <select name="assignee" className="w-full border rounded-md p-2" required>
+                    <option value="">Выберите исполнителя</option>
                     {familyMembers.map(member => (
                       <option key={member.id} value={member.id}>{member.name}</option>
                     ))}
@@ -704,55 +728,38 @@ export function FamilyTabsContent({
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Повторяющаяся задача</label>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="recurring" />
-                      <label htmlFor="recurring" className="text-sm">Сделать повторяющейся</label>
-                    </div>
-                    
-                    <div className="pl-6 space-y-3 border-l-2 border-gray-200">
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Частота повтора</label>
-                        <select className="w-full border rounded-md p-2 text-sm">
-                          <option value="daily">Ежедневно</option>
-                          <option value="weekly">Еженедельно</option>
-                          <option value="monthly">Ежемесячно</option>
-                          <option value="yearly">Ежегодно</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Интервал</label>
-                        <Input type="number" min="1" defaultValue="1" placeholder="Каждые N дней/недель/месяцев" className="text-sm" />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium mb-2">Дни недели (для еженедельных)</label>
-                        <div className="flex flex-wrap gap-2">
-                          {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, idx) => (
-                            <button
-                              key={idx}
-                              className="px-3 py-1 text-xs border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                            >
-                              {day}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Окончание повторений</label>
-                        <Input type="date" className="text-sm" />
-                      </div>
-                    </div>
+                  <label className="block text-sm font-medium mb-2">
+                    <Icon name="Calendar" className="inline mr-1" size={16} />
+                    Срок выполнения
+                  </label>
+                  <Input 
+                    name="deadline" 
+                    type="date" 
+                    min={new Date().toISOString().split('T')[0]}
+                    placeholder="Когда нужно выполнить?"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Укажите когда задача должна быть выполнена (например, когда нужны чистые джинсы)
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Категория</label>
+                    <Input name="category" placeholder="Дом" defaultValue="Дом" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Баллы</label>
+                    <Input name="points" type="number" min="1" defaultValue="10" />
                   </div>
                 </div>
                 
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
+                <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
+                  <Icon name="Plus" className="mr-2" size={16} />
                   Создать задачу
                 </Button>
-              </div>
+              </form>
             </DialogContent>
           </Dialog>
           </div>
@@ -790,6 +797,21 @@ export function FamilyTabsContent({
                     <div className="flex gap-2 mt-1 flex-wrap">
                       <Badge variant="outline" className="text-xs">{task.assignee}</Badge>
                       <Badge variant="secondary" className="text-xs">{task.category}</Badge>
+                      {task.deadline && (
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            new Date(task.deadline) < new Date() 
+                              ? 'bg-red-50 text-red-700 border-red-300'
+                              : new Date(task.deadline).getTime() - new Date().getTime() < 86400000 * 2
+                              ? 'bg-orange-50 text-orange-700 border-orange-300'
+                              : 'bg-blue-50 text-blue-700 border-blue-300'
+                          }`}
+                        >
+                          <Icon name="Calendar" size={12} className="mr-1" />
+                          {new Date(task.deadline).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                        </Badge>
+                      )}
                       {task.isRecurring && task.recurringPattern && (
                         <>
                           <Badge variant="outline" className="text-xs bg-indigo-50 text-indigo-700">

@@ -84,10 +84,10 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         f"""
         INSERT INTO {SCHEMA}.tasks (
             family_id, title, description, assignee_id, completed, 
-            points, priority, category, reminder_time, is_recurring,
+            points, priority, category, deadline, reminder_time, is_recurring,
             recurring_frequency, recurring_interval, recurring_days_of_week,
             recurring_end_date, next_occurrence, cooking_day
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *
         """,
         (
@@ -99,6 +99,7 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             data.get('points', 10),
             data.get('priority', 'medium'),
             data.get('category'),
+            data.get('deadline'),
             data.get('reminder_time'),
             data.get('is_recurring', False),
             data.get('recurring_frequency'),
@@ -133,7 +134,7 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     values = []
     
     for field in ['title', 'description', 'assignee_id', 'completed', 'points', 
-                  'priority', 'category', 'reminder_time', 'is_recurring',
+                  'priority', 'category', 'deadline', 'reminder_time', 'is_recurring',
                   'recurring_frequency', 'recurring_interval', 'recurring_days_of_week',
                   'recurring_end_date', 'next_occurrence', 'cooking_day']:
         if field in data:
