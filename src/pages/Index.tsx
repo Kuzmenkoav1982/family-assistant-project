@@ -385,7 +385,10 @@ export default function Index({ onLogout }: IndexProps) {
   return (
     <>
       {showWelcome && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in">
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in cursor-pointer"
+          onClick={() => setShowWelcome(false)}
+        >
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
           
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
@@ -419,6 +422,10 @@ export default function Index({ onLogout }: IndexProps) {
                   <span className="text-lg font-semibold">Традиции</span>
                 </div>
               </div>
+              
+              <p className="text-sm text-gray-500 mt-8 animate-fade-in" style={{ animationDelay: '4s' }}>
+                Нажмите в любом месте, чтобы продолжить
+              </p>
             </div>
           </div>
         </div>
