@@ -1293,7 +1293,7 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="calendar">
-                <Card>
+                <Card key="calendar-card">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
@@ -1410,7 +1410,7 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card>
+                    <Card key="empty-children">
                       <CardContent className="p-8 text-center">
                         <Icon name="Baby" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Нет профилей детей</h3>
@@ -1449,7 +1449,7 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card>
+                    <Card key="empty-values">
                       <CardContent className="p-8 text-center">
                         <Icon name="Heart" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Нет семейных ценностей</h3>
@@ -1486,7 +1486,7 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card>
+                    <Card key="empty-traditions">
                       <CardContent className="p-8 text-center">
                         <Icon name="Sparkles" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Нет традиций</h3>
@@ -1534,7 +1534,7 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card>
+                    <Card key="empty-blog">
                       <CardContent className="p-8 text-center">
                         <Icon name="BookOpen" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Блог пуст</h3>
@@ -1563,7 +1563,7 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card className="col-span-full">
+                    <Card key="empty-album" className="col-span-full">
                       <CardContent className="p-8 text-center">
                         <Icon name="Image" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Альбом пуст</h3>
@@ -1575,7 +1575,7 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="tree">
-                <Card>
+                <Card key="tree-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Icon name="GitBranch" />
@@ -1614,7 +1614,7 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="chat">
-                <Card>
+                <Card key="chat-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Icon name="MessageCircle" />
@@ -1672,7 +1672,7 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="rules">
-                <Card>
+                <Card key="rules-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Icon name="Scale" />
@@ -1695,7 +1695,7 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="about">
-                <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+                <Card key="about-card" className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-2xl">
                       <Icon name="Heart" className="text-red-500" />
@@ -1796,7 +1796,7 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
 
           <div className="space-y-6">
-            <Card className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50" style={{ animationDelay: '0.5s' }}>
+            <Card key="sidebar-weekly-calendar" className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50" style={{ animationDelay: '0.5s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Calendar" size={24} />
@@ -1853,7 +1853,7 @@ export default function Index({ onLogout }: IndexProps) {
               </CardContent>
             </Card>
 
-            <Card className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.6s' }}>
+            <Card key="sidebar-reminders" className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.6s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Bell" size={24} />
@@ -1881,7 +1881,7 @@ export default function Index({ onLogout }: IndexProps) {
               </CardContent>
             </Card>
 
-            <Card className="animate-fade-in border-green-200 bg-gradient-to-br from-green-50 to-emerald-50" style={{ animationDelay: '0.7s' }}>
+            <Card key="sidebar-ai-tips" className="animate-fade-in border-green-200 bg-gradient-to-br from-green-50 to-emerald-50" style={{ animationDelay: '0.7s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Sparkles" size={24} />
