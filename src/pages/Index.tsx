@@ -1353,7 +1353,7 @@ export default function Index({ onLogout }: IndexProps) {
 
               <TabsContent value="children">
                 <div className="space-y-4">
-                  {childrenProfiles.map((child, idx) => (
+                  {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => (
                     <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3">
@@ -1375,9 +1375,13 @@ export default function Index({ onLogout }: IndexProps) {
                               Интересы
                             </h4>
                             <div className="flex flex-wrap gap-2">
-                              {child.interests?.map((interest, i) => (
-                                <Badge key={i} variant="outline">{interest}</Badge>
-                              ))}
+                              {child.interests && child.interests.length > 0 ? (
+                                child.interests.map((interest, i) => (
+                                  <Badge key={i} variant="outline">{interest}</Badge>
+                                ))
+                              ) : (
+                                <p className="text-sm text-muted-foreground">Интересы пока не добавлены</p>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -1386,24 +1390,36 @@ export default function Index({ onLogout }: IndexProps) {
                               Достижения
                             </h4>
                             <div className="space-y-1">
-                              {child.achievements?.slice(0, 3).map((achievement, i) => (
-                                <div key={i} className="text-sm text-muted-foreground flex items-center gap-2">
-                                  <Icon name="CheckCircle" size={12} className="text-green-500" />
-                                  {achievement}
-                                </div>
-                              ))}
+                              {child.achievements && child.achievements.length > 0 ? (
+                                child.achievements.slice(0, 3).map((achievement, i) => (
+                                  <div key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <Icon name="CheckCircle" size={12} className="text-green-500" />
+                                    {achievement}
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-muted-foreground">Достижений пока нет</p>
+                              )}
                             </div>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : (
+                    <Card>
+                      <CardContent className="p-8 text-center">
+                        <Icon name="Baby" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold mb-2">Нет профилей детей</h3>
+                        <p className="text-sm text-muted-foreground">Добавьте первый профиль ребенка, чтобы отслеживать развитие и достижения</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="values">
                 <div className="grid gap-4">
-                  {familyValues.map((value, idx) => (
+                  {familyValues.length > 0 ? familyValues.map((value, idx) => (
                     <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -1415,22 +1431,34 @@ export default function Index({ onLogout }: IndexProps) {
                         <p className="text-muted-foreground mb-3">{value.description}</p>
                         <div className="space-y-2">
                           <h4 className="font-semibold text-sm">Как мы это практикуем:</h4>
-                          {value.practices?.map((practice, i) => (
-                            <div key={i} className="flex items-start gap-2 text-sm">
-                              <Icon name="ArrowRight" size={14} className="text-purple-500 mt-0.5" />
+                          {value.practices && value.practices.length > 0 ? (
+                            value.practices.map((practice, i) => (
+                              <div key={i} className="flex items-start gap-2 text-sm">
+                                <Icon name="ArrowRight" size={14} className="text-purple-500 mt-0.5" />
                               <span>{practice}</span>
-                            </div>
-                          ))}
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Практики пока не описаны</p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : (
+                    <Card>
+                      <CardContent className="p-8 text-center">
+                        <Icon name="Heart" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold mb-2">Нет семейных ценностей</h3>
+                        <p className="text-sm text-muted-foreground">Опишите важные для вашей семьи ценности и принципы</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="traditions">
                 <div className="grid gap-4">
-                  {traditions.map((tradition, idx) => (
+                  {traditions.length > 0 ? traditions.map((tradition, idx) => (
                     <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-3">
@@ -1453,13 +1481,21 @@ export default function Index({ onLogout }: IndexProps) {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : (
+                    <Card>
+                      <CardContent className="p-8 text-center">
+                        <Icon name="Sparkles" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold mb-2">Нет традиций</h3>
+                        <p className="text-sm text-muted-foreground">Создайте семейные ритуалы и традиции</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="blog">
                 <div className="space-y-4">
-                  {blogPosts.map((post, idx) => (
+                  {blogPosts.length > 0 ? blogPosts.map((post, idx) => (
                     <Card key={post.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -1493,13 +1529,21 @@ export default function Index({ onLogout }: IndexProps) {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : (
+                    <Card>
+                      <CardContent className="p-8 text-center">
+                        <Icon name="BookOpen" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold mb-2">Блог пуст</h3>
+                        <p className="text-sm text-muted-foreground">Начните делиться семейными историями и моментами</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="album">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {familyAlbum.map((photo, idx) => (
+                  {familyAlbum.length > 0 ? familyAlbum.map((photo, idx) => (
                     <Card key={photo.id} className="overflow-hidden animate-fade-in cursor-pointer hover:shadow-lg transition-shadow" style={{ animationDelay: `${idx * 0.05}s` }}>
                       <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-6xl">
                         📸
@@ -1514,7 +1558,15 @@ export default function Index({ onLogout }: IndexProps) {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : (
+                    <Card className="col-span-full">
+                      <CardContent className="p-8 text-center">
+                        <Icon name="Image" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold mb-2">Альбом пуст</h3>
+                        <p className="text-sm text-muted-foreground">Добавьте первое семейное фото</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </TabsContent>
 
@@ -1528,7 +1580,7 @@ export default function Index({ onLogout }: IndexProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {familyTree.map((member, idx) => (
+                      {familyTree.length > 0 ? familyTree.map((member, idx) => (
                         <div 
                           key={member.id} 
                           className="p-4 rounded-lg border-2 hover:border-purple-300 transition-all cursor-pointer animate-fade-in"
@@ -1545,7 +1597,13 @@ export default function Index({ onLogout }: IndexProps) {
                             <Badge>{member.generation} поколение</Badge>
                           </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="text-center py-8">
+                          <Icon name="GitBranch" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                          <h3 className="text-lg font-semibold mb-2">Древо пусто</h3>
+                          <p className="text-sm text-muted-foreground">Добавьте членов семьи в генеалогическое древо</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1561,7 +1619,7 @@ export default function Index({ onLogout }: IndexProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3 mb-4 max-h-[500px] overflow-y-auto">
-                      {chatMessages.map((msg, idx) => (
+                      {chatMessages.length > 0 ? chatMessages.map((msg, idx) => (
                         <div key={msg.id} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${idx * 0.05}s` }}>
                           <span className="text-2xl">{msg.senderAvatar}</span>
                           <div className="flex-1">
@@ -1586,7 +1644,13 @@ export default function Index({ onLogout }: IndexProps) {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="text-center py-8">
+                          <Icon name="MessageCircle" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                          <h3 className="text-lg font-semibold mb-2">Чат пуст</h3>
+                          <p className="text-sm text-muted-foreground">Начните общение с семьей</p>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Input 
