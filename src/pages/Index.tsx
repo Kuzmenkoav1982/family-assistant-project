@@ -98,6 +98,10 @@ export default function Index({ onLogout }: IndexProps) {
     return !hasSeenWelcome;
   });
   const [welcomeText, setWelcomeText] = useState('');
+  const [isTopBarVisible, setIsTopBarVisible] = useState(true);
+  const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
+    return localStorage.getItem('autoHideTopBar') === 'true';
+  });
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
@@ -165,6 +169,22 @@ export default function Index({ onLogout }: IndexProps) {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showLanguageSelector, showThemeSelector]);
+
+  useEffect(() => {
+    let hideTimer: NodeJS.Timeout;
+    if (autoHideTopBar && isTopBarVisible) {
+      hideTimer = setTimeout(() => {
+        setIsTopBarVisible(false);
+      }, 3000);
+    }
+    return () => clearTimeout(hideTimer);
+  }, [autoHideTopBar, isTopBarVisible]);
+
+  const toggleAutoHide = () => {
+    const newValue = !autoHideTopBar;
+    setAutoHideTopBar(newValue);
+    localStorage.setItem('autoHideTopBar', String(newValue));
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -500,42 +520,50 @@ export default function Index({ onLogout }: IndexProps) {
         </div>
       )}
       
-      <div className={`min-h-screen ${themeClasses.background} p-4 lg:p-8 ${themeClasses.baseFont} transition-all duration-700 ease-in-out`}>
-        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-        <header className="text-center mb-8 relative">
-          <div className="flex justify-between items-start mb-4 lg:mb-0">
-            <div className="lg:absolute lg:top-0 lg:left-4 flex flex-col gap-1.5">
+      <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out`}>
+        <div 
+          className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+            isTopBarVisible ? 'translate-y-0' : '-translate-y-full'
+          }`}
+          onMouseEnter={() => autoHideTopBar && setIsTopBarVisible(true)}
+        >
+          <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
               <Button
                 onClick={handleLogoutLocal}
-                variant="outline"
-                className="border border-orange-300 hover:bg-orange-50 h-8 px-2 text-xs"
+                variant="ghost"
                 size="sm"
+                className="h-9 w-9 p-0"
+                title="Выход"
               >
-                <Icon name="LogOut" className="mr-1" size={14} />
-                Выход
+                <Icon name="LogOut" size={18} />
               </Button>
+              
+              <SettingsMenu />
+              
               <Button
                 onClick={() => navigate('/instructions')}
-                variant="outline"
-                className="border border-blue-300 hover:bg-blue-50 h-8 px-2 text-xs"
+                variant="ghost"
                 size="sm"
+                className="h-9 w-9 p-0"
+                title="Инструкции"
               >
-                <Icon name="BookOpen" className="mr-1" size={14} />
-                Инструкции
+                <Icon name="BookOpen" size={18} />
               </Button>
-              <SettingsMenu />
             </div>
             
-            <div className="lg:absolute lg:top-0 lg:right-4 flex flex-col gap-2 language-selector theme-selector">
+            <div className="flex items-center gap-2 language-selector theme-selector relative">
               <Button
                 onClick={() => {
                   setShowLanguageSelector(!showLanguageSelector);
                   setShowThemeSelector(false);
                 }}
-                className="bg-gradient-to-r from-blue-500 to-cyan-600 h-8 text-xs"
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0"
+                title="Выбор языка"
               >
-                <Icon name="Languages" className="mr-2" size={14} />
-                {t('language')}: {currentLanguage === 'ru' ? 'Русский' : currentLanguage === 'en' ? 'English' : currentLanguage === 'es' ? 'Español' : currentLanguage === 'de' ? 'Deutsch' : currentLanguage === 'fr' ? 'Français' : currentLanguage === 'zh' ? '中文' : 'العربية'}
+                <Icon name="Languages" size={18} />
               </Button>
               
               <Button
@@ -543,14 +571,26 @@ export default function Index({ onLogout }: IndexProps) {
                   setShowThemeSelector(!showThemeSelector);
                   setShowLanguageSelector(false);
                 }}
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-8 text-xs"
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0"
+                title="Выбор стиля"
               >
-                <Icon name="Palette" className="mr-2" size={14} />
-                {t('style')}: {themes[currentTheme].name}
+                <Icon name="Palette" size={18} />
+              </Button>
+              
+              <Button
+                onClick={toggleAutoHide}
+                variant="ghost"
+                size="sm"
+                className={`h-9 w-9 p-0 ${autoHideTopBar ? 'text-blue-600' : 'text-gray-400'}`}
+                title={autoHideTopBar ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
+              >
+                <Icon name={autoHideTopBar ? 'EyeOff' : 'Eye'} size={18} />
               </Button>
               
               {showLanguageSelector && (
-                <Card className="language-selector absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
+                <Card className="language-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Languages" size={20} />
@@ -592,7 +632,7 @@ export default function Index({ onLogout }: IndexProps) {
               )}
               
               {showThemeSelector && (
-                <Card className="theme-selector absolute right-0 top-24 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
+                <Card className="theme-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Palette" size={20} />
@@ -628,7 +668,18 @@ export default function Index({ onLogout }: IndexProps) {
               )}
             </div>
           </div>
+        </div>
+        
+        <button
+          onClick={() => setIsTopBarVisible(!isTopBarVisible)}
+          className="fixed top-0 left-1/2 -translate-x-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-b-lg px-4 py-1 transition-all duration-300"
+          style={{ top: isTopBarVisible ? '52px' : '0px' }}
+        >
+          <Icon name={isTopBarVisible ? 'ChevronUp' : 'ChevronDown'} size={20} className="text-gray-600" />
+        </button>
 
+        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
+        <header className="text-center mb-8 relative">
           <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-3 mt-2 animate-fade-in`}>
             Семейный Органайзер
           </h1>
