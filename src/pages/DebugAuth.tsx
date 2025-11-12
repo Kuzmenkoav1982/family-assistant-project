@@ -62,16 +62,21 @@ export default function DebugAuth() {
         })
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(`Ошибка ${response.status}: ${JSON.stringify(data, null, 2)}`);
-      } else {
-        setResult(data);
-        if (data.token) {
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
+      const responseText = await response.text();
+      
+      try {
+        const data = JSON.parse(responseText);
+        if (!response.ok) {
+          setError(`Ошибка ${response.status}: ${JSON.stringify(data, null, 2)}`);
+        } else {
+          setResult(data);
+          if (data.token) {
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
         }
+      } catch (parseErr) {
+        setError(`Ошибка ${response.status}: Сервер вернул не JSON:\n${responseText.substring(0, 500)}`);
       }
     } catch (err: any) {
       setError(`Ошибка сети: ${err.message}`);
