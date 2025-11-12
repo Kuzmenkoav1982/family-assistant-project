@@ -241,6 +241,11 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'tree', icon: 'GitBranch', label: 'Древо', ready: true },
     { id: 'chat', icon: 'MessageCircle', label: 'Чат', ready: true },
   ];
+  
+  const getSectionTitle = (sectionId: string) => {
+    const section = menuSections.find(s => s.id === sectionId);
+    return section?.label || 'Семейный Органайзер';
+  };
 
   const inDevelopmentSections = [
     { id: 'budget', icon: 'Wallet', label: 'Бюджет', votes: { up: 12, down: 3 } },
@@ -981,11 +986,20 @@ export default function Index({ onLogout }: IndexProps) {
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
         <header className="text-center mb-8 relative">
           <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-3 mt-2 animate-fade-in`}>
-            Семейный Органайзер
+            {getSectionTitle(activeSection)}
           </h1>
           
           <p className="text-lg lg:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Управление семейной жизнью с AI-помощником
+            {activeSection === 'tasks' && 'Управление задачами семьи'}
+            {activeSection === 'calendar' && 'Семейные события и планы'}
+            {activeSection === 'family' && 'Профили членов семьи'}
+            {activeSection === 'children' && 'Развитие и достижения детей'}
+            {activeSection === 'values' && 'Семейные ценности и принципы'}
+            {activeSection === 'traditions' && 'Традиции и ритуалы'}
+            {activeSection === 'blog' && 'Семейный блог и истории'}
+            {activeSection === 'album' && 'Фотоальбом семьи'}
+            {activeSection === 'tree' && 'Генеалогическое древо'}
+            {activeSection === 'chat' && 'Семейный чат'}
           </p>
         </header>
 
@@ -1033,9 +1047,9 @@ export default function Index({ onLogout }: IndexProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Tabs defaultValue="members" className="space-y-6">
+            <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
               <TabsList className="flex flex-wrap gap-2 h-auto p-2 bg-white/50 backdrop-blur-sm justify-start">
-                <TabsTrigger value="members" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                <TabsTrigger value="family" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="Users" className="mr-1" size={14} />
                   Семья
                 </TabsTrigger>
@@ -1043,25 +1057,37 @@ export default function Index({ onLogout }: IndexProps) {
                   <Icon name="CheckSquare" className="mr-1" size={14} />
                   Задачи
                 </TabsTrigger>
-                <TabsTrigger value="needs" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="ListTodo" className="mr-1" size={14} />
-                  Потребности
-                </TabsTrigger>
-                <TabsTrigger value="chat" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="MessageSquare" className="mr-1" size={14} />
-                  Чат
-                </TabsTrigger>
-                <TabsTrigger value="tree" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Network" className="mr-1" size={14} />
-                  Древо
-                </TabsTrigger>
-                <TabsTrigger value="profiles" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="UserCircle" className="mr-1" size={14} />
-                  Профили
-                </TabsTrigger>
                 <TabsTrigger value="calendar" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="Calendar" className="mr-1" size={14} />
                   Календарь
+                </TabsTrigger>
+                <TabsTrigger value="children" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="Baby" className="mr-1" size={14} />
+                  Дети
+                </TabsTrigger>
+                <TabsTrigger value="values" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="Heart" className="mr-1" size={14} />
+                  Ценности
+                </TabsTrigger>
+                <TabsTrigger value="traditions" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="Sparkles" className="mr-1" size={14} />
+                  Традиции
+                </TabsTrigger>
+                <TabsTrigger value="blog" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="BookOpen" className="mr-1" size={14} />
+                  Блог
+                </TabsTrigger>
+                <TabsTrigger value="album" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="Image" className="mr-1" size={14} />
+                  Альбом
+                </TabsTrigger>
+                <TabsTrigger value="tree" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="GitBranch" className="mr-1" size={14} />
+                  Древо
+                </TabsTrigger>
+                <TabsTrigger value="chat" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="MessageCircle" className="mr-1" size={14} />
+                  Чат
                 </TabsTrigger>
                 <Button
                   onClick={() => navigate('/community')}
@@ -1179,58 +1205,7 @@ export default function Index({ onLogout }: IndexProps) {
                   </TooltipContent>
                 </Tooltip>
                 
-                <TabsTrigger value="traditions" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Calendar" className="mr-1" size={14} />
-                  Традиции
-                </TabsTrigger>
-                <TabsTrigger value="values" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Sparkles" className="mr-1" size={14} />
-                  Ценности
-                </TabsTrigger>
-                <TabsTrigger value="dates" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Heart" className="mr-1" size={14} />
-                  Даты
-                </TabsTrigger>
-                <TabsTrigger value="meals" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="ChefHat" className="mr-1" size={14} />
-                  Меню
-                </TabsTrigger>
-                <TabsTrigger value="album" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Image" className="mr-1" size={14} />
-                  Альбом
-                </TabsTrigger>
-                <TabsTrigger value="development" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="GraduationCap" className="mr-1" size={14} />
-                  Развитие
-                </TabsTrigger>
-                <TabsTrigger value="ai" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Sparkles" className="mr-1" size={14} />
-                  ИИ Здоровье
-                </TabsTrigger>
-                <TabsTrigger value="rating" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Trophy" className="mr-1" size={14} />
-                  Рейтинг
-                </TabsTrigger>
-                <TabsTrigger value="stats" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="BarChart3" className="mr-1" size={14} />
-                  Статистика
-                </TabsTrigger>
-                <TabsTrigger value="community" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="BookOpen" className="mr-1" size={14} />
-                  Блог
-                </TabsTrigger>
-                <TabsTrigger value="payment" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="CreditCard" className="mr-1" size={14} />
-                  Оплата
-                </TabsTrigger>
-                <TabsTrigger value="feedback" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="MessageSquare" className="mr-1" size={14} />
-                  Тех. поддержка
-                </TabsTrigger>
-                <TabsTrigger value="alice" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
-                  <Icon name="Mic" className="mr-1" size={14} />
-                  Алиса
-                </TabsTrigger>
+
               </TabsList>
 
               <TabsContent value="profiles">
