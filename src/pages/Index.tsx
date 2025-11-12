@@ -1731,15 +1731,15 @@ export default function Index({ onLogout }: IndexProps) {
                             Семейные традиции и ритуалы, с одной стороны, — важный признак здоровой и функциональной семьи, а, с другой — один из важнейших механизмов передачи следующим поколениям законов внутрисемейного взаимодействия:
                           </p>
                           <ul className="space-y-2 ml-6">
-                            <li className="text-lg flex items-start gap-2">
+                            <li key="role-distribution" className="text-lg flex items-start gap-2">
                               <Icon name="ArrowRight" size={20} className="text-purple-600 mt-1 flex-shrink-0" />
                               <span>распределения ролей во всех сферах семейной жизни;</span>
                             </li>
-                            <li className="text-lg flex items-start gap-2">
+                            <li key="communication-rules" className="text-lg flex items-start gap-2">
                               <Icon name="ArrowRight" size={20} className="text-purple-600 mt-1 flex-shrink-0" />
                               <span>правил внутрисемейного общения;</span>
                             </li>
-                            <li className="text-lg flex items-start gap-2">
+                            <li key="conflict-resolution" className="text-lg flex items-start gap-2">
                               <Icon name="ArrowRight" size={20} className="text-purple-600 mt-1 flex-shrink-0" />
                               <span>способов разрешения конфликтов и преодоления возникающих проблем.</span>
                             </li>
