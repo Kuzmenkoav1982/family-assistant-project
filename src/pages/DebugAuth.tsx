@@ -23,15 +23,12 @@ export default function DebugAuth() {
         return;
       }
 
-      const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0', {
-        method: 'POST',
+      const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=verify', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'verify',
-          token: token
-        })
+          'X-Auth-Token': token
+        }
       });
 
       const data = await response.json();
@@ -48,21 +45,20 @@ export default function DebugAuth() {
     }
   };
 
-  const testLogin = async (phone: string, code: string) => {
+  const testLogin = async (phone: string, password: string) => {
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0', {
+      const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'login',
-          phone: phone,
-          code: code
+          login: phone,
+          password: password
         })
       });
 
@@ -154,7 +150,7 @@ export default function DebugAuth() {
                   const formData = new FormData(e.currentTarget);
                   testLogin(
                     formData.get('phone') as string,
-                    formData.get('code') as string
+                    formData.get('password') as string
                   );
                 }}>
                   <div className="grid grid-cols-2 gap-3 mb-3">
@@ -165,8 +161,9 @@ export default function DebugAuth() {
                       required 
                     />
                     <Input 
-                      name="code" 
-                      placeholder="Код" 
+                      name="password" 
+                      type="password"
+                      placeholder="Пароль" 
                       defaultValue="1234"
                       required 
                     />
