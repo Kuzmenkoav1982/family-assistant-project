@@ -23,13 +23,30 @@ import DebugAuth from "./pages/DebugAuth";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    setIsAuthenticated(true);
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setCurrentUser(parsedUser);
+        setIsAuthenticated(true);
+        setNeedsSetup(!parsedUser.family_id);
+      } catch (err) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+      }
+    } else {
+      setIsAuthenticated(false);
+    }
+    
     setIsLoading(false);
   }, []);
 
