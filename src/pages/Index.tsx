@@ -1443,7 +1443,7 @@ export default function Index({ onLogout }: IndexProps) {
                             value.practices.map((practice, i) => (
                               <div key={`${value.id}-practice-${i}`} className="flex items-start gap-2 text-sm">
                                 <Icon name="ArrowRight" size={14} className="text-purple-500 mt-0.5" />
-                              <span>{practice}</span>
+                                <span>{practice}</span>
                               </div>
                             ))
                           ) : (
