@@ -1014,6 +1014,26 @@ export default function Index({ onLogout }: IndexProps) {
         </button>
 
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
+        <div 
+          className="relative -mx-4 lg:-mx-8 mb-8 overflow-hidden rounded-2xl"
+          style={{
+            backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            height: '140px'
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/80 to-white/70 backdrop-blur-[2px]"></div>
+          <div className="relative h-full flex flex-col items-center justify-center px-6">
+            <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Семейный Органайзер
+            </h1>
+            <p className="text-sm lg:text-base text-gray-700 font-medium">
+              Вместе мы — сила! Организуйте жизнь семьи с любовью ❤️
+            </p>
+          </div>
+        </div>
+
         <header className="text-center mb-8 relative">
           <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-3 mt-2 animate-fade-in`}>
             {getSectionTitle(activeSection)}
