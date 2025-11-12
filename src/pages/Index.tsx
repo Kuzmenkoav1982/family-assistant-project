@@ -14,6 +14,7 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { ChildEducation } from '@/components/ChildEducation';
 import { ClickChamomile } from '@/components/ClickChamomile';
+import ProfileOnboarding from '@/components/ProfileOnboarding';
 import type {
   FamilyMember,
   Task,
@@ -153,10 +154,18 @@ export default function Index({ onLogout }: IndexProps) {
   const [soundEnabled, setSoundEnabled] = useState(() => {
     return localStorage.getItem('soundEnabled') !== 'false';
   });
+  const [showProfileOnboarding, setShowProfileOnboarding] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
   const currentUserId = currentUser?.id || user.member_id || '';
+
+  useEffect(() => {
+    const needsSetup = localStorage.getItem('needsProfileSetup');
+    if (needsSetup === 'true' && currentUser && !membersLoading) {
+      setShowProfileOnboarding(true);
+    }
+  }, [currentUser, membersLoading]);
 
   const handleLogoutLocal = () => {
     onLogout?.();
@@ -622,6 +631,16 @@ export default function Index({ onLogout }: IndexProps) {
 
   return (
     <>
+      <ProfileOnboarding
+        isOpen={showProfileOnboarding}
+        onComplete={() => {
+          setShowProfileOnboarding(false);
+          window.location.reload();
+        }}
+        memberId={currentUserId}
+        memberName={currentUser?.name || 'Пользователь'}
+      />
+
       {showWelcome && (
         <div 
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in cursor-pointer"
