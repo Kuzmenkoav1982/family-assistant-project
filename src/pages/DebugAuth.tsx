@@ -80,6 +80,42 @@ export default function DebugAuth() {
     }
   };
 
+  const testRegister = async (phone: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phone,
+          password: password,
+          family_name: 'Тестовая семья'
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(`Ошибка ${response.status}: ${JSON.stringify(data, null, 2)}`);
+      } else {
+        setResult(data);
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+      }
+    } catch (err: any) {
+      setError(`Ошибка сети: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getCurrentToken = () => {
     const token = localStorage.getItem('authToken');
     const user = localStorage.getItem('user');
@@ -144,7 +180,41 @@ export default function DebugAuth() {
               </Button>
 
               <div className="border-t pt-4">
-                <p className="text-sm font-semibold mb-2">Или войти заново:</p>
+                <p className="text-sm font-semibold mb-2">Сначала зарегистрируй пользователя:</p>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  testRegister(
+                    formData.get('phone') as string,
+                    formData.get('password') as string
+                  );
+                }}>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <Input 
+                      name="phone" 
+                      placeholder="+79001234567" 
+                      defaultValue="+79001234567"
+                      required 
+                    />
+                    <Input 
+                      name="password" 
+                      type="password"
+                      placeholder="Пароль" 
+                      defaultValue="123456"
+                      required 
+                    />
+                  </div>
+                  <Button 
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-purple-500 hover:bg-purple-600"
+                  >
+                    <Icon name="UserPlus" className="mr-2" />
+                    Зарегистрировать
+                  </Button>
+                </form>
+
+                <p className="text-sm font-semibold mt-4 mb-2">Потом войди:</p>
                 <form onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -164,7 +234,7 @@ export default function DebugAuth() {
                       name="password" 
                       type="password"
                       placeholder="Пароль" 
-                      defaultValue="1234"
+                      defaultValue="123456"
                       required 
                     />
                   </div>
