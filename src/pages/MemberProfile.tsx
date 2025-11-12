@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
+import { MemberProfileEdit } from '@/components/MemberProfileEdit';
 import type { Dream } from '@/types/family.types';
 
 export default function MemberProfile() {
@@ -130,10 +131,14 @@ export default function MemberProfile() {
         </div>
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${isChild ? 5 : 3}, 1fr)` }}>
             <TabsTrigger value="info">
               <Icon name="Info" className="mr-2" size={16} />
               Инфо
+            </TabsTrigger>
+            <TabsTrigger value="edit">
+              <Icon name="Edit" className="mr-2" size={16} />
+              Редактировать
             </TabsTrigger>
             {isChild && (
               <>
@@ -152,6 +157,15 @@ export default function MemberProfile() {
               Обязанности
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="edit">
+            <MemberProfileEdit
+              member={member}
+              onSave={async (updates) => {
+                await updateMember({ id: member.id, ...updates });
+              }}
+            />
+          </TabsContent>
 
           <TabsContent value="info">
             <div className="grid gap-4">
