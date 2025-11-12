@@ -102,6 +102,10 @@ export default function Index({ onLogout }: IndexProps) {
   const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
     return localStorage.getItem('autoHideTopBar') === 'true';
   });
+  const [isMoodWidgetVisible, setIsMoodWidgetVisible] = useState(true);
+  const [autoHideMoodWidget, setAutoHideMoodWidget] = useState(() => {
+    return localStorage.getItem('autoHideMoodWidget') === 'true';
+  });
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
@@ -180,10 +184,26 @@ export default function Index({ onLogout }: IndexProps) {
     return () => clearTimeout(hideTimer);
   }, [autoHideTopBar, isTopBarVisible]);
 
+  useEffect(() => {
+    let hideTimer: NodeJS.Timeout;
+    if (autoHideMoodWidget && isMoodWidgetVisible) {
+      hideTimer = setTimeout(() => {
+        setIsMoodWidgetVisible(false);
+      }, 3000);
+    }
+    return () => clearTimeout(hideTimer);
+  }, [autoHideMoodWidget, isMoodWidgetVisible]);
+
   const toggleAutoHide = () => {
     const newValue = !autoHideTopBar;
     setAutoHideTopBar(newValue);
     localStorage.setItem('autoHideTopBar', String(newValue));
+  };
+
+  const toggleMoodAutoHide = () => {
+    const newValue = !autoHideMoodWidget;
+    setAutoHideMoodWidget(newValue);
+    localStorage.setItem('autoHideMoodWidget', String(newValue));
   };
 
   useEffect(() => {
@@ -676,6 +696,80 @@ export default function Index({ onLogout }: IndexProps) {
           style={{ top: isTopBarVisible ? '52px' : '0px' }}
         >
           <Icon name={isTopBarVisible ? 'ChevronUp' : 'ChevronDown'} size={20} className="text-gray-600" />
+        </button>
+
+        <div 
+          className={`fixed right-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+            isMoodWidgetVisible ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onMouseEnter={() => autoHideMoodWidget && setIsMoodWidgetVisible(true)}
+          style={{ maxWidth: '320px', width: '100%' }}
+        >
+          <div className="p-3 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Icon name="Smile" size={16} />
+              Настроение семьи
+            </h3>
+            <div className="flex items-center gap-1">
+              <Button
+                onClick={toggleMoodAutoHide}
+                variant="ghost"
+                size="sm"
+                className={`h-7 w-7 p-0 ${autoHideMoodWidget ? 'text-blue-600' : 'text-gray-400'}`}
+                title={autoHideMoodWidget ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
+              >
+                <Icon name={autoHideMoodWidget ? 'EyeOff' : 'Eye'} size={14} />
+              </Button>
+              <Button
+                onClick={() => setIsMoodWidgetVisible(false)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+              >
+                <Icon name="X" size={14} />
+              </Button>
+            </div>
+          </div>
+          <div className="p-3 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {familyMembers.map((member, index) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-all animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="text-2xl">{member.avatar}</div>
+                  <div>
+                    <p className="text-xs font-medium">{member.name}</p>
+                    <p className="text-[10px] text-gray-500">{member.role}</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  {member.moodStatus ? (
+                    <>
+                      <div className="text-xl">{member.moodStatus.emoji}</div>
+                      <p className="text-[9px] text-gray-500">{member.moodStatus.label}</p>
+                    </>
+                  ) : (
+                    <div className="text-xl opacity-30">😐</div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {familyMembers.length === 0 && (
+              <p className="text-xs text-gray-500 text-center py-4">
+                Нет данных о членах семьи
+              </p>
+            )}
+          </div>
+        </div>
+        
+        <button
+          onClick={() => setIsMoodWidgetVisible(!isMoodWidgetVisible)}
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-l-lg py-4 px-2 transition-all duration-300"
+          style={{ right: isMoodWidgetVisible ? '320px' : '0px' }}
+        >
+          <Icon name={isMoodWidgetVisible ? 'ChevronRight' : 'ChevronLeft'} size={20} className="text-gray-600" />
         </button>
 
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
