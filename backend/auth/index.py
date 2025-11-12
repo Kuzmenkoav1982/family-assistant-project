@@ -315,7 +315,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
     
     try:
-        body = json.loads(event.get('body', '{}'))
+        raw_body = event.get('body') or '{}'
+        body = json.loads(raw_body) if raw_body else {}
         query_params = event.get('queryStringParameters') or {}
         path = query_params.get('action', 'login')
         
