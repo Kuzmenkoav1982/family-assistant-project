@@ -107,6 +107,12 @@ export default function Index({ onLogout }: IndexProps) {
     return localStorage.getItem('autoHideMoodWidget') === 'true';
   });
   const [selectedMemberForMood, setSelectedMemberForMood] = useState<string | null>(null);
+  const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(true);
+  const [autoHideLeftMenu, setAutoHideLeftMenu] = useState(() => {
+    return localStorage.getItem('autoHideLeftMenu') === 'true';
+  });
+  const [activeSection, setActiveSection] = useState<string>('tasks');
+  const [showInDevelopment, setShowInDevelopment] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
@@ -195,6 +201,16 @@ export default function Index({ onLogout }: IndexProps) {
     return () => clearTimeout(hideTimer);
   }, [autoHideMoodWidget, isMoodWidgetVisible]);
 
+  useEffect(() => {
+    let hideTimer: NodeJS.Timeout;
+    if (autoHideLeftMenu && isLeftMenuVisible) {
+      hideTimer = setTimeout(() => {
+        setIsLeftMenuVisible(false);
+      }, 3000);
+    }
+    return () => clearTimeout(hideTimer);
+  }, [autoHideLeftMenu, isLeftMenuVisible]);
+
   const toggleAutoHide = () => {
     const newValue = !autoHideTopBar;
     setAutoHideTopBar(newValue);
@@ -206,6 +222,34 @@ export default function Index({ onLogout }: IndexProps) {
     setAutoHideMoodWidget(newValue);
     localStorage.setItem('autoHideMoodWidget', String(newValue));
   };
+
+  const toggleLeftMenuAutoHide = () => {
+    const newValue = !autoHideLeftMenu;
+    setAutoHideLeftMenu(newValue);
+    localStorage.setItem('autoHideLeftMenu', String(newValue));
+  };
+
+  const menuSections = [
+    { id: 'tasks', icon: 'CheckSquare', label: 'Задачи', ready: true },
+    { id: 'calendar', icon: 'Calendar', label: 'Календарь', ready: true },
+    { id: 'family', icon: 'Users', label: 'Семья', ready: true },
+    { id: 'children', icon: 'Baby', label: 'Дети', ready: true },
+    { id: 'values', icon: 'Heart', label: 'Ценности', ready: true },
+    { id: 'traditions', icon: 'Sparkles', label: 'Традиции', ready: true },
+    { id: 'blog', icon: 'BookOpen', label: 'Блог', ready: true },
+    { id: 'album', icon: 'Image', label: 'Альбом', ready: true },
+    { id: 'tree', icon: 'GitBranch', label: 'Древо', ready: true },
+    { id: 'chat', icon: 'MessageCircle', label: 'Чат', ready: true },
+  ];
+
+  const inDevelopmentSections = [
+    { id: 'budget', icon: 'Wallet', label: 'Бюджет', votes: { up: 12, down: 3 } },
+    { id: 'health', icon: 'HeartPulse', label: 'Здоровье', votes: { up: 8, down: 1 } },
+    { id: 'education', icon: 'GraduationCap', label: 'Обучение', votes: { up: 15, down: 2 } },
+    { id: 'travel', icon: 'Plane', label: 'Путешествия', votes: { up: 20, down: 5 } },
+    { id: 'shopping', icon: 'ShoppingBag', label: 'Покупки', votes: { up: 6, down: 4 } },
+    { id: 'recipes', icon: 'ChefHat', label: 'Рецепты', votes: { up: 11, down: 2 } },
+  ];
 
   const moodOptions = [
     { emoji: '😊', label: 'Отлично' },
@@ -720,6 +764,111 @@ export default function Index({ onLogout }: IndexProps) {
           style={{ top: isTopBarVisible ? '52px' : '0px' }}
         >
           <Icon name={isTopBarVisible ? 'ChevronUp' : 'ChevronDown'} size={20} className="text-gray-600" />
+        </button>
+
+        <div 
+          className={`fixed left-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+            isLeftMenuVisible ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          onMouseEnter={() => autoHideLeftMenu && setIsLeftMenuVisible(true)}
+          style={{ maxWidth: '280px', width: '100%' }}
+        >
+          <div className="p-3 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Icon name="Menu" size={16} />
+              Разделы
+            </h3>
+            <div className="flex items-center gap-1">
+              <Button
+                onClick={toggleLeftMenuAutoHide}
+                variant="ghost"
+                size="sm"
+                className={`h-7 w-7 p-0 ${autoHideLeftMenu ? 'text-blue-600' : 'text-gray-400'}`}
+                title={autoHideLeftMenu ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
+              >
+                <Icon name={autoHideLeftMenu ? 'EyeOff' : 'Eye'} size={14} />
+              </Button>
+              <Button
+                onClick={() => setIsLeftMenuVisible(false)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+              >
+                <Icon name="X" size={14} />
+              </Button>
+            </div>
+          </div>
+          <div className="p-3 space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {menuSections.map((section, index) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all animate-fade-in ${
+                  activeSection === section.id 
+                    ? 'bg-blue-100 text-blue-700 shadow-sm' 
+                    : 'hover:bg-gray-100'
+                }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <Icon name={section.icon} size={18} />
+                <span className="text-sm font-medium">{section.label}</span>
+              </button>
+            ))}
+            
+            <div className="pt-2 mt-2 border-t border-gray-200">
+              <button
+                onClick={() => setShowInDevelopment(!showInDevelopment)}
+                className="w-full flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-gray-100 transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="Wrench" size={16} />
+                  <span className="text-xs font-medium text-gray-600">В разработке</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Badge variant="secondary" className="text-[10px] px-1 py-0">{inDevelopmentSections.length}</Badge>
+                  <Icon name={showInDevelopment ? 'ChevronUp' : 'ChevronDown'} size={14} className="text-gray-400" />
+                </div>
+              </button>
+              
+              {showInDevelopment && (
+                <div className="mt-1 space-y-1 animate-fade-in">
+                  {inDevelopmentSections.map((section, index) => (
+                    <div
+                      key={section.id}
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-all"
+                      style={{ animationDelay: `${index * 0.03}s` }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon name={section.icon} size={16} className="text-gray-500" />
+                        <span className="text-xs text-gray-600">{section.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button className="flex items-center gap-0.5 hover:bg-green-100 rounded px-1 py-0.5 transition-colors">
+                          <Icon name="ThumbsUp" size={10} className="text-green-600" />
+                          <span className="text-[9px] font-medium text-green-600">{section.votes.up}</span>
+                        </button>
+                        <button className="flex items-center gap-0.5 hover:bg-red-100 rounded px-1 py-0.5 transition-colors">
+                          <Icon name="ThumbsDown" size={10} className="text-red-600" />
+                          <span className="text-[9px] font-medium text-red-600">{section.votes.down}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-[9px] text-gray-500 text-center py-2 px-2">
+                    💡 Голосуйте за функции, которые хотите видеть первыми!
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <button
+          onClick={() => setIsLeftMenuVisible(!isLeftMenuVisible)}
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-r-lg py-4 px-2 transition-all duration-300"
+          style={{ left: isLeftMenuVisible ? '280px' : '0px' }}
+        >
+          <Icon name={isLeftMenuVisible ? 'ChevronLeft' : 'ChevronRight'} size={20} className="text-gray-600" />
         </button>
 
         <div 
