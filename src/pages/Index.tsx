@@ -1360,14 +1360,16 @@ export default function Index({ onLogout }: IndexProps) {
                   {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => (
                     <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                          <span className="text-4xl">{child.avatar}</span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span>{child.name}</span>
-                              <Badge>{child.age} лет</Badge>
+                        <CardTitle>
+                          <div className="flex items-center gap-3">
+                            <span className="text-4xl">{child.avatar}</span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span>{child.name}</span>
+                                <Badge>{child.age} лет</Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground font-normal">Класс: {child.grade}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground font-normal">Класс: {child.grade}</p>
                           </div>
                         </CardTitle>
                       </CardHeader>
@@ -1426,9 +1428,11 @@ export default function Index({ onLogout }: IndexProps) {
                   {familyValues.length > 0 ? familyValues.map((value, idx) => (
                     <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <span className="text-2xl">{value.icon}</span>
-                          <span>{value.title}</span>
+                        <CardTitle>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{value.icon}</span>
+                            <span>{value.title}</span>
+                          </div>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -1465,14 +1469,16 @@ export default function Index({ onLogout }: IndexProps) {
                   {traditions.length > 0 ? traditions.map((tradition, idx) => (
                     <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                          <span className="text-3xl">{tradition.icon}</span>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <span>{tradition.name}</span>
-                              <Badge className={tradition.frequency === 'weekly' ? 'bg-blue-500' : tradition.frequency === 'monthly' ? 'bg-purple-500' : 'bg-pink-500'}>
-                                {tradition.frequency === 'weekly' ? 'Еженедельно' : tradition.frequency === 'monthly' ? 'Ежемесячно' : 'Ежегодно'}
-                              </Badge>
+                        <CardTitle>
+                          <div className="flex items-center gap-3">
+                            <span className="text-3xl">{tradition.icon}</span>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <span>{tradition.name}</span>
+                                <Badge className={tradition.frequency === 'weekly' ? 'bg-blue-500' : tradition.frequency === 'monthly' ? 'bg-purple-500' : 'bg-pink-500'}>
+                                  {tradition.frequency === 'weekly' ? 'Еженедельно' : tradition.frequency === 'monthly' ? 'Ежемесячно' : 'Ежегодно'}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </CardTitle>
