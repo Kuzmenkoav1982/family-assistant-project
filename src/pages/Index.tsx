@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useTasks } from '@/hooks/useTasks';
@@ -80,6 +82,32 @@ export default function Index({ onLogout }: IndexProps) {
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
   const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
   const [newMessage, setNewMessage] = useState('');
+  
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    const currentUser = getMemberById(currentUserId);
+    if (!currentUser) return;
+
+    const message: ChatMessage = {
+      id: Date.now().toString(),
+      senderId: currentUserId,
+      senderName: currentUser.name,
+      senderAvatar: currentUser.avatar,
+      content: newMessage,
+      timestamp: new Date().toLocaleString('ru-RU', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      type: 'text'
+    };
+
+    setChatMessages([...chatMessages, message]);
+    setNewMessage('');
+  };
   const [calendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
@@ -1208,11 +1236,46 @@ export default function Index({ onLogout }: IndexProps) {
 
               </TabsList>
 
-              <TabsContent value="profiles">
+              <TabsContent value="tasks">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Icon name="UserCircle" />
+                      <Icon name="CheckSquare" />
+                      Задачи семьи
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {tasks.slice(0, 5).map((task, idx) => (
+                        <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                          <Checkbox 
+                            checked={task.completed}
+                            onCheckedChange={() => toggleTask(task.id)}
+                          />
+                          <div className="flex-1">
+                            <h4 className={`font-semibold ${task.completed ? 'line-through text-gray-400' : ''}`}>
+                              {task.title}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">{task.description}</p>
+                          </div>
+                          <Badge>{getMemberById(task.assignee)?.name || 'Не назначено'}</Badge>
+                        </div>
+                      ))}
+                      {tasks.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">
+                          Задач пока нет. Создайте первую задачу!
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="family">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Users" />
                       Профили членов семьи
                     </CardTitle>
                   </CardHeader>
@@ -1283,6 +1346,258 @@ export default function Index({ onLogout }: IndexProps) {
                           Нет событий в этом фильтре
                         </p>
                       )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="children">
+                <div className="space-y-4">
+                  {childrenProfiles.map((child, idx) => (
+                    <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                          <span className="text-4xl">{child.avatar}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span>{child.name}</span>
+                              <Badge>{child.age} лет</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground font-normal">Класс: {child.grade}</p>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                              <Icon name="Star" size={14} />
+                              Интересы
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {child.interests.map((interest, i) => (
+                                <Badge key={i} variant="outline">{interest}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                              <Icon name="Award" size={14} />
+                              Достижения
+                            </h4>
+                            <div className="space-y-1">
+                              {child.achievements.slice(0, 3).map((achievement, i) => (
+                                <div key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <Icon name="CheckCircle" size={12} className="text-green-500" />
+                                  {achievement}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="values">
+                <div className="grid gap-4">
+                  {familyValues.map((value, idx) => (
+                    <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <span className="text-2xl">{value.icon}</span>
+                          {value.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground mb-3">{value.description}</p>
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Как мы это практикуем:</h4>
+                          {value.practices.map((practice, i) => (
+                            <div key={i} className="flex items-start gap-2 text-sm">
+                              <Icon name="ArrowRight" size={14} className="text-purple-500 mt-0.5" />
+                              <span>{practice}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="traditions">
+                <div className="grid gap-4">
+                  {traditions.map((tradition, idx) => (
+                    <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                          <span className="text-3xl">{tradition.icon}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span>{tradition.name}</span>
+                              <Badge className={tradition.frequency === 'weekly' ? 'bg-blue-500' : tradition.frequency === 'monthly' ? 'bg-purple-500' : 'bg-pink-500'}>
+                                {tradition.frequency === 'weekly' ? 'Еженедельно' : tradition.frequency === 'monthly' ? 'Ежемесячно' : 'Ежегодно'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground mb-3">{tradition.description}</p>
+                        <div className="text-sm text-muted-foreground">
+                          <Icon name="Calendar" size={14} className="inline mr-1" />
+                          Следующая: {tradition.nextDate}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="blog">
+                <div className="space-y-4">
+                  {blogPosts.map((post, idx) => (
+                    <Card key={post.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="mb-2">{post.title}</CardTitle>
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <span className="text-xl">{post.authorAvatar}</span>
+                                {post.author}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Icon name="Calendar" size={14} />
+                                {post.date}
+                              </span>
+                            </div>
+                          </div>
+                          <Badge>{post.category}</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground mb-4">{post.content}</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Icon name="Heart" size={14} className="text-red-500" />
+                            {post.likes}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Icon name="MessageCircle" size={14} />
+                            {post.comments} комментариев
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="album">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {familyAlbum.map((photo, idx) => (
+                    <Card key={photo.id} className="overflow-hidden animate-fade-in cursor-pointer hover:shadow-lg transition-shadow" style={{ animationDelay: `${idx * 0.05}s` }}>
+                      <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-6xl">
+                        📸
+                      </div>
+                      <CardContent className="p-3">
+                        <p className="text-sm font-semibold mb-1">{photo.title}</p>
+                        <p className="text-xs text-muted-foreground">{photo.date}</p>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {photo.tags.slice(0, 3).map((tag, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{tag}</Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="tree">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="GitBranch" />
+                      Генеалогическое древо
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {familyTree.map((member, idx) => (
+                        <div 
+                          key={member.id} 
+                          className="p-4 rounded-lg border-2 hover:border-purple-300 transition-all cursor-pointer animate-fade-in"
+                          style={{ animationDelay: `${idx * 0.1}s`, marginLeft: `${member.generation * 20}px` }}
+                          onClick={() => setSelectedTreeMember(member)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-3xl">{member.avatar}</span>
+                            <div className="flex-1">
+                              <h4 className="font-bold">{member.name}</h4>
+                              <p className="text-sm text-muted-foreground">{member.birthDate} - {member.deathDate || 'настоящее время'}</p>
+                              <p className="text-sm">{member.relationship}</p>
+                            </div>
+                            <Badge>{member.generation} поколение</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="chat">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="MessageCircle" />
+                      Семейный чат
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 mb-4 max-h-[500px] overflow-y-auto">
+                      {chatMessages.map((msg, idx) => (
+                        <div key={msg.id} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${idx * 0.05}s` }}>
+                          <span className="text-2xl">{msg.senderAvatar}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-sm">{msg.senderName}</span>
+                              <span className="text-xs text-muted-foreground">{msg.timestamp}</span>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              {msg.type === 'text' && <p className="text-sm">{msg.content}</p>}
+                              {msg.type === 'image' && (
+                                <div className="space-y-2">
+                                  <div className="bg-purple-100 rounded p-4 text-center">📷 Фото</div>
+                                  <p className="text-xs text-muted-foreground">{msg.fileName}</p>
+                                </div>
+                              )}
+                              {msg.type === 'video' && (
+                                <div className="space-y-2">
+                                  <div className="bg-blue-100 rounded p-4 text-center">🎥 Видео</div>
+                                  <p className="text-xs text-muted-foreground">{msg.fileName}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Написать сообщение..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      />
+                      <Button onClick={handleSendMessage}>
+                        <Icon name="Send" size={16} />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
