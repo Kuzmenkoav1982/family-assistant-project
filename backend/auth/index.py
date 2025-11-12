@@ -303,7 +303,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         body = json.loads(event.get('body', '{}'))
-        path = event.get('queryStringParameters', {}).get('action', 'login')
+        query_params = event.get('queryStringParameters') or {}
+        path = query_params.get('action', 'login')
         
         if method == 'POST':
             if path == 'register':
