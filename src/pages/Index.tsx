@@ -1071,9 +1071,7 @@ export default function Index({ onLogout }: IndexProps) {
                 </Badge>
               )}
             </p>
-            <p className="text-xs lg:text-sm text-gray-600 italic">
-              💐 Нажмите в любом месте, чтобы увидеть ромашки
-            </p>
+            <p className="text-xs lg:text-sm text-gray-600 italic"></p>
           </div>
         </div>
 
