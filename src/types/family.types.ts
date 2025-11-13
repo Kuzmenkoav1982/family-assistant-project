@@ -35,6 +35,17 @@ export interface FamilyMember {
   moodStatus?: MoodStatus;
   dreams?: Dream[];
   piggyBank?: number;
+  permissions?: {
+    tasks: boolean;
+    calendar: boolean;
+    traditions: boolean;
+    blog: boolean;
+    meals: boolean;
+    education: boolean;
+    tree: boolean;
+    chat: boolean;
+    album: boolean;
+  };
 }
 
 export interface Task {

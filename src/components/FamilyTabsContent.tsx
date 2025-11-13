@@ -60,6 +60,7 @@ interface FamilyTabsContentProps {
   getMemberById: (id: string) => FamilyMember | undefined;
   getAISuggestedMeals: () => { name: string; reason: string; icon: string }[];
   exportStatsToCSV?: () => void;
+  updateMember?: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<any>;
 }
 
 function getNextOccurrence(task: Task): string | undefined {
@@ -131,6 +132,7 @@ export function FamilyTabsContent({
   getMemberById,
   getAISuggestedMeals,
   exportStatsToCSV,
+  updateMember,
 }: FamilyTabsContentProps) {
   const [taskFilter, setTaskFilter] = useState<string>('all');
   const handleSendMessage = () => {
@@ -214,6 +216,7 @@ export function FamilyTabsContent({
         familyMembers={familyMembers}
         setFamilyMembers={setFamilyMembers}
         getWorkloadColor={getWorkloadColor}
+        updateMember={updateMember}
       />
 
       <TreeTabContent 

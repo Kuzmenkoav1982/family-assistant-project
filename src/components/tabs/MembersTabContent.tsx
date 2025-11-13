@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { ChildDreamsDialog } from '@/components/ChildDreamsDialog';
+import MemberPermissions from '@/components/MemberPermissions';
 import { useState } from 'react';
 import type { FamilyMember } from '@/types/family.types';
 
@@ -15,15 +16,23 @@ interface MembersTabContentProps {
   familyMembers: FamilyMember[];
   setFamilyMembers: React.Dispatch<React.SetStateAction<FamilyMember[]>>;
   getWorkloadColor: (workload: number) => string;
+  updateMember?: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<any>;
 }
 
 export function MembersTabContent({
   familyMembers,
   setFamilyMembers,
   getWorkloadColor,
+  updateMember,
 }: MembersTabContentProps) {
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | undefined>(undefined);
+
+  const handleUpdatePermissions = async (memberId: string, permissions: any) => {
+    if (updateMember) {
+      await updateMember({ member_id: memberId, permissions });
+    }
+  };
 
   return (
     <TabsContent value="members" className="space-y-4">
@@ -408,6 +417,15 @@ export function MembersTabContent({
                     Редактировать
                   </Button>
                 </div>
+
+                {updateMember && (
+                  <div className="mt-3 pt-3 border-t">
+                    <MemberPermissions 
+                      member={member}
+                      onUpdate={handleUpdatePermissions}
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

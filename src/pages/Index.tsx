@@ -2249,6 +2249,7 @@ export default function Index({ onLogout }: IndexProps) {
                 getMemberById={getMemberById}
                 getAISuggestedMeals={getAISuggestedMeals}
                 exportStatsToCSV={exportStatsToCSV}
+                updateMember={updateMember}
               />
             </Tabs>
           </div>

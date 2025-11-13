@@ -64,7 +64,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     
     query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
-               photo_url, points, level, workload, age, created_at, updated_at
+               photo_url, points, level, workload, age, permissions, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id = {escape_string(family_id)}
         ORDER BY created_at ASC
@@ -131,6 +131,10 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
                       'photo_url', 'points', 'level', 'workload', 'age']:
             if field in data:
                 fields.append(f"{field} = {escape_string(data[field])}")
+        
+        if 'permissions' in data:
+            permissions_json = json.dumps(data['permissions'])
+            fields.append(f"permissions = '{permissions_json}'::jsonb")
         
         if not fields:
             cur.close()
