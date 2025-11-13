@@ -55,6 +55,7 @@ import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { getTranslation, type LanguageCode } from '@/translations';
 import SettingsMenu from '@/components/SettingsMenu';
+import FamilyInviteManager from '@/components/FamilyInviteManager';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -159,6 +160,7 @@ export default function Index({ onLogout }: IndexProps) {
     return !localStorage.getItem('hasSeenHints');
   });
   const [currentHintStep, setCurrentHintStep] = useState(0);
+  const [showFamilyInvite, setShowFamilyInvite] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
@@ -718,6 +720,20 @@ export default function Index({ onLogout }: IndexProps) {
         memberName={currentUser?.name || 'Пользователь'}
       />
 
+      <Dialog open={showFamilyInvite} onOpenChange={setShowFamilyInvite}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-xl md:text-2xl">
+              <Icon name="UserPlus" size={24} />
+              Управление семьёй
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
+            <FamilyInviteManager />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {showHints && !showProfileOnboarding && !membersLoading && (
         <>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] animate-fade-in" onClick={handleDismissHints} />
@@ -1105,6 +1121,18 @@ export default function Index({ onLogout }: IndexProps) {
                   <div className="text-xs text-gray-600">Помощь по разделам</div>
                 </div>
                 <Icon name="ChevronRight" size={16} className="text-blue-400" />
+              </button>
+              
+              <button
+                onClick={() => setShowFamilyInvite(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 hover:border-green-300 transition-all"
+              >
+                <Icon name="UserPlus" size={20} className="text-green-600" />
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-bold text-green-700">Управление семьёй</div>
+                  <div className="text-xs text-gray-600">Пригласить родственников</div>
+                </div>
+                <Icon name="ChevronRight" size={16} className="text-green-400" />
               </button>
             </div>
             
