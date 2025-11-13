@@ -31,9 +31,11 @@ export function useTasks() {
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
-  const fetchTasks = async (completed?: boolean) => {
-    setLoading(true);
-    setError(null);
+  const fetchTasks = async (completed?: boolean, silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     
     try {
       const url = completed !== undefined ? `${API_URL}?completed=${completed}` : API_URL;
@@ -48,14 +50,20 @@ export function useTasks() {
       if (response.ok && data.tasks) {
         setTasks(data.tasks);
       } else {
-        setTasks([]);
-        setError(data.error || 'Ошибка загрузки задач');
+        if (!silent) {
+          setTasks([]);
+          setError(data.error || 'Ошибка загрузки задач');
+        }
       }
     } catch (err) {
-      setTasks([]);
-      setError('Ошибка соединения с сервером');
+      if (!silent) {
+        setTasks([]);
+        setError('Ошибка соединения с сервером');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -145,7 +153,7 @@ export function useTasks() {
       fetchTasks();
       
       const interval = setInterval(() => {
-        fetchTasks();
+        fetchTasks(undefined, true);
       }, 5000);
       
       return () => clearInterval(interval);

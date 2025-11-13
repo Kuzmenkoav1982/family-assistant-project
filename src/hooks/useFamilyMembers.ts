@@ -30,9 +30,11 @@ export function useFamilyMembers() {
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
-  const fetchMembers = async () => {
+  const fetchMembers = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'GET',
         headers: {
@@ -50,14 +52,20 @@ export function useFamilyMembers() {
         setMembers(data.members);
         setError(null);
       } else {
-        setError(data.error || 'Ошибка загрузки');
-        setMembers([]);
+        if (!silent) {
+          setError(data.error || 'Ошибка загрузки');
+          setMembers([]);
+        }
       }
     } catch (err) {
-      setError('Ошибка загрузки данных');
-      setMembers([]);
+      if (!silent) {
+        setError('Ошибка загрузки данных');
+        setMembers([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -154,7 +162,7 @@ export function useFamilyMembers() {
       fetchMembers();
       
       const interval = setInterval(() => {
-        fetchMembers();
+        fetchMembers(true);
       }, 5000);
       
       return () => clearInterval(interval);
