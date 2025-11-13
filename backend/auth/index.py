@@ -41,7 +41,7 @@ def get_db_connection():
     conn.autocommit = True
     return conn
 
-def register_user(phone: str, password: str, family_name: Optional[str] = None, skip_family_creation: bool = False) -> Dict[str, Any]:
+def register_user(phone: str, password: str, family_name: Optional[str] = None, skip_family_creation: bool = False, invite_code: Optional[str] = None, member_name: Optional[str] = None, relationship: Optional[str] = None) -> Dict[str, Any]:
     if not phone:
         return {'error': 'Телефон обязателен'}
     
@@ -91,7 +91,74 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             'phone': user['phone']
         }
         
-        if not skip_family_creation:
+        if invite_code:
+            cur.execute(
+                f"""
+                SELECT id, family_id, max_uses, uses_count, expires_at, is_active
+                FROM {SCHEMA}.family_invites
+                WHERE invite_code = {escape_string(invite_code)}
+                """
+            )
+            invite = cur.fetchone()
+            
+            if not invite:
+                cur.close()
+                conn.close()
+                return {'error': 'Неверный код приглашения'}
+            
+            if not invite['is_active']:
+                cur.close()
+                conn.close()
+                return {'error': 'Приглашение деактивировано'}
+            
+            if invite['expires_at'] and invite['expires_at'] < datetime.now():
+                cur.close()
+                conn.close()
+                return {'error': 'Срок действия приглашения истёк'}
+            
+            if invite['uses_count'] >= invite['max_uses']:
+                cur.close()
+                conn.close()
+                return {'error': 'Приглашение исчерпано'}
+            
+            final_member_name = member_name or phone[-4:]
+            final_relationship = relationship or 'Член семьи'
+            
+            insert_member = f"""
+                INSERT INTO {SCHEMA}.family_members 
+                (family_id, user_id, name, relationship, role, points, level, workload, avatar, avatar_type) 
+                VALUES (
+                    {escape_string(invite['family_id'])}, 
+                    {escape_string(user['id'])}, 
+                    {escape_string(final_member_name)}, 
+                    {escape_string(final_relationship)}, 
+                    'Член семьи', 
+                    0, 1, 0, 
+                    {escape_string('👤')}, 
+                    {escape_string('emoji')}
+                )
+                RETURNING id
+            """
+            cur.execute(insert_member)
+            member = cur.fetchone()
+            
+            update_invite = f"""
+                UPDATE {SCHEMA}.family_invites
+                SET uses_count = uses_count + 1
+                WHERE id = {escape_string(invite['id'])}
+            """
+            cur.execute(update_invite)
+            
+            select_family = f"""
+                SELECT name FROM {SCHEMA}.families WHERE id = {escape_string(invite['family_id'])}
+            """
+            cur.execute(select_family)
+            family = cur.fetchone()
+            
+            user_data['family_id'] = str(invite['family_id'])
+            user_data['family_name'] = family['name']
+            user_data['member_id'] = str(member['id'])
+        elif not skip_family_creation:
             default_family_name = family_name or f"Семья {phone}"
             insert_family = f"""
                 INSERT INTO {SCHEMA}.families (name) 
@@ -537,7 +604,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     body.get('phone', ''),
                     body.get('password', ''),
                     body.get('family_name'),
-                    skip_family_creation=skip_family
+                    skip_family_creation=skip_family,
+                    invite_code=invite_code if invite_code else None,
+                    member_name=body.get('name'),
+                    relationship=body.get('relationship')
                 )
                 if 'error' in result:
                     return {
