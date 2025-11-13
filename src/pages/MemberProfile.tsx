@@ -73,14 +73,14 @@ export default function MemberProfile() {
         </div>
 
         <Card className="border-2 border-purple-200">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-6">
-              <div className="text-8xl animate-bounce-slow">{member.avatar}</div>
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold mb-2">{member.name}</h1>
-                <p className="text-xl text-muted-foreground mb-4">{member.role}</p>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
+              <div className="text-6xl sm:text-8xl animate-bounce-slow">{member.avatar}</div>
+              <div className="flex-1 text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{member.name}</h1>
+                <p className="text-lg md:text-xl text-muted-foreground mb-4">{member.role}</p>
                 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                   {member.age && (
                     <Badge variant="outline">
                       <Icon name="Cake" className="mr-1" size={14} />
@@ -131,30 +131,30 @@ export default function MemberProfile() {
         </div>
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${isChild ? 5 : 3}, 1fr)` }}>
-            <TabsTrigger value="info">
-              <Icon name="Info" className="mr-2" size={16} />
-              Инфо
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+            <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="Info" size={16} />
+              <span className="hidden sm:inline">Инфо</span>
             </TabsTrigger>
-            <TabsTrigger value="edit">
-              <Icon name="Edit" className="mr-2" size={16} />
-              Редактировать
+            <TabsTrigger value="edit" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="Edit" size={16} />
+              <span className="hidden sm:inline">Редактировать</span>
             </TabsTrigger>
             {isChild && (
               <>
-                <TabsTrigger value="dreams">
-                  <Icon name="Sparkles" className="mr-2" size={16} />
-                  Мечты
+                <TabsTrigger value="dreams" className="flex items-center justify-center gap-1 md:gap-2">
+                  <Icon name="Sparkles" size={16} />
+                  <span className="hidden sm:inline">Мечты</span>
                 </TabsTrigger>
-                <TabsTrigger value="piggybank">
-                  <Icon name="PiggyBank" className="mr-2" size={16} />
-                  Копилка
+                <TabsTrigger value="piggybank" className="flex items-center justify-center gap-1 md:gap-2">
+                  <Icon name="PiggyBank" size={16} />
+                  <span className="hidden sm:inline">Копилка</span>
                 </TabsTrigger>
               </>
             )}
-            <TabsTrigger value="responsibilities">
-              <Icon name="ListTodo" className="mr-2" size={16} />
-              Обязанности
+            <TabsTrigger value="responsibilities" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="ListTodo" size={16} />
+              <span className="hidden sm:inline">Обязанности</span>
             </TabsTrigger>
           </TabsList>
 
