@@ -372,15 +372,15 @@ export default function SettingsMenu() {
                         <Card className="border-2 border-blue-300">
                           <CardHeader>
                             <CardTitle>Базовый</CardTitle>
-                            <div className="text-3xl font-bold text-blue-600">299₽</div>
+                            <div className="text-2xl font-bold text-blue-600">В разработке</div>
                             <p className="text-sm text-gray-600">1 месяц</p>
                           </CardHeader>
                           <CardContent>
                             <Button
-                              onClick={() => createSubscription('basic')}
+                              disabled
                               className="w-full"
                             >
-                              Оформить
+                              Скоро
                             </Button>
                           </CardContent>
                         </Card>
@@ -388,16 +388,15 @@ export default function SettingsMenu() {
                         <Card className="border-2 border-purple-300 bg-purple-50">
                           <CardHeader>
                             <CardTitle>Стандарт</CardTitle>
-                            <div className="text-3xl font-bold text-purple-600">799₽</div>
+                            <div className="text-2xl font-bold text-purple-600">В разработке</div>
                             <p className="text-sm text-gray-600">3 месяца</p>
-                            <Badge className="bg-purple-600">-20%</Badge>
                           </CardHeader>
                           <CardContent>
                             <Button
-                              onClick={() => createSubscription('standard')}
+                              disabled
                               className="w-full bg-purple-600 hover:bg-purple-700"
                             >
-                              Оформить
+                              Скоро
                             </Button>
                           </CardContent>
                         </Card>
@@ -407,16 +406,15 @@ export default function SettingsMenu() {
                             <CardTitle className="flex items-center gap-2">
                               Премиум <Icon name="Crown" size={18} className="text-yellow-600" />
                             </CardTitle>
-                            <div className="text-3xl font-bold text-yellow-600">2499₽</div>
+                            <div className="text-2xl font-bold text-yellow-600">В разработке</div>
                             <p className="text-sm text-gray-600">12 месяцев</p>
-                            <Badge className="bg-yellow-600">-30%</Badge>
                           </CardHeader>
                           <CardContent>
                             <Button
-                              onClick={() => createSubscription('premium')}
+                              disabled
                               className="w-full bg-yellow-600 hover:bg-yellow-700"
                             >
-                              Оформить
+                              Скоро
                             </Button>
                           </CardContent>
                         </Card>

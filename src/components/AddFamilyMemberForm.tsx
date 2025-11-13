@@ -8,9 +8,10 @@ import type { FamilyMember } from '@/types/family.types';
 interface AddFamilyMemberFormProps {
   onSubmit: (member: FamilyMember) => void;
   editingMember?: FamilyMember;
+  isChild?: boolean;
 }
 
-export function AddFamilyMemberForm({ onSubmit, editingMember }: AddFamilyMemberFormProps) {
+export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }: AddFamilyMemberFormProps) {
   const [formData, setFormData] = useState({
     name: editingMember?.name || '',
     role: editingMember?.role || '',

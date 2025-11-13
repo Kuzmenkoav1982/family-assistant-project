@@ -27,21 +27,22 @@ export function MembersTabContent({
 
   return (
     <TabsContent value="members" className="space-y-4">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <h3 className="text-2xl font-bold">Члены семьи</h3>
-        <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              className="bg-gradient-to-r from-orange-500 to-pink-500"
-              onClick={() => {
-                setEditingMember(undefined);
-                setAddMemberDialogOpen(true);
-              }}
-            >
-              <Icon name="UserPlus" className="mr-2" size={16} />
-              Добавить члена семьи
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                className="bg-gradient-to-r from-orange-500 to-pink-500"
+                onClick={() => {
+                  setEditingMember(undefined);
+                  setAddMemberDialogOpen(true);
+                }}
+              >
+                <Icon name="UserPlus" className="mr-2" size={16} />
+                Добавить члена семьи
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingMember ? 'Редактировать члена семьи' : 'Добавить нового члена семьи'}</DialogTitle>
@@ -60,6 +61,31 @@ export function MembersTabContent({
             />
           </DialogContent>
         </Dialog>
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <Icon name="Baby" className="mr-2" size={16} />
+              Добавить ребёнка
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Добавить ребёнка</DialogTitle>
+            </DialogHeader>
+            <AddFamilyMemberForm 
+              editingMember={undefined}
+              isChild={true}
+              onSubmit={(newChild) => {
+                setFamilyMembers([...familyMembers, { ...newChild, relationship: 'Ребёнок' }]);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

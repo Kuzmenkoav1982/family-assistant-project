@@ -57,6 +57,8 @@ import { getTranslation, type LanguageCode } from '@/translations';
 import SettingsMenu from '@/components/SettingsMenu';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
+import BottomBar from '@/components/BottomBar';
+import PanelSettings from '@/components/PanelSettings';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -162,6 +164,14 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [currentHintStep, setCurrentHintStep] = useState(0);
   const [showFamilyInvite, setShowFamilyInvite] = useState(false);
+  
+  const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
+  const [autoHideBottomBar, setAutoHideBottomBar] = useState(() => {
+    return localStorage.getItem('autoHideBottomBar') === 'true';
+  });
+  const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
+  const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
+  const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
@@ -375,20 +385,67 @@ export default function Index({ onLogout }: IndexProps) {
     localStorage.setItem('autoHideLeftMenu', String(newValue));
   };
 
-  const menuSections = [
-    { id: 'tasks', icon: 'CheckSquare', label: 'Задачи', ready: true },
-    { id: 'calendar', icon: 'Calendar', label: 'Календарь', ready: true },
-    { id: 'family', icon: 'Users', label: 'Семья', ready: true },
-    { id: 'children', icon: 'Baby', label: 'Дети', ready: true },
-    { id: 'values', icon: 'Heart', label: 'Ценности', ready: true },
-    { id: 'traditions', icon: 'Sparkles', label: 'Традиции', ready: true },
-    { id: 'rules', icon: 'Scale', label: 'Правила', ready: true },
-    { id: 'blog', icon: 'BookOpen', label: 'Блог', ready: true },
-    { id: 'album', icon: 'Image', label: 'Альбом', ready: true },
-    { id: 'tree', icon: 'GitBranch', label: 'Древо', ready: true },
-    { id: 'chat', icon: 'MessageCircle', label: 'Чат', ready: true },
-    { id: 'about', icon: 'Info', label: 'О проекте', ready: true },
+  const handleBottomBarSectionsChange = (sections: string[]) => {
+    setBottomBarSections(sections);
+    localStorage.setItem('bottomBarSections', JSON.stringify(sections));
+  };
+
+  const handleLeftPanelSectionsChange = (sections: string[]) => {
+    setLeftPanelSections(sections);
+    localStorage.setItem('leftPanelSections', JSON.stringify(sections));
+  };
+
+  const handleTopPanelSectionsChange = (sections: string[]) => {
+    setTopPanelSections(sections);
+    localStorage.setItem('topPanelSections', JSON.stringify(sections));
+  };
+
+  const handleRightPanelSectionsChange = (sections: string[]) => {
+    setRightPanelSections(sections);
+    localStorage.setItem('rightPanelSections', JSON.stringify(sections));
+  };
+
+  const handleAutoHideBottomBarChange = (value: boolean) => {
+    setAutoHideBottomBar(value);
+    localStorage.setItem('autoHideBottomBar', String(value));
+  };
+
+  const availableSections = [
+    { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
+    { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
+    { id: 'family', icon: 'Users', label: 'Семья' },
+    { id: 'children', icon: 'Baby', label: 'Дети' },
+    { id: 'chat', icon: 'MessageCircle', label: 'Чат' },
+    { id: 'values', icon: 'Heart', label: 'Ценности' },
+    { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
+    { id: 'rules', icon: 'Scale', label: 'Правила' },
+    { id: 'blog', icon: 'BookOpen', label: 'Блог' },
+    { id: 'album', icon: 'Image', label: 'Альбом' },
+    { id: 'tree', icon: 'GitBranch', label: 'Древо' },
+    { id: 'about', icon: 'Info', label: 'О проекте' },
   ];
+
+  const menuSections = availableSections.map(s => ({ ...s, ready: true }));
+
+  const [bottomBarSections, setBottomBarSections] = useState<string[]>(() => {
+    const saved = localStorage.getItem('bottomBarSections');
+    return saved ? JSON.parse(saved) : ['chat', 'calendar', 'tasks'];
+  });
+
+  const [leftPanelSections, setLeftPanelSections] = useState<string[]>(() => {
+    const saved = localStorage.getItem('leftPanelSections');
+    return saved ? JSON.parse(saved) : availableSections.map(s => s.id);
+  });
+
+  const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
+    const saved = localStorage.getItem('topPanelSections');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [rightPanelSections, setRightPanelSections] = useState<string[]>(() => {
+    const saved = localStorage.getItem('rightPanelSections');
+    return saved ? JSON.parse(saved) : [];
+  });
   
   const getSectionTitle = (sectionId: string) => {
     const section = menuSections.find(s => s.id === sectionId);
@@ -1078,6 +1135,15 @@ export default function Index({ onLogout }: IndexProps) {
             </h3>
             <div className="flex items-center gap-1">
               <Button
+                onClick={() => setShowLeftPanelSettings(true)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title="Настройки панели"
+              >
+                <Icon name="Settings" size={14} />
+              </Button>
+              <Button
                 onClick={toggleLeftMenuAutoHide}
                 variant="ghost"
                 size="sm"
@@ -1222,6 +1288,15 @@ export default function Index({ onLogout }: IndexProps) {
               Настроение семьи
             </h3>
             <div className="flex items-center gap-1">
+              <Button
+                onClick={() => setShowRightPanelSettings(true)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title="Настройки панели"
+              >
+                <Icon name="Settings" size={14} />
+              </Button>
               <Button
                 onClick={toggleMoodAutoHide}
                 variant="ghost"
@@ -2309,6 +2384,60 @@ export default function Index({ onLogout }: IndexProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      <BottomBar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        autoHide={autoHideBottomBar}
+        onAutoHideChange={handleAutoHideBottomBarChange}
+        isVisible={isBottomBarVisible}
+        onVisibilityChange={setIsBottomBarVisible}
+        availableSections={availableSections}
+        selectedSections={bottomBarSections}
+        onSectionsChange={handleBottomBarSectionsChange}
+      />
+
+      <PanelSettings
+        title="Настройки верхней панели"
+        open={showTopPanelSettings}
+        onOpenChange={setShowTopPanelSettings}
+        autoHide={autoHideTopBar}
+        onAutoHideChange={(value) => {
+          setAutoHideTopBar(value);
+          localStorage.setItem('autoHideTopBar', String(value));
+        }}
+        availableSections={availableSections}
+        selectedSections={topPanelSections}
+        onSectionsChange={handleTopPanelSectionsChange}
+      />
+
+      <PanelSettings
+        title="Настройки левой панели"
+        open={showLeftPanelSettings}
+        onOpenChange={setShowLeftPanelSettings}
+        autoHide={autoHideLeftMenu}
+        onAutoHideChange={(value) => {
+          setAutoHideLeftMenu(value);
+          localStorage.setItem('autoHideLeftMenu', String(value));
+        }}
+        availableSections={availableSections}
+        selectedSections={leftPanelSections}
+        onSectionsChange={handleLeftPanelSectionsChange}
+      />
+
+      <PanelSettings
+        title="Настройки правой панели"
+        open={showRightPanelSettings}
+        onOpenChange={setShowRightPanelSettings}
+        autoHide={autoHideMoodWidget}
+        onAutoHideChange={(value) => {
+          setAutoHideMoodWidget(value);
+          localStorage.setItem('autoHideMoodWidget', String(value));
+        }}
+        availableSections={availableSections}
+        selectedSections={rightPanelSections}
+        onSectionsChange={handleRightPanelSectionsChange}
+      />
       
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
     </>
