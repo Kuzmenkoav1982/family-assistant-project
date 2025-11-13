@@ -77,11 +77,19 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
     setIsLoading(true);
     
     try {
-      const requestBody = {
+      const requestBody: any = {
         phone: registerData.phone,
         password: registerData.password,
         family_name: registerData.familyName || undefined
       };
+      
+      if (registerStep === 'join' && registerData.inviteCode) {
+        requestBody.invite_code = registerData.inviteCode.toUpperCase();
+        requestBody.name = registerData.memberName;
+        requestBody.relationship = registerData.relationship === 'Другое' 
+          ? registerData.customRelationship 
+          : registerData.relationship;
+      }
       
       const response = await fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=register', {
         method: 'POST',
@@ -101,43 +109,10 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
         } else {
           localStorage.setItem('authToken', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('needsProfileSetup', 'true');
           
           if (registerStep === 'join') {
-            const relationship = registerData.relationship === 'Другое' 
-              ? registerData.customRelationship 
-              : registerData.relationship;
-
-            const joinResponse = await fetch('https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Auth-Token': data.token
-              },
-              body: JSON.stringify({
-                action: 'join',
-                invite_code: registerData.inviteCode.toUpperCase(),
-                member_name: registerData.memberName,
-                relationship: relationship
-              })
-            });
-            
-            const joinData = await joinResponse.json();
-            
-            if (joinData.success) {
-              const updatedUser = {
-                ...data.user,
-                family_id: joinData.family.id,
-                family_name: joinData.family.name,
-                member_id: joinData.family.member_id
-              };
-              localStorage.setItem('user', JSON.stringify(updatedUser));
-              localStorage.setItem('needsProfileSetup', 'true');
-              onAuthSuccess(data.token, updatedUser);
-            } else {
-              setError('Ошибка присоединения к семье: ' + joinData.error);
-              setIsLoading(false);
-              return;
-            }
+            onAuthSuccess(data.token, data.user);
           } else {
             const updateResponse = await fetch('https://functions.poehali.dev/8a66ac8a-2cc8-40f0-9fda-ec4d14b08dcf', {
               method: 'POST',
