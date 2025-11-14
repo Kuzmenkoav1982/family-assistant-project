@@ -74,8 +74,10 @@ export default function Index({ onLogout }: IndexProps) {
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   
+  const [testTasksState, setTestTasksState] = useState<Task[]>(testTasks);
+  
   const familyMembers = isTestMode ? testFamilyMembers : (familyMembersRaw || []);
-  const tasks = isTestMode ? testTasks : (tasksRaw || []);
+  const tasks = isTestMode ? testTasksState : (tasksRaw || []);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
@@ -509,10 +511,32 @@ export default function Index({ onLogout }: IndexProps) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
-    const result = await toggleTaskDB(taskId);
-    
-    if (result?.success && !task.completed && task.assignee_id) {
-      addPoints(task.assignee_id, task.points);
+    if (isTestMode) {
+      setTestTasksState(prev => prev.map(t => 
+        t.id === taskId ? { ...t, completed: !t.completed } : t
+      ));
+      
+      if (!task.completed && task.assignee_id) {
+        addPoints(task.assignee_id, task.points);
+      }
+    } else {
+      const result = await toggleTaskDB(taskId);
+      
+      if (result?.success && !task.completed && task.assignee_id) {
+        addPoints(task.assignee_id, task.points);
+      }
+    }
+  };
+
+  const handleSetTasks = (value: Task[] | ((prev: Task[]) => Task[])) => {
+    if (isTestMode) {
+      if (typeof value === 'function') {
+        setTestTasksState(value);
+      } else {
+        setTestTasksState(value);
+      }
+    } else {
+      console.warn('setTasks deprecated in real mode, use createTask/updateTask/deleteTask instead');
     }
   };
 
@@ -2224,7 +2248,7 @@ export default function Index({ onLogout }: IndexProps) {
                 familyMembers={familyMembers}
                 setFamilyMembers={setFamilyMembers}
                 tasks={tasks}
-                setTasks={() => console.warn('setTasks deprecated, tasks managed by useTasks hook')}
+                setTasks={handleSetTasks}
                 traditions={traditions}
                 familyValues={familyValues}
                 blogPosts={blogPosts}
