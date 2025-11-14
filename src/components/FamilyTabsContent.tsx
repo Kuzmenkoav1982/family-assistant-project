@@ -261,12 +261,18 @@ export function FamilyTabsContent({
                 const title = formData.get('title') as string;
                 const assigneeId = formData.get('assignee') as string;
                 const deadline = formData.get('deadline') as string;
+                const deadlineTime = formData.get('deadlineTime') as string;
                 const category = formData.get('category') as string;
                 const points = parseInt(formData.get('points') as string) || 10;
                 const description = formData.get('description') as string || '';
                 
                 const assignee = familyMembers.find(m => m.id === assigneeId);
                 const currentUser = familyMembers.find(m => m.user_id === selectedUserId || m.id === selectedUserId);
+                
+                let fullDeadline = deadline;
+                if (deadline && deadlineTime) {
+                  fullDeadline = `${deadline}T${deadlineTime}`;
+                }
                 
                 const newTask: Task = {
                   id: Date.now().toString(),
@@ -279,8 +285,8 @@ export function FamilyTabsContent({
                   completed: false,
                   category: category || 'Дом',
                   points,
-                  deadline: deadline || undefined,
-                  reminderTime: null,
+                  deadline: fullDeadline || undefined,
+                  reminderTime: deadlineTime || null,
                   shoppingList: null,
                   isRecurring: false,
                   recurringPattern: null,
@@ -315,21 +321,34 @@ export function FamilyTabsContent({
                   </select>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    <Icon name="Calendar" className="inline mr-1" size={16} />
-                    Срок выполнения
-                  </label>
-                  <Input 
-                    name="deadline" 
-                    type="date" 
-                    min={new Date().toISOString().split('T')[0]}
-                    placeholder="Когда нужно выполнить?"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Укажите когда задача должна быть выполнена (например, когда нужны чистые джинсы)
-                  </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Icon name="Calendar" className="inline mr-1" size={16} />
+                      Дата выполнения
+                    </label>
+                    <Input 
+                      name="deadline" 
+                      type="date" 
+                      min={new Date().toISOString().split('T')[0]}
+                      placeholder="Когда нужно выполнить?"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <Icon name="Clock" className="inline mr-1" size={16} />
+                      Время
+                    </label>
+                    <Input 
+                      name="deadlineTime" 
+                      type="time"
+                      placeholder="Во сколько?"
+                    />
+                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Укажите когда задача должна быть выполнена
+                </p>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div>

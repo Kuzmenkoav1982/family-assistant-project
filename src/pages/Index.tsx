@@ -1776,18 +1776,99 @@ export default function Index({ onLogout }: IndexProps) {
               <TabsContent value="calendar">
                 <Card key="calendar-card">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <CardTitle className="flex items-center gap-2">
                         <Icon name="Calendar" />
                         Календарь событий
                       </CardTitle>
-                      <Tabs value={calendarFilter} onValueChange={(v) => setCalendarFilter(v as any)}>
-                        <TabsList>
-                          <TabsTrigger value="all">Все</TabsTrigger>
-                          <TabsTrigger value="personal">Мои</TabsTrigger>
-                          <TabsTrigger value="family">Семейные</TabsTrigger>
-                        </TabsList>
-                      </Tabs>
+                      <div className="flex gap-2 items-center">
+                        <Tabs value={calendarFilter} onValueChange={(v) => setCalendarFilter(v as any)}>
+                          <TabsList>
+                            <TabsTrigger value="all">Все</TabsTrigger>
+                            <TabsTrigger value="personal">Мои</TabsTrigger>
+                            <TabsTrigger value="family">Семейные</TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
+                              <Icon name="Plus" className="mr-2" size={16} />
+                              Добавить
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Новое событие</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={(e) => {
+                              e.preventDefault();
+                              const formData = new FormData(e.currentTarget);
+                              const title = formData.get('eventTitle') as string;
+                              const description = formData.get('eventDescription') as string;
+                              const date = formData.get('eventDate') as string;
+                              const time = formData.get('eventTime') as string;
+                              const category = formData.get('eventCategory') as string;
+                              const visibility = formData.get('eventVisibility') as 'personal' | 'family';
+                              
+                              const newEvent: CalendarEvent = {
+                                id: Date.now().toString(),
+                                title,
+                                description,
+                                date,
+                                time,
+                                category,
+                                visibility,
+                                createdBy: currentUserId,
+                                createdByAvatar: currentUser?.avatar || '👤',
+                                color: 'bg-blue-50'
+                              };
+                              
+                              setCalendarEvents([...calendarEvents, newEvent]);
+                              (e.target as HTMLFormElement).reset();
+                            }} className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Название события *</label>
+                                <Input name="eventTitle" placeholder="Например: День рождения" required />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Описание</label>
+                                <Input name="eventDescription" placeholder="Детали события" />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Дата *</label>
+                                  <Input name="eventDate" type="date" required />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Время *</label>
+                                  <Input name="eventTime" type="time" required />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Категория *</label>
+                                <select name="eventCategory" className="w-full border rounded-md p-2" required>
+                                  <option value="Праздник">Праздник</option>
+                                  <option value="Встреча">Встреча</option>
+                                  <option value="Важное">Важное</option>
+                                  <option value="Развлечение">Развлечение</option>
+                                  <option value="Другое">Другое</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Видимость *</label>
+                                <select name="eventVisibility" className="w-full border rounded-md p-2" required>
+                                  <option value="family">Семейное (видят все)</option>
+                                  <option value="personal">Личное (только я)</option>
+                                </select>
+                              </div>
+                              <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
+                                <Icon name="Plus" className="mr-2" size={16} />
+                                Создать событие
+                              </Button>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -2043,6 +2124,52 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="album">
+                <div className="mb-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
+                        <Icon name="Plus" className="mr-2" size={16} />
+                        Добавить фото
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Добавить фото в альбом</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const title = formData.get('photoTitle') as string;
+                        const tags = (formData.get('photoTags') as string).split(',').map(t => t.trim()).filter(Boolean);
+                        
+                        const newPhoto: FamilyAlbum = {
+                          id: Date.now().toString(),
+                          title,
+                          date: new Date().toLocaleDateString('ru-RU'),
+                          tags,
+                          uploadedBy: currentUserId,
+                          url: ''
+                        };
+                        
+                        setFamilyAlbum([...familyAlbum, newPhoto]);
+                        (e.target as HTMLFormElement).reset();
+                      }} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Название фото *</label>
+                          <Input name="photoTitle" placeholder="Например: День рождения мамы" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Теги</label>
+                          <Input name="photoTags" placeholder="Семья, праздник, лето (через запятую)" />
+                        </div>
+                        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-pink-500">
+                          <Icon name="Plus" className="mr-2" size={16} />
+                          Добавить фото
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {familyAlbum.length > 0 ? familyAlbum.map((photo, idx) => (
                     <Card key={photo.id} className="overflow-hidden animate-fade-in cursor-pointer hover:shadow-lg transition-shadow" style={{ animationDelay: `${idx * 0.05}s` }}>
