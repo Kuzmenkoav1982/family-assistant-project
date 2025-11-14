@@ -2257,8 +2257,10 @@ export default function Index({ onLogout }: IndexProps) {
                 updateMember={updateMember}
               />
             </TabsContent>
-          </div>
+          </Tabs>
+        </div>
 
+        <div className="lg:col-span-1">
           <div className="space-y-6">
             <Card key="sidebar-weekly-calendar" className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50" style={{ animationDelay: '0.5s' }}>
               <CardHeader>
