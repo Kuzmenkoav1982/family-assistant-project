@@ -14,6 +14,7 @@ interface FamilyData {
   family_album: any[];
   family_tree: any[];
   chat_messages: any[];
+  family_needs: any[];
 }
 
 export function useFamilyData() {

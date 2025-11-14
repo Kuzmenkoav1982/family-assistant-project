@@ -11,7 +11,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
-SCHEMA = 't_p5815085_family_assistant_pro'
+SCHEMA = '"t_p5815085_family_assistant_pro"'
 
 def escape_string(value: Any) -> str:
     if value is None:
@@ -61,7 +61,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         cur.close()
         conn.close()
 
-def get_family_data(family_id: int) -> Dict[str, Any]:
+def get_family_data(family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -74,7 +74,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
                    points, level, workload, age, achievements, 
                    food_preferences, responsibilities, mood_status
             FROM {SCHEMA}.family_members 
-            WHERE family_id = {family_id}
+            WHERE family_id = {escape_string(family_id)}
         """)
         data['members'] = [dict(row) for row in cur.fetchall()]
         
@@ -84,7 +84,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
                    deadline, reminder_time, shopping_list, is_recurring,
                    recurring_pattern, next_occurrence
             FROM {SCHEMA}.tasks 
-            WHERE family_id = {family_id}
+            WHERE family_id = {escape_string(family_id)}
             ORDER BY created_at DESC
         """)
         data['tasks'] = [dict(row) for row in cur.fetchall()]
@@ -94,7 +94,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
             SELECT cp.*, fm.name as child_name, fm.avatar, fm.age
             FROM {SCHEMA}.children_profiles cp
             JOIN {SCHEMA}.family_members fm ON cp.child_member_id = fm.id
-            WHERE cp.family_id = {family_id}
+            WHERE cp.family_id = {escape_string(family_id)}
         """)
         data['children_profiles'] = [dict(row) for row in cur.fetchall()]
         
@@ -103,7 +103,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
             SELECT tr.*, fm.name as child_name
             FROM {SCHEMA}.test_results tr
             JOIN {SCHEMA}.family_members fm ON tr.child_member_id = fm.id
-            WHERE fm.family_id = {family_id}
+            WHERE fm.family_id = {escape_string(family_id)}
             ORDER BY tr.date DESC
         """)
         data['test_results'] = [dict(row) for row in cur.fetchall()]
@@ -111,7 +111,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
         # Календарные события
         cur.execute(f"""
             SELECT * FROM {SCHEMA}.calendar_events 
-            WHERE family_id = {family_id}
+            WHERE family_id = {escape_string(family_id)}
             ORDER BY date DESC
             LIMIT 100
         """)
@@ -120,14 +120,14 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
         # Семейные ценности
         cur.execute(f"""
             SELECT * FROM {SCHEMA}.family_values 
-            WHERE family_id = {family_id}
+            WHERE family_id = {escape_string(family_id)}
         """)
         data['family_values'] = [dict(row) for row in cur.fetchall()]
         
         # Традиции
         cur.execute(f"""
             SELECT * FROM {SCHEMA}.traditions 
-            WHERE family_id = {family_id}
+            WHERE family_id = {escape_string(family_id)}
         """)
         data['traditions'] = [dict(row) for row in cur.fetchall()]
         
@@ -136,7 +136,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
             SELECT bp.*, fm.name as author_name
             FROM {SCHEMA}.blog_posts bp
             LEFT JOIN {SCHEMA}.family_members fm ON bp.author_id = fm.id
-            WHERE bp.family_id = {family_id}
+            WHERE bp.family_id = {escape_string(family_id)}
             ORDER BY bp.created_at DESC
             LIMIT 50
         """)
@@ -147,7 +147,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
             SELECT fa.*, fm.name as uploaded_by_name
             FROM {SCHEMA}.family_album fa
             LEFT JOIN {SCHEMA}.family_members fm ON fa.uploaded_by = fm.id
-            WHERE fa.family_id = {family_id}
+            WHERE fa.family_id = {escape_string(family_id)}
             ORDER BY fa.created_at DESC
             LIMIT 100
         """)
@@ -156,7 +156,7 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
         # Генеалогическое древо
         cur.execute(f"""
             SELECT * FROM {SCHEMA}.family_tree 
-            WHERE family_id = {family_id}
+            WHERE family_id = {escape_string(family_id)}
         """)
         data['family_tree'] = [dict(row) for row in cur.fetchall()]
         
@@ -165,18 +165,29 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
             SELECT cm.*, fm.name as sender_name, fm.avatar as sender_avatar
             FROM {SCHEMA}.chat_messages cm
             LEFT JOIN {SCHEMA}.family_members fm ON cm.sender_id = fm.id
-            WHERE cm.family_id = {family_id}
+            WHERE cm.family_id = {escape_string(family_id)}
             ORDER BY cm.created_at DESC
             LIMIT 100
         """)
         data['chat_messages'] = [dict(row) for row in cur.fetchall()]
+        
+        # Потребности семьи
+        try:
+            cur.execute(f"""
+                SELECT * FROM {SCHEMA}.family_needs 
+                WHERE family_id = {escape_string(family_id)}
+                ORDER BY created_at DESC
+            """)
+            data['family_needs'] = [dict(row) for row in cur.fetchall()]
+        except:
+            data['family_needs'] = []
         
         return data
     finally:
         cur.close()
         conn.close()
 
-def save_test_result(family_id: int, child_member_id: int, test_data: Dict[str, Any]) -> Dict[str, Any]:
+def save_test_result(family_id: str, child_member_id: int, test_data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -309,6 +320,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     except Exception as e:
         import traceback
+        error_details = traceback.format_exc()
+        print(f"ERROR: {str(e)}")
+        print(f"TRACEBACK: {error_details}")
         return {
             'statusCode': 500,
             'headers': headers,

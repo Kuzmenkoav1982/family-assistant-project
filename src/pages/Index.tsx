@@ -86,16 +86,37 @@ export default function Index({ onLogout }: IndexProps) {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
   const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
-  const [familyValues, setFamilyValues] = useState<FamilyValue[]>(initialFamilyValues);
-  const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
-  const [traditions, setTraditions] = useState<Tradition[]>(initialTraditions);
+  const familyValues = familyData?.family_values || initialFamilyValues;
+  const setFamilyValues = (value: FamilyValue[] | ((prev: FamilyValue[]) => FamilyValue[])) => {
+    console.warn('setFamilyValues deprecated, данные синхронизируются через backend');
+  };
+  const [blogPosts] = useState<BlogPost[]>(familyData?.blog_posts || initialBlogPosts);
+  const traditions = familyData?.traditions || initialTraditions;
+  const setTraditions = (value: Tradition[] | ((prev: Tradition[]) => Tradition[])) => {
+    console.warn('setTraditions deprecated, данные синхронизируются через backend');
+  };
   const [mealVotings] = useState<MealVoting[]>(initialMealVotings);
-  const [childrenProfiles, setChildrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
+  const childrenProfiles = familyData?.children_profiles || initialChildrenProfiles;
+  const setChildrenProfiles = (value: ChildProfile[] | ((prev: ChildProfile[]) => ChildProfile[])) => {
+    console.warn('setChildrenProfiles deprecated, данные синхронизируются через backend');
+  };
   const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
-  const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
-  const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(initialFamilyNeeds);
-  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
+  const chatMessages = familyData?.chat_messages || initialChatMessages;
+  const setChatMessages = (value: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+    console.warn('setChatMessages deprecated, данные синхронизируются через backend');
+  };
+  const familyAlbum = familyData?.family_album || initialFamilyAlbum;
+  const setFamilyAlbum = (value: FamilyAlbum[] | ((prev: FamilyAlbum[]) => FamilyAlbum[])) => {
+    console.warn('setFamilyAlbum deprecated, данные синхронизируются через backend');
+  };
+  const familyNeeds = familyData?.family_needs || initialFamilyNeeds;
+  const setFamilyNeeds = (value: FamilyNeed[] | ((prev: FamilyNeed[]) => FamilyNeed[])) => {
+    console.warn('setFamilyNeeds deprecated, данные синхронизируются через backend');
+  };
+  const familyTree = familyData?.family_tree || initialFamilyTree;
+  const setFamilyTree = (value: FamilyTreeMember[] | ((prev: FamilyTreeMember[]) => FamilyTreeMember[])) => {
+    console.warn('setFamilyTree deprecated, данные синхронизируются через backend');
+  };
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
   const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
   const [newMessage, setNewMessage] = useState('');
@@ -125,7 +146,10 @@ export default function Index({ onLogout }: IndexProps) {
     setChatMessages([...chatMessages, message]);
     setNewMessage('');
   };
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
+  const calendarEvents = familyData?.calendar_events || initialCalendarEvents;
+  const setCalendarEvents = (value: CalendarEvent[] | ((prev: CalendarEvent[]) => CalendarEvent[])) => {
+    console.warn('setCalendarEvents deprecated, данные синхронизируются через backend');
+  };
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
