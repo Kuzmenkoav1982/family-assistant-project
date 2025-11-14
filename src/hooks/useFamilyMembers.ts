@@ -158,13 +158,17 @@ export function useFamilyMembers() {
 
   useEffect(() => {
     const token = getAuthToken();
-    if (!token || token === '') {
+    if (token) {
+      fetchMembers();
+      
+      const interval = setInterval(() => {
+        fetchMembers(true);
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    } else {
       setLoading(false);
-      setMembers([]);
-      return;
     }
-    
-    fetchMembers();
   }, []);
 
   return {

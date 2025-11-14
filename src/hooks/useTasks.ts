@@ -149,13 +149,17 @@ export function useTasks() {
 
   useEffect(() => {
     const token = getAuthToken();
-    if (!token || token === '') {
+    if (token) {
+      fetchTasks();
+      
+      const interval = setInterval(() => {
+        fetchTasks(undefined, true);
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    } else {
       setLoading(false);
-      setTasks([]);
-      return;
     }
-    
-    fetchTasks();
   }, []);
 
   return {

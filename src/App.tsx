@@ -44,7 +44,10 @@ const App = () => {
         localStorage.removeItem('user');
         setIsAuthenticated(false);
       }
+    } else {
+      setIsAuthenticated(false);
     }
+    
     setIsLoading(false);
   }, []);
 
