@@ -30,9 +30,21 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    // Полная очистка при каждой загрузке для решения проблем с невалидными токенами
-    localStorage.clear();
-    setIsAuthenticated(false);
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setCurrentUser(parsedUser);
+        setIsAuthenticated(true);
+        setNeedsSetup(!parsedUser.family_id);
+      } catch (err) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+      }
+    }
     setIsLoading(false);
   }, []);
 
