@@ -59,6 +59,7 @@ import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
+import { testFamilyMembers, testTasks } from '@/data/testFamilyData';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -66,12 +67,15 @@ interface IndexProps {
 
 export default function Index({ onLogout }: IndexProps) {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isTestMode = user.id?.startsWith('user-');
+  
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembers();
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   
-  const familyMembers = familyMembersRaw || [];
-  const tasks = tasksRaw || [];
+  const familyMembers = isTestMode ? testFamilyMembers : (familyMembersRaw || []);
+  const tasks = isTestMode ? testTasks : (tasksRaw || []);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
@@ -173,7 +177,6 @@ export default function Index({ onLogout }: IndexProps) {
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
   const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
   const currentUserId = currentUser?.id || user.member_id || '';
 
