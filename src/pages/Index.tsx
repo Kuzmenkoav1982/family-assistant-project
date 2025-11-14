@@ -86,11 +86,11 @@ export default function Index({ onLogout }: IndexProps) {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
   const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
-  const [familyValues] = useState<FamilyValue[]>(initialFamilyValues);
+  const [familyValues, setFamilyValues] = useState<FamilyValue[]>(initialFamilyValues);
   const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
-  const [traditions] = useState<Tradition[]>(initialTraditions);
+  const [traditions, setTraditions] = useState<Tradition[]>(initialTraditions);
   const [mealVotings] = useState<MealVoting[]>(initialMealVotings);
-  const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
+  const [childrenProfiles, setChildrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
   const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
   const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
@@ -125,7 +125,7 @@ export default function Index({ onLogout }: IndexProps) {
     setChatMessages([...chatMessages, message]);
     setNewMessage('');
   };
-  const [calendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
@@ -1918,6 +1918,72 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="children">
+                <div className="mb-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-purple-500 to-blue-500">
+                        <Icon name="Plus" className="mr-2" size={16} />
+                        Добавить ребёнка
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Новый профиль ребёнка</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const name = formData.get('childName') as string;
+                        const age = parseInt(formData.get('childAge') as string);
+                        const grade = formData.get('childGrade') as string;
+                        const avatar = formData.get('childAvatar') as string || '👶';
+                        const interests = (formData.get('childInterests') as string).split(',').map(i => i.trim()).filter(Boolean);
+                        
+                        const newChild: ChildProfile = {
+                          id: Date.now().toString(),
+                          childId: `child-${Date.now()}`,
+                          name,
+                          age,
+                          grade,
+                          avatar,
+                          interests,
+                          achievements: [],
+                          health: { vaccinations: [], allergies: [], chronicConditions: [] }
+                        };
+                        
+                        setChildrenProfiles([...childrenProfiles, newChild]);
+                        (e.target as HTMLFormElement).reset();
+                      }} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Имя ребёнка *</label>
+                          <Input name="childName" placeholder="Например: Маша" required />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Возраст *</label>
+                            <Input name="childAge" type="number" min="0" max="18" placeholder="5" required />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Класс</label>
+                            <Input name="childGrade" placeholder="1 класс" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Аватар (эмодзи)</label>
+                          <Input name="childAvatar" placeholder="👶" maxLength={2} />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Интересы (через запятую)</label>
+                          <Input name="childInterests" placeholder="Рисование, футбол, чтение" />
+                        </div>
+                        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-blue-500">
+                          <Icon name="Plus" className="mr-2" size={16} />
+                          Создать профиль
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <div className="space-y-4">
                   {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => (
                     <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -1971,13 +2037,20 @@ export default function Index({ onLogout }: IndexProps) {
                             </div>
                           </div>
                           
-                          <div className="pt-3 border-t">
+                          <div className="pt-3 border-t flex gap-2">
                             <Button
                               onClick={() => setEducationChild(familyMembers.find(m => m.id === child.childId) || null)}
-                              className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
+                              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600"
                             >
                               <Icon name="GraduationCap" className="mr-2" size={16} />
                               Обучение и развитие
+                            </Button>
+                            <Button
+                              onClick={() => setChildrenProfiles(childrenProfiles.filter(c => c.id !== child.id))}
+                              variant="outline"
+                              className="border-red-300 text-red-600 hover:bg-red-50"
+                            >
+                              <Icon name="Trash2" size={16} />
                             </Button>
                           </div>
                         </div>
@@ -1996,14 +2069,79 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="values">
+                <div className="mb-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-pink-500 to-purple-500">
+                        <Icon name="Plus" className="mr-2" size={16} />
+                        Добавить ценность
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Новая семейная ценность</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const title = formData.get('valueTitle') as string;
+                        const description = formData.get('valueDescription') as string;
+                        const icon = formData.get('valueIcon') as string || '❤️';
+                        const practices = (formData.get('valuePractices') as string).split(',').map(p => p.trim()).filter(Boolean);
+                        
+                        const newValue: FamilyValue = {
+                          id: Date.now().toString(),
+                          title,
+                          description,
+                          icon,
+                          practices
+                        };
+                        
+                        setFamilyValues([...familyValues, newValue]);
+                        (e.target as HTMLFormElement).reset();
+                      }} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Название ценности *</label>
+                          <Input name="valueTitle" placeholder="Например: Уважение" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Описание *</label>
+                          <Input name="valueDescription" placeholder="Почему это важно для нашей семьи" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Иконка (эмодзи)</label>
+                          <Input name="valueIcon" placeholder="❤️" maxLength={2} />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Как мы это практикуем (через запятую)</label>
+                          <Input name="valuePractices" placeholder="Слушаем друг друга, благодарим за помощь" />
+                        </div>
+                        <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-purple-500">
+                          <Icon name="Plus" className="mr-2" size={16} />
+                          Добавить ценность
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <div className="grid gap-4">
                   {familyValues.length > 0 ? familyValues.map((value, idx) => (
                     <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
                         <CardTitle>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">{value.icon}</span>
-                            <span>{value.title}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">{value.icon}</span>
+                              <span>{value.title}</span>
+                            </div>
+                            <Button
+                              onClick={() => setFamilyValues(familyValues.filter(v => v.id !== value.id))}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </Button>
                           </div>
                         </CardTitle>
                       </CardHeader>
@@ -2037,6 +2175,71 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="traditions">
+                <div className="mb-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
+                        <Icon name="Plus" className="mr-2" size={16} />
+                        Добавить традицию
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Новая семейная традиция</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const name = formData.get('traditionName') as string;
+                        const description = formData.get('traditionDescription') as string;
+                        const icon = formData.get('traditionIcon') as string || '✨';
+                        const frequency = formData.get('traditionFrequency') as 'weekly' | 'monthly' | 'yearly';
+                        const nextDate = formData.get('traditionNextDate') as string;
+                        
+                        const newTradition: Tradition = {
+                          id: Date.now().toString(),
+                          name,
+                          description,
+                          icon,
+                          frequency,
+                          nextDate
+                        };
+                        
+                        setTraditions([...traditions, newTradition]);
+                        (e.target as HTMLFormElement).reset();
+                      }} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Название традиции *</label>
+                          <Input name="traditionName" placeholder="Например: Семейный ужин по воскресеньям" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Описание *</label>
+                          <Input name="traditionDescription" placeholder="Что мы делаем" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Иконка (эмодзи)</label>
+                          <Input name="traditionIcon" placeholder="✨" maxLength={2} />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Частота *</label>
+                          <select name="traditionFrequency" className="w-full border rounded-md p-2" required>
+                            <option value="weekly">Еженедельно</option>
+                            <option value="monthly">Ежемесячно</option>
+                            <option value="yearly">Ежегодно</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Следующая дата *</label>
+                          <Input name="traditionNextDate" type="date" required />
+                        </div>
+                        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-pink-500">
+                          <Icon name="Plus" className="mr-2" size={16} />
+                          Добавить традицию
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <div className="grid gap-4">
                   {traditions.length > 0 ? traditions.map((tradition, idx) => (
                     <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -2057,9 +2260,19 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardHeader>
                       <CardContent>
                         <p className="text-muted-foreground mb-3">{tradition.description}</p>
-                        <div className="text-sm text-muted-foreground">
-                          <Icon name="Calendar" size={14} className="inline mr-1" />
-                          Следующая: {tradition.nextDate}
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-muted-foreground">
+                            <Icon name="Calendar" size={14} className="inline mr-1" />
+                            Следующая: {tradition.nextDate}
+                          </div>
+                          <Button
+                            onClick={() => setTraditions(traditions.filter(t => t.id !== tradition.id))}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -2201,10 +2414,87 @@ export default function Index({ onLogout }: IndexProps) {
               <TabsContent value="tree">
                 <Card key="tree-card">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="GitBranch" />
-                      Генеалогическое древо
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Icon name="GitBranch" />
+                        Генеалогическое древо
+                      </CardTitle>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="bg-gradient-to-r from-green-500 to-teal-500">
+                            <Icon name="Plus" className="mr-2" size={16} />
+                            Добавить родственника
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Новый член древа</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            const name = formData.get('treeName') as string;
+                            const relationship = formData.get('treeRelationship') as string;
+                            const birthDate = formData.get('treeBirthDate') as string;
+                            const deathDate = formData.get('treeDeathDate') as string || undefined;
+                            const generation = parseInt(formData.get('treeGeneration') as string) || 0;
+                            const avatar = formData.get('treeAvatar') as string || '👤';
+                            const bio = formData.get('treeBio') as string || '';
+                            
+                            const newTreeMember: FamilyTreeMember = {
+                              id: Date.now().toString(),
+                              name,
+                              relationship,
+                              birthDate,
+                              deathDate,
+                              generation,
+                              avatar,
+                              bio
+                            };
+                            
+                            setFamilyTree([...familyTree, newTreeMember]);
+                            (e.target as HTMLFormElement).reset();
+                          }} className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Имя *</label>
+                              <Input name="treeName" placeholder="Например: Иван Петрович" required />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Родство *</label>
+                              <Input name="treeRelationship" placeholder="Например: Прадедушка" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Дата рождения *</label>
+                                <Input name="treeBirthDate" placeholder="01.01.1920" required />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Дата смерти</label>
+                                <Input name="treeDeathDate" placeholder="Оставьте пустым если жив" />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Поколение *</label>
+                                <Input name="treeGeneration" type="number" min="0" max="10" defaultValue="0" required />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Аватар</label>
+                                <Input name="treeAvatar" placeholder="👤" maxLength={2} />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Биография</label>
+                              <Input name="treeBio" placeholder="Краткая биография" />
+                            </div>
+                            <Button type="submit" className="w-full bg-gradient-to-r from-green-500 to-teal-500">
+                              <Icon name="Plus" className="mr-2" size={16} />
+                              Добавить в древо
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -2223,6 +2513,17 @@ export default function Index({ onLogout }: IndexProps) {
                               <p className="text-sm">{member.relationship}</p>
                             </div>
                             <Badge>{member.generation} поколение</Badge>
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFamilyTree(familyTree.filter(m => m.id !== member.id));
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </Button>
                           </div>
                         </div>
                       )) : (

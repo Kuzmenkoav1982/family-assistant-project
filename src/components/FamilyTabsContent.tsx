@@ -362,6 +362,14 @@ export function FamilyTabsContent({
                   </div>
                 </div>
                 
+                <div>
+                  <label className="block text-sm font-medium mb-2">Видимость *</label>
+                  <select name="taskVisibility" className="w-full border rounded-md p-2" required>
+                    <option value="family">Семейная (видят все)</option>
+                    <option value="personal">Личная (только исполнитель)</option>
+                  </select>
+                </div>
+                
                 <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
                   <Icon name="Plus" className="mr-2" size={16} />
                   Создать задачу
