@@ -80,9 +80,10 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
         
         # Задачи
         cur.execute(f"""
-            SELECT id, title, assignee, completed, category, points, 
+            SELECT id, title, assignee_id, assignee_name, completed, category, points, 
                    deadline, reminder_time, shopping_list, is_recurring,
-                   recurring_pattern, next_occurrence
+                   recurring_frequency, recurring_interval, recurring_days_of_week,
+                   recurring_end_date, next_occurrence, priority, cooking_day, created_at
             FROM {SCHEMA}.tasks 
             WHERE family_id = {family_id}
             ORDER BY created_at DESC
