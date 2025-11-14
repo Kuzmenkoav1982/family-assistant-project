@@ -20,6 +20,7 @@ import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
 import DebugAuth from "./pages/DebugAuth";
 import FamilyCode from "./pages/FamilyCode";
+import Cohesion from "./pages/Cohesion";
 import TestAccountSelector from "./components/TestAccountSelector";
 
 const queryClient = new QueryClient();
@@ -152,6 +153,7 @@ const App = () => {
             <Route path="/community" element={<Community />} />
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />
+            <Route path="/cohesion" element={<Cohesion />} />
             <Route path="/debug-auth" element={<DebugAuth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

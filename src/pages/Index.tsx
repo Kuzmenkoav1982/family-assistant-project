@@ -75,8 +75,9 @@ export default function Index({ onLogout }: IndexProps) {
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   
   const [testTasksState, setTestTasksState] = useState<Task[]>(testTasks);
+  const [testMembersState, setTestMembersState] = useState<FamilyMember[]>(testFamilyMembers);
   
-  const familyMembers = isTestMode ? testFamilyMembers : (familyMembersRaw || []);
+  const familyMembers = isTestMode ? testMembersState : (familyMembersRaw || []);
   const tasks = isTestMode ? testTasksState : (tasksRaw || []);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -478,14 +479,22 @@ export default function Index({ onLogout }: IndexProps) {
   ];
 
   const handleMoodChange = async (memberId: string, mood: { emoji: string; label: string }) => {
-    await updateMember({
-      id: memberId,
-      moodStatus: {
-        emoji: mood.emoji,
-        label: mood.label,
-        timestamp: new Date().toISOString()
-      }
-    });
+    if (isTestMode) {
+      setTestMembersState(prev => prev.map(m => 
+        m.id === memberId 
+          ? { ...m, moodStatus: { emoji: mood.emoji, label: mood.label, timestamp: new Date().toISOString() } }
+          : m
+      ));
+    } else {
+      await updateMember({
+        id: memberId,
+        moodStatus: {
+          emoji: mood.emoji,
+          label: mood.label,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
     setSelectedMemberForMood(null);
   };
 
@@ -1228,6 +1237,18 @@ export default function Index({ onLogout }: IndexProps) {
                 </div>
                 <Icon name="ChevronRight" size={16} className="text-green-400" />
               </button>
+
+              <button
+                onClick={() => navigate('/cohesion')}
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 hover:border-purple-300 transition-all"
+              >
+                <Icon name="Heart" size={20} className="text-purple-600" />
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-bold text-purple-700">Сплочённость семьи</div>
+                  <div className="text-xs text-gray-600">Анализ взаимодействия</div>
+                </div>
+                <Icon name="ChevronRight" size={16} className="text-purple-400" />
+              </button>
             </div>
             
             {menuSections.map((section, index) => (
@@ -1528,15 +1549,6 @@ export default function Index({ onLogout }: IndexProps) {
             </CardContent>
           </Card>
         </div>
-
-        <FamilyCohesionChart 
-          familyMembers={familyMembers}
-          tasks={tasks}
-          chatMessagesCount={chatMessages.length}
-          albumPhotosCount={familyAlbum.length}
-          lastActivityDays={0}
-          totalFamilies={1250}
-        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">

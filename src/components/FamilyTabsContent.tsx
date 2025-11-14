@@ -263,17 +263,33 @@ export function FamilyTabsContent({
                 const deadline = formData.get('deadline') as string;
                 const category = formData.get('category') as string;
                 const points = parseInt(formData.get('points') as string) || 10;
+                const description = formData.get('description') as string || '';
                 
                 const assignee = familyMembers.find(m => m.id === assigneeId);
+                const currentUser = familyMembers.find(m => m.user_id === selectedUserId || m.id === selectedUserId);
                 
                 const newTask: Task = {
                   id: Date.now().toString(),
+                  family_id: assignee?.family_id || 'family-kuzmenko',
                   title,
-                  assignee: assignee?.name || '',
+                  description,
+                  assignee: assigneeId,
+                  assignee_id: assigneeId,
+                  assignee_name: assignee?.name || '',
                   completed: false,
                   category: category || 'Дом',
                   points,
                   deadline: deadline || undefined,
+                  reminderTime: null,
+                  shoppingList: null,
+                  isRecurring: false,
+                  recurringPattern: null,
+                  nextOccurrence: null,
+                  priority: 'medium',
+                  cookingDay: null,
+                  created_at: new Date().toISOString(),
+                  created_by: currentUser?.id || selectedUserId,
+                  created_by_name: currentUser?.name || 'Неизвестно',
                 };
                 
                 setTasks([...tasks, newTask]);
@@ -282,6 +298,11 @@ export function FamilyTabsContent({
                 <div>
                   <label className="block text-sm font-medium mb-2">Название задачи *</label>
                   <Input name="title" placeholder="Например: Постирать джинсы" required />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Описание</label>
+                  <Input name="description" placeholder="Дополнительные детали задачи" />
                 </div>
                 
                 <div>
@@ -390,7 +411,16 @@ export function FamilyTabsContent({
                         <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline">{task.category}</Badge>
-                          <Badge variant="outline">{task.assignee}</Badge>
+                          <Badge variant="outline">
+                            <Icon name="User" size={12} className="mr-1" />
+                            {getMemberById(task.assignee_id || task.assignee)?.name || 'Не назначено'}
+                          </Badge>
+                          {(task as any).created_by_name && (
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                              <Icon name="UserPlus" size={12} className="mr-1" />
+                              От: {(task as any).created_by_name}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
