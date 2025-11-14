@@ -1514,7 +1514,9 @@ export default function Index({ onLogout }: IndexProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-              <TabsList className="flex flex-wrap gap-2 h-auto p-2 bg-white/50 backdrop-blur-sm justify-start">
+              <div className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200">
+                <div className="container mx-auto px-4 max-w-7xl">
+                  <TabsList className="flex flex-wrap gap-2 h-auto py-3 px-0 bg-transparent justify-start w-full">
                 <TabsTrigger value="family" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="Users" className="mr-1" size={14} />
                   Семья
@@ -1681,8 +1683,11 @@ export default function Index({ onLogout }: IndexProps) {
                 </Button>
 
               </TabsList>
+                </div>
+              </div>
 
-              <TabsContent value="tasks">
+              <div className="pt-20">
+                <TabsContent value="tasks">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -2370,6 +2375,8 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
         </div>
       </div>
+              </div>
+            </Tabs>
     </div>
 
       <Dialog open={educationChild !== null} onOpenChange={(open) => !open && setEducationChild(null)}>
