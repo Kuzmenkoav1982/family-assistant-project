@@ -2256,7 +2256,7 @@ export default function Index({ onLogout }: IndexProps) {
                 exportStatsToCSV={exportStatsToCSV}
                 updateMember={updateMember}
               />
-            </Tabs>
+            </TabsContent>
           </div>
 
           <div className="space-y-6">
