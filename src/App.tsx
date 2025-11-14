@@ -20,6 +20,7 @@ import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
 import DebugAuth from "./pages/DebugAuth";
 import FamilyCode from "./pages/FamilyCode";
+import TestAccountSelector from "./components/TestAccountSelector";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [useTestMode] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -38,7 +40,7 @@ const App = () => {
         const parsedUser = JSON.parse(user);
         setCurrentUser(parsedUser);
         setIsAuthenticated(true);
-        setNeedsSetup(!parsedUser.family_id);
+        setNeedsSetup(false);
       } catch (err) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
@@ -52,12 +54,15 @@ const App = () => {
   }, []);
 
   const handleAuthSuccess = (token: string, user: any) => {
-    console.log('handleAuthSuccess вызван с пользователем:', user);
-    console.log('family_id:', user.family_id);
-    console.log('needsSetup будет установлен в:', !user.family_id);
     setCurrentUser(user);
     setIsAuthenticated(true);
-    setNeedsSetup(!user.family_id);
+    setNeedsSetup(false);
+  };
+  
+  const handleTestAccountSelect = (account: any) => {
+    setCurrentUser(account);
+    setIsAuthenticated(true);
+    setNeedsSetup(false);
   };
   
   const handleSetupComplete = () => {
@@ -65,18 +70,21 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=logout', {
-        method: 'POST',
-        headers: {
-          'X-Auth-Token': token
-        }
-      });
+    if (!useTestMode) {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=logout', {
+          method: 'POST',
+          headers: {
+            'X-Auth-Token': token
+          }
+        });
+      }
     }
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     setIsAuthenticated(false);
+    setCurrentUser(null);
   };
 
   if (isLoading) {
@@ -115,6 +123,8 @@ const App = () => {
                   ) : (
                     <Navigate to="/" replace />
                   )
+                ) : useTestMode ? (
+                  <TestAccountSelector onSelectAccount={handleTestAccountSelect} />
                 ) : (
                   <AuthForm onAuthSuccess={handleAuthSuccess} />
                 )
