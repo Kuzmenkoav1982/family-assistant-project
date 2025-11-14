@@ -855,74 +855,30 @@ export default function Index({ onLogout }: IndexProps) {
       )}
       
       <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out`}>
-        <TopBar
-          isVisible={isTopBarVisible}
-          autoHide={autoHideTopBar}
-          currentUser={currentUser}
-          currentLanguage={currentLanguage}
-          showLanguageSelector={showLanguageSelector}
-          showThemeSelector={showThemeSelector}
-          currentTheme={currentTheme}
-          syncing={syncing}
-          showTopPanelSettings={showTopPanelSettings}
-          onLogout={handleLogoutLocal}
-          onVisibilityChange={setIsTopBarVisible}
-          onLanguageSelectorToggle={setShowLanguageSelector}
-          onThemeSelectorToggle={setShowThemeSelector}
-          onLanguageChange={handleLanguageChange}
-          onThemeChange={handleThemeChange}
-          onTopPanelSettingsToggle={setShowTopPanelSettings}
-        />
-
-        <LeftSidebar
-          isVisible={isLeftMenuVisible}
-          autoHide={autoHideLeftMenu}
-          activeSection={activeSection}
-          sections={leftPanelSections}
-          menuSections={menuSections}
-          showLeftPanelSettings={showLeftPanelSettings}
-          onVisibilityChange={setIsLeftMenuVisible}
-          onSectionChange={setActiveSection}
-          onLeftPanelSettingsToggle={setShowLeftPanelSettings}
-        />
-
-        <RightSidebar
-          isVisible={isMoodWidgetVisible}
-          autoHide={autoHideMoodWidget}
-          familyMembers={familyMembers}
-          selectedMemberForMood={selectedMemberForMood}
-          moodOptions={moodOptions}
-          showRightPanelSettings={showRightPanelSettings}
-          onVisibilityChange={setIsMoodWidgetVisible}
-          onMemberMoodSelect={setSelectedMemberForMood}
-          onMoodChange={handleMoodChange}
-          onRightPanelSettingsToggle={setShowRightPanelSettings}
-        />
-
         <div className="pt-16 pb-20">
-          <MainContent
-            activeSection={activeSection}
-            familyMembers={familyMembers}
-            tasks={tasks}
-            educationChild={educationChild}
-            currentUserId={currentUserId}
-            getSectionTitle={getSectionTitle}
-            onEducationChildSelect={setEducationChild}
-            updateMember={updateMember}
-            deleteMember={deleteMember}
-            createTask={createTask}
-            updateTask={updateTask}
-            deleteTask={deleteTask}
-            toggleTask={toggleTask}
-          />
+          <div className="container mx-auto px-4 max-w-7xl">
+            <h1 className={`text-3xl font-bold mb-6 ${themeClasses.heading}`}>
+              {getTranslation(currentLanguage, activeSection)}
+            </h1>
+          </div>
         </div>
 
         <BottomBar
           isVisible={isBottomBarVisible}
           activeSection={activeSection}
-          sections={bottomBarSections}
-          menuSections={menuSections}
+          availableSections={availableSections}
+          selectedSections={bottomBarSections}
+          autoHide={autoHideBottomBar}
           onSectionChange={setActiveSection}
+          onVisibilityChange={setIsBottomBarVisible}
+          onAutoHideChange={(value) => {
+            setAutoHideBottomBar(value);
+            localStorage.setItem('autoHideBottomBar', String(value));
+          }}
+          onSectionsChange={(sections) => {
+            setBottomBarSections(sections);
+            localStorage.setItem('bottomBarSections', JSON.stringify(sections));
+          }}
         />
 
         {chamomileEnabled && <ClickChamomile soundEnabled={soundEnabled} />}
