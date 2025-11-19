@@ -9,14 +9,39 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
 import { MemberProfileEdit } from '@/components/MemberProfileEdit';
-import type { Dream } from '@/types/family.types';
+import type { Dream, FamilyMember } from '@/types/family.types';
+import { DEMO_FAMILY } from '@/data/demoFamily';
 
 export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembers();
   
-  const member = members.find(m => m.id === memberId);
+  let member = members.find(m => m.id === memberId);
+  
+  if (!member) {
+    const demoMember = DEMO_FAMILY.members.find(dm => dm.id === memberId);
+    if (demoMember) {
+      member = {
+        id: demoMember.id,
+        name: demoMember.name,
+        role: demoMember.role === 'owner' ? 'Папа' : demoMember.role === 'admin' ? 'Мама' : demoMember.role === 'child' ? 'Ребёнок' : 'Участник',
+        avatar: '👤',
+        avatarType: 'photo' as const,
+        photoUrl: demoMember.avatar,
+        age: demoMember.age,
+        relationship: demoMember.role === 'owner' || demoMember.role === 'admin' ? 'Родитель' : 'Ребёнок',
+        points: 0,
+        level: 1,
+        workload: 0,
+        mood: 'Хорошо',
+        tasksCompleted: 0,
+        achievements: [],
+        dreams: [],
+        piggyBank: 0
+      } as FamilyMember;
+    }
+  }
 
   if (!member) {
     return (
@@ -75,7 +100,15 @@ export default function MemberProfile() {
         <Card className="border-2 border-purple-200">
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
-              <div className="text-6xl sm:text-8xl animate-bounce-slow">{member.avatar}</div>
+              {member.photoUrl ? (
+                <img 
+                  src={member.photoUrl} 
+                  alt={member.name}
+                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-purple-300"
+                />
+              ) : (
+                <div className="text-6xl sm:text-8xl animate-bounce-slow">{member.avatar}</div>
+              )}
               <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{member.name}</h1>
                 <p className="text-lg md:text-xl text-muted-foreground mb-4">{member.role}</p>

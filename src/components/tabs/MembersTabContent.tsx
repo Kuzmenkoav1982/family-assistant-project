@@ -10,7 +10,9 @@ import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { ChildDreamsDialog } from '@/components/ChildDreamsDialog';
 import MemberPermissions from '@/components/MemberPermissions';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { FamilyMember } from '@/types/family.types';
+import { DEMO_FAMILY } from '@/data/demoFamily';
 
 interface MembersTabContentProps {
   familyMembers: FamilyMember[];
@@ -25,6 +27,7 @@ export function MembersTabContent({
   getWorkloadColor,
   updateMember,
 }: MembersTabContentProps) {
+  const navigate = useNavigate();
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | undefined>(undefined);
 
@@ -33,6 +36,23 @@ export function MembersTabContent({
       await updateMember({ member_id: memberId, permissions });
     }
   };
+
+  const displayMembers = familyMembers.length > 0 ? familyMembers : DEMO_FAMILY.members.map(dm => ({
+    id: dm.id,
+    name: dm.name,
+    role: dm.role === 'owner' ? 'Папа' : dm.role === 'admin' ? 'Мама' : dm.role === 'child' ? 'Ребёнок' : 'Участник',
+    avatar: '👤',
+    avatarType: 'photo' as const,
+    photoUrl: dm.avatar,
+    age: dm.age,
+    relationship: dm.role === 'owner' || dm.role === 'admin' ? 'Родитель' : 'Ребёнок',
+    points: 0,
+    level: 1,
+    workload: 0,
+    mood: 'Хорошо',
+    tasksCompleted: 0,
+    achievements: []
+  } as FamilyMember));
 
   return (
     <TabsContent value="members" className="space-y-4">
@@ -98,14 +118,15 @@ export function MembersTabContent({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {familyMembers.map((member, index) => (
+        {displayMembers.map((member, index) => (
           <Card 
             key={member.id} 
-            className="animate-fade-in border-l-4 hover:shadow-lg transition-all hover:scale-[1.02]"
+            className="animate-fade-in border-l-4 hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer"
             style={{ 
               borderLeftColor: index % 2 === 0 ? '#f97316' : '#d946ef',
               animationDelay: `${index * 0.1}s`
             }}
+            onClick={() => navigate(`/member/${member.id}`)}
           >
             <CardHeader>
               <div className="flex items-center justify-between">
