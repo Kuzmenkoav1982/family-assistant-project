@@ -422,6 +422,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'blog', icon: 'BookOpen', label: 'Блог' },
     { id: 'album', icon: 'Image', label: 'Альбом' },
     { id: 'tree', icon: 'GitBranch', label: 'Древо' },
+    { id: 'faith', icon: 'Church', label: 'Вера' },
     { id: 'about', icon: 'Info', label: 'О проекте' },
   ];
 

@@ -13,6 +13,7 @@ import Finance from "./pages/Finance";
 import Education from "./pages/Education";
 import Travel from "./pages/Travel";
 import Pets from "./pages/Pets";
+import Faith from "./pages/Faith";
 import NotFound from "./pages/NotFound";
 import AuthForm from "./components/AuthForm";
 import FamilySetup from "./components/FamilySetup";
@@ -139,6 +140,7 @@ const App = () => {
             <Route path="/education" element={<Education />} />
             <Route path="/travel" element={<Travel />} />
             <Route path="/pets" element={<Pets />} />
+            <Route path="/faith" element={<Faith />} />
             <Route path="/community" element={<Community />} />
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />
