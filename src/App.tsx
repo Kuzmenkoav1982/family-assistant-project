@@ -20,8 +20,6 @@ import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
 import DebugAuth from "./pages/DebugAuth";
 import FamilyCode from "./pages/FamilyCode";
-import Cohesion from "./pages/Cohesion";
-import TestAccountSelector from "./components/TestAccountSelector";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +28,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [useTestMode] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -41,7 +38,7 @@ const App = () => {
         const parsedUser = JSON.parse(user);
         setCurrentUser(parsedUser);
         setIsAuthenticated(true);
-        setNeedsSetup(false);
+        setNeedsSetup(!parsedUser.family_id);
       } catch (err) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
@@ -55,15 +52,12 @@ const App = () => {
   }, []);
 
   const handleAuthSuccess = (token: string, user: any) => {
+    console.log('handleAuthSuccess вызван с пользователем:', user);
+    console.log('family_id:', user.family_id);
+    console.log('needsSetup будет установлен в:', !user.family_id);
     setCurrentUser(user);
     setIsAuthenticated(true);
-    setNeedsSetup(false);
-  };
-  
-  const handleTestAccountSelect = (account: any) => {
-    setCurrentUser(account);
-    setIsAuthenticated(true);
-    setNeedsSetup(false);
+    setNeedsSetup(!user.family_id);
   };
   
   const handleSetupComplete = () => {
@@ -71,21 +65,18 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    if (!useTestMode) {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=logout', {
-          method: 'POST',
-          headers: {
-            'X-Auth-Token': token
-          }
-        });
-      }
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      fetch('https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?action=logout', {
+        method: 'POST',
+        headers: {
+          'X-Auth-Token': token
+        }
+      });
     }
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     setIsAuthenticated(false);
-    setCurrentUser(null);
   };
 
   if (isLoading) {
@@ -124,8 +115,6 @@ const App = () => {
                   ) : (
                     <Navigate to="/" replace />
                   )
-                ) : useTestMode ? (
-                  <TestAccountSelector onSelectAccount={handleTestAccountSelect} />
                 ) : (
                   <AuthForm onAuthSuccess={handleAuthSuccess} />
                 )
@@ -153,7 +142,6 @@ const App = () => {
             <Route path="/community" element={<Community />} />
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />
-            <Route path="/cohesion" element={<Cohesion />} />
             <Route path="/debug-auth" element={<DebugAuth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

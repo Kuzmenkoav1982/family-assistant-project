@@ -261,41 +261,19 @@ export function FamilyTabsContent({
                 const title = formData.get('title') as string;
                 const assigneeId = formData.get('assignee') as string;
                 const deadline = formData.get('deadline') as string;
-                const deadlineTime = formData.get('deadlineTime') as string;
                 const category = formData.get('category') as string;
                 const points = parseInt(formData.get('points') as string) || 10;
-                const description = formData.get('description') as string || '';
                 
                 const assignee = familyMembers.find(m => m.id === assigneeId);
-                const currentUser = familyMembers.find(m => m.user_id === selectedUserId || m.id === selectedUserId);
-                
-                let fullDeadline = deadline;
-                if (deadline && deadlineTime) {
-                  fullDeadline = `${deadline}T${deadlineTime}`;
-                }
                 
                 const newTask: Task = {
                   id: Date.now().toString(),
-                  family_id: assignee?.family_id || 'family-kuzmenko',
                   title,
-                  description,
-                  assignee: assigneeId,
-                  assignee_id: assigneeId,
-                  assignee_name: assignee?.name || '',
+                  assignee: assignee?.name || '',
                   completed: false,
                   category: category || 'Дом',
                   points,
-                  deadline: fullDeadline || undefined,
-                  reminderTime: deadlineTime || null,
-                  shoppingList: null,
-                  isRecurring: false,
-                  recurringPattern: null,
-                  nextOccurrence: null,
-                  priority: 'medium',
-                  cookingDay: null,
-                  created_at: new Date().toISOString(),
-                  created_by: currentUser?.id || selectedUserId,
-                  created_by_name: currentUser?.name || 'Неизвестно',
+                  deadline: deadline || undefined,
                 };
                 
                 setTasks([...tasks, newTask]);
@@ -304,11 +282,6 @@ export function FamilyTabsContent({
                 <div>
                   <label className="block text-sm font-medium mb-2">Название задачи *</label>
                   <Input name="title" placeholder="Например: Постирать джинсы" required />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Описание</label>
-                  <Input name="description" placeholder="Дополнительные детали задачи" />
                 </div>
                 
                 <div>
@@ -321,34 +294,21 @@ export function FamilyTabsContent({
                   </select>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      <Icon name="Calendar" className="inline mr-1" size={16} />
-                      Дата выполнения
-                    </label>
-                    <Input 
-                      name="deadline" 
-                      type="date" 
-                      min={new Date().toISOString().split('T')[0]}
-                      placeholder="Когда нужно выполнить?"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      <Icon name="Clock" className="inline mr-1" size={16} />
-                      Время
-                    </label>
-                    <Input 
-                      name="deadlineTime" 
-                      type="time"
-                      placeholder="Во сколько?"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    <Icon name="Calendar" className="inline mr-1" size={16} />
+                    Срок выполнения
+                  </label>
+                  <Input 
+                    name="deadline" 
+                    type="date" 
+                    min={new Date().toISOString().split('T')[0]}
+                    placeholder="Когда нужно выполнить?"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Укажите когда задача должна быть выполнена (например, когда нужны чистые джинсы)
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground -mt-2">
-                  Укажите когда задача должна быть выполнена
-                </p>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -360,14 +320,6 @@ export function FamilyTabsContent({
                     <label className="block text-sm font-medium mb-2">Баллы</label>
                     <Input name="points" type="number" min="1" defaultValue="10" />
                   </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Видимость *</label>
-                  <select name="taskVisibility" className="w-full border rounded-md p-2" required>
-                    <option value="family">Семейная (видят все)</option>
-                    <option value="personal">Личная (только исполнитель)</option>
-                  </select>
                 </div>
                 
                 <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
@@ -438,16 +390,7 @@ export function FamilyTabsContent({
                         <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline">{task.category}</Badge>
-                          <Badge variant="outline">
-                            <Icon name="User" size={12} className="mr-1" />
-                            {getMemberById(task.assignee_id || task.assignee)?.name || 'Не назначено'}
-                          </Badge>
-                          {(task as any).created_by_name && (
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                              <Icon name="UserPlus" size={12} className="mr-1" />
-                              От: {(task as any).created_by_name}
-                            </Badge>
-                          )}
+                          <Badge variant="outline">{task.assignee}</Badge>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">

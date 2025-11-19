@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useTasks } from '@/hooks/useTasks';
@@ -59,7 +59,6 @@ import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
-import { testFamilyMembers, testTasks } from '@/data/testFamilyData';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -67,18 +66,12 @@ interface IndexProps {
 
 export default function Index({ onLogout }: IndexProps) {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isTestMode = user.id?.startsWith('user-');
-  
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembers();
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   
-  const [testTasksState, setTestTasksState] = useState<Task[]>(testTasks);
-  const [testMembersState, setTestMembersState] = useState<FamilyMember[]>(testFamilyMembers);
-  
-  const familyMembers = isTestMode ? testMembersState : (familyMembersRaw || []);
-  const tasks = isTestMode ? testTasksState : (tasksRaw || []);
+  const familyMembers = familyMembersRaw || [];
+  const tasks = tasksRaw || [];
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
@@ -86,37 +79,16 @@ export default function Index({ onLogout }: IndexProps) {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
   const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
-  const familyValues = familyData?.family_values || initialFamilyValues;
-  const setFamilyValues = (value: FamilyValue[] | ((prev: FamilyValue[]) => FamilyValue[])) => {
-    console.warn('setFamilyValues deprecated, данные синхронизируются через backend');
-  };
-  const [blogPosts] = useState<BlogPost[]>(familyData?.blog_posts || initialBlogPosts);
-  const traditions = familyData?.traditions || initialTraditions;
-  const setTraditions = (value: Tradition[] | ((prev: Tradition[]) => Tradition[])) => {
-    console.warn('setTraditions deprecated, данные синхронизируются через backend');
-  };
+  const [familyValues] = useState<FamilyValue[]>(initialFamilyValues);
+  const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
+  const [traditions] = useState<Tradition[]>(initialTraditions);
   const [mealVotings] = useState<MealVoting[]>(initialMealVotings);
-  const childrenProfiles = familyData?.children_profiles || initialChildrenProfiles;
-  const setChildrenProfiles = (value: ChildProfile[] | ((prev: ChildProfile[]) => ChildProfile[])) => {
-    console.warn('setChildrenProfiles deprecated, данные синхронизируются через backend');
-  };
+  const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
   const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
-  const chatMessages = familyData?.chat_messages || initialChatMessages;
-  const setChatMessages = (value: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
-    console.warn('setChatMessages deprecated, данные синхронизируются через backend');
-  };
-  const familyAlbum = familyData?.family_album || initialFamilyAlbum;
-  const setFamilyAlbum = (value: FamilyAlbum[] | ((prev: FamilyAlbum[]) => FamilyAlbum[])) => {
-    console.warn('setFamilyAlbum deprecated, данные синхронизируются через backend');
-  };
-  const familyNeeds = familyData?.family_needs || initialFamilyNeeds;
-  const setFamilyNeeds = (value: FamilyNeed[] | ((prev: FamilyNeed[]) => FamilyNeed[])) => {
-    console.warn('setFamilyNeeds deprecated, данные синхронизируются через backend');
-  };
-  const familyTree = familyData?.family_tree || initialFamilyTree;
-  const setFamilyTree = (value: FamilyTreeMember[] | ((prev: FamilyTreeMember[]) => FamilyTreeMember[])) => {
-    console.warn('setFamilyTree deprecated, данные синхронизируются через backend');
-  };
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
+  const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
+  const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(initialFamilyNeeds);
+  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
   const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
   const [newMessage, setNewMessage] = useState('');
@@ -146,10 +118,7 @@ export default function Index({ onLogout }: IndexProps) {
     setChatMessages([...chatMessages, message]);
     setNewMessage('');
   };
-  const calendarEvents = familyData?.calendar_events || initialCalendarEvents;
-  const setCalendarEvents = (value: CalendarEvent[] | ((prev: CalendarEvent[]) => CalendarEvent[])) => {
-    console.warn('setCalendarEvents deprecated, данные синхронизируются через backend');
-  };
+  const [calendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
@@ -204,6 +173,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
   const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
   const currentUserId = currentUser?.id || user.member_id || '';
 
@@ -503,22 +473,14 @@ export default function Index({ onLogout }: IndexProps) {
   ];
 
   const handleMoodChange = async (memberId: string, mood: { emoji: string; label: string }) => {
-    if (isTestMode) {
-      setTestMembersState(prev => prev.map(m => 
-        m.id === memberId 
-          ? { ...m, moodStatus: { emoji: mood.emoji, label: mood.label, timestamp: new Date().toISOString() } }
-          : m
-      ));
-    } else {
-      await updateMember({
-        id: memberId,
-        moodStatus: {
-          emoji: mood.emoji,
-          label: mood.label,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    await updateMember({
+      id: memberId,
+      moodStatus: {
+        emoji: mood.emoji,
+        label: mood.label,
+        timestamp: new Date().toISOString()
+      }
+    });
     setSelectedMemberForMood(null);
   };
 
@@ -544,32 +506,10 @@ export default function Index({ onLogout }: IndexProps) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
-    if (isTestMode) {
-      setTestTasksState(prev => prev.map(t => 
-        t.id === taskId ? { ...t, completed: !t.completed } : t
-      ));
-      
-      if (!task.completed && task.assignee_id) {
-        addPoints(task.assignee_id, task.points);
-      }
-    } else {
-      const result = await toggleTaskDB(taskId);
-      
-      if (result?.success && !task.completed && task.assignee_id) {
-        addPoints(task.assignee_id, task.points);
-      }
-    }
-  };
-
-  const handleSetTasks = (value: Task[] | ((prev: Task[]) => Task[])) => {
-    if (isTestMode) {
-      if (typeof value === 'function') {
-        setTestTasksState(value);
-      } else {
-        setTestTasksState(value);
-      }
-    } else {
-      console.warn('setTasks deprecated in real mode, use createTask/updateTask/deleteTask instead');
+    const result = await toggleTaskDB(taskId);
+    
+    if (result?.success && !task.completed && task.assignee_id) {
+      addPoints(task.assignee_id, task.points);
     }
   };
 
@@ -1261,18 +1201,6 @@ export default function Index({ onLogout }: IndexProps) {
                 </div>
                 <Icon name="ChevronRight" size={16} className="text-green-400" />
               </button>
-
-              <button
-                onClick={() => navigate('/cohesion')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 hover:border-purple-300 transition-all"
-              >
-                <Icon name="Heart" size={20} className="text-purple-600" />
-                <div className="flex-1 text-left">
-                  <div className="text-sm font-bold text-purple-700">Сплочённость семьи</div>
-                  <div className="text-xs text-gray-600">Анализ взаимодействия</div>
-                </div>
-                <Icon name="ChevronRight" size={16} className="text-purple-400" />
-              </button>
             </div>
             
             {menuSections.map((section, index) => (
@@ -1574,6 +1502,15 @@ export default function Index({ onLogout }: IndexProps) {
           </Card>
         </div>
 
+        <FamilyCohesionChart 
+          familyMembers={familyMembers}
+          tasks={tasks}
+          chatMessagesCount={chatMessages.length}
+          albumPhotosCount={familyAlbum.length}
+          lastActivityDays={0}
+          totalFamilies={1250}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
@@ -1800,99 +1737,18 @@ export default function Index({ onLogout }: IndexProps) {
               <TabsContent value="calendar">
                 <Card key="calendar-card">
                   <CardHeader>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
                         <Icon name="Calendar" />
                         Календарь событий
                       </CardTitle>
-                      <div className="flex gap-2 items-center">
-                        <Tabs value={calendarFilter} onValueChange={(v) => setCalendarFilter(v as any)}>
-                          <TabsList>
-                            <TabsTrigger value="all">Все</TabsTrigger>
-                            <TabsTrigger value="personal">Мои</TabsTrigger>
-                            <TabsTrigger value="family">Семейные</TabsTrigger>
-                          </TabsList>
-                        </Tabs>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
-                              <Icon name="Plus" className="mr-2" size={16} />
-                              Добавить
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Новое событие</DialogTitle>
-                            </DialogHeader>
-                            <form onSubmit={(e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              const title = formData.get('eventTitle') as string;
-                              const description = formData.get('eventDescription') as string;
-                              const date = formData.get('eventDate') as string;
-                              const time = formData.get('eventTime') as string;
-                              const category = formData.get('eventCategory') as string;
-                              const visibility = formData.get('eventVisibility') as 'personal' | 'family';
-                              
-                              const newEvent: CalendarEvent = {
-                                id: Date.now().toString(),
-                                title,
-                                description,
-                                date,
-                                time,
-                                category,
-                                visibility,
-                                createdBy: currentUserId,
-                                createdByAvatar: currentUser?.avatar || '👤',
-                                color: 'bg-blue-50'
-                              };
-                              
-                              setCalendarEvents([...calendarEvents, newEvent]);
-                              (e.target as HTMLFormElement).reset();
-                            }} className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Название события *</label>
-                                <Input name="eventTitle" placeholder="Например: День рождения" required />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Описание</label>
-                                <Input name="eventDescription" placeholder="Детали события" />
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <label className="block text-sm font-medium mb-2">Дата *</label>
-                                  <Input name="eventDate" type="date" required />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-2">Время *</label>
-                                  <Input name="eventTime" type="time" required />
-                                </div>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Категория *</label>
-                                <select name="eventCategory" className="w-full border rounded-md p-2" required>
-                                  <option value="Праздник">Праздник</option>
-                                  <option value="Встреча">Встреча</option>
-                                  <option value="Важное">Важное</option>
-                                  <option value="Развлечение">Развлечение</option>
-                                  <option value="Другое">Другое</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Видимость *</label>
-                                <select name="eventVisibility" className="w-full border rounded-md p-2" required>
-                                  <option value="family">Семейное (видят все)</option>
-                                  <option value="personal">Личное (только я)</option>
-                                </select>
-                              </div>
-                              <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
-                                <Icon name="Plus" className="mr-2" size={16} />
-                                Создать событие
-                              </Button>
-                            </form>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                      <Tabs value={calendarFilter} onValueChange={(v) => setCalendarFilter(v as any)}>
+                        <TabsList>
+                          <TabsTrigger value="all">Все</TabsTrigger>
+                          <TabsTrigger value="personal">Мои</TabsTrigger>
+                          <TabsTrigger value="family">Семейные</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -1942,72 +1798,6 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="children">
-                <div className="mb-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-purple-500 to-blue-500">
-                        <Icon name="Plus" className="mr-2" size={16} />
-                        Добавить ребёнка
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Новый профиль ребёнка</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        const name = formData.get('childName') as string;
-                        const age = parseInt(formData.get('childAge') as string);
-                        const grade = formData.get('childGrade') as string;
-                        const avatar = formData.get('childAvatar') as string || '👶';
-                        const interests = (formData.get('childInterests') as string).split(',').map(i => i.trim()).filter(Boolean);
-                        
-                        const newChild: ChildProfile = {
-                          id: Date.now().toString(),
-                          childId: `child-${Date.now()}`,
-                          name,
-                          age,
-                          grade,
-                          avatar,
-                          interests,
-                          achievements: [],
-                          health: { vaccinations: [], allergies: [], chronicConditions: [] }
-                        };
-                        
-                        setChildrenProfiles([...childrenProfiles, newChild]);
-                        (e.target as HTMLFormElement).reset();
-                      }} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Имя ребёнка *</label>
-                          <Input name="childName" placeholder="Например: Маша" required />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Возраст *</label>
-                            <Input name="childAge" type="number" min="0" max="18" placeholder="5" required />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Класс</label>
-                            <Input name="childGrade" placeholder="1 класс" />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Аватар (эмодзи)</label>
-                          <Input name="childAvatar" placeholder="👶" maxLength={2} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Интересы (через запятую)</label>
-                          <Input name="childInterests" placeholder="Рисование, футбол, чтение" />
-                        </div>
-                        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-blue-500">
-                          <Icon name="Plus" className="mr-2" size={16} />
-                          Создать профиль
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
                 <div className="space-y-4">
                   {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => (
                     <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -2061,20 +1851,13 @@ export default function Index({ onLogout }: IndexProps) {
                             </div>
                           </div>
                           
-                          <div className="pt-3 border-t flex gap-2">
+                          <div className="pt-3 border-t">
                             <Button
                               onClick={() => setEducationChild(familyMembers.find(m => m.id === child.childId) || null)}
-                              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600"
+                              className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
                             >
                               <Icon name="GraduationCap" className="mr-2" size={16} />
                               Обучение и развитие
-                            </Button>
-                            <Button
-                              onClick={() => setChildrenProfiles(childrenProfiles.filter(c => c.id !== child.id))}
-                              variant="outline"
-                              className="border-red-300 text-red-600 hover:bg-red-50"
-                            >
-                              <Icon name="Trash2" size={16} />
                             </Button>
                           </div>
                         </div>
@@ -2093,79 +1876,14 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="values">
-                <div className="mb-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-pink-500 to-purple-500">
-                        <Icon name="Plus" className="mr-2" size={16} />
-                        Добавить ценность
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Новая семейная ценность</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        const title = formData.get('valueTitle') as string;
-                        const description = formData.get('valueDescription') as string;
-                        const icon = formData.get('valueIcon') as string || '❤️';
-                        const practices = (formData.get('valuePractices') as string).split(',').map(p => p.trim()).filter(Boolean);
-                        
-                        const newValue: FamilyValue = {
-                          id: Date.now().toString(),
-                          title,
-                          description,
-                          icon,
-                          practices
-                        };
-                        
-                        setFamilyValues([...familyValues, newValue]);
-                        (e.target as HTMLFormElement).reset();
-                      }} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Название ценности *</label>
-                          <Input name="valueTitle" placeholder="Например: Уважение" required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Описание *</label>
-                          <Input name="valueDescription" placeholder="Почему это важно для нашей семьи" required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Иконка (эмодзи)</label>
-                          <Input name="valueIcon" placeholder="❤️" maxLength={2} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Как мы это практикуем (через запятую)</label>
-                          <Input name="valuePractices" placeholder="Слушаем друг друга, благодарим за помощь" />
-                        </div>
-                        <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-purple-500">
-                          <Icon name="Plus" className="mr-2" size={16} />
-                          Добавить ценность
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
                 <div className="grid gap-4">
                   {familyValues.length > 0 ? familyValues.map((value, idx) => (
                     <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                       <CardHeader>
                         <CardTitle>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-2xl">{value.icon}</span>
-                              <span>{value.title}</span>
-                            </div>
-                            <Button
-                              onClick={() => setFamilyValues(familyValues.filter(v => v.id !== value.id))}
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:bg-red-50"
-                            >
-                              <Icon name="Trash2" size={16} />
-                            </Button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{value.icon}</span>
+                            <span>{value.title}</span>
                           </div>
                         </CardTitle>
                       </CardHeader>
@@ -2199,71 +1917,6 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="traditions">
-                <div className="mb-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
-                        <Icon name="Plus" className="mr-2" size={16} />
-                        Добавить традицию
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Новая семейная традиция</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        const name = formData.get('traditionName') as string;
-                        const description = formData.get('traditionDescription') as string;
-                        const icon = formData.get('traditionIcon') as string || '✨';
-                        const frequency = formData.get('traditionFrequency') as 'weekly' | 'monthly' | 'yearly';
-                        const nextDate = formData.get('traditionNextDate') as string;
-                        
-                        const newTradition: Tradition = {
-                          id: Date.now().toString(),
-                          name,
-                          description,
-                          icon,
-                          frequency,
-                          nextDate
-                        };
-                        
-                        setTraditions([...traditions, newTradition]);
-                        (e.target as HTMLFormElement).reset();
-                      }} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Название традиции *</label>
-                          <Input name="traditionName" placeholder="Например: Семейный ужин по воскресеньям" required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Описание *</label>
-                          <Input name="traditionDescription" placeholder="Что мы делаем" required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Иконка (эмодзи)</label>
-                          <Input name="traditionIcon" placeholder="✨" maxLength={2} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Частота *</label>
-                          <select name="traditionFrequency" className="w-full border rounded-md p-2" required>
-                            <option value="weekly">Еженедельно</option>
-                            <option value="monthly">Ежемесячно</option>
-                            <option value="yearly">Ежегодно</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Следующая дата *</label>
-                          <Input name="traditionNextDate" type="date" required />
-                        </div>
-                        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-pink-500">
-                          <Icon name="Plus" className="mr-2" size={16} />
-                          Добавить традицию
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
                 <div className="grid gap-4">
                   {traditions.length > 0 ? traditions.map((tradition, idx) => (
                     <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -2284,19 +1937,9 @@ export default function Index({ onLogout }: IndexProps) {
                       </CardHeader>
                       <CardContent>
                         <p className="text-muted-foreground mb-3">{tradition.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-muted-foreground">
-                            <Icon name="Calendar" size={14} className="inline mr-1" />
-                            Следующая: {tradition.nextDate}
-                          </div>
-                          <Button
-                            onClick={() => setTraditions(traditions.filter(t => t.id !== tradition.id))}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            <Icon name="Trash2" size={16} />
-                          </Button>
+                        <div className="text-sm text-muted-foreground">
+                          <Icon name="Calendar" size={14} className="inline mr-1" />
+                          Следующая: {tradition.nextDate}
                         </div>
                       </CardContent>
                     </Card>
@@ -2361,52 +2004,6 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="album">
-                <div className="mb-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
-                        <Icon name="Plus" className="mr-2" size={16} />
-                        Добавить фото
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Добавить фото в альбом</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        const title = formData.get('photoTitle') as string;
-                        const tags = (formData.get('photoTags') as string).split(',').map(t => t.trim()).filter(Boolean);
-                        
-                        const newPhoto: FamilyAlbum = {
-                          id: Date.now().toString(),
-                          title,
-                          date: new Date().toLocaleDateString('ru-RU'),
-                          tags,
-                          uploadedBy: currentUserId,
-                          url: ''
-                        };
-                        
-                        setFamilyAlbum([...familyAlbum, newPhoto]);
-                        (e.target as HTMLFormElement).reset();
-                      }} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Название фото *</label>
-                          <Input name="photoTitle" placeholder="Например: День рождения мамы" required />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Теги</label>
-                          <Input name="photoTags" placeholder="Семья, праздник, лето (через запятую)" />
-                        </div>
-                        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-pink-500">
-                          <Icon name="Plus" className="mr-2" size={16} />
-                          Добавить фото
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {familyAlbum.length > 0 ? familyAlbum.map((photo, idx) => (
                     <Card key={photo.id} className="overflow-hidden animate-fade-in cursor-pointer hover:shadow-lg transition-shadow" style={{ animationDelay: `${idx * 0.05}s` }}>
@@ -2438,87 +2035,10 @@ export default function Index({ onLogout }: IndexProps) {
               <TabsContent value="tree">
                 <Card key="tree-card">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <Icon name="GitBranch" />
-                        Генеалогическое древо
-                      </CardTitle>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button className="bg-gradient-to-r from-green-500 to-teal-500">
-                            <Icon name="Plus" className="mr-2" size={16} />
-                            Добавить родственника
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Новый член древа</DialogTitle>
-                          </DialogHeader>
-                          <form onSubmit={(e) => {
-                            e.preventDefault();
-                            const formData = new FormData(e.currentTarget);
-                            const name = formData.get('treeName') as string;
-                            const relationship = formData.get('treeRelationship') as string;
-                            const birthDate = formData.get('treeBirthDate') as string;
-                            const deathDate = formData.get('treeDeathDate') as string || undefined;
-                            const generation = parseInt(formData.get('treeGeneration') as string) || 0;
-                            const avatar = formData.get('treeAvatar') as string || '👤';
-                            const bio = formData.get('treeBio') as string || '';
-                            
-                            const newTreeMember: FamilyTreeMember = {
-                              id: Date.now().toString(),
-                              name,
-                              relationship,
-                              birthDate,
-                              deathDate,
-                              generation,
-                              avatar,
-                              bio
-                            };
-                            
-                            setFamilyTree([...familyTree, newTreeMember]);
-                            (e.target as HTMLFormElement).reset();
-                          }} className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Имя *</label>
-                              <Input name="treeName" placeholder="Например: Иван Петрович" required />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Родство *</label>
-                              <Input name="treeRelationship" placeholder="Например: Прадедушка" required />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Дата рождения *</label>
-                                <Input name="treeBirthDate" placeholder="01.01.1920" required />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Дата смерти</label>
-                                <Input name="treeDeathDate" placeholder="Оставьте пустым если жив" />
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Поколение *</label>
-                                <Input name="treeGeneration" type="number" min="0" max="10" defaultValue="0" required />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Аватар</label>
-                                <Input name="treeAvatar" placeholder="👤" maxLength={2} />
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Биография</label>
-                              <Input name="treeBio" placeholder="Краткая биография" />
-                            </div>
-                            <Button type="submit" className="w-full bg-gradient-to-r from-green-500 to-teal-500">
-                              <Icon name="Plus" className="mr-2" size={16} />
-                              Добавить в древо
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="GitBranch" />
+                      Генеалогическое древо
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -2537,17 +2057,6 @@ export default function Index({ onLogout }: IndexProps) {
                               <p className="text-sm">{member.relationship}</p>
                             </div>
                             <Badge>{member.generation} поколение</Badge>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFamilyTree(familyTree.filter(m => m.id !== member.id));
-                              }}
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:bg-red-50"
-                            >
-                              <Icon name="Trash2" size={16} />
-                            </Button>
                           </div>
                         </div>
                       )) : (
@@ -2712,7 +2221,7 @@ export default function Index({ onLogout }: IndexProps) {
                 familyMembers={familyMembers}
                 setFamilyMembers={setFamilyMembers}
                 tasks={tasks}
-                setTasks={handleSetTasks}
+                setTasks={() => console.warn('setTasks deprecated, tasks managed by useTasks hook')}
                 traditions={traditions}
                 familyValues={familyValues}
                 blogPosts={blogPosts}
