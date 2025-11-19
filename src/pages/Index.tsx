@@ -59,6 +59,8 @@ import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
+import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
+import MealVotingWidget from '@/components/MealVotingWidget';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -994,6 +996,8 @@ export default function Index({ onLogout }: IndexProps) {
                   <Icon name="UserCircle" size={18} />
                 </Button>
               )}
+              
+              <FamilyMemberSwitcher />
             </div>
             
             <div className="flex items-center gap-2 language-selector theme-selector relative">
@@ -2313,7 +2317,11 @@ export default function Index({ onLogout }: IndexProps) {
               </CardContent>
             </Card>
 
-            <Card key="sidebar-reminders" className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.6s' }}>
+            <div key="sidebar-meal-voting" className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              <MealVotingWidget />
+            </div>
+
+            <Card key="sidebar-reminders" className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.7s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Bell" size={24} />
