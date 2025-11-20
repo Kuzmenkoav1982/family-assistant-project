@@ -976,11 +976,13 @@ export default function Index({ onLogout }: IndexProps) {
           
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
             <div className="mb-8 animate-bounce-slow">
-              <img 
-                src="https://cdn.poehali.dev/files/afda956c-1e47-4f13-a08b-14fa379f0866.jpeg" 
-                alt="Семейный Органайзер"
-                className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
-              />
+              <div className="inline-block bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-3xl p-6 shadow-2xl">
+                <img 
+                  src="https://cdn.poehali.dev/files/afda956c-1e47-4f13-a08b-14fa379f0866.jpeg" 
+                  alt="Семейный Органайзер"
+                  className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
+                />
+              </div>
             </div>
             
             <div className="space-y-6">
@@ -1487,11 +1489,13 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
           <div className="relative h-full flex flex-col items-center justify-center px-6">
             <div className="flex items-center gap-4 mb-3">
-              <img 
-                src="https://cdn.poehali.dev/files/afda956c-1e47-4f13-a08b-14fa379f0866.jpeg" 
-                alt="Логотип"
-                className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
-              />
+              <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-xl p-2 shadow-lg">
+                <img 
+                  src="https://cdn.poehali.dev/files/afda956c-1e47-4f13-a08b-14fa379f0866.jpeg" 
+                  alt="Логотип"
+                  className="w-12 h-12 lg:w-16 lg:h-16 object-contain"
+                />
+              </div>
               <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
                 Семейный Органайзер
               </h1>
