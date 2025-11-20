@@ -272,6 +272,18 @@ export interface FamilyNeed {
   dueDate?: string;
 }
 
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  category: 'products' | 'household' | 'clothes' | 'other';
+  quantity?: string;
+  priority: 'normal' | 'urgent';
+  bought: boolean;
+  addedBy: string;
+  addedByName: string;
+  addedAt: string;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;

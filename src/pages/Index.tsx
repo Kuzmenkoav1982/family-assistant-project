@@ -32,6 +32,7 @@ import type {
   CalendarEvent,
   AIRecommendation,
   ThemeType,
+  ShoppingItem,
 } from '@/types/family.types';
 import { themes, getThemeClasses } from '@/config/themes';
 import {
@@ -147,6 +148,15 @@ export default function Index({ onLogout }: IndexProps) {
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
   const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
   const [newMessage, setNewMessage] = useState('');
+  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(() => {
+    const saved = localStorage.getItem('shoppingList');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState<'products' | 'household' | 'clothes' | 'other'>('products');
+  const [newItemQuantity, setNewItemQuantity] = useState('');
+  const [newItemPriority, setNewItemPriority] = useState<'normal' | 'urgent'>('normal');
+  const [showAddItemDialog, setShowAddItemDialog] = useState(false);
   
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -672,6 +682,51 @@ export default function Index({ onLogout }: IndexProps) {
         icon: '🥗'
       }
     ];
+  };
+
+  const addShoppingItem = () => {
+    if (!newItemName.trim()) return;
+    
+    const newItem: ShoppingItem = {
+      id: Date.now().toString(),
+      name: newItemName,
+      category: newItemCategory,
+      quantity: newItemQuantity,
+      priority: newItemPriority,
+      bought: false,
+      addedBy: currentUserId,
+      addedByName: currentUser?.name || 'Неизвестно',
+      addedAt: new Date().toISOString()
+    };
+    
+    const updatedList = [...shoppingList, newItem];
+    setShoppingList(updatedList);
+    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
+    
+    setNewItemName('');
+    setNewItemQuantity('');
+    setNewItemPriority('normal');
+    setShowAddItemDialog(false);
+  };
+
+  const toggleShoppingItem = (itemId: string) => {
+    const updatedList = shoppingList.map(item =>
+      item.id === itemId ? { ...item, bought: !item.bought } : item
+    );
+    setShoppingList(updatedList);
+    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
+  };
+
+  const deleteShoppingItem = (itemId: string) => {
+    const updatedList = shoppingList.filter(item => item.id !== itemId);
+    setShoppingList(updatedList);
+    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
+  };
+
+  const clearBoughtItems = () => {
+    const updatedList = shoppingList.filter(item => !item.bought);
+    setShoppingList(updatedList);
+    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
   };
 
   const handleLanguageChange = (language: string) => {
@@ -2350,26 +2405,147 @@ export default function Index({ onLogout }: IndexProps) {
               <TabsContent value="shopping">
                 <Card key="shopping-card">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="ShoppingCart" />
-                      Список покупок
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <p className="text-muted-foreground mb-4">
-                        Совместный список покупок помогает не забыть ничего важного в магазине. Каждый член семьи может добавлять нужные продукты и товары.
-                      </p>
-                      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 text-center">
-                        <Icon name="ShoppingCart" size={48} className="mx-auto mb-4 text-green-500" />
-                        <h3 className="text-lg font-semibold mb-2">Список покупок пуст</h3>
-                        <p className="text-sm text-muted-foreground">Добавьте первый товар в список покупок</p>
-                        <Button className="mt-4 bg-gradient-to-r from-green-500 to-blue-500">
-                          <Icon name="Plus" className="mr-2" size={16} />
-                          Добавить товар
-                        </Button>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Icon name="ShoppingCart" />
+                        Список покупок
+                      </CardTitle>
+                      <div className="flex gap-2">
+                        {shoppingList.some(item => item.bought) && (
+                          <Button variant="outline" size="sm" onClick={clearBoughtItems}>
+                            <Icon name="Trash2" className="mr-2" size={14} />
+                            Очистить купленное
+                          </Button>
+                        )}
+                        <Dialog open={showAddItemDialog} onOpenChange={setShowAddItemDialog}>
+                          <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-green-500 to-blue-500">
+                              <Icon name="Plus" className="mr-2" size={16} />
+                              Добавить товар
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Добавить товар</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-4">
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Название товара</label>
+                                <Input
+                                  placeholder="Молоко, хлеб..."
+                                  value={newItemName}
+                                  onChange={(e) => setNewItemName(e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Категория</label>
+                                <select
+                                  value={newItemCategory}
+                                  onChange={(e) => setNewItemCategory(e.target.value as any)}
+                                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-md"
+                                >
+                                  <option value="products">🥛 Продукты</option>
+                                  <option value="household">🧴 Хозтовары</option>
+                                  <option value="clothes">👕 Одежда</option>
+                                  <option value="other">📦 Другое</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Количество (опционально)</label>
+                                <Input
+                                  placeholder="2 литра, 1 кг..."
+                                  value={newItemQuantity}
+                                  onChange={(e) => setNewItemQuantity(e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Приоритет</label>
+                                <select
+                                  value={newItemPriority}
+                                  onChange={(e) => setNewItemPriority(e.target.value as any)}
+                                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-md"
+                                >
+                                  <option value="normal">Обычный</option>
+                                  <option value="urgent">🔥 Срочно</option>
+                                </select>
+                              </div>
+                              <Button onClick={addShoppingItem} className="w-full">
+                                Добавить
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
+                  </CardHeader>
+                  <CardContent>
+                    {shoppingList.length > 0 ? (
+                      <div className="space-y-2">
+                        {shoppingList.map((item, idx) => (
+                          <div
+                            key={item.id}
+                            className={`p-3 rounded-lg border-2 transition-all animate-fade-in ${
+                              item.bought ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 hover:border-green-400'
+                            }`}
+                            style={{ animationDelay: `${idx * 0.05}s` }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Checkbox
+                                checked={item.bought}
+                                onCheckedChange={() => toggleShoppingItem(item.id)}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className={`font-semibold ${item.bought ? 'line-through text-gray-400' : ''}`}>
+                                    {item.name}
+                                  </h4>
+                                  {item.priority === 'urgent' && (
+                                    <Badge className="bg-red-500 text-white">Срочно</Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {item.category === 'products' && '🥛 Продукты'}
+                                    {item.category === 'household' && '🧴 Хозтовары'}
+                                    {item.category === 'clothes' && '👕 Одежда'}
+                                    {item.category === 'other' && '📦 Другое'}
+                                  </Badge>
+                                  {item.quantity && (
+                                    <span className="text-xs text-gray-600">{item.quantity}</span>
+                                  )}
+                                  <span className="text-xs text-gray-500">• {item.addedByName}</span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteShoppingItem(item.id)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium">Всего товаров: {shoppingList.length}</span>
+                            <span className="text-gray-600">
+                              Куплено: {shoppingList.filter(item => item.bought).length} • 
+                              Осталось: {shoppingList.filter(item => !item.bought).length}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-8 text-center">
+                        <Icon name="ShoppingCart" size={48} className="mx-auto mb-4 text-green-500" />
+                        <h3 className="text-lg font-semibold mb-2">Список покупок пуст</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Добавьте первый товар, чтобы начать планировать покупки
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
