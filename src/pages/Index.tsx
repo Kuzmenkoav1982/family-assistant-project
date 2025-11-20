@@ -1866,7 +1866,7 @@ export default function Index({ onLogout }: IndexProps) {
                             </h4>
                             <p className="text-sm text-muted-foreground">{task.description}</p>
                           </div>
-                          <Badge>{getMemberById(task.assignee)?.name || 'Не назначено'}</Badge>
+                          <Badge>{getMemberById(task.assignee_id || task.assignee || '')?.name || 'Не назначено'}</Badge>
                         </div>
                       ))}
                       {tasks.length === 0 && (
