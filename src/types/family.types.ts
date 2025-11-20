@@ -51,7 +51,9 @@ export interface FamilyMember {
 export interface Task {
   id: string;
   title: string;
+  description?: string;
   assignee: string;
+  assignee_id?: string;
   completed: boolean;
   category: string;
   points: number;
