@@ -1392,26 +1392,35 @@ export default function Index({ onLogout }: IndexProps) {
                   onClick={() => setSelectedMemberForMood(selectedMemberForMood === member.id ? null : member.id)}
                 >
                   <div className="flex items-center gap-2">
-                    <div className="text-2xl">{member.avatar}</div>
+                    <div className="relative">
+                      {member.photoUrl ? (
+                        <img 
+                          src={member.photoUrl} 
+                          alt={member.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-xl border-2 border-purple-300">
+                          {member.avatar}
+                        </div>
+                      )}
+                      {member.moodStatus && (
+                        <div className="absolute -bottom-1 -right-1 text-lg bg-white rounded-full border-2 border-white">
+                          {member.moodStatus.emoji}
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <p className="text-xs font-medium">{member.name}</p>
                       <p className="text-[10px] text-gray-500">{member.role}</p>
+                      {member.moodStatus && (
+                        <p className="text-[9px] text-gray-400">
+                          {member.moodStatus.label} • {new Date(member.moodStatus.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="text-center flex items-center gap-1">
-                    {member.moodStatus ? (
-                      <>
-                        <div className="text-xl">{member.moodStatus.emoji}</div>
-                        <div>
-                          <p className="text-[9px] text-gray-500">{member.moodStatus.label}</p>
-                          <p className="text-[8px] text-gray-400">
-                            {new Date(member.moodStatus.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-xl opacity-30">😐</div>
-                    )}
                     <Icon name="ChevronDown" size={14} className={`text-gray-400 transition-transform ${selectedMemberForMood === member.id ? 'rotate-180' : ''}`} />
                   </div>
                 </div>

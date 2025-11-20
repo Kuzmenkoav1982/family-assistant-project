@@ -77,7 +77,19 @@ export default function RightSidebar({
               >
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <span className="text-2xl">{member.avatar}</span>
+                    <div className="relative">
+                      {(member as any).photoUrl ? (
+                        <img 
+                          src={(member as any).photoUrl} 
+                          alt={member.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-xl border-2 border-purple-300">
+                          {member.avatar}
+                        </div>
+                      )}
+                    </div>
                     <span>{member.name}</span>
                   </CardTitle>
                 </CardHeader>
