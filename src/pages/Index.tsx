@@ -211,7 +211,7 @@ export default function Index({ onLogout }: IndexProps) {
     return localStorage.getItem('chamomileEnabled') !== 'false';
   });
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    return localStorage.getItem('soundEnabled') !== 'false';
+    return localStorage.getItem('soundEnabled') === 'true';
   });
   const [showProfileOnboarding, setShowProfileOnboarding] = useState(false);
   const [showHints, setShowHints] = useState(() => {
@@ -293,6 +293,14 @@ export default function Index({ onLogout }: IndexProps) {
       icon: 'Smile',
       position: 'right',
       action: () => setIsMoodWidgetVisible(true)
+    },
+    {
+      id: 'panels',
+      title: 'Боковые панели',
+      description: 'Панели слева и справа можно раздвигать и сдвигать с помощью кнопок со стрелками',
+      icon: 'PanelLeftOpen',
+      position: 'both',
+      action: () => {}
     }
   ];
 
@@ -1646,6 +1654,10 @@ export default function Index({ onLogout }: IndexProps) {
                   <Icon name="GitBranch" className="mr-1" size={14} />
                   Древо
                 </TabsTrigger>
+                <TabsTrigger value="shopping" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="ShoppingCart" className="mr-1" size={14} />
+                  Покупки
+                </TabsTrigger>
                 <TabsTrigger value="chat" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="MessageCircle" className="mr-1" size={14} />
                   Чат
@@ -2330,6 +2342,33 @@ export default function Index({ onLogout }: IndexProps) {
                           <p className="text-sm text-muted-foreground">Добавьте членов семьи в генеалогическое древо</p>
                         </div>
                       )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="shopping">
+                <Card key="shopping-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="ShoppingCart" />
+                      Список покупок
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <p className="text-muted-foreground mb-4">
+                        Совместный список покупок помогает не забыть ничего важного в магазине. Каждый член семьи может добавлять нужные продукты и товары.
+                      </p>
+                      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 text-center">
+                        <Icon name="ShoppingCart" size={48} className="mx-auto mb-4 text-green-500" />
+                        <h3 className="text-lg font-semibold mb-2">Список покупок пуст</h3>
+                        <p className="text-sm text-muted-foreground">Добавьте первый товар в список покупок</p>
+                        <Button className="mt-4 bg-gradient-to-r from-green-500 to-blue-500">
+                          <Icon name="Plus" className="mr-2" size={16} />
+                          Добавить товар
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
