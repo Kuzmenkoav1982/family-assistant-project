@@ -61,6 +61,7 @@ import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import MealVotingWidget from '@/components/MealVotingWidget';
+import RightSidebar from '@/components/layout/RightSidebar';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -2447,6 +2448,19 @@ export default function Index({ onLogout }: IndexProps) {
         availableSections={availableSections}
         selectedSections={rightPanelSections}
         onSectionsChange={handleRightPanelSectionsChange}
+      />
+      
+      <RightSidebar
+        isVisible={isMoodWidgetVisible}
+        autoHide={autoHideMoodWidget}
+        familyMembers={familyMembers}
+        selectedMemberForMood={selectedMemberForMood}
+        moodOptions={moodOptions}
+        showRightPanelSettings={showRightPanelSettings}
+        onVisibilityChange={setIsMoodWidgetVisible}
+        onMemberMoodSelect={setSelectedMemberForMood}
+        onMoodChange={handleMoodChange}
+        onRightPanelSettingsToggle={setShowRightPanelSettings}
       />
       
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
