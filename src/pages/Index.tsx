@@ -14,7 +14,6 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { ChildEducation } from '@/components/ChildEducation';
 import { ClickChamomile } from '@/components/ClickChamomile';
-import ProfileOnboarding from '@/components/ProfileOnboarding';
 import type {
   FamilyMember,
   Task,
@@ -229,15 +228,16 @@ export default function Index({ onLogout }: IndexProps) {
   const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id);
-  const currentUserId = currentUser?.id || user.member_id || '';
+  const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id) || familyMembers[0];
+  const currentUserId = currentUser?.id || user.member_id || familyMembers[0]?.id || '';
 
-  useEffect(() => {
-    const needsSetup = localStorage.getItem('needsProfileSetup');
-    if (needsSetup === 'true' && currentUser && !membersLoading) {
-      setShowProfileOnboarding(true);
-    }
-  }, [currentUser, membersLoading]);
+  // Отключаем ProfileOnboarding в демо-режиме
+  // useEffect(() => {
+  //   const needsSetup = localStorage.getItem('needsProfileSetup');
+  //   if (needsSetup === 'true' && currentUser && !membersLoading) {
+  //     setShowProfileOnboarding(true);
+  //   }
+  // }, [currentUser, membersLoading]);
 
   useEffect(() => {
     if (showHints && !showProfileOnboarding && !membersLoading) {
@@ -313,7 +313,10 @@ export default function Index({ onLogout }: IndexProps) {
   };
 
   const handleLogoutLocal = () => {
-    onLogout?.();
+    if (confirm('Сбросить все демо-данные и начать заново? Это действие нельзя отменить.')) {
+      localStorage.clear();
+      window.location.reload();
+    }
   };
 
   useEffect(() => {
@@ -824,7 +827,8 @@ export default function Index({ onLogout }: IndexProps) {
 
   return (
     <>
-      <ProfileOnboarding
+      {/* Отключаем ProfileOnboarding в демо-режиме */}
+      {/* <ProfileOnboarding
         isOpen={showProfileOnboarding}
         onComplete={() => {
           setShowProfileOnboarding(false);
@@ -832,7 +836,7 @@ export default function Index({ onLogout }: IndexProps) {
         }}
         memberId={currentUserId}
         memberName={currentUser?.name || 'Пользователь'}
-      />
+      /> */}
 
       <Dialog open={showFamilyInvite} onOpenChange={setShowFamilyInvite}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col p-0">
@@ -999,9 +1003,14 @@ export default function Index({ onLogout }: IndexProps) {
                 </div>
               </div>
               
-              <p className="text-sm text-gray-500 mt-8 animate-fade-in" style={{ animationDelay: '4s' }}>
-                Нажмите в любом месте, чтобы продолжить
-              </p>
+              <div className="mt-8 space-y-2">
+                <p className="text-sm text-gray-500 animate-fade-in" style={{ animationDelay: '4s' }}>
+                  Нажмите в любом месте, чтобы продолжить
+                </p>
+                <p className="text-xs text-gray-400 animate-fade-in" style={{ animationDelay: '5s' }}>
+                  🎭 Демо-режим: все данные хранятся локально в вашем браузере
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1021,9 +1030,9 @@ export default function Index({ onLogout }: IndexProps) {
                 variant="ghost"
                 size="sm"
                 className="h-9 w-9 p-0"
-                title="Выход"
+                title="Сбросить демо"
               >
-                <Icon name="LogOut" size={18} />
+                <Icon name="RotateCcw" size={18} />
               </Button>
               
               <SettingsMenu />
@@ -1461,9 +1470,14 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
           <div className="relative h-full flex flex-col items-center justify-center px-6">
-            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-3">
-              Семейный Органайзер
-            </h1>
+            <div className="flex items-center gap-3 mb-3">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Семейный Органайзер
+              </h1>
+              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-3 py-1">
+                ДЕМО
+              </Badge>
+            </div>
             <p className="text-base lg:text-lg text-gray-700 font-medium flex items-center justify-center gap-2 mb-4">
               Вместе мы — сила! Организуйте жизнь семьи с любовью ❤️
               {syncing && (
