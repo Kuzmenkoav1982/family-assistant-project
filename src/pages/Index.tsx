@@ -976,7 +976,11 @@ export default function Index({ onLogout }: IndexProps) {
           
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
             <div className="mb-8 animate-bounce-slow">
-              <div className="text-9xl mb-4">👨‍👩‍👧‍👦</div>
+              <img 
+                src="https://cdn.poehali.dev/files/a82b2015-3435-430d-af14-fa150b6a8062.jpeg" 
+                alt="Семейный Органайзер"
+                className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
+              />
             </div>
             
             <div className="space-y-6">
@@ -1482,7 +1486,12 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
           <div className="relative h-full flex flex-col items-center justify-center px-6">
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-4 mb-3">
+              <img 
+                src="https://cdn.poehali.dev/files/a82b2015-3435-430d-af14-fa150b6a8062.jpeg" 
+                alt="Логотип"
+                className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
+              />
               <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
                 Семейный Органайзер
               </h1>
