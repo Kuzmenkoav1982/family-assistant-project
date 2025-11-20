@@ -978,9 +978,9 @@ export default function Index({ onLogout }: IndexProps) {
             <div className="mb-8 animate-bounce-slow">
               <div className="inline-block bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-3xl p-6 shadow-2xl">
                 <img 
-                  src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/05a6ee31-6320-4680-9ad9-818db01dd9a1.jpg" 
+                  src="https://cdn.poehali.dev/files/40d4053d-8b86-42b2-ad4e-534f95931aba.png" 
                   alt="Семейный Органайзер"
-                  className="w-96 h-96 md:w-[40rem] md:h-[40rem] mx-auto object-contain"
+                  className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
                 />
               </div>
             </div>
@@ -1491,9 +1491,9 @@ export default function Index({ onLogout }: IndexProps) {
             <div className="flex items-center gap-4 mb-3">
               <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-xl p-2 shadow-lg">
                 <img 
-                  src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/05a6ee31-6320-4680-9ad9-818db01dd9a1.jpg" 
+                  src="https://cdn.poehali.dev/files/40d4053d-8b86-42b2-ad4e-534f95931aba.png" 
                   alt="Логотип"
-                  className="w-12 h-12 lg:w-16 lg:h-16 object-contain"
+                  className="w-24 h-24 lg:w-32 lg:h-32 object-contain"
                 />
               </div>
               <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
