@@ -62,6 +62,7 @@ import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import MealVotingWidget from '@/components/MealVotingWidget';
 import RightSidebar from '@/components/layout/RightSidebar';
+import { getCurrentMember } from '@/data/demoFamily';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -227,9 +228,11 @@ export default function Index({ onLogout }: IndexProps) {
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
   const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUser = familyMembers.find(m => m.user_id === user.id || m.id === user.member_id) || familyMembers[0];
-  const currentUserId = currentUser?.id || user.member_id || familyMembers[0]?.id || '';
+  const demoMember = getCurrentMember();
+  const currentUser = demoMember 
+    ? familyMembers.find(m => m.id === demoMember.id) || familyMembers[0]
+    : familyMembers[0];
+  const currentUserId = currentUser?.id || familyMembers[0]?.id || '';
 
   // Отключаем ProfileOnboarding в демо-режиме
   // useEffect(() => {
