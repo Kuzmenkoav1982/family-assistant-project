@@ -1880,71 +1880,147 @@ export default function Index({ onLogout }: IndexProps) {
 
               <TabsContent value="children">
                 <div className="space-y-4">
-                  {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => (
-                    <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
-                      <CardHeader>
-                        <CardTitle>
-                          <div className="flex items-center gap-3">
-                            <span className="text-4xl">{child.avatar}</span>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span>{child.name}</span>
-                                <Badge>{child.age} лет</Badge>
+                  {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => {
+                    const devPlan = developmentPlans.find(dp => dp.childId === child.childId);
+                    const avgProgress = devPlan?.skills ? Math.round(devPlan.skills.reduce((sum, s) => sum + s.progress, 0) / devPlan.skills.length) : 0;
+                    const completedMilestones = devPlan?.milestones.filter(m => m.completed).length || 0;
+                    const totalMilestones = devPlan?.milestones.length || 0;
+                    
+                    return (
+                      <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-4xl">{child.avatar}</span>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <CardTitle className="text-2xl">{child.name}</CardTitle>
+                                  <Badge>{child.age} лет</Badge>
+                                  <Badge variant="outline" className="bg-blue-50">{child.grade} класс</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">{child.personality}</p>
                               </div>
-                              <p className="text-sm text-muted-foreground font-normal">Класс: {child.grade}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-3xl font-bold text-purple-600">{avgProgress}%</div>
+                              <p className="text-xs text-gray-500">Общий прогресс</p>
                             </div>
                           </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div>
-                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                              <Icon name="Star" size={14} />
-                              Интересы
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {child.interests && child.interests.length > 0 ? (
-                                child.interests.map((interest, i) => (
-                                  <Badge key={`${child.id}-interest-${i}`} variant="outline">{interest}</Badge>
-                                ))
-                              ) : (
-                                <p className="text-sm text-muted-foreground">Интересы пока не добавлены</p>
-                              )}
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-purple-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <Icon name="Target" className="text-purple-600" size={20} />
+                                <span className="text-2xl font-bold text-purple-600">{completedMilestones}/{totalMilestones}</span>
+                              </div>
+                              <p className="text-xs font-medium text-purple-900">Цели достигнуто</p>
                             </div>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                              <Icon name="Award" size={14} />
-                              Достижения
-                            </h4>
-                            <div className="space-y-1">
-                              {child.achievements && child.achievements.length > 0 ? (
-                                child.achievements.slice(0, 3).map((achievement, i) => (
-                                  <div key={`${child.id}-achievement-${i}`} className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <Icon name="CheckCircle" size={12} className="text-green-500" />
-                                    {achievement}
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-sm text-muted-foreground">Достижений пока нет</p>
-                              )}
+                            
+                            <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <Icon name="Sparkles" className="text-blue-600" size={20} />
+                                <span className="text-2xl font-bold text-blue-600">{devPlan?.skills.length || 0}</span>
+                              </div>
+                              <p className="text-xs font-medium text-blue-900">Навыков развивается</p>
+                            </div>
+                            
+                            <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border-2 border-green-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <Icon name="Calendar" className="text-green-600" size={20} />
+                                <span className="text-2xl font-bold text-green-600">{devPlan?.schedule.length || 0}</span>
+                              </div>
+                              <p className="text-xs font-medium text-green-900">Занятий в неделю</p>
+                            </div>
+                            
+                            <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <Icon name="Trophy" className="text-orange-600" size={20} />
+                                <span className="text-2xl font-bold text-orange-600">{child.achievements?.length || 0}</span>
+                              </div>
+                              <p className="text-xs font-medium text-orange-900">Достижений</p>
                             </div>
                           </div>
                           
-                          <div className="pt-3 border-t">
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                <Icon name="TrendingUp" size={14} className="text-purple-600" />
+                                Развиваемые навыки
+                              </h4>
+                              <div className="space-y-2">
+                                {devPlan?.skills.slice(0, 3).map((skill, i) => (
+                                  <div key={`${child.id}-skill-${i}`} className="bg-gray-50 rounded-lg p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs font-medium">{skill.skillName}</span>
+                                      <Badge variant="outline" className="text-[10px] h-5">{skill.progress}%</Badge>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                      <div 
+                                        className="bg-gradient-to-r from-purple-500 to-blue-500 h-1.5 rounded-full transition-all"
+                                        style={{ width: `${skill.progress}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                )) || <p className="text-xs text-gray-500">Навыки не добавлены</p>}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                <Icon name="Award" size={14} className="text-orange-600" />
+                                Последние достижения
+                              </h4>
+                              <div className="space-y-1">
+                                {child.achievements && child.achievements.length > 0 ? (
+                                  child.achievements.slice(0, 3).map((achievement, i) => (
+                                    <div key={`${child.id}-achievement-${i}`} className="text-xs flex items-start gap-2 p-2 bg-orange-50 rounded">
+                                      <Icon name="Trophy" size={12} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                                      <span>{achievement}</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-xs text-gray-500">Достижений пока нет</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                              <Icon name="Lightbulb" size={14} className="text-yellow-600" />
+                              Рекомендации ИИ
+                            </h4>
+                            <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border border-yellow-200">
+                              <p className="text-xs text-gray-700">
+                                {child.id === 'child-3' 
+                                  ? '🎯 Отличный прогресс в логическом мышлении! Рекомендуем добавить курс по математическим олимпиадам и увеличить время на проекты по робототехнике.'
+                                  : '🎨 Творческие способности развиваются прекрасно! Предлагаем добавить занятия музыкальной импровизацией и участие в театральной студии.'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="pt-2 grid grid-cols-2 gap-2">
                             <Button
                               onClick={() => setEducationChild(familyMembers.find(m => m.id === child.childId) || null)}
-                              className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
+                              className="bg-gradient-to-r from-purple-600 to-blue-600"
                             >
                               <Icon name="GraduationCap" className="mr-2" size={16} />
-                              Обучение и развитие
+                              Тесты и развитие
+                            </Button>
+                            <Button
+                              onClick={() => navigate(`/member/${child.childId}`)}
+                              variant="outline"
+                              className="border-purple-300"
+                            >
+                              <Icon name="User" className="mr-2" size={16} />
+                              Полный профиль
                             </Button>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )) : (
+                        </CardContent>
+                      </Card>
+                    );
+                  }) : (
                     <Card key="empty-children">
                       <CardContent className="p-8 text-center">
                         <Icon name="Baby" size={48} className="mx-auto mb-4 text-muted-foreground" />
