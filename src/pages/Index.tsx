@@ -1988,6 +1988,53 @@ export default function Index({ onLogout }: IndexProps) {
                           
                           <div>
                             <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                              <Icon name="CalendarDays" size={14} className="text-blue-600" />
+                              Расписание недели
+                            </h4>
+                            <div className="space-y-2">
+                              {devPlan?.schedule && devPlan.schedule.length > 0 ? (
+                                devPlan.schedule.map((activity, i) => (
+                                  <div key={`${child.id}-schedule-${i}`} className={`p-3 rounded-lg border-2 ${activity.color}`}>
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="text-xs font-bold text-gray-900">{activity.name}</span>
+                                          <Badge variant="outline" className="text-[9px] h-4 px-1">{activity.category}</Badge>
+                                        </div>
+                                        <div className="space-y-0.5 text-[10px] text-gray-600">
+                                          <div className="flex items-center gap-1">
+                                            <Icon name="Calendar" size={10} />
+                                            <span>{activity.dayOfWeek}</span>
+                                            <span className="mx-1">•</span>
+                                            <Icon name="Clock" size={10} />
+                                            <span>{activity.time}</span>
+                                            <span className="text-gray-400">({activity.duration})</span>
+                                          </div>
+                                          {activity.location && (
+                                            <div className="flex items-center gap-1">
+                                              <Icon name="MapPin" size={10} />
+                                              <span>{activity.location}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="text-lg">
+                                        {activity.category === 'Спорт' ? '⚽' : 
+                                         activity.category === 'STEM' ? '🤖' : 
+                                         activity.category === 'Творчество' ? '🎨' : 
+                                         activity.category === 'Музыка' ? '🎹' : '📚'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-gray-500 text-center py-2">Расписание не заполнено</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
                               <Icon name="Lightbulb" size={14} className="text-yellow-600" />
                               Рекомендации ИИ
                             </h4>
