@@ -1489,13 +1489,11 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
           <div className="relative h-full flex flex-col items-center justify-center px-6">
             <div className="flex items-center gap-4 mb-3">
-              <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-xl p-2 shadow-lg">
-                <img 
-                  src="https://cdn.poehali.dev/files/40d4053d-8b86-42b2-ad4e-534f95931aba.png" 
-                  alt="Логотип"
-                  className="w-24 h-24 lg:w-32 lg:h-32 object-contain"
-                />
-              </div>
+              <img 
+                src="https://cdn.poehali.dev/files/40d4053d-8b86-42b2-ad4e-534f95931aba.png" 
+                alt="Логотип"
+                className="w-32 h-32 lg:w-40 lg:h-40 object-contain"
+              />
               <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
                 Семейный Органайзер
               </h1>
