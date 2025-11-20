@@ -204,7 +204,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [autoHideLeftMenu, setAutoHideLeftMenu] = useState(() => {
     return localStorage.getItem('autoHideLeftMenu') === 'true';
   });
-  const [activeSection, setActiveSection] = useState<string>('tasks');
+  const [activeSection, setActiveSection] = useState<string>('family');
   const [showInDevelopment, setShowInDevelopment] = useState(false);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
   const [chamomileEnabled, setChamomileEnabled] = useState(() => {
@@ -466,9 +466,9 @@ export default function Index({ onLogout }: IndexProps) {
   };
 
   const availableSections = [
+    { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
-    { id: 'family', icon: 'Users', label: 'Семья' },
     { id: 'children', icon: 'Baby', label: 'Дети' },
     { id: 'chat', icon: 'MessageCircle', label: 'Чат' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
@@ -1496,7 +1496,7 @@ export default function Index({ onLogout }: IndexProps) {
           <p className="text-lg lg:text-xl text-gray-700 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
             {activeSection === 'tasks' && 'Управление задачами семьи'}
             {activeSection === 'calendar' && 'Семейные события и планы'}
-            {activeSection === 'family' && 'Профили членов семьи'}
+            {activeSection === 'family' && 'Просмотр и редактирование профилей всех членов семьи'}
             {activeSection === 'children' && 'Развитие и достижения детей'}
             {activeSection === 'values' && 'Семейные ценности и принципы'}
             {activeSection === 'traditions' && 'Традиции и ритуалы'}

@@ -95,11 +95,69 @@ export default function MemberProfile() {
           Назад
         </Button>
 
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              {member.photoUrl ? (
+                <img 
+                  src={member.photoUrl} 
+                  alt={member.name}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-purple-300"
+                />
+              ) : (
+                <div className="text-8xl">{member.avatar}</div>
+              )}
+              <div className="flex-1 text-center md:text-left">
+                <h1 className="text-3xl font-bold mb-2">{member.name}</h1>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+                  <Badge variant="outline" className="text-sm">
+                    <Icon name="User" size={14} className="mr-1" />
+                    {member.role}
+                  </Badge>
+                  {member.age && (
+                    <Badge variant="outline" className="text-sm">
+                      <Icon name="Calendar" size={14} className="mr-1" />
+                      {member.age} лет
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className="text-sm bg-orange-50">
+                    <Icon name="Star" size={14} className="mr-1" />
+                    {member.points} баллов
+                  </Badge>
+                  <Badge variant="outline" className="text-sm bg-purple-50">
+                    <Icon name="Award" size={14} className="mr-1" />
+                    Уровень {member.level}
+                  </Badge>
+                </div>
+                {member.moodStatus && (
+                  <div className="flex items-center gap-2 justify-center md:justify-start">
+                    <span className="text-2xl">{member.moodStatus.emoji}</span>
+                    <div>
+                      <p className="text-sm font-medium">{member.moodStatus.label}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(member.moodStatus.timestamp).toLocaleString('ru-RU')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="User" size={16} />
               <span>Профиль</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="BarChart3" size={16} />
+              <span>Статистика</span>
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="CheckSquare" size={16} />
+              <span>Задачи</span>
             </TabsTrigger>
             {isChild && (
               <>
@@ -122,6 +180,132 @@ export default function MemberProfile() {
                 await updateMember({ id: member.id, ...updates });
               }}
             />
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Award" size={20} />
+                    Достижения
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {member.achievements && member.achievements.length > 0 ? (
+                    <div className="space-y-2">
+                      {member.achievements.map((achievement, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-yellow-50 rounded-lg">
+                          <Icon name="Trophy" size={16} className="text-yellow-600" />
+                          <span className="text-sm">{achievement}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">Пока нет достижений</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="ListTodo" size={20} />
+                    Обязанности
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {member.responsibilities && member.responsibilities.length > 0 ? (
+                    <div className="space-y-2">
+                      {member.responsibilities.map((resp, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                          <Icon name="CheckCircle" size={16} className="text-blue-600" />
+                          <span className="text-sm">{resp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">Обязанности не назначены</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Heart" size={20} />
+                    Любимые блюда
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {member.foodPreferences?.favorites && member.foodPreferences.favorites.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {member.foodPreferences.favorites.map((food, i) => (
+                        <Badge key={i} variant="outline" className="bg-green-50">
+                          {food}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">Не указано</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="TrendingUp" size={20} />
+                    Прогресс
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Загруженность</span>
+                      <span className="font-bold">{member.workload}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all"
+                        style={{ width: `${member.workload}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <p className="text-xs text-gray-600">Задач выполнено</p>
+                      <p className="text-2xl font-bold text-purple-600">{member.tasksCompleted}</p>
+                    </div>
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <p className="text-xs text-gray-600">Всего баллов</p>
+                      <p className="text-2xl font-bold text-orange-600">{member.points}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="CheckSquare" size={20} />
+                  Мои задачи
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  <Icon name="CheckSquare" size={48} className="mx-auto mb-4 opacity-50" />
+                  <p>Задачи появятся здесь, когда они будут назначены</p>
+                  <Button className="mt-4" onClick={() => navigate('/')}>
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    Создать задачу
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {isChild && (
