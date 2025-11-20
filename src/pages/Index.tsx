@@ -2033,17 +2033,63 @@ export default function Index({ onLogout }: IndexProps) {
                             </div>
                           </div>
                           
-                          <div>
-                            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                              <Icon name="Lightbulb" size={14} className="text-yellow-600" />
-                              Рекомендации ИИ
-                            </h4>
-                            <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border border-yellow-200">
-                              <p className="text-xs text-gray-700">
-                                {child.id === 'child-3' 
-                                  ? '🎯 Отличный прогресс в логическом мышлении! Рекомендуем добавить курс по математическим олимпиадам и увеличить время на проекты по робототехнике.'
-                                  : '🎨 Творческие способности развиваются прекрасно! Предлагаем добавить занятия музыкальной импровизацией и участие в театральной студии.'}
-                              </p>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                <Icon name="Lightbulb" size={14} className="text-yellow-600" />
+                                Рекомендации ИИ
+                              </h4>
+                              <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border border-yellow-200">
+                                <p className="text-xs text-gray-700">
+                                  {child.id === 'child-3' 
+                                    ? '🎯 Отличный прогресс в логическом мышлении! Рекомендуем добавить курс по математическим олимпиадам и увеличить время на проекты по робототехнике.'
+                                    : '🎨 Творческие способности развиваются прекрасно! Предлагаем добавить занятия музыкальной импровизацией и участие в театральной студии.'}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                <Icon name="BarChart3" size={14} className="text-indigo-600" />
+                                Загруженность по дням
+                              </h4>
+                              <div className="grid grid-cols-7 gap-1">
+                                {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, dayIndex) => {
+                                  const dayActivities = devPlan?.schedule.filter(act => 
+                                    act.dayOfWeek === ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'][dayIndex]
+                                  ).length || 0;
+                                  const intensity = dayActivities === 0 ? 'bg-gray-100' : 
+                                                   dayActivities === 1 ? 'bg-green-200' : 
+                                                   dayActivities === 2 ? 'bg-yellow-300' : 'bg-red-300';
+                                  
+                                  return (
+                                    <div key={`${child.id}-day-${dayIndex}`} className="flex flex-col items-center">
+                                      <div className={`w-full h-12 rounded ${intensity} flex items-center justify-center text-xs font-bold transition-all hover:scale-105`}>
+                                        {dayActivities}
+                                      </div>
+                                      <span className="text-[9px] text-gray-600 mt-0.5">{day}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className="flex items-center gap-2 mt-2 text-[9px] text-gray-500">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded bg-gray-100"></div>
+                                  <span>Нет</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded bg-green-200"></div>
+                                  <span>1</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded bg-yellow-300"></div>
+                                  <span>2</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded bg-red-300"></div>
+                                  <span>3+</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                           
