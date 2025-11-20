@@ -111,7 +111,7 @@ export default function Index({ onLogout }: IndexProps) {
           { id: '1', title: 'Велосипед', targetAmount: 15000, savedAmount: 3000, createdAt: new Date().toISOString() },
           { id: '2', title: 'Планшет', targetAmount: 30000, savedAmount: 5000, createdAt: new Date().toISOString() }
         ] : [],
-        piggyBank: dm.role === 'child' ? [8000, 0][index - 2] || 0,
+        piggyBank: (dm.role === 'child' ? [8000, 0][index - 2] : 0) || 0,
         foodPreferences: {
           favorites: dm.preferences.favoriteFood,
           dislikes: []
