@@ -977,7 +977,7 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
             <div className="mb-8 animate-bounce-slow">
               <img 
-                src="https://cdn.poehali.dev/files/a82b2015-3435-430d-af14-fa150b6a8062.jpeg" 
+                src="https://cdn.poehali.dev/files/afda956c-1e47-4f13-a08b-14fa379f0866.jpeg" 
                 alt="Семейный Органайзер"
                 className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
               />
@@ -1488,7 +1488,7 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="relative h-full flex flex-col items-center justify-center px-6">
             <div className="flex items-center gap-4 mb-3">
               <img 
-                src="https://cdn.poehali.dev/files/a82b2015-3435-430d-af14-fa150b6a8062.jpeg" 
+                src="https://cdn.poehali.dev/files/afda956c-1e47-4f13-a08b-14fa379f0866.jpeg" 
                 alt="Логотип"
                 className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
               />
