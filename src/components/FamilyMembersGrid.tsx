@@ -19,9 +19,17 @@ export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridP
           onClick={() => onMemberClick(member)}
         >
           <CardContent className="p-4 text-center">
-            <div className="text-6xl mb-3 animate-bounce-slow">
-              {member.avatar}
-            </div>
+            {member.photoUrl ? (
+              <img 
+                src={member.photoUrl} 
+                alt={member.name}
+                className="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-purple-300"
+              />
+            ) : (
+              <div className="text-6xl mb-3 animate-bounce-slow">
+                {member.avatar}
+              </div>
+            )}
             <h3 className="font-bold text-lg mb-1">{member.name}</h3>
             <p className="text-sm text-muted-foreground mb-3">{member.role}</p>
             

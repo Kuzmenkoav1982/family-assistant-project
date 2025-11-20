@@ -54,6 +54,7 @@ import {
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { getTranslation, type LanguageCode } from '@/translations';
+import { DEMO_FAMILY } from '@/data/demoFamily';
 import SettingsMenu from '@/components/SettingsMenu';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
@@ -73,7 +74,58 @@ export default function Index({ onLogout }: IndexProps) {
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   
-  const familyMembers = familyMembersRaw || [];
+  const familyMembers = (familyMembersRaw && familyMembersRaw.length > 0) ? familyMembersRaw : 
+    DEMO_FAMILY.members.map((dm, index) => {
+      const demoMoods = [
+        { emoji: '😊', label: 'Отлично', timestamp: new Date(Date.now() - 30 * 60000).toISOString() },
+        { emoji: '😃', label: 'Хорошо', timestamp: new Date(Date.now() - 60 * 60000).toISOString() },
+        { emoji: '🥳', label: 'Празднично', timestamp: new Date(Date.now() - 120 * 60000).toISOString() },
+        { emoji: '😐', label: 'Нормально', timestamp: new Date(Date.now() - 45 * 60000).toISOString() },
+        { emoji: '😊', label: 'Отлично', timestamp: new Date(Date.now() - 90 * 60000).toISOString() },
+        { emoji: '😃', label: 'Хорошо', timestamp: new Date(Date.now() - 15 * 60000).toISOString() },
+      ];
+      
+      return {
+        id: dm.id,
+        name: dm.name,
+        role: dm.role === 'owner' ? 'Папа' : dm.role === 'admin' ? 'Мама' : dm.role === 'child' ? 'Ребёнок' : 'Участник',
+        avatar: '👤',
+        avatarType: 'photo' as const,
+        photoUrl: dm.avatar,
+        age: dm.age,
+        relationship: dm.role === 'owner' || dm.role === 'admin' ? 'Родитель' : 'Ребёнок',
+        points: [250, 180, 120, 80, 150, 200][index] || 0,
+        level: [5, 4, 3, 2, 4, 5][index] || 1,
+        workload: [60, 55, 30, 10, 40, 45][index] || 0,
+        tasksCompleted: [15, 12, 8, 3, 10, 13][index] || 0,
+        achievements: [
+          ['Суперпапа', 'Организатор'],
+          ['Душа семьи', 'Повар года'],
+          ['Отличница', 'Спортсменка'],
+          ['Веселый малыш'],
+          ['Мудрая бабушка', 'Лучшие пирожки'],
+          ['Семейный историк']
+        ][index] || [],
+        moodStatus: demoMoods[index],
+        dreams: dm.role === 'child' ? [
+          { id: '1', title: 'Велосипед', targetAmount: 15000, savedAmount: 3000, createdAt: new Date().toISOString() },
+          { id: '2', title: 'Планшет', targetAmount: 30000, savedAmount: 5000, createdAt: new Date().toISOString() }
+        ] : [],
+        piggyBank: dm.role === 'child' ? [8000, 0][index - 2] || 0,
+        foodPreferences: {
+          favorites: dm.preferences.favoriteFood,
+          dislikes: []
+        },
+        responsibilities: [
+          ['Планирование семейных поездок', 'Ремонт техники'],
+          ['Приготовление еды', 'Уборка кухни'],
+          ['Уборка комнаты', 'Помощь с младшим братом'],
+          ['Складывать игрушки'],
+          ['Пирожки по выходным', 'Помощь с детьми'],
+          ['Рассказывать истории', 'Семейные традиции']
+        ][index] || []
+      } as FamilyMember;
+    });
   const tasks = tasksRaw || [];
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
