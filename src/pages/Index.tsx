@@ -2531,8 +2531,7 @@ export default function Index({ onLogout }: IndexProps) {
                           <div className="flex items-center justify-between text-sm">
                             <span className="font-medium">Всего товаров: {shoppingList.length}</span>
                             <span className="text-gray-600">
-                              Куплено: {shoppingList.filter(item => item.bought).length} • 
-                              Осталось: {shoppingList.filter(item => !item.bought).length}
+                              Куплено: {shoppingList.filter(item => item.bought).length} • Осталось: {shoppingList.filter(item => !item.bought).length}
                             </span>
                           </div>
                         </div>
