@@ -14,6 +14,7 @@ import type {
   FamilyTreeMember,
   CalendarEvent,
   AIRecommendation,
+  FamilyGoal,
 } from '@/types/family.types';
 
 export const initialFamilyMembers: FamilyMember[] = [
@@ -2010,5 +2011,230 @@ export const initialAIRecommendations: AIRecommendation[] = [
       'Проводите время с внуками - это приносит радость и поддерживает активность',
       'Не стесняйтесь просить помощь - это не слабость, а забота о себе'
     ]
+  }
+];
+
+export const initialFamilyGoals: FamilyGoal[] = [
+  {
+    id: '1',
+    title: 'Накопить на первоначальный взнос за квартиру',
+    description: 'Накопить 2 миллиона рублей для первоначального взноса на покупку трёхкомнатной квартиры в Москве',
+    category: 'financial',
+    priority: 'high',
+    status: 'in_progress',
+    startDate: '2024-01-01',
+    targetDate: '2026-12-31',
+    progress: 35,
+    assignedMembers: ['1', '2'],
+    budget: 2000000,
+    currentSpending: 700000,
+    createdBy: '1',
+    createdByName: 'Александр',
+    createdAt: '2024-01-01T10:00:00Z',
+    checkpoints: [
+      {
+        id: 'cp1',
+        title: 'Накопить первые 500 тыс. руб',
+        description: 'Достичь первой четверти цели',
+        dueDate: '2024-06-30',
+        completed: true,
+        completedDate: '2024-06-15T00:00:00Z'
+      },
+      {
+        id: 'cp2',
+        title: 'Накопить 1 млн руб',
+        description: 'Достичь половины необходимой суммы',
+        dueDate: '2025-01-31',
+        completed: false
+      },
+      {
+        id: 'cp3',
+        title: 'Накопить 1.5 млн руб',
+        description: 'Три четверти пути к цели',
+        dueDate: '2025-09-30',
+        completed: false
+      },
+      {
+        id: 'cp4',
+        title: 'Достичь полной суммы 2 млн руб',
+        description: 'Финальная сумма для первоначального взноса',
+        dueDate: '2026-12-31',
+        completed: false
+      }
+    ],
+    aiSuggestions: [
+      {
+        id: 'ai1',
+        type: 'tip',
+        title: 'Автоматизируйте накопления',
+        content: 'Настройте автоматический перевод 10-15% от зарплаты на накопительный счёт сразу после её получения. Так вы не будете тратить эти деньги.',
+        createdAt: '2024-01-01T00:00:00Z'
+      },
+      {
+        id: 'ai2',
+        type: 'recommendation',
+        title: 'Используйте накопительный счёт',
+        content: 'Храните накопления на накопительном счёте с доходностью 15-18% годовых. Это добавит около 200-300 тыс. рублей к вашим накоплениям за 3 года.',
+        createdAt: '2024-01-15T00:00:00Z'
+      },
+      {
+        id: 'ai3',
+        type: 'warning',
+        title: 'Учитывайте инфляцию',
+        content: 'При текущей инфляции стоимость квартир может вырасти. Рассмотрите возможность увеличения целевой суммы до 2.3-2.5 млн рублей.',
+        createdAt: '2024-03-01T00:00:00Z'
+      }
+    ],
+    tags: ['финансы', 'недвижимость', 'накопления']
+  },
+  {
+    id: '2',
+    title: 'Семейное путешествие в Европу',
+    description: 'Организовать двухнедельное путешествие всей семьёй в Италию и Францию летом 2025 года',
+    category: 'travel',
+    priority: 'medium',
+    status: 'planning',
+    startDate: '2024-11-01',
+    targetDate: '2025-08-31',
+    progress: 15,
+    assignedMembers: ['1', '2'],
+    budget: 500000,
+    currentSpending: 75000,
+    createdBy: '2',
+    createdByName: 'Елена',
+    createdAt: '2024-11-01T14:00:00Z',
+    checkpoints: [
+      {
+        id: 'cp1',
+        title: 'Оформить загранпаспорта',
+        description: 'Получить загранпаспорта для всех членов семьи',
+        dueDate: '2025-02-28',
+        completed: false
+      },
+      {
+        id: 'cp2',
+        title: 'Забронировать авиабилеты',
+        description: 'Купить билеты на всю семью заранее для лучшей цены',
+        dueDate: '2025-03-31',
+        completed: false
+      },
+      {
+        id: 'cp3',
+        title: 'Забронировать отели',
+        description: 'Забронировать проживание в Риме, Флоренции и Париже',
+        dueDate: '2025-04-30',
+        completed: false
+      },
+      {
+        id: 'cp4',
+        title: 'Составить маршрут',
+        description: 'Спланировать детальный маршрут с достопримечательностями',
+        dueDate: '2025-06-30',
+        completed: false
+      }
+    ],
+    aiSuggestions: [
+      {
+        id: 'ai1',
+        type: 'tip',
+        title: 'Бронируйте заранее',
+        content: 'Бронирование авиабилетов за 3-4 месяца позволит сэкономить 30-40% от стоимости. Лучшее время для покупки - февраль-март.',
+        createdAt: '2024-11-01T00:00:00Z'
+      },
+      {
+        id: 'ai2',
+        type: 'recommendation',
+        title: 'Апартаменты вместо отелей',
+        content: 'Рассмотрите аренду апартаментов через Airbnb - это на 20-30% дешевле отелей и удобнее с детьми (кухня, больше пространства).',
+        createdAt: '2024-11-05T00:00:00Z'
+      },
+      {
+        id: 'ai3',
+        type: 'tip',
+        title: 'Музейные карты',
+        content: 'Купите Roma Pass и Paris Museum Pass - они дадут скидки на вход и позволят избежать очередей в популярные музеи.',
+        createdAt: '2024-11-10T00:00:00Z'
+      }
+    ],
+    tags: ['путешествия', 'семья', 'отдых']
+  },
+  {
+    id: '3',
+    title: 'Здоровый образ жизни для всей семьи',
+    description: 'Внедрить регулярные занятия спортом, правильное питание и режим сна для всех членов семьи',
+    category: 'health',
+    priority: 'high',
+    status: 'in_progress',
+    startDate: '2024-09-01',
+    targetDate: '2025-06-01',
+    progress: 45,
+    assignedMembers: ['1', '2', '3', '4'],
+    createdBy: '2',
+    createdByName: 'Елена',
+    createdAt: '2024-09-01T08:00:00Z',
+    checkpoints: [
+      {
+        id: 'cp1',
+        title: 'Купить абонементы в спортзал',
+        description: 'Оформить семейный абонемент на год',
+        dueDate: '2024-09-15',
+        completed: true,
+        completedDate: '2024-09-12T00:00:00Z'
+      },
+      {
+        id: 'cp2',
+        title: 'Записаться на занятия',
+        description: 'Максим - футбол, София - танцы, родители - фитнес',
+        dueDate: '2024-09-30',
+        completed: true,
+        completedDate: '2024-09-28T00:00:00Z'
+      },
+      {
+        id: 'cp3',
+        title: 'Составить план питания',
+        description: 'Разработать еженедельное меню здорового питания',
+        dueDate: '2024-10-31',
+        completed: true,
+        completedDate: '2024-10-20T00:00:00Z'
+      },
+      {
+        id: 'cp4',
+        title: 'Установить режим сна',
+        description: 'Все ложатся не позднее 22:00, дети - в 21:00',
+        dueDate: '2024-11-30',
+        completed: false
+      },
+      {
+        id: 'cp5',
+        title: 'Провести семейный фитнес-челлендж',
+        description: 'Месяц активности: ежедневная зарядка и прогулки',
+        dueDate: '2025-03-31',
+        completed: false
+      }
+    ],
+    aiSuggestions: [
+      {
+        id: 'ai1',
+        type: 'tip',
+        title: 'Начните с малого',
+        content: 'Не пытайтесь изменить всё сразу. Начните с одной привычки (например, утренняя зарядка 10 минут), закрепите её 3 недели, затем добавляйте следующую.',
+        createdAt: '2024-09-01T00:00:00Z'
+      },
+      {
+        id: 'ai2',
+        type: 'recommendation',
+        title: 'Делайте вместе',
+        content: 'Семейные прогулки по выходным, совместные тренировки, готовка здоровых блюд вместе - это укрепит семью и сделает процесс веселее.',
+        createdAt: '2024-09-15T00:00:00Z'
+      },
+      {
+        id: 'ai3',
+        type: 'tip',
+        title: 'Отслеживайте прогресс',
+        content: 'Ведите семейный трекер активности. Вознаграждайте достижения (например, поход в кино после месяца регулярных тренировок).',
+        createdAt: '2024-10-01T00:00:00Z'
+      }
+    ],
+    tags: ['здоровье', 'спорт', 'семья']
   }
 ];

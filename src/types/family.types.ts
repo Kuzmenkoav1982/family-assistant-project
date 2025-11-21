@@ -406,6 +406,51 @@ export interface PaymentInfo {
   paymentDate?: string;
 }
 
+export interface GoalCheckpoint {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  completed: boolean;
+  completedDate?: string;
+}
+
+export interface GoalAISuggestion {
+  id: string;
+  type: 'tip' | 'warning' | 'recommendation';
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface FamilyGoal {
+  id: string;
+  title: string;
+  description: string;
+  category: 'financial' | 'health' | 'education' | 'travel' | 'home' | 'relationship' | 'other';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'planning' | 'in_progress' | 'completed' | 'paused' | 'cancelled';
+  startDate: string;
+  targetDate: string;
+  progress: number;
+  assignedMembers: string[];
+  checkpoints: GoalCheckpoint[];
+  aiSuggestions: GoalAISuggestion[];
+  budget?: number;
+  currentSpending?: number;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+  completedDate?: string;
+  tags?: string[];
+  attachments?: {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+  }[];
+}
+
 export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono';
 
 export interface ThemeConfig {

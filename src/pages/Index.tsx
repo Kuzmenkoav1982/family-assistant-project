@@ -33,6 +33,7 @@ import type {
   AIRecommendation,
   ThemeType,
   ShoppingItem,
+  FamilyGoal,
 } from '@/types/family.types';
 import { themes, getThemeClasses } from '@/config/themes';
 import {
@@ -53,6 +54,7 @@ import {
 } from '@/data/mockData';
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
+import { GoalsSection } from '@/components/GoalsSection';
 import { getTranslation, type LanguageCode } from '@/translations';
 import { DEMO_FAMILY } from '@/data/demoFamily';
 import SettingsMenu from '@/components/SettingsMenu';
@@ -157,6 +159,17 @@ export default function Index({ onLogout }: IndexProps) {
   const [newItemQuantity, setNewItemQuantity] = useState('');
   const [newItemPriority, setNewItemPriority] = useState<'normal' | 'urgent'>('normal');
   const [showAddItemDialog, setShowAddItemDialog] = useState(false);
+  const [familyGoals, setFamilyGoals] = useState<FamilyGoal[]>(() => {
+    const saved = localStorage.getItem('familyGoals');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -493,6 +506,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
+    { id: 'goals', icon: 'Target', label: 'Цели' },
     { id: 'children', icon: 'Baby', label: 'Дети' },
     { id: 'chat', icon: 'MessageCircle', label: 'Чат' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
@@ -1597,6 +1611,7 @@ export default function Index({ onLogout }: IndexProps) {
             {activeSection === 'tasks' && 'Управление задачами семьи'}
             {activeSection === 'calendar' && 'Семейные события и планы'}
             {activeSection === 'family' && 'Просмотр и редактирование профилей всех членов семьи'}
+            {activeSection === 'goals' && 'Долгосрочное планирование и контроль целей'}
             {activeSection === 'children' && 'Развитие и достижения детей'}
             {activeSection === 'values' && 'Семейные ценности и принципы'}
             {activeSection === 'traditions' && 'Традиции и ритуалы'}
@@ -1708,6 +1723,10 @@ export default function Index({ onLogout }: IndexProps) {
                 <TabsTrigger value="tree" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="GitBranch" className="mr-1" size={14} />
                   Древо
+                </TabsTrigger>
+                <TabsTrigger value="goals" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="Target" className="mr-1" size={14} />
+                  Цели
                 </TabsTrigger>
                 <TabsTrigger value="shopping" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="ShoppingCart" className="mr-1" size={14} />
@@ -2400,6 +2419,36 @@ export default function Index({ onLogout }: IndexProps) {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="goals">
+                <GoalsSection
+                  goals={familyGoals}
+                  familyMembers={familyMembers}
+                  currentUserId={currentUserId}
+                  onAddGoal={(goalData) => {
+                    const newGoal: FamilyGoal = {
+                      ...goalData,
+                      id: Date.now().toString(),
+                      createdAt: new Date().toISOString()
+                    };
+                    const updatedGoals = [...familyGoals, newGoal];
+                    setFamilyGoals(updatedGoals);
+                    localStorage.setItem('familyGoals', JSON.stringify(updatedGoals));
+                  }}
+                  onUpdateGoal={(goalId, updates) => {
+                    const updatedGoals = familyGoals.map(g => 
+                      g.id === goalId ? { ...g, ...updates } : g
+                    );
+                    setFamilyGoals(updatedGoals);
+                    localStorage.setItem('familyGoals', JSON.stringify(updatedGoals));
+                  }}
+                  onDeleteGoal={(goalId) => {
+                    const updatedGoals = familyGoals.filter(g => g.id !== goalId);
+                    setFamilyGoals(updatedGoals);
+                    localStorage.setItem('familyGoals', JSON.stringify(updatedGoals));
+                  }}
+                />
               </TabsContent>
 
               <TabsContent value="shopping">
