@@ -1120,10 +1120,11 @@ export default function Index({ onLogout }: IndexProps) {
                 onClick={handleLogoutLocal}
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0"
+                className="h-9 gap-1.5 px-3"
                 title="Сбросить демо"
               >
                 <Icon name="RotateCcw" size={18} />
+                <span className="text-sm hidden md:inline">Сбросить</span>
               </Button>
               
               <SettingsMenu />
@@ -1132,10 +1133,11 @@ export default function Index({ onLogout }: IndexProps) {
                 onClick={() => navigate('/instructions')}
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0"
+                className="h-9 gap-1.5 px-3"
                 title="Инструкции"
               >
                 <Icon name="BookOpen" size={18} />
+                <span className="text-sm hidden md:inline">Инструкции</span>
               </Button>
               
               {currentUser && (
@@ -1143,10 +1145,11 @@ export default function Index({ onLogout }: IndexProps) {
                   onClick={() => navigate(`/member/${currentUser.id}`)}
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0"
+                  className="h-9 gap-1.5 px-3"
                   title="Мой профиль"
                 >
                   <Icon name="UserCircle" size={18} />
+                  <span className="text-sm hidden md:inline">Профиль</span>
                 </Button>
               )}
               
@@ -1161,10 +1164,11 @@ export default function Index({ onLogout }: IndexProps) {
                 }}
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0"
+                className="h-9 gap-1.5 px-3"
                 title="Выбор языка"
               >
                 <Icon name="Languages" size={18} />
+                <span className="text-sm hidden md:inline">Язык</span>
               </Button>
               
               <Button
@@ -1174,20 +1178,22 @@ export default function Index({ onLogout }: IndexProps) {
                 }}
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0"
+                className="h-9 gap-1.5 px-3"
                 title="Выбор стиля"
               >
                 <Icon name="Palette" size={18} />
+                <span className="text-sm hidden md:inline">Стиль</span>
               </Button>
               
               <Button
                 onClick={toggleAutoHide}
                 variant="ghost"
                 size="sm"
-                className={`h-9 w-9 p-0 ${autoHideTopBar ? 'text-blue-600' : 'text-gray-400'}`}
+                className={`h-9 gap-1.5 px-3 ${autoHideTopBar ? 'text-blue-600' : 'text-gray-400'}`}
                 title={autoHideTopBar ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
               >
                 <Icon name={autoHideTopBar ? 'EyeOff' : 'Eye'} size={18} />
+                <span className="text-sm hidden md:inline">{autoHideTopBar ? 'Скрыто' : 'Видимо'}</span>
               </Button>
               
               {showLanguageSelector && (
