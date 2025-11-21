@@ -231,7 +231,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [showInDevelopment, setShowInDevelopment] = useState(false);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
   const [chamomileEnabled, setChamomileEnabled] = useState(() => {
-    return localStorage.getItem('chamomileEnabled') !== 'false';
+    return localStorage.getItem('chamomileEnabled') === 'true';
   });
   const [soundEnabled, setSoundEnabled] = useState(() => {
     return localStorage.getItem('soundEnabled') === 'true';

@@ -27,6 +27,8 @@ export function GoalsSection({
 }: GoalsSectionProps) {
   const [selectedGoal, setSelectedGoal] = useState<FamilyGoal | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showAddCheckpointDialog, setShowAddCheckpointDialog] = useState(false);
+  const [selectedGoalForCheckpoint, setSelectedGoalForCheckpoint] = useState<string | null>(null);
   const [newGoalData, setNewGoalData] = useState({
     title: '',
     description: '',
@@ -34,6 +36,11 @@ export function GoalsSection({
     priority: 'medium' as FamilyGoal['priority'],
     targetDate: '',
     budget: ''
+  });
+  const [newCheckpointData, setNewCheckpointData] = useState({
+    title: '',
+    description: '',
+    dueDate: ''
   });
 
   const categoryLabels: Record<FamilyGoal['category'], { label: string; icon: string; color: string }> = {
@@ -214,6 +221,28 @@ export function GoalsSection({
       checkpoints: updatedCheckpoints,
       progress: newProgress
     });
+  };
+
+  const handleAddCheckpoint = () => {
+    if (!selectedGoalForCheckpoint || !newCheckpointData.title || !newCheckpointData.dueDate) return;
+
+    const goal = goals.find(g => g.id === selectedGoalForCheckpoint);
+    if (!goal) return;
+
+    const newCheckpoint = {
+      id: `cp${Date.now()}`,
+      title: newCheckpointData.title,
+      description: newCheckpointData.description,
+      dueDate: newCheckpointData.dueDate,
+      completed: false
+    };
+
+    const updatedCheckpoints = [...goal.checkpoints, newCheckpoint];
+    onUpdateGoal?.(selectedGoalForCheckpoint, { checkpoints: updatedCheckpoints });
+
+    setNewCheckpointData({ title: '', description: '', dueDate: '' });
+    setShowAddCheckpointDialog(false);
+    setSelectedGoalForCheckpoint(null);
   };
 
   return (
@@ -415,10 +444,23 @@ export function GoalsSection({
                   {selectedGoal?.id === goal.id && (
                     <div className="space-y-4 pt-4 border-t animate-fade-in">
                       <div>
-                        <h4 className="font-semibold flex items-center gap-2 mb-3">
-                          <Icon name="CheckSquare" size={18} />
-                          Контрольные точки ({goal.checkpoints.filter(cp => cp.completed).length}/{goal.checkpoints.length})
-                        </h4>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Icon name="CheckSquare" size={18} />
+                            Контрольные точки ({goal.checkpoints.filter(cp => cp.completed).length}/{goal.checkpoints.length})
+                          </h4>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedGoalForCheckpoint(goal.id);
+                              setShowAddCheckpointDialog(true);
+                            }}
+                          >
+                            <Icon name="Plus" size={14} className="mr-1" />
+                            Добавить
+                          </Button>
+                        </div>
                         {goal.checkpoints.length > 0 ? (
                           <div className="space-y-2">
                             {goal.checkpoints.map((checkpoint) => (
@@ -529,6 +571,47 @@ export function GoalsSection({
           })}
         </div>
       )}
+
+      <Dialog open={showAddCheckpointDialog} onOpenChange={setShowAddCheckpointDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Добавить контрольную точку</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Название контрольной точки</label>
+              <Input
+                value={newCheckpointData.title}
+                onChange={(e) => setNewCheckpointData({ ...newCheckpointData, title: e.target.value })}
+                placeholder="Например: Накопить 500 тыс. руб"
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-1 block">Описание</label>
+              <Textarea
+                value={newCheckpointData.description}
+                onChange={(e) => setNewCheckpointData({ ...newCheckpointData, description: e.target.value })}
+                placeholder="Дополнительная информация..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">Срок выполнения</label>
+              <Input
+                type="date"
+                value={newCheckpointData.dueDate}
+                onChange={(e) => setNewCheckpointData({ ...newCheckpointData, dueDate: e.target.value })}
+              />
+            </div>
+
+            <Button onClick={handleAddCheckpoint} className="w-full">
+              Добавить контрольную точку
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
