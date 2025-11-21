@@ -1058,9 +1058,9 @@ export default function Index({ onLogout }: IndexProps) {
           
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
             <div className="mb-8 animate-bounce-slow">
-              <div className="inline-block bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-3xl p-6 shadow-2xl">
+              <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
                 <img 
-                  src="https://cdn.poehali.dev/files/40d4053d-8b86-42b2-ad4e-534f95931aba.png" 
+                  src="https://cdn.poehali.dev/files/a67685fd-8ec7-4694-834f-a78a0bab03f2.jpeg" 
                   alt="Семейный Органайзер"
                   className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
                 />
