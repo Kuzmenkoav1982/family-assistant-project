@@ -229,7 +229,7 @@ export default function Index({ onLogout }: IndexProps) {
     return localStorage.getItem('autoHideLeftMenu') === 'true';
   });
   const [activeSection, setActiveSection] = useState<string>('family');
-  const [showDevSections] = useState(false);
+  const [showInDevelopment, setShowInDevelopment] = useState(false);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
   const [chamomileEnabled, setChamomileEnabled] = useState(() => {
     return localStorage.getItem('chamomileEnabled') === 'true';
@@ -552,13 +552,15 @@ export default function Index({ onLogout }: IndexProps) {
     return section?.label || 'Семейный Органайзер';
   };
 
+  const [showDevSections, setShowDevSections] = useState(false);
+
   const inDevelopmentSections = [
-    { id: 'garage', icon: 'Car', label: 'Гараж', path: '/garage', votes: { up: 0, down: 0 } },
-    { id: 'health', icon: 'Heart', label: 'Здоровье', path: '/health', votes: { up: 0, down: 0 } },
-    { id: 'finance', icon: 'Wallet', label: 'Финансы', path: '/finance', votes: { up: 0, down: 0 } },
-    { id: 'education', icon: 'GraduationCap', label: 'Образование', path: '/education', votes: { up: 0, down: 0 } },
-    { id: 'travel', icon: 'Plane', label: 'Путешествия', path: '/travel', votes: { up: 0, down: 0 } },
-    { id: 'pets', icon: 'PawPrint', label: 'Питомцы', path: '/pets', votes: { up: 0, down: 0 } },
+    { id: 'garage', icon: 'Car', label: 'Гараж', path: '/garage' },
+    { id: 'health', icon: 'Heart', label: 'Здоровье', path: '/health' },
+    { id: 'finance', icon: 'Wallet', label: 'Финансы', path: '/finance' },
+    { id: 'education', icon: 'GraduationCap', label: 'Образование', path: '/education' },
+    { id: 'travel', icon: 'Plane', label: 'Путешествия', path: '/travel' },
+    { id: 'pets', icon: 'PawPrint', label: 'Питомцы', path: '/pets' },
   ];
 
   const moodOptions = [
@@ -1155,27 +1157,6 @@ export default function Index({ onLogout }: IndexProps) {
               )}
               
               <FamilyMemberSwitcher />
-              
-              <div className="h-6 w-px bg-gray-300 mx-1" />
-              
-              {inDevelopmentSections.map((section) => (
-                <Button
-                  key={section.id}
-                  onClick={() => navigate(section.path)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 gap-1.5 px-3 relative hover:bg-amber-50 transition-colors"
-                  title={`${section.label} (В разработке)`}
-                >
-                  <Icon name={section.icon} size={18} className="text-amber-600" />
-                  <span className="text-sm hidden lg:inline text-amber-700">{section.label}</span>
-                  <Badge 
-                    className="absolute -top-1 -right-1 text-[7px] px-1 py-0 h-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-none shadow-sm"
-                  >
-                    DEV
-                  </Badge>
-                </Button>
-              ))}
             </div>
             
             <div className="flex items-center gap-2 language-selector theme-selector relative">
@@ -1219,7 +1200,7 @@ export default function Index({ onLogout }: IndexProps) {
               </Button>
               
               {showLanguageSelector && (
-                <Card className="language-selector dropdown-menu absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
+                <Card className="language-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Languages" size={20} />
@@ -1261,7 +1242,7 @@ export default function Index({ onLogout }: IndexProps) {
               )}
               
               {showThemeSelector && (
-                <Card className="theme-selector dropdown-menu absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
+                <Card className="theme-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Palette" size={20} />
@@ -1308,7 +1289,7 @@ export default function Index({ onLogout }: IndexProps) {
         </button>
 
         <div 
-          className={`fixed left-0 top-20 z-[60] bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+          className={`fixed left-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
             isLeftMenuVisible ? 'translate-x-0' : '-translate-x-full'
           }`}
           onMouseEnter={() => autoHideLeftMenu && setIsLeftMenuVisible(true)}
@@ -1412,6 +1393,52 @@ export default function Index({ onLogout }: IndexProps) {
                 <span className="text-sm font-medium">{section.label}</span>
               </button>
             ))}
+            
+            <div className="pt-2 mt-2 border-t border-gray-200">
+              <button
+                onClick={() => setShowInDevelopment(!showInDevelopment)}
+                className="w-full flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-gray-100 transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="Wrench" size={16} />
+                  <span className="text-xs font-medium text-gray-600">В разработке</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Badge variant="secondary" className="text-[10px] px-1 py-0">{inDevelopmentSections.length}</Badge>
+                  <Icon name={showInDevelopment ? 'ChevronUp' : 'ChevronDown'} size={14} className="text-gray-400" />
+                </div>
+              </button>
+              
+              {showInDevelopment && (
+                <div className="mt-1 space-y-1 animate-fade-in">
+                  {inDevelopmentSections.map((section, index) => (
+                    <div
+                      key={section.id}
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-all"
+                      style={{ animationDelay: `${index * 0.03}s` }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon name={section.icon} size={16} className="text-gray-500" />
+                        <span className="text-xs text-gray-600">{section.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button className="flex items-center gap-0.5 hover:bg-green-100 rounded px-1 py-0.5 transition-colors">
+                          <Icon name="ThumbsUp" size={10} className="text-green-600" />
+                          <span className="text-[9px] font-medium text-green-600">{section.votes.up}</span>
+                        </button>
+                        <button className="flex items-center gap-0.5 hover:bg-red-100 rounded px-1 py-0.5 transition-colors">
+                          <Icon name="ThumbsDown" size={10} className="text-red-600" />
+                          <span className="text-[9px] font-medium text-red-600">{section.votes.down}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-[9px] text-gray-500 text-center py-2 px-2">
+                    💡 Голосуйте за функции, которые хотите видеть первыми!
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
