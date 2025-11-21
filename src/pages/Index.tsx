@@ -2863,9 +2863,9 @@ export default function Index({ onLogout }: IndexProps) {
             </Card>
           </div>
         </div>
-        </Tabs>
       </div>
     </div>
+    </Tabs>
 
       <Dialog open={educationChild !== null} onOpenChange={(open) => !open && setEducationChild(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
