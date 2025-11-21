@@ -1576,20 +1576,28 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
           <div className="relative h-full flex flex-col items-center justify-center px-6">
-            <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-center gap-4 mb-2">
               <img 
                 src="https://cdn.poehali.dev/files/a67685fd-8ec7-4694-834f-a78a0bab03f2.jpeg" 
                 alt="Логотип"
-                className="w-32 h-32 lg:w-40 lg:h-40 object-contain"
+                className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
               />
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Семейный Органайзер
-              </h1>
+              <div className="flex flex-col gap-1">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  Семейный Органайзер
+                </h1>
+                <h2 className="text-xl lg:text-2xl font-semibold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  Семейная Экосистема
+                </h2>
+                <h3 className="text-lg lg:text-xl font-medium bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  Вселенная Семьи
+                </h3>
+              </div>
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-3 py-1">
                 ДЕМО
               </Badge>
             </div>
-            <p className="text-base lg:text-lg text-gray-700 font-medium flex items-center justify-center gap-2 mb-4">
+            <p className="text-sm lg:text-base text-gray-700 font-medium flex items-center justify-center gap-2 mt-2">
               Вместе мы — сила! Организуйте жизнь семьи с любовью ❤️
               {syncing && (
                 <Badge className="bg-blue-600 animate-pulse">
@@ -1603,7 +1611,6 @@ export default function Index({ onLogout }: IndexProps) {
                 </Badge>
               )}
             </p>
-            <p className="text-xs lg:text-sm text-gray-600 italic"></p>
           </div>
         </div>
 
