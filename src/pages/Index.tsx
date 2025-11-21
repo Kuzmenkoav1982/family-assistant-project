@@ -1289,7 +1289,7 @@ export default function Index({ onLogout }: IndexProps) {
         </button>
 
         <div 
-          className={`fixed left-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+          className={`fixed left-0 top-20 z-[60] bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
             isLeftMenuVisible ? 'translate-x-0' : '-translate-x-full'
           }`}
           onMouseEnter={() => autoHideLeftMenu && setIsLeftMenuVisible(true)}
