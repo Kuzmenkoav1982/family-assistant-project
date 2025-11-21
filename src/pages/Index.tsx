@@ -1726,7 +1726,6 @@ export default function Index({ onLogout }: IndexProps) {
               )}
             </div>
           </TabsList>
-        </Tabs>
 
         <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
             backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
