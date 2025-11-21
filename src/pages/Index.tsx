@@ -1572,7 +1572,7 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="relative h-full flex flex-col items-center justify-center px-6">
             <div className="flex items-center gap-4 mb-3">
               <img 
-                src="https://cdn.poehali.dev/files/40d4053d-8b86-42b2-ad4e-534f95931aba.png" 
+                src="https://cdn.poehali.dev/files/a67685fd-8ec7-4694-834f-a78a0bab03f2.jpeg" 
                 alt="Логотип"
                 className="w-32 h-32 lg:w-40 lg:h-40 object-contain"
               />
