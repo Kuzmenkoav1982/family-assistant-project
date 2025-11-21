@@ -164,7 +164,7 @@ export const initialDevelopmentPlans: DevelopmentPlan[] = [
     profile: {
       childId: '3',
       childName: 'Максим',
-      age: 10,
+      age: 11,
       interests: ['Футбол', 'Робототехника', 'Рисование', 'Видеоигры'],
       strengths: ['Логическое мышление', 'Креативность', 'Командная работа'],
       goals: ['Улучшить навыки программирования', 'Стать капитаном футбольной команды'],
