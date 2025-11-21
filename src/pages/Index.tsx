@@ -512,6 +512,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
     { id: 'goals', icon: 'Target', label: 'Цели' },
+    { id: 'cohesion', icon: 'TrendingUp', label: 'Сплочённость' },
     { id: 'children', icon: 'Baby', label: 'Дети' },
     { id: 'chat', icon: 'MessageCircle', label: 'Чат' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
@@ -1630,6 +1631,7 @@ export default function Index({ onLogout }: IndexProps) {
             {activeSection === 'calendar' && 'Семейные события и планы'}
             {activeSection === 'family' && 'Просмотр и редактирование профилей всех членов семьи'}
             {activeSection === 'goals' && 'Долгосрочное планирование и контроль целей'}
+            {activeSection === 'cohesion' && 'Анализ сплочённости и рейтинг семьи'}
             {activeSection === 'children' && 'Развитие и достижения детей'}
             {activeSection === 'values' && 'Семейные ценности и принципы'}
             {activeSection === 'traditions' && 'Традиции и ритуалы'}
@@ -1693,14 +1695,7 @@ export default function Index({ onLogout }: IndexProps) {
           </Card>
         </div>
 
-        <FamilyCohesionChart 
-          familyMembers={familyMembers}
-          tasks={tasks}
-          chatMessagesCount={chatMessages.length}
-          albumPhotosCount={familyAlbum.length}
-          lastActivityDays={0}
-          totalFamilies={1250}
-        />
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -1717,6 +1712,10 @@ export default function Index({ onLogout }: IndexProps) {
                 <TabsTrigger value="calendar" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="Calendar" className="mr-1" size={14} />
                   Календарь
+                </TabsTrigger>
+                <TabsTrigger value="cohesion" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
+                  <Icon name="TrendingUp" className="mr-1" size={14} />
+                  Сплочённость
                 </TabsTrigger>
                 <TabsTrigger value="children" className="text-xs lg:text-sm py-2 px-3 whitespace-nowrap">
                   <Icon name="Baby" className="mr-1" size={14} />
@@ -1880,6 +1879,19 @@ export default function Index({ onLogout }: IndexProps) {
                 </Button>
 
               </TabsList>
+
+              <TabsContent value="cohesion">
+                <div className="space-y-6">
+                  <FamilyCohesionChart 
+                    familyMembers={familyMembers}
+                    tasks={tasks}
+                    chatMessagesCount={chatMessages.length}
+                    albumPhotosCount={familyAlbum.length}
+                    lastActivityDays={0}
+                    totalFamilies={1250}
+                  />
+                </div>
+              </TabsContent>
 
               <TabsContent value="tasks">
                 <Card>
