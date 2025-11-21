@@ -50,6 +50,7 @@ import {
   initialFamilyTree,
   initialCalendarEvents,
   initialAIRecommendations,
+  initialFamilyGoals,
   getWeekDays,
 } from '@/data/mockData';
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
@@ -165,10 +166,10 @@ export default function Index({ onLogout }: IndexProps) {
       try {
         return JSON.parse(saved);
       } catch {
-        return [];
+        return initialFamilyGoals;
       }
     }
-    return [];
+    return initialFamilyGoals;
   });
   
   const handleSendMessage = () => {
@@ -256,6 +257,10 @@ export default function Index({ onLogout }: IndexProps) {
     ? familyMembers.find(m => m.id === demoMember.id) || familyMembers[0]
     : familyMembers[0];
   const currentUserId = currentUser?.id || familyMembers[0]?.id || '';
+
+  useEffect(() => {
+    localStorage.setItem('familyGoals', JSON.stringify(familyGoals));
+  }, [familyGoals]);
 
   // Отключаем ProfileOnboarding в демо-режиме
   // useEffect(() => {
