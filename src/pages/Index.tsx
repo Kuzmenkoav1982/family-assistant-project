@@ -229,6 +229,7 @@ export default function Index({ onLogout }: IndexProps) {
     return localStorage.getItem('autoHideLeftMenu') === 'true';
   });
   const [activeSection, setActiveSection] = useState<string>('family');
+  const [showDevSections] = useState(false);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
   const [chamomileEnabled, setChamomileEnabled] = useState(() => {
     return localStorage.getItem('chamomileEnabled') === 'true';
