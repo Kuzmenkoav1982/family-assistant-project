@@ -451,6 +451,31 @@ export interface FamilyGoal {
   }[];
 }
 
+export interface Complaint {
+  id: string;
+  complainantId: string;
+  complainantName: string;
+  accusedId: string;
+  accusedName: string;
+  situation: string;
+  feelings: string;
+  consequences?: string;
+  createdAt: string;
+  status: 'pending' | 'in_progress' | 'resolved';
+  aiAnalysis?: {
+    summary: string;
+    recommendationsForComplainant: string[];
+    messageForAccused: string;
+    peaceSteps: string[];
+    severity: 'low' | 'medium' | 'high';
+  };
+  resolution?: {
+    resolvedAt: string;
+    outcome: string;
+    feedback?: string;
+  };
+}
+
 export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono';
 
 export interface ThemeConfig {

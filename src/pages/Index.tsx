@@ -67,6 +67,7 @@ import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import MealVotingWidget from '@/components/MealVotingWidget';
 import RightSidebar from '@/components/layout/RightSidebar';
 import { getCurrentMember } from '@/data/demoFamily';
+import { ComplaintBook } from '@/components/ComplaintBook';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -1747,6 +1748,14 @@ export default function Index({ onLogout }: IndexProps) {
                 <Icon name="GitBranch" size={14} className="mr-1" />
                 Древо
               </Button>
+              <Button
+                onClick={() => setActiveSection('complaints')}
+                variant={activeSection === 'complaints' ? 'default' : 'outline'}
+                className="text-xs py-1.5 px-2.5 h-auto"
+              >
+                <Icon name="BookOpen" size={14} className="mr-1" />
+                Жалобная книга
+              </Button>
             </div>
 
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200">
@@ -1875,6 +1884,7 @@ export default function Index({ onLogout }: IndexProps) {
             {activeSection === 'tree' && 'Генеалогическое древо'}
             {activeSection === 'chat' && 'Семейный чат'}
             {activeSection === 'rules' && 'Правила и договоренности'}
+            {activeSection === 'complaints' && 'Разрешение семейных конфликтов'}
             {activeSection === 'about' && 'Миссия проекта'}
             {activeSection === 'shopping' && 'Список покупок семьи'}
           </p>
@@ -2681,6 +2691,13 @@ export default function Index({ onLogout }: IndexProps) {
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="complaints">
+                <ComplaintBook 
+                  familyMembers={familyMembers}
+                  currentUserId={currentUserId}
+                />
               </TabsContent>
 
               <TabsContent value="chat">

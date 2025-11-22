@@ -117,6 +117,7 @@ export const menuSections = [
   { id: 'album', icon: 'Image', label: 'Альбом', ready: true },
   { id: 'tree', icon: 'GitBranch', label: 'Древо', ready: true },
   { id: 'chat', icon: 'MessageCircle', label: 'Чат', ready: true },
+  { id: 'complaints', icon: 'MessageSquareWarning', label: 'Жалобная книга', ready: true },
   { id: 'about', icon: 'Info', label: 'О проекте', ready: true },
 ];
 
