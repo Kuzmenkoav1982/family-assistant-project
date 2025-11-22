@@ -251,11 +251,6 @@ export default function Index({ onLogout }: IndexProps) {
   const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
   const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
-  const [isNavBarVisible, setIsNavBarVisible] = useState(true);
-  const [autoHideNavBar, setAutoHideNavBar] = useState(() => {
-    return localStorage.getItem('autoHideNavBar') === 'true';
-  });
-  const [showNavPanelSettings, setShowNavPanelSettings] = useState(false);
 
   const demoMember = getCurrentMember();
   const currentUser = demoMember 
@@ -469,16 +464,6 @@ export default function Index({ onLogout }: IndexProps) {
     return () => clearTimeout(hideTimer);
   }, [autoHideLeftMenu, isLeftMenuVisible]);
 
-  useEffect(() => {
-    let hideTimer: NodeJS.Timeout;
-    if (autoHideNavBar && isNavBarVisible) {
-      hideTimer = setTimeout(() => {
-        setIsNavBarVisible(false);
-      }, 3000);
-    }
-    return () => clearTimeout(hideTimer);
-  }, [autoHideNavBar, isNavBarVisible]);
-
   const toggleAutoHide = () => {
     const newValue = !autoHideTopBar;
     setAutoHideTopBar(newValue);
@@ -495,12 +480,6 @@ export default function Index({ onLogout }: IndexProps) {
     const newValue = !autoHideLeftMenu;
     setAutoHideLeftMenu(newValue);
     localStorage.setItem('autoHideLeftMenu', String(newValue));
-  };
-
-  const toggleNavBarAutoHide = () => {
-    const newValue = !autoHideNavBar;
-    setAutoHideNavBar(newValue);
-    localStorage.setItem('autoHideNavBar', String(newValue));
   };
 
   const handleBottomBarSectionsChange = (sections: string[]) => {
@@ -1130,7 +1109,12 @@ export default function Index({ onLogout }: IndexProps) {
       )}
       
       <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out ${currentTheme === 'mono' ? 'theme-mono' : ''}`}>
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg">
+        <div 
+          className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+            isTopBarVisible ? 'translate-y-0' : '-translate-y-full'
+          }`}
+          onMouseEnter={() => autoHideTopBar && setIsTopBarVisible(true)}
+        >
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Button
@@ -1200,6 +1184,17 @@ export default function Index({ onLogout }: IndexProps) {
               >
                 <Icon name="Palette" size={18} />
                 <span className="text-sm hidden md:inline">Стиль</span>
+              </Button>
+              
+              <Button
+                onClick={toggleAutoHide}
+                variant="ghost"
+                size="sm"
+                className={`h-9 gap-1.5 px-3 ${autoHideTopBar ? 'text-blue-600' : 'text-gray-400'}`}
+                title={autoHideTopBar ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
+              >
+                <Icon name={autoHideTopBar ? 'EyeOff' : 'Eye'} size={18} />
+                <span className="text-sm hidden md:inline">{autoHideTopBar ? 'Скрыто' : 'Видимо'}</span>
               </Button>
               
               {showLanguageSelector && (
@@ -1282,6 +1277,14 @@ export default function Index({ onLogout }: IndexProps) {
             </div>
           </div>
         </div>
+        
+        <button
+          onClick={() => setIsTopBarVisible(!isTopBarVisible)}
+          className="fixed top-0 left-1/2 -translate-x-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-b-lg px-4 py-1 transition-all duration-300"
+          style={{ top: isTopBarVisible ? '52px' : '0px' }}
+        >
+          <Icon name={isTopBarVisible ? 'ChevronUp' : 'ChevronDown'} size={20} className="text-gray-600" />
+        </button>
 
         <div 
           className={`fixed left-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
@@ -1612,49 +1615,8 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
         </div>
 
-        <div 
-          className={`fixed top-14 left-0 right-0 z-30 bg-white/95 backdrop-blur-md shadow-sm transition-transform duration-300 ${
-            isNavBarVisible ? 'translate-y-0' : '-translate-y-full'
-          }`}
-          onMouseEnter={() => autoHideNavBar && setIsNavBarVisible(true)}
-        >
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Icon name="LayoutGrid" size={16} />
-                Навигация
-              </h3>
-              <div className="flex items-center gap-1">
-                <Button
-                  onClick={() => setShowNavPanelSettings(true)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  title="Настройки панели"
-                >
-                  <Icon name="Settings" size={14} />
-                </Button>
-                <Button
-                  onClick={toggleNavBarAutoHide}
-                  variant="ghost"
-                  size="sm"
-                  className={`h-7 w-7 p-0 ${autoHideNavBar ? 'text-blue-600' : 'text-gray-400'}`}
-                  title={autoHideNavBar ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
-                >
-                  <Icon name={autoHideNavBar ? 'EyeOff' : 'Eye'} size={14} />
-                </Button>
-                <Button
-                  onClick={() => setIsNavBarVisible(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  title="Скрыть"
-                >
-                  <Icon name="X" size={14} />
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 justify-center">
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm -mx-4 lg:-mx-8 px-4 lg:px-8 py-3 mb-6">
+          <div className="flex flex-wrap gap-2 justify-center">
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-blue-50/80 border border-blue-200">
               <Button
                 onClick={() => setActiveSection('family')}
@@ -1887,14 +1849,6 @@ export default function Index({ onLogout }: IndexProps) {
             </div>
           </div>
         </div>
-        
-        <button
-          onClick={() => setIsNavBarVisible(!isNavBarVisible)}
-          className="fixed top-14 left-1/2 -translate-x-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-b-lg px-4 py-1 transition-all duration-300"
-          style={{ top: isNavBarVisible ? 'calc(14rem + 52px)' : '56px' }}
-        >
-          <Icon name={isNavBarVisible ? 'ChevronUp' : 'ChevronDown'} size={20} className="text-gray-600" />
-        </button>
 
         <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
             backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
@@ -3102,20 +3056,6 @@ export default function Index({ onLogout }: IndexProps) {
         availableSections={availableSections}
         selectedSections={rightPanelSections}
         onSectionsChange={handleRightPanelSectionsChange}
-      />
-
-      <PanelSettings
-        title="Настройки навигационной панели"
-        open={showNavPanelSettings}
-        onOpenChange={setShowNavPanelSettings}
-        autoHide={autoHideNavBar}
-        onAutoHideChange={(value) => {
-          setAutoHideNavBar(value);
-          localStorage.setItem('autoHideNavBar', String(value));
-        }}
-        availableSections={availableSections}
-        selectedSections={[]}
-        onSectionsChange={() => {}}
       />
       
       <RightSidebar
