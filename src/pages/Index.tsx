@@ -1615,7 +1615,7 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
         </div>
 
-        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm -mx-4 lg:-mx-8 px-4 lg:px-8 py-3 mb-6">
+        <div className="bg-white/95 backdrop-blur-md shadow-sm -mx-4 lg:-mx-8 px-4 lg:px-8 py-3 mb-6">
           <div className="flex flex-wrap gap-2 justify-center">
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-blue-50/80 border border-blue-200">
               <Button
