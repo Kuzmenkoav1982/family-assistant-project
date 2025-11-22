@@ -2914,7 +2914,8 @@ export default function Index({ onLogout }: IndexProps) {
             </Tabs>
           </div>
 
-          <div className="space-y-6">
+          <div>
+            <div className="space-y-6">
             <Card key="sidebar-weekly-calendar" className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50" style={{ animationDelay: '0.5s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -3031,6 +3032,7 @@ export default function Index({ onLogout }: IndexProps) {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
         </div>
         </div>
