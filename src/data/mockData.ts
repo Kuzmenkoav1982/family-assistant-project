@@ -124,6 +124,14 @@ export const initialTasks: Task[] = [
   { id: '5', title: 'Полить цветы', assignee: 'Виктор', completed: false, category: 'Сад', points: 15 },
   { id: '6', title: 'Купить продукты', assignee: 'Александр', completed: false, category: 'Покупки', points: 20, reminderTime: '12:00', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Овощи'] },
   { id: '7', title: 'Испечь пирог', assignee: 'Анна', completed: false, category: 'Кухня', points: 35, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [0] }, nextOccurrence: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0] },
+  { id: '8', title: 'Постирать белье', assignee: 'Елена', completed: true, category: 'Дом', points: 20 },
+  { id: '9', title: 'Помыть посуду', assignee: 'Максим', completed: true, category: 'Кухня', points: 15 },
+  { id: '10', title: 'Погулять с собакой', assignee: 'София', completed: false, category: 'Питомцы', points: 10 },
+  { id: '11', title: 'Оплатить счета', assignee: 'Александр', completed: false, category: 'Финансы', points: 25, reminderTime: '10:00' },
+  { id: '12', title: 'Генеральная уборка', assignee: 'Елена', completed: false, category: 'Дом', points: 50, isRecurring: true, recurringPattern: { frequency: 'monthly', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0] },
+  { id: '13', title: 'Подготовиться к экзамену', assignee: 'Максим', completed: false, category: 'Учеба', points: 30 },
+  { id: '14', title: 'Посадить цветы на даче', assignee: 'Виктор', completed: true, category: 'Сад', points: 25 },
+  { id: '15', title: 'Приготовить завтрак', assignee: 'Анна', completed: true, category: 'Кухня', points: 20, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
 ];
 
 export const initialChildrenProfiles: ChildProfile[] = [
@@ -521,18 +529,18 @@ export const initialMealVotings: MealVoting[] = [
 export const initialChatMessages: ChatMessage[] = [
   {
     id: '1',
-    senderId: '2',
+    senderId: 'mom',
     senderName: 'Елена',
-    senderAvatar: '👩',
+    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
     content: 'Всем привет! Не забудьте, что завтра родительское собрание в школе в 18:00',
     timestamp: '2024-11-09 10:30',
     type: 'text'
   },
   {
     id: '2',
-    senderId: '1',
+    senderId: 'dad',
     senderName: 'Александр',
-    senderAvatar: '👨',
+    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
     content: 'Хорошо, приду сразу после работы',
     timestamp: '2024-11-09 10:35',
     type: 'text'
@@ -541,25 +549,25 @@ export const initialChatMessages: ChatMessage[] = [
     id: '3',
     senderId: '3',
     senderName: 'Максим',
-    senderAvatar: '👦',
+    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
     content: 'Мама, можно мне пригласить друга на выходные?',
     timestamp: '2024-11-09 11:15',
     type: 'text'
   },
   {
     id: '4',
-    senderId: '2',
+    senderId: 'mom',
     senderName: 'Елена',
-    senderAvatar: '👩',
+    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
     content: 'Конечно, Максим! Позвони его родителям и договорись',
     timestamp: '2024-11-09 11:20',
     type: 'text'
   },
   {
     id: '5',
-    senderId: '5',
-    senderName: 'Анна',
-    senderAvatar: '👵',
+    senderId: 'grandma',
+    senderName: 'Мария',
+    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
     content: 'Испекла ваш любимый яблочный пирог 🥧',
     timestamp: '2024-11-09 14:00',
     type: 'text'
@@ -568,7 +576,7 @@ export const initialChatMessages: ChatMessage[] = [
     id: '6',
     senderId: '4',
     senderName: 'София',
-    senderAvatar: '👧',
+    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
     content: 'Ура! Бабушка лучшая! ❤️',
     timestamp: '2024-11-09 14:05',
     type: 'text'
@@ -579,33 +587,57 @@ export const initialFamilyAlbum: FamilyAlbum[] = [
   {
     id: '1',
     fileName: 'family_vacation_2024.jpg',
-    fileUrl: '/images/family-vacation.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
     uploadedBy: 'Александр',
     uploadDate: '2024-10-15',
     type: 'image'
   },
   {
     id: '2',
-    fileName: 'maxim_football_victory.jpg',
-    fileUrl: '/images/maxim-football.jpg',
+    fileName: 'maxim_football.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
     uploadedBy: 'Елена',
     uploadDate: '2024-10-08',
     type: 'image'
   },
   {
     id: '3',
-    fileName: 'sofia_dance_performance.mp4',
-    fileUrl: '/videos/sofia-dance.mp4',
+    fileName: 'sofia_dance.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
     uploadedBy: 'Елена',
     uploadDate: '2024-09-28',
-    type: 'video'
+    type: 'image'
   },
   {
     id: '4',
     fileName: 'grandma_baking.jpg',
-    fileUrl: '/images/grandma-baking.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
     uploadedBy: 'София',
     uploadDate: '2024-10-12',
+    type: 'image'
+  },
+  {
+    id: '5',
+    fileName: 'dad_photo.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
+    uploadedBy: 'Александр',
+    uploadDate: '2024-11-01',
+    type: 'image'
+  },
+  {
+    id: '6',
+    fileName: 'mom_photo.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
+    uploadedBy: 'Елена',
+    uploadDate: '2024-11-02',
+    type: 'image'
+  },
+  {
+    id: '7',
+    fileName: 'grandpa_photo.jpg',
+    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b645bc57-5245-4c0a-87e6-234d82e81815.jpg',
+    uploadedBy: 'Николай',
+    uploadDate: '2024-10-20',
     type: 'image'
   }
 ];
@@ -678,6 +710,7 @@ export const initialFamilyTree: FamilyTreeMember[] = [
     birthDate: '1950-03-15',
     age: 74,
     avatar: '👴',
+    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b645bc57-5245-4c0a-87e6-234d82e81815.jpg',
     generation: 0,
     parentIds: [],
     spouseId: 'ft2',
@@ -702,6 +735,7 @@ export const initialFamilyTree: FamilyTreeMember[] = [
     birthDate: '1952-08-22',
     age: 72,
     avatar: '👵',
+    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
     generation: 0,
     parentIds: [],
     spouseId: 'ft1',
@@ -726,6 +760,7 @@ export const initialFamilyTree: FamilyTreeMember[] = [
     birthDate: '1985-05-12',
     age: 39,
     avatar: '👨',
+    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
     generation: 1,
     parentIds: ['ft1', 'ft2'],
     spouseId: 'ft4',
@@ -751,6 +786,7 @@ export const initialFamilyTree: FamilyTreeMember[] = [
     birthDate: '1987-09-03',
     age: 37,
     avatar: '👩',
+    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
     generation: 1,
     parentIds: [],
     spouseId: 'ft3',
@@ -776,6 +812,7 @@ export const initialFamilyTree: FamilyTreeMember[] = [
     birthDate: '2014-11-20',
     age: 10,
     avatar: '👦',
+    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
     generation: 2,
     parentIds: ['ft3', 'ft4'],
     placeOfBirth: 'Москва, Россия',
@@ -799,6 +836,7 @@ export const initialFamilyTree: FamilyTreeMember[] = [
     birthDate: '2017-04-08',
     age: 7,
     avatar: '👧',
+    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
     generation: 2,
     parentIds: ['ft3', 'ft4'],
     placeOfBirth: 'Москва, Россия',
@@ -846,9 +884,9 @@ export const initialCalendarEvents: CalendarEvent[] = (() => {
       description: 'Еженедельная тренировка в спортивном центре',
       date: weekDays[1]?.fullDate || '',
       time: '16:00',
-      createdBy: '2',
+      createdBy: 'mom',
       createdByName: 'Елена',
-      createdByAvatar: '👩',
+      createdByAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
       visibility: 'family',
       category: 'Спорт',
       color: 'bg-green-100',
@@ -860,9 +898,9 @@ export const initialCalendarEvents: CalendarEvent[] = (() => {
       description: 'Занятие в школе танца',
       date: weekDays[2]?.fullDate || '',
       time: '16:30',
-      createdBy: '2',
+      createdBy: 'mom',
       createdByName: 'Елена',
-      createdByAvatar: '👩',
+      createdByAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
       visibility: 'family',
       category: 'Творчество',
       color: 'bg-pink-100',
@@ -874,13 +912,13 @@ export const initialCalendarEvents: CalendarEvent[] = (() => {
       description: 'Собрание в школе',
       date: weekDays[3]?.fullDate || '',
       time: '18:00',
-      createdBy: '2',
+      createdBy: 'mom',
       createdByName: 'Елена',
-      createdByAvatar: '👩',
+      createdByAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
       visibility: 'family',
       category: 'Школа',
       color: 'bg-blue-100',
-      attendees: ['1', '2']
+      attendees: ['dad', 'mom']
     },
     {
       id: '4',
@@ -888,13 +926,13 @@ export const initialCalendarEvents: CalendarEvent[] = (() => {
       description: 'Воскресный обед всей семьей',
       date: weekDays[6]?.fullDate || '',
       time: '14:00',
-      createdBy: '1',
+      createdBy: 'dad',
       createdByName: 'Александр',
-      createdByAvatar: '👨',
+      createdByAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
       visibility: 'family',
       category: 'Семья',
       color: 'bg-yellow-100',
-      attendees: ['1', '2', '3', '4', '5', '6']
+      attendees: ['dad', 'mom', '3', '4', 'grandma', 'grandpa']
     }
   ];
 })();
@@ -2438,5 +2476,269 @@ export const initialFamilyGoals: FamilyGoal[] = [
       }
     ],
     tags: ['здоровье', 'спорт', 'семья']
+  }
+];
+
+export const initialComplaints: Complaint[] = [
+  {
+    id: 'complaint-1',
+    complainantId: '4',
+    complainantName: 'София',
+    accusedId: '3',
+    accusedName: 'Максим',
+    situation: 'Максим взял мои фломастеры без спроса и не вернул их',
+    feelings: 'Я очень расстроилась, потому что мне они нужны были для рисования. Я долго их искала, а потом нашла у него в комнате',
+    consequences: 'Я не смогла закончить свой рисунок для школы вовремя',
+    createdAt: '2024-11-20T14:30:00Z',
+    status: 'resolved',
+    aiAnalysis: {
+      summary: 'Зарегистрирован конфликт между София и Максим. Уровень серьезности: низкий. Требуется разговор.',
+      recommendationsForComplainant: [
+        'Попробуйте спокойно обсудить ситуацию напрямую с человеком',
+        'Выразите свои чувства используя "Я-сообщения"',
+        'Постарайтесь понять точку зрения другой стороны'
+      ],
+      messageForAccused: 'Здравствуй, Максим! София обратилась с просьбой помочь разобраться в недопонимании между вами. В ситуации "Максим взял мои фломастеры без спроса и не вернул их" София почувствовала: Я очень расстроилась, потому что мне они нужны были для рисования. Я долго их искала, а потом нашла у него в комнате. Это не обвинение, а возможность лучше понять друг друга. Возможно, ты не заметил, как твои действия повлияли на сестру. Предлагаю спокойно поговорить и найти общий язык. Помните: в семье важно слышать друг друга! 💙',
+      peaceSteps: [
+        'Шаг 1: Найдите спокойное время для разговора',
+        'Шаг 2: Объясните свои чувства без обвинений',
+        'Шаг 3: Выслушайте ответ другой стороны',
+        'Шаг 4: Договоритесь о том, как действовать дальше'
+      ],
+      severity: 'low'
+    },
+    resolution: {
+      resolvedAt: '2024-11-21T10:00:00Z',
+      outcome: 'Максим извинился и вернул фломастеры. Мы договорились, что теперь он будет всегда спрашивать разрешения, если хочет что-то взять. София согласилась давать ему фломастеры, если он вежливо попросит.'
+    }
+  },
+  {
+    id: 'complaint-2',
+    complainantId: 'mom',
+    complainantName: 'Елена',
+    accusedId: 'dad',
+    accusedName: 'Александр',
+    situation: 'Александр забыл забрать детей из секций, хотя обещал. Я была на работе и не могла приехать',
+    feelings: 'Я очень переживала и злилась. Дети ждали на улице 40 минут. Чувствую, что на меня одной все обязанности по детям',
+    consequences: 'Дети опоздали на ужин, я нервничала и плохо себя чувствовала весь вечер. Сорвалась на детей',
+    createdAt: '2024-11-18T19:00:00Z',
+    status: 'resolved',
+    aiAnalysis: {
+      summary: 'Зарегистрирован конфликт между Елена и Александр. Уровень серьезности: средний. Требуется медиация.',
+      recommendationsForComplainant: [
+        'Дайте себе время успокоиться перед разговором',
+        'Подготовьте конкретные примеры ситуаций',
+        'Предложите найти компромисс',
+        'Если сложно говорить напрямую, напишите письмо'
+      ],
+      messageForAccused: 'Добрый день, Александр! Елена обратилась за помощью в разрешении конфликта между вами. В ситуации "Александр забыл забрать детей из секций, хотя обещал" Елена испытала сильные чувства: Я очень переживала и злилась. Дети ждали на улице 40 минут. Чувствую, что на меня одной все обязанности по детям. Это привело к: Дети опоздали на ужин, я нервничала и плохо себя чувствовала весь вечер. Сорвалась на детей. Такие моменты случаются в любой семье, и это нормально. Важно не то, что произошел конфликт, а то, как мы его решим. Предлагаю встретиться и спокойно обсудить, что каждый из вас чувствовал и чего хотел. Уверен, вместе вы найдете решение! 🤝',
+      peaceSteps: [
+        'Шаг 1: Оба участника берут паузу для успокоения (1-2 часа)',
+        'Шаг 2: Встретьтесь в нейтральном месте',
+        'Шаг 3: Каждый по очереди описывает ситуацию своими словами',
+        'Шаг 4: Определите общие интересы и потребности',
+        'Шаг 5: Вместе придумайте решение, устраивающее обоих'
+      ],
+      severity: 'medium'
+    },
+    resolution: {
+      resolvedAt: '2024-11-19T21:00:00Z',
+      outcome: 'Мы спокойно поговорили вечером. Александр признал, что забыл из-за работы и очень сожалеет. Мы договорились использовать общий календарь с напоминаниями. Александр взял на себя обязательство забирать детей по вторникам и четвергам. Если не может - предупреждает заранее.'
+    }
+  },
+  {
+    id: 'complaint-3',
+    complainantId: '3',
+    complainantName: 'Максим',
+    accusedId: 'grandma',
+    accusedName: 'Мария',
+    situation: 'Бабушка постоянно заставляет меня есть, когда я не хочу. Говорит, что я плохо выгляжу',
+    feelings: 'Мне неприятно, что меня заставляют. Я же не маленький, сам знаю, когда голоден. Чувствую себя не услышанным',
+    createdAt: '2024-11-22T12:00:00Z',
+    status: 'in_progress',
+    aiAnalysis: {
+      summary: 'Зарегистрирован конфликт между Максим и Мария. Уровень серьезности: низкий. Требуется разговор.',
+      recommendationsForComplainant: [
+        'Попробуйте спокойно обсудить ситуацию напрямую с человеком',
+        'Выразите свои чувства используя "Я-сообщения"',
+        'Постарайтесь понять точку зрения другой стороны'
+      ],
+      messageForAccused: 'Здравствуйте, Мария! Максим обратился с просьбой помочь разобраться в недопонимании между вами. В ситуации "Бабушка постоянно заставляет меня есть, когда я не хочу" Максим почувствовал: Мне неприятно, что меня заставляют. Я же не маленький, сам знаю, когда голоден. Чувствую себя не услышанным. Это не обвинение, а возможность лучше понять друг друга. Возможно, вы не заметили, как ваши действия повлияли на внука. Предлагаю спокойно поговорить и найти общий язык. Помните: в семье важно слышать друг друга! 💙',
+      peaceSteps: [
+        'Шаг 1: Найдите спокойное время для разговора',
+        'Шаг 2: Объясните свои чувства без обвинений',
+        'Шаг 3: Выслушайте ответ другой стороны',
+        'Шаг 4: Договоритесь о том, как действовать дальше'
+      ],
+      severity: 'low'
+    }
+  }
+];
+
+export const initialShoppingList: ShoppingItem[] = [
+  {
+    id: 'shop-1',
+    name: 'Молоко 3.2%',
+    category: 'products',
+    quantity: '2 л',
+    priority: 'urgent',
+    bought: false,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-22T08:00:00Z'
+  },
+  {
+    id: 'shop-2',
+    name: 'Хлеб пшеничный',
+    category: 'products',
+    quantity: '2 шт',
+    priority: 'urgent',
+    bought: false,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-22T08:00:00Z'
+  },
+  {
+    id: 'shop-3',
+    name: 'Яйца куриные С1',
+    category: 'products',
+    quantity: '20 шт',
+    priority: 'normal',
+    bought: false,
+    addedBy: 'grandma',
+    addedByName: 'Мария',
+    addedAt: '2024-11-22T09:00:00Z'
+  },
+  {
+    id: 'shop-4',
+    name: 'Гречка',
+    category: 'products',
+    quantity: '1 кг',
+    priority: 'normal',
+    bought: true,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-21T10:00:00Z'
+  },
+  {
+    id: 'shop-5',
+    name: 'Куриная грудка',
+    category: 'products',
+    quantity: '1.5 кг',
+    priority: 'urgent',
+    bought: false,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-22T08:00:00Z'
+  },
+  {
+    id: 'shop-6',
+    name: 'Помидоры',
+    category: 'products',
+    quantity: '1 кг',
+    priority: 'normal',
+    bought: false,
+    addedBy: 'dad',
+    addedByName: 'Александр',
+    addedAt: '2024-11-22T07:30:00Z'
+  },
+  {
+    id: 'shop-7',
+    name: 'Огурцы',
+    category: 'products',
+    quantity: '1 кг',
+    priority: 'normal',
+    bought: false,
+    addedBy: 'dad',
+    addedByName: 'Александр',
+    addedAt: '2024-11-22T07:30:00Z'
+  },
+  {
+    id: 'shop-8',
+    name: 'Сыр твердый',
+    category: 'products',
+    quantity: '500 г',
+    priority: 'normal',
+    bought: true,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-21T10:00:00Z'
+  },
+  {
+    id: 'shop-9',
+    name: 'Стиральный порошок',
+    category: 'household',
+    quantity: '1 упаковка',
+    priority: 'urgent',
+    bought: false,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-22T08:00:00Z'
+  },
+  {
+    id: 'shop-10',
+    name: 'Средство для мытья посуды',
+    category: 'household',
+    quantity: '1 бутылка',
+    priority: 'normal',
+    bought: false,
+    addedBy: 'grandma',
+    addedByName: 'Мария',
+    addedAt: '2024-11-22T09:00:00Z'
+  },
+  {
+    id: 'shop-11',
+    name: 'Туалетная бумага',
+    category: 'household',
+    quantity: '12 рулонов',
+    priority: 'urgent',
+    bought: false,
+    addedBy: 'dad',
+    addedByName: 'Александр',
+    addedAt: '2024-11-22T08:30:00Z'
+  },
+  {
+    id: 'shop-12',
+    name: 'Футболка для Максима',
+    category: 'clothes',
+    quantity: '1 шт, размер 146',
+    priority: 'normal',
+    bought: false,
+    addedBy: 'mom',
+    addedByName: 'Елена',
+    addedAt: '2024-11-21T15:00:00Z'
+  },
+  {
+    id: 'shop-13',
+    name: 'Яблоки',
+    category: 'products',
+    quantity: '2 кг',
+    priority: 'normal',
+    bought: false,
+    addedBy: '3',
+    addedByName: 'Максим',
+    addedAt: '2024-11-22T10:00:00Z'
+  },
+  {
+    id: 'shop-14',
+    name: 'Бананы',
+    category: 'products',
+    quantity: '1 кг',
+    priority: 'normal',
+    bought: false,
+    addedBy: '4',
+    addedByName: 'София',
+    addedAt: '2024-11-22T10:00:00Z'
+  },
+  {
+    id: 'shop-15',
+    name: 'Корм для собаки',
+    category: 'other',
+    quantity: '3 кг',
+    priority: 'urgent',
+    bought: false,
+    addedBy: '4',
+    addedByName: 'София',
+    addedAt: '2024-11-22T11:00:00Z'
   }
 ];

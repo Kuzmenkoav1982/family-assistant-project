@@ -51,6 +51,8 @@ import {
   initialCalendarEvents,
   initialAIRecommendations,
   initialFamilyGoals,
+  initialComplaints,
+  initialShoppingList,
   getWeekDays,
 } from '@/data/mockData';
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
@@ -159,7 +161,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [newMessage, setNewMessage] = useState('');
   const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shoppingList');
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : initialShoppingList;
   });
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState<'products' | 'household' | 'clothes' | 'other'>('products');
@@ -2078,7 +2080,15 @@ export default function Index({ onLogout }: IndexProps) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="text-3xl">{event.createdByAvatar}</div>
+                              {event.createdByAvatar && event.createdByAvatar.startsWith('http') ? (
+                                <img 
+                                  src={event.createdByAvatar} 
+                                  alt={event.createdByName}
+                                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
+                                />
+                              ) : (
+                                <div className="text-3xl">{event.createdByAvatar}</div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -2729,6 +2739,7 @@ export default function Index({ onLogout }: IndexProps) {
                 <ComplaintBook 
                   familyMembers={familyMembers}
                   currentUserId={currentUserId}
+                  initialComplaints={initialComplaints}
                 />
               </TabsContent>
 
@@ -2744,7 +2755,15 @@ export default function Index({ onLogout }: IndexProps) {
                     <div className="space-y-3 mb-4 max-h-[500px] overflow-y-auto">
                       {chatMessages.length > 0 ? chatMessages.map((msg, idx) => (
                         <div key={msg.id} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${idx * 0.05}s` }}>
-                          <span className="text-2xl">{msg.senderAvatar}</span>
+                          {msg.senderAvatar && msg.senderAvatar.startsWith('http') ? (
+                            <img 
+                              src={msg.senderAvatar} 
+                              alt={msg.senderName}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
+                            />
+                          ) : (
+                            <span className="text-2xl">{msg.senderAvatar}</span>
+                          )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-semibold text-sm">{msg.senderName}</span>

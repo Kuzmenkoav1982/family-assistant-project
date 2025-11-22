@@ -9,12 +9,13 @@ import type { Complaint, FamilyMember } from '@/types/family.types';
 interface ComplaintBookProps {
   familyMembers: FamilyMember[];
   currentUserId: string;
+  initialComplaints?: Complaint[];
 }
 
-export function ComplaintBook({ familyMembers, currentUserId }: ComplaintBookProps) {
+export function ComplaintBook({ familyMembers, currentUserId, initialComplaints = [] }: ComplaintBookProps) {
   const [complaints, setComplaints] = useState<Complaint[]>(() => {
     const saved = localStorage.getItem('familyComplaints');
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : initialComplaints;
   });
   
   const [showNewComplaintDialog, setShowNewComplaintDialog] = useState(false);

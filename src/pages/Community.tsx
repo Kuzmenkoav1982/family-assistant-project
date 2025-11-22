@@ -35,18 +35,19 @@ const mockPosts: Post[] = [
   {
     id: '1',
     author: 'Елена Петрова',
-    authorAvatar: '👩',
+    authorAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
     familyName: 'Семья Петровых',
     content: 'Сегодня мы с детьми испекли торт по бабушкиному рецепту! Максим помогал взбивать крем, а София украшала. Это так важно - передавать семейные традиции 🎂',
     category: 'Традиции',
     likes: 24,
     comments: 8,
-    timestamp: '2 часа назад'
+    timestamp: '2 часа назад',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg'
   },
   {
     id: '2',
     author: 'Александр Иванов',
-    authorAvatar: '👨',
+    authorAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
     familyName: 'Семья Ивановых',
     content: 'Поделюсь нашим опытом организации семейного бюджета. Завели таблицу расходов, где каждый может видеть на что тратим деньги. Дети стали более ответственными!',
     category: 'Советы',
@@ -57,13 +58,24 @@ const mockPosts: Post[] = [
   {
     id: '3',
     author: 'Мария Смирнова',
-    authorAvatar: '👩',
+    authorAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
     familyName: 'Семья Смирновых',
     content: 'Вчера съездили в парк "Зарядье" всей семьей. Детям очень понравилось! Кто еще не был - рекомендую 🌳',
     category: 'Путешествия',
     likes: 38,
     comments: 15,
     timestamp: 'вчера'
+  },
+  {
+    id: '4',
+    author: 'Николай Васильев',
+    authorAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b645bc57-5245-4c0a-87e6-234d82e81815.jpg',
+    familyName: 'Семья Васильевых',
+    content: 'Внуки приехали на выходные! Рассказал им истории о нашей семье, показал старые фотографии. Они были в восторге! Очень важно передавать историю семьи следующим поколениям 📖',
+    category: 'Традиции',
+    likes: 67,
+    comments: 19,
+    timestamp: '1 день назад'
   }
 ];
 
@@ -179,7 +191,15 @@ export default function Community() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="text-4xl">{post.authorAvatar}</div>
+                        {post.authorAvatar.startsWith('http') ? (
+                          <img 
+                            src={post.authorAvatar} 
+                            alt={post.author}
+                            className="w-14 h-14 rounded-full object-cover border-2 border-purple-300"
+                          />
+                        ) : (
+                          <div className="text-4xl">{post.authorAvatar}</div>
+                        )}
                         <div>
                           <p className="font-bold">{post.author}</p>
                           <p className="text-sm text-muted-foreground">{post.familyName}</p>

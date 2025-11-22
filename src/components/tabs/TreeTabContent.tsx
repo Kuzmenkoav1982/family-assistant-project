@@ -88,7 +88,15 @@ export function TreeTabContent({
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-800 rounded-full border-2 border-amber-600"></div>
                             
                             <div className="text-center">
-                              <div className="text-2xl sm:text-3xl mb-1">{member.avatar}</div>
+                              {member.photoUrl ? (
+                                <img 
+                                  src={member.photoUrl} 
+                                  alt={member.firstName}
+                                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-amber-700 mx-auto mb-1"
+                                />
+                              ) : (
+                                <div className="text-2xl sm:text-3xl mb-1">{member.avatar}</div>
+                              )}
                               <p className="font-bold text-xs sm:text-sm text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>
                                 {member.firstName}
                               </p>
