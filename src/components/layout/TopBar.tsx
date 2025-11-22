@@ -122,7 +122,7 @@ export default function TopBar({
           </Button>
 
           {showLanguageSelector && (
-            <div className="dropdown-menu absolute top-full mt-2 right-0 bg-white rounded-lg shadow-2xl border-2 border-blue-200 p-2 w-64 animate-fade-in">
+            <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-2xl border-2 border-blue-200 p-2 w-64 z-[60] animate-fade-in">
               <div className="flex items-center justify-between mb-2 pb-2 border-b">
                 <span className="text-sm font-bold text-gray-700">Выберите язык</span>
                 <Button
@@ -167,7 +167,7 @@ export default function TopBar({
           </Button>
 
           {showThemeSelector && (
-            <div className="dropdown-menu absolute top-full mt-2 right-0 bg-white rounded-lg shadow-2xl border-2 border-indigo-200 p-3 w-80 animate-fade-in">
+            <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-2xl border-2 border-indigo-200 p-3 w-80 z-[60] animate-fade-in">
               <div className="flex items-center justify-between mb-3 pb-2 border-b">
                 <span className="text-sm font-bold text-gray-700">Выберите тему</span>
                 <Button

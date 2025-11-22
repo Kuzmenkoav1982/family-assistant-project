@@ -1200,7 +1200,7 @@ export default function Index({ onLogout }: IndexProps) {
               </Button>
               
               {showLanguageSelector && (
-                <Card className="language-selector dropdown-menu absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
+                <Card className="language-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Languages" size={20} />
@@ -1242,7 +1242,7 @@ export default function Index({ onLogout }: IndexProps) {
               )}
               
               {showThemeSelector && (
-                <Card className="theme-selector dropdown-menu absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
+                <Card className="theme-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Palette" size={20} />
@@ -1289,7 +1289,7 @@ export default function Index({ onLogout }: IndexProps) {
         </button>
 
         <div 
-          className={`fixed left-0 top-20 z-[60] bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+          className={`fixed left-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
             isLeftMenuVisible ? 'translate-x-0' : '-translate-x-full'
           }`}
           onMouseEnter={() => autoHideLeftMenu && setIsLeftMenuVisible(true)}
