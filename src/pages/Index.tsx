@@ -3134,6 +3134,7 @@ export default function Index({ onLogout }: IndexProps) {
       />
       
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
+      </div>
     </>
   );
 }
