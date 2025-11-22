@@ -2097,7 +2097,15 @@ export default function Index({ onLogout }: IndexProps) {
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                              <span className="text-4xl">{child.avatar}</span>
+                              {child.avatar.startsWith('http') ? (
+                                <img 
+                                  src={child.avatar} 
+                                  alt={child.name}
+                                  className="w-16 h-16 rounded-full object-cover border-2 border-purple-300"
+                                />
+                              ) : (
+                                <span className="text-4xl">{child.avatar}</span>
+                              )}
                               <div>
                                 <div className="flex items-center gap-2">
                                   <CardTitle className="text-2xl">{child.name}</CardTitle>

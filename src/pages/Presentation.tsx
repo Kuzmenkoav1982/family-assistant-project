@@ -408,7 +408,7 @@ export default function Presentation() {
                     <div>
                       <h4 className="text-sm md:text-base font-bold text-gray-800 mb-1">Пример: Низкая самостоятельность</h4>
                       <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3">
-                        "Максим (8 лет) всегда просит помощи даже в простых задачах"
+                        "Максим (11 лет) всегда просит помощи даже в простых задачах"
                       </p>
                       <div className="bg-orange-50 rounded-lg p-2 md:p-3">
                         <p className="text-xs md:text-sm font-semibold text-orange-800 mb-1 md:mb-2">💡 Рекомендации ИИ:</p>
@@ -429,7 +429,7 @@ export default function Presentation() {
                     <div>
                       <h4 className="text-sm md:text-base font-bold text-gray-800 mb-1">Пример: Эмоциональные вспышки</h4>
                       <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3">
-                        "София (6 лет) часто плачет и срывается, когда что-то не получается"
+                        "София (8 лет) часто плачет и срывается, когда что-то не получается"
                       </p>
                       <div className="bg-pink-50 rounded-lg p-2 md:p-3">
                         <p className="text-xs md:text-sm font-semibold text-pink-800 mb-1 md:mb-2">💡 Рекомендации ИИ:</p>
