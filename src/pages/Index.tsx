@@ -3036,6 +3036,7 @@ export default function Index({ onLogout }: IndexProps) {
         </div>
       </div>
       </div>
+      </div>
 
       <Dialog open={educationChild !== null} onOpenChange={(open) => !open && setEducationChild(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
