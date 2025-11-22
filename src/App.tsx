@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
 import FamilyCode from "./pages/FamilyCode";
+import Presentation from "./pages/Presentation";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="/community" element={<Community />} />
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />
+            <Route path="/presentation" element={<Presentation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
