@@ -1142,6 +1142,17 @@ export default function Index({ onLogout }: IndexProps) {
                 <span className="text-sm hidden md:inline">Инструкции</span>
               </Button>
               
+              <Button
+                onClick={() => navigate('/presentation')}
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 px-3"
+                title="Презентация"
+              >
+                <Icon name="FileText" size={18} />
+                <span className="text-sm hidden md:inline">Презентация</span>
+              </Button>
+              
               {currentUser && (
                 <Button
                   onClick={() => navigate(`/member/${currentUser.id}`)}

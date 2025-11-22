@@ -1,10 +1,81 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Download, X } from 'lucide-react';
 import Icon from '@/components/ui/icon';
+import { Button } from '@/components/ui/button';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { useState } from 'react';
 
 export default function Presentation() {
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const downloadPDF = async () => {
+    setIsDownloading(true);
+    try {
+      const element = document.getElementById('presentation-content');
+      if (!element) return;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let firstPage = true;
+
+      while (heightLeft > 0) {
+        if (!firstPage) {
+          pdf.addPage();
+        }
+        pdf.addImage(
+          canvas.toDataURL('image/png'),
+          'PNG',
+          0,
+          position,
+          imgWidth,
+          imgHeight
+        );
+        heightLeft -= pageHeight;
+        position -= pageHeight;
+        firstPage = false;
+      }
+
+      pdf.save('Семейный-Органайзер-Презентация.pdf');
+    } catch (error) {
+      console.error('Ошибка при создании PDF:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Button
+          onClick={downloadPDF}
+          disabled={isDownloading}
+          className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
+        >
+          <Download className="mr-2" size={18} />
+          {isDownloading ? 'Создаём PDF...' : 'Скачать PDF'}
+        </Button>
+        <Button
+          onClick={() => window.history.back()}
+          variant="outline"
+          className="shadow-lg"
+        >
+          <X size={18} />
+        </Button>
+      </div>
+
+      <div id="presentation-content" className="max-w-4xl mx-auto px-6 py-12">
         
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-purple-900 mb-4">
@@ -307,6 +378,34 @@ export default function Presentation() {
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
             <span>Начните укреплять свою семью сегодня</span>
             <ArrowRight size={24} />
+          </div>
+        </section>
+
+        <section className="bg-white rounded-3xl shadow-xl p-10 mt-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Icon name="Mail" className="text-purple-500" size={40} />
+            <h2 className="text-3xl font-bold text-gray-800">
+              Контакты
+            </h2>
+          </div>
+          
+          <div className="space-y-4 text-lg">
+            <div className="flex items-center gap-3">
+              <Icon name="User" className="text-gray-600" size={24} />
+              <span className="font-semibold text-gray-800">Кузьменко Алексей</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Icon name="Phone" className="text-green-600" size={24} />
+              <a href="tel:+79850807888" className="text-purple-600 hover:text-purple-800 font-medium">
+                +7 985 080 78 88
+              </a>
+            </div>
+            <div className="flex items-center gap-3">
+              <Icon name="Mail" className="text-blue-600" size={24} />
+              <a href="mailto:kuzmenkoav1982@yandex.ru" className="text-purple-600 hover:text-purple-800 font-medium">
+                kuzmenkoav1982@yandex.ru
+              </a>
+            </div>
           </div>
         </section>
 
