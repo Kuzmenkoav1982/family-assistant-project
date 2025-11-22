@@ -3032,9 +3032,9 @@ export default function Index({ onLogout }: IndexProps) {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
         </div>
-      </div>
       </div>
       </div>
 
