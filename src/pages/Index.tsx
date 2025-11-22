@@ -3033,7 +3033,7 @@ export default function Index({ onLogout }: IndexProps) {
             </Card>
           </div>
         </div>
-      </div>
+        </div>
       </div>
 
       <Dialog open={educationChild !== null} onOpenChange={(open) => !open && setEducationChild(null)}>
