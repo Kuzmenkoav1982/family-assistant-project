@@ -106,17 +106,22 @@ export default function Index({ onLogout }: IndexProps) {
         achievements: [
           ['Суперпапа', 'Организатор'],
           ['Душа семьи', 'Повар года'],
-          ['Отличница', 'Спортсменка'],
-          ['Веселый малыш'],
+          ['Победитель олимпиады по математике', 'Лучший игрок команды'],
+          ['Диплом конкурса рисунка', 'Первое выступление на сцене'],
           ['Мудрая бабушка', 'Лучшие пирожки'],
           ['Семейный историк']
         ][index] || [],
         moodStatus: demoMoods[index],
-        dreams: dm.role === 'child' ? [
-          { id: '1', title: 'Велосипед', targetAmount: 15000, savedAmount: 3000, createdAt: new Date().toISOString() },
-          { id: '2', title: 'Планшет', targetAmount: 30000, savedAmount: 5000, createdAt: new Date().toISOString() }
-        ] : [],
-        piggyBank: (dm.role === 'child' ? [8000, 0][index - 2] : 0) || 0,
+        dreams: dm.role === 'child' ? (
+          dm.id === '3' ? [
+            { id: '1', title: 'Велосипед', targetAmount: 15000, savedAmount: 8000, createdAt: new Date().toISOString() },
+            { id: '2', title: 'Планшет для робототехники', targetAmount: 30000, savedAmount: 12000, createdAt: new Date().toISOString() }
+          ] : [
+            { id: '3', title: 'Балетные туфли', targetAmount: 5000, savedAmount: 2000, createdAt: new Date().toISOString() },
+            { id: '4', title: 'Фортепиано', targetAmount: 50000, savedAmount: 8000, createdAt: new Date().toISOString() }
+          ]
+        ) : [],
+        piggyBank: dm.role === 'child' ? (dm.id === '3' ? 8000 : 3500) : 0,
         foodPreferences: {
           favorites: dm.preferences.favoriteFood,
           dislikes: []
@@ -124,8 +129,8 @@ export default function Index({ onLogout }: IndexProps) {
         responsibilities: [
           ['Планирование семейных поездок', 'Ремонт техники'],
           ['Приготовление еды', 'Уборка кухни'],
-          ['Уборка комнаты', 'Помощь с младшим братом'],
-          ['Складывать игрушки'],
+          ['Уборка комнаты', 'Выгул собаки', 'Помощь с Софией'],
+          ['Складывать игрушки', 'Поливать цветы'],
           ['Пирожки по выходным', 'Помощь с детьми'],
           ['Рассказывать истории', 'Семейные традиции']
         ][index] || []

@@ -83,11 +83,34 @@ export const DEMO_FAMILY: DemoFamily = {
       }
     },
     {
-      id: 'daughter',
+      id: '3',
+      name: 'Максим',
+      role: 'child',
+      age: 11,
+      avatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
+      gender: 'male',
+      preferences: {
+        favoriteFood: ['Котлеты', 'Макароны', 'Йогурт'],
+        allergies: [],
+        restrictions: []
+      },
+      permissions: {
+        calendar: true,
+        tasks: true,
+        shopping: false,
+        finances: false,
+        health: true,
+        recipes: false,
+        documents: false,
+        contacts: true
+      }
+    },
+    {
+      id: '4',
       name: 'София',
-      role: 'member',
-      age: 12,
-      avatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cb91c39f-b83b-4f15-a7fb-c528e3315b98.jpg',
+      role: 'child',
+      age: 8,
+      avatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
       gender: 'female',
       preferences: {
         favoriteFood: ['Пицца', 'Блины', 'Мороженое'],
@@ -103,29 +126,6 @@ export const DEMO_FAMILY: DemoFamily = {
         recipes: true,
         documents: false,
         contacts: true
-      }
-    },
-    {
-      id: 'son',
-      name: 'Максим',
-      role: 'child',
-      age: 4,
-      avatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/689ce9ec-c618-4b4d-a763-d973475ef9ab.jpg',
-      gender: 'male',
-      preferences: {
-        favoriteFood: ['Котлеты', 'Макароны', 'Йогурт'],
-        allergies: [],
-        restrictions: []
-      },
-      permissions: {
-        calendar: true,
-        tasks: false,
-        shopping: false,
-        finances: false,
-        health: false,
-        recipes: false,
-        documents: false,
-        contacts: false
       }
     },
     {
