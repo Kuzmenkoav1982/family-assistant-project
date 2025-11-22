@@ -1336,15 +1336,7 @@ export default function Index({ onLogout }: IndexProps) {
                   onClick={() => navigate(`/member/${currentUser.id}`)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 hover:border-purple-300 transition-all"
                 >
-                  {currentUser.photoUrl ? (
-                    <img 
-                      src={currentUser.photoUrl} 
-                      alt={currentUser.name}
-                      className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
-                    />
-                  ) : (
-                    <div className="text-2xl">{currentUser.avatar || '👤'}</div>
-                  )}
+                  <div className="text-2xl">{currentUser.avatar || '👤'}</div>
                   <div className="flex-1 text-left">
                     <div className="text-sm font-bold text-purple-700">Мой профиль</div>
                     <div className="text-xs text-gray-600">{currentUser.name}</div>
@@ -1734,6 +1726,7 @@ export default function Index({ onLogout }: IndexProps) {
               )}
             </div>
           </TabsList>
+        </Tabs>
 
         <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
             backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
@@ -1956,28 +1949,16 @@ export default function Index({ onLogout }: IndexProps) {
                     const completedMilestones = devPlan?.milestones.filter(m => m.completed).length || 0;
                     const totalMilestones = devPlan?.milestones.length || 0;
                     
-                    const familyMember = familyMembers.find(m => m.id === child.childId);
-                    const actualAge = familyMember?.age || child.age;
-                    const actualAvatar = familyMember?.photoUrl || familyMember?.avatar || child.avatar;
-                    
                     return (
                       <Card key={child.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                              {familyMember?.photoUrl ? (
-                                <img 
-                                  src={familyMember.photoUrl} 
-                                  alt={child.name}
-                                  className="w-16 h-16 rounded-full object-cover border-2 border-purple-300"
-                                />
-                              ) : (
-                                <span className="text-4xl">{actualAvatar}</span>
-                              )}
+                              <span className="text-4xl">{child.avatar}</span>
                               <div>
                                 <div className="flex items-center gap-2">
                                   <CardTitle className="text-2xl">{child.name}</CardTitle>
-                                  <Badge>{actualAge} лет</Badge>
+                                  <Badge>{child.age} лет</Badge>
                                   <Badge variant="outline" className="bg-blue-50">{child.grade} класс</Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">{child.personality}</p>
@@ -2883,8 +2864,8 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
         </div>
         </Tabs>
-        </div>
       </div>
+    </div>
 
       <Dialog open={educationChild !== null} onOpenChange={(open) => !open && setEducationChild(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
