@@ -14,37 +14,56 @@ export default function Presentation() {
       const element = document.getElementById('presentation-content');
       if (!element) return;
 
+      // Добавляем класс для печати
+      element.classList.add('printing');
+      
+      // Небольшая задержка для применения стилей
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 2.5,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: 1200,
+        windowHeight: element.scrollHeight,
+        imageTimeout: 0,
+        removeContainer: true
       });
 
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      // Убираем класс после рендера
+      element.classList.remove('printing');
 
       const pdf = new jsPDF('p', 'mm', 'a4');
-      let firstPage = true;
-
-      while (heightLeft > 0) {
-        if (!firstPage) {
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const topMargin = 15;
+      const bottomMargin = 15;
+      const sideMargin = 10;
+      
+      const imgWidth = pageWidth - (2 * sideMargin);
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const contentHeight = pageHeight - topMargin - bottomMargin;
+      
+      const totalPages = Math.ceil(imgHeight / contentHeight);
+      
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
           pdf.addPage();
         }
+        
+        const yPosition = -(page * contentHeight) + topMargin;
+        
         pdf.addImage(
           canvas.toDataURL('image/png'),
           'PNG',
-          0,
-          position,
+          sideMargin,
+          yPosition,
           imgWidth,
-          imgHeight
+          imgHeight,
+          undefined,
+          'FAST'
         );
-        heightLeft -= pageHeight;
-        position -= pageHeight;
-        firstPage = false;
       }
 
       pdf.save('Семейный-Органайзер-Презентация.pdf');
@@ -75,9 +94,68 @@ export default function Presentation() {
         </Button>
       </div>
 
-      <div id="presentation-content" className="max-w-4xl mx-auto px-6 py-12">
+      <style>{`
+        @media print {
+          .printing {
+            padding: 12mm 8mm !important;
+            max-width: 100% !important;
+          }
+          .printing section {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin-bottom: 8mm !important;
+            padding: 6mm !important;
+          }
+          .printing .text-center:not(section) {
+            page-break-after: avoid !important;
+            margin-bottom: 6mm !important;
+          }
+          .printing .bg-white\\/10,
+          .printing .bg-white,
+          .printing .bg-gradient-to-r,
+          .printing .bg-gradient-to-br,
+          .printing .bg-orange-50,
+          .printing .bg-blue-50,
+          .printing .bg-green-50,
+          .printing .bg-pink-50,
+          .printing .bg-purple-50 {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          .printing > div:first-child {
+            margin-bottom: 8mm !important;
+            page-break-after: avoid !important;
+          }
+          .printing h1 {
+            font-size: 2rem !important;
+          }
+          .printing h2 {
+            font-size: 1.5rem !important;
+          }
+          .printing h3 {
+            font-size: 1.25rem !important;
+          }
+          .printing .grid {
+            gap: 4mm !important;
+          }
+          
+          /* Скрываем кнопки при печати */
+          .fixed {
+            display: none !important;
+          }
+        }
         
-        <div className="text-center mb-16">
+        /* Стили для обычного просмотра перед PDF */
+        @media screen {
+          #presentation-content {
+            min-height: 100vh;
+          }
+        }
+      `}</style>
+
+      <div id="presentation-content" className="max-w-4xl mx-auto px-6 py-12 print:px-0 print:py-0">
+        
+        <div className="text-center mb-16 print:mb-8 print:break-inside-avoid">
           <h1 className="text-5xl font-bold text-purple-900 mb-4">
             Семейный Органайзер
           </h1>
@@ -86,7 +164,7 @@ export default function Presentation() {
           </p>
         </div>
 
-        <section className="bg-white rounded-3xl shadow-xl p-10 mb-8">
+        <section className="bg-white rounded-3xl shadow-xl p-10 mb-8 print:mb-6 print:break-inside-avoid">
           <div className="flex items-center gap-4 mb-6">
             <Icon name="Heart" className="text-red-500" size={40} />
             <h2 className="text-3xl font-bold text-gray-800">
@@ -114,7 +192,7 @@ export default function Presentation() {
           </div>
         </section>
 
-        <section className="bg-white rounded-3xl shadow-xl p-10 mb-8">
+        <section className="bg-white rounded-3xl shadow-xl p-10 mb-8 print:mb-6 print:break-inside-avoid">
           <div className="flex items-center gap-4 mb-8">
             <Icon name="Sparkles" className="text-yellow-500" size={40} />
             <h2 className="text-3xl font-bold text-gray-800">
@@ -215,7 +293,7 @@ export default function Presentation() {
           </div>
         </section>
 
-        <section className="bg-white rounded-3xl shadow-xl p-5 md:p-10 mb-8 border-2 md:border-4 border-orange-200">
+        <section className="bg-white rounded-3xl shadow-xl p-5 md:p-10 mb-8 print:mb-6 border-2 md:border-4 border-orange-200 print:break-inside-avoid">
           <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
             <Icon name="Baby" className="text-orange-500 flex-shrink-0" size={32} />
             <div>
@@ -423,7 +501,7 @@ export default function Presentation() {
           </div>
         </section>
 
-        <section className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl shadow-xl p-10 mb-8 text-white">
+        <section className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl shadow-xl p-10 mb-8 print:mb-6 text-white print:break-inside-avoid">
           <div className="flex items-center gap-4 mb-8">
             <Icon name="Sparkle" size={40} />
             <h2 className="text-3xl font-bold">
@@ -522,7 +600,7 @@ export default function Presentation() {
           </div>
         </section>
 
-        <section className="bg-white rounded-3xl shadow-xl p-10 mb-8">
+        <section className="bg-white rounded-3xl shadow-xl p-10 mb-8 print:mb-6 print:break-inside-avoid">
           <div className="flex items-center gap-4 mb-6">
             <Icon name="Globe" className="text-blue-500" size={40} />
             <h2 className="text-3xl font-bold text-gray-800">
@@ -582,14 +660,14 @@ export default function Presentation() {
           </div>
         </section>
 
-        <section className="text-center py-12">
+        <section className="text-center py-12 print:break-inside-avoid">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
             <span>Начните укреплять свою семью сегодня</span>
             <ArrowRight size={24} />
           </div>
         </section>
 
-        <section className="bg-white rounded-3xl shadow-xl p-10 mt-8">
+        <section className="bg-white rounded-3xl shadow-xl p-10 mt-8 print:mt-6 print:break-inside-avoid">
           <div className="flex items-center gap-4 mb-6">
             <Icon name="Mail" className="text-purple-500" size={40} />
             <h2 className="text-3xl font-bold text-gray-800">

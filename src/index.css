@@ -123,6 +123,53 @@
   }
 }
 
+/* Стили для печати и PDF */
+@media print {
+  @page {
+    margin: 15mm 10mm;
+    size: A4;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print\:break-inside-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Предотвращаем разрыв заголовков и следующего контента */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Предотвращаем разрыв внутри карточек */
+  .bg-white,
+  .bg-gradient-to-r,
+  .bg-gradient-to-br,
+  .bg-orange-50,
+  .bg-blue-50,
+  .bg-green-50,
+  .bg-pink-50,
+  .bg-purple-50 {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
 @keyframes slide-in {
   from {
     transform: translateX(100%);
