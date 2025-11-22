@@ -1351,7 +1351,15 @@ export default function Index({ onLogout }: IndexProps) {
                   onClick={() => navigate(`/member/${currentUser.id}`)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 hover:border-purple-300 transition-all"
                 >
-                  <div className="text-2xl">{currentUser.avatar || '👤'}</div>
+                  {currentUser.photoUrl ? (
+                    <img 
+                      src={currentUser.photoUrl} 
+                      alt={currentUser.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
+                    />
+                  ) : (
+                    <div className="text-2xl">{currentUser.avatar || '👤'}</div>
+                  )}
                   <div className="flex-1 text-left">
                     <div className="text-sm font-bold text-purple-700">Мой профиль</div>
                     <div className="text-xs text-gray-600">{currentUser.name}</div>
