@@ -1618,9 +1618,9 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="relative h-full flex flex-col items-center justify-center px-6">
             <div className="flex items-center gap-4 mb-2">
               <img 
-                src="https://cdn.poehali.dev/files/a67685fd-8ec7-4694-834f-a78a0bab03f2.jpeg" 
-                alt="Логотип"
-                className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
+                src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+                alt="Семейный Органайзер"
+                className="w-28 h-28 lg:w-36 lg:h-36 rounded-full object-cover shadow-xl border-4 border-white"
               />
               <div className="flex flex-col gap-1">
                 <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
