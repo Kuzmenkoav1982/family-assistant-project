@@ -14,6 +14,7 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { ChildEducation } from '@/components/ChildEducation';
 import { ClickChamomile } from '@/components/ClickChamomile';
+import Footer from '@/components/Footer';
 import type {
   FamilyMember,
   Task,
@@ -3167,6 +3168,8 @@ export default function Index({ onLogout }: IndexProps) {
       />
       
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
+      
+      <Footer />
     </>
   );
 }

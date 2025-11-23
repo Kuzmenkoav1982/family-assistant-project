@@ -21,6 +21,8 @@ import Presentation from "./pages/Presentation";
 import FamilyPsychologist from "./pages/FamilyPsychologist";
 import FamilyRules from "./pages/FamilyRules";
 import LaunchPlan from "./pages/LaunchPlan";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,8 @@ const App = () => {
             <Route path="/psychologist" element={<FamilyPsychologist />} />
             <Route path="/rules" element={<FamilyRules />} />
             <Route path="/launch-plan" element={<LaunchPlan />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
