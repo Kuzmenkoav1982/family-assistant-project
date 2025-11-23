@@ -462,30 +462,32 @@ export default function LaunchPlan() {
           <div className="budget">
             <h2>💰 Итоговый бюджет</h2>
             <table>
-              <tr>
-                <th>Категория</th>
-                <th>Сумма</th>
-              </tr>
-              <tr>
-                <td>Разработка (единоразово)</td>
-                <td>{totalBudget.development.toLocaleString()}₽</td>
-              </tr>
-              <tr>
-                <td>Тестирование и контент</td>
-                <td>{totalBudget.testing.toLocaleString()}₽</td>
-              </tr>
-              <tr>
-                <td>Юридические вопросы</td>
-                <td>{totalBudget.legal.toLocaleString()}₽</td>
-              </tr>
-              <tr>
-                <td>Поддержка (3 месяца)</td>
-                <td>{totalBudget.support.toLocaleString()}₽</td>
-              </tr>
-              <tr>
-                <td><strong>ИТОГО</strong></td>
-                <td><strong>{totalBudget.total.toLocaleString()}₽</strong></td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th>Категория</th>
+                  <th>Сумма</th>
+                </tr>
+                <tr>
+                  <td>Разработка (единоразово)</td>
+                  <td>{totalBudget.development.toLocaleString()}₽</td>
+                </tr>
+                <tr>
+                  <td>Тестирование и контент</td>
+                  <td>{totalBudget.testing.toLocaleString()}₽</td>
+                </tr>
+                <tr>
+                  <td>Юридические вопросы</td>
+                  <td>{totalBudget.legal.toLocaleString()}₽</td>
+                </tr>
+                <tr>
+                  <td>Поддержка (3 месяца)</td>
+                  <td>{totalBudget.support.toLocaleString()}₽</td>
+                </tr>
+                <tr>
+                  <td><strong>ИТОГО</strong></td>
+                  <td><strong>{totalBudget.total.toLocaleString()}₽</strong></td>
+                </tr>
+              </tbody>
             </table>
             <p><strong>Оптимизированный бюджет (минимум):</strong> ~700,000₽</p>
           </div>
@@ -493,18 +495,20 @@ export default function LaunchPlan() {
           <div className="timeline">
             <h2>📅 График работ</h2>
             <table>
-              <tr>
-                <th>Фаза</th>
-                <th>Недели</th>
-                <th>Задачи</th>
-              </tr>
-              {timeline.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{item.phase}</td>
-                  <td>{item.weeks}</td>
-                  <td>{item.tasks}</td>
+              <tbody>
+                <tr>
+                  <th>Фаза</th>
+                  <th>Недели</th>
+                  <th>Задачи</th>
                 </tr>
-              ))}
+                {timeline.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{item.phase}</td>
+                    <td>{item.weeks}</td>
+                    <td>{item.tasks}</td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
             <p><strong>Общая длительность:</strong> ~7 месяцев (от старта до публичного запуска)</p>
             <p><strong>Быстрый вариант (MVP):</strong> ~3-4 месяца (базовые функции)</p>
@@ -521,18 +525,20 @@ export default function LaunchPlan() {
                 <>
                   <h3>Состав работ и бюджет</h3>
                   <table>
-                    <tr>
-                      <th>Название</th>
-                      <th>Стоимость</th>
-                      <th>Описание</th>
-                    </tr>
-                    {section.content.items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.name}</td>
-                        <td>{item.cost}</td>
-                        <td>{item.details}</td>
+                    <tbody>
+                      <tr>
+                        <th>Название</th>
+                        <th>Стоимость</th>
+                        <th>Описание</th>
                       </tr>
-                    ))}
+                      {section.content.items.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{item.name}</td>
+                          <td>{item.cost}</td>
+                          <td>{item.details}</td>
+                        </tr>
+                      ))}
+                    </tbody>
                   </table>
                 </>
               )}
@@ -633,7 +639,7 @@ export default function LaunchPlan() {
             <li>Senior: 250,000₽/мес</li>
           </ul>
 
-          <p style="margin-top: 40px; font-style: italic; color: #666;">
+          <p style={{ marginTop: '40px', fontStyle: 'italic', color: '#666' }}>
             Документ создан: {new Date().toLocaleDateString('ru-RU')}<br />
             Семейный Органайзер © 2024
           </p>
