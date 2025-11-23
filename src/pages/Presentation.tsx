@@ -333,16 +333,23 @@ export default function Presentation() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-teal-200 md:border-2">
+            <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl md:rounded-2xl p-4 md:p-6 border-2 md:border-4 border-teal-400">
               <div className="flex items-start gap-3 md:gap-4 mb-4">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-teal-500 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
                   <Icon name="GraduationCap" className="text-white" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-2xl font-bold text-gray-800 mb-1 md:mb-2">
-                    Помощь родителям в развитии детей
-                  </h3>
-                  <p className="text-sm md:text-base text-gray-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg md:text-2xl font-bold text-gray-800">
+                      Помощь родителям в развитии детей
+                    </h3>
+                    <span className="inline-flex items-center gap-1 bg-teal-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                      <Icon name="Star" size={14} />
+                      ПРИОРИТЕТ
+                    </span>
+                  </div>
+                  <p className="text-sm md:text-base text-gray-700 font-medium">
+                    Развитие детей является нашим главным приоритетом, которому мы уделяем особое внимание. 
                     Родителям помогать оценивать с помощью тестов уровень развития детей и на основании 
                     результатов предлагать рекомендации для развития необходимых компетенций.
                   </p>
@@ -467,6 +474,61 @@ export default function Presentation() {
                     Ставьте общие цели семьи и личные цели каждого члена. Отслеживайте прогресс, 
                     поддерживайте друг друга в достижениях и празднуйте успехи вместе.
                   </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl md:rounded-2xl p-4 md:p-6 border-2 md:border-4 border-emerald-400">
+              <div className="flex items-start gap-3 md:gap-4 mb-4">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-500 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <Icon name="Users" className="text-white" size={24} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg md:text-2xl font-bold text-gray-800">
+                      Сообщество Семейный Органайзер
+                    </h3>
+                    <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                      <Icon name="Heart" size={14} />
+                      ВАЖНО
+                    </span>
+                  </div>
+                  <p className="text-sm md:text-base text-gray-700 font-medium mb-3">
+                    Сообщество — это мост, соединяющий семьи по всей стране. Общаясь, делясь опытом и поддерживая 
+                    друг друга, мы строим сильное общество, где каждая семья чувствует свою значимость.
+                  </p>
+                  <div className="space-y-2 bg-white/50 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Icon name="Users" className="text-emerald-600 flex-shrink-0 mt-0.5" size={16} />
+                      <p className="text-sm text-gray-700">
+                        <strong>Взаимопомощь:</strong> Семьи помогают друг другу советом, поддержкой и опытом. Вместе мы справимся с любыми трудностями.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Icon name="MessageCircle" className="text-emerald-600 flex-shrink-0 mt-0.5" size={16} />
+                      <p className="text-sm text-gray-700">
+                        <strong>Общение:</strong> Делитесь историями, обсуждайте важные темы, находите единомышленников. Живое общение крепит связи.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Icon name="Award" className="text-emerald-600 flex-shrink-0 mt-0.5" size={16} />
+                      <p className="text-sm text-gray-700">
+                        <strong>Успехи и достижения:</strong> Делитесь секретами семейного счастья, рассказывайте о победах и достижениях. Вдохновляйте другие семьи.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Icon name="Heart" className="text-emerald-600 flex-shrink-0 mt-0.5" size={16} />
+                      <p className="text-sm text-gray-700">
+                        <strong>Сплочённость общества:</strong> Через крепкие семьи мы строим сильное общество. Объединяясь, мы создаём будущее, основанное на ценностях и взаимной поддержке.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Icon name="Flag" className="text-emerald-600 flex-shrink-0 mt-0.5" size={16} />
+                      <p className="text-sm text-gray-700">
+                        <strong>Патриотизм:</strong> Укрепляя семейные связи, мы укрепляем свою страну. Семья — это основа нации, и каждая семья вносит вклад в наше общее процветание.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1705,6 +1705,14 @@ export default function Index({ onLogout }: IndexProps) {
                 <Icon name="Scale" size={14} className="mr-1" />
                 Кодекс
               </Button>
+              <Button
+                onClick={() => navigate('/rules')}
+                variant="outline"
+                className="text-xs py-1.5 px-2.5 h-auto"
+              >
+                <Icon name="Scale" size={14} className="mr-1" />
+                Правила
+              </Button>
             </div>
 
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-green-50/80 border border-green-200">
@@ -1793,6 +1801,14 @@ export default function Index({ onLogout }: IndexProps) {
               >
                 <Icon name="BookOpen" size={14} className="mr-1" />
                 Жалобная книга
+              </Button>
+              <Button
+                onClick={() => navigate('/psychologist')}
+                variant="outline"
+                className="text-xs py-1.5 px-2.5 h-auto"
+              >
+                <Icon name="Brain" size={14} className="mr-1" />
+                Психолог ИИ
               </Button>
             </div>
 
