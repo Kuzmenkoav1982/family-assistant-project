@@ -20,6 +20,7 @@ import FamilyCode from "./pages/FamilyCode";
 import Presentation from "./pages/Presentation";
 import FamilyPsychologist from "./pages/FamilyPsychologist";
 import FamilyRules from "./pages/FamilyRules";
+import LaunchPlan from "./pages/LaunchPlan";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="/presentation" element={<Presentation />} />
             <Route path="/psychologist" element={<FamilyPsychologist />} />
             <Route path="/rules" element={<FamilyRules />} />
+            <Route path="/launch-plan" element={<LaunchPlan />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
