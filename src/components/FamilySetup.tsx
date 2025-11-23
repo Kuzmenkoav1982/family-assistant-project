@@ -88,9 +88,9 @@ export default function FamilySetup({ user, onSetupComplete }: FamilySetupProps)
           <CardHeader>
             <div className="flex justify-center mb-4">
               <img 
-                src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+                src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
                 alt="Семейный Органайзер"
-                className="w-24 h-24 rounded-full object-cover shadow-xl"
+                className="w-24 h-24 object-contain"
               />
             </div>
             <CardTitle className="text-3xl text-center">Добро пожаловать в Семейный Органайзер!</CardTitle>

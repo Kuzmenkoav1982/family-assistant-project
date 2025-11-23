@@ -11,9 +11,9 @@ export default function Footer() {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img 
-                src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+                src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
                 alt="Семейный Органайзер"
-                className="h-12 w-12 rounded-full object-cover"
+                className="h-12 w-12 object-contain"
               />
               <div>
                 <h3 className="font-bold text-lg">Семейный Органайзер</h3>

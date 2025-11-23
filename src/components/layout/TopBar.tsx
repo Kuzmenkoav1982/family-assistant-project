@@ -73,9 +73,9 @@ export default function TopBar({
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <img 
-            src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+            src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Семейный Органайзер"
-            className="h-10 w-10 rounded-full object-cover shadow-md"
+            className="h-10 w-10 object-contain"
             style={{ border: 'none', outline: 'none' }}
           />
           <Button

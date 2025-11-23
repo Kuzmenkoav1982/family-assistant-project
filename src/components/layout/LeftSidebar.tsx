@@ -44,9 +44,9 @@ export default function LeftSidebar({
       <div className="h-full w-64 flex flex-col p-4">
         <div className="flex items-center gap-3 mb-4">
           <img 
-            src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+            src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Семейный Органайзер"
-            className="h-12 w-12 rounded-full object-cover"
+            className="h-12 w-12 object-contain"
           />
           <h2 className="text-lg font-bold text-gray-700 flex-1">Разделы</h2>
           <Button
