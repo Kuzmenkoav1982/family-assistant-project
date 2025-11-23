@@ -72,6 +72,11 @@ export default function TopBar({
     >
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
+          <img 
+            src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+            alt="Семейный Органайзер"
+            className="h-10 w-10 rounded-full object-cover"
+          />
           <Button
             onClick={onLogout}
             variant="ghost"
