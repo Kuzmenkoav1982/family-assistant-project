@@ -42,8 +42,13 @@ export default function LeftSidebar({
       onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
       <div className="h-full w-64 flex flex-col p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-700">Разделы</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <img 
+            src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+            alt="Семейный Органайзер"
+            className="h-12 w-12 rounded-full object-cover"
+          />
+          <h2 className="text-lg font-bold text-gray-700 flex-1">Разделы</h2>
           <Button
             onClick={() => onLeftPanelSettingsToggle(!showLeftPanelSettings)}
             variant="ghost"

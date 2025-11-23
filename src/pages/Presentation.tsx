@@ -156,6 +156,13 @@ export default function Presentation() {
       <div id="presentation-content" className="max-w-4xl mx-auto px-6 py-12 print:px-0 print:py-0">
         
         <div className="text-center mb-16 print:mb-8 print:break-inside-avoid">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="https://cdn.poehali.dev/files/216f5ecf-4980-40b1-adeb-2001ba3cce9c.jpeg" 
+              alt="Семейный Органайзер"
+              className="h-32 w-32 rounded-full object-cover shadow-2xl border-4 border-purple-200"
+            />
+          </div>
           <h1 className="text-5xl font-bold text-purple-900 mb-4">
             Семейный Органайзер
           </h1>
