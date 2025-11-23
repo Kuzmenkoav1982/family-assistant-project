@@ -18,6 +18,8 @@ import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
 import FamilyCode from "./pages/FamilyCode";
 import Presentation from "./pages/Presentation";
+import FamilyPsychologist from "./pages/FamilyPsychologist";
+import FamilyRules from "./pages/FamilyRules";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +48,8 @@ const App = () => {
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />
             <Route path="/presentation" element={<Presentation />} />
+            <Route path="/psychologist" element={<FamilyPsychologist />} />
+            <Route path="/rules" element={<FamilyRules />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

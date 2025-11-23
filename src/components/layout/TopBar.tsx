@@ -94,6 +94,26 @@ export default function TopBar({
             <Icon name="BookOpen" size={18} />
           </Button>
           
+          <Button
+            onClick={() => navigate('/psychologist')}
+            variant="ghost"
+            size="sm"
+            className="h-9 w-9 p-0"
+            title="Семейный психолог ИИ"
+          >
+            <Icon name="Brain" size={18} />
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/rules')}
+            variant="ghost"
+            size="sm"
+            className="h-9 w-9 p-0"
+            title="Семейные правила"
+          >
+            <Icon name="Scale" size={18} />
+          </Button>
+          
           {currentUser && (
             <Button
               onClick={() => navigate(`/member/${currentUser.id}`)}

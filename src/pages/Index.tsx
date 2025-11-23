@@ -522,10 +522,11 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'goals', icon: 'Target', label: 'Цели' },
     { id: 'cohesion', icon: 'TrendingUp', label: 'Сплочённость' },
     { id: 'children', icon: 'Baby', label: 'Дети' },
+    { id: 'psychologist', icon: 'Brain', label: 'Психолог ИИ', ready: false },
+    { id: 'rules-section', icon: 'Scale', label: 'Правила', ready: false },
     { id: 'chat', icon: 'MessageCircle', label: 'Чат' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
-    { id: 'rules', icon: 'Scale', label: 'Правила' },
     { id: 'blog', icon: 'BookOpen', label: 'Блог' },
     { id: 'album', icon: 'Image', label: 'Альбом' },
     { id: 'tree', icon: 'GitBranch', label: 'Древо' },
@@ -1398,7 +1399,15 @@ export default function Index({ onLogout }: IndexProps) {
             {menuSections.map((section, index) => (
               <button
                 key={section.id}
-                onClick={() => setActiveSection(section.id)}
+                onClick={() => {
+                  if (section.id === 'psychologist') {
+                    navigate('/psychologist');
+                  } else if (section.id === 'rules-section') {
+                    navigate('/rules');
+                  } else {
+                    setActiveSection(section.id);
+                  }
+                }}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all animate-fade-in ${
                   activeSection === section.id 
                     ? 'bg-blue-100 text-blue-700 shadow-sm' 
@@ -1408,6 +1417,9 @@ export default function Index({ onLogout }: IndexProps) {
               >
                 <Icon name={section.icon} size={18} />
                 <span className="text-sm font-medium">{section.label}</span>
+                {section.ready === false && (
+                  <Badge variant="outline" className="ml-auto text-xs">В разработке</Badge>
+                )}
               </button>
             ))}
             
