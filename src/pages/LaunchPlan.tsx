@@ -83,720 +83,525 @@ export default function LaunchPlan() {
   };
 
   const downloadTechnicalSpec = () => {
-    const techSpec = `# ТЕХНИЧЕСКОЕ ЗАДАНИЕ
-# Семейный Органайзер
-
-**Версия документа:** 1.0  
-**Дата создания:** ${new Date().toLocaleDateString('ru-RU')}
-
----
-
-## 1. ОБЩЕЕ ОПИСАНИЕ ПРОЕКТА
-
-### 1.1 Название проекта
-**Семейный Органайзер** — веб-приложение для организации семейной жизни
-
-### 1.2 Цель проекта
-Создание единой платформы для координации задач, планирования событий, управления финансами и укрепления семейных связей через цифровые инструменты.
-
-### 1.3 Целевая аудитория
-- Семьи с детьми (основная аудитория)
-- Многопоколенные семьи
-- Пары, планирующие совместную жизнь
-- Возрастная группа: 25-55 лет
-
-### 1.4 Бизнес-модель
-- Freemium модель
-- Базовый функционал бесплатно
-- Premium подписка: 299₽/мес или 2990₽/год
-- Корпоративные тарифы для семейных центров
-
----
-
-## 2. ТЕХНИЧЕСКИЙ СТЕК
-
-### 2.1 Frontend
-- **Framework:** React 18+ с TypeScript
-- **Роутинг:** React Router v6
-- **Стейт-менеджмент:** React Context API + React Query
-- **UI библиотека:** shadcn/ui + Tailwind CSS
-- **Формы:** React Hook Form + Zod валидация
-- **Графики:** Recharts
-- **Иконки:** Lucide React
-- **PWA:** Service Workers для офлайн режима
-
-### 2.2 Backend
-- **Framework:** Node.js + Express.js или Fastify
-- **Язык:** TypeScript
-- **API:** RESTful + WebSockets (Socket.io)
-- **Аутентификация:** JWT + Refresh tokens
-- **Валидация:** Joi или Zod
-
-### 2.3 База данных
-- **Primary DB:** PostgreSQL 15+
-- **ORM:** Prisma или TypeORM
-- **Кэширование:** Redis
-- **Файлы:** S3-совместимое хранилище (Yandex Object Storage)
-
-### 2.4 Инфраструктура
-- **Хостинг:** Yandex Cloud
-- **Compute:** Compute Cloud (2 vCPU, 4 GB RAM)
-- **БД:** Managed PostgreSQL
-- **CDN:** Yandex CDN
-- **CI/CD:** GitHub Actions
-- **Мониторинг:** Sentry + Yandex Monitoring
-- **Email:** SendGrid
-- **Push-уведомления:** Firebase Cloud Messaging
-
-### 2.5 Внешние API
-- **ИИ-ассистент:** OpenAI GPT-4 или GPT-3.5
-- **Чат:** Stream Chat API
-- **Платежи:** ЮKassa
-- **Карты:** Yandex Maps API
-- **Календари:** Google Calendar API (синхронизация)
-- **Голосовой ассистент:** Yandex SpeechKit (Алиса)
-
----
-
-## 3. ФУНКЦИОНАЛЬНЫЕ ТРЕБОВАНИЯ
-
-### 3.1 МОДУЛЬ АУТЕНТИФИКАЦИИ
-
-#### 3.1.1 Регистрация
-\`\`\`
-POST /api/auth/register
-Body: {
-  email: string,
-  password: string (min 8 символов),
-  name: string,
-  phone?: string
-}
-Response: {
-  user: User,
-  tokens: { access: string, refresh: string }
-}
-\`\`\`
-
-**Требования:**
-- Email валидация и уникальность
-- Хеширование паролей (bcrypt, rounds=10)
-- Email верификация через код
-- Капча при регистрации (hCaptcha)
-
-#### 3.1.2 Вход
-\`\`\`
-POST /api/auth/login
-Body: { email: string, password: string }
-Response: { user: User, tokens: Tokens }
-\`\`\`
-
-#### 3.1.3 OAuth авторизация
-- Google OAuth 2.0
-- Yandex ID
-- VK ID
-
-#### 3.1.4 Восстановление пароля
-\`\`\`
-POST /api/auth/forgot-password
-Body: { email: string }
-
-POST /api/auth/reset-password
-Body: { token: string, newPassword: string }
-\`\`\`
-
-#### 3.1.5 2FA (опционально, Premium)
-- TOTP через Google Authenticator
-- SMS коды
-
----
-
-### 3.2 МОДУЛЬ СЕМЬИ
-
-#### 3.2.1 Создание семьи
-\`\`\`
-POST /api/families
-Body: {
-  name: string,
-  description?: string,
-  avatar?: file
-}
-Response: Family
-\`\`\`
-
-#### 3.2.2 Приглашение членов
-\`\`\`
-POST /api/families/:familyId/invites
-Body: {
-  email: string,
-  role: 'admin' | 'member' | 'child'
-}
-\`\`\`
-
-**Роли:**
-- **Owner** — создатель семьи (1 на семью)
-- **Admin** — полные права управления
-- **Member** — обычный участник
-- **Child** — ограниченные права, родительский контроль
-
-#### 3.2.3 Профили участников
-\`\`\`typescript
-interface FamilyMember {
-  id: string;
-  familyId: string;
-  userId: string;
-  role: Role;
-  name: string;
-  avatar?: string;
-  birthday?: Date;
-  relationship: string; // 'папа', 'мама', 'сын', 'дочь', ...
-  points: number; // gamification баллы
-  level: number;
-  preferences: {
-    favoriteFood: string[];
-    allergies: string[];
-    hobbies: string[];
-  };
-  createdAt: Date;
-}
-\`\`\`
-
----
-
-### 3.3 МОДУЛЬ ЗАДАЧ (TODO)
-
-#### 3.3.1 CRUD задач
-\`\`\`
-GET    /api/tasks?familyId=:id&status=pending
-POST   /api/tasks
-PUT    /api/tasks/:id
-DELETE /api/tasks/:id
-PATCH  /api/tasks/:id/complete
-\`\`\`
-
-\`\`\`typescript
-interface Task {
-  id: string;
-  familyId: string;
-  title: string;
-  description?: string;
-  assigneeId?: string; // кому назначено
-  creatorId: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  dueDate?: Date;
-  reminderTime?: Date;
-  points: number; // баллы за выполнение (5-50)
-  recurring?: {
-    frequency: 'daily' | 'weekly' | 'monthly';
-    interval: number;
-    daysOfWeek?: number[];
-    endDate?: Date;
-  };
-  category: 'household' | 'shopping' | 'kids' | 'finance' | 'other';
-  tags: string[];
-  attachments?: string[];
-  completedAt?: Date;
-  createdAt: Date;
-}
-\`\`\`
-
-#### 3.3.2 Gamification
-- Начисление баллов за выполнение задач
-- Система уровней (1-20)
-- Достижения (ачивки)
-- Еженедельный топ участников
-- Награды за стрики (выполнение задач N дней подряд)
-
----
-
-### 3.4 МОДУЛЬ КАЛЕНДАРЯ
-
-#### 3.4.1 События
-\`\`\`typescript
-interface CalendarEvent {
-  id: string;
-  familyId: string;
-  title: string;
-  description?: string;
-  type: 'birthday' | 'meeting' | 'vacation' | 'doctor' | 'school' | 'other';
-  startDate: Date;
-  endDate?: Date;
-  allDay: boolean;
-  location?: string;
-  participants: string[]; // member IDs
-  reminders: {
-    type: 'push' | 'email' | 'sms';
-    minutesBefore: number;
-  }[];
-  recurring?: RecurringPattern;
-  color: string;
-  createdBy: string;
-}
-\`\`\`
-
-#### 3.4.2 Интеграции
-- Импорт из Google Calendar
-- Экспорт в .ics формат
-- Синхронизация с внешними календарями
-
-#### 3.4.3 Уведомления
-- Push-уведомления за 15 мин / 1 час / 1 день до события
-- Email дайджесты (ежедневно утром)
-- SMS для критичных событий (Premium)
-
----
-
-### 3.5 МОДУЛЬ ЧАТ
-
-#### 3.5.1 Семейный чат
-- Реал-тайм обмен сообщениями (WebSockets)
-- Поддержка текста, изображений, файлов
-- Голосовые сообщения (до 2 мин)
-- Реакции на сообщения (эмодзи)
-- Ответы (reply)
-- Редактирование и удаление сообщений (5 мин)
-
-#### 3.5.2 Технические требования
-\`\`\`typescript
-interface ChatMessage {
-  id: string;
-  familyId: string;
-  senderId: string;
-  type: 'text' | 'image' | 'file' | 'voice' | 'system';
-  content: string;
-  attachments?: {
-    url: string;
-    type: string;
-    size: number;
-    name: string;
-  }[];
-  replyTo?: string; // message ID
-  reactions: {
-    emoji: string;
-    userIds: string[];
-  }[];
-  edited: boolean;
-  createdAt: Date;
-  updatedAt?: Date;
-}
-\`\`\`
-
-#### 3.5.3 Альтернативное решение
-Использовать **Stream Chat API** вместо самописного чата:
-- Готовая инфраструктура
-- Стоимость: ~10,000₽/мес (до 1000 пользователей)
-- Все фичи из коробки
-
----
-
-### 3.6 МОДУЛЬ ИИ-АССИСТЕНТ
-
-#### 3.6.1 Возможности
-- Советы по распределению задач
-- Предложения рецептов на основе предпочтений семьи
-- Напоминания о важных событиях
-- Анализ семейных паттернов и рекомендации
-- Помощь в планировании бюджета
-- Идеи для семейного досуга
-
-#### 3.6.2 Интеграция OpenAI
-\`\`\`typescript
-interface AIRequest {
-  familyId: string;
-  userId: string;
-  prompt: string;
-  context?: {
-    familyMembers: FamilyMember[];
-    recentTasks: Task[];
-    preferences: Preferences;
-  };
-}
-\`\`\`
-
-**Промпты (примеры):**
-- "Предложи 3 рецепта на ужин для семьи из 4 человек"
-- "Как распределить задачи на неделю справедливо?"
-- "Подбери активности на выходные для детей 7 и 10 лет"
-
-**Стоимость:**
-- GPT-3.5-turbo: ~$0.002 за 1К токенов → ~10,000₽/мес
-- GPT-4: ~$0.03 за 1К токенов → ~100,000₽/мес
-
----
-
-### 3.7 МОДУЛЬ ФАЙЛОВОГО ХРАНИЛИЩА
-
-#### 3.7.1 Требования
-- Лимит на файл: 50 MB (бесплатно), 500 MB (Premium)
-- Общий лимит: 1 GB (бесплатно), 50 GB (Premium)
-- Форматы: изображения, PDF, Word, Excel, видео
-
-#### 3.7.2 Организация
-\`\`\`typescript
-interface File {
-  id: string;
-  familyId: string;
-  uploadedBy: string;
-  name: string;
-  type: string;
-  size: number; // bytes
-  url: string;
-  thumbnailUrl?: string;
-  category: 'documents' | 'photos' | 'videos' | 'other';
-  tags: string[];
-  sharedWith: string[]; // member IDs
-  createdAt: Date;
-}
-\`\`\`
-
-#### 3.7.3 S3 структура
-\`\`\`
-bucket-name/
-  families/
-    {familyId}/
-      avatars/
-      documents/
-      photos/
-        {year}/
-          {month}/
-      videos/
-\`\`\`
-
----
-
-### 3.8 МОДУЛЬ ГОЛОСОВОЙ АССИСТЕНТ (опционально)
-
-#### 3.8.1 Интеграция Yandex Алиса
-- Голосовые команды для управления задачами
-- Добавление событий в календарь
-- Чтение напоминаний
-- Навык "Семейный Органайзер" для Яндекс.Станции
-
-**Примеры команд:**
-- "Алиса, добавь задачу купить молоко"
-- "Алиса, что у нас на завтра?"
-- "Алиса, напомни завтра в 10 утра о встрече"
-
----
-
-### 3.9 МОДУЛЬ СООБЩЕСТВО (Social)
-
-#### 3.9.1 Публичные посты
-\`\`\`typescript
-interface CommunityPost {
-  id: string;
-  authorId: string;
-  type: 'article' | 'question' | 'story';
-  title: string;
-  content: string;
-  images?: string[];
-  category: 'parenting' | 'recipes' | 'travel' | 'finance' | 'other';
-  likes: number;
-  commentsCount: number;
-  isPublic: boolean;
-  createdAt: Date;
-}
-\`\`\`
-
-#### 3.9.2 Комментарии и лайки
-- Система модерации (AI + ручная проверка)
-- Защита от спама
-- Рейтинг пользователей
-
----
-
-### 3.10 PWA И МОБИЛЬНАЯ ВЕРСИЯ
-
-#### 3.10.1 Требования PWA
-- Работа офлайн (Service Workers)
-- Установка на главный экран
-- Push-уведомления
-- Responsive дизайн (Mobile-first)
-
-#### 3.10.2 Манифест
-\`\`\`json
-{
-  "name": "Семейный Органайзер",
-  "short_name": "СемОрг",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#7c3aed",
-  "icons": [...]
-}
-\`\`\`
-
----
-
-### 3.11 ПЛАТЁЖНАЯ СИСТЕМА
-
-#### 3.11.1 ЮKassa интеграция
-\`\`\`
-POST /api/payments/create-subscription
-Body: {
-  planType: 'premium_monthly' | 'premium_yearly',
-  returnUrl: string
-}
-Response: {
-  paymentUrl: string,
-  paymentId: string
-}
-\`\`\`
-
-#### 3.11.2 Тарифы
-**Бесплатный:**
-- 1 семья
-- До 10 участников
-- 1 GB хранилища
-- Базовый ИИ (лимит 20 запросов/день)
-
-**Premium (299₽/мес или 2990₽/год):**
-- Неограниченно семей
-- Неограниченно участников
-- 50 GB хранилища
-- Полный доступ к ИИ
-- Приоритетная поддержка
-- Экспорт данных
-
----
-
-## 4. НЕФУНКЦИОНАЛЬНЫЕ ТРЕБОВАНИЯ
-
-### 4.1 Производительность
-- Время загрузки главной страницы: < 2 сек
-- Время ответа API: < 200ms (p95)
-- Поддержка 1000+ одновременных пользователей
-- Uptime: 99.5%
-
-### 4.2 Безопасность
-- HTTPS везде (TLS 1.3)
-- CSRF protection
-- XSS protection (санитизация ввода)
-- SQL injection защита (параметризованные запросы)
-- Rate limiting: 100 req/min на IP
-- Логирование всех критичных операций
-- Регулярные бэкапы БД (ежедневно)
-- GDPR/RGPD compliance
-
-### 4.3 Масштабируемость
-- Горизонтальное масштабирование API
-- Database sharding при росте (>1M пользователей)
-- CDN для статики
-- Оптимизация изображений (WebP, lazy loading)
-
-### 4.4 Доступность (Accessibility)
-- WCAG 2.1 Level AA
-- Поддержка скринридеров
-- Контрастность цветов 4.5:1
-- Клавиатурная навигация
-
-### 4.5 Локализация
-- Русский (основной)
-- Английский
-- Возможность добавления языков
-
----
-
-## 5. АРХИТЕКТУРА СИСТЕМЫ
-
-### 5.1 Диаграмма компонентов
-\`\`\`
-[Frontend React]
-      |
-      | HTTPS
-      v
-[Nginx (Reverse Proxy)]
-      |
-      ├─> [API Server (Node.js)]
-      |         |
-      |         ├─> [PostgreSQL]
-      |         ├─> [Redis Cache]
-      |         └─> [S3 Storage]
-      |
-      └─> [WebSocket Server]
-\`\`\`
-
-### 5.2 База данных (схема)
-
-**Таблицы:**
-- \`users\` — пользователи
-- \`families\` — семьи
-- \`family_members\` — связь пользователь-семья
-- \`invites\` — приглашения
-- \`tasks\` — задачи
-- \`calendar_events\` — события
-- \`chat_messages\` — сообщения чата
-- \`files\` — файлы
-- \`posts\` — публикации сообщества
-- \`payments\` — платежи
-- \`subscriptions\` — подписки
-
-**Индексы:**
-- \`family_members(family_id, user_id)\`
-- \`tasks(family_id, status, due_date)\`
-- \`calendar_events(family_id, start_date)\`
-- \`chat_messages(family_id, created_at DESC)\`
-
----
-
-## 6. ЭТАПЫ РАЗРАБОТКИ
-
-### Фаза 1: MVP (3-4 месяца)
-1. **Неделя 1-2:** Настройка инфраструктуры, CI/CD
-2. **Неделя 3-6:** Аутентификация + система семей
-3. **Неделя 7-10:** Задачи + gamification
-4. **Неделя 11-14:** Календарь
-5. **Неделя 15-16:** PWA, тестирование, бета-запуск
-
-### Фаза 2: Расширенная версия (+3 месяца)
-1. Чат (Stream Chat)
-2. ИИ-ассистент (GPT-3.5)
-3. Файловое хранилище
-4. Платёжная система
-5. Публичный запуск
-
-### Фаза 3: Дополнительные фичи (+2 месяца)
-1. Голосовой помощник (Алиса)
-2. Сообщество
-3. Расширенная аналитика
-4. Мобильные приложения (React Native)
-
----
-
-## 7. КОМАНДА РАЗРАБОТКИ
-
-### Минимальный состав (MVP):
-- **1x Fullstack разработчик** (React + Node.js)
-- **1x UI/UX дизайнер** (контракт)
-- **1x QA Engineer** (part-time)
-- **1x DevOps** (консультант)
-
-### Расширенная команда:
-- **2x Frontend** (React)
-- **2x Backend** (Node.js)
-- **1x Mobile** (React Native)
-- **1x DevOps**
-- **1x UI/UX**
-- **1x QA**
-- **1x Product Manager**
-
----
-
-## 8. БЮДЖЕТ И СРОКИ
-
-### Затраты на разработку (MVP):
-- Backend разработчик: 150,000₽/мес × 4 = 600,000₽
-- UI/UX дизайнер: 50,000₽ (контракт)
-- QA Engineer: 60,000₽/мес × 2 = 120,000₽
-
-**Итого MVP:** ~770,000₽
-
-### Инфраструктура (месяц):
-- Yandex Cloud: 6,600₽
-- Stream Chat: 10,000₽
-- OpenAI API: 10,000₽ (GPT-3.5)
-- Домен + SSL: ~200₽/год
-- SendGrid: Бесплатно (до 40k писем)
-
-**Итого инфраструктура:** ~27,000₽/мес
-
-### Общий бюджет на запуск:
-- Разработка: 770,000₽
-- Инфра (3 мес): 81,000₽
-- Тестирование + маркетинг: 190,000₽
-- Юридика: 40,000₽
-
-**ИТОГО: ~1,081,000₽**
-
----
-
-## 9. РИСКИ И МИТИГАЦИЯ
-
-| Риск | Вероятность | Последствия | Митигация |
-|------|-------------|-------------|-----------|
-| Отставание от графика | Высокая | Задержка запуска | Agile методология, еженедельные ревью |
-| Превышение бюджета | Средняя | Нехватка средств | Резерв 15%, приоритизация фич |
-| Проблемы с масштабированием | Низкая | Падения сервиса | Нагрузочное тестирование, кэширование |
-| Низкая конверсия в Premium | Средняя | Потеря выручки | A/B тесты, улучшение предложения |
-| Утечка данных | Низкая | Репутационный урон | Аудит безопасности, пентесты |
-
----
-
-## 10. МЕТРИКИ УСПЕХА
-
-### KPI для MVP:
-- **100 тестовых пользователей** за первый месяц
-- **Retention Rate** > 40% (7-day)
-- **Average Session Duration** > 5 минут
-- **Crash-free Rate** > 99%
-
-### KPI для публичного запуска:
-- **1,000 регистраций** в первые 3 месяца
-- **Конверсия в Premium** > 5%
-- **NPS (Net Promoter Score)** > 30
-- **DAU/MAU** > 0.2
-
----
-
-## 11. ЮРИДИЧЕСКИЕ АСПЕКТЫ
-
-### 11.1 Документы
-- Пользовательское соглашение (Terms of Service)
-- Политика конфиденциальности (Privacy Policy)
-- Договор оферты для Premium
-- Согласие на обработку персональных данных
-
-### 11.2 Регистрация
-- ИП или самозанятый для начала
-- ООО при масштабировании
-- Регистрация в ФНС РФ
-
-### 11.3 Compliance
-- Закон о персональных данных (152-ФЗ)
-- Роскомнадзор (уведомление об обработке данных)
-- GDPR для европейских пользователей
-
----
-
-## 12. ПОДДЕРЖКА И ОБСЛУЖИВАНИЕ
-
-### 12.1 Каналы поддержки
-- Email: support@familyorganizer.ru
-- Telegram бот
-- FAQ на сайте
-- Видео-инструкции (YouTube)
-
-### 12.2 SLA
-- Ответ на запрос: < 24 часа
-- Критичные баги: исправление < 4 часа
-- Плановые обновления: раз в 2 недели
-- Техническое обслуживание: воскресенье 02:00-04:00
-
----
-
-## 13. ROADMAP (12 месяцев)
-
-**Q1 (месяцы 1-3):** MVP разработка  
-**Q2 (месяцы 4-6):** Бета-тест, доработки, запуск  
-**Q3 (месяцы 7-9):** Расширенные фичи (ИИ, чат, файлы)  
-**Q4 (месяцы 10-12):** Мобильные приложения, маркетинг  
-
----
-
-## 14. КОНТАКТЫ
-
-**Автор ТЗ:** Семейный Органайзер Team  
-**Email:** tech@familyorganizer.ru  
-**Дата создания:** ${new Date().toLocaleDateString('ru-RU')}  
-**Версия:** 1.0
-
----
-
-*Данное техническое задание является живым документом и может обновляться по мере развития проекта.*
-`;
+    const techSpec = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Техническое задание - Семейный Органайзер</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; line-height: 1.6; margin: 40px; }
+          h1 { color: #7c3aed; font-size: 24pt; margin-bottom: 20px; text-align: center; }
+          h2 { color: #6366f1; font-size: 18pt; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #6366f1; padding-bottom: 5px; }
+          h3 { color: #8b5cf6; font-size: 14pt; margin-top: 20px; margin-bottom: 10px; }
+          p { margin: 10px 0; }
+          ul, ol { margin-left: 20px; }
+          li { margin: 5px 0; }
+          strong { color: #333; }
+          code { background-color: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+          .header-info { text-align: center; color: #666; margin-bottom: 30px; }
+          .section { margin-bottom: 30px; }
+          table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+          th { background-color: #f3f4f6; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h1>ТЕХНИЧЕСКОЕ ЗАДАНИЕ</h1>
+        <h1 style="font-size: 20pt; color: #8b5cf6;">Семейный Органайзер</h1>
+        
+        <div class="header-info">
+          <p><strong>Версия документа:</strong> 1.0</p>
+          <p><strong>Дата создания:</strong> ${new Date().toLocaleDateString('ru-RU')}</p>
+        </div>
+        
+        <hr style="border: 2px solid #7c3aed; margin: 30px 0;">
+        
+        <div class="section">
+          <h2>1. ОБЩЕЕ ОПИСАНИЕ ПРОЕКТА</h2>
+
+          <h3>1.1 Название проекта</h3>
+          <p><strong>Семейный Органайзер</strong> — веб-приложение для организации семейной жизни</p>
+          
+          <h3>1.2 Цель проекта</h3>
+          <p>Создание единой платформы для координации задач, планирования событий, управления финансами и укрепления семейных связей через цифровые инструменты.</p>
+          
+          <h3>1.3 Целевая аудитория</h3>
+          <ul>
+            <li>Семьи с детьми (основная аудитория)</li>
+            <li>Многопоколенные семьи</li>
+            <li>Пары, планирующие совместную жизнь</li>
+            <li>Возрастная группа: 25-55 лет</li>
+          </ul>
+          
+          <h3>1.4 Бизнес-модель</h3>
+          <ul>
+            <li>Freemium модель</li>
+            <li>Базовый функционал бесплатно</li>
+            <li>Premium подписка: 299₽/мес или 2990₽/год</li>
+            <li>Корпоративные тарифы для семейных центров</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>2. ТЕХНИЧЕСКИЙ СТЕК</h2>
+          
+          <h3>2.1 Frontend</h3>
+          <ul>
+            <li><strong>Framework:</strong> React 18+ с TypeScript</li>
+            <li><strong>Роутинг:</strong> React Router v6</li>
+            <li><strong>Стейт-менеджмент:</strong> React Context API + React Query</li>
+            <li><strong>UI библиотека:</strong> shadcn/ui + Tailwind CSS</li>
+            <li><strong>Формы:</strong> React Hook Form + Zod валидация</li>
+            <li><strong>Графики:</strong> Recharts</li>
+            <li><strong>Иконки:</strong> Lucide React</li>
+            <li><strong>PWA:</strong> Service Workers для офлайн режима</li>
+          </ul>
+          
+          <h3>2.2 Backend</h3>
+          <ul>
+            <li><strong>Framework:</strong> Node.js + Express.js или Fastify</li>
+            <li><strong>Язык:</strong> TypeScript</li>
+            <li><strong>API:</strong> RESTful + WebSockets (Socket.io)</li>
+            <li><strong>Аутентификация:</strong> JWT + Refresh tokens</li>
+            <li><strong>Валидация:</strong> Joi или Zod</li>
+          </ul>
+          
+          <h3>2.3 База данных</h3>
+          <ul>
+            <li><strong>Primary DB:</strong> PostgreSQL 15+</li>
+            <li><strong>ORM:</strong> Prisma или TypeORM</li>
+            <li><strong>Кэширование:</strong> Redis</li>
+            <li><strong>Файлы:</strong> S3-совместимое хранилище (Yandex Object Storage)</li>
+          </ul>
+          
+          <h3>2.4 Инфраструктура</h3>
+          <ul>
+            <li><strong>Хостинг:</strong> Yandex Cloud</li>
+            <li><strong>Compute:</strong> Compute Cloud (2 vCPU, 4 GB RAM)</li>
+            <li><strong>БД:</strong> Managed PostgreSQL</li>
+            <li><strong>CDN:</strong> Yandex CDN</li>
+            <li><strong>CI/CD:</strong> GitHub Actions</li>
+            <li><strong>Мониторинг:</strong> Sentry + Yandex Monitoring</li>
+            <li><strong>Email:</strong> SendGrid</li>
+            <li><strong>Push-уведомления:</strong> Firebase Cloud Messaging</li>
+          </ul>
+          
+          <h3>2.5 Внешние API</h3>
+          <ul>
+            <li><strong>ИИ-ассистент:</strong> OpenAI GPT-4 или GPT-3.5</li>
+            <li><strong>Чат:</strong> Stream Chat API</li>
+            <li><strong>Платежи:</strong> ЮKassa</li>
+            <li><strong>Карты:</strong> Yandex Maps API</li>
+            <li><strong>Календари:</strong> Google Calendar API (синхронизация)</li>
+            <li><strong>Голосовой ассистент:</strong> Yandex SpeechKit (Алиса)</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>3. ФУНКЦИОНАЛЬНЫЕ ТРЕБОВАНИЯ</h2>
+          
+          <h3>3.1 МОДУЛЬ АУТЕНТИФИКАЦИИ</h3>
+          <p><strong>Основные возможности:</strong></p>
+          <ul>
+            <li>Регистрация и авторизация пользователей</li>
+            <li>OAuth интеграция (Google, Yandex, VK)</li>
+            <li>Восстановление пароля через email</li>
+            <li>2FA аутентификация (опционально, Premium)</li>
+          </ul>
+          
+          <h3>3.2 МОДУЛЬ СЕМЬИ</h3>
+          <p><strong>Управление семейными группами:</strong></p>
+          <ul>
+            <li>Создание и настройка семьи</li>
+            <li>Приглашение членов семьи</li>
+            <li>Роли: Owner, Admin, Member, Child</li>
+            <li>Профили участников с предпочтениями</li>
+          </ul>
+          
+          <h3>3.3 МОДУЛЬ ЗАДАЧ</h3>
+          <p><strong>Система задач и gamification:</strong></p>
+          <ul>
+            <li>Создание, редактирование, удаление задач</li>
+            <li>Назначение задач членам семьи</li>
+            <li>Приоритеты и дедлайны</li>
+            <li>Начисление баллов и уровни</li>
+            <li>Повторяющиеся задачи</li>
+          </ul>
+          
+          <h3>3.4 МОДУЛЬ КАЛЕНДАРЯ</h3>
+          <p><strong>Планирование событий:</strong></p>
+          <ul>
+            <li>Семейные события и напоминания</li>
+            <li>Интеграция с Google Calendar</li>
+            <li>Push-уведомления</li>
+            <li>Синхронизация между устройствами</li>
+          </ul>
+          
+          <h3>3.5 МОДУЛЬ ЧАТ</h3>
+          <p><strong>Семейное общение:</strong></p>
+          <ul>
+            <li>Реал-тайм сообщения (WebSockets)</li>
+            <li>Текст, изображения, файлы</li>
+            <li>Голосовые сообщения</li>
+            <li>Реакции и ответы</li>
+          </ul>
+          
+          <h3>3.6 МОДУЛЬ ИИ-АССИСТЕНТ</h3>
+          <p><strong>Умные рекомендации:</strong></p>
+          <ul>
+            <li>Советы по распределению задач</li>
+            <li>Предложения рецептов</li>
+            <li>Анализ семейных паттернов</li>
+            <li>Идеи для досуга</li>
+          </ul>
+          
+          <h3>3.7 ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ</h3>
+          <ul>
+            <li>Файловое хранилище (1GB-50GB)</li>
+            <li>Голосовой ассистент (Яндекс Алиса)</li>
+            <li>Сообщество и публичные посты</li>
+            <li>PWA для мобильных устройств</li>
+            <li>Платёжная система (ЮKassa)</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>4. НЕФУНКЦИОНАЛЬНЫЕ ТРЕБОВАНИЯ</h2>
+          
+          <h3>4.1 Производительность</h3>
+          <ul>
+            <li>Загрузка главной страницы: &lt; 2 сек</li>
+            <li>Ответ API: &lt; 200ms (p95)</li>
+            <li>Поддержка 1000+ одновременных пользователей</li>
+            <li>Uptime: 99.5%</li>
+          </ul>
+          
+          <h3>4.2 Безопасность</h3>
+          <ul>
+            <li>HTTPS везде (TLS 1.3)</li>
+            <li>CSRF, XSS, SQL injection защита</li>
+            <li>Rate limiting: 100 req/min на IP</li>
+            <li>Регулярные бэкапы БД</li>
+            <li>GDPR/152-ФЗ compliance</li>
+          </ul>
+          
+          <h3>4.3 Масштабируемость</h3>
+          <ul>
+            <li>Горизонтальное масштабирование API</li>
+            <li>Database sharding при росте</li>
+            <li>CDN для статики</li>
+            <li>Оптимизация изображений (WebP)</li>
+          </ul>
+          
+          <h3>4.4 Доступность</h3>
+          <ul>
+            <li>WCAG 2.1 Level AA</li>
+            <li>Поддержка скринридеров</li>
+            <li>Контрастность цветов 4.5:1</li>
+            <li>Клавиатурная навигация</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>5. ЭТАПЫ РАЗРАБОТКИ</h2>
+          
+          <h3>Фаза 1: MVP (3-4 месяца)</h3>
+          <ol>
+            <li>Настройка инфраструктуры, CI/CD (1-2 недели)</li>
+            <li>Аутентификация + система семей (3-6 недели)</li>
+            <li>Задачи + gamification (7-10 недели)</li>
+            <li>Календарь (11-14 недели)</li>
+            <li>PWA, тестирование, бета-запуск (15-16 недели)</li>
+          </ol>
+          
+          <h3>Фаза 2: Расширенная версия (+3 месяца)</h3>
+          <ol>
+            <li>Чат (Stream Chat)</li>
+            <li>ИИ-ассистент (GPT-3.5)</li>
+            <li>Файловое хранилище</li>
+            <li>Платёжная система</li>
+            <li>Публичный запуск</li>
+          </ol>
+          
+          <h3>Фаза 3: Дополнительные фичи (+2 месяца)</h3>
+          <ol>
+            <li>Голосовой помощник (Алиса)</li>
+            <li>Сообщество</li>
+            <li>Расширенная аналитика</li>
+            <li>Мобильные приложения (React Native)</li>
+          </ol>
+        </div>
+        
+        <div class="section">
+          <h2>6. КОМАНДА РАЗРАБОТКИ</h2>
+          
+          <h3>Минимальный состав (MVP)</h3>
+          <table>
+            <tr>
+              <th>Роль</th>
+              <th>Количество</th>
+              <th>Стоимость</th>
+            </tr>
+            <tr>
+              <td>Fullstack разработчик</td>
+              <td>1</td>
+              <td>150,000₽/мес</td>
+            </tr>
+            <tr>
+              <td>UI/UX дизайнер</td>
+              <td>1 (контракт)</td>
+              <td>50,000₽</td>
+            </tr>
+            <tr>
+              <td>QA Engineer</td>
+              <td>1 (part-time)</td>
+              <td>60,000₽/мес</td>
+            </tr>
+            <tr>
+              <td>DevOps</td>
+              <td>1 (консультант)</td>
+              <td>по запросу</td>
+            </tr>
+          </table>
+          
+          <h3>Расширенная команда</h3>
+          <ul>
+            <li>2x Frontend разработчик (React)</li>
+            <li>2x Backend разработчик (Node.js)</li>
+            <li>1x Mobile разработчик (React Native)</li>
+            <li>1x DevOps инженер</li>
+            <li>1x UI/UX дизайнер</li>
+            <li>1x QA Engineer</li>
+            <li>1x Product Manager</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>7. БЮДЖЕТ И СРОКИ</h2>
+          
+          <h3>Затраты на разработку (MVP)</h3>
+          <table>
+            <tr>
+              <th>Статья расходов</th>
+              <th>Сумма</th>
+            </tr>
+            <tr>
+              <td>Backend разработчик (4 мес)</td>
+              <td>600,000₽</td>
+            </tr>
+            <tr>
+              <td>UI/UX дизайнер</td>
+              <td>50,000₽</td>
+            </tr>
+            <tr>
+              <td>QA Engineer (2 мес)</td>
+              <td>120,000₽</td>
+            </tr>
+            <tr>
+              <td><strong>Итого MVP</strong></td>
+              <td><strong>770,000₽</strong></td>
+            </tr>
+          </table>
+          
+          <h3>Инфраструктура (месяц)</h3>
+          <table>
+            <tr>
+              <th>Сервис</th>
+              <th>Стоимость</th>
+            </tr>
+            <tr>
+              <td>Yandex Cloud</td>
+              <td>6,600₽</td>
+            </tr>
+            <tr>
+              <td>Stream Chat</td>
+              <td>10,000₽</td>
+            </tr>
+            <tr>
+              <td>OpenAI API (GPT-3.5)</td>
+              <td>10,000₽</td>
+            </tr>
+            <tr>
+              <td>Домен + SSL</td>
+              <td>~200₽/год</td>
+            </tr>
+            <tr>
+              <td>SendGrid</td>
+              <td>Бесплатно</td>
+            </tr>
+            <tr>
+              <td><strong>Итого/мес</strong></td>
+              <td><strong>~27,000₽</strong></td>
+            </tr>
+          </table>
+          
+          <h3>Общий бюджет на запуск</h3>
+          <table>
+            <tr>
+              <th>Категория</th>
+              <th>Сумма</th>
+            </tr>
+            <tr>
+              <td>Разработка</td>
+              <td>770,000₽</td>
+            </tr>
+            <tr>
+              <td>Инфраструктура (3 мес)</td>
+              <td>81,000₽</td>
+            </tr>
+            <tr>
+              <td>Тестирование + маркетинг</td>
+              <td>190,000₽</td>
+            </tr>
+            <tr>
+              <td>Юридика</td>
+              <td>40,000₽</td>
+            </tr>
+            <tr>
+              <td><strong>ИТОГО</strong></td>
+              <td><strong>~1,081,000₽</strong></td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="section">
+          <h2>8. РИСКИ И МИТИГАЦИЯ</h2>
+          <table>
+            <tr>
+              <th>Риск</th>
+              <th>Вероятность</th>
+              <th>Последствия</th>
+              <th>Митигация</th>
+            </tr>
+            <tr>
+              <td>Отставание от графика</td>
+              <td>Высокая</td>
+              <td>Задержка запуска</td>
+              <td>Agile, еженедельные ревью</td>
+            </tr>
+            <tr>
+              <td>Превышение бюджета</td>
+              <td>Средняя</td>
+              <td>Нехватка средств</td>
+              <td>Резерв 15%, приоритизация</td>
+            </tr>
+            <tr>
+              <td>Проблемы с масштабированием</td>
+              <td>Низкая</td>
+              <td>Падения сервиса</td>
+              <td>Нагрузочное тестирование</td>
+            </tr>
+            <tr>
+              <td>Низкая конверсия в Premium</td>
+              <td>Средняя</td>
+              <td>Потеря выручки</td>
+              <td>A/B тесты</td>
+            </tr>
+            <tr>
+              <td>Утечка данных</td>
+              <td>Низкая</td>
+              <td>Репутационный урон</td>
+              <td>Аудит безопасности, пентесты</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="section">
+          <h2>9. МЕТРИКИ УСПЕХА</h2>
+          
+          <h3>KPI для MVP</h3>
+          <ul>
+            <li><strong>100 тестовых пользователей</strong> за первый месяц</li>
+            <li><strong>Retention Rate</strong> &gt; 40% (7-day)</li>
+            <li><strong>Average Session Duration</strong> &gt; 5 минут</li>
+            <li><strong>Crash-free Rate</strong> &gt; 99%</li>
+          </ul>
+          
+          <h3>KPI для публичного запуска</h3>
+          <ul>
+            <li><strong>1,000 регистраций</strong> в первые 3 месяца</li>
+            <li><strong>Конверсия в Premium</strong> &gt; 5%</li>
+            <li><strong>NPS (Net Promoter Score)</strong> &gt; 30</li>
+            <li><strong>DAU/MAU</strong> &gt; 0.2</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>10. ЮРИДИЧЕСКИЕ АСПЕКТЫ</h2>
+          
+          <h3>10.1 Документы</h3>
+          <ul>
+            <li>Пользовательское соглашение (Terms of Service)</li>
+            <li>Политика конфиденциальности (Privacy Policy)</li>
+            <li>Договор оферты для Premium</li>
+            <li>Согласие на обработку персональных данных</li>
+          </ul>
+          
+          <h3>10.2 Регистрация</h3>
+          <ul>
+            <li>ИП или самозанятый для начала</li>
+            <li>ООО при масштабировании</li>
+            <li>Регистрация в ФНС РФ</li>
+          </ul>
+          
+          <h3>10.3 Compliance</h3>
+          <ul>
+            <li>Закон о персональных данных (152-ФЗ)</li>
+            <li>Роскомнадзор (уведомление об обработке данных)</li>
+            <li>GDPR для европейских пользователей</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>11. ПОДДЕРЖКА И ОБСЛУЖИВАНИЕ</h2>
+          
+          <h3>11.1 Каналы поддержки</h3>
+          <ul>
+            <li>Email: support@familyorganizer.ru</li>
+            <li>Telegram бот</li>
+            <li>FAQ на сайте</li>
+            <li>Видео-инструкции (YouTube)</li>
+          </ul>
+          
+          <h3>11.2 SLA</h3>
+          <ul>
+            <li>Ответ на запрос: &lt; 24 часа</li>
+            <li>Критичные баги: исправление &lt; 4 часа</li>
+            <li>Плановые обновления: раз в 2 недели</li>
+            <li>Техническое обслуживание: воскресенье 02:00-04:00</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>12. ROADMAP (12 месяцев)</h2>
+          <ul>
+            <li><strong>Q1 (месяцы 1-3):</strong> MVP разработка</li>
+            <li><strong>Q2 (месяцы 4-6):</strong> Бета-тест, доработки, запуск</li>
+            <li><strong>Q3 (месяцы 7-9):</strong> Расширенные фичи (ИИ, чат, файлы)</li>
+            <li><strong>Q4 (месяцы 10-12):</strong> Мобильные приложения, маркетинг</li>
+          </ul>
+        </div>
+        
+        <div class="section">
+          <h2>13. КОНТАКТЫ</h2>
+          <p><strong>Автор ТЗ:</strong> Семейный Органайзер Team</p>
+          <p><strong>Email:</strong> tech@familyorganizer.ru</p>
+          <p><strong>Дата создания:</strong> ${new Date().toLocaleDateString('ru-RU')}</p>
+          <p><strong>Версия:</strong> 1.0</p>
+        </div>
+        
+        <hr style="border: 2px solid #7c3aed; margin: 30px 0;">
+        
+        <p style="text-align: center; color: #666; font-style: italic; margin-top: 40px;">
+          Данное техническое задание является живым документом и может обновляться по мере развития проекта.
+        </p>
+      </body>
+      </html>
+    `;
 
     const blob = new Blob(['\ufeff', techSpec], {
-      type: 'text/markdown;charset=utf-8'
+      type: 'application/msword'
     });
 
     const url = URL.createObjectURL(blob);
