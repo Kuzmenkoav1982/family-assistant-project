@@ -547,27 +547,10 @@ export default function Presentation() {
                 </div>
               </div>
             </div>
-
-
-                    Награды за прогресс мотивируют ребёнка развиваться дальше
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl md:rounded-2xl p-5 md:p-8 text-white text-center">
-              <Icon name="Rocket" className="mx-auto mb-3 md:mb-4" size={36} />
-              <h3 className="text-lg md:text-2xl font-bold mb-2 md:mb-3">
-                Результат: счастливые дети с гармоничным развитием
-              </h3>
-              <p className="text-sm md:text-lg text-white/90 max-w-3xl mx-auto">
-                Родители получают не просто приложение, а настоящего помощника в воспитании. 
-                ИИ берёт на себя аналитику, даёт конкретные советы, а семья видит реальные 
-                результаты — уверенные, ответственные и всесторонне развитые дети.
-              </p>
-            </div>
           </div>
         </section>
+
+
 
         <section className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl shadow-xl p-10 mb-8 print:mb-6 text-white print:break-inside-avoid">
           <div className="flex items-center gap-4 mb-8">
