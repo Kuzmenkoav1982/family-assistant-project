@@ -242,20 +242,6 @@ export default function SettingsMenu() {
                       <Icon name="FileText" className="mr-2" size={18} />
                       Открыть полный план
                     </Button>
-                    <Button 
-                      onClick={() => {
-                        navigate('/launch-plan');
-                        setTimeout(() => {
-                          const downloadBtn = document.querySelector('[class*="bg-blue-600"]') as HTMLButtonElement;
-                          if (downloadBtn) downloadBtn.click();
-                        }, 500);
-                      }}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <Icon name="Download" className="mr-2" size={18} />
-                      Скачать Word
-                    </Button>
                   </div>
                 </div>
 
