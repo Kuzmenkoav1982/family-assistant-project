@@ -49,7 +49,7 @@ export default function RightSidebar({
   return (
     <>
       <div
-        className={`fixed right-0 top-16 bottom-0 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+        className={`fixed right-0 top-16 bottom-0 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 hidden lg:block ${
           isVisible ? 'translate-x-0' : 'translate-x-full'
         }`}
         onMouseEnter={() => autoHide && onVisibilityChange(true)}

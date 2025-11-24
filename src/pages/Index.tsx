@@ -524,15 +524,11 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
     { id: 'goals', icon: 'Target', label: 'Цели' },
-    { id: 'cohesion', icon: 'TrendingUp', label: 'Сплочённость' },
     { id: 'children', icon: 'Baby', label: 'Дети' },
-    { id: 'psychologist', icon: 'Brain', label: 'Психолог ИИ', ready: false },
     { id: 'rules-section', icon: 'Scale', label: 'Правила', ready: false },
-    { id: 'chat', icon: 'MessageCircle', label: 'Чат' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
     { id: 'blog', icon: 'BookOpen', label: 'Блог' },
-    { id: 'album', icon: 'Image', label: 'Альбом' },
     { id: 'tree', icon: 'GitBranch', label: 'Древо' },
     { id: 'faith', icon: 'Church', label: 'Вера' },
     { id: 'about', icon: 'Info', label: 'О проекте' },
@@ -566,12 +562,54 @@ export default function Index({ onLogout }: IndexProps) {
   };
 
   const inDevelopmentSections = [
-    { id: 'budget', icon: 'Wallet', label: 'Бюджет', votes: { up: 12, down: 3 } },
-    { id: 'health', icon: 'HeartPulse', label: 'Здоровье', votes: { up: 8, down: 1 } },
-    { id: 'education', icon: 'GraduationCap', label: 'Обучение', votes: { up: 15, down: 2 } },
-    { id: 'travel', icon: 'Plane', label: 'Путешествия', votes: { up: 20, down: 5 } },
-    { id: 'shopping', icon: 'ShoppingBag', label: 'Покупки', votes: { up: 6, down: 4 } },
-    { id: 'recipes', icon: 'ChefHat', label: 'Рецепты', votes: { up: 11, down: 2 } },
+    { 
+      id: 'cohesion', 
+      icon: 'TrendingUp', 
+      label: 'Сплочённость', 
+      description: 'Отслеживание уровня сплочённости семьи через совместные активности, задачи и время вместе. Аналитика и рекомендации по укреплению семейных связей.',
+      votes: { up: 0, down: 0 } 
+    },
+    { 
+      id: 'chat', 
+      icon: 'MessageCircle', 
+      label: 'Чат', 
+      description: 'Внутренний семейный мессенджер для быстрого общения, обмена фото и важными сообщениями. С поддержкой уведомлений и групповых чатов.',
+      votes: { up: 0, down: 0 } 
+    },
+    { 
+      id: 'community', 
+      icon: 'Users2', 
+      label: 'Сообщество', 
+      description: 'Общение с другими семьями, обмен опытом, советами и рекомендациями. Форумы, группы по интересам и семейные мероприятия.',
+      votes: { up: 0, down: 0 } 
+    },
+    { 
+      id: 'album', 
+      icon: 'Image', 
+      label: 'Альбом', 
+      description: 'Семейный фотоальбом с возможностью создания альбомов по событиям, автоматической сортировкой и совместным доступом для всей семьи.',
+      votes: { up: 0, down: 0 } 
+    },
+    { 
+      id: 'complaint-book', 
+      icon: 'MessageSquareWarning', 
+      label: 'Жалобная книга', 
+      description: 'Анонимный способ высказать недовольство или предложить улучшения. Помогает решать конфликты и улучшать атмосферу в семье.',
+      votes: { up: 0, down: 0 } 
+    },
+    { 
+      id: 'psychologist', 
+      icon: 'Brain', 
+      label: 'Психолог ИИ', 
+      description: 'Искусственный интеллект-помощник для консультаций по семейным вопросам, конфликтам и эмоциональной поддержке. Доступен 24/7.',
+      votes: { up: 0, down: 0 } 
+    },
+    { id: 'budget', icon: 'Wallet', label: 'Бюджет', description: 'Семейный бюджет, учёт доходов и расходов, планирование крупных покупок и финансовых целей.', votes: { up: 12, down: 3 } },
+    { id: 'health', icon: 'HeartPulse', label: 'Здоровье', description: 'Мониторинг здоровья членов семьи, напоминания о приёме лекарств, записи к врачам и медицинская история.', votes: { up: 8, down: 1 } },
+    { id: 'education', icon: 'GraduationCap', label: 'Обучение', description: 'Отслеживание образовательного прогресса детей, домашние задания, успеваемость и планы развития.', votes: { up: 15, down: 2 } },
+    { id: 'travel', icon: 'Plane', label: 'Путешествия', description: 'Планирование семейных путешествий, маршруты, бронирования и воспоминания о поездках.', votes: { up: 20, down: 5 } },
+    { id: 'shopping', icon: 'ShoppingBag', label: 'Покупки', description: 'Списки покупок, планирование шопинга и отслеживание необходимых товаров для дома.', votes: { up: 6, down: 4 } },
+    { id: 'recipes', icon: 'ChefHat', label: 'Рецепты', description: 'Семейная книга рецептов, планирование меню и список ингредиентов для готовки.', votes: { up: 11, down: 2 } },
   ];
 
   const moodOptions = [
