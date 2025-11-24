@@ -3127,33 +3127,7 @@ export default function Index({ onLogout }: IndexProps) {
         onSectionsChange={handleLeftPanelSectionsChange}
       />
 
-      <PanelSettings
-        title="Настройки правой панели"
-        open={showRightPanelSettings}
-        onOpenChange={setShowRightPanelSettings}
-        autoHide={autoHideMoodWidget}
-        onAutoHideChange={(value) => {
-          setAutoHideMoodWidget(value);
-          localStorage.setItem('autoHideMoodWidget', String(value));
-        }}
-        availableSections={availableSections}
-        selectedSections={rightPanelSections}
-        onSectionsChange={handleRightPanelSectionsChange}
-      />
-      
-      <RightSidebar
-        isVisible={isMoodWidgetVisible}
-        autoHide={autoHideMoodWidget}
-        familyMembers={familyMembers}
-        selectedMemberForMood={selectedMemberForMood}
-        moodOptions={moodOptions}
-        showRightPanelSettings={showRightPanelSettings}
-        onVisibilityChange={setIsMoodWidgetVisible}
-        onMemberMoodSelect={setSelectedMemberForMood}
-        onMoodChange={handleMoodChange}
-        onRightPanelSettingsToggle={setShowRightPanelSettings}
-      />
-      
+
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
       
       <KuzyaHelperDialog 
