@@ -69,7 +69,7 @@ import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import MealVotingWidget from '@/components/MealVotingWidget';
-import RightSidebar from '@/components/layout/RightSidebar';
+
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
@@ -230,11 +230,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
     return localStorage.getItem('autoHideTopBar') === 'true';
   });
-  const [isMoodWidgetVisible, setIsMoodWidgetVisible] = useState(true);
-  const [autoHideMoodWidget, setAutoHideMoodWidget] = useState(() => {
-    return localStorage.getItem('autoHideMoodWidget') === 'true';
-  });
-  const [selectedMemberForMood, setSelectedMemberForMood] = useState<string | null>(null);
+
   const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(true);
   const [autoHideLeftMenu, setAutoHideLeftMenu] = useState(() => {
     return localStorage.getItem('autoHideLeftMenu') === 'true';
@@ -262,7 +258,7 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
-  const [showRightPanelSettings, setShowRightPanelSettings] = useState(false);
+
 
   const demoMember = getCurrentMember();
   const currentUser = demoMember 
@@ -326,14 +322,7 @@ export default function Index({ onLogout }: IndexProps) {
       position: 'left',
       action: () => setIsLeftMenuVisible(true)
     },
-    {
-      id: 'mood',
-      title: 'Настроение семьи',
-      description: 'Отслеживайте настроение каждого члена семьи',
-      icon: 'Smile',
-      position: 'right',
-      action: () => setIsMoodWidgetVisible(true)
-    },
+
     {
       id: 'panels',
       title: 'Боковые панели',
@@ -456,15 +445,7 @@ export default function Index({ onLogout }: IndexProps) {
     return () => clearTimeout(hideTimer);
   }, [autoHideTopBar, isTopBarVisible]);
 
-  useEffect(() => {
-    let hideTimer: NodeJS.Timeout;
-    if (autoHideMoodWidget && isMoodWidgetVisible) {
-      hideTimer = setTimeout(() => {
-        setIsMoodWidgetVisible(false);
-      }, 3000);
-    }
-    return () => clearTimeout(hideTimer);
-  }, [autoHideMoodWidget, isMoodWidgetVisible]);
+
 
   useEffect(() => {
     let hideTimer: NodeJS.Timeout;
@@ -482,11 +463,7 @@ export default function Index({ onLogout }: IndexProps) {
     localStorage.setItem('autoHideTopBar', String(newValue));
   };
 
-  const toggleMoodAutoHide = () => {
-    const newValue = !autoHideMoodWidget;
-    setAutoHideMoodWidget(newValue);
-    localStorage.setItem('autoHideMoodWidget', String(newValue));
-  };
+
 
   const toggleLeftMenuAutoHide = () => {
     const newValue = !autoHideLeftMenu;
@@ -509,10 +486,7 @@ export default function Index({ onLogout }: IndexProps) {
     localStorage.setItem('topPanelSections', JSON.stringify(sections));
   };
 
-  const handleRightPanelSectionsChange = (sections: string[]) => {
-    setRightPanelSections(sections);
-    localStorage.setItem('rightPanelSections', JSON.stringify(sections));
-  };
+
 
   const handleAutoHideBottomBarChange = (value: boolean) => {
     setAutoHideBottomBar(value);
@@ -551,10 +525,7 @@ export default function Index({ onLogout }: IndexProps) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [rightPanelSections, setRightPanelSections] = useState<string[]>(() => {
-    const saved = localStorage.getItem('rightPanelSections');
-    return saved ? JSON.parse(saved) : [];
-  });
+
   
   const getSectionTitle = (sectionId: string) => {
     const section = menuSections.find(s => s.id === sectionId);
@@ -623,17 +594,7 @@ export default function Index({ onLogout }: IndexProps) {
     { emoji: '🥳', label: 'Празднично' },
   ];
 
-  const handleMoodChange = async (memberId: string, mood: { emoji: string; label: string }) => {
-    await updateMember({
-      id: memberId,
-      moodStatus: {
-        emoji: mood.emoji,
-        label: mood.label,
-        timestamp: new Date().toISOString()
-      }
-    });
-    setSelectedMemberForMood(null);
-  };
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -1533,127 +1494,7 @@ export default function Index({ onLogout }: IndexProps) {
           <Icon name={isLeftMenuVisible ? 'ChevronLeft' : 'ChevronRight'} size={20} className="text-gray-600" />
         </button>
 
-        <div 
-          className={`fixed right-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 translate-x-full hidden`}
-          style={{ maxWidth: '320px', width: '100%' }}
-        >
-          <div className="p-3 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Icon name="Smile" size={16} />
-              Настроение семьи
-            </h3>
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={() => setShowRightPanelSettings(true)}
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-                title="Настройки панели"
-              >
-                <Icon name="Settings" size={14} />
-              </Button>
-              <Button
-                onClick={toggleMoodAutoHide}
-                variant="ghost"
-                size="sm"
-                className={`h-7 w-7 p-0 ${autoHideMoodWidget ? 'text-blue-600' : 'text-gray-400'}`}
-                title={autoHideMoodWidget ? 'Автоскрытие включено' : 'Автоскрытие выключено'}
-              >
-                <Icon name={autoHideMoodWidget ? 'EyeOff' : 'Eye'} size={14} />
-              </Button>
-              <Button
-                onClick={() => setIsMoodWidgetVisible(false)}
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-              >
-                <Icon name="X" size={14} />
-              </Button>
-            </div>
-          </div>
-          <div className="p-3 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {familyMembers.map((member, index) => (
-              <div key={member.id} className="relative">
-                <div
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-all animate-fade-in cursor-pointer"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                  onClick={() => setSelectedMemberForMood(selectedMemberForMood === member.id ? null : member.id)}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      {member.photoUrl ? (
-                        <img 
-                          src={member.photoUrl} 
-                          alt={member.name}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-xl border-2 border-purple-300">
-                          {member.avatar}
-                        </div>
-                      )}
-                      {member.moodStatus && (
-                        <div className="absolute -bottom-1 -right-1 text-lg bg-white rounded-full border-2 border-white">
-                          {member.moodStatus.emoji}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium">{member.name}</p>
-                      <p className="text-[10px] text-gray-500">{member.role}</p>
-                      {member.moodStatus && (
-                        <p className="text-[9px] text-gray-400">
-                          {member.moodStatus.label} • {new Date(member.moodStatus.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-center flex items-center gap-1">
-                    <Icon name="ChevronDown" size={14} className={`text-gray-400 transition-transform ${selectedMemberForMood === member.id ? 'rotate-180' : ''}`} />
-                  </div>
-                </div>
-                
-                {selectedMemberForMood === member.id && (
-                  <div className="grid grid-cols-4 gap-1 p-2 bg-gray-50 rounded-lg mt-1 animate-fade-in">
-                    {moodOptions.map((mood) => (
-                      <button
-                        key={mood.emoji}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoodChange(member.id, mood);
-                        }}
-                        className="flex flex-col items-center p-2 rounded hover:bg-white transition-all hover:scale-110"
-                        title={mood.label}
-                      >
-                        <span className="text-2xl">{mood.emoji}</span>
-                        <span className="text-[8px] text-gray-600 mt-1">{mood.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {familyMembers.length === 0 && (
-              <p className="text-xs text-gray-500 text-center py-4">
-                Нет данных о членах семьи
-              </p>
-            )}
-            
-            <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-              <p className="text-[10px] text-blue-600 text-center">
-                💡 Нажмите на члена семьи, чтобы изменить настроение
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <button
-          onClick={() => setIsMoodWidgetVisible(!isMoodWidgetVisible)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-l-lg py-4 px-2 transition-all duration-300 hidden"
-          style={{ right: isMoodWidgetVisible ? '320px' : '0px' }}
-        >
-          <Icon name={isMoodWidgetVisible ? 'ChevronRight' : 'ChevronLeft'} size={20} className="text-gray-600" />
-        </button>
+
 
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
         <div 
