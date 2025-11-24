@@ -9,7 +9,7 @@ export default function AuthFormHeader() {
           <Icon name="Users" className="text-white" size={32} />
         </div>
       </div>
-      <CardTitle className="text-3xl text-center">Семейный Органайзер</CardTitle>
+      <CardTitle className="text-3xl text-center">Наша семья</CardTitle>
       <CardDescription className="text-center">
         Войдите по номеру телефона
       </CardDescription>

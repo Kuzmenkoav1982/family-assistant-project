@@ -45,7 +45,7 @@ export default function LeftSidebar({
         <div className="flex items-center gap-3 mb-4">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-            alt="Семейный Органайзер"
+            alt="Наша семья"
             className="h-12 w-12 object-contain"
           />
           <h2 className="text-lg font-bold text-gray-700 flex-1">Разделы</h2>

@@ -4,6 +4,8 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { getTranslation, type LanguageCode } from '@/translations';
 import SettingsMenu from '@/components/SettingsMenu';
+import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
+import { useState } from 'react';
 import type { FamilyMember } from '@/types/family.types';
 
 interface TopBarProps {
@@ -44,6 +46,7 @@ export default function TopBar({
   onTopPanelSettingsToggle
 }: TopBarProps) {
   const navigate = useNavigate();
+  const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
 
   const languages = [
@@ -74,7 +77,7 @@ export default function TopBar({
         <div className="flex items-center gap-2">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-            alt="Семейный Органайзер"
+            alt="Наша семья"
             className="h-10 w-10 object-contain"
             style={{ border: 'none', outline: 'none' }}
           />
@@ -98,6 +101,16 @@ export default function TopBar({
             title="Инструкции"
           >
             <Icon name="BookOpen" size={18} />
+          </Button>
+          
+          <Button
+            onClick={() => setShowKuzyaDialog(true)}
+            variant="ghost"
+            size="sm"
+            className="h-9 w-9 p-0"
+            title="Помощь и поддержка"
+          >
+            <Icon name="HelpCircle" size={18} />
           </Button>
           
           <Button
@@ -248,6 +261,11 @@ export default function TopBar({
           )}
         </div>
       </div>
+      
+      <KuzyaHelperDialog 
+        open={showKuzyaDialog} 
+        onOpenChange={setShowKuzyaDialog}
+      />
     </div>
   );
 }

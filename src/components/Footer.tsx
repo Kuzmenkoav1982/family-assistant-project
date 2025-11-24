@@ -12,11 +12,11 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <img 
                 src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                alt="Семейный Органайзер"
+                alt="Наша семья"
                 className="h-12 w-12 object-contain"
               />
               <div>
-                <h3 className="font-bold text-lg">Семейный Органайзер</h3>
+                <h3 className="font-bold text-lg">Наша семья</h3>
                 <p className="text-sm text-gray-400">Объединяем семьи</p>
               </div>
             </div>
@@ -54,8 +54,8 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2 text-gray-300">
                 <Icon name="Mail" size={16} />
-                <a href="mailto:kuzmenkoav1982@yandex.ru" className="hover:text-white transition-colors">
-                  kuzmenkoav1982@yandex.ru
+                <a href="mailto:ip.kuzmenkoav@yandex.ru" className="hover:text-white transition-colors">
+                  ip.kuzmenkoav@yandex.ru
                 </a>
               </li>
               <li className="flex items-center gap-2 text-gray-300">
@@ -74,7 +74,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-            <p>© {currentYear} Семейный Органайзер. Все права защищены.</p>
+            <p>© {currentYear} Наша семья. Все права защищены.</p>
             <p className="flex items-center gap-2">
               <Icon name="Heart" size={16} className="text-red-500" />
               Создано с любовью к семьям

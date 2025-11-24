@@ -15,6 +15,7 @@ import { useFamilyData } from '@/hooks/useFamilyData';
 import { ChildEducation } from '@/components/ChildEducation';
 import { ClickChamomile } from '@/components/ClickChamomile';
 import Footer from '@/components/Footer';
+import { getDailyMotto } from '@/utils/dailyMottos';
 import type {
   FamilyMember,
   Task,
@@ -405,7 +406,7 @@ export default function Index({ onLogout }: IndexProps) {
   useEffect(() => {
     if (!showWelcome) return;
     
-    const fullText = "Добро пожаловать в Семейный Органайзер! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций и истории семьи.";
+    const fullText = `Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций и истории семьи.`;
     let currentIndex = 0;
     
     const typingTimer = setInterval(() => {
@@ -1072,7 +1073,7 @@ export default function Index({ onLogout }: IndexProps) {
               <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
                 <img 
                   src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                  alt="Семейный Органайзер"
+                  alt="Наша семья"
                   className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
                 />
               </div>
@@ -1080,7 +1081,7 @@ export default function Index({ onLogout }: IndexProps) {
             
             <div className="space-y-6">
               <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-6 animate-fade-in">
-                Семейный Органайзер
+                Наша семья
               </h1>
               
               <div className="min-h-[200px] flex items-center justify-center px-4">
@@ -1620,27 +1621,21 @@ export default function Index({ onLogout }: IndexProps) {
             <div className="flex items-center gap-4 mb-2">
               <img 
                 src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                alt="Семейный Органайзер"
+                alt="Наша семья"
                 className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
                 style={{ border: 'none', outline: 'none' }}
               />
               <div className="flex flex-col gap-1">
                 <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Семейный Органайзер
+                  Наша семья
                 </h1>
-                <h2 className="text-xl lg:text-2xl font-semibold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                  Семейная Экосистема
-                </h2>
-                <h3 className="text-lg lg:text-xl font-medium bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
-                  Вселенная Семьи
-                </h3>
               </div>
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-3 py-1">
                 ДЕМО
               </Badge>
             </div>
             <p className="text-sm lg:text-base text-gray-700 font-medium flex items-center justify-center gap-2 mt-2">
-              Вместе мы — сила! Организуйте жизнь семьи с любовью ❤️
+              {getDailyMotto()}
               {syncing && (
                 <Badge className="bg-blue-600 animate-pulse">
                   <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />

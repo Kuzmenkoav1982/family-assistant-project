@@ -66,7 +66,7 @@ export default function Presentation() {
         );
       }
 
-      pdf.save('Семейный-Органайзер-Презентация.pdf');
+      pdf.save('Наша-семья-Презентация.pdf');
     } catch (error) {
       console.error('Ошибка при создании PDF:', error);
     } finally {
@@ -159,12 +159,12 @@ export default function Presentation() {
           <div className="flex justify-center mb-6">
             <img 
               src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-              alt="Семейный Органайзер"
+              alt="Наша семья"
               className="h-32 w-32 object-contain"
             />
           </div>
           <h1 className="text-5xl font-bold text-purple-900 mb-4">
-            Семейный Органайзер
+            Наша семья
           </h1>
           <p className="text-2xl text-purple-600">
             Объединяем семьи. Укрепляем общество.
@@ -188,7 +188,7 @@ export default function Presentation() {
             
             <div className="bg-purple-50 rounded-2xl p-6 border-l-4 border-purple-500">
               <p className="font-semibold text-purple-900 text-xl mb-2">
-                Семейный Органайзер — это не просто приложение.
+                "Наша семья" — это не просто приложение.
               </p>
               <p>
                 Это инструмент для восстановления семейных связей, справедливого 
@@ -808,8 +808,8 @@ export default function Presentation() {
             </div>
             <div className="flex items-center gap-3">
               <Icon name="Mail" className="text-blue-600" size={24} />
-              <a href="mailto:kuzmenkoav1982@yandex.ru" className="text-purple-600 hover:text-purple-800 font-medium">
-                kuzmenkoav1982@yandex.ru
+              <a href="mailto:ip.kuzmenkoav@yandex.ru" className="text-purple-600 hover:text-purple-800 font-medium">
+                ip.kuzmenkoav@yandex.ru
               </a>
             </div>
           </div>
