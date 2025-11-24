@@ -2059,6 +2059,23 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="tasks">
+                <Card className="border-2 border-blue-200 bg-blue-50/50 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                        <Icon name="CheckSquare" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">Как работают задачи?</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p><strong>Создавайте задачи</strong> для любых дел: уборка, покупки, домашние задания.</p>
+                          <p><strong>Назначайте исполнителей</strong> из членов семьи и следите за прогрессом.</p>
+                          <p><strong>Зарабатывайте баллы</strong> за выполнение — мотивация для всей семьи!</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -2111,6 +2128,23 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="calendar">
+                <Card className="border-2 border-green-200 bg-green-50/50 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                        <Icon name="Calendar" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">Как работает календарь?</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p><strong>Добавляйте события</strong> — дни рождения, встречи, важные даты.</p>
+                          <p><strong>Фильтруйте</strong> по типу: личные, семейные или все события сразу.</p>
+                          <p><strong>Не забывайте важное</strong> — все события в одном месте для всей семьи.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 <Card key="calendar-card">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -2182,6 +2216,23 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="children">
+                <Card className="border-2 border-pink-200 bg-pink-50/50 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0">
+                        <Icon name="Baby" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">Как работает раздел "Дети"?</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p><strong>Отслеживайте развитие</strong> каждого ребёнка — навыки, достижения, расписание занятий.</p>
+                          <p><strong>Проходите IQ-тесты</strong> для оценки 6 категорий развития с рекомендациями от ИИ.</p>
+                          <p><strong>Видьте прогресс</strong> в визуальной форме и получайте персональные советы.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 <div className="space-y-4">
                   {childrenProfiles.length > 0 ? childrenProfiles.map((child, idx) => {
                     const devPlan = developmentPlans.find(dp => dp.childId === child.childId);
@@ -2437,6 +2488,23 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="values">
+                <Card className="border-2 border-amber-200 bg-amber-50/50 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+                        <Icon name="Heart" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">Зачем нужны ценности?</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p><strong>Определите принципы</strong> которые важны для вашей семьи — честность, доброта, образование.</p>
+                          <p><strong>Передайте детям</strong> понимание того, что действительно ценно в жизни.</p>
+                          <p><strong>Укрепите идентичность</strong> семьи через общие ценности и убеждения.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 <div className="grid gap-4">
                   {familyValues.length > 0 ? familyValues.map((value, idx) => (
                     <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -2478,6 +2546,23 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="traditions">
+                <Card className="border-2 border-rose-200 bg-rose-50/50 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        <Icon name="Sparkles" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">Зачем нужны традиции?</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p><strong>Создавайте особые моменты</strong> — воскресные обеды, новогодние ритуалы, семейные игры.</p>
+                          <p><strong>Укрепляйте связи</strong> между поколениями через повторяющиеся события.</p>
+                          <p><strong>Передавайте ценности</strong> и создавайте уникальность вашей семьи.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 <div className="grid gap-4">
                   {traditions.length > 0 ? traditions.map((tradition, idx) => (
                     <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -2633,6 +2718,23 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="goals">
+                <Card className="border-2 border-purple-200 bg-purple-50/50 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        <Icon name="Target" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">Как работают цели?</h3>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p><strong>Ставьте долгосрочные цели</strong> — накопить на квартиру, поехать в отпуск, сделать ремонт.</p>
+                          <p><strong>Добавляйте контрольные точки</strong> для отслеживания прогресса на диаграмме Ганта.</p>
+                          <p><strong>Получайте подсказки от ИИ</strong> для достижения целей быстрее.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 <GoalsSection
                   goals={familyGoals}
                   familyMembers={familyMembers}
