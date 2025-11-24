@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import PasswordReset from './PasswordReset';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 
@@ -15,7 +14,6 @@ interface AuthPageProps {
 
 export default function AuthPage({ onSuccess }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [familyName, setFamilyName] = useState('');
@@ -23,21 +21,6 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  if (showPasswordReset) {
-    return (
-      <PasswordReset
-        onBack={() => setShowPasswordReset(false)}
-        onSuccess={() => {
-          setShowPasswordReset(false);
-          toast({
-            title: 'Пароль изменен',
-            description: 'Войдите с новым паролем'
-          });
-        }}
-      />
-    );
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,19 +172,6 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
               )}
               {isLogin ? 'Войти' : 'Зарегистрироваться'}
             </Button>
-
-            {isLogin && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordReset(true)}
-                  className="text-sm text-orange-600 hover:underline flex items-center justify-center gap-1 mx-auto"
-                >
-                  <Icon name="KeyRound" size={14} />
-                  Забыли пароль?
-                </button>
-              </div>
-            )}
 
             <div className="text-center text-sm">
               <button
