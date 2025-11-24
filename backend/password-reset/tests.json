@@ -1,0 +1,50 @@
+{
+  "tests": [
+    {
+      "name": "Request password reset",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "request",
+        "phone": "+79991234567"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify reset code",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "verify",
+        "phone": "+79991234567",
+        "code": "123456"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reset password with code",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "reset",
+        "phone": "+79991234567",
+        "code": "123456",
+        "new_password": "newpass123"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
