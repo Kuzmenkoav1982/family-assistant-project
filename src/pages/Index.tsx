@@ -258,6 +258,11 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
+  const [selectedDevSection, setSelectedDevSection] = useState<typeof inDevelopmentSections[0] | null>(null);
+  const [devSectionVotes, setDevSectionVotes] = useState<Record<string, {up: number, down: number}>>(() => {
+    const saved = localStorage.getItem('devSectionVotes');
+    return saved ? JSON.parse(saved) : {};
+  });
 
 
   const demoMember = getCurrentMember();
@@ -533,55 +538,36 @@ export default function Index({ onLogout }: IndexProps) {
   };
 
   const inDevelopmentSections = [
-    { 
-      id: 'cohesion', 
-      icon: 'TrendingUp', 
-      label: 'Сплочённость', 
-      description: 'Отслеживание уровня сплочённости семьи через совместные активности, задачи и время вместе. Аналитика и рекомендации по укреплению семейных связей.',
-      votes: { up: 0, down: 0 } 
-    },
-    { 
-      id: 'chat', 
-      icon: 'MessageCircle', 
-      label: 'Чат', 
-      description: 'Внутренний семейный мессенджер для быстрого общения, обмена фото и важными сообщениями. С поддержкой уведомлений и групповых чатов.',
-      votes: { up: 0, down: 0 } 
-    },
-    { 
-      id: 'community', 
-      icon: 'Users2', 
-      label: 'Сообщество', 
-      description: 'Общение с другими семьями, обмен опытом, советами и рекомендациями. Форумы, группы по интересам и семейные мероприятия.',
-      votes: { up: 0, down: 0 } 
-    },
-    { 
-      id: 'album', 
-      icon: 'Image', 
-      label: 'Альбом', 
-      description: 'Семейный фотоальбом с возможностью создания альбомов по событиям, автоматической сортировкой и совместным доступом для всей семьи.',
-      votes: { up: 0, down: 0 } 
-    },
-    { 
-      id: 'complaint-book', 
-      icon: 'MessageSquareWarning', 
-      label: 'Жалобная книга', 
-      description: 'Анонимный способ высказать недовольство или предложить улучшения. Помогает решать конфликты и улучшать атмосферу в семье.',
-      votes: { up: 0, down: 0 } 
-    },
-    { 
-      id: 'psychologist', 
-      icon: 'Brain', 
-      label: 'Психолог ИИ', 
-      description: 'Искусственный интеллект-помощник для консультаций по семейным вопросам, конфликтам и эмоциональной поддержке. Доступен 24/7.',
-      votes: { up: 0, down: 0 } 
-    },
-    { id: 'budget', icon: 'Wallet', label: 'Бюджет', description: 'Семейный бюджет, учёт доходов и расходов, планирование крупных покупок и финансовых целей.', votes: { up: 12, down: 3 } },
-    { id: 'health', icon: 'HeartPulse', label: 'Здоровье', description: 'Мониторинг здоровья членов семьи, напоминания о приёме лекарств, записи к врачам и медицинская история.', votes: { up: 8, down: 1 } },
-    { id: 'education', icon: 'GraduationCap', label: 'Обучение', description: 'Отслеживание образовательного прогресса детей, домашние задания, успеваемость и планы развития.', votes: { up: 15, down: 2 } },
-    { id: 'travel', icon: 'Plane', label: 'Путешествия', description: 'Планирование семейных путешествий, маршруты, бронирования и воспоминания о поездках.', votes: { up: 20, down: 5 } },
-    { id: 'shopping', icon: 'ShoppingBag', label: 'Покупки', description: 'Списки покупок, планирование шопинга и отслеживание необходимых товаров для дома.', votes: { up: 6, down: 4 } },
-    { id: 'recipes', icon: 'ChefHat', label: 'Рецепты', description: 'Семейная книга рецептов, планирование меню и список ингредиентов для готовки.', votes: { up: 11, down: 2 } },
+    { id: 'cohesion', icon: 'TrendingUp', label: 'Сплочённость', description: 'Отслеживание уровня сплочённости семьи через совместные активности, задачи и время вместе. Аналитика и рекомендации по укреплению семейных связей.' },
+    { id: 'chat', icon: 'MessageCircle', label: 'Чат', description: 'Внутренний семейный мессенджер для быстрого общения, обмена фото и важными сообщениями. С поддержкой уведомлений и групповых чатов.' },
+    { id: 'community', icon: 'Users2', label: 'Сообщество', description: 'Общение с другими семьями, обмен опытом, советами и рекомендациями. Форумы, группы по интересам и семейные мероприятия.' },
+    { id: 'album', icon: 'Image', label: 'Альбом', description: 'Семейный фотоальбом с возможностью создания альбомов по событиям, автоматической сортировкой и совместным доступом для всей семьи.' },
+    { id: 'complaints', icon: 'MessageSquareWarning', label: 'Жалобная книга', description: 'Анонимный способ высказать недовольство или предложить улучшения. Помогает решать конфликты и улучшать атмосферу в семье.' },
+    { id: 'psychologist', icon: 'Brain', label: 'Психолог ИИ', description: 'Искусственный интеллект-помощник для консультаций по семейным вопросам, конфликтам и эмоциональной поддержке. Доступен 24/7.' },
+    { id: 'garage', icon: 'Car', label: 'Гараж', description: 'Управление автомобилями семьи: техобслуживание, расходы на топливо, страховки и напоминания о ТО.' },
+    { id: 'health', icon: 'HeartPulse', label: 'Здоровье', description: 'Мониторинг здоровья членов семьи, напоминания о приёме лекарств, записи к врачам и медицинская история.' },
+    { id: 'finance', icon: 'Wallet', label: 'Финансы', description: 'Семейный бюджет, учёт доходов и расходов, планирование крупных покупок и финансовых целей.' },
+    { id: 'education', icon: 'GraduationCap', label: 'Образование', description: 'Отслеживание образовательного прогресса детей, домашние задания, успеваемость и планы развития.' },
+    { id: 'travel', icon: 'Plane', label: 'Путешествия', description: 'Планирование семейных путешествий, маршруты, бронирования и воспоминания о поездках.' },
+    { id: 'pets', icon: 'PawPrint', label: 'Питомцы', description: 'Уход за домашними питомцами: ветеринарные визиты, прививки, питание и дневник здоровья.' },
   ];
+
+  const handleDevSectionVote = (sectionId: string, voteType: 'up' | 'down') => {
+    const currentVotes = devSectionVotes[sectionId] || { up: 0, down: 0 };
+    const newVotes = {
+      ...devSectionVotes,
+      [sectionId]: {
+        ...currentVotes,
+        [voteType]: currentVotes[voteType] + 1
+      }
+    };
+    setDevSectionVotes(newVotes);
+    localStorage.setItem('devSectionVotes', JSON.stringify(newVotes));
+  };
+
+  const getDevSectionVotes = (sectionId: string) => {
+    return devSectionVotes[sectionId] || { up: 0, down: 0 };
+  };
 
   const moodOptions = [
     { emoji: '😊', label: 'Отлично' },
@@ -1553,14 +1539,6 @@ export default function Index({ onLogout }: IndexProps) {
                 Семья
               </Button>
               <Button
-                onClick={() => setActiveSection('cohesion')}
-                variant={activeSection === 'cohesion' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="TrendingUp" size={14} className="mr-1" />
-                Сплочённость
-              </Button>
-              <Button
                 onClick={() => setActiveSection('children')}
                 variant={activeSection === 'children' ? 'default' : 'outline'}
                 className="text-xs py-1.5 px-2.5 h-auto"
@@ -1627,25 +1605,9 @@ export default function Index({ onLogout }: IndexProps) {
                 <Icon name="Calendar" size={14} className="mr-1" />
                 Календарь
               </Button>
-              <Button
-                onClick={() => setActiveSection('shopping')}
-                variant={activeSection === 'shopping' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="ShoppingCart" size={14} className="mr-1" />
-                Покупки
-              </Button>
             </div>
 
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-purple-50/80 border border-purple-200">
-              <Button
-                onClick={() => setActiveSection('chat')}
-                variant={activeSection === 'chat' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="MessageCircle" size={14} className="mr-1" />
-                Чат
-              </Button>
               <Button
                 onClick={() => setActiveSection('blog')}
                 variant={activeSection === 'blog' ? 'default' : 'outline'}
@@ -1655,25 +1617,6 @@ export default function Index({ onLogout }: IndexProps) {
                 Блог
               </Button>
               <Button
-                onClick={() => navigate('/community')}
-                variant="outline"
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="Users" size={14} className="mr-1" />
-                Сообщество
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-orange-50/80 border border-orange-200">
-              <Button
-                onClick={() => setActiveSection('album')}
-                variant={activeSection === 'album' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="Image" size={14} className="mr-1" />
-                Альбом
-              </Button>
-              <Button
                 onClick={() => setActiveSection('tree')}
                 variant={activeSection === 'tree' ? 'default' : 'outline'}
                 className="text-xs py-1.5 px-2.5 h-auto"
@@ -1681,124 +1624,77 @@ export default function Index({ onLogout }: IndexProps) {
                 <Icon name="GitBranch" size={14} className="mr-1" />
                 Древо
               </Button>
-              <Button
-                onClick={() => setActiveSection('complaints')}
-                variant={activeSection === 'complaints' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="BookOpen" size={14} className="mr-1" />
-                Жалобная книга
-              </Button>
-              <Button
-                onClick={() => navigate('/psychologist')}
-                variant="outline"
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="Brain" size={14} className="mr-1" />
-                Психолог ИИ
-              </Button>
             </div>
 
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200">
-              <Tooltip>
-                <TooltipTrigger asChild>
+              {inDevelopmentSections.map((section) => {
+                const votes = getDevSectionVotes(section.id);
+                return (
                   <Button
-                    onClick={() => navigate('/garage')}
+                    key={section.id}
+                    onClick={() => setSelectedDevSection(section)}
                     variant="outline"
                     className="text-xs py-1.5 px-2.5 h-auto"
                   >
-                    <Icon name="Car" size={14} className="mr-1" />
-                    Гараж
+                    <Icon name={section.icon} size={14} className="mr-1" />
+                    {section.label}
                     <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">🚧 Раздел в разработке</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/health')}
-                    variant="outline"
-                    className="text-xs py-1.5 px-2.5 h-auto"
-                  >
-                    <Icon name="Heart" size={14} className="mr-1" />
-                    Здоровье
-                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">🚧 Раздел в разработке</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/finance')}
-                    variant="outline"
-                    className="text-xs py-1.5 px-2.5 h-auto"
-                  >
-                    <Icon name="Wallet" size={14} className="mr-1" />
-                    Финансы
-                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">🚧 Раздел в разработке</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/education')}
-                    variant="outline"
-                    className="text-xs py-1.5 px-2.5 h-auto"
-                  >
-                    <Icon name="GraduationCap" size={14} className="mr-1" />
-                    Образование
-                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">🚧 Раздел в разработке</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/travel')}
-                    variant="outline"
-                    className="text-xs py-1.5 px-2.5 h-auto"
-                  >
-                    <Icon name="Plane" size={14} className="mr-1" />
-                    Путешествия
-                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">🚧 Раздел в разработке</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/pets')}
-                    variant="outline"
-                    className="text-xs py-1.5 px-2.5 h-auto"
-                  >
-                    <Icon name="PawPrint" size={14} className="mr-1" />
-                    Питомцы
-                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">🚧 Раздел в разработке</p>
-                </TooltipContent>
-              </Tooltip>
+                );
+              })}
             </div>
           </div>
         </div>
+
+        <Dialog open={selectedDevSection !== null} onOpenChange={() => setSelectedDevSection(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Icon name={selectedDevSection?.icon || 'Wrench'} size={24} />
+                {selectedDevSection?.label}
+                <Badge className="ml-2 bg-amber-500 text-white">В разработке</Badge>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-muted-foreground">
+                {selectedDevSection?.description}
+              </p>
+              
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-3">Хотите видеть этот раздел?</h4>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      if (selectedDevSection) {
+                        handleDevSectionVote(selectedDevSection.id, 'up');
+                      }
+                    }}
+                    variant="outline"
+                    className="flex-1 border-green-300 hover:bg-green-50"
+                  >
+                    <Icon name="ThumbsUp" size={16} className="mr-2 text-green-600" />
+                    Да, хочу ({getDevSectionVotes(selectedDevSection?.id || '').up})
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (selectedDevSection) {
+                        handleDevSectionVote(selectedDevSection.id, 'down');
+                      }
+                    }}
+                    variant="outline"
+                    className="flex-1 border-red-300 hover:bg-red-50"
+                  >
+                    <Icon name="ThumbsDown" size={16} className="mr-2 text-red-600" />
+                    Не нужен ({getDevSectionVotes(selectedDevSection?.id || '').down})
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-3 text-center">
+                  💡 Ваше мнение поможет нам определить приоритеты разработки
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
             backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
