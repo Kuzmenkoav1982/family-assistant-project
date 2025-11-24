@@ -1362,19 +1362,6 @@ export default function Index({ onLogout }: IndexProps) {
                 <span className="text-sm hidden md:inline">{autoHideTopBar ? 'Скрыто' : 'Видимо'}</span>
               </Button>
               
-              {onLogout && (
-                <Button
-                  onClick={onLogout}
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 gap-1.5 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                  title="Выйти из аккаунта"
-                >
-                  <Icon name="LogOut" size={18} />
-                  <span className="text-sm hidden md:inline">Выход</span>
-                </Button>
-              )}
-              
               {showLanguageSelector && (
                 <Card className="language-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-blue-300 shadow-2xl animate-fade-in">
                   <CardHeader>
@@ -1528,18 +1515,6 @@ export default function Index({ onLogout }: IndexProps) {
                   <Icon name="ChevronRight" size={16} className="text-purple-400" />
                 </button>
               )}
-              
-              <button
-                onClick={() => navigate('/family-settings')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-indigo-50 border-2 border-indigo-200 hover:border-indigo-300 transition-all"
-              >
-                <Icon name="Settings" size={20} className="text-indigo-600" />
-                <div className="flex-1 text-left">
-                  <div className="text-sm font-bold text-indigo-700">Настройки семьи</div>
-                  <div className="text-xs text-gray-600">Приглашения и профиль</div>
-                </div>
-                <Icon name="ChevronRight" size={16} className="text-indigo-400" />
-              </button>
               
               <button
                 onClick={() => navigate('/instructions')}
