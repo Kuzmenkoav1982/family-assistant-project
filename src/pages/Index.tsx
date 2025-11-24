@@ -72,6 +72,7 @@ import MealVotingWidget from '@/components/MealVotingWidget';
 import RightSidebar from '@/components/layout/RightSidebar';
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
+import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -253,6 +254,7 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [currentHintStep, setCurrentHintStep] = useState(0);
   const [showFamilyInvite, setShowFamilyInvite] = useState(false);
+  const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
   
   const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
   const [autoHideBottomBar, setAutoHideBottomBar] = useState(() => {
@@ -1386,6 +1388,18 @@ export default function Index({ onLogout }: IndexProps) {
               </button>
               
               <button
+                onClick={() => setShowKuzyaDialog(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-orange-50 border-2 border-orange-200 hover:border-orange-300 transition-all"
+              >
+                <Icon name="HelpCircle" size={20} className="text-orange-600" />
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-bold text-orange-700">Помощь и поддержка</div>
+                  <div className="text-xs text-gray-600">Кузя поможет вам</div>
+                </div>
+                <Icon name="ChevronRight" size={16} className="text-orange-400" />
+              </button>
+              
+              <button
                 onClick={() => setShowFamilyInvite(true)}
                 className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 hover:border-green-300 transition-all"
               >
@@ -1482,10 +1496,7 @@ export default function Index({ onLogout }: IndexProps) {
         </button>
 
         <div 
-          className={`fixed right-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
-            isMoodWidgetVisible ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          onMouseEnter={() => autoHideMoodWidget && setIsMoodWidgetVisible(true)}
+          className={`fixed right-0 top-20 z-40 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 translate-x-full hidden`}
           style={{ maxWidth: '320px', width: '100%' }}
         >
           <div className="p-3 border-b border-gray-200 flex items-center justify-between">
@@ -1600,7 +1611,7 @@ export default function Index({ onLogout }: IndexProps) {
         
         <button
           onClick={() => setIsMoodWidgetVisible(!isMoodWidgetVisible)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-l-lg py-4 px-2 transition-all duration-300"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-l-lg py-4 px-2 transition-all duration-300 hidden"
           style={{ right: isMoodWidgetVisible ? '320px' : '0px' }}
         >
           <Icon name={isMoodWidgetVisible ? 'ChevronRight' : 'ChevronLeft'} size={20} className="text-gray-600" />
@@ -3163,6 +3174,11 @@ export default function Index({ onLogout }: IndexProps) {
       />
       
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
+      
+      <KuzyaHelperDialog 
+        open={showKuzyaDialog} 
+        onOpenChange={setShowKuzyaDialog}
+      />
       
       <Footer />
     </>
