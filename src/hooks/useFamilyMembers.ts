@@ -168,17 +168,25 @@ export function useFamilyMembers() {
 
   useEffect(() => {
     const token = getAuthToken();
-    if (token) {
-      fetchMembers();
-      
-      const interval = setInterval(() => {
-        fetchMembers(true);
-      }, 5000);
-      
-      return () => clearInterval(interval);
-    } else {
+    console.log('[DEBUG useFamilyMembers useEffect] Mount - Token check:', token ? 'EXISTS' : 'MISSING');
+    
+    if (!token) {
+      console.log('[DEBUG useFamilyMembers useEffect] No token on mount, setting loading = false');
       setLoading(false);
+      return;
     }
+    
+    console.log('[DEBUG useFamilyMembers useEffect] Token found, calling fetchMembers');
+    fetchMembers();
+    
+    const interval = setInterval(() => {
+      const currentToken = getAuthToken();
+      if (currentToken) {
+        fetchMembers(true);
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   return {

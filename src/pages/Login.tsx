@@ -24,9 +24,15 @@ export default function Login() {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
+        console.log('[DEBUG Login] Saving token and user to localStorage');
         localStorage.setItem('authToken', token);
         localStorage.setItem('user', JSON.stringify(user));
-        navigate('/');
+        console.log('[DEBUG Login] Token saved, navigating to /');
+        
+        // Небольшая задержка, чтобы localStorage точно успел записаться
+        setTimeout(() => {
+          navigate('/');
+        }, 100);
       } catch (e) {
         console.error('Ошибка парсинга user:', e);
         alert(`Ошибка обработки данных: ${e}`);
