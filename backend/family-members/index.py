@@ -244,14 +244,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 200,
                     'headers': headers,
-                    'body': json.dumps({'members': []}),
+                    'body': json.dumps({'success': True, 'members': []}),
                     'isBase64Encoded': False
                 }
             members = get_family_members(family_id)
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps({'members': members}, default=str),
+                'body': json.dumps({'success': True, 'members': members}, default=str),
                 'isBase64Encoded': False
             }
         
