@@ -92,63 +92,7 @@ export default function Index({ onLogout }: IndexProps) {
   console.log('Index: familyMembersRaw =', familyMembersRaw);
   console.log('Index: membersLoading =', membersLoading);
 
-  const familyMembers = (familyMembersRaw && familyMembersRaw.length > 0) ? familyMembersRaw : 
-    DEMO_FAMILY.members.map((dm, index) => {
-      const demoMoods = [
-        { emoji: '😊', label: 'Отлично', timestamp: new Date(Date.now() - 30 * 60000).toISOString() },
-        { emoji: '😃', label: 'Хорошо', timestamp: new Date(Date.now() - 60 * 60000).toISOString() },
-        { emoji: '🥳', label: 'Празднично', timestamp: new Date(Date.now() - 120 * 60000).toISOString() },
-        { emoji: '😐', label: 'Нормально', timestamp: new Date(Date.now() - 45 * 60000).toISOString() },
-        { emoji: '😊', label: 'Отлично', timestamp: new Date(Date.now() - 90 * 60000).toISOString() },
-        { emoji: '😃', label: 'Хорошо', timestamp: new Date(Date.now() - 15 * 60000).toISOString() },
-      ];
-      
-      return {
-        id: dm.id,
-        name: dm.name,
-        role: dm.role === 'owner' ? 'Папа' : dm.role === 'admin' ? 'Мама' : dm.role === 'child' ? 'Ребёнок' : 'Участник',
-        avatar: '👤',
-        avatarType: 'photo' as const,
-        photoUrl: dm.avatar,
-        age: dm.age,
-        relationship: dm.role === 'owner' || dm.role === 'admin' ? 'Родитель' : 'Ребёнок',
-        points: [250, 180, 120, 80, 150, 200][index] || 0,
-        level: [5, 4, 3, 2, 4, 5][index] || 1,
-        workload: [60, 55, 30, 10, 40, 45][index] || 0,
-        tasksCompleted: [15, 12, 8, 3, 10, 13][index] || 0,
-        achievements: [
-          ['Суперпапа', 'Организатор'],
-          ['Душа семьи', 'Повар года'],
-          ['Победитель олимпиады по математике', 'Лучший игрок команды'],
-          ['Диплом конкурса рисунка', 'Первое выступление на сцене'],
-          ['Мудрая бабушка', 'Лучшие пирожки'],
-          ['Семейный историк']
-        ][index] || [],
-        moodStatus: demoMoods[index],
-        dreams: dm.role === 'child' ? (
-          dm.id === '3' ? [
-            { id: '1', title: 'Велосипед', targetAmount: 15000, savedAmount: 8000, createdAt: new Date().toISOString() },
-            { id: '2', title: 'Планшет для робототехники', targetAmount: 30000, savedAmount: 12000, createdAt: new Date().toISOString() }
-          ] : [
-            { id: '3', title: 'Балетные туфли', targetAmount: 5000, savedAmount: 2000, createdAt: new Date().toISOString() },
-            { id: '4', title: 'Фортепиано', targetAmount: 50000, savedAmount: 8000, createdAt: new Date().toISOString() }
-          ]
-        ) : [],
-        piggyBank: dm.role === 'child' ? (dm.id === '3' ? 8000 : 3500) : 0,
-        foodPreferences: {
-          favorites: dm.preferences.favoriteFood,
-          dislikes: []
-        },
-        responsibilities: [
-          ['Планирование семейных поездок', 'Ремонт техники'],
-          ['Приготовление еды', 'Уборка кухни'],
-          ['Уборка комнаты', 'Выгул собаки', 'Помощь с Софией'],
-          ['Складывать игрушки', 'Поливать цветы'],
-          ['Пирожки по выходным', 'Помощь с детьми'],
-          ['Рассказывать истории', 'Семейные традиции']
-        ][index] || []
-      } as FamilyMember;
-    });
+  const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -1685,9 +1629,7 @@ export default function Index({ onLogout }: IndexProps) {
                   Наша семья
                 </h1>
               </div>
-              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-3 py-1">
-                ДЕМО
-              </Badge>
+
             </div>
             <p className="text-sm lg:text-base text-gray-700 font-medium flex items-center justify-center gap-2 mt-2">
               {getDailyMotto()}
