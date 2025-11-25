@@ -49,7 +49,7 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     query = f"""
         SELECT family_id FROM {SCHEMA}.family_members 
-        WHERE user_id = {escape_string(user_id)} LIMIT 1
+        WHERE user_id::text = {escape_string(user_id)} LIMIT 1
     """
     cur.execute(query)
     member = cur.fetchone()
