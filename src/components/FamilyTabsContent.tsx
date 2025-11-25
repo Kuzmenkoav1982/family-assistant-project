@@ -33,6 +33,9 @@ interface FamilyTabsContentProps {
   setFamilyMembers: React.Dispatch<React.SetStateAction<FamilyMember[]>>;
   tasks: Task[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  createTask?: (taskData: Partial<Task>) => Promise<{success: boolean; task?: Task; error?: string}>;
+  updateTask?: (taskData: Partial<Task> & {id: string}) => Promise<{success: boolean; task?: Task; error?: string}>;
+  deleteTask?: (taskId: string) => Promise<{success: boolean; error?: string}>;
   traditions: Tradition[];
   familyValues: FamilyValue[];
   blogPosts: BlogPost[];
@@ -106,6 +109,9 @@ export function FamilyTabsContent({
   setFamilyMembers,
   tasks,
   setTasks,
+  createTask,
+  updateTask,
+  deleteTask,
   traditions,
   familyValues,
   blogPosts,
@@ -135,6 +141,8 @@ export function FamilyTabsContent({
   updateMember,
 }: FamilyTabsContentProps) {
   const [taskFilter, setTaskFilter] = useState<string>('all');
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
     
@@ -244,7 +252,7 @@ export function FamilyTabsContent({
                 ))}
               </select>
             </div>
-            <Dialog>
+            <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
                 <Icon name="Plus" className="mr-2" size={16} />
@@ -255,8 +263,10 @@ export function FamilyTabsContent({
               <DialogHeader>
                 <DialogTitle>Новая задача</DialogTitle>
               </DialogHeader>
-              <form onSubmit={(e) => {
+              <form onSubmit={async (e) => {
                 e.preventDefault();
+                setIsCreatingTask(true);
+                
                 const formData = new FormData(e.currentTarget);
                 const title = formData.get('title') as string;
                 const assigneeId = formData.get('assignee') as string;
@@ -266,18 +276,41 @@ export function FamilyTabsContent({
                 
                 const assignee = familyMembers.find(m => m.id === assigneeId);
                 
-                const newTask: Task = {
-                  id: Date.now().toString(),
-                  title,
-                  assignee: assignee?.name || '',
-                  completed: false,
-                  category: category || 'Дом',
-                  points,
-                  deadline: deadline || undefined,
-                };
+                if (createTask) {
+                  const result = await createTask({
+                    title,
+                    assignee_id: assigneeId,
+                    assignee_name: assignee?.name || '',
+                    completed: false,
+                    category: category || 'Дом',
+                    points,
+                    deadline: deadline || undefined,
+                    priority: 'medium',
+                    is_recurring: false,
+                  });
+                  
+                  if (result.success) {
+                    (e.target as HTMLFormElement).reset();
+                    setIsTaskDialogOpen(false);
+                  } else {
+                    alert(`Ошибка создания задачи: ${result.error}`);
+                  }
+                } else {
+                  const newTask: Task = {
+                    id: Date.now().toString(),
+                    title,
+                    assignee: assignee?.name || '',
+                    completed: false,
+                    category: category || 'Дом',
+                    points,
+                    deadline: deadline || undefined,
+                  };
+                  setTasks([...tasks, newTask]);
+                  (e.target as HTMLFormElement).reset();
+                  setIsTaskDialogOpen(false);
+                }
                 
-                setTasks([...tasks, newTask]);
-                (e.target as HTMLFormElement).reset();
+                setIsCreatingTask(false);
               }} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Название задачи *</label>
@@ -322,9 +355,22 @@ export function FamilyTabsContent({
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
-                  <Icon name="Plus" className="mr-2" size={16} />
-                  Создать задачу
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500"
+                  disabled={isCreatingTask}
+                >
+                  {isCreatingTask ? (
+                    <>
+                      <Icon name="Loader2" className="mr-2 animate-spin" size={16} />
+                      Создание...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="Save" className="mr-2" size={16} />
+                      Сохранить задачу
+                    </>
+                  )}
                 </Button>
               </form>
             </DialogContent>

@@ -1788,21 +1788,59 @@ export default function Index({ onLogout }: IndexProps) {
             </div>
 
             <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200">
-              {inDevelopmentSections.map((section) => {
-                const votes = getDevSectionVotes(section.id);
-                return (
+              <Dialog>
+                <DialogTrigger asChild>
                   <Button
-                    key={section.id}
-                    onClick={() => setSelectedDevSection(section)}
                     variant="outline"
                     className="text-xs py-1.5 px-2.5 h-auto"
                   >
-                    <Icon name={section.icon} size={14} className="mr-1" />
-                    {section.label}
-                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
+                    <Icon name="Wrench" size={14} className="mr-1" />
+                    В разработке
+                    <Badge className="ml-1 bg-amber-500 text-white text-[9px] px-1 py-0">{inDevelopmentSections.length}</Badge>
                   </Button>
-                );
-              })}
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-xl">
+                      <Icon name="Wrench" size={24} />
+                      Разделы в разработке
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    {inDevelopmentSections.map((section) => {
+                      const votes = getDevSectionVotes(section.id);
+                      return (
+                        <Card
+                          key={section.id}
+                          className="cursor-pointer hover:border-amber-400 transition-all"
+                          onClick={() => setSelectedDevSection(section)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <Icon name={section.icon} size={20} className="text-amber-600" />
+                                <h4 className="font-bold text-sm">{section.label}</h4>
+                              </div>
+                              <Badge className="bg-amber-500 text-white text-[9px] px-1 py-0">DEV</Badge>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{section.description}</p>
+                            <div className="flex items-center gap-2 text-[10px]">
+                              <div className="flex items-center gap-1 text-green-600">
+                                <Icon name="ThumbsUp" size={10} />
+                                <span>{votes.up}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-red-600">
+                                <Icon name="ThumbsDown" size={10} />
+                                <span>{votes.down}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -3039,6 +3077,9 @@ export default function Index({ onLogout }: IndexProps) {
                 setFamilyMembers={setFamilyMembers}
                 tasks={tasks}
                 setTasks={() => console.warn('setTasks deprecated, tasks managed by useTasks hook')}
+                createTask={createTask}
+                updateTask={updateTask}
+                deleteTask={deleteTask}
                 traditions={traditions}
                 familyValues={familyValues}
                 blogPosts={blogPosts}
