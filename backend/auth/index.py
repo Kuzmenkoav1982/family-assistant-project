@@ -264,7 +264,7 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
         cur.execute(query)
         user = cur.fetchone()
         
-        if not user or user['password_hash'] != password_hash:
+        if not user or not user['password_hash'] or user['password_hash'] != password_hash:
             cur.close()
             conn.close()
             return {'error': 'Неверный телефон или пароль'}
@@ -481,7 +481,7 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
                     {escape_string(name)},
                     {escape_string(avatar_url)},
                     TRUE,
-                    NULL
+                    ''
                 )
                 RETURNING id
             """
