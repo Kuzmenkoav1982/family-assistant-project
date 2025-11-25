@@ -47,6 +47,9 @@ export function useFamilyMembers() {
       }
 
       const data = await response.json();
+      console.log('[DEBUG useFamilyMembers] Response data:', data);
+      console.log('[DEBUG useFamilyMembers] data.success:', data.success);
+      console.log('[DEBUG useFamilyMembers] data.members:', data.members);
       
       if (data.success && data.members) {
         setMembers(data.members);
