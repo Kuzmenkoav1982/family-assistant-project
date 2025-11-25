@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import KuzyaInteractive3D from '@/components/KuzyaInteractive3D';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
+
+const KuzyaInteractive3D = lazy(() => import('@/components/KuzyaInteractive3D'));
+
+const isMobile = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+};
 
 export default function KuzyaFloatingButton() {
   const [showDialog, setShowDialog] = useState(false);
   const [phrase, setPhrase] = useState('');
   const [showPhrase, setShowPhrase] = useState(false);
+  const [mobile] = useState(isMobile());
 
   const phrases = [
     '👋 Привет! Нужна помощь?',
@@ -48,9 +55,30 @@ export default function KuzyaFloatingButton() {
           title="Кузя - ваш помощник"
         >
           <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
-          <div className="w-full h-full scale-125">
-            <KuzyaInteractive3D isIdle={true} onClick={() => setShowDialog(true)} />
-          </div>
+          
+          {mobile ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img 
+                src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
+                alt="Кузя"
+                className="w-20 h-20 object-contain animate-bounce"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-full scale-125">
+              <Suspense fallback={
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img 
+                    src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
+                    alt="Кузя"
+                    className="w-20 h-20 object-contain"
+                  />
+                </div>
+              }>
+                <KuzyaInteractive3D isIdle={true} onClick={() => setShowDialog(true)} />
+              </Suspense>
+            </div>
+          )}
           
           <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
         </Button>
