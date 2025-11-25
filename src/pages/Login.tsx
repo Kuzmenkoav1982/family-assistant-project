@@ -11,6 +11,17 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // Если уже авторизован, редирект на главную
+  useEffect(() => {
+    const existingToken = localStorage.getItem('authToken');
+    if (existingToken && !searchParams.get('token')) {
+      console.log('[DEBUG Login] Already authorized, redirecting to /');
+      navigate('/');
+      return;
+    }
+  }, [navigate, searchParams]);
+
+  // Обработка OAuth callback
   useEffect(() => {
     const token = searchParams.get('token');
     const userStr = searchParams.get('user');
