@@ -73,6 +73,7 @@ import MealVotingWidget from '@/components/MealVotingWidget';
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
+import KuzyaFloatingButton from '@/components/KuzyaFloatingButton';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -250,7 +251,6 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [currentHintStep, setCurrentHintStep] = useState(0);
   const [showFamilyInvite, setShowFamilyInvite] = useState(false);
-  const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
   
   const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
   const [autoHideBottomBar, setAutoHideBottomBar] = useState(() => {
@@ -3245,10 +3245,7 @@ export default function Index({ onLogout }: IndexProps) {
 
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
       
-      <KuzyaHelperDialog 
-        open={showKuzyaDialog} 
-        onOpenChange={setShowKuzyaDialog}
-      />
+      <KuzyaFloatingButton />
       
       <Footer />
     </>

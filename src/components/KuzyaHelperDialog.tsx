@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import KuzyaInteractive3D from '@/components/KuzyaInteractive3D';
 
 interface KuzyaHelperDialogProps {
   open: boolean;
@@ -71,11 +72,9 @@ ${formData.description}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl">
-            <img 
-              src="https://cdn.poehali.dev/files/7f859c4f-787d-4dbe-98b9-e8d6ba7ba081.png"
-              alt="Кузя"
-              className="w-16 h-16 object-contain"
-            />
+            <div className="w-32 h-32 -mt-4">
+              <KuzyaInteractive3D isIdle={true} />
+            </div>
             <div>
               <div>Привет! Я Кузя 👋</div>
               <div className="text-sm text-gray-600 font-normal">Ваш помощник в "Наша семья"</div>
