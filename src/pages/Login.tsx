@@ -16,10 +16,10 @@ export default function Login() {
     const existingToken = localStorage.getItem('authToken');
     if (existingToken && !searchParams.get('token')) {
       console.log('[DEBUG Login] Already authorized, redirecting to /');
-      navigate('/');
+      window.location.href = '/';
       return;
     }
-  }, [navigate, searchParams]);
+  }, [searchParams]);
 
   // Обработка OAuth callback
   useEffect(() => {
