@@ -31,6 +31,10 @@ export function useFamilyMembers() {
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
   const fetchMembers = async (silent = false) => {
+    const token = getAuthToken();
+    console.log('[DEBUG useFamilyMembers] Starting fetch, token:', token ? 'EXISTS' : 'MISSING');
+    console.log('[DEBUG useFamilyMembers] API URL:', FAMILY_MEMBERS_API);
+    
     try {
       if (!silent) {
         setLoading(true);
@@ -38,9 +42,12 @@ export function useFamilyMembers() {
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'GET',
         headers: {
-          'X-Auth-Token': getAuthToken()
+          'X-Auth-Token': token
         }
       });
+
+      console.log('[DEBUG useFamilyMembers] Response status:', response.status);
+      console.log('[DEBUG useFamilyMembers] Response ok:', response.ok);
 
       if (!response.ok) {
         throw new Error('Ошибка загрузки членов семьи');
