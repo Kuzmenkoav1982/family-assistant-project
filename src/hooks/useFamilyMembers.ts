@@ -27,6 +27,7 @@ export function useFamilyMembers() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -58,6 +59,8 @@ export function useFamilyMembers() {
       console.log('[DEBUG useFamilyMembers] data.success:', data.success);
       console.log('[DEBUG useFamilyMembers] data.members:', data.members);
       
+      setHasFetched(true);
+      
       if (data.success && data.members) {
         setMembers(data.members);
         setError(null);
@@ -68,6 +71,7 @@ export function useFamilyMembers() {
         }
       }
     } catch (err) {
+      setHasFetched(true);
       if (!silent) {
         setError('Ошибка загрузки данных');
         setMembers([]);
@@ -166,51 +170,46 @@ export function useFamilyMembers() {
     }
   };
 
-  // Первоначальная загрузка при монтировании
+  // Polling: проверяем появление токена каждые 100мс в течение 10 секунд
   useEffect(() => {
-    const token = getAuthToken();
-    console.log('[DEBUG useFamilyMembers useEffect MOUNT] Token check:', token ? 'EXISTS' : 'MISSING');
+    let attempts = 0;
+    const maxAttempts = 100; // 100 * 100ms = 10 секунд
     
-    if (!token) {
-      console.log('[DEBUG useFamilyMembers useEffect MOUNT] No token, setting loading = false');
-      setLoading(false);
-      return;
-    }
-    
-    console.log('[DEBUG useFamilyMembers useEffect MOUNT] Token found, calling fetchMembers');
-    fetchMembers();
+    const checkTokenInterval = setInterval(() => {
+      attempts++;
+      const token = getAuthToken();
+      
+      console.log(`[DEBUG useFamilyMembers POLLING] Attempt ${attempts}/${maxAttempts}, token:`, token ? 'EXISTS' : 'MISSING', 'hasFetched:', hasFetched);
+      
+      if (token && !hasFetched) {
+        console.log('[DEBUG useFamilyMembers POLLING] Token found and not fetched yet! Calling fetchMembers...');
+        fetchMembers();
+        clearInterval(checkTokenInterval);
+      }
+      
+      if (attempts >= maxAttempts) {
+        console.log('[DEBUG useFamilyMembers POLLING] Max attempts reached, stopping');
+        clearInterval(checkTokenInterval);
+        setLoading(false);
+      }
+    }, 100);
+
+    return () => clearInterval(checkTokenInterval);
+  }, [hasFetched]);
+
+  // Периодическое обновление (каждые 5 секунд)
+  useEffect(() => {
+    if (!hasFetched) return;
     
     const interval = setInterval(() => {
-      const currentToken = getAuthToken();
-      if (currentToken) {
+      const token = getAuthToken();
+      if (token) {
         fetchMembers(true);
       }
     }, 5000);
     
     return () => clearInterval(interval);
-  }, []);
-
-  // Дополнительная проверка каждые 100мс — если токен появился, загружаем данные
-  useEffect(() => {
-    const checkTokenInterval = setInterval(() => {
-      const token = getAuthToken();
-      if (token && members.length === 0 && !loading) {
-        console.log('[DEBUG useFamilyMembers TOKEN CHECK] Token appeared! Fetching members...');
-        fetchMembers();
-        clearInterval(checkTokenInterval);
-      }
-    }, 100);
-
-    // Очистка через 10 секунд
-    const cleanup = setTimeout(() => {
-      clearInterval(checkTokenInterval);
-    }, 10000);
-
-    return () => {
-      clearInterval(checkTokenInterval);
-      clearTimeout(cleanup);
-    };
-  }, [members, loading]);
+  }, [hasFetched]);
 
   return {
     members,
