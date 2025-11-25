@@ -251,6 +251,7 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [currentHintStep, setCurrentHintStep] = useState(0);
   const [showFamilyInvite, setShowFamilyInvite] = useState(false);
+  const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
   
   const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
   const [autoHideBottomBar, setAutoHideBottomBar] = useState(() => {
@@ -1532,7 +1533,11 @@ export default function Index({ onLogout }: IndexProps) {
                 onClick={() => setShowKuzyaDialog(true)}
                 className="w-full flex items-center gap-3 p-3 rounded-lg bg-orange-50 border-2 border-orange-200 hover:border-orange-300 transition-all"
               >
-                <Icon name="HelpCircle" size={20} className="text-orange-600" />
+                <img 
+                  src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
+                  alt="Кузя"
+                  className="w-12 h-12 object-cover rounded-full border-2 border-orange-300"
+                />
                 <div className="flex-1 text-left">
                   <div className="text-sm font-bold text-orange-700">Помощь и поддержка</div>
                   <div className="text-xs text-gray-600">Кузя поможет вам</div>
@@ -3246,6 +3251,11 @@ export default function Index({ onLogout }: IndexProps) {
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
       
       <KuzyaFloatingButton />
+      
+      <KuzyaHelperDialog 
+        open={showKuzyaDialog}
+        onOpenChange={setShowKuzyaDialog}
+      />
       
       <Footer />
     </>
