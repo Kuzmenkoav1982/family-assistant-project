@@ -622,7 +622,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': ''
             }
         
-        callback_url = f"{AUTH_URL}?oauth=yandex_callback"
+        callback_url = "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?oauth=yandex_callback"
         result = oauth_callback_yandex(code, callback_url)
         
         if 'error' in result:
