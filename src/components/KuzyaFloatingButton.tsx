@@ -1,8 +1,6 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
-
-const KuzyaInteractive3D = lazy(() => import('@/components/KuzyaInteractive3D'));
 
 const isMobile = () => {
   if (typeof window === 'undefined') return false;
@@ -60,19 +58,11 @@ export default function KuzyaFloatingButton() {
         >
           <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
           
-          <div className="w-full h-full scale-125">
-            <Suspense fallback={
-              <div className="absolute inset-0 flex items-center justify-center">
-                <img 
-                  src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
-                  alt="Кузя"
-                  className="w-20 h-20 object-contain"
-                />
-              </div>
-            }>
-              <KuzyaInteractive3D isIdle={true} onClick={() => setShowDialog(true)} />
-            </Suspense>
-          </div>
+          <img 
+            src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
+            alt="Кузя"
+            className="w-20 h-20 object-contain relative z-10"
+          />
           
           <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
         </Button>
