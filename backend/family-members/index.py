@@ -41,7 +41,9 @@ def verify_token(token: str) -> Optional[str]:
     cur.close()
     conn.close()
     
-    return str(session['user_id']) if session else None
+    result = str(session['user_id']) if session else None
+    print(f"[DEBUG] verify_token result: {result}")
+    return result
 
 def get_user_family_id(user_id: str) -> Optional[str]:
     conn = get_db_connection()
@@ -51,12 +53,16 @@ def get_user_family_id(user_id: str) -> Optional[str]:
         SELECT family_id FROM {SCHEMA}.family_members 
         WHERE user_id::text = {escape_string(user_id)} LIMIT 1
     """
+    print(f"[DEBUG] get_user_family_id query: {query}")
     cur.execute(query)
     member = cur.fetchone()
+    print(f"[DEBUG] get_user_family_id result: {member}")
     cur.close()
     conn.close()
     
-    return str(member['family_id']) if member and member['family_id'] else None
+    result = str(member['family_id']) if member and member['family_id'] else None
+    print(f"[DEBUG] get_user_family_id returning: {result}")
+    return result
 
 def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     conn = get_db_connection()
@@ -66,15 +72,19 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
                photo_url, points, level, workload, age, permissions, created_at, updated_at
         FROM {SCHEMA}.family_members
-        WHERE family_id = {escape_string(family_id)}
+        WHERE family_id::text = {escape_string(family_id)}
         ORDER BY created_at ASC
     """
+    print(f"[DEBUG] get_family_members query: {query}")
     cur.execute(query)
     members = cur.fetchall()
+    print(f"[DEBUG] get_family_members fetched {len(members)} members")
     cur.close()
     conn.close()
     
-    return [dict(m) for m in members]
+    result = [dict(m) for m in members]
+    print(f"[DEBUG] get_family_members returning: {result}")
+    return result
 
 def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
