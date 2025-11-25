@@ -420,12 +420,18 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
     
     try:
         token_req = urllib.request.Request(token_url, data=token_data, method='POST')
-        with urllib.request.urlopen(token_req) as response:
-            token_response = json.loads(response.read().decode())
+        token_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        
+        try:
+            with urllib.request.urlopen(token_req) as response:
+                token_response = json.loads(response.read().decode())
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode()
+            return {'error': f'Яндекс вернул ошибку: {e.code} - {error_body}'}
         
         access_token = token_response.get('access_token')
         if not access_token:
-            return {'error': 'Не получен access_token от Yandex'}
+            return {'error': f'Не получен access_token от Yandex. Ответ: {token_response}'}
         
         user_info_url = 'https://login.yandex.ru/info?format=json'
         user_req = urllib.request.Request(user_info_url)
