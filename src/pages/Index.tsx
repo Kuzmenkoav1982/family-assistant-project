@@ -3250,8 +3250,6 @@ export default function Index({ onLogout }: IndexProps) {
 
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
       
-      <KuzyaFloatingButton />
-      
       <KuzyaHelperDialog 
         open={showKuzyaDialog}
         onOpenChange={setShowKuzyaDialog}
