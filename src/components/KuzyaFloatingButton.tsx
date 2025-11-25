@@ -39,6 +39,10 @@ export default function KuzyaFloatingButton() {
     return () => clearInterval(interval);
   }, [showDialog]);
 
+  if (mobile) {
+    return null;
+  }
+
   return (
     <>
       <div className="fixed bottom-6 right-6 z-50 flex items-end gap-3">
@@ -56,29 +60,19 @@ export default function KuzyaFloatingButton() {
         >
           <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
           
-          {mobile ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
-                alt="Кузя"
-                className="w-20 h-20 object-contain animate-bounce"
-              />
-            </div>
-          ) : (
-            <div className="w-full h-full scale-125">
-              <Suspense fallback={
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <img 
-                    src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
-                    alt="Кузя"
-                    className="w-20 h-20 object-contain"
-                  />
-                </div>
-              }>
-                <KuzyaInteractive3D isIdle={true} onClick={() => setShowDialog(true)} />
-              </Suspense>
-            </div>
-          )}
+          <div className="w-full h-full scale-125">
+            <Suspense fallback={
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img 
+                  src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
+                  alt="Кузя"
+                  className="w-20 h-20 object-contain"
+                />
+              </div>
+            }>
+              <KuzyaInteractive3D isIdle={true} onClick={() => setShowDialog(true)} />
+            </Suspense>
+          </div>
           
           <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
         </Button>

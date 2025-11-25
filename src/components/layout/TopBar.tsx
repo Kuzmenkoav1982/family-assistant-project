@@ -107,10 +107,14 @@ export default function TopBar({
             onClick={() => setShowKuzyaDialog(true)}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0"
+            className="h-9 w-9 p-0 relative"
             title="Помощь и поддержка"
           >
-            <Icon name="HelpCircle" size={18} />
+            <img 
+              src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
+              alt="Кузя"
+              className="w-8 h-8 object-cover rounded-full"
+            />
           </Button>
           
           <Button
