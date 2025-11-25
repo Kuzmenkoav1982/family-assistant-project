@@ -85,6 +85,13 @@ export default function Index({ onLogout }: IndexProps) {
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   
+  const authToken = localStorage.getItem('authToken');
+  const authUser = localStorage.getItem('user');
+  console.log('Index: authToken =', authToken ? 'EXISTS' : 'NULL');
+  console.log('Index: authUser =', authUser);
+  console.log('Index: familyMembersRaw =', familyMembersRaw);
+  console.log('Index: membersLoading =', membersLoading);
+  
   const familyMembers = (familyMembersRaw && familyMembersRaw.length > 0) ? familyMembersRaw : 
     DEMO_FAMILY.members.map((dm, index) => {
       const demoMoods = [
