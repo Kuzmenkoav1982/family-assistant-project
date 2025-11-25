@@ -1,7 +1,7 @@
 """
-Business: Регистрация и авторизация пользователей только через телефон
-Args: event с httpMethod, body (phone, password)
-Returns: JSON с токеном сессии или ошибкой
+Business: Регистрация и авторизация пользователей через телефон + OAuth (Yandex ID)
+Args: event с httpMethod, path, body
+Returns: JSON с токеном сессии или редирект на OAuth провайдера
 """
 
 import json
@@ -9,12 +9,15 @@ import os
 import hashlib
 import secrets
 import re
+import urllib.parse
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
+YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
+YANDEX_CLIENT_SECRET = os.environ.get('YANDEX_CLIENT_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 def hash_password(password: str) -> str:
@@ -241,51 +244,28 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
         conn.close()
         return {'error': f'Ошибка регистрации: {str(e)}'}
 
-def login_user(login: str, password: str) -> Dict[str, Any]:
-    if not login or not password:
-        return {'error': 'Логин и пароль обязательны'}
+def login_user(phone: str, password: str) -> Dict[str, Any]:
+    if not phone or not password:
+        return {'error': 'Телефон и пароль обязательны'}
     
-    conn = None
-    cur = None
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        is_email = '@' in login
-        field = 'email' if is_email else 'phone'
+        password_hash = hash_password(password)
         
-        select_user = f"""
+        query = f"""
             SELECT id, email, phone, password_hash 
             FROM {SCHEMA}.users 
-            WHERE {field} = {escape_string(login)}
+            WHERE phone = {escape_string(phone)}
         """
-        cur.execute(select_user)
+        cur.execute(query)
         user = cur.fetchone()
         
-        if not user:
-            if cur:
-                cur.close()
-            if conn:
-                conn.close()
-            return {'error': 'Пользователь не найден'}
-        
-        password_hash = hash_password(password)
-        if user['password_hash'] != password_hash:
-            if cur:
-                cur.close()
-            if conn:
-                conn.close()
-            return {'error': 'Неверный пароль'}
-        
-        select_family = f"""
-            SELECT fm.family_id, f.name as family_name, fm.id as member_id
-            FROM {SCHEMA}.family_members fm
-            JOIN {SCHEMA}.families f ON fm.family_id = f.id
-            WHERE fm.user_id = {escape_string(user['id'])}
-            LIMIT 1
-        """
-        cur.execute(select_family)
-        family_info = cur.fetchone()
+        if not user or user['password_hash'] != password_hash:
+            cur.close()
+            conn.close()
+            return {'error': 'Неверный телефон или пароль'}
         
         token = generate_token()
         expires_at = datetime.now() + timedelta(days=30)
@@ -300,12 +280,15 @@ def login_user(login: str, password: str) -> Dict[str, Any]:
         """
         cur.execute(insert_session)
         
-        update_login = f"""
-            UPDATE {SCHEMA}.users 
-            SET last_login_at = CURRENT_TIMESTAMP 
-            WHERE id = {escape_string(user['id'])}
+        member_query = f"""
+            SELECT fm.id, fm.family_id, f.name as family_name
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = {escape_string(user['id'])}
+            LIMIT 1
         """
-        cur.execute(update_login)
+        cur.execute(member_query)
+        member = cur.fetchone()
         
         user_data = {
             'id': str(user['id']),
@@ -313,15 +296,13 @@ def login_user(login: str, password: str) -> Dict[str, Any]:
             'phone': user['phone']
         }
         
-        if family_info:
-            user_data['family_id'] = str(family_info['family_id'])
-            user_data['family_name'] = family_info['family_name']
-            user_data['member_id'] = str(family_info['member_id'])
+        if member:
+            user_data['family_id'] = str(member['family_id'])
+            user_data['family_name'] = member['family_name']
+            user_data['member_id'] = str(member['id'])
         
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+        cur.close()
+        conn.close()
         
         return {
             'success': True,
@@ -329,286 +310,249 @@ def login_user(login: str, password: str) -> Dict[str, Any]:
             'user': user_data
         }
     except Exception as e:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-        return {'error': f'Ошибка входа: {str(e)}'}
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка авторизации: {str(e)}'}
 
-def verify_token(token: str) -> Optional[Dict[str, Any]]:
+def get_current_user(token: str) -> Dict[str, Any]:
     if not token:
-        return None
+        return {'error': 'Токен не предоставлен'}
     
-    conn = None
-    cur = None
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        select_session = f"""
-            SELECT s.user_id, s.expires_at, u.email, u.phone,
-                   fm.family_id, f.name as family_name, fm.id as member_id
+        query = f"""
+            SELECT s.user_id, s.expires_at, u.email, u.phone, u.oauth_provider, u.name, u.avatar_url
             FROM {SCHEMA}.sessions s
-            JOIN {SCHEMA}.users u ON s.user_id = u.id
-            LEFT JOIN {SCHEMA}.family_members fm ON fm.user_id = u.id
-            LEFT JOIN {SCHEMA}.families f ON f.id = fm.family_id
-            WHERE s.token = {escape_string(token)} AND s.expires_at > CURRENT_TIMESTAMP
-            LIMIT 1
+            JOIN {SCHEMA}.users u ON u.id = s.user_id
+            WHERE s.token = {escape_string(token)}
         """
-        
-        cur.execute(select_session)
+        cur.execute(query)
         session = cur.fetchone()
         
         if not session:
-            return None
+            cur.close()
+            conn.close()
+            return {'error': 'Сессия не найдена'}
+        
+        if session['expires_at'] < datetime.now():
+            cur.close()
+            conn.close()
+            return {'error': 'Сессия истекла'}
+        
+        member_query = f"""
+            SELECT fm.id, fm.family_id, f.name as family_name
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = {escape_string(session['user_id'])}
+            LIMIT 1
+        """
+        cur.execute(member_query)
+        member = cur.fetchone()
         
         user_data = {
             'id': str(session['user_id']),
             'email': session['email'],
-            'phone': session['phone']
+            'phone': session['phone'],
+            'oauth_provider': session['oauth_provider'],
+            'name': session['name'],
+            'avatar_url': session['avatar_url']
         }
         
-        if session.get('family_id'):
-            user_data['family_id'] = str(session['family_id'])
-            user_data['family_name'] = session['family_name']
-            user_data['member_id'] = str(session['member_id'])
-        
-        return user_data
-    except Exception as e:
-        return None
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-def logout_user(token: str) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    try:
-        update_session = f"""
-            UPDATE {SCHEMA}.sessions 
-            SET expires_at = CURRENT_TIMESTAMP 
-            WHERE token = {escape_string(token)}
-        """
-        cur.execute(update_session)
-        cur.close()
-        conn.close()
-        return {'success': True}
-    except Exception as e:
-        cur.close()
-        conn.close()
-        return {'error': str(e)}
-
-def forgot_password(phone: str) -> Dict[str, Any]:
-    if not phone or not validate_phone(phone):
-        return {'error': 'Некорректный номер телефона'}
-    
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    try:
-        # Проверяем существует ли пользователь
-        check_user = f"SELECT id FROM {SCHEMA}.users WHERE phone = {escape_string(phone)}"
-        cur.execute(check_user)
-        user = cur.fetchone()
-        
-        if not user:
-            cur.close()
-            conn.close()
-            return {'error': 'Пользователь с таким номером не найден'}
-        
-        # Генерируем 6-значный код
-        reset_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
-        reset_token = generate_token()
-        expires_at = datetime.now() + timedelta(minutes=15)
-        
-        # Удаляем старые токены
-        delete_old = f"DELETE FROM {SCHEMA}.password_reset_tokens WHERE user_id = {escape_string(user['id'])}"
-        cur.execute(delete_old)
-        
-        # Сохраняем новый токен
-        insert_token = f"""
-            INSERT INTO {SCHEMA}.password_reset_tokens 
-            (user_id, token, code, expires_at) 
-            VALUES (
-                {escape_string(user['id'])}, 
-                {escape_string(reset_token)}, 
-                {escape_string(reset_code)}, 
-                {escape_string(expires_at.isoformat())}
-            )
-        """
-        cur.execute(insert_token)
+        if member:
+            user_data['family_id'] = str(member['family_id'])
+            user_data['family_name'] = member['family_name']
+            user_data['member_id'] = str(member['id'])
         
         cur.close()
         conn.close()
-        
-        # TODO: Отправить SMS с кодом reset_code
-        # Пока просто возвращаем код (для тестирования)
-        return {
-            'success': True, 
-            'message': 'Код подтверждения отправлен',
-            'code': reset_code  # Уберите это в продакшене!
-        }
-    except Exception as e:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-        return {'error': f'Ошибка: {str(e)}'}
-
-def verify_reset_code(phone: str, code: str) -> Dict[str, Any]:
-    if not phone or not code:
-        return {'error': 'Телефон и код обязательны'}
-    
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    try:
-        check_query = f"""
-            SELECT prt.token, prt.expires_at
-            FROM {SCHEMA}.password_reset_tokens prt
-            JOIN {SCHEMA}.users u ON prt.user_id = u.id
-            WHERE u.phone = {escape_string(phone)} 
-            AND prt.code = {escape_string(code)}
-            AND prt.expires_at > CURRENT_TIMESTAMP
-            AND prt.used_at IS NULL
-            ORDER BY prt.created_at DESC
-            LIMIT 1
-        """
-        cur.execute(check_query)
-        token_data = cur.fetchone()
-        
-        cur.close()
-        conn.close()
-        
-        if not token_data:
-            return {'error': 'Неверный код или код устарел'}
         
         return {
             'success': True,
-            'reset_token': token_data['token']
+            'user': user_data
         }
     except Exception as e:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-        return {'error': f'Ошибка: {str(e)}'}
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка получения пользователя: {str(e)}'}
 
-def reset_password(reset_token: str, new_password: str) -> Dict[str, Any]:
-    if not reset_token or not new_password:
-        return {'error': 'Токен и пароль обязательны'}
+def oauth_login_yandex(callback_url: str) -> Dict[str, Any]:
+    """Генерирует URL для редиректа на Yandex OAuth"""
+    if not YANDEX_CLIENT_ID:
+        return {'error': 'YANDEX_CLIENT_ID не настроен'}
     
-    if len(new_password) < 6:
-        return {'error': 'Пароль должен быть минимум 6 символов'}
+    state = secrets.token_urlsafe(16)
     
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
+    params = {
+        'response_type': 'code',
+        'client_id': YANDEX_CLIENT_ID,
+        'redirect_uri': callback_url,
+        'state': state
+    }
+    
+    oauth_url = 'https://oauth.yandex.ru/authorize?' + urllib.parse.urlencode(params)
+    
+    return {
+        'redirect_url': oauth_url,
+        'state': state
+    }
+
+def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
+    """Обрабатывает callback от Yandex OAuth"""
+    if not YANDEX_CLIENT_ID or not YANDEX_CLIENT_SECRET:
+        return {'error': 'OAuth credentials не настроены'}
+    
+    import urllib.request
+    
+    token_url = 'https://oauth.yandex.ru/token'
+    token_data = urllib.parse.urlencode({
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': YANDEX_CLIENT_ID,
+        'client_secret': YANDEX_CLIENT_SECRET,
+        'redirect_uri': redirect_uri
+    }).encode()
     
     try:
-        # Проверяем токен
-        check_token = f"""
-            SELECT user_id 
-            FROM {SCHEMA}.password_reset_tokens 
-            WHERE token = {escape_string(reset_token)} 
-            AND expires_at > CURRENT_TIMESTAMP
-            AND used_at IS NULL
+        token_req = urllib.request.Request(token_url, data=token_data, method='POST')
+        with urllib.request.urlopen(token_req) as response:
+            token_response = json.loads(response.read().decode())
+        
+        access_token = token_response.get('access_token')
+        if not access_token:
+            return {'error': 'Не получен access_token от Yandex'}
+        
+        user_info_url = 'https://login.yandex.ru/info?format=json'
+        user_req = urllib.request.Request(user_info_url)
+        user_req.add_header('Authorization', f'OAuth {access_token}')
+        
+        with urllib.request.urlopen(user_req) as response:
+            user_info = json.loads(response.read().decode())
+        
+        yandex_id = user_info.get('id')
+        email = user_info.get('default_email')
+        name = user_info.get('display_name') or user_info.get('real_name') or email
+        avatar_url = None
+        if user_info.get('default_avatar_id'):
+            avatar_url = f"https://avatars.yandex.net/get-yapic/{user_info['default_avatar_id']}/islands-200"
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        check_query = f"""
+            SELECT id FROM {SCHEMA}.users 
+            WHERE oauth_provider = 'yandex' AND oauth_id = {escape_string(yandex_id)}
         """
-        cur.execute(check_token)
-        token_data = cur.fetchone()
+        cur.execute(check_query)
+        existing_user = cur.fetchone()
         
-        if not token_data:
-            cur.close()
-            conn.close()
-            return {'error': 'Неверный или просроченный токен'}
+        if existing_user:
+            user_id = existing_user['id']
+            
+            update_user = f"""
+                UPDATE {SCHEMA}.users
+                SET name = {escape_string(name)},
+                    avatar_url = {escape_string(avatar_url)},
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = {escape_string(user_id)}
+            """
+            cur.execute(update_user)
+        else:
+            insert_user = f"""
+                INSERT INTO {SCHEMA}.users 
+                (email, oauth_provider, oauth_id, name, avatar_url, is_verified)
+                VALUES (
+                    {escape_string(email)},
+                    'yandex',
+                    {escape_string(yandex_id)},
+                    {escape_string(name)},
+                    {escape_string(avatar_url)},
+                    TRUE
+                )
+                RETURNING id
+            """
+            cur.execute(insert_user)
+            user = cur.fetchone()
+            user_id = user['id']
+            
+            default_family_name = f"Семья {name}"
+            insert_family = f"""
+                INSERT INTO {SCHEMA}.families (name)
+                VALUES ({escape_string(default_family_name)})
+                RETURNING id
+            """
+            cur.execute(insert_family)
+            family = cur.fetchone()
+            family_id = family['id']
+            
+            insert_member = f"""
+                INSERT INTO {SCHEMA}.family_members
+                (family_id, user_id, name, role, points, level, workload, avatar, avatar_type)
+                VALUES (
+                    {escape_string(family_id)},
+                    {escape_string(user_id)},
+                    {escape_string(name)},
+                    'Владелец',
+                    0, 1, 0,
+                    '👤',
+                    'emoji'
+                )
+            """
+            cur.execute(insert_member)
         
-        user_id = token_data['user_id']
-        new_password_hash = hash_password(new_password)
+        token = generate_token()
+        expires_at = datetime.now() + timedelta(days=30)
         
-        # Обновляем пароль
-        update_password = f"""
-            UPDATE {SCHEMA}.users 
-            SET password_hash = {escape_string(new_password_hash)} 
-            WHERE id = {escape_string(user_id)}
+        insert_session = f"""
+            INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at)
+            VALUES (
+                {escape_string(user_id)},
+                {escape_string(token)},
+                {escape_string(expires_at.isoformat())}
+            )
         """
-        cur.execute(update_password)
+        cur.execute(insert_session)
         
-        # Помечаем токен как использованный
-        mark_used = f"""
-            UPDATE {SCHEMA}.password_reset_tokens 
-            SET used_at = CURRENT_TIMESTAMP 
-            WHERE token = {escape_string(reset_token)}
+        member_query = f"""
+            SELECT fm.id, fm.family_id, f.name as family_name
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = {escape_string(user_id)}
+            LIMIT 1
         """
-        cur.execute(mark_used)
+        cur.execute(member_query)
+        member = cur.fetchone()
         
-        # Удаляем все сессии пользователя (принудительный выход)
-        delete_sessions = f"""
-            UPDATE {SCHEMA}.sessions 
-            SET expires_at = CURRENT_TIMESTAMP 
-            WHERE user_id = {escape_string(user_id)}
-        """
-        cur.execute(delete_sessions)
+        user_data = {
+            'id': str(user_id),
+            'email': email,
+            'oauth_provider': 'yandex',
+            'name': name,
+            'avatar_url': avatar_url
+        }
+        
+        if member:
+            user_data['family_id'] = str(member['family_id'])
+            user_data['family_name'] = member['family_name']
+            user_data['member_id'] = str(member['id'])
         
         cur.close()
         conn.close()
         
-        return {'success': True, 'message': 'Пароль успешно изменён'}
+        return {
+            'success': True,
+            'token': token,
+            'user': user_data
+        }
+        
     except Exception as e:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-        return {'error': f'Ошибка: {str(e)}'}
-
-def delete_account(token: str) -> Dict[str, Any]:
-    user = verify_token(token)
-    if not user:
-        return {'error': 'Неверный токен'}
-    
-    user_id = user['id']
-    conn = None
-    cur = None
-    
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        cur.execute(f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}")
-        cur.execute(f"DELETE FROM {SCHEMA}.password_reset_tokens WHERE user_id = {escape_string(user_id)}")
-        
-        cur.execute(f"SELECT family_id FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}")
-        member_data = cur.fetchone()
-        
-        if member_data:
-            family_id = member_data['family_id']
-            
-            cur.execute(f"SELECT COUNT(*) as count FROM {SCHEMA}.family_members WHERE family_id = {escape_string(family_id)}")
-            members_count = cur.fetchone()['count']
-            
-            if members_count <= 1:
-                cur.execute(f"DELETE FROM {SCHEMA}.tasks WHERE family_id = {escape_string(family_id)}")
-                cur.execute(f"DELETE FROM {SCHEMA}.family_invites WHERE family_id = {escape_string(family_id)}")
-                cur.execute(f"DELETE FROM {SCHEMA}.family_members WHERE family_id = {escape_string(family_id)}")
-                cur.execute(f"DELETE FROM {SCHEMA}.families WHERE id = {escape_string(family_id)}")
-            else:
-                cur.execute(f"DELETE FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}")
-        
-        cur.execute(f"DELETE FROM {SCHEMA}.users WHERE id = {escape_string(user_id)}")
-        
-        return {'success': True, 'message': 'Аккаунт успешно удалён'}
-    except Exception as e:
-        return {'error': f'Ошибка удаления: {str(e)}'}
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+        return {'error': f'Ошибка OAuth: {str(e)}'}
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
+    query_params = event.get('queryStringParameters') or {}
+    oauth_action = query_params.get('oauth')
     
     if method == 'OPTIONS':
         return {
@@ -619,196 +563,156 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': '',
-            'isBase64Encoded': False
+            'body': ''
         }
     
-    headers = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+    if oauth_action == 'yandex' and method == 'GET':
+        callback_url = query_params.get('callback_url')
+        if not callback_url:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'callback_url обязателен'})
+            }
+        
+        result = oauth_login_yandex(callback_url)
+        
+        if 'error' in result:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps(result)
+            }
+        
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': result['redirect_url'],
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
+    
+    if oauth_action == 'yandex_callback' and method == 'GET':
+        code = query_params.get('code')
+        redirect_uri = query_params.get('redirect_uri')
+        frontend_url = query_params.get('frontend_url', 'https://webapp.poehali.dev')
+        
+        if not code:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'code обязателен'})
+            }
+        
+        if not redirect_uri:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'redirect_uri обязателен'})
+            }
+        
+        result = oauth_callback_yandex(code, redirect_uri)
+        
+        if 'error' in result:
+            error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': error_url,
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': ''
+            }
+        
+        success_url = f"{frontend_url}?token={result['token']}&user={urllib.parse.quote(json.dumps(result['user']))}"
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': success_url,
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
+    
+    if method == 'GET':
+        token = event.get('headers', {}).get('X-Auth-Token') or query_params.get('token')
+        
+        if token:
+            result = get_current_user(token)
+            status_code = 200 if result.get('success') else 401
+            return {
+                'statusCode': status_code,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps(result, ensure_ascii=False)
+            }
+        
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Токен не предоставлен'})
+        }
+    
+    if method == 'POST':
+        try:
+            body = json.loads(event.get('body', '{}'))
+        except:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Некорректный JSON'})
+            }
+        
+        action = body.get('action')
+        
+        if action == 'register':
+            result = register_user(
+                phone=body.get('phone'),
+                password=body.get('password'),
+                family_name=body.get('family_name'),
+                invite_code=body.get('invite_code'),
+                member_name=body.get('member_name'),
+                relationship=body.get('relationship')
+            )
+        elif action == 'login':
+            result = login_user(
+                phone=body.get('phone'),
+                password=body.get('password')
+            )
+        else:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Неизвестное действие'})
+            }
+        
+        status_code = 200 if result.get('success') else 400
+        return {
+            'statusCode': status_code,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps(result, ensure_ascii=False)
+        }
+    
+    return {
+        'statusCode': 405,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        'body': json.dumps({'error': 'Метод не поддерживается'})
     }
-    
-    try:
-        raw_body = event.get('body') or '{}'
-        body = json.loads(raw_body) if raw_body else {}
-        query_params = event.get('queryStringParameters') or {}
-        path = query_params.get('action', 'login')
-        
-        if method == 'POST':
-            if path == 'register':
-                invite_code = body.get('invite_code', '')
-                skip_family = bool(invite_code)
-                result = register_user(
-                    body.get('phone', ''),
-                    body.get('password', ''),
-                    body.get('family_name'),
-                    skip_family_creation=skip_family,
-                    invite_code=invite_code if invite_code else None,
-                    member_name=body.get('name'),
-                    relationship=body.get('relationship')
-                )
-                if 'error' in result:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps(result),
-                        'isBase64Encoded': False
-                    }
-                return {
-                    'statusCode': 201,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            elif path == 'login':
-                result = login_user(
-                    body.get('login', ''),
-                    body.get('password', '')
-                )
-                if 'error' in result:
-                    return {
-                        'statusCode': 401,
-                        'headers': headers,
-                        'body': json.dumps(result),
-                        'isBase64Encoded': False
-                    }
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            elif path == 'forgot_password':
-                result = forgot_password(body.get('phone', ''))
-                if 'error' in result:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps(result),
-                        'isBase64Encoded': False
-                    }
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            elif path == 'verify_reset_code':
-                result = verify_reset_code(
-                    body.get('phone', ''),
-                    body.get('code', '')
-                )
-                if 'error' in result:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps(result),
-                        'isBase64Encoded': False
-                    }
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            elif path == 'reset_password':
-                result = reset_password(
-                    body.get('reset_token', ''),
-                    body.get('new_password', '')
-                )
-                if 'error' in result:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps(result),
-                        'isBase64Encoded': False
-                    }
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            elif path == 'logout':
-                token = event.get('headers', {}).get('X-Auth-Token', '') or event.get('headers', {}).get('x-auth-token', '')
-                result = logout_user(token)
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            elif path == 'delete_account':
-                token = event.get('headers', {}).get('X-Auth-Token', '') or event.get('headers', {}).get('x-auth-token', '')
-                result = delete_account(token)
-                if 'error' in result:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps(result),
-                        'isBase64Encoded': False
-                    }
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-        
-        elif method == 'GET':
-            if path == 'verify':
-                all_headers = event.get('headers', {})
-                token = all_headers.get('X-Auth-Token', '') or all_headers.get('x-auth-token', '')
-                
-                if not token:
-                    return {
-                        'statusCode': 401,
-                        'headers': headers,
-                        'body': json.dumps({'error': 'Токен не предоставлен'}),
-                        'isBase64Encoded': False
-                    }
-                
-                user = verify_token(token)
-                
-                if not user:
-                    return {
-                        'statusCode': 401,
-                        'headers': headers,
-                        'body': json.dumps({'error': 'Недействительный токен'}),
-                        'isBase64Encoded': False
-                    }
-                
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps({'success': True, 'user': user}),
-                    'isBase64Encoded': False
-                }
-        
-        return {
-            'statusCode': 404,
-            'headers': headers,
-            'body': json.dumps({'error': 'Метод не найден'}),
-            'isBase64Encoded': False
-        }
-    
-    except Exception as e:
-        import traceback
-        error_details = {
-            'error': f'Server error: {str(e)}',
-            'type': type(e).__name__,
-            'traceback': traceback.format_exc()
-        }
-        print(f"ERROR in handler: {error_details}")
-        return {
-            'statusCode': 500,
-            'headers': headers,
-            'body': json.dumps({'error': f'Server error: {str(e)}', 'type': type(e).__name__}),
-            'isBase64Encoded': False
-        }

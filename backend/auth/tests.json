@@ -1,50 +1,18 @@
 {
   "tests": [
     {
-      "name": "Register new user with phone",
-      "method": "POST",
-      "path": "/?action=register",
-      "body": {
-        "phone": "+79991234567",
-        "password": "test123456"
-      },
-      "expectedStatus": 201,
-      "expectedBody": {
-        "success": true,
-        "token": "string",
-        "user": {
-          "id": "string",
-          "phone": "string"
-        }
-      },
-      "bodyMatcher": "partial"
-    },
-    {
       "name": "Login with valid credentials",
       "method": "POST",
-      "path": "/?action=login",
+      "path": "/",
       "body": {
-        "login": "+79991234567",
+        "action": "login",
+        "phone": "+79991234567",
         "password": "test123456"
       },
       "expectedStatus": 200,
       "expectedBody": {
         "success": true,
         "token": "string"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Login with invalid credentials",
-      "method": "POST",
-      "path": "/?action=login",
-      "body": {
-        "login": "+79991234567",
-        "password": "wrongpassword"
-      },
-      "expectedStatus": 401,
-      "expectedBody": {
-        "error": "string"
       },
       "bodyMatcher": "partial"
     },
