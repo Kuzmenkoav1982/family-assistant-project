@@ -6,9 +6,10 @@ import Icon from '@/components/ui/icon';
 
 interface AccountSettingsProps {
   onDeleteAccount: () => Promise<void>;
+  onLogout?: () => void;
 }
 
-export default function AccountSettings({ onDeleteAccount }: AccountSettingsProps) {
+export default function AccountSettings({ onDeleteAccount, onLogout }: AccountSettingsProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -69,6 +70,19 @@ export default function AccountSettings({ onDeleteAccount }: AccountSettingsProp
               </div>
               <Icon name="Check" className="text-green-600" size={24} />
             </div>
+            <Button
+              onClick={() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                if (onLogout) onLogout();
+                window.location.href = '/login';
+              }}
+              variant="outline"
+              className="w-full mt-4"
+            >
+              <Icon name="LogOut" className="mr-2" size={16} />
+              Выйти из аккаунта
+            </Button>
           </CardContent>
         </Card>
       )}

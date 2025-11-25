@@ -284,6 +284,10 @@ export default function SettingsMenu() {
             <TabsContent value="account" className="flex-1 overflow-y-auto px-6 pb-6">
               <AccountSettings
                 onDeleteAccount={handleDeleteAccount}
+                onLogout={() => {
+                  setIsOpen(false);
+                  navigate('/login');
+                }}
               />
             </TabsContent>
           </Tabs>

@@ -92,6 +92,13 @@ export default function Index({ onLogout }: IndexProps) {
   console.log('Index: familyMembersRaw =', familyMembersRaw);
   console.log('Index: membersLoading =', membersLoading);
   
+  // Проверяем авторизацию - если нет токена, перенаправляем на логин
+  useEffect(() => {
+    if (!authToken && !membersLoading) {
+      navigate('/login');
+    }
+  }, [authToken, membersLoading, navigate]);
+
   const familyMembers = (familyMembersRaw && familyMembersRaw.length > 0) ? familyMembersRaw : 
     DEMO_FAMILY.members.map((dm, index) => {
       const demoMoods = [
