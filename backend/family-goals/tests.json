@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Get all family goals",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "goals": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create family goal",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "title": "Buy a house",
+        "description": "Save money for downpayment",
+        "category": "financial",
+        "target_date": "2026-12-31",
+        "progress": 0,
+        "status": "active",
+        "created_by_name": "Test User"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "goal": {
+          "id": "string",
+          "title": "Buy a house"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

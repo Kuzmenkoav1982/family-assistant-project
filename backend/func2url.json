@@ -1,4 +1,11 @@
 {
+  "shopping-list": "https://functions.poehali.dev/0d958ab6-4d99-42d8-a38f-fe72a62c82de",
+  "family-goals": "https://functions.poehali.dev/30d07694-f397-4f4e-8215-4c884ea6fa5c",
+  "important-dates": "https://functions.poehali.dev/f87023a0-77bb-4166-b64f-f02975ce225f",
+  "calendar-events": "https://functions.poehali.dev/a1a7a828-3d62-4128-8370-66054ddf0362",
+  "traditions": "https://functions.poehali.dev/ab1992d8-47b7-4874-ad3f-b2ff55447bdd",
+  "blog-posts": "https://functions.poehali.dev/12e78d69-efab-46a6-bff6-492fc8f2216e",
+  "password-reset": "https://functions.poehali.dev/987c3159-5bd3-42fe-9bd1-0c31937d977e",
   "family-data": "https://functions.poehali.dev/5cab3ca7-6fa8-4ffb-b9d1-999d93d29d2e",
   "family-members": "https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5",
   "data-export": "https://functions.poehali.dev/6db20156-2ce6-4ba2-923b-b3e8faf8a58b",

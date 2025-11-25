@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "Get all shopping items",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "items": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create shopping item",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Milk",
+        "category": "products",
+        "quantity": "2L",
+        "priority": "normal",
+        "bought": false,
+        "added_by_name": "Test User"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "item": {
+          "id": "string",
+          "name": "Milk"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

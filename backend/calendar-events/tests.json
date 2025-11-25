@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "Get all calendar events",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "events": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create calendar event",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "family_id": 1,
+        "title": "Family Meeting",
+        "description": "Monthly family meeting",
+        "date": "2025-12-01",
+        "time": "18:00:00",
+        "created_by_name": "Test User",
+        "category": "meeting",
+        "color": "blue",
+        "visibility": "family"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "event": {
+          "id": "number",
+          "title": "Family Meeting"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

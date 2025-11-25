@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "Get all blog posts",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "posts": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create blog post",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "family_id": 1,
+        "title": "Our Family Trip",
+        "author": "Mom",
+        "category": "travel",
+        "excerpt": "Amazing vacation memories",
+        "content": "We had a wonderful time at the beach...",
+        "likes": 0,
+        "comments": 0
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "post": {
+          "id": "number",
+          "title": "Our Family Trip"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
