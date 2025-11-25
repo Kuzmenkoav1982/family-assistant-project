@@ -20,6 +20,8 @@ YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
 YANDEX_CLIENT_SECRET = os.environ.get('YANDEX_CLIENT_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
+# Force redeploy to pick up updated secrets
+
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
