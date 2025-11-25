@@ -377,12 +377,16 @@ def get_current_user(token: str) -> Dict[str, Any]:
         conn.close()
         return {'error': f'Ошибка получения пользователя: {str(e)}'}
 
-def oauth_login_yandex(callback_url: str) -> Dict[str, Any]:
+def oauth_login_yandex(callback_url: str, frontend_url: str = '') -> Dict[str, Any]:
     """Генерирует URL для редиректа на Yandex OAuth"""
     if not YANDEX_CLIENT_ID:
         return {'error': 'YANDEX_CLIENT_ID не настроен'}
     
-    state = secrets.token_urlsafe(16)
+    state_data = {
+        'random': secrets.token_urlsafe(8),
+        'frontend': frontend_url or 'https://webapp.poehali.dev/login'
+    }
+    state = json.dumps(state_data)
     
     params = {
         'response_type': 'code',
@@ -568,6 +572,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     if oauth_action == 'yandex' and method == 'GET':
         callback_url = query_params.get('callback_url')
+        frontend_url = query_params.get('frontend_url', 'https://webapp.poehali.dev/login')
+        
         if not callback_url:
             return {
                 'statusCode': 400,
@@ -575,7 +581,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'callback_url обязателен'})
             }
         
-        result = oauth_login_yandex(callback_url)
+        result = oauth_login_yandex(callback_url, frontend_url)
         
         if 'error' in result:
             return {
@@ -595,24 +601,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     if oauth_action == 'yandex_callback' and method == 'GET':
         code = query_params.get('code')
-        redirect_uri = query_params.get('redirect_uri')
-        frontend_url = query_params.get('frontend_url', 'https://webapp.poehali.dev')
+        state = query_params.get('state')
+        
+        frontend_url = 'https://webapp.poehali.dev/login'
+        if state:
+            try:
+                state_data = json.loads(state)
+                frontend_url = state_data.get('frontend', frontend_url)
+            except:
+                pass
         
         if not code:
+            error_url = f"{frontend_url}?error={urllib.parse.quote('code обязателен')}"
             return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'code обязателен'})
+                'statusCode': 302,
+                'headers': {
+                    'Location': error_url,
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': ''
             }
         
-        if not redirect_uri:
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'redirect_uri обязателен'})
-            }
-        
-        result = oauth_callback_yandex(code, redirect_uri)
+        callback_url = f"{AUTH_URL}?oauth=yandex_callback"
+        result = oauth_callback_yandex(code, callback_url)
         
         if 'error' in result:
             error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"

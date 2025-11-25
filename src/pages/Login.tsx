@@ -34,9 +34,9 @@ export default function Login() {
   }, [searchParams, navigate]);
 
   const handleYandexLogin = () => {
-    const callbackUrl = `${AUTH_URL}?oauth=yandex_callback&redirect_uri=${encodeURIComponent(AUTH_URL + '?oauth=yandex_callback')}&frontend_url=${encodeURIComponent(FRONTEND_URL + '/login')}`;
+    const callbackUrl = `${AUTH_URL}?oauth=yandex_callback`;
     
-    const loginUrl = `${AUTH_URL}?oauth=yandex&callback_url=${encodeURIComponent(callbackUrl)}`;
+    const loginUrl = `${AUTH_URL}?oauth=yandex&callback_url=${encodeURIComponent(callbackUrl)}&frontend_url=${encodeURIComponent(FRONTEND_URL + '/login')}`;
     
     window.location.href = loginUrl;
   };
