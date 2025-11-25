@@ -23,6 +23,8 @@ import FamilyRules from "./pages/FamilyRules";
 import LaunchPlan from "./pages/LaunchPlan";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Login from "./pages/Login";
+import OAuthDebug from "./pages/OAuthDebug";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,8 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/oauth-debug" element={<OAuthDebug />} />
             <Route path="/" element={<Index onLogout={handleLogout} />} />
             <Route path="/instructions" element={<Instructions />} />
             <Route path="/garage" element={<Garage />} />

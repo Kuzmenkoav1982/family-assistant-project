@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,18 @@ interface AccountSettingsProps {
 export default function AccountSettings({ onDeleteAccount }: AccountSettingsProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (e) {
+        console.error('Error parsing user:', e);
+      }
+    }
+  }, []);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -24,6 +36,43 @@ export default function AccountSettings({ onDeleteAccount }: AccountSettingsProp
 
   return (
     <>
+      {user && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="User" size={24} />
+              OAuth Авторизация
+            </CardTitle>
+            <CardDescription>
+              Вы вошли через Яндекс ID
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-red-50 to-yellow-50 rounded-lg border-2 border-yellow-200">
+              {user.avatar_url ? (
+                <img 
+                  src={user.avatar_url} 
+                  alt={user.name}
+                  className="w-16 h-16 rounded-full border-2 border-yellow-400"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-2xl">
+                  {user.name?.[0] || '?'}
+                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="font-bold text-lg">{user.name || 'Пользователь'}</h3>
+                <p className="text-sm text-gray-600">{user.email || user.phone}</p>
+                {user.family_name && (
+                  <p className="text-xs text-gray-500 mt-1">Семья: {user.family_name}</p>
+                )}
+              </div>
+              <Icon name="Check" className="text-green-600" size={24} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <Card className="border-red-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-700">

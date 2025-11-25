@@ -1273,6 +1273,17 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Button
+                onClick={() => navigate('/login')}
+                variant="default"
+                size="sm"
+                className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                title="Войти через Яндекс ID"
+              >
+                <Icon name="LogIn" size={18} />
+                <span className="text-sm hidden md:inline">Войти</span>
+              </Button>
+
+              <Button
                 onClick={handleLogoutLocal}
                 variant="ghost"
                 size="sm"
@@ -1673,6 +1684,12 @@ export default function Index({ onLogout }: IndexProps) {
             </div>
             <p className="text-sm lg:text-base text-gray-700 font-medium flex items-center justify-center gap-2 mt-2">
               {getDailyMotto()}
+              {localStorage.getItem('authToken') && (
+                <Badge className="bg-gradient-to-r from-red-500 to-yellow-500 text-white">
+                  <Icon name="Shield" className="mr-1" size={12} />
+                  OAuth
+                </Badge>
+              )}
               {syncing && (
                 <Badge className="bg-blue-600 animate-pulse">
                   <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />
