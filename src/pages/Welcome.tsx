@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import StatsCounter from '@/components/StatsCounter';
 
 const screenshots = [
   {
@@ -81,23 +82,38 @@ export default function Welcome() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-              alt="Наша семья"
-              className="w-12 h-12 object-contain"
-            />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Наша семья
-            </h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <img 
+                src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
+                alt="Наша семья"
+                className="w-12 h-12 object-contain"
+              />
+              <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Наша семья
+              </h1>
+            </div>
+            <div className="hidden md:block">
+              <StatsCounter />
+            </div>
           </div>
-          <Button
-            onClick={() => navigate('/login')}
-            className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-          >
-            <Icon name="LogIn" size={18} className="mr-2" />
-            Войти
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => navigate('/presentation')}
+              variant="outline"
+              className="border-purple-300 hover:bg-purple-50"
+            >
+              <Icon name="FileText" size={18} className="mr-2" />
+              Презентация
+            </Button>
+            <Button
+              onClick={() => navigate('/login')}
+              className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+            >
+              <Icon name="LogIn" size={18} className="mr-2" />
+              Войти
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -209,14 +225,25 @@ export default function Welcome() {
             <p className="text-xl mb-8 opacity-90">
               Войдите через Яндекс ID и начните организовывать свою семью уже сегодня
             </p>
-            <Button
-              onClick={() => navigate('/login')}
-              size="lg"
-              className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-6 h-auto"
-            >
-              <Icon name="LogIn" size={24} className="mr-2" />
-              Войти через Яндекс ID
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                onClick={() => navigate('/presentation')}
+                size="lg"
+                variant="outline"
+                className="bg-white/10 border-2 border-white text-white hover:bg-white/20 text-lg px-8 py-6 h-auto"
+              >
+                <Icon name="FileText" size={24} className="mr-2" />
+                Подробная презентация
+              </Button>
+              <Button
+                onClick={() => navigate('/login')}
+                size="lg"
+                className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-6 h-auto"
+              >
+                <Icon name="LogIn" size={24} className="mr-2" />
+                Войти через Яндекс ID
+              </Button>
+            </div>
           </div>
 
           <div className="mt-12 text-center text-gray-600">

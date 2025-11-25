@@ -204,6 +204,32 @@ def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
         conn.close()
         return {'error': str(e)}
 
+def get_global_stats() -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        query = f"""
+            SELECT 
+                COUNT(DISTINCT id) as total_users,
+                COUNT(DISTINCT family_id) as total_families
+            FROM {SCHEMA}.family_members
+            WHERE family_id IS NOT NULL
+        """
+        cur.execute(query)
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        return {
+            'total_users': int(result['total_users']) if result else 0,
+            'total_families': int(result['total_families']) if result else 0
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'total_users': 0, 'total_families': 0}
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     
@@ -224,6 +250,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
     }
+    
+    # Публичная статистика без авторизации
+    query_params = event.get('queryStringParameters', {}) or {}
+    if query_params.get('action') == 'stats':
+        stats = get_global_stats()
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({'success': True, 'stats': stats}),
+            'isBase64Encoded': False
+        }
     
     try:
         token = event.get('headers', {}).get('X-Auth-Token', '') or event.get('headers', {}).get('x-auth-token', '')

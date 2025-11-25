@@ -74,6 +74,7 @@ import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import KuzyaFloatingButton from '@/components/KuzyaFloatingButton';
+import StatsCounter from '@/components/StatsCounter';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -1223,6 +1224,7 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
+              <StatsCounter />
               <Button
                 onClick={() => navigate('/login')}
                 variant="default"
