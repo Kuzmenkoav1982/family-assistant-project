@@ -473,20 +473,26 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
         else:
             insert_user = f"""
                 INSERT INTO {SCHEMA}.users 
-                (email, oauth_provider, oauth_id, name, avatar_url, is_verified)
+                (email, oauth_provider, oauth_id, name, avatar_url, is_verified, password_hash)
                 VALUES (
                     {escape_string(email)},
                     'yandex',
                     {escape_string(yandex_id)},
                     {escape_string(name)},
                     {escape_string(avatar_url)},
-                    TRUE
+                    TRUE,
+                    NULL
                 )
                 RETURNING id
             """
-            cur.execute(insert_user)
-            user = cur.fetchone()
-            user_id = user['id']
+            try:
+                cur.execute(insert_user)
+                user = cur.fetchone()
+                user_id = user['id']
+            except Exception as insert_error:
+                cur.close()
+                conn.close()
+                return {'error': f'Ошибка создания пользователя: {str(insert_error)}. SQL: {insert_user}'}
             
             default_family_name = f"Семья {name}"
             insert_family = f"""
