@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, OrbitControls } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface KuzyaInteractive3DProps {
@@ -169,8 +169,8 @@ export default function KuzyaInteractive3D({ onClick, isIdle = true }: KuzyaInte
       >
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 5, 5]} intensity={0.8} castShadow />
+        <directionalLight position={[-3, 3, -3]} intensity={0.4} />
         <KuzyaModel onClick={onClick} isIdle={isIdle} />
-        <Environment preset="city" />
         <OrbitControls 
           enableZoom={false} 
           enablePan={false}
