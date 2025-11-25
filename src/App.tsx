@@ -25,6 +25,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Login from "./pages/Login";
 import OAuthDebug from "./pages/OAuthDebug";
+import Welcome from "./pages/Welcome";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
             <Route path="/oauth-debug" element={<OAuthDebug />} />
             <Route path="/" element={<Index onLogout={handleLogout} />} />
