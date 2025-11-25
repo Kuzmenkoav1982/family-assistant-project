@@ -69,107 +69,140 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
         data = {}
         
         # Члены семьи
-        cur.execute(f"""
-            SELECT id, name, role, avatar, avatar_type, photo_url, 
-                   points, level, workload, age, achievements, 
-                   food_preferences, responsibilities, mood_status
-            FROM {SCHEMA}.family_members 
-            WHERE family_id = {family_id}
-        """)
-        data['members'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT id, name, role, avatar, avatar_type, photo_url, 
+                       points, level, workload, age, achievements, 
+                       food_preferences, responsibilities, mood_status
+                FROM {SCHEMA}.family_members 
+                WHERE family_id = {family_id}
+            """)
+            data['members'] = [dict(row) for row in cur.fetchall()]
+        except Exception as e:
+            data['members'] = []
         
         # Задачи
-        cur.execute(f"""
-            SELECT id, title, assignee, completed, category, points, 
-                   deadline, reminder_time, shopping_list, is_recurring,
-                   recurring_pattern, next_occurrence
-            FROM {SCHEMA}.tasks 
-            WHERE family_id = {family_id}
-            ORDER BY created_at DESC
-        """)
-        data['tasks'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT id, title, assignee, completed, category, points, 
+                       deadline, reminder_time, shopping_list, is_recurring,
+                       recurring_pattern, next_occurrence
+                FROM {SCHEMA}.tasks 
+                WHERE family_id = {family_id}
+                ORDER BY created_at DESC
+            """)
+            data['tasks'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['tasks'] = []
         
         # Профили детей
-        cur.execute(f"""
-            SELECT cp.*, fm.name as child_name, fm.avatar, fm.age
-            FROM {SCHEMA}.children_profiles cp
-            JOIN {SCHEMA}.family_members fm ON cp.child_member_id = fm.id
-            WHERE cp.family_id = {family_id}
-        """)
-        data['children_profiles'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT cp.*, fm.name as child_name, fm.avatar, fm.age
+                FROM {SCHEMA}.children_profiles cp
+                JOIN {SCHEMA}.family_members fm ON cp.child_member_id = fm.id
+                WHERE cp.family_id = {family_id}
+            """)
+            data['children_profiles'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['children_profiles'] = []
         
         # Результаты тестов
-        cur.execute(f"""
-            SELECT tr.*, fm.name as child_name
-            FROM {SCHEMA}.test_results tr
-            JOIN {SCHEMA}.family_members fm ON tr.child_member_id = fm.id
-            WHERE fm.family_id = {family_id}
-            ORDER BY tr.date DESC
-        """)
-        data['test_results'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT tr.*, fm.name as child_name
+                FROM {SCHEMA}.test_results tr
+                JOIN {SCHEMA}.family_members fm ON tr.child_member_id = fm.id
+                WHERE fm.family_id = {family_id}
+                ORDER BY tr.date DESC
+            """)
+            data['test_results'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['test_results'] = []
         
         # Календарные события
-        cur.execute(f"""
-            SELECT * FROM {SCHEMA}.calendar_events 
-            WHERE family_id = {family_id}
-            ORDER BY date DESC
-            LIMIT 100
-        """)
-        data['calendar_events'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT * FROM {SCHEMA}.calendar_events 
+                WHERE family_id = {family_id}
+                ORDER BY date DESC
+                LIMIT 100
+            """)
+            data['calendar_events'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['calendar_events'] = []
         
         # Семейные ценности
-        cur.execute(f"""
-            SELECT * FROM {SCHEMA}.family_values 
-            WHERE family_id = {family_id}
-        """)
-        data['family_values'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT * FROM {SCHEMA}.family_values 
+                WHERE family_id = {family_id}
+            """)
+            data['family_values'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['family_values'] = []
         
         # Традиции
-        cur.execute(f"""
-            SELECT * FROM {SCHEMA}.traditions 
-            WHERE family_id = {family_id}
-        """)
-        data['traditions'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT * FROM {SCHEMA}.traditions 
+                WHERE family_id = {family_id}
+            """)
+            data['traditions'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['traditions'] = []
         
         # Блог
-        cur.execute(f"""
-            SELECT bp.*, fm.name as author_name
-            FROM {SCHEMA}.blog_posts bp
-            LEFT JOIN {SCHEMA}.family_members fm ON bp.author_id = fm.id
-            WHERE bp.family_id = {family_id}
-            ORDER BY bp.created_at DESC
-            LIMIT 50
-        """)
-        data['blog_posts'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT bp.*, fm.name as author_name
+                FROM {SCHEMA}.blog_posts bp
+                LEFT JOIN {SCHEMA}.family_members fm ON bp.author_id = fm.id
+                WHERE bp.family_id = {family_id}
+                ORDER BY bp.created_at DESC
+                LIMIT 50
+            """)
+            data['blog_posts'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['blog_posts'] = []
         
         # Альбом
-        cur.execute(f"""
-            SELECT fa.*, fm.name as uploaded_by_name
-            FROM {SCHEMA}.family_album fa
-            LEFT JOIN {SCHEMA}.family_members fm ON fa.uploaded_by = fm.id
-            WHERE fa.family_id = {family_id}
-            ORDER BY fa.created_at DESC
-            LIMIT 100
-        """)
-        data['family_album'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT fa.*, fm.name as uploaded_by_name
+                FROM {SCHEMA}.family_album fa
+                LEFT JOIN {SCHEMA}.family_members fm ON fa.uploaded_by = fm.id
+                WHERE fa.family_id = {family_id}
+                ORDER BY fa.created_at DESC
+                LIMIT 100
+            """)
+            data['family_album'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['family_album'] = []
         
         # Генеалогическое древо
-        cur.execute(f"""
-            SELECT * FROM {SCHEMA}.family_tree 
-            WHERE family_id = {family_id}
-        """)
-        data['family_tree'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT * FROM {SCHEMA}.family_tree 
+                WHERE family_id = {family_id}
+            """)
+            data['family_tree'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['family_tree'] = []
         
         # Чат (последние 100 сообщений)
-        cur.execute(f"""
-            SELECT cm.*, fm.name as sender_name, fm.avatar as sender_avatar
-            FROM {SCHEMA}.chat_messages cm
-            LEFT JOIN {SCHEMA}.family_members fm ON cm.sender_id = fm.id
-            WHERE cm.family_id = {family_id}
-            ORDER BY cm.created_at DESC
-            LIMIT 100
-        """)
-        data['chat_messages'] = [dict(row) for row in cur.fetchall()]
+        try:
+            cur.execute(f"""
+                SELECT cm.*, fm.name as sender_name, fm.avatar as sender_avatar
+                FROM {SCHEMA}.chat_messages cm
+                LEFT JOIN {SCHEMA}.family_members fm ON cm.sender_id = fm.id
+                WHERE cm.family_id = {family_id}
+                ORDER BY cm.created_at DESC
+                LIMIT 100
+            """)
+            data['chat_messages'] = [dict(row) for row in cur.fetchall()]
+        except Exception:
+            data['chat_messages'] = []
         
         return data
     finally:
