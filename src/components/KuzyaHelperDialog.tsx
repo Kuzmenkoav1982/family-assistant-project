@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,13 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-
-const KuzyaInteractive3D = lazy(() => import('@/components/KuzyaInteractive3D'));
-
-const isMobile = () => {
-  if (typeof window === 'undefined') return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-};
 
 interface KuzyaHelperDialogProps {
   open: boolean;
@@ -32,7 +25,6 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [mobile] = useState(isMobile());
 
   const resetForm = () => {
     setSelectedType(null);
@@ -79,25 +71,11 @@ ${formData.description}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl">
-            {mobile ? (
-              <img 
-                src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
-                alt="Кузя"
-                className="w-24 h-24 object-contain"
-              />
-            ) : (
-              <div className="w-32 h-32 -mt-4">
-                <Suspense fallback={
-                  <img 
-                    src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
-                    alt="Кузя"
-                    className="w-24 h-24 object-contain"
-                  />
-                }>
-                  <KuzyaInteractive3D isIdle={true} />
-                </Suspense>
-              </div>
-            )}
+            <img 
+              src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
+              alt="Кузя"
+              className="w-24 h-24 object-contain"
+            />
             <div>
               <div>Привет! Я Кузя 👋</div>
               <div className="text-sm text-gray-600 font-normal">Ваш помощник в "Наша семья"</div>
