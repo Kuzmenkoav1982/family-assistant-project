@@ -16,8 +16,6 @@ export default function Login() {
     const userStr = searchParams.get('user');
     const error = searchParams.get('error');
 
-    console.log('OAuth callback params:', { token, userStr, error });
-
     if (error) {
       alert(`Ошибка авторизации: ${error}`);
       return;
@@ -26,10 +24,8 @@ export default function Login() {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        console.log('Parsed user:', user);
         localStorage.setItem('authToken', token);
         localStorage.setItem('user', JSON.stringify(user));
-        console.log('Navigating to /');
         navigate('/');
       } catch (e) {
         console.error('Ошибка парсинга user:', e);
