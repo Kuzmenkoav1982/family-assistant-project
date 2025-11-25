@@ -166,17 +166,18 @@ export function useFamilyMembers() {
     }
   };
 
+  // Первоначальная загрузка при монтировании
   useEffect(() => {
     const token = getAuthToken();
-    console.log('[DEBUG useFamilyMembers useEffect] Mount - Token check:', token ? 'EXISTS' : 'MISSING');
+    console.log('[DEBUG useFamilyMembers useEffect MOUNT] Token check:', token ? 'EXISTS' : 'MISSING');
     
     if (!token) {
-      console.log('[DEBUG useFamilyMembers useEffect] No token on mount, setting loading = false');
+      console.log('[DEBUG useFamilyMembers useEffect MOUNT] No token, setting loading = false');
       setLoading(false);
       return;
     }
     
-    console.log('[DEBUG useFamilyMembers useEffect] Token found, calling fetchMembers');
+    console.log('[DEBUG useFamilyMembers useEffect MOUNT] Token found, calling fetchMembers');
     fetchMembers();
     
     const interval = setInterval(() => {
@@ -188,6 +189,28 @@ export function useFamilyMembers() {
     
     return () => clearInterval(interval);
   }, []);
+
+  // Дополнительная проверка каждые 100мс — если токен появился, загружаем данные
+  useEffect(() => {
+    const checkTokenInterval = setInterval(() => {
+      const token = getAuthToken();
+      if (token && members.length === 0 && !loading) {
+        console.log('[DEBUG useFamilyMembers TOKEN CHECK] Token appeared! Fetching members...');
+        fetchMembers();
+        clearInterval(checkTokenInterval);
+      }
+    }, 100);
+
+    // Очистка через 10 секунд
+    const cleanup = setTimeout(() => {
+      clearInterval(checkTokenInterval);
+    }, 10000);
+
+    return () => {
+      clearInterval(checkTokenInterval);
+      clearTimeout(cleanup);
+    };
+  }, [members, loading]);
 
   return {
     members,
