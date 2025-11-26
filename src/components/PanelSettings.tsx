@@ -35,11 +35,11 @@ export default function PanelSettings({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="flex items-center space-x-2">
             <Checkbox
               id="autoHide"
@@ -51,7 +51,7 @@ export default function PanelSettings({
 
           <div className="space-y-2">
             <Label>Разделы на панели:</Label>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2">
               {availableSections.map(section => (
                 <div key={section.id} className="flex items-center space-x-2">
                   <Checkbox
@@ -59,7 +59,7 @@ export default function PanelSettings({
                     checked={selectedSections.includes(section.id)}
                     onCheckedChange={() => handleSectionToggle(section.id)}
                   />
-                  <Label htmlFor={`section-${section.id}`} className="flex items-center gap-2">
+                  <Label htmlFor={`section-${section.id}`} className="flex items-center gap-2 cursor-pointer">
                     <Icon name={section.icon as any} size={16} />
                     {section.label}
                   </Label>
