@@ -85,6 +85,17 @@ export function useFamilyMembers() {
 
   const addMember = async (memberData: Partial<FamilyMember>) => {
     try {
+      // Конвертируем camelCase в snake_case для backend
+      const backendData: any = { ...memberData };
+      if (memberData.photoUrl) {
+        backendData.photo_url = memberData.photoUrl;
+        delete backendData.photoUrl;
+      }
+      if (memberData.avatarType) {
+        backendData.avatar_type = memberData.avatarType;
+        delete backendData.avatarType;
+      }
+
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'POST',
         headers: {
@@ -93,7 +104,7 @@ export function useFamilyMembers() {
         },
         body: JSON.stringify({
           action: 'add',
-          ...memberData
+          ...backendData
         })
       });
 
@@ -117,6 +128,17 @@ export function useFamilyMembers() {
         return { success: false, error: 'Не указан ID члена семьи' };
       }
 
+      // Конвертируем camelCase в snake_case для backend
+      const backendData: any = { ...memberData };
+      if (memberData.photoUrl) {
+        backendData.photo_url = memberData.photoUrl;
+        delete backendData.photoUrl;
+      }
+      if (memberData.avatarType) {
+        backendData.avatar_type = memberData.avatarType;
+        delete backendData.avatarType;
+      }
+
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'POST',
         headers: {
@@ -126,7 +148,7 @@ export function useFamilyMembers() {
         body: JSON.stringify({
           action: 'update',
           member_id: memberId,
-          ...memberData
+          ...backendData
         })
       });
 
