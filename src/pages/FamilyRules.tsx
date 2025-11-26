@@ -24,66 +24,10 @@ interface FamilyRule {
   category: string;
 }
 
-const mockRules: FamilyRule[] = [
-  {
-    id: '1',
-    title: 'Семейный ужин по воскресеньям',
-    description: 'Каждое воскресенье в 18:00 вся семья собирается за общим столом. Никаких гаджетов за столом.',
-    author: 'Елена',
-    createdDate: '15 января 2024',
-    status: 'approved',
-    category: 'Традиции'
-  },
-  {
-    id: '2',
-    title: 'Время использования гаджетов',
-    description: 'Дети могут пользоваться компьютером/планшетом не более 2 часов в будний день и 3 часов в выходные. После 21:00 все гаджеты на зарядку в коридоре.',
-    author: 'Александр',
-    createdDate: '10 января 2024',
-    status: 'approved',
-    category: 'Технологии'
-  },
-  {
-    id: '3',
-    title: 'Карманные деньги за задачи',
-    description: 'Дети получают карманные деньги только после выполнения своих еженедельных обязанностей. 1 балл = 10 рублей.',
-    author: 'Елена',
-    createdDate: '5 января 2024',
-    status: 'approved',
-    category: 'Финансы'
-  },
-  {
-    id: '4',
-    title: 'Тихий час для бабушки',
-    description: 'С 14:00 до 16:00 не шуметь - бабушка отдыхает. Можно играть в тихие игры или читать.',
-    author: 'Бабушка Анна',
-    createdDate: '1 января 2024',
-    status: 'approved',
-    category: 'Распорядок'
-  },
-  {
-    id: '5',
-    title: 'Добавить час для игр на компьютере в пятницу',
-    description: 'Предлагаю разрешать детям играть на час больше по пятницам, так как впереди выходные и можно выспаться.',
-    author: 'Максим',
-    createdDate: '2 дня назад',
-    status: 'voting',
-    votes: {
-      for: ['Максим', 'София'],
-      against: ['Елена'],
-      required: 4
-    },
-    category: 'Технологии'
-  }
-];
+const mockRules: FamilyRule[] = [];
 
 const familyMembers = [
-  { id: '1', name: 'Александр', role: 'Владелец', canApproveAlone: true },
-  { id: '2', name: 'Елена', role: 'Администратор', canApproveAlone: true },
-  { id: '3', name: 'Максим', role: 'Участник', canApproveAlone: false },
-  { id: '4', name: 'София', role: 'Участник', canApproveAlone: false },
-  { id: '5', name: 'Бабушка Анна', role: 'Участник', canApproveAlone: false },
-  { id: '6', name: 'Дедушка Николай', role: 'Участник', canApproveAlone: false }
+  { id: '1', name: 'Пользователь', role: 'Владелец', canApproveAlone: true }
 ];
 
 export default function FamilyRules() {
@@ -93,7 +37,7 @@ export default function FamilyRules() {
   const [newRuleTitle, setNewRuleTitle] = useState('');
   const [newRuleDescription, setNewRuleDescription] = useState('');
   const [newRuleCategory, setNewRuleCategory] = useState('Общие');
-  const [currentUser] = useState('Александр');
+  const [currentUser] = useState('Пользователь');
 
   const currentUserData = familyMembers.find(m => m.name === currentUser);
 

@@ -16,7 +16,7 @@ from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
-ADMIN_EMAIL = 'info@poehali.dev'
+ADMIN_EMAIL = 'ip.kuzmenkoav@yandex.ru'
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)

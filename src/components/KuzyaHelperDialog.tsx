@@ -71,9 +71,11 @@ ${formData.description}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-              <Icon name="HelpCircle" size={28} className="text-white" />
-            </div>
+            <img 
+              src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
+              alt="Кузя"
+              className="w-48 h-48 object-cover object-top"
+            />
             <div>
               <div>Помощь и поддержка</div>
               <div className="text-sm text-gray-600 font-normal">Мы здесь, чтобы помочь вам</div>

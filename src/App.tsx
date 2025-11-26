@@ -27,6 +27,7 @@ import TermsOfService from "./pages/TermsOfService";
 import Login from "./pages/Login";
 import OAuthDebug from "./pages/OAuthDebug";
 import Welcome from "./pages/Welcome";
+import VotingPage from "./pages/VotingPage";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => {
             <Route path="/presentation" element={<Presentation />} />
             <Route path="/psychologist" element={<FamilyPsychologist />} />
             <Route path="/rules" element={<FamilyRules />} />
+            <Route path="/voting" element={<VotingPage />} />
             <Route path="/launch-plan" element={<LaunchPlan />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />

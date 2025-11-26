@@ -1243,6 +1243,17 @@ export default function Index({ onLogout }: IndexProps) {
             <div className="flex items-center gap-2">
               <StatsCounter />
               <Button
+                onClick={() => navigate('/voting')}
+                variant="default"
+                size="sm"
+                className="h-9 gap-1.5 px-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                title="Голосования"
+              >
+                <Icon name="Vote" size={18} />
+                <span className="text-sm hidden md:inline">Голосования</span>
+              </Button>
+              
+              <Button
                 onClick={() => navigate('/login')}
                 variant="default"
                 size="sm"
@@ -1517,7 +1528,7 @@ export default function Index({ onLogout }: IndexProps) {
                 <img 
                   src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
                   alt="Кузя"
-                  className="w-12 h-12 object-cover rounded-full border-2 border-orange-300"
+                  className="w-12 h-12 object-cover object-top rounded-full border-2 border-orange-300"
                 />
                 <div className="flex-1 text-left">
                   <div className="text-sm font-bold text-orange-700">Помощь и поддержка</div>
