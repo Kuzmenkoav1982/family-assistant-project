@@ -113,7 +113,7 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         RETURNING *
     """
     
-    print(f"[create_task] Executing query: {query[:200]}...")
+    print(f"[create_task] Full query: {query}")
     
     try:
         cur.execute(query)
