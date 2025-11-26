@@ -25,7 +25,7 @@ import type {
   FamilyValue,
   BlogPost,
   ImportantDate,
-  MealVoting,
+
   ChildProfile,
   DevelopmentPlan,
   ChatMessage,
@@ -46,7 +46,7 @@ import {
   initialFamilyValues,
   initialBlogPosts,
   initialTraditions,
-  initialMealVotings,
+
   initialChatMessages,
   initialFamilyAlbum,
   initialFamilyNeeds,
@@ -118,7 +118,7 @@ export default function Index({ onLogout }: IndexProps) {
     }
     return initialTraditions;
   });
-  const [mealVotings] = useState<MealVoting[]>(initialMealVotings);
+
   const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
   const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
