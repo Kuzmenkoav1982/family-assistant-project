@@ -74,36 +74,36 @@ export default function TopBar({
       }`}
       onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
-      <div className={`px-4 py-2 relative transition-all duration-300 ${
-        isExpanded ? 'pb-12' : ''
+      <div className={`px-2 py-1.5 relative transition-all duration-300 ${
+        isExpanded ? 'pb-10' : ''
       }`}>
         {/* Кнопка разворота - всегда видна на мобильных */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform md:hidden z-10"
+          className="absolute bottom-0.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg hover:scale-110 transition-transform md:hidden z-10"
           title={isExpanded ? 'Свернуть' : 'Развернуть панель'}
         >
-          <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} />
+          <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={14} />
         </button>
 
-        <div className={`flex flex-wrap items-start justify-center gap-3 transition-all overflow-hidden ${
-          isExpanded ? 'max-h-[500px]' : 'max-h-16'
-        } md:flex-nowrap md:justify-between md:max-h-none md:items-center`}>
-        <div className="flex items-center gap-2">
+        <div className={`flex flex-wrap items-center justify-center gap-1.5 transition-all overflow-hidden ${
+          isExpanded ? 'max-h-[500px]' : 'max-h-14'
+        } md:flex-nowrap md:justify-between md:max-h-none`}>
+        <div className="flex items-center gap-1 flex-wrap justify-center">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Наша семья"
-            className="h-10 w-10 object-contain"
+            className="h-8 w-8 object-contain"
             style={{ border: 'none', outline: 'none' }}
           />
           <Button
             onClick={onLogout}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0"
+            className="h-8 w-8 p-0"
             title="Выход"
           >
-            <Icon name="LogOut" size={18} />
+            <Icon name="LogOut" size={16} />
           </Button>
           
           <SettingsMenu />
@@ -112,23 +112,23 @@ export default function TopBar({
             onClick={() => navigate('/instructions')}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0"
+            className="h-8 w-8 p-0"
             title="Инструкции"
           >
-            <Icon name="BookOpen" size={18} />
+            <Icon name="BookOpen" size={16} />
           </Button>
           
           <Button
             onClick={() => setShowKuzyaDialog(true)}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0 relative"
+            className="h-8 w-8 p-0 relative"
             title="Помощь и поддержка"
           >
             <img 
               src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
               alt="Кузя"
-              className="w-8 h-8 object-cover rounded-full"
+              className="w-7 h-7 object-cover rounded-full"
             />
           </Button>
           
@@ -136,35 +136,32 @@ export default function TopBar({
             onClick={() => navigate('/psychologist')}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0"
+            className="h-8 w-8 p-0"
             title="Семейный психолог ИИ"
           >
-            <Icon name="Brain" size={18} />
+            <Icon name="Brain" size={16} />
           </Button>
           
           <Button
             onClick={() => navigate('/rules')}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0"
+            className="h-8 w-8 p-0"
             title="Семейные правила"
           >
-            <Icon name="Scale" size={18} />
+            <Icon name="Scale" size={16} />
           </Button>
         </div>
         
-        <div className="flex items-center gap-2 language-selector theme-selector relative">
+        <div className="flex items-center gap-1 language-selector theme-selector relative">
           <Button
             onClick={() => onLanguageSelectorToggle(!showLanguageSelector)}
             variant="ghost"
             size="sm"
-            className="flex items-center gap-2 h-9"
+            className="h-8 w-8 p-0"
             title={t('changeLanguage')}
           >
-            <Icon name="Languages" size={18} />
-            <span className="text-xs font-medium hidden sm:inline">
-              {languages.find(l => l.code === currentLanguage)?.flag}
-            </span>
+            <Icon name="Languages" size={16} />
           </Button>
 
           {showLanguageSelector && (
@@ -206,10 +203,10 @@ export default function TopBar({
             onClick={() => onThemeSelectorToggle(!showThemeSelector)}
             variant="ghost"
             size="sm"
-            className="flex items-center gap-2 h-9"
+            className="h-8 w-8 p-0"
             title="Сменить тему"
           >
-            <Icon name="Palette" size={18} />
+            <Icon name="Palette" size={16} />
           </Button>
 
           {showThemeSelector && (
@@ -254,16 +251,16 @@ export default function TopBar({
             onClick={() => onTopPanelSettingsToggle(!showTopPanelSettings)}
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0"
+            className="h-8 w-8 p-0"
             title="Настройки панели"
           >
-            <Icon name="Settings2" size={18} />
+            <Icon name="Settings2" size={16} />
           </Button>
 
           {syncing && (
-            <Badge variant="outline" className="flex items-center gap-1 text-xs">
-              <Icon name="Loader" className="animate-spin" size={12} />
-              Синхронизация...
+            <Badge variant="outline" className="flex items-center gap-1 text-xs px-2 py-0.5">
+              <Icon name="Loader" className="animate-spin" size={10} />
+              <span className="hidden sm:inline">Синх...</span>
             </Badge>
           )}
         </div>
