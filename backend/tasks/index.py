@@ -112,12 +112,21 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         )
         RETURNING *
     """
-    cur.execute(query)
-    task = cur.fetchone()
-    cur.close()
-    conn.close()
     
-    return dict(task)
+    print(f"[create_task] Executing query: {query[:200]}...")
+    
+    try:
+        cur.execute(query)
+        task = cur.fetchone()
+        print(f"[create_task] Task created successfully: {task}")
+        cur.close()
+        conn.close()
+        return dict(task) if task else {}
+    except Exception as e:
+        print(f"[create_task] Error: {e}")
+        cur.close()
+        conn.close()
+        raise
 
 def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
