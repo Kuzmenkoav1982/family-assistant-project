@@ -8,6 +8,10 @@ export interface Section {
     benefits: string[];
     howTo: string[];
     examples: string[];
+    screenshots?: Array<{
+      url: string;
+      caption: string;
+    }>;
   };
 }
 
@@ -831,6 +835,20 @@ export const sections: Section[] = [
         '• Сохраняйте коды в надёжном месте до отправки',
         '• Проверяйте список приглашений чтобы видеть кто присоединился',
         '• Деактивируйте старые неиспользованные коды'
+      ],
+      screenshots: [
+        {
+          url: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/937ce0f0-d2ed-4be2-8f2c-e3e49f5b1eba.jpg',
+          caption: 'Шаг 1: Создание кода приглашения в настройках'
+        },
+        {
+          url: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/29c93c43-da89-477d-b129-4c49367848de.jpg',
+          caption: 'Шаг 2: Полученный код готов к отправке родственнику'
+        },
+        {
+          url: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1d05b67e-5845-4b18-ab0c-431a8d493223.jpg',
+          caption: 'Шаг 3: Родственник вводит код при регистрации'
+        }
       ]
     }
   },

@@ -62,16 +62,55 @@ export default function SectionDetailView({ section, onBack }: SectionDetailView
                 Как использовать?
               </h3>
               <div className="space-y-2 bg-purple-50 p-4 rounded-lg">
-                {section.content.howTo.map((step, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <Badge className="bg-purple-600 text-white flex-shrink-0">
-                      {idx + 1}
-                    </Badge>
-                    <span>{step.replace(/^\d+\.\s*/, '')}</span>
-                  </div>
-                ))}
+                {section.content.howTo.map((step, idx) => {
+                  const cleanStep = step.replace(/^\d+\.\s*/, '');
+                  const isEmpty = !cleanStep.trim();
+                  const isHeader = cleanStep.startsWith('📌') || cleanStep.startsWith('👤') || cleanStep.startsWith('📱') || cleanStep.startsWith('⚠️');
+                  
+                  if (isEmpty) {
+                    return <div key={idx} className="h-2" />;
+                  }
+                  
+                  if (isHeader) {
+                    return (
+                      <div key={idx} className="font-bold text-purple-800 mt-3 mb-1">
+                        {cleanStep}
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div key={idx} className="flex items-start gap-2 ml-2">
+                      <span className="text-purple-600 flex-shrink-0">•</span>
+                      <span>{cleanStep}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            {section.content.screenshots && section.content.screenshots.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                  <Icon name="Image" size={20} className="text-indigo-600" />
+                  Визуальная инструкция
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {section.content.screenshots.map((screenshot, idx) => (
+                    <div key={idx} className="bg-white rounded-lg border-2 border-indigo-200 overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+                      <img 
+                        src={screenshot.url} 
+                        alt={screenshot.caption}
+                        className="w-full h-64 object-cover"
+                      />
+                      <div className="p-3 bg-indigo-50">
+                        <p className="text-sm font-medium text-indigo-900">{screenshot.caption}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
