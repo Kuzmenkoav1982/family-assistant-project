@@ -73,7 +73,7 @@ export default function TopBar({
       }`}
       onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4 min-w-max">
+      <div className="px-4 py-2 flex items-center justify-between gap-4" style={{ minWidth: '800px' }}>
         <div className="flex items-center gap-2">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
