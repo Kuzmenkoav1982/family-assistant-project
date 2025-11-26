@@ -1530,25 +1530,47 @@ export default function Index({ onLogout }: IndexProps) {
           <div className="p-3 space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto">
             <div className="space-y-2 mb-3 pb-3 border-b border-gray-200">
               {currentUser && (
-                <button
-                  onClick={() => navigate(`/member/${currentUser.id}`)}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 hover:border-purple-300 transition-all"
-                >
-                  {currentUser.photoUrl ? (
-                    <img 
-                      src={currentUser.photoUrl} 
-                      alt={currentUser.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
-                    />
-                  ) : (
-                    <div className="text-2xl">{currentUser.avatar || '👤'}</div>
-                  )}
-                  <div className="flex-1 text-left">
-                    <div className="text-sm font-bold text-purple-700">Мой профиль</div>
-                    <div className="text-xs text-gray-600">{currentUser.name}</div>
+                <div className="w-full p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    {currentUser.photoUrl ? (
+                      <img 
+                        src={currentUser.photoUrl} 
+                        alt={currentUser.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
+                      />
+                    ) : (
+                      <div className="text-2xl">{currentUser.avatar || '👤'}</div>
+                    )}
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-bold text-purple-700">Мой профиль</div>
+                      <div className="text-xs text-gray-600">{currentUser.name}</div>
+                    </div>
                   </div>
-                  <Icon name="ChevronRight" size={16} className="text-purple-400" />
-                </button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => navigate(`/member/${currentUser.id}`)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-8 text-xs border-purple-300 hover:bg-purple-100"
+                    >
+                      <Icon name="Eye" size={14} className="mr-1" />
+                      Просмотр
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setActiveSection('family');
+                        setSelectedMember(currentUser);
+                        setShowMemberEdit(true);
+                      }}
+                      variant="default"
+                      size="sm"
+                      className="flex-1 h-8 text-xs bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Icon name="Edit" size={14} className="mr-1" />
+                      Редактировать
+                    </Button>
+                  </div>
+                </div>
               )}
               
               <button
