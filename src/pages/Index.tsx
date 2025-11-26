@@ -69,7 +69,7 @@ import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
-import MealVotingWidget from '@/components/MealVotingWidget';
+
 import StatsCounter from '@/components/StatsCounter';
 
 import { getCurrentMember } from '@/data/demoFamily';
@@ -498,6 +498,20 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'about', icon: 'Info', label: 'О проекте' },
   ];
 
+  const availableTopPanelSections = [
+    { id: 'stats', icon: 'Users', label: 'Счётчик семей' },
+    { id: 'voting', icon: 'Vote', label: 'Голосования' },
+    { id: 'auth', icon: 'LogIn', label: 'Вход/Выход' },
+    { id: 'reset', icon: 'RotateCcw', label: 'Сбросить демо' },
+    { id: 'settings', icon: 'Settings', label: 'Настройки' },
+    { id: 'instructions', icon: 'BookOpen', label: 'Инструкции' },
+    { id: 'presentation', icon: 'FileText', label: 'Презентация' },
+    { id: 'profile', icon: 'UserCircle', label: 'Профиль' },
+    { id: 'familySwitcher', icon: 'Users', label: 'Переключатель семьи' },
+    { id: 'language', icon: 'Languages', label: 'Язык' },
+    { id: 'style', icon: 'Palette', label: 'Стиль' },
+  ];
+
   const menuSections = availableSections.map(s => ({ ...s, ready: true }));
 
   const [bottomBarSections, setBottomBarSections] = useState<string[]>(() => {
@@ -512,7 +526,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('topPanelSections');
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'reset', 'settings', 'instructions', 'presentation', 'profile', 'familySwitcher', 'language', 'style'];
   });
 
 
@@ -1271,78 +1285,89 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <StatsCounter />
-              <Button
-                onClick={() => navigate('/voting')}
-                variant="default"
-                size="sm"
-                className="h-9 gap-1.5 px-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                title="Голосования"
-              >
-                <Icon name="Vote" size={18} />
-                <span className="text-sm hidden md:inline">Голосования</span>
-              </Button>
+              {topPanelSections.includes('stats') && <StatsCounter />}
               
-              {authToken ? (
+              {topPanelSections.includes('voting') && (
                 <Button
-                  onClick={handleLogout}
+                  onClick={() => navigate('/voting')}
                   variant="default"
                   size="sm"
-                  className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                  title="Выйти из аккаунта"
+                  className="h-9 gap-1.5 px-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                  title="Голосования"
                 >
-                  <Icon name="LogOut" size={18} />
-                  <span className="text-sm hidden md:inline">Выйти</span>
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => navigate('/login')}
-                  variant="default"
-                  size="sm"
-                  className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                  title="Войти через Яндекс ID"
-                >
-                  <Icon name="LogIn" size={18} />
-                  <span className="text-sm hidden md:inline">Войти</span>
+                  <Icon name="Vote" size={18} />
+                  <span className="text-sm hidden md:inline">Голосования</span>
                 </Button>
               )}
+              
+              {topPanelSections.includes('auth') && (
+                authToken ? (
+                  <Button
+                    onClick={handleLogout}
+                    variant="default"
+                    size="sm"
+                    className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                    title="Выйти из аккаунта"
+                  >
+                    <Icon name="LogOut" size={18} />
+                    <span className="text-sm hidden md:inline">Выйти</span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => navigate('/login')}
+                    variant="default"
+                    size="sm"
+                    className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                    title="Войти через Яндекс ID"
+                  >
+                    <Icon name="LogIn" size={18} />
+                    <span className="text-sm hidden md:inline">Войти</span>
+                  </Button>
+                )
+              )}
 
-              <Button
-                onClick={handleLogoutLocal}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Сбросить демо"
-              >
-                <Icon name="RotateCcw" size={18} />
-                <span className="text-sm hidden md:inline">Сбросить</span>
-              </Button>
+              {topPanelSections.includes('reset') && (
+                <Button
+                  onClick={handleLogoutLocal}
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                  title="Сбросить демо"
+                >
+                  <Icon name="RotateCcw" size={18} />
+                  <span className="text-sm hidden md:inline">Сбросить</span>
+                </Button>
+              )}
               
-              <SettingsMenu />
+              {topPanelSections.includes('settings') && <SettingsMenu />}
               
-              <Button
-                onClick={() => navigate('/instructions')}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Инструкции"
-              >
-                <Icon name="BookOpen" size={18} />
-                <span className="text-sm hidden md:inline">Инструкции</span>
-              </Button>
+              {topPanelSections.includes('instructions') && (
+                <Button
+                  onClick={() => navigate('/instructions')}
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                  title="Инструкции"
+                >
+                  <Icon name="BookOpen" size={18} />
+                  <span className="text-sm hidden md:inline">Инструкции</span>
+                </Button>
+              )}
               
-              <Button
-                onClick={() => navigate('/presentation')}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Презентация"
-              >
-                <Icon name="FileText" size={18} />
-                <span className="text-sm hidden md:inline">Презентация</span>
-              </Button>
+              {topPanelSections.includes('presentation') && (
+                <Button
+                  onClick={() => navigate('/presentation')}
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                  title="Презентация"
+                >
+                  <Icon name="FileText" size={18} />
+                  <span className="text-sm hidden md:inline">Презентация</span>
+                </Button>
+              )}
               
-              {currentUser && (
+              {topPanelSections.includes('profile') && currentUser && (
                 <Button
                   onClick={() => navigate(`/member/${currentUser.id}`)}
                   variant="ghost"
@@ -1355,36 +1380,50 @@ export default function Index({ onLogout }: IndexProps) {
                 </Button>
               )}
               
-              <FamilyMemberSwitcher />
+              {topPanelSections.includes('familySwitcher') && <FamilyMemberSwitcher />}
             </div>
             
             <div className="flex items-center gap-2 language-selector theme-selector relative">
-              <Button
-                onClick={() => {
-                  setShowLanguageSelector(!showLanguageSelector);
-                  setShowThemeSelector(false);
-                }}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Выбор языка"
-              >
-                <Icon name="Languages" size={18} />
-                <span className="text-sm hidden md:inline">Язык</span>
-              </Button>
+              {topPanelSections.includes('language') && (
+                <Button
+                  onClick={() => {
+                    setShowLanguageSelector(!showLanguageSelector);
+                    setShowThemeSelector(false);
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                  title="Выбор языка"
+                >
+                  <Icon name="Languages" size={18} />
+                  <span className="text-sm hidden md:inline">Язык</span>
+                </Button>
+              )}
+              
+              {topPanelSections.includes('style') && (
+                <Button
+                  onClick={() => {
+                    setShowThemeSelector(!showThemeSelector);
+                    setShowLanguageSelector(false);
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                  title="Выбор стиля"
+                >
+                  <Icon name="Palette" size={18} />
+                  <span className="text-sm hidden md:inline">Стиль</span>
+                </Button>
+              )}
               
               <Button
-                onClick={() => {
-                  setShowThemeSelector(!showThemeSelector);
-                  setShowLanguageSelector(false);
-                }}
+                onClick={() => setShowTopPanelSettings(true)}
                 variant="ghost"
                 size="sm"
                 className="h-9 gap-1.5 px-3"
-                title="Выбор стиля"
+                title="Настройки панели"
               >
-                <Icon name="Palette" size={18} />
-                <span className="text-sm hidden md:inline">Стиль</span>
+                <Icon name="Settings" size={18} />
               </Button>
               
               <Button
@@ -3519,7 +3558,7 @@ export default function Index({ onLogout }: IndexProps) {
           setAutoHideTopBar(value);
           localStorage.setItem('autoHideTopBar', String(value));
         }}
-        availableSections={availableSections}
+        availableSections={availableTopPanelSections}
         selectedSections={topPanelSections}
         onSectionsChange={handleTopPanelSectionsChange}
       />
