@@ -2337,16 +2337,16 @@ export default function Index({ onLogout }: IndexProps) {
                                     <Icon name="Trash2" size={16} />
                                   </Button>
                                 )}
-                              
-                              {event.createdByAvatar && event.createdByAvatar.startsWith('http') ? (
-                                <img 
-                                  src={event.createdByAvatar} 
-                                  alt={event.createdByName}
-                                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
-                                />
-                              ) : (
-                                <div className="text-3xl">{event.createdByAvatar}</div>
-                              )}
+                                {event.createdByAvatar && event.createdByAvatar.startsWith('http') ? (
+                                  <img 
+                                    src={event.createdByAvatar} 
+                                    alt={event.createdByName}
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
+                                  />
+                                ) : (
+                                  <div className="text-3xl">{event.createdByAvatar}</div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
