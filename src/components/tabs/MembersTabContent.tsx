@@ -29,6 +29,7 @@ export function MembersTabContent({
 }: MembersTabContentProps) {
   const navigate = useNavigate();
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  const [addChildDialogOpen, setAddChildDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | undefined>(undefined);
 
   const handleUpdatePermissions = async (memberId: string, permissions: any) => {
@@ -66,6 +67,7 @@ export function MembersTabContent({
               </h3>
               <p className="text-sm text-gray-600">Просмотр и редактирование профилей всех членов семьи</p>
             </div>
+            <div className="flex gap-2">
             <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
@@ -97,6 +99,35 @@ export function MembersTabContent({
                 />
               </DialogContent>
             </Dialog>
+            
+            <Dialog open={addChildDialogOpen} onOpenChange={setAddChildDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                  onClick={() => {
+                    setAddChildDialogOpen(true);
+                  }}
+                >
+                  <Icon name="Baby" className="mr-2" size={16} />
+                  Добавить ребёнка
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Добавить ребёнка</DialogTitle>
+                </DialogHeader>
+                <AddFamilyMemberForm 
+                  editingMember={undefined}
+                  isChild={true}
+                  onSubmit={(newChild) => {
+                    setFamilyMembers([...familyMembers, { ...newChild, relationship: 'Ребёнок' }]);
+                    setAddChildDialogOpen(false);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -136,11 +167,12 @@ export function MembersTabContent({
           </DialogContent>
         </Dialog>
         
-        <Dialog>
+        <Dialog open={addChildDialogOpen} onOpenChange={setAddChildDialogOpen}>
           <DialogTrigger asChild>
             <Button 
               variant="outline"
               className="border-blue-500 text-blue-600 hover:bg-blue-50"
+              onClick={() => setAddChildDialogOpen(true)}
             >
               <Icon name="Baby" className="mr-2" size={16} />
               Добавить ребёнка
@@ -155,6 +187,7 @@ export function MembersTabContent({
               isChild={true}
               onSubmit={(newChild) => {
                 setFamilyMembers([...familyMembers, { ...newChild, relationship: 'Ребёнок' }]);
+                setAddChildDialogOpen(false);
               }}
             />
           </DialogContent>
