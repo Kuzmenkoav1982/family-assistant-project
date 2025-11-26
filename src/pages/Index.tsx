@@ -3459,11 +3459,7 @@ export default function Index({ onLogout }: IndexProps) {
               </CardContent>
             </Card>
 
-            <div key="sidebar-meal-voting" className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-              <MealVotingWidget />
-            </div>
-
-            <Card key="sidebar-reminders" className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.7s' }}>
+            <Card key="sidebar-reminders" className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.6s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Bell" size={24} />
