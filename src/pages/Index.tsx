@@ -2674,7 +2674,14 @@ export default function Index({ onLogout }: IndexProps) {
                       <CardContent className="p-8 text-center">
                         <Icon name="Baby" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Нет профилей детей</h3>
-                        <p className="text-sm text-muted-foreground">Добавьте первый профиль ребенка, чтобы отслеживать развитие и достижения</p>
+                        <p className="text-sm text-muted-foreground mb-4">Добавьте первый профиль ребенка, чтобы отслеживать развитие и достижения</p>
+                        <Button 
+                          onClick={() => navigate('/presentation')}
+                          className="bg-gradient-to-r from-blue-500 to-purple-500"
+                        >
+                          <Icon name="Plus" className="mr-2" size={16} />
+                          Добавить ребёнка
+                        </Button>
                       </CardContent>
                     </Card>
                   )}
