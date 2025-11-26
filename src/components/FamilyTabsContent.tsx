@@ -15,7 +15,6 @@ import type {
   FamilyValue,
   BlogPost,
   ImportantDate,
-  MealVoting,
   ChildProfile,
   DevelopmentPlan,
   ChatMessage,
@@ -40,7 +39,6 @@ interface FamilyTabsContentProps {
   familyValues: FamilyValue[];
   blogPosts: BlogPost[];
   importantDates: ImportantDate[];
-  mealVotings: MealVoting[];
   childrenProfiles: ChildProfile[];
   developmentPlans: DevelopmentPlan[];
   chatMessages: ChatMessage[];
@@ -116,7 +114,6 @@ export function FamilyTabsContent({
   familyValues,
   blogPosts,
   importantDates,
-  mealVotings,
   childrenProfiles,
   developmentPlans,
   chatMessages,

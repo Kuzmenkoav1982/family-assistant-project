@@ -3373,7 +3373,6 @@ export default function Index({ onLogout }: IndexProps) {
                 familyValues={familyValues}
                 blogPosts={blogPosts}
                 importantDates={importantDates}
-                mealVotings={mealVotings}
                 childrenProfiles={childrenProfiles}
                 developmentPlans={developmentPlans}
                 chatMessages={chatMessages}

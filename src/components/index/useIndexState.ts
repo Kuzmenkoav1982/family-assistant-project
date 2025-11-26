@@ -7,7 +7,6 @@ import type {
   FamilyValue,
   BlogPost,
   Tradition,
-  MealVoting,
   ChildProfile,
   DevelopmentPlan,
   ChatMessage,
@@ -27,7 +26,6 @@ import {
   initialFamilyValues,
   initialBlogPosts,
   initialTraditions,
-  initialMealVotings,
   initialChatMessages,
   initialFamilyAlbum,
   initialFamilyNeeds,
@@ -48,7 +46,6 @@ export function useIndexState() {
   const [familyValues] = useState<FamilyValue[]>(initialFamilyValues);
   const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
   const [traditions] = useState<Tradition[]>(initialTraditions);
-  const [mealVotings] = useState<MealVoting[]>(initialMealVotings);
   const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
   const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
@@ -103,7 +100,6 @@ export function useIndexState() {
     familyValues,
     blogPosts,
     traditions,
-    mealVotings,
     childrenProfiles,
     developmentPlans,
     chatMessages,
