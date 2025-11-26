@@ -118,9 +118,9 @@ def get_votings(family_id: str, status: Optional[str] = None) -> List[Dict[str, 
                 'id': str(option['id']),
                 'option_text': option['option_text'],
                 'description': option['description'],
-                'total_votes': int(vote_stats['total_votes']) if vote_stats else 0,
-                'yes_votes': int(vote_stats['yes_votes']) if vote_stats else 0,
-                'no_votes': int(vote_stats['no_votes']) if vote_stats else 0
+                'total_votes': int(vote_stats['total_votes']) if vote_stats and vote_stats['total_votes'] is not None else 0,
+                'yes_votes': int(vote_stats['yes_votes']) if vote_stats and vote_stats['yes_votes'] is not None else 0,
+                'no_votes': int(vote_stats['no_votes']) if vote_stats and vote_stats['no_votes'] is not None else 0
             })
         
         result.append(voting_dict)
