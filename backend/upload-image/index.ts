@@ -67,7 +67,7 @@ export async function handler(event, context) {
     console.log('[UPLOAD] Binary data size:', bytes.length);
     
     const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Length': bytes.length.toString()
