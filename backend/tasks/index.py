@@ -6,6 +6,7 @@ Returns: JSON со списком задач или результатом оп�
 
 import json
 import os
+import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 import psycopg2
@@ -92,13 +93,16 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    query = f"""
+    task_id = f"'{str(uuid.uuid4())}'"
+    
+    insert_query = f"""
         INSERT INTO {SCHEMA}.tasks (
-            family_id, title, description, assignee_id, completed, 
+            id, family_id, title, description, assignee_id, completed, 
             points, priority, category, deadline, reminder_time, is_recurring,
             recurring_frequency, recurring_interval, recurring_days_of_week,
             recurring_end_date, next_occurrence, cooking_day
         ) VALUES (
+            {task_id}::uuid,
             {escape_string(family_id, is_uuid=True)},
             {escape_string(data.get('title'))},
             {escape_string(data.get('description'))},
@@ -117,14 +121,18 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             {escape_string(data.get('next_occurrence'))},
             {escape_string(data.get('cooking_day'))}
         )
-        RETURNING *
     """
     
-    print(f"[create_task] Full query: {query}")
+    print(f"[create_task] Insert query: {insert_query}")
     
     try:
-        cur.execute(query)
+        cur.execute(insert_query)
+        print(f"[create_task] Task inserted, fetching...")
+        
+        select_query = f"SELECT * FROM {SCHEMA}.tasks WHERE id = {task_id}::uuid"
+        cur.execute(select_query)
         task = cur.fetchone()
+        
         print(f"[create_task] Task created successfully: {task}")
         cur.close()
         conn.close()
