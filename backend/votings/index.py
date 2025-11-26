@@ -75,7 +75,7 @@ def get_member_id(user_id: str) -> Optional[str]:
 
 def get_votings(family_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_db_connection()
-    cur = cur.cursor(cursor_factory=RealDictCursor)
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     
     where_clause = f"WHERE family_id::text = {escape_string(family_id)}"
     if status:

@@ -91,6 +91,12 @@ export default function FamilyRules() {
     }));
   };
 
+  const handleDeleteRule = (ruleId: string) => {
+    if (window.confirm('Удалить это правило?')) {
+      setRules(rules.filter(r => r.id !== ruleId));
+    }
+  };
+
   const approvedRules = rules.filter(r => r.status === 'approved');
   const votingRules = rules.filter(r => r.status === 'voting');
   const rejectedRules = rules.filter(r => r.status === 'rejected');
@@ -225,6 +231,16 @@ export default function FamilyRules() {
                           Предложил: {rule.author} • {rule.createdDate}
                         </p>
                       </div>
+                      {(rule.author === currentUser || currentUserData?.canApproveAlone) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteRule(rule.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Icon name="Trash2" size={16} />
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   {rule.votes && (
@@ -310,6 +326,16 @@ export default function FamilyRules() {
                         Утвердил: {rule.author} • {rule.createdDate}
                       </p>
                     </div>
+                    {currentUserData?.canApproveAlone && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
               </Card>

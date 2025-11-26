@@ -411,13 +411,28 @@ export function GoalsSection({
                       </div>
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedGoal(selectedGoal?.id === goal.id ? null : goal)}
-                    >
-                      <Icon name={selectedGoal?.id === goal.id ? 'ChevronUp' : 'ChevronDown'} size={20} />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm('Удалить эту цель?')) {
+                            onDeleteGoal?.(goal.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Удалить цель"
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedGoal(selectedGoal?.id === goal.id ? null : goal)}
+                      >
+                        <Icon name={selectedGoal?.id === goal.id ? 'ChevronUp' : 'ChevronDown'} size={20} />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
 
@@ -443,6 +458,50 @@ export function GoalsSection({
 
                   {selectedGoal?.id === goal.id && (
                     <div className="space-y-4 pt-4 border-t animate-fade-in">
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+                        <h4 className="font-semibold flex items-center gap-2">
+                          <Icon name="Settings" size={18} />
+                          Управление целью
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Статус</label>
+                            <select
+                              value={goal.status}
+                              onChange={(e) => onUpdateGoal?.(goal.id, { status: e.target.value as FamilyGoal['status'] })}
+                              className="w-full p-2 border rounded-md text-sm"
+                            >
+                              {Object.entries(statusLabels).map(([key, { label }]) => (
+                                <option key={key} value={key}>{label}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Прогресс: {goal.progress}%</label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={goal.progress}
+                              onChange={(e) => onUpdateGoal?.(goal.id, { progress: parseInt(e.target.value) })}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                        {goal.budget && (
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Текущие расходы: {goal.currentSpending?.toLocaleString() || 0} ₽</label>
+                            <input
+                              type="number"
+                              value={goal.currentSpending || 0}
+                              onChange={(e) => onUpdateGoal?.(goal.id, { currentSpending: parseFloat(e.target.value) || 0 })}
+                              className="w-full p-2 border rounded-md text-sm"
+                              placeholder="Введите сумму расходов"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-semibold flex items-center gap-2">

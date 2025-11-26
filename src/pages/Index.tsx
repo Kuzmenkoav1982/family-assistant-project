@@ -106,7 +106,17 @@ export default function Index({ onLogout }: IndexProps) {
   const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
   const [familyValues] = useState<FamilyValue[]>(initialFamilyValues);
   const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
-  const [traditions] = useState<Tradition[]>(initialTraditions);
+  const [traditions, setTraditions] = useState<Tradition[]>(() => {
+    const saved = localStorage.getItem('traditions');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialTraditions;
+      }
+    }
+    return initialTraditions;
+  });
   const [mealVotings] = useState<MealVoting[]>(initialMealVotings);
   const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
   const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
@@ -163,7 +173,17 @@ export default function Index({ onLogout }: IndexProps) {
     setChatMessages([...chatMessages, message]);
     setNewMessage('');
   };
-  const [calendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
+    const saved = localStorage.getItem('calendarEvents');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialCalendarEvents;
+      }
+    }
+    return initialCalendarEvents;
+  });
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
@@ -2162,6 +2182,18 @@ export default function Index({ onLogout }: IndexProps) {
                             <p className="text-sm text-muted-foreground">{task.description}</p>
                           </div>
                           <Badge>{getMemberById(task.assignee_id || task.assignee || '')?.name || 'Не назначено'}</Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (window.confirm('Удалить эту задачу?')) {
+                                deleteTask(task.id);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
                         </div>
                       ))}
                       {tasks.length === 0 && (
@@ -2209,6 +2241,42 @@ export default function Index({ onLogout }: IndexProps) {
                     </div>
                   </CardContent>
                 </Card>
+                <div className="flex justify-end mb-4">
+                  <Button 
+                    onClick={() => {
+                      const title = prompt('Название события:');
+                      if (!title) return;
+                      const description = prompt('Описание:');
+                      const date = prompt('Дата (ГГГГ-ММ-ДД):');
+                      const time = prompt('Время (HH:MM):');
+                      const category = prompt('Категория (Встреча/День рождения/Другое):') || 'Другое';
+                      const visibility = prompt('Видимость (family/personal):') as 'family' | 'personal' || 'family';
+                      
+                      const currentUser = familyMembers.find(m => m.id === currentUserId);
+                      const newEvent: CalendarEvent = {
+                        id: Date.now().toString(),
+                        title,
+                        description: description || '',
+                        date: date || new Date().toISOString().split('T')[0],
+                        time: time || '12:00',
+                        category,
+                        color: 'bg-purple-100',
+                        visibility,
+                        createdBy: currentUserId,
+                        createdByName: currentUser?.name || 'Неизвестно',
+                        createdByAvatar: currentUser?.avatar || '👤'
+                      };
+                      
+                      const updated = [...calendarEvents, newEvent];
+                      setCalendarEvents(updated);
+                      localStorage.setItem('calendarEvents', JSON.stringify(updated));
+                    }}
+                    className="bg-gradient-to-r from-green-500 to-teal-500"
+                  >
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Добавить событие
+                  </Button>
+                </div>
                 <Card key="calendar-card">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -2237,7 +2305,7 @@ export default function Index({ onLogout }: IndexProps) {
                         .map((event, index) => (
                           <div key={event.id} className={`p-4 rounded-lg ${event.color} animate-fade-in`} style={{ animationDelay: `${index * 0.1}s` }}>
                             <div className="flex items-start justify-between">
-                              <div>
+                              <div className="flex-1">
                                 <h4 className="font-bold text-lg">{event.title}</h4>
                                 <p className="text-sm text-muted-foreground">{event.description}</p>
                                 <div className="flex items-center gap-2 mt-2 text-sm">
@@ -2252,6 +2320,24 @@ export default function Index({ onLogout }: IndexProps) {
                                   </span>
                                 </div>
                               </div>
+                              <div className="flex items-center gap-2">
+                                {event.createdBy === currentUserId && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (window.confirm('Удалить это событие?')) {
+                                        const updated = calendarEvents.filter(e => e.id !== event.id);
+                                        setCalendarEvents(updated);
+                                        localStorage.setItem('calendarEvents', JSON.stringify(updated));
+                                      }
+                                    }}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Icon name="Trash2" size={16} />
+                                  </Button>
+                                )}
+                              
                               {event.createdByAvatar && event.createdByAvatar.startsWith('http') ? (
                                 <img 
                                   src={event.createdByAvatar} 
@@ -2627,6 +2713,35 @@ export default function Index({ onLogout }: IndexProps) {
                     </div>
                   </CardContent>
                 </Card>
+                <div className="flex justify-end mb-4">
+                  <Button 
+                    onClick={() => {
+                      const name = prompt('Название традиции:');
+                      if (!name) return;
+                      const description = prompt('Описание традиции:');
+                      const icon = prompt('Эмодзи иконка (например: 🎄):') || '✨';
+                      const frequency = prompt('Частота (weekly/monthly/yearly):') as 'weekly' | 'monthly' | 'yearly' || 'monthly';
+                      const nextDate = prompt('Следующая дата (ГГГГ-ММ-ДД):');
+                      
+                      const newTradition: Tradition = {
+                        id: Date.now().toString(),
+                        name,
+                        description: description || '',
+                        icon,
+                        frequency,
+                        nextDate: nextDate || new Date().toISOString().split('T')[0]
+                      };
+                      
+                      const updated = [...traditions, newTradition];
+                      setTraditions(updated);
+                      localStorage.setItem('traditions', JSON.stringify(updated));
+                    }}
+                    className="bg-gradient-to-r from-rose-500 to-pink-500"
+                  >
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Добавить традицию
+                  </Button>
+                </div>
                 <div className="grid gap-4">
                   {traditions.length > 0 ? traditions.map((tradition, idx) => (
                     <Card key={tradition.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
@@ -2637,9 +2752,25 @@ export default function Index({ onLogout }: IndexProps) {
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <span>{tradition.name}</span>
-                                <Badge className={tradition.frequency === 'weekly' ? 'bg-blue-500' : tradition.frequency === 'monthly' ? 'bg-purple-500' : 'bg-pink-500'}>
-                                  {tradition.frequency === 'weekly' ? 'Еженедельно' : tradition.frequency === 'monthly' ? 'Ежемесячно' : 'Ежегодно'}
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={tradition.frequency === 'weekly' ? 'bg-blue-500' : tradition.frequency === 'monthly' ? 'bg-purple-500' : 'bg-pink-500'}>
+                                    {tradition.frequency === 'weekly' ? 'Еженедельно' : tradition.frequency === 'monthly' ? 'Ежемесячно' : 'Ежегодно'}
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (window.confirm('Удалить эту традицию?')) {
+                                        const updated = traditions.filter(t => t.id !== tradition.id);
+                                        setTraditions(updated);
+                                        localStorage.setItem('traditions', JSON.stringify(updated));
+                                      }
+                                    }}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Icon name="Trash2" size={16} />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -2942,14 +3073,16 @@ export default function Index({ onLogout }: IndexProps) {
                                   <span className="text-xs text-gray-500">• {item.addedByName}</span>
                                 </div>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteShoppingItem(item.id)}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Icon name="Trash2" size={16} />
-                              </Button>
+                              {(item.addedBy === currentUserId || currentUser?.role === 'owner') && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteShoppingItem(item.id)}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Icon name="Trash2" size={16} />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         ))}
