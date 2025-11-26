@@ -74,18 +74,21 @@ export default function TopBar({
       }`}
       onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
-      {/* Кнопка разворота панели */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md rounded-b-lg px-4 py-1 shadow-md hover:bg-white transition-colors md:hidden"
-        title={isExpanded ? 'Свернуть' : 'Развернуть панель'}
-      >
-        <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={20} />
-      </button>
+      <div className={`px-4 py-2 relative transition-all duration-300 ${
+        isExpanded ? 'pb-12' : ''
+      }`}>
+        {/* Кнопка разворота - всегда видна на мобильных */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform md:hidden z-10"
+          title={isExpanded ? 'Свернуть' : 'Развернуть панель'}
+        >
+          <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} />
+        </button>
 
-      <div className={`px-4 py-2 flex flex-wrap items-center gap-4 transition-all ${
-        isExpanded ? 'max-h-96' : 'max-h-14 overflow-hidden'
-      } md:flex-nowrap md:justify-between md:max-h-none md:overflow-visible`}>
+        <div className={`flex flex-wrap items-start justify-center gap-3 transition-all overflow-hidden ${
+          isExpanded ? 'max-h-[500px]' : 'max-h-16'
+        } md:flex-nowrap md:justify-between md:max-h-none md:items-center`}>
         <div className="flex items-center gap-2">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
@@ -263,6 +266,7 @@ export default function TopBar({
               Синхронизация...
             </Badge>
           )}
+        </div>
         </div>
       </div>
       
