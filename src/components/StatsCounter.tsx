@@ -103,11 +103,15 @@ export default function StatsCounter() {
   }
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 transition-all duration-300 ${
-      isUpdating ? 'scale-105 shadow-lg' : 'animate-fade-in'
-    }`}>
+    <div 
+      className={`flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200 transition-all duration-300 ${
+        isUpdating ? 'scale-105 shadow-lg' : 'animate-fade-in'
+      } cursor-help`}
+      title="Статистика платформы: количество зарегистрированных семей и пользователей"
+    >
       <div className="flex items-center gap-1.5">
         <Icon name="Users" size={16} className="text-purple-600" />
+        <span className="text-xs text-purple-600 hidden sm:inline whitespace-nowrap">С нами уже</span>
         <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-0 font-semibold tabular-nums">
           <AnimatedNumber value={stats.total_families} />
         </Badge>

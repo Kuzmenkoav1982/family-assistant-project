@@ -70,6 +70,7 @@ import BottomBar from '@/components/BottomBar';
 import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import MealVotingWidget from '@/components/MealVotingWidget';
+import StatsCounter from '@/components/StatsCounter';
 
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
