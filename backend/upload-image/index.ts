@@ -34,10 +34,15 @@ export async function handler(event, context) {
   }
 
   try {
+    console.log('[UPLOAD] Starting upload process');
     const data = JSON.parse(body || '{}');
     const { image, filename } = data;
 
+    console.log('[UPLOAD] Image length:', image?.length || 0);
+    console.log('[UPLOAD] Filename:', filename);
+
     if (!image) {
+      console.log('[UPLOAD] No image provided');
       return {
         statusCode: 400,
         headers: {
@@ -50,19 +55,27 @@ export async function handler(event, context) {
     }
 
     const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
-    const buffer = Buffer.from(base64Data, 'base64');
+    console.log('[UPLOAD] Base64 data length:', base64Data.length);
     
-    const boundary = `----WebKitFormBoundary${Date.now()}`;
-    const filenameValue = filename || 'upload.jpg';
+    // Конвертируем base64 в бинарные данные
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    console.log('[UPLOAD] Binary data size:', bytes.length);
     
     const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/octet-stream',
-        'Content-Length': buffer.length.toString()
+        'Content-Length': bytes.length.toString()
       },
-      body: buffer
+      body: bytes
     });
+
+    console.log('[UPLOAD] Upload response status:', uploadResponse.status);
 
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
