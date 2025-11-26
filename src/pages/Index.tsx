@@ -240,9 +240,9 @@ export default function Index({ onLogout }: IndexProps) {
   const { votes: devSectionVotes, castVote: castDevVote } = useDevSectionVotes();
 
 
-  const demoMember = getCurrentMember();
-  const currentUser = demoMember 
-    ? familyMembers.find(m => m.id === demoMember.id) || familyMembers[0]
+  const authUserData = authUser ? JSON.parse(authUser) : null;
+  const currentUser = authUserData?.member_id 
+    ? familyMembers.find(m => m.id === authUserData.member_id) || familyMembers[0]
     : familyMembers[0];
   const currentUserId = currentUser?.id || familyMembers[0]?.id || '';
 
