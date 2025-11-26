@@ -62,7 +62,14 @@ export function useFamilyMembers() {
       setHasFetched(true);
       
       if (data.success && data.members) {
-        setMembers(data.members);
+        // Конвертируем snake_case в camelCase для frontend
+        const convertedMembers = data.members.map((m: any) => ({
+          ...m,
+          avatarType: m.avatar_type,
+          photoUrl: m.photo_url
+        }));
+        console.log('[DEBUG useFamilyMembers] Converted members:', convertedMembers);
+        setMembers(convertedMembers);
         setError(null);
       } else {
         if (!silent) {
@@ -138,6 +145,16 @@ export function useFamilyMembers() {
         backendData.avatar_type = memberData.avatarType;
         delete backendData.avatarType;
       }
+      
+      // Удаляем id из backendData, чтобы избежать дублирования
+      delete backendData.id;
+      delete backendData.member_id;
+
+      console.log('[DEBUG updateMember] Sending data:', {
+        action: 'update',
+        member_id: memberId,
+        ...backendData
+      });
 
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'POST',
