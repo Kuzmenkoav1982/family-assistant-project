@@ -1421,9 +1421,9 @@ export default function Index({ onLogout }: IndexProps) {
                 variant="ghost"
                 size="sm"
                 className="h-9 gap-1.5 px-3"
-                title="Настройки панели"
+                title="Настройки верхней панели"
               >
-                <Icon name="Settings" size={18} />
+                <Icon name="SlidersHorizontal" size={18} />
               </Button>
               
               <Button
