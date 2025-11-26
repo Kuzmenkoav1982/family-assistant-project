@@ -15,19 +15,28 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True
+    return conn
+
+def escape_string(value: Any) -> str:
+    if value is None:
+        return 'NULL'
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, bool):
+        return 'TRUE' if value else 'FALSE'
+    return "'" + str(value).replace("'", "''") + "'"
 
 def verify_token(token: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"""
+    query = f"""
         SELECT user_id FROM {SCHEMA}.sessions 
-        WHERE token = %s AND expires_at > CURRENT_TIMESTAMP
-        """,
-        (token,)
-    )
+        WHERE token = {escape_string(token)} AND expires_at > CURRENT_TIMESTAMP
+    """
+    cur.execute(query)
     session = cur.fetchone()
     cur.close()
     conn.close()
@@ -38,38 +47,34 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"""
+    query = f"""
         SELECT family_id FROM {SCHEMA}.family_members 
-        WHERE user_id = %s LIMIT 1
-        """,
-        (user_id,)
-    )
+        WHERE user_id::text = {escape_string(user_id)} LIMIT 1
+    """
+    cur.execute(query)
     member = cur.fetchone()
     cur.close()
     conn.close()
     
-    return str(member['family_id']) if member else None
+    return str(member['family_id']) if member and member['family_id'] else None
 
 def get_tasks(family_id: str, completed: Optional[bool] = None) -> List[Dict[str, Any]]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
+    where_clause = f"WHERE t.family_id::text = {escape_string(family_id)}"
+    if completed is not None:
+        where_clause += f" AND t.completed = {escape_string(completed)}"
+    
     query = f"""
         SELECT t.*, fm.name as assignee_name
         FROM {SCHEMA}.tasks t
         LEFT JOIN {SCHEMA}.family_members fm ON t.assignee_id = fm.id
-        WHERE t.family_id = %s
+        {where_clause}
+        ORDER BY t.created_at DESC
     """
-    params = [family_id]
     
-    if completed is not None:
-        query += " AND t.completed = %s"
-        params.append(completed)
-    
-    query += " ORDER BY t.created_at DESC"
-    
-    cur.execute(query, tuple(params))
+    cur.execute(query)
     tasks = cur.fetchall()
     cur.close()
     conn.close()
@@ -80,38 +85,35 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"""
+    query = f"""
         INSERT INTO {SCHEMA}.tasks (
             family_id, title, description, assignee_id, completed, 
             points, priority, category, deadline, reminder_time, is_recurring,
             recurring_frequency, recurring_interval, recurring_days_of_week,
             recurring_end_date, next_occurrence, cooking_day
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING *
-        """,
-        (
-            family_id,
-            data.get('title'),
-            data.get('description'),
-            data.get('assignee_id'),
-            data.get('completed', False),
-            data.get('points', 10),
-            data.get('priority', 'medium'),
-            data.get('category'),
-            data.get('deadline'),
-            data.get('reminder_time'),
-            data.get('is_recurring', False),
-            data.get('recurring_frequency'),
-            data.get('recurring_interval'),
-            data.get('recurring_days_of_week'),
-            data.get('recurring_end_date'),
-            data.get('next_occurrence'),
-            data.get('cooking_day')
+        ) VALUES (
+            {escape_string(family_id)},
+            {escape_string(data.get('title'))},
+            {escape_string(data.get('description'))},
+            {escape_string(data.get('assignee_id'))},
+            {escape_string(data.get('completed', False))},
+            {escape_string(data.get('points', 10))},
+            {escape_string(data.get('priority', 'medium'))},
+            {escape_string(data.get('category'))},
+            {escape_string(data.get('deadline'))},
+            {escape_string(data.get('reminder_time'))},
+            {escape_string(data.get('is_recurring', False))},
+            {escape_string(data.get('recurring_frequency'))},
+            {escape_string(data.get('recurring_interval'))},
+            {escape_string(data.get('recurring_days_of_week'))},
+            {escape_string(data.get('recurring_end_date'))},
+            {escape_string(data.get('next_occurrence'))},
+            {escape_string(data.get('cooking_day'))}
         )
-    )
+        RETURNING *
+    """
+    cur.execute(query)
     task = cur.fetchone()
-    conn.commit()
     cur.close()
     conn.close()
     
@@ -121,25 +123,21 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    cur.execute(
-        f"SELECT id FROM {SCHEMA}.tasks WHERE id = %s AND family_id = %s",
-        (task_id, family_id)
-    )
+    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
         conn.close()
         return {'error': 'Задача не найдена'}
     
     fields = []
-    values = []
     
     for field in ['title', 'description', 'assignee_id', 'completed', 'points', 
                   'priority', 'category', 'deadline', 'reminder_time', 'is_recurring',
                   'recurring_frequency', 'recurring_interval', 'recurring_days_of_week',
                   'recurring_end_date', 'next_occurrence', 'cooking_day']:
         if field in data:
-            fields.append(f"{field} = %s")
-            values.append(data[field])
+            fields.append(f"{field} = {escape_string(data[field])}")
     
     if not fields:
         cur.close()
@@ -147,18 +145,16 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
         return {'error': 'Нет данных для обновления'}
     
     fields.append("updated_at = CURRENT_TIMESTAMP")
-    values.extend([task_id, family_id])
     
     query = f"""
         UPDATE {SCHEMA}.tasks 
         SET {', '.join(fields)}
-        WHERE id = %s AND family_id = %s
+        WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}
         RETURNING *
     """
     
-    cur.execute(query, tuple(values))
+    cur.execute(query)
     task = cur.fetchone()
-    conn.commit()
     cur.close()
     conn.close()
     
@@ -168,20 +164,15 @@ def delete_task(task_id: str, family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
     
-    cur.execute(
-        f"SELECT id FROM {SCHEMA}.tasks WHERE id = %s AND family_id = %s",
-        (task_id, family_id)
-    )
+    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
         conn.close()
         return {'error': 'Задача не найдена'}
     
-    cur.execute(
-        f"UPDATE {SCHEMA}.tasks SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id = %s AND family_id = %s",
-        (task_id, family_id)
-    )
-    conn.commit()
+    update_query = f"UPDATE {SCHEMA}.tasks SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    cur.execute(update_query)
     cur.close()
     conn.close()
     
