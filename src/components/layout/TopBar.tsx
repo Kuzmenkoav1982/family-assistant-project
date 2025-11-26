@@ -68,12 +68,12 @@ export default function TopBar({
 
   return (
     <div 
-      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 overflow-x-auto ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
       onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4 min-w-max">
         <div className="flex items-center gap-2">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
