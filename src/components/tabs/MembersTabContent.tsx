@@ -56,8 +56,53 @@ export function MembersTabContent({
 
   return (
     <TabsContent value="members" className="space-y-4">
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="Users" size={24} className="text-purple-600" />
+                Профили семьи
+              </h3>
+              <p className="text-sm text-gray-600">Просмотр и редактирование профилей всех членов семьи</p>
+            </div>
+            <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-gradient-to-r from-orange-500 to-pink-500"
+                  onClick={() => {
+                    setEditingMember(undefined);
+                    setAddMemberDialogOpen(true);
+                  }}
+                >
+                  <Icon name="UserPlus" className="mr-2" size={16} />
+                  Добавить члена семьи
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingMember ? 'Редактировать члена семьи' : 'Добавить нового члена семьи'}</DialogTitle>
+                </DialogHeader>
+                <AddFamilyMemberForm 
+                  editingMember={editingMember}
+                  onSubmit={(newMember) => {
+                    if (editingMember) {
+                      setFamilyMembers(familyMembers.map(m => m.id === newMember.id ? newMember : m));
+                    } else {
+                      setFamilyMembers([...familyMembers, newMember]);
+                    }
+                    setAddMemberDialogOpen(false);
+                    setEditingMember(undefined);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <h3 className="text-2xl font-bold">Члены семьи</h3>
+        <h3 className="text-xl font-semibold">Все члены семьи</h3>
         <div className="flex gap-2">
           <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
             <DialogTrigger asChild>
