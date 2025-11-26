@@ -193,7 +193,6 @@ export function MembersTabContent({
           </DialogContent>
         </Dialog>
       </div>
-      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {displayMembers.map((member, index) => (
