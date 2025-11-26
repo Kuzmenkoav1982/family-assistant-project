@@ -98,6 +98,23 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
     }
   };
 
+  const handleApplyPhoto = async () => {
+    if (!photoUrl) return;
+    
+    setSaving(true);
+    try {
+      await onSave({
+        avatarType: 'photo',
+        photoUrl: photoUrl
+      });
+      alert('✅ Фото применено!');
+    } catch (error) {
+      alert('❌ Ошибка применения фото');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -225,7 +242,27 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
                           alt="Preview" 
                           className="w-32 h-32 rounded-full object-cover border-4 border-purple-400 shadow-lg"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap justify-center">
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            onClick={handleApplyPhoto}
+                            disabled={saving}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {saving ? (
+                              <>
+                                <Icon name="Loader" size={16} className="mr-1 animate-spin" />
+                                Сохранение...
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="Check" size={16} className="mr-1" />
+                                Применить фото
+                              </>
+                            )}
+                          </Button>
                           <Label 
                             htmlFor="photo-upload"
                             className="cursor-pointer"
@@ -238,7 +275,7 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
                               asChild
                             >
                               <span>
-                                <Icon name="Upload" size={16} className="mr-2" />
+                                <Icon name="Upload" size={16} className="mr-1" />
                                 Изменить
                               </span>
                             </Button>
