@@ -69,6 +69,7 @@ export function useTasks() {
 
   const createTask = async (taskData: Partial<Task>) => {
     try {
+      console.log('[useTasks] Creating task with data:', taskData);
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -78,16 +79,19 @@ export function useTasks() {
         body: JSON.stringify(taskData)
       });
       
+      console.log('[useTasks] Response status:', response.status);
       const data = await response.json();
+      console.log('[useTasks] Response data:', data);
       
       if (response.ok) {
         setTasks(prev => [data.task, ...prev]);
         return { success: true, task: data.task };
       } else {
-        return { success: false, error: data.error };
+        return { success: false, error: data.error || `HTTP ${response.status}` };
       }
     } catch (err) {
-      return { success: false, error: 'Ошибка создания задачи' };
+      console.error('[useTasks] Error creating task:', err);
+      return { success: false, error: err instanceof Error ? err.message : 'Ошибка создания задачи' };
     }
   };
 
