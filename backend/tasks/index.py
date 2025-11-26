@@ -41,7 +41,7 @@ def verify_token(token: str) -> Optional[str]:
     
     query = f"""
         SELECT user_id FROM {SCHEMA}.sessions 
-        WHERE token = {escape_string(token, is_uuid=True)} AND expires_at > CURRENT_TIMESTAMP
+        WHERE token = {escape_string(token)} AND expires_at > CURRENT_TIMESTAMP
     """
     cur.execute(query)
     session = cur.fetchone()
