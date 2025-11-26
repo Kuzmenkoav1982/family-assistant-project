@@ -55,22 +55,13 @@ export async function handler(event, context) {
     const boundary = `----WebKitFormBoundary${Date.now()}`;
     const filenameValue = filename || 'upload.jpg';
     
-    const formDataParts = [];
-    formDataParts.push(Buffer.from(`--${boundary}\r\n`));
-    formDataParts.push(Buffer.from(`Content-Disposition: form-data; name="file"; filename="${filenameValue}"\r\n`));
-    formDataParts.push(Buffer.from('Content-Type: image/jpeg\r\n\r\n'));
-    formDataParts.push(buffer);
-    formDataParts.push(Buffer.from(`\r\n--${boundary}--\r\n`));
-    
-    const formDataBuffer = Buffer.concat(formDataParts);
-
     const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
-        'Content-Type': `multipart/form-data; boundary=${boundary}`,
-        'Content-Length': formDataBuffer.length.toString()
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': buffer.length.toString()
       },
-      body: formDataBuffer
+      body: buffer
     });
 
     if (!uploadResponse.ok) {
