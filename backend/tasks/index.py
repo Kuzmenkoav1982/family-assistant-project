@@ -19,22 +19,29 @@ def get_db_connection():
     conn.autocommit = True
     return conn
 
-def escape_string(value: Any) -> str:
-    if value is None:
+def escape_string(value: Any, is_uuid: bool = False) -> str:
+    if value is None or value == '':
         return 'NULL'
     if isinstance(value, (int, float)):
         return str(value)
     if isinstance(value, bool):
         return 'TRUE' if value else 'FALSE'
-    return "'" + str(value).replace("'", "''") + "'"
+    
+    escaped = "'" + str(value).replace("'", "''") + "'"
+    if is_uuid:
+        return f"{escaped}::uuid"
+    return escaped
 
 def verify_token(token: str) -> Optional[str]:
+    if not token or token == '':
+        return None
+        
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     query = f"""
         SELECT user_id FROM {SCHEMA}.sessions 
-        WHERE token = {escape_string(token)} AND expires_at > CURRENT_TIMESTAMP
+        WHERE token = {escape_string(token, is_uuid=True)} AND expires_at > CURRENT_TIMESTAMP
     """
     cur.execute(query)
     session = cur.fetchone()
@@ -49,7 +56,7 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     query = f"""
         SELECT family_id FROM {SCHEMA}.family_members 
-        WHERE user_id::text = {escape_string(user_id)} LIMIT 1
+        WHERE user_id = {escape_string(user_id, is_uuid=True)} LIMIT 1
     """
     cur.execute(query)
     member = cur.fetchone()
@@ -62,7 +69,7 @@ def get_tasks(family_id: str, completed: Optional[bool] = None) -> List[Dict[str
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    where_clause = f"WHERE t.family_id::text = {escape_string(family_id)}"
+    where_clause = f"WHERE t.family_id = {escape_string(family_id, is_uuid=True)}"
     if completed is not None:
         where_clause += f" AND t.completed = {escape_string(completed)}"
     
@@ -92,10 +99,10 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             recurring_frequency, recurring_interval, recurring_days_of_week,
             recurring_end_date, next_occurrence, cooking_day
         ) VALUES (
-            {escape_string(family_id)},
+            {escape_string(family_id, is_uuid=True)},
             {escape_string(data.get('title'))},
             {escape_string(data.get('description'))},
-            {escape_string(data.get('assignee_id'))},
+            {escape_string(data.get('assignee_id'), is_uuid=True)},
             {escape_string(data.get('completed', False))},
             {escape_string(data.get('points', 10))},
             {escape_string(data.get('priority', 'medium'))},
@@ -132,7 +139,7 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}"
     cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
@@ -158,7 +165,7 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     query = f"""
         UPDATE {SCHEMA}.tasks 
         SET {', '.join(fields)}
-        WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}
+        WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}
         RETURNING *
     """
     
@@ -173,14 +180,14 @@ def delete_task(task_id: str, family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
     
-    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}"
     cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
         conn.close()
         return {'error': 'Задача не найдена'}
     
-    update_query = f"UPDATE {SCHEMA}.tasks SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    update_query = f"UPDATE {SCHEMA}.tasks SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}"
     cur.execute(update_query)
     cur.close()
     conn.close()
