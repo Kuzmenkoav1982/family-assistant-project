@@ -100,7 +100,7 @@ export default function MemberProfile() {
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
-              {member.photoUrl ? (
+              {member.avatarType === 'photo' && member.photoUrl ? (
                 <img 
                   src={member.photoUrl} 
                   alt={member.name}
