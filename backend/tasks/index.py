@@ -240,7 +240,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
+            print(f"[POST] Creating task with data: {body}")
+            print(f"[POST] Family ID: {family_id}")
             task = create_task(family_id, body)
+            print(f"[POST] Task created: {task}")
             return {
                 'statusCode': 201,
                 'headers': headers,
@@ -300,8 +303,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     except Exception as e:
+        import traceback
+        error_details = {
+            'error': str(e),
+            'type': type(e).__name__,
+            'traceback': traceback.format_exc()
+        }
+        print(f"[ERROR] Exception occurred: {error_details}")
         return {
             'statusCode': 500,
             'headers': headers,
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e), 'type': type(e).__name__})
         }
