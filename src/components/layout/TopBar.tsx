@@ -47,6 +47,7 @@ export default function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
 
   const languages = [
@@ -68,12 +69,23 @@ export default function TopBar({
 
   return (
     <div 
-      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 overflow-x-auto ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-all duration-300 ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
       onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
-      <div className="px-4 py-2 flex items-center justify-between gap-4" style={{ minWidth: '800px' }}>
+      {/* Кнопка разворота панели */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md rounded-b-lg px-4 py-1 shadow-md hover:bg-white transition-colors md:hidden"
+        title={isExpanded ? 'Свернуть' : 'Развернуть панель'}
+      >
+        <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={20} />
+      </button>
+
+      <div className={`px-4 py-2 flex flex-wrap items-center gap-4 transition-all ${
+        isExpanded ? 'max-h-96' : 'max-h-14 overflow-hidden'
+      } md:flex-nowrap md:justify-between md:max-h-none md:overflow-visible`}>
         <div className="flex items-center gap-2">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
