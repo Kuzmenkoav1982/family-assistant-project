@@ -476,7 +476,7 @@ export interface Complaint {
   };
 }
 
-export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono';
+export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono' | '1';
 
 export interface ThemeConfig {
   name: string;

@@ -1276,7 +1276,7 @@ export default function Index({ onLogout }: IndexProps) {
         </div>
       )}
       
-      <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out ${currentTheme === 'mono' ? 'theme-mono' : ''}`}>
+      <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out ${currentTheme === 'mono' ? 'theme-mono' : ''} ${currentTheme === '1' ? 'theme-1' : ''}`}>
         <div 
           className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-transform duration-300 ${
             isTopBarVisible ? 'translate-y-0' : '-translate-y-full'

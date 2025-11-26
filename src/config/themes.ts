@@ -94,6 +94,25 @@ export const themes: Record<ThemeType, ThemeConfig> = {
     },
     spacing: 'space-y-3',
     borderRadius: 'rounded-none'
+  },
+  
+  '1': {
+    name: 'DVO Design',
+    description: 'Премиум стиль с тёмно-синим фоном и неоновыми акцентами',
+    ageRange: 'Tech & Business',
+    colors: {
+      primary: 'from-purple-600 via-purple-500 to-pink-500',
+      secondary: 'from-indigo-600 to-purple-600',
+      accent: 'from-pink-400 to-purple-400',
+      background: 'from-[#0a1628] via-[#162447] to-[#1f2e4d]',
+      text: 'text-white'
+    },
+    fontSize: {
+      base: 'text-base',
+      heading: 'text-5xl lg:text-7xl'
+    },
+    spacing: 'space-y-5',
+    borderRadius: 'rounded-md'
   }
 };
 
