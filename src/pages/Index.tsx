@@ -339,6 +339,15 @@ export default function Index({ onLogout }: IndexProps) {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    if (onLogout) {
+      onLogout();
+    }
+    navigate('/login');
+  };
+
   useEffect(() => {
     const handleChamomileToggle = (e: any) => {
       setChamomileEnabled(e.detail);
@@ -1273,16 +1282,29 @@ export default function Index({ onLogout }: IndexProps) {
                 <span className="text-sm hidden md:inline">Голосования</span>
               </Button>
               
-              <Button
-                onClick={() => navigate('/login')}
-                variant="default"
-                size="sm"
-                className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                title="Войти через Яндекс ID"
-              >
-                <Icon name="LogIn" size={18} />
-                <span className="text-sm hidden md:inline">Войти</span>
-              </Button>
+              {authToken ? (
+                <Button
+                  onClick={handleLogout}
+                  variant="default"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                  title="Выйти из аккаунта"
+                >
+                  <Icon name="LogOut" size={18} />
+                  <span className="text-sm hidden md:inline">Выйти</span>
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => navigate('/login')}
+                  variant="default"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                  title="Войти через Яндекс ID"
+                >
+                  <Icon name="LogIn" size={18} />
+                  <span className="text-sm hidden md:inline">Войти</span>
+                </Button>
+              )}
 
               <Button
                 onClick={handleLogoutLocal}

@@ -99,22 +99,30 @@ def create_invite(user_id: str, max_uses: int = 1, days_valid: int = 7) -> Dict[
         }
     }
 
-def join_family(user_id: str, invite_code: str, member_name: str, relationship: str) -> Dict[str, Any]:
+def join_family(user_id: str, invite_code: str, member_name: str, relationship: str, force_leave: bool = False) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
         cur.execute(
             f"""
-            SELECT fm.id FROM {SCHEMA}.family_members fm
+            SELECT fm.id, fm.family_id, f.name as family_name 
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
             WHERE fm.user_id = %s
             """,
             (user_id,)
         )
-        if cur.fetchone():
+        existing_member = cur.fetchone()
+        
+        if existing_member and not force_leave:
             cur.close()
             conn.close()
-            return {'error': 'Вы уже состоите в семье'}
+            return {
+                'warning': True,
+                'current_family': existing_member['family_name'],
+                'message': f'Вы уже состоите в семье "{existing_member["family_name"]}". Присоединение к новой семье приведёт к выходу из текущей.'
+            }
         
         cur.execute(
             f"""
@@ -145,6 +153,15 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
             cur.close()
             conn.close()
             return {'error': 'Приглашение исчерпано'}
+        
+        if existing_member and force_leave:
+            cur.execute(
+                f"""
+                DELETE FROM {SCHEMA}.family_members 
+                WHERE id = %s
+                """,
+                (existing_member['id'],)
+            )
         
         cur.execute(
             f"""
@@ -273,6 +290,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 invite_code = body.get('invite_code', '')
                 member_name = body.get('member_name', '')
                 relationship = body.get('relationship', '')
+                force_leave = body.get('force_leave', False)
                 
                 if not invite_code or not member_name:
                     return {
@@ -281,7 +299,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'Требуются код приглашения и имя'})
                     }
                 
-                result = join_family(user_id, invite_code, member_name, relationship)
+                result = join_family(user_id, invite_code, member_name, relationship, force_leave)
+                
+                if 'warning' in result:
+                    return {
+                        'statusCode': 200,
+                        'headers': headers,
+                        'body': json.dumps(result)
+                    }
                 
                 if 'error' in result:
                     return {

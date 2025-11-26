@@ -86,7 +86,7 @@ export default function FamilyInviteManager() {
     }
   };
 
-  const joinFamily = async () => {
+  const joinFamily = async (forceLeave = false) => {
     setIsLoading(true);
     try {
       const relationship = joinData.relationship === 'Другое' 
@@ -103,10 +103,26 @@ export default function FamilyInviteManager() {
           action: 'join',
           invite_code: joinData.inviteCode.toUpperCase(),
           member_name: joinData.memberName,
-          relationship: relationship
+          relationship: relationship,
+          force_leave: forceLeave
         })
       });
       const data = await response.json();
+      
+      if (data.warning) {
+        const confirmed = confirm(
+          `⚠️ ${data.message}\n\n` +
+          `Текущая семья: "${data.current_family}"\n\n` +
+          `Вы уверены что хотите покинуть текущую семью и присоединиться к новой?`
+        );
+        
+        if (confirmed) {
+          await joinFamily(true);
+        } else {
+          setIsLoading(false);
+        }
+        return;
+      }
       
       if (data.success) {
         alert(`✅ Вы присоединились к семье: ${data.family.name}`);
