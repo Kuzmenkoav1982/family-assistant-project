@@ -77,6 +77,7 @@ import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import KuzyaFloatingButton from '@/components/KuzyaFloatingButton';
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
+import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -1546,30 +1547,15 @@ export default function Index({ onLogout }: IndexProps) {
                       <div className="text-xs text-gray-600">{currentUser.name}</div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => navigate(`/member/${currentUser.id}`)}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 h-8 text-xs border-purple-300 hover:bg-purple-100"
-                    >
-                      <Icon name="Eye" size={14} className="mr-1" />
-                      Просмотр
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setActiveSection('family');
-                        setSelectedMember(currentUser);
-                        setShowMemberEdit(true);
-                      }}
-                      variant="default"
-                      size="sm"
-                      className="flex-1 h-8 text-xs bg-purple-600 hover:bg-purple-700"
-                    >
-                      <Icon name="Edit" size={14} className="mr-1" />
-                      Редактировать
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => navigate(`/member/${currentUser.id}`)}
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-8 text-xs border-purple-300 hover:bg-purple-100"
+                  >
+                    <Icon name="Eye" size={14} className="mr-1" />
+                    Просмотр профиля
+                  </Button>
                 </div>
               )}
               
@@ -2675,13 +2661,28 @@ export default function Index({ onLogout }: IndexProps) {
                         <Icon name="Baby" size={48} className="mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-lg font-semibold mb-2">Нет профилей детей</h3>
                         <p className="text-sm text-muted-foreground mb-4">Добавьте первый профиль ребенка, чтобы отслеживать развитие и достижения</p>
-                        <Button 
-                          onClick={() => navigate('/presentation')}
-                          className="bg-gradient-to-r from-blue-500 to-purple-500"
-                        >
-                          <Icon name="Plus" className="mr-2" size={16} />
-                          Добавить ребёнка
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
+                              <Icon name="Plus" className="mr-2" size={16} />
+                              Добавить ребёнка
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Добавить ребёнка</DialogTitle>
+                            </DialogHeader>
+                            <AddFamilyMemberForm 
+                              editingMember={undefined}
+                              isChild={true}
+                              onSubmit={(newChild) => {
+                                if (addMember) {
+                                  addMember(newChild);
+                                }
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
                       </CardContent>
                     </Card>
                   )}
