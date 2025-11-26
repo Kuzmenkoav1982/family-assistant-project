@@ -1285,7 +1285,6 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              {topPanelSections.includes('stats') && <StatsCounter />}
               
               {topPanelSections.includes('voting') && (
                 <Button
@@ -1736,19 +1735,25 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
           <div className="relative h-full flex flex-col items-center justify-center px-6">
-            <div className="flex items-center gap-4 mb-2">
-              <img 
-                src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                alt="Наша семья"
-                className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
-                style={{ border: 'none', outline: 'none' }}
-              />
-              <div className="flex flex-col gap-1">
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Наша семья
-                </h1>
+            <div className="flex items-center justify-between w-full mb-2">
+              <div className="flex items-center gap-4">
+                <img 
+                  src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
+                  alt="Наша семья"
+                  className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
+                  style={{ border: 'none', outline: 'none' }}
+                />
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                    Наша семья
+                  </h1>
+                </div>
               </div>
-
+              
+              {/* Счётчик семей и пользователей */}
+              <div className="hidden sm:block">
+                <StatsCounter />
+              </div>
             </div>
             <p className="text-sm lg:text-base text-gray-700 font-medium flex items-center justify-center gap-2 mt-2">
               {getDailyMotto()}
