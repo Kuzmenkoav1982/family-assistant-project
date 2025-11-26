@@ -90,6 +90,18 @@ export default function TopBar({
           isExpanded ? 'max-h-[500px]' : 'max-h-14'
         } md:flex-nowrap md:justify-between md:max-h-none`}>
         <div className="flex items-center gap-1 flex-wrap justify-center">
+          <Button
+            onClick={() => onTopPanelSettingsToggle(!showTopPanelSettings)}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 border border-gray-300"
+            title="Настройки панели"
+          >
+            <Icon name="Settings2" size={16} />
+          </Button>
+          
+          <div className="w-px h-6 bg-gray-300 mx-0.5" />
+          
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Наша семья"
@@ -246,16 +258,6 @@ export default function TopBar({
               </div>
             </div>
           )}
-
-          <Button
-            onClick={() => onTopPanelSettingsToggle(!showTopPanelSettings)}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Настройки панели"
-          >
-            <Icon name="Settings2" size={16} />
-          </Button>
 
           {syncing && (
             <Badge variant="outline" className="flex items-center gap-1 text-xs px-2 py-0.5">
