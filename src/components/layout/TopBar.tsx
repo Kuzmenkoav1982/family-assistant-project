@@ -136,18 +136,6 @@ export default function TopBar({
           >
             <Icon name="Scale" size={18} />
           </Button>
-          
-          {currentUser && (
-            <Button
-              onClick={() => navigate(`/member/${currentUser.id}`)}
-              variant="ghost"
-              size="sm"
-              className="h-9 w-9 p-0"
-              title="Мой профиль"
-            >
-              <Icon name="UserCircle" size={18} />
-            </Button>
-          )}
         </div>
         
         <div className="flex items-center gap-2 language-selector theme-selector relative">
