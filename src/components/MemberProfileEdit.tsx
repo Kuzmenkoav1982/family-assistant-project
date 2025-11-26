@@ -61,20 +61,37 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
 
     setUploadingPhoto(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const base64Image = evt.target?.result as string;
+        
+        const response = await fetch('https://functions.poehali.dev/9d65e9a3-87e4-47e6-af40-7131a667debd', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            filename: file.name
+          })
+        });
 
-      const response = await fetch('https://cdn.poehali.dev/upload', {
-        method: 'POST',
-        body: formData
-      });
+        if (!response.ok) throw new Error('Ошибка загрузки');
 
-      if (!response.ok) throw new Error('Ошибка загрузки');
-
-      const data = await response.json();
-      setPhotoUrl(data.url);
-      setAvatarType('photo');
+        const data = await response.json();
+        if (data.success && data.url) {
+          setPhotoUrl(data.url);
+          setAvatarType('photo');
+        } else {
+          throw new Error(data.error || 'Ошибка загрузки');
+        }
+      };
+      reader.onerror = () => {
+        throw new Error('Ошибка чтения файла');
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
+      console.error('Upload error:', error);
       alert('Ошибка загрузки фото. Попробуйте ещё раз.');
     } finally {
       setUploadingPhoto(false);
