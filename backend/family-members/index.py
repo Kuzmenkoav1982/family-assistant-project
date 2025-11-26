@@ -264,7 +264,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         token = event.get('headers', {}).get('X-Auth-Token', '') or event.get('headers', {}).get('x-auth-token', '')
+        print(f"[DEBUG handler] Received token: {token[:20] if token else 'None'}...")
+        
         user_id = verify_token(token)
+        print(f"[DEBUG handler] user_id from token: {user_id}")
         
         if not user_id:
             return {
@@ -275,16 +278,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         family_id = get_user_family_id(user_id)
+        print(f"[DEBUG handler] family_id: {family_id}")
         
         if method == 'GET':
             if not family_id:
+                print("[DEBUG handler] No family_id, returning empty members")
                 return {
                     'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps({'success': True, 'members': []}),
                     'isBase64Encoded': False
                 }
+            
+            print(f"[DEBUG handler] Fetching members for family_id: {family_id}")
             members = get_family_members(family_id)
+            print(f"[DEBUG handler] Got {len(members)} members")
+            
             return {
                 'statusCode': 200,
                 'headers': headers,
@@ -424,9 +433,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     except Exception as e:
+        print(f"[ERROR handler] Exception occurred: {str(e)}")
+        import traceback
+        print(f"[ERROR handler] Traceback: {traceback.format_exc()}")
         return {
             'statusCode': 500,
             'headers': headers,
-            'body': json.dumps({'error': str(e)}),
+            'body': json.dumps({'error': str(e), 'type': type(e).__name__}),
             'isBase64Encoded': False
         }
