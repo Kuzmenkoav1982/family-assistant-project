@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
@@ -75,6 +76,7 @@ import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import KuzyaFloatingButton from '@/components/KuzyaFloatingButton';
 import StatsCounter from '@/components/StatsCounter';
+import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -212,10 +214,10 @@ export default function Index({ onLogout }: IndexProps) {
   const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
   const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
   const [selectedDevSection, setSelectedDevSection] = useState<typeof inDevelopmentSections[0] | null>(null);
-  const [devSectionVotes, setDevSectionVotes] = useState<Record<string, {up: number, down: number}>>(() => {
-    const saved = localStorage.getItem('devSectionVotes');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [voteComment, setVoteComment] = useState('');
+  const [showCommentDialog, setShowCommentDialog] = useState(false);
+  const [pendingVote, setPendingVote] = useState<{ sectionId: string; voteType: 'up' | 'down' } | null>(null);
+  const { votes: devSectionVotes, castVote: castDevVote } = useDevSectionVotes();
 
 
   const demoMember = getCurrentMember();
@@ -661,17 +663,32 @@ export default function Index({ onLogout }: IndexProps) {
     },
   ];
 
-  const handleDevSectionVote = (sectionId: string, voteType: 'up' | 'down') => {
-    const currentVotes = devSectionVotes[sectionId] || { up: 0, down: 0 };
-    const newVotes = {
-      ...devSectionVotes,
-      [sectionId]: {
-        ...currentVotes,
-        [voteType]: currentVotes[voteType] + 1
-      }
-    };
-    setDevSectionVotes(newVotes);
-    localStorage.setItem('devSectionVotes', JSON.stringify(newVotes));
+  const handleDevSectionVote = async (sectionId: string, voteType: 'up' | 'down', withComment = false) => {
+    if (withComment) {
+      setPendingVote({ sectionId, voteType });
+      setShowCommentDialog(true);
+      return;
+    }
+
+    const result = await castDevVote(sectionId, voteType);
+    if (!result.success) {
+      alert('❌ Ошибка голосования: ' + result.error);
+    }
+  };
+
+  const handleSubmitVoteWithComment = async () => {
+    if (!pendingVote) return;
+
+    const result = await castDevVote(pendingVote.sectionId, pendingVote.voteType, voteComment.trim() || undefined);
+    
+    if (result.success) {
+      alert('✅ Голос учтён! Спасибо за ваш отзыв.');
+      setShowCommentDialog(false);
+      setVoteComment('');
+      setPendingVote(null);
+    } else {
+      alert('❌ Ошибка: ' + result.error);
+    }
   };
 
   const getDevSectionVotes = (sectionId: string) => {
@@ -1878,31 +1895,46 @@ export default function Index({ onLogout }: IndexProps) {
                   Ваш голос поможет нам понять насколько этот функционал нужен пользователям и приоритизировать разработку.
                 </p>
 
-                <div className="flex gap-3">
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => {
+                        if (selectedDevSection) {
+                          handleDevSectionVote(selectedDevSection.id, 'up', false);
+                        }
+                      }}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                      size="lg"
+                    >
+                      <Icon name="ThumbsUp" size={18} className="mr-2" />
+                      Хочу! ({getDevSectionVotes(selectedDevSection?.id || '').up})
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (selectedDevSection) {
+                          handleDevSectionVote(selectedDevSection.id, 'down', false);
+                        }
+                      }}
+                      variant="outline"
+                      className="border-red-300 hover:bg-red-50"
+                      size="lg"
+                    >
+                      <Icon name="ThumbsDown" size={18} className="mr-2 text-red-600" />
+                      Не нужен ({getDevSectionVotes(selectedDevSection?.id || '').down})
+                    </Button>
+                  </div>
+                  
                   <Button
                     onClick={() => {
                       if (selectedDevSection) {
-                        handleDevSectionVote(selectedDevSection.id, 'up');
-                      }
-                    }}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                    size="lg"
-                  >
-                    <Icon name="ThumbsUp" size={18} className="mr-2" />
-                    Хочу этот функционал! ({getDevSectionVotes(selectedDevSection?.id || '').up})
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (selectedDevSection) {
-                        handleDevSectionVote(selectedDevSection.id, 'down');
+                        handleDevSectionVote(selectedDevSection.id, 'up', true);
                       }
                     }}
                     variant="outline"
-                    className="border-red-300 hover:bg-red-50"
-                    size="lg"
+                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
                   >
-                    <Icon name="ThumbsDown" size={18} className="mr-2 text-red-600" />
-                    Не нужен ({getDevSectionVotes(selectedDevSection?.id || '').down})
+                    <Icon name="MessageSquare" size={18} className="mr-2" />
+                    Оставить комментарий или предложение
                   </Button>
                 </div>
                 <p className="text-xs text-green-700 mt-3 text-center">
@@ -1921,6 +1953,60 @@ export default function Index({ onLogout }: IndexProps) {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showCommentDialog} onOpenChange={setShowCommentDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Icon name="MessageSquare" size={24} />
+                Ваш отзыв или предложение
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Расскажите нам подробнее о том, что вы хотите видеть в этом разделе. 
+                Ваш комментарий будет отправлен разработчикам на почту.
+              </p>
+
+              <Textarea
+                value={voteComment}
+                onChange={(e) => setVoteComment(e.target.value)}
+                placeholder="Например: Хотел бы видеть возможность..."
+                rows={5}
+                className="resize-none"
+              />
+
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <Icon name="Info" size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-800">
+                  Комментарий опционален. Вы можете оставить его пустым и просто проголосовать, 
+                  или написать развёрнутое предложение.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCommentDialog(false);
+                    setVoteComment('');
+                    setPendingVote(null);
+                  }}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleSubmitVoteWithComment}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500"
+                >
+                  <Icon name="Send" size={16} className="mr-2" />
+                  Отправить
+                </Button>
               </div>
             </div>
           </DialogContent>

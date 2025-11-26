@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Get votings without auth",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create voting without auth",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "create",
+        "title": "Test voting",
+        "voting_type": "general",
+        "end_date": "2025-12-31T23:59:59"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

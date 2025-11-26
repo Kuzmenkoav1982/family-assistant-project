@@ -21,7 +21,7 @@ export interface FamilyMember {
   role: string;
   workload: number;
   avatar: string;
-  avatarType?: 'icon' | 'photo';
+  avatarType?: 'emoji' | 'photo';
   photoUrl?: string;
   points: number;
   level: number;

@@ -9,6 +9,8 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
 import { MemberProfileEdit } from '@/components/MemberProfileEdit';
+import { MemberCalendar } from '@/components/MemberCalendar';
+import { VotingWidget } from '@/components/VotingWidget';
 import type { Dream, FamilyMember } from '@/types/family.types';
 import { DEMO_FAMILY } from '@/data/demoFamily';
 
@@ -146,7 +148,7 @@ export default function MemberProfile() {
         </Card>
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="User" size={16} />
               <span>Профиль</span>
@@ -154,6 +156,10 @@ export default function MemberProfile() {
             <TabsTrigger value="stats" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="BarChart3" size={16} />
               <span>Статистика</span>
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="Calendar" size={16} />
+              <span>Календарь</span>
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="CheckSquare" size={16} />
@@ -180,6 +186,13 @@ export default function MemberProfile() {
                 await updateMember({ id: member.id, ...updates });
               }}
             />
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <div className="space-y-6">
+              <MemberCalendar memberId={member.id} memberName={member.name} />
+              <VotingWidget />
+            </div>
           </TabsContent>
 
           <TabsContent value="stats">

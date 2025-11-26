@@ -15,6 +15,9 @@ interface MemberProfileEditProps {
 
 export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
   const [saving, setSaving] = useState(false);
+  const [avatarType, setAvatarType] = useState<'emoji' | 'photo'>(member.photoUrl ? 'photo' : 'emoji');
+  const [photoUrl, setPhotoUrl] = useState(member.photoUrl || '');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [formData, setFormData] = useState({
     name: member.name || '',
     role: member.role || '',
@@ -42,6 +45,42 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Пожалуйста, выберите изображение');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Размер файла не должен превышать 5 МБ');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('https://cdn.poehali.dev/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Ошибка загрузки');
+
+      const data = await response.json();
+      setPhotoUrl(data.url);
+      setAvatarType('photo');
+    } catch (error) {
+      alert('Ошибка загрузки фото. Попробуйте ещё раз.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -52,6 +91,8 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
         role: formData.role,
         age: formData.age ? parseInt(formData.age) : undefined,
         avatar: formData.avatar,
+        avatarType: avatarType,
+        photoUrl: avatarType === 'photo' ? photoUrl : undefined,
         foodPreferences: {
           favorites: formData.favorites.split(',').map(s => s.trim()).filter(Boolean),
           dislikes: formData.dislikes.split(',').map(s => s.trim()).filter(Boolean),
@@ -115,23 +156,98 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Аватар (выберите emoji)</Label>
-              <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-gray-50 max-h-32 overflow-y-auto">
-                {emojiOptions.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => handleChange('avatar', emoji)}
-                    className={`text-3xl hover:scale-110 transition-transform ${
-                      formData.avatar === emoji ? 'ring-2 ring-blue-500 rounded' : ''
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+            <div className="md:col-span-2 space-y-4">
+              <Label>Аватар</Label>
+              
+              <div className="flex gap-3 mb-4">
+                <Button
+                  type="button"
+                  variant={avatarType === 'emoji' ? 'default' : 'outline'}
+                  onClick={() => setAvatarType('emoji')}
+                  className="flex items-center gap-2"
+                >
+                  <Icon name="Smile" size={18} />
+                  Emoji
+                </Button>
+                <Button
+                  type="button"
+                  variant={avatarType === 'photo' ? 'default' : 'outline'}
+                  onClick={() => setAvatarType('photo')}
+                  className="flex items-center gap-2"
+                >
+                  <Icon name="Camera" size={18} />
+                  Фото
+                </Button>
               </div>
-              <p className="text-sm text-gray-500">Выбранный: {formData.avatar}</p>
+
+              {avatarType === 'emoji' ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-gray-50 max-h-40 overflow-y-auto">
+                    {emojiOptions.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => handleChange('avatar', emoji)}
+                        className={`text-3xl hover:scale-110 transition-transform ${
+                          formData.avatar === emoji ? 'ring-2 ring-purple-500 rounded' : ''
+                        }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500">Выбранный: {formData.avatar}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {photoUrl && (
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={photoUrl} 
+                        alt="Preview" 
+                        className="w-24 h-24 rounded-full object-cover border-4 border-purple-300"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPhotoUrl('')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Icon name="Trash2" size={16} className="mr-1" />
+                        Удалить
+                      </Button>
+                    </div>
+                  )}
+                  <div>
+                    <Label 
+                      htmlFor="photo-upload" 
+                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                    >
+                      {uploadingPhoto ? (
+                        <>
+                          <Icon name="Loader" size={18} className="animate-spin" />
+                          Загрузка...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Upload" size={18} />
+                          {photoUrl ? 'Заменить фото' : 'Загрузить фото'}
+                        </>
+                      )}
+                    </Label>
+                    <Input
+                      id="photo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      disabled={uploadingPhoto}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Максимальный размер: 5 МБ. Форматы: JPG, PNG, GIF</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
