@@ -66,13 +66,38 @@ export async function handler(event, context) {
     
     console.log('[UPLOAD] Binary data size:', bytes.length);
     
+    // Создаем multipart/form-data
+    const boundary = `----WebKitFormBoundary${Date.now()}`;
+    const filenameValue = filename || 'upload.jpg';
+    
+    const formDataParts = [
+      `------${boundary}`,
+      `Content-Disposition: form-data; name="file"; filename="${filenameValue}"`,
+      'Content-Type: application/octet-stream',
+      '',
+      ''
+    ];
+    
+    const header = formDataParts.join('\r\n');
+    const footer = `\r\n------${boundary}--\r\n`;
+    
+    const headerBytes = new TextEncoder().encode(header);
+    const footerBytes = new TextEncoder().encode(footer);
+    
+    const formData = new Uint8Array(headerBytes.length + bytes.length + footerBytes.length);
+    formData.set(headerBytes, 0);
+    formData.set(bytes, headerBytes.length);
+    formData.set(footerBytes, headerBytes.length + bytes.length);
+    
+    console.log('[UPLOAD] FormData size:', formData.length);
+    
     const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': bytes.length.toString()
+        'Content-Type': `multipart/form-data; boundary=----${boundary}`,
+        'Content-Length': formData.length.toString()
       },
-      body: bytes
+      body: formData
     });
 
     console.log('[UPLOAD] Upload response status:', uploadResponse.status);
