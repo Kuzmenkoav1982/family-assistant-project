@@ -1285,6 +1285,15 @@ export default function Index({ onLogout }: IndexProps) {
         >
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowTopPanelSettings(true)}
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 px-3 border border-gray-300"
+                title="Настройки верхней панели"
+              >
+                <Icon name="SlidersHorizontal" size={18} />
+              </Button>
               
               {topPanelSections.includes('voting') && (
                 <Button
@@ -1414,16 +1423,6 @@ export default function Index({ onLogout }: IndexProps) {
                   <span className="text-sm hidden md:inline">Стиль</span>
                 </Button>
               )}
-              
-              <Button
-                onClick={() => setShowTopPanelSettings(true)}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Настройки верхней панели"
-              >
-                <Icon name="SlidersHorizontal" size={18} />
-              </Button>
               
               <Button
                 onClick={toggleAutoHide}
