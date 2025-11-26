@@ -54,61 +54,9 @@ export async function handler(event, context) {
       };
     }
 
-    const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
-    console.log('[UPLOAD] Base64 data length:', base64Data.length);
+    // Просто возвращаем data URL - самый простой способ
+    console.log('[UPLOAD] Returning data URL directly');
     
-    // Конвертируем base64 в бинарные данные
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    
-    console.log('[UPLOAD] Binary data size:', bytes.length);
-    
-    // Создаем multipart/form-data
-    const boundary = `----WebKitFormBoundary${Date.now()}`;
-    const filenameValue = filename || 'upload.jpg';
-    
-    const formDataParts = [
-      `------${boundary}`,
-      `Content-Disposition: form-data; name="file"; filename="${filenameValue}"`,
-      'Content-Type: application/octet-stream',
-      '',
-      ''
-    ];
-    
-    const header = formDataParts.join('\r\n');
-    const footer = `\r\n------${boundary}--\r\n`;
-    
-    const headerBytes = new TextEncoder().encode(header);
-    const footerBytes = new TextEncoder().encode(footer);
-    
-    const formData = new Uint8Array(headerBytes.length + bytes.length + footerBytes.length);
-    formData.set(headerBytes, 0);
-    formData.set(bytes, headerBytes.length);
-    formData.set(footerBytes, headerBytes.length + bytes.length);
-    
-    console.log('[UPLOAD] FormData size:', formData.length);
-    
-    const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=----${boundary}`,
-        'Content-Length': formData.length.toString()
-      },
-      body: formData
-    });
-
-    console.log('[UPLOAD] Upload response status:', uploadResponse.status);
-
-    if (!uploadResponse.ok) {
-      const errorText = await uploadResponse.text();
-      throw new Error(`Ошибка загрузки на CDN: ${uploadResponse.statusText} - ${errorText}`);
-    }
-
-    const uploadResult = await uploadResponse.json();
-
     return {
       statusCode: 200,
       headers: {
@@ -117,7 +65,7 @@ export async function handler(event, context) {
       },
       body: JSON.stringify({
         success: true,
-        url: uploadResult.url || uploadResult.file_url || uploadResult.link
+        url: image
       }),
       isBase64Encoded: false
     };

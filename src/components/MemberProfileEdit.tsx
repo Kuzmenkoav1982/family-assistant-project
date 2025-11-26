@@ -217,26 +217,80 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {photoUrl && (
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={photoUrl} 
-                        alt="Preview" 
-                        className="w-24 h-24 rounded-full object-cover border-4 border-purple-300"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPhotoUrl('')}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Icon name="Trash2" size={16} className="mr-1" />
-                        Удалить
-                      </Button>
-                    </div>
-                  )}
-                  <div>
+                  <div className="flex flex-col items-center gap-4 p-6 border-2 border-dashed border-purple-300 rounded-lg bg-purple-50">
+                    {photoUrl ? (
+                      <>
+                        <img 
+                          src={photoUrl} 
+                          alt="Preview" 
+                          className="w-32 h-32 rounded-full object-cover border-4 border-purple-400 shadow-lg"
+                        />
+                        <div className="flex gap-2">
+                          <Label 
+                            htmlFor="photo-upload"
+                            className="cursor-pointer"
+                          >
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={uploadingPhoto}
+                              asChild
+                            >
+                              <span>
+                                <Icon name="Upload" size={16} className="mr-2" />
+                                Изменить
+                              </span>
+                            </Button>
+                          </Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPhotoUrl('')}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Icon name="Trash2" size={16} className="mr-1" />
+                            Удалить
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-32 h-32 rounded-full bg-purple-200 flex items-center justify-center">
+                          <Icon name="User" size={48} className="text-purple-400" />
+                        </div>
+                        <Label 
+                          htmlFor="photo-upload"
+                          className="cursor-pointer"
+                        >
+                          <Button
+                            type="button"
+                            size="lg"
+                            disabled={uploadingPhoto}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                            asChild
+                          >
+                            <span className="flex items-center gap-2">
+                              {uploadingPhoto ? (
+                                <>
+                                  <Icon name="Loader" className="animate-spin" size={20} />
+                                  Загрузка...
+                                </>
+                              ) : (
+                                <>
+                                  <Icon name="Plus" size={20} />
+                                  Добавить фото
+                                </>
+                              )}
+                            </span>
+                          </Button>
+                        </Label>
+                        <p className="text-xs text-gray-500">Макс. размер: 5 МБ</p>
+                      </>
+                    )}
+                  </div>
+                  <div className="hidden">
                     <Label 
                       htmlFor="photo-upload" 
                       className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
