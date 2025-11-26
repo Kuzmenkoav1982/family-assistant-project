@@ -148,6 +148,29 @@ export default function FamilyInviteManager() {
     alert('✅ Код скопирован в буфер обмена!');
   };
 
+  const copyInviteLink = (code: string) => {
+    const link = `${window.location.origin}/join?code=${code}`;
+    navigator.clipboard.writeText(link);
+    alert('✅ Ссылка скопирована в буфер обмена!');
+  };
+
+  const shareInviteLink = (code: string) => {
+    const link = `${window.location.origin}/join?code=${code}`;
+    const text = `Присоединяйся к нашей семье в приложении Семейный Органайзер!\n\nПерейди по ссылке:\n${link}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Приглашение в семью',
+        text: text,
+        url: link
+      }).catch(() => {
+        copyInviteLink(code);
+      });
+    } else {
+      copyInviteLink(code);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -355,10 +378,25 @@ export default function FamilyInviteManager() {
                       </span>
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => copyInviteCode(invite.invite_code)} className="bg-purple-600">
-                    <Icon name="Copy" size={14} className="mr-1" />
-                    Копировать
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => copyInviteCode(invite.invite_code)}
+                      title="Скопировать код"
+                    >
+                      <Icon name="Copy" size={14} />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => shareInviteLink(invite.invite_code)} 
+                      className="bg-purple-600"
+                      title="Поделиться ссылкой"
+                    >
+                      <Icon name="Share2" size={14} className="mr-1" />
+                      Ссылка
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

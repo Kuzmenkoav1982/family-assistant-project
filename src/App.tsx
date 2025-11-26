@@ -28,6 +28,7 @@ import Login from "./pages/Login";
 import OAuthDebug from "./pages/OAuthDebug";
 import Welcome from "./pages/Welcome";
 import VotingPage from "./pages/VotingPage";
+import JoinFamily from "./pages/JoinFamily";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => {
           <Routes>
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/join" element={<JoinFamily />} />
             <Route path="/oauth-debug" element={<OAuthDebug />} />
             <Route path="/" element={
               <ProtectedRoute>
