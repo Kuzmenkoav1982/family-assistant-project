@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useNavigate } from 'react-router-dom';
 
 interface SectionItem {
   id: string;
@@ -32,6 +33,7 @@ export default function LeftSidebar({
   onSectionChange,
   onLeftPanelSettingsToggle
 }: LeftSidebarProps) {
+  const navigate = useNavigate();
   const visibleSections = menuSections.filter(s => sections.includes(s.id));
 
   return (
@@ -64,7 +66,15 @@ export default function LeftSidebar({
           {visibleSections.map((section) => (
             <button
               key={section.id}
-              onClick={() => onSectionChange(section.id)}
+              onClick={() => {
+                if (section.id === 'shopping') {
+                  navigate('/shopping');
+                } else if (section.id === 'meals') {
+                  navigate('/meals');
+                } else {
+                  onSectionChange(section.id);
+                }
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                 activeSection === section.id
                   ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'

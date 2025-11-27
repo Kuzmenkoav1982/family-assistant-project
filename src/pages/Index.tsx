@@ -503,6 +503,8 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
     { id: 'blog', icon: 'BookOpen', label: 'Блог' },
+    { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
+    { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
     { id: 'tree', icon: 'GitBranch', label: 'Древо' },
     { id: 'faith', icon: 'Church', label: 'Вера' },
     { id: 'about', icon: 'Info', label: 'О проекте' },

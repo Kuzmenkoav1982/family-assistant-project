@@ -163,6 +163,26 @@ export default function TopBar({
           >
             <Icon name="Scale" size={16} />
           </Button>
+          
+          <Button
+            onClick={() => navigate('/shopping')}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            title="Список покупок"
+          >
+            <Icon name="ShoppingCart" size={16} />
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/meals')}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            title="Меню на неделю"
+          >
+            <Icon name="UtensilsCrossed" size={16} />
+          </Button>
         </div>
         
         <div className="flex items-center gap-1 language-selector theme-selector relative">

@@ -85,7 +85,15 @@ export default function BottomBar({
                   key={section.id}
                   variant={activeSection === section.id ? 'secondary' : 'ghost'}
                   size="sm"
-                  onClick={() => onSectionChange(section.id)}
+                  onClick={() => {
+                    if (section.id === 'shopping') {
+                      navigate('/shopping');
+                    } else if (section.id === 'meals') {
+                      navigate('/meals');
+                    } else {
+                      onSectionChange(section.id);
+                    }
+                  }}
                   className="text-white hover:bg-white/20 whitespace-nowrap"
                   title={section.label}
                 >

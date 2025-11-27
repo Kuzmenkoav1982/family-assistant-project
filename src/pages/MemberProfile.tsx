@@ -11,6 +11,7 @@ import { PiggyBankManager } from '@/components/PiggyBankManager';
 import { MemberProfileEdit } from '@/components/MemberProfileEdit';
 import { MemberCalendar } from '@/components/MemberCalendar';
 import { VotingWidget } from '@/components/VotingWidget';
+import { PermissionsManager } from '@/components/PermissionsManager';
 import type { Dream, FamilyMember } from '@/types/family.types';
 import { DEMO_FAMILY } from '@/data/demoFamily';
 
@@ -57,6 +58,7 @@ export default function MemberProfile() {
   }
 
   const isChild = member.age && member.age < 18;
+  const isOwner = member.role === 'Папа' || member.role.toLowerCase().includes('владел');
 
   const handleAddDream = async (dream: Omit<Dream, 'id' | 'createdAt'>) => {
     const newDream: Dream = {
@@ -148,7 +150,7 @@ export default function MemberProfile() {
         </Card>
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="User" size={16} />
               <span>Профиль</span>
@@ -165,6 +167,12 @@ export default function MemberProfile() {
               <Icon name="CheckSquare" size={16} />
               <span>Задачи</span>
             </TabsTrigger>
+            {isOwner && (
+              <TabsTrigger value="permissions" className="flex items-center justify-center gap-1 md:gap-2">
+                <Icon name="Shield" size={16} />
+                <span>Права</span>
+              </TabsTrigger>
+            )}
             {isChild && (
               <>
                 <TabsTrigger value="dreams" className="flex items-center justify-center gap-1 md:gap-2">
@@ -320,6 +328,12 @@ export default function MemberProfile() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {isOwner && (
+            <TabsContent value="permissions">
+              <PermissionsManager member={member} />
+            </TabsContent>
+          )}
 
           {isChild && (
             <>

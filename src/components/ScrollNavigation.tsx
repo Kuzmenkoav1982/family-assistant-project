@@ -40,7 +40,8 @@ const navigationGroups: NavigationGroup[] = [
       { id: 'goals', label: 'Цели', icon: 'Target' },
       { id: 'tasks', label: 'Задачи', icon: 'CheckSquare' },
       { id: 'calendar', label: 'Календарь', icon: 'Calendar' },
-      { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart' },
+      { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', route: '/shopping' },
+      { id: 'meals', label: 'Меню', icon: 'UtensilsCrossed', route: '/meals' },
     ],
   },
   {
