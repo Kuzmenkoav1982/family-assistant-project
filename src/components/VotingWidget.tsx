@@ -9,12 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useVotings } from '@/hooks/useVotings';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { getCurrentMember } from '@/data/demoFamily';
 
 export function VotingWidget() {
-  const { votings, loading, createVoting, castVote } = useVotings('active');
+  const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
+  const { members } = useFamilyMembers();
+  const currentUser = getCurrentMember();
+  
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedVoting, setSelectedVoting] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -78,6 +84,32 @@ export function VotingWidget() {
     if (!result.success) {
       alert('❌ Ошибка голосования: ' + result.error);
     }
+  };
+
+  const handleDelete = async (votingId: string) => {
+    if (!confirm('Вы уверены, что хотите удалить это голосование?')) {
+      return;
+    }
+
+    setDeletingId(votingId);
+    const result = await deleteVoting(votingId);
+    
+    if (result.success) {
+      alert('✅ Голосование удалено');
+    } else {
+      alert('❌ Ошибка удаления: ' + result.error);
+    }
+    
+    setDeletingId(null);
+  };
+
+  const canDeleteVoting = (voting: any) => {
+    if (!currentUser) return false;
+    
+    const isOwner = currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
+    const isAuthor = voting.created_by === currentUser.id;
+    
+    return isOwner || isAuthor;
   };
 
   const getVotingIcon = (type: string) => {
@@ -289,7 +321,7 @@ export function VotingWidget() {
                     <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(voting.voting_type)} flex items-center justify-center flex-shrink-0`}>
                       <Icon name={getVotingIcon(voting.voting_type)} size={20} className="text-white" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0" onClick={(e) => { e.stopPropagation(); setSelectedVoting(voting.id); }}>
                       <h4 className="font-semibold text-sm mb-1 truncate">{voting.title}</h4>
                       <div className="flex flex-wrap gap-2 text-xs text-gray-600">
                         <span className="flex items-center gap-1">
@@ -301,7 +333,28 @@ export function VotingWidget() {
                         </Badge>
                       </div>
                     </div>
-                    <Icon name="ChevronRight" size={20} className="text-gray-400" />
+                    <div className="flex items-center gap-2">
+                      {canDeleteVoting(voting) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(voting.id);
+                          }}
+                          disabled={deletingId === voting.id}
+                          title="Удалить голосование"
+                        >
+                          {deletingId === voting.id ? (
+                            <Icon name="Loader" size={14} className="animate-spin" />
+                          ) : (
+                            <Icon name="Trash2" size={14} />
+                          )}
+                        </Button>
+                      )}
+                      <Icon name="ChevronRight" size={20} className="text-gray-400" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -315,12 +368,33 @@ export function VotingWidget() {
           {selectedVotingData && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(selectedVotingData.voting_type)} flex items-center justify-center`}>
-                    <Icon name={getVotingIcon(selectedVotingData.voting_type)} size={20} className="text-white" />
-                  </div>
-                  {selectedVotingData.title}
-                </DialogTitle>
+                <div className="flex items-start justify-between gap-3">
+                  <DialogTitle className="flex items-center gap-2">
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(selectedVotingData.voting_type)} flex items-center justify-center`}>
+                      <Icon name={getVotingIcon(selectedVotingData.voting_type)} size={20} className="text-white" />
+                    </div>
+                    {selectedVotingData.title}
+                  </DialogTitle>
+                  {canDeleteVoting(selectedVotingData) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={async () => {
+                        await handleDelete(selectedVotingData.id);
+                        setSelectedVoting(null);
+                      }}
+                      disabled={deletingId === selectedVotingData.id}
+                    >
+                      {deletingId === selectedVotingData.id ? (
+                        <Icon name="Loader" size={16} className="animate-spin mr-2" />
+                      ) : (
+                        <Icon name="Trash2" size={16} className="mr-2" />
+                      )}
+                      Удалить
+                    </Button>
+                  )}
+                </div>
               </DialogHeader>
               
               {selectedVotingData.description && (

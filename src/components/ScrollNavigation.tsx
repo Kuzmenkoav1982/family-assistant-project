@@ -27,8 +27,6 @@ const navigationGroups: NavigationGroup[] = [
     color: 'blue',
     items: [
       { id: 'family', label: 'Семья', icon: 'Users' },
-      { id: 'cohesion', label: 'Сплочённость', icon: 'TrendingUp' },
-      { id: 'children', label: 'Дети', icon: 'Baby' },
       { id: 'values', label: 'Ценности', icon: 'Heart' },
       { id: 'traditions', label: 'Традиции', icon: 'Sparkles' },
       { id: 'code', label: 'Семейный кодекс', icon: 'Scale', variant: 'code', route: '/family-code' },
@@ -47,15 +45,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     color: 'purple',
     items: [
-      { id: 'chat', label: 'Чат', icon: 'MessageCircle' },
-      { id: 'blog', label: 'Блог', icon: 'BookOpen' },
       { id: 'community', label: 'Сообщество', icon: 'Users', variant: 'community', route: '/community' },
-    ],
-  },
-  {
-    color: 'orange',
-    items: [
-      { id: 'album', label: 'Альбом', icon: 'Image' },
     ],
   },
   {

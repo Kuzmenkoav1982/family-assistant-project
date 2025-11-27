@@ -135,6 +135,33 @@ export function useVotings(status?: 'active' | 'completed') {
     }
   };
 
+  const deleteVoting = async (votingId: string) => {
+    try {
+      const response = await fetch(VOTINGS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': getAuthToken()
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          voting_id: votingId
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        await fetchVotings(true);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      return { success: false, error: 'Ошибка удаления голосования' };
+    }
+  };
+
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
@@ -156,6 +183,7 @@ export function useVotings(status?: 'active' | 'completed') {
     error,
     fetchVotings,
     createVoting,
-    castVote
+    castVote,
+    deleteVoting
   };
 }

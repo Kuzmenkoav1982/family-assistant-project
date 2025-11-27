@@ -498,16 +498,10 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
     { id: 'goals', icon: 'Target', label: 'Цели' },
-    { id: 'children', icon: 'Baby', label: 'Дети' },
-    { id: 'rules-section', icon: 'Scale', label: 'Правила', ready: false },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
-    { id: 'blog', icon: 'BookOpen', label: 'Блог' },
     { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
     { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
-    { id: 'tree', icon: 'GitBranch', label: 'Древо' },
-    { id: 'faith', icon: 'Church', label: 'Вера' },
-    { id: 'about', icon: 'Info', label: 'О проекте' },
   ];
 
   const availableTopPanelSections = [
@@ -528,7 +522,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [bottomBarSections, setBottomBarSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('bottomBarSections');
-    return saved ? JSON.parse(saved) : ['chat', 'calendar', 'tasks'];
+    return saved ? JSON.parse(saved) : ['calendar', 'tasks', 'shopping'];
   });
 
   const [leftPanelSections, setLeftPanelSections] = useState<string[]>(() => {
