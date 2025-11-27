@@ -17,6 +17,19 @@ export function VotingWidget() {
   const { members } = useFamilyMembers();
   const currentUser = getCurrentMember();
   
+  const getCurrentUserId = () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (authToken) {
+        const payload = JSON.parse(atob(authToken.split('.')[1]));
+        return payload.user_id || payload.sub || payload.id;
+      }
+    } catch (e) {
+      console.error('Error parsing auth token:', e);
+    }
+    return currentUser?.id || null;
+  };
+  
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedVoting, setSelectedVoting] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -110,8 +123,11 @@ export function VotingWidget() {
   const canDeleteVoting = (voting: any) => {
     if (!currentUser) return false;
     
-    const isOwner = currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
-    const isAuthor = voting.created_by === currentUser.id;
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return false;
+    
+    const isOwner = currentUser.role === 'owner' || currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
+    const isAuthor = voting.created_by === currentUserId;
     
     return isOwner || isAuthor;
   };
@@ -451,11 +467,17 @@ export function VotingWidget() {
                         return;
                       }
                       
-                      const isOwner = currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
-                      const isAuthor = voting.created_by === currentUser.id;
+                      const currentUserId = getCurrentUserId();
+                      if (!currentUserId) {
+                        alert('❌ Не удалось определить ID пользователя');
+                        return;
+                      }
+                      
+                      const isOwner = currentUser.role === 'owner' || currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
+                      const isAuthor = voting.created_by === currentUserId;
                       
                       if (!isOwner && !isAuthor) {
-                        alert(`❌ У вас нет прав на удаление.\n\nВаша роль: ${currentUser.role}\nВаш ID: ${currentUser.id}\nАвтор голосования: ${voting.created_by}\n\nУдалять могут только Владелец семьи и автор вопроса.`);
+                        alert(`❌ У вас нет прав на удаление.\n\nВаша роль: ${currentUser.role}\nВаш ID: ${currentUserId}\nАвтор голосования: ${voting.created_by}\n\nУдалять могут только Владелец семьи и автор вопроса.`);
                         return;
                       }
                       
