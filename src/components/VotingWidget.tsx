@@ -122,12 +122,9 @@ export function VotingWidget() {
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
       setLongPressActive(null);
-      const voting = votings.find(v => v.id === votingId);
-      if (voting && canDeleteVoting(voting)) {
-        setContextMenuVoting(votingId);
-        if (navigator.vibrate) {
-          navigator.vibrate(50);
-        }
+      setContextMenuVoting(votingId);
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
       }
     }, 500);
   };
@@ -447,29 +444,40 @@ export function VotingWidget() {
                     Открыть голосование
                   </Button>
                   
-                  {canDeleteVoting(voting) && (
-                    <Button
-                      onClick={async () => {
-                        setContextMenuVoting(null);
-                        await handleDelete(voting.id);
-                      }}
-                      disabled={deletingId === voting.id}
-                      className="w-full justify-start bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
-                      variant="outline"
-                    >
-                      {deletingId === voting.id ? (
-                        <>
-                          <Icon name="Loader" size={18} className="mr-2 animate-spin" />
-                          Удаление...
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="Trash2" size={18} className="mr-2" />
-                          Удалить голосование
-                        </>
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    onClick={async () => {
+                      if (!currentUser) {
+                        alert('❌ Пользователь не определён');
+                        return;
+                      }
+                      
+                      const isOwner = currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
+                      const isAuthor = voting.created_by === currentUser.id;
+                      
+                      if (!isOwner && !isAuthor) {
+                        alert(`❌ У вас нет прав на удаление.\n\nВаша роль: ${currentUser.role}\nВаш ID: ${currentUser.id}\nАвтор голосования: ${voting.created_by}\n\nУдалять могут только Владелец семьи и автор вопроса.`);
+                        return;
+                      }
+                      
+                      setContextMenuVoting(null);
+                      await handleDelete(voting.id);
+                    }}
+                    disabled={deletingId === voting.id}
+                    className="w-full justify-start bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
+                    variant="outline"
+                  >
+                    {deletingId === voting.id ? (
+                      <>
+                        <Icon name="Loader" size={18} className="mr-2 animate-spin" />
+                        Удаление...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Trash2" size={18} className="mr-2" />
+                        Удалить голосование
+                      </>
+                    )}
+                  </Button>
                   
                   <Button
                     onClick={() => setContextMenuVoting(null)}
