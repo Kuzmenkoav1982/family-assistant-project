@@ -22,12 +22,16 @@ export function VotingWidget() {
       const authToken = localStorage.getItem('authToken');
       if (authToken) {
         const payload = JSON.parse(atob(authToken.split('.')[1]));
-        return payload.user_id || payload.sub || payload.id;
+        console.log('[DEBUG getCurrentUserId] Token payload:', payload);
+        const userId = payload.user_id || payload.sub || payload.id;
+        console.log('[DEBUG getCurrentUserId] Extracted user ID:', userId);
+        return userId;
       }
     } catch (e) {
-      console.error('Error parsing auth token:', e);
+      console.error('[ERROR getCurrentUserId] Error parsing auth token:', e);
     }
-    return currentUser?.id || null;
+    console.log('[DEBUG getCurrentUserId] No token found, returning null');
+    return null;
   };
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
