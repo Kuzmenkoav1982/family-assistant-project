@@ -180,6 +180,19 @@ export default function Meals() {
           </div>
         </div>
 
+        {mealPlans.length > 0 && (
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex gap-3 items-center">
+                <Icon name="Info" size={20} className="text-blue-600 flex-shrink-0" />
+                <div className="text-sm text-blue-900">
+                  <p><strong>Как пользоваться:</strong> Нажмите кнопку "Добавить блюдо" справа вверху, выберите день недели, приём пищи и введите название блюда.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -189,8 +202,20 @@ export default function Meals() {
               </CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => setEditingMeal(null)}>
-                    <Icon name="Plus" size={18} className="mr-2" />
+                  <Button 
+                    className="bg-orange-600 hover:bg-orange-700 w-full md:w-auto text-lg py-6 md:py-2" 
+                    onClick={() => {
+                      setEditingMeal(null);
+                      setNewMeal({
+                        day: 'monday',
+                        mealType: 'breakfast',
+                        dishName: '',
+                        description: '',
+                        emoji: '🍳'
+                      });
+                    }}
+                  >
+                    <Icon name="Plus" size={20} className="mr-2" />
                     Добавить блюдо
                   </Button>
                 </DialogTrigger>
@@ -269,6 +294,23 @@ export default function Meals() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {mealPlans.length === 0 && (
+              <Card className="bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300">
+                <CardContent className="p-6 text-center">
+                  <Icon name="UtensilsCrossed" size={64} className="mx-auto mb-4 text-orange-600" />
+                  <h3 className="text-2xl font-bold mb-2 text-orange-900">Меню пока пусто</h3>
+                  <p className="text-orange-700 mb-6">Начните планировать питание вашей семьи!</p>
+                  <Button 
+                    onClick={() => setIsDialogOpen(true)}
+                    className="bg-orange-600 hover:bg-orange-700 text-lg py-6 px-8"
+                  >
+                    <Icon name="Plus" size={24} className="mr-2" />
+                    Добавить первое блюдо
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
