@@ -186,7 +186,7 @@ export default function Meals() {
               <div className="flex gap-3 items-center">
                 <Icon name="Info" size={20} className="text-blue-600 flex-shrink-0" />
                 <div className="text-sm text-blue-900">
-                  <p><strong>Как пользоваться:</strong> Нажмите кнопку "Добавить блюдо" справа вверху, выберите день недели, приём пищи и введите название блюда.</p>
+                  <p><strong>Как пользоваться:</strong> Нажмите оранжевую кнопку "Добавить блюдо" справа вверху, или используйте кнопку "+ Добавить" внутри нужного приёма пищи для быстрого добавления.</p>
                 </div>
               </div>
             </CardContent>
@@ -422,13 +422,8 @@ export default function Meals() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          {meals.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              Не запланировано
-                            </p>
-                          ) : (
-                            <div className="space-y-3">
-                              {meals.map(meal => (
+                          <div className="space-y-3">
+                            {meals.map(meal => (
                                 <div
                                   key={meal.id}
                                   className="p-3 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-200"
@@ -466,8 +461,26 @@ export default function Meals() {
                                   </div>
                                 </div>
                               ))}
-                            </div>
-                          )}
+                            
+                            <Button
+                              onClick={() => {
+                                setEditingMeal(null);
+                                setNewMeal({
+                                  day: selectedDay,
+                                  mealType: type.value as MealPlan['mealType'],
+                                  dishName: '',
+                                  description: '',
+                                  emoji: type.emoji
+                                });
+                                setIsDialogOpen(true);
+                              }}
+                              variant="outline"
+                              className="w-full mt-2 border-dashed border-2 hover:bg-orange-50 hover:border-orange-300"
+                            >
+                              <Icon name="Plus" size={16} className="mr-2" />
+                              Добавить {type.label.split(' ')[1].toLowerCase()}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     );
