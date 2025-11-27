@@ -7,6 +7,53 @@ export default function Footer() {
   return (
     <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-8 mt-12">
       <div className="max-w-7xl mx-auto px-4">
+        {/* О проекте */}
+        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-6 mb-8 border border-purple-700/50">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <Icon name="Info" size={32} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold mb-3 flex items-center gap-2">
+                О проекте "Наша семья"
+              </h3>
+              <div className="space-y-3 text-gray-300">
+                <p className="text-base leading-relaxed">
+                  <strong className="text-white">Миссия:</strong> Сохранение семейных ценностей и укрепление семейных связей в современном мире.
+                </p>
+                <p className="text-base leading-relaxed">
+                  <strong className="text-white">Цель:</strong> Создать единое пространство для организации семейной жизни, где каждый член семьи может внести свой вклад, 
+                  делиться воспоминаниями и вместе планировать будущее.
+                </p>
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="Target" size={18} className="text-purple-400" />
+                      <h4 className="font-semibold text-white">Что мы делаем</h4>
+                    </div>
+                    <ul className="text-sm space-y-1">
+                      <li>• Помогаем организовать семейный быт</li>
+                      <li>• Сохраняем традиции и воспоминания</li>
+                      <li>• Укрепляем связь между поколениями</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="Users" size={18} className="text-blue-400" />
+                      <h4 className="font-semibold text-white">Для кого</h4>
+                    </div>
+                    <ul className="text-sm space-y-1">
+                      <li>• Семьи с детьми любого возраста</li>
+                      <li>• Многопоколенные семьи</li>
+                      <li>• Все, кто ценит семейные отношения</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
