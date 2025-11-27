@@ -47,6 +47,7 @@ export default function Meals() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string>('monday');
   const [editingMeal, setEditingMeal] = useState<MealPlan | null>(null);
+  const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
 
   const [newMeal, setNewMeal] = useState({
     day: 'monday',
@@ -131,15 +132,34 @@ export default function Meals() {
   };
 
   const getMealsForDay = (day: string) => {
-    return mealPlans.filter(m => m.day === day);
+    const filtered = mealPlans.filter(m => m.day === day);
+    if (selectedAuthor === 'all') return filtered;
+    return filtered.filter(m => m.addedBy === selectedAuthor);
   };
 
   const getMealsByType = (day: string, type: MealPlan['mealType']) => {
-    return mealPlans.filter(m => m.day === day && m.mealType === type);
+    const filtered = mealPlans.filter(m => m.day === day && m.mealType === type);
+    if (selectedAuthor === 'all') return filtered;
+    return filtered.filter(m => m.addedBy === selectedAuthor);
+  };
+
+  const getUniqueAuthors = () => {
+    const authors = new Map<string, { id: string; name: string }>();
+    mealPlans.forEach(meal => {
+      if (!authors.has(meal.addedBy)) {
+        authors.set(meal.addedBy, { id: meal.addedBy, name: meal.addedByName });
+      }
+    });
+    return Array.from(authors.values());
   };
 
   const selectedDayLabel = DAYS_OF_WEEK.find(d => d.value === selectedDay)?.label || 'День';
   const mealsForSelectedDay = getMealsForDay(selectedDay);
+  
+  const getFilteredMealsCount = () => {
+    if (selectedAuthor === 'all') return mealPlans.length;
+    return mealPlans.filter(m => m.addedBy === selectedAuthor).length;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8">
@@ -149,10 +169,15 @@ export default function Meals() {
             <Icon name="ArrowLeft" className="mr-2" size={16} />
             Назад
           </Button>
-          <Badge variant="outline" className="bg-white">
-            <Icon name="UtensilsCrossed" size={14} className="mr-1" />
-            Блюд на неделю: {mealPlans.length}
-          </Badge>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="bg-white">
+              <Icon name="UtensilsCrossed" size={14} className="mr-1" />
+              {selectedAuthor === 'all' 
+                ? `Блюд на неделю: ${mealPlans.length}`
+                : `Блюд автора: ${getFilteredMealsCount()}`
+              }
+            </Badge>
+          </div>
         </div>
 
         <Card>
@@ -244,38 +269,92 @@ export default function Meals() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-wrap gap-2">
-              {DAYS_OF_WEEK.map(day => {
-                const mealsCount = getMealsForDay(day.value).length;
-                return (
-                  <Button
-                    key={day.value}
-                    onClick={() => setSelectedDay(day.value)}
-                    variant={selectedDay === day.value ? 'default' : 'outline'}
-                    size="sm"
-                    className="relative"
-                  >
-                    {day.label}
-                    {mealsCount > 0 && (
-                      <Badge className="ml-2 bg-orange-500 text-white text-xs px-1.5 py-0">
-                        {mealsCount}
-                      </Badge>
-                    )}
-                  </Button>
-                );
-              })}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block text-gray-700">Фильтр по автору</label>
+                  <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <Icon name="Users" size={16} />
+                          Все члены семьи
+                        </div>
+                      </SelectItem>
+                      {getUniqueAuthors().map(author => (
+                        <SelectItem key={author.id} value={author.id}>
+                          <div className="flex items-center gap-2">
+                            <Icon name="User" size={16} />
+                            {author.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedAuthor !== 'all' && (
+                  <div className="flex items-end">
+                    <Button
+                      onClick={() => setSelectedAuthor('all')}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Icon name="X" size={16} className="mr-2" />
+                      Сбросить фильтр
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {DAYS_OF_WEEK.map(day => {
+                  const mealsCount = getMealsForDay(day.value).length;
+                  return (
+                    <Button
+                      key={day.value}
+                      onClick={() => setSelectedDay(day.value)}
+                      variant={selectedDay === day.value ? 'default' : 'outline'}
+                      size="sm"
+                      className="relative"
+                    >
+                      {day.label}
+                      {mealsCount > 0 && (
+                        <Badge className="ml-2 bg-orange-500 text-white text-xs px-1.5 py-0">
+                          {mealsCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Icon name="Calendar" size={20} />
                 {selectedDayLabel}
+                {selectedAuthor !== 'all' && (
+                  <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700">
+                    <Icon name="Filter" size={14} className="mr-1" />
+                    {getUniqueAuthors().find(a => a.id === selectedAuthor)?.name}
+                  </Badge>
+                )}
               </h3>
 
               {mealsForSelectedDay.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground bg-white rounded-lg border-2 border-dashed">
                   <Icon name="UtensilsCrossed" size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>На {selectedDayLabel.toLowerCase()} блюда не запланированы</p>
+                  {selectedAuthor !== 'all' ? (
+                    <>
+                      <p>У {getUniqueAuthors().find(a => a.id === selectedAuthor)?.name} нет блюд</p>
+                      <p className="text-sm">на {selectedDayLabel.toLowerCase()}</p>
+                    </>
+                  ) : (
+                    <p>На {selectedDayLabel.toLowerCase()} блюда не запланированы</p>
+                  )}
                   <Button
                     onClick={() => {
                       setNewMeal({ ...newMeal, day: selectedDay });
@@ -381,6 +460,10 @@ export default function Meals() {
               <li className="flex items-start gap-2">
                 <Icon name="Check" size={16} className="mt-0.5 text-green-600 flex-shrink-0" />
                 <span>Готовьте полезные и разнообразные блюда для сбалансированного питания</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Icon name="Filter" size={16} className="mt-0.5 text-blue-600 flex-shrink-0" />
+                <span>Фильтруйте блюда по автору, чтобы увидеть вклад каждого члена семьи</span>
               </li>
             </ul>
           </CardContent>
