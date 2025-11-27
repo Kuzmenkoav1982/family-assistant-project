@@ -55,12 +55,12 @@ const navigationGroups: NavigationGroup[] = [
     color: 'orange',
     items: [
       { id: 'album', label: 'Альбом', icon: 'Image' },
-      { id: 'tree', label: 'Древо', icon: 'GitBranch' },
     ],
   },
   {
     color: 'yellow',
     items: [
+      { id: 'tree', label: 'Древо', icon: 'GitBranch', variant: 'dev', route: '/tree' },
       { id: 'garage', label: 'Гараж', icon: 'Car', variant: 'dev', route: '/garage' },
       { id: 'health', label: 'Здоровье', icon: 'Heart', variant: 'dev', route: '/health' },
       { id: 'finance', label: 'Финансы', icon: 'Wallet', variant: 'dev', route: '/finance' },

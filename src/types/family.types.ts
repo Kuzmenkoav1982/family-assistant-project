@@ -91,7 +91,8 @@ export interface FamilyValue {
   title: string;
   description: string;
   icon: string;
-  tradition: string;
+  tradition?: string;
+  practices?: string[];
 }
 
 export interface BlogPost {

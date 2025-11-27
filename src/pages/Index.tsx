@@ -105,7 +105,17 @@ export default function Index({ onLogout }: IndexProps) {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
   const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
-  const [familyValues] = useState<FamilyValue[]>(initialFamilyValues);
+  const [familyValues, setFamilyValues] = useState<FamilyValue[]>(() => {
+    const saved = localStorage.getItem('familyValues');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialFamilyValues;
+      }
+    }
+    return initialFamilyValues;
+  });
   const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
   const [traditions, setTraditions] = useState<Tradition[]>(() => {
     const saved = localStorage.getItem('traditions');
@@ -1478,14 +1488,14 @@ export default function Index({ onLogout }: IndexProps) {
               )}
               
               {showThemeSelector && (
-                <Card className="theme-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] border-2 border-indigo-300 shadow-2xl animate-fade-in">
-                  <CardHeader>
+                <Card className="theme-selector absolute right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2rem)] max-h-[70vh] border-2 border-indigo-300 shadow-2xl animate-fade-in overflow-hidden flex flex-col">
+                  <CardHeader className="flex-shrink-0">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Icon name="Palette" size={20} />
                       {t('selectStyle')}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-3 overflow-y-auto flex-1">
                     {(Object.keys(themes) as ThemeType[]).map((themeKey) => {
                       const theme = themes[themeKey];
                       return (
@@ -2750,9 +2760,185 @@ export default function Index({ onLogout }: IndexProps) {
                     </div>
                   </CardContent>
                 </Card>
+                
+                <div className="mb-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full" size="lg">
+                        <Icon name="Plus" className="mr-2" size={18} />
+                        Добавить ценность
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Добавить семейную ценность</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Иконка (эмодзи)</label>
+                          <Input 
+                            id="value-icon-add"
+                            placeholder="❤️"
+                            maxLength={2}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Название</label>
+                          <Input 
+                            id="value-title-add"
+                            placeholder="Честность"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Описание</label>
+                          <Input 
+                            id="value-description-add"
+                            placeholder="Почему это важно для нашей семьи?"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Практики (через Enter)</label>
+                          <textarea
+                            id="value-practices-add"
+                            placeholder="Семейный совет каждое воскресенье&#10;Откровенные разговоры без осуждения"
+                            className="w-full min-h-[100px] px-3 py-2 border rounded-md"
+                          />
+                        </div>
+                        <Button 
+                          className="w-full"
+                          onClick={() => {
+                            const icon = (document.getElementById('value-icon-add') as HTMLInputElement)?.value || '❤️';
+                            const title = (document.getElementById('value-title-add') as HTMLInputElement)?.value;
+                            const description = (document.getElementById('value-description-add') as HTMLInputElement)?.value;
+                            const practicesText = (document.getElementById('value-practices-add') as HTMLTextAreaElement)?.value;
+                            
+                            if (!title || !description) {
+                              alert('Заполните название и описание');
+                              return;
+                            }
+                            
+                            const practices = practicesText.split('\n').filter(p => p.trim());
+                            
+                            const newValue: FamilyValue = {
+                              id: Date.now().toString(),
+                              icon,
+                              title,
+                              description,
+                              practices
+                            };
+                            
+                            const updated = [...familyValues, newValue];
+                            setFamilyValues(updated);
+                            localStorage.setItem('familyValues', JSON.stringify(updated));
+                            
+                            (document.getElementById('value-icon-add') as HTMLInputElement).value = '';
+                            (document.getElementById('value-title-add') as HTMLInputElement).value = '';
+                            (document.getElementById('value-description-add') as HTMLInputElement).value = '';
+                            (document.getElementById('value-practices-add') as HTMLTextAreaElement).value = '';
+                            
+                            document.querySelector('[data-state="open"]')?.closest('[role="dialog"]')?.querySelector('button[aria-label="Close"]')?.dispatchEvent(new Event('click', { bubbles: true }));
+                          }}
+                        >
+                          Добавить
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
                 <div className="grid gap-4">
                   {familyValues.length > 0 ? familyValues.map((value, idx) => (
-                    <Card key={value.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                    <Card key={value.id} className="animate-fade-in relative group" style={{ animationDelay: `${idx * 0.1}s` }}>
+                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                              <Icon name="Edit" size={16} />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Редактировать ценность</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Иконка</label>
+                                <Input 
+                                  id={`value-icon-${value.id}`}
+                                  defaultValue={value.icon}
+                                  maxLength={2}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Название</label>
+                                <Input 
+                                  id={`value-title-${value.id}`}
+                                  defaultValue={value.title}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Описание</label>
+                                <Input 
+                                  id={`value-description-${value.id}`}
+                                  defaultValue={value.description}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Практики (через Enter)</label>
+                                <textarea
+                                  id={`value-practices-${value.id}`}
+                                  defaultValue={value.practices?.join('\n') || ''}
+                                  className="w-full min-h-[100px] px-3 py-2 border rounded-md"
+                                />
+                              </div>
+                              <Button 
+                                className="w-full"
+                                onClick={() => {
+                                  const icon = (document.getElementById(`value-icon-${value.id}`) as HTMLInputElement)?.value || value.icon;
+                                  const title = (document.getElementById(`value-title-${value.id}`) as HTMLInputElement)?.value;
+                                  const description = (document.getElementById(`value-description-${value.id}`) as HTMLInputElement)?.value;
+                                  const practicesText = (document.getElementById(`value-practices-${value.id}`) as HTMLTextAreaElement)?.value;
+                                  
+                                  if (!title || !description) {
+                                    alert('Заполните название и описание');
+                                    return;
+                                  }
+                                  
+                                  const practices = practicesText.split('\n').filter(p => p.trim());
+                                  
+                                  const updated = familyValues.map(v => 
+                                    v.id === value.id 
+                                      ? { ...v, icon, title, description, practices } 
+                                      : v
+                                  );
+                                  setFamilyValues(updated);
+                                  localStorage.setItem('familyValues', JSON.stringify(updated));
+                                  
+                                  document.querySelector('[data-state="open"]')?.closest('[role="dialog"]')?.querySelector('button[aria-label="Close"]')?.dispatchEvent(new Event('click', { bubbles: true }));
+                                }}
+                              >
+                                Сохранить
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            if (confirm(`Удалить ценность "${value.title}"?`)) {
+                              const updated = familyValues.filter(v => v.id !== value.id);
+                              setFamilyValues(updated);
+                              localStorage.setItem('familyValues', JSON.stringify(updated));
+                            }
+                          }}
+                        >
+                          <Icon name="Trash2" size={16} />
+                        </Button>
+                      </div>
+                      
                       <CardHeader>
                         <CardTitle>
                           <div className="flex items-center gap-2">
@@ -2768,7 +2954,7 @@ export default function Index({ onLogout }: IndexProps) {
                           {value.practices && value.practices.length > 0 ? (
                             value.practices.map((practice, i) => (
                               <div key={`${value.id}-practice-${i}`} className="flex items-start gap-2 text-sm">
-                                <Icon name="ArrowRight" size={14} className="text-purple-500 mt-0.5" />
+                                <Icon name="ArrowRight" size={14} className="text-amber-500 mt-0.5" />
                                 <span>{practice}</span>
                               </div>
                             ))

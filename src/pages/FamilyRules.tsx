@@ -32,7 +32,17 @@ const familyMembers = [
 
 export default function FamilyRules() {
   const navigate = useNavigate();
-  const [rules, setRules] = useState<FamilyRule[]>(mockRules);
+  const [rules, setRules] = useState<FamilyRule[]>(() => {
+    const saved = localStorage.getItem('familyRules');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return mockRules;
+      }
+    }
+    return mockRules;
+  });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newRuleTitle, setNewRuleTitle] = useState('');
   const [newRuleDescription, setNewRuleDescription] = useState('');
@@ -59,7 +69,9 @@ export default function FamilyRules() {
       category: newRuleCategory
     };
 
-    setRules([newRule, ...rules]);
+    const updatedRules = [newRule, ...rules];
+    setRules(updatedRules);
+    localStorage.setItem('familyRules', JSON.stringify(updatedRules));
     setNewRuleTitle('');
     setNewRuleDescription('');
     setNewRuleCategory('Общие');
@@ -67,7 +79,7 @@ export default function FamilyRules() {
   };
 
   const handleVote = (ruleId: string, vote: 'for' | 'against') => {
-    setRules(rules.map(rule => {
+    const updatedRules = rules.map(rule => {
       if (rule.id !== ruleId || !rule.votes) return rule;
       
       const alreadyVoted = rule.votes.for.includes(currentUser) || rule.votes.against.includes(currentUser);
@@ -88,12 +100,16 @@ export default function FamilyRules() {
           ? (approvedVotes >= updatedVotes.required ? 'approved' : 'rejected')
           : 'voting'
       };
-    }));
+    });
+    setRules(updatedRules);
+    localStorage.setItem('familyRules', JSON.stringify(updatedRules));
   };
 
   const handleDeleteRule = (ruleId: string) => {
     if (window.confirm('Удалить это правило?')) {
-      setRules(rules.filter(r => r.id !== ruleId));
+      const updatedRules = rules.filter(r => r.id !== ruleId);
+      setRules(updatedRules);
+      localStorage.setItem('familyRules', JSON.stringify(updatedRules));
     }
   };
 

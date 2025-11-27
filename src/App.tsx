@@ -14,6 +14,7 @@ import Education from "./pages/Education";
 import Travel from "./pages/Travel";
 import Pets from "./pages/Pets";
 import Faith from "./pages/Faith";
+import Tree from "./pages/Tree";
 import NotFound from "./pages/NotFound";
 import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
@@ -89,6 +90,7 @@ const App = () => {
             <Route path="/travel" element={<Travel />} />
             <Route path="/pets" element={<Pets />} />
             <Route path="/faith" element={<Faith />} />
+            <Route path="/tree" element={<Tree />} />
             <Route path="/community" element={<Community />} />
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />
