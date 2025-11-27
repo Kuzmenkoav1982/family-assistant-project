@@ -17,6 +17,7 @@ import Faith from "./pages/Faith";
 import Tree from "./pages/Tree";
 import Shopping from "./pages/Shopping";
 import Meals from "./pages/Meals";
+import PermissionsManagement from "./pages/PermissionsManagement";
 import NotFound from "./pages/NotFound";
 import Community from "./pages/Community";
 import MemberProfile from "./pages/MemberProfile";
@@ -95,6 +96,7 @@ const App = () => {
             <Route path="/tree" element={<Tree />} />
             <Route path="/shopping" element={<Shopping />} />
             <Route path="/meals" element={<Meals />} />
+            <Route path="/permissions" element={<PermissionsManagement />} />
             <Route path="/community" element={<Community />} />
             <Route path="/member/:memberId" element={<MemberProfile />} />
             <Route path="/family-code" element={<FamilyCode />} />

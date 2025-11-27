@@ -46,6 +46,7 @@ export default function Meals() {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string>('monday');
+  const [editingMeal, setEditingMeal] = useState<MealPlan | null>(null);
 
   const [newMeal, setNewMeal] = useState({
     day: 'monday',
@@ -72,19 +73,36 @@ export default function Meals() {
 
     const currentMember = members[0] || { id: 'demo', name: 'Пользователь', avatar: '👤' };
 
-    const meal: MealPlan = {
-      id: Date.now().toString(),
-      day: newMeal.day,
-      mealType: newMeal.mealType,
-      dishName: newMeal.dishName,
-      description: newMeal.description,
-      emoji: newMeal.emoji,
-      addedBy: currentMember.id,
-      addedByName: currentMember.name,
-      addedAt: new Date().toISOString()
-    };
+    if (editingMeal) {
+      const updated = mealPlans.map(m =>
+        m.id === editingMeal.id
+          ? {
+              ...m,
+              day: newMeal.day,
+              mealType: newMeal.mealType,
+              dishName: newMeal.dishName,
+              description: newMeal.description,
+              emoji: newMeal.emoji
+            }
+          : m
+      );
+      saveMealPlans(updated);
+      setEditingMeal(null);
+    } else {
+      const meal: MealPlan = {
+        id: Date.now().toString(),
+        day: newMeal.day,
+        mealType: newMeal.mealType,
+        dishName: newMeal.dishName,
+        description: newMeal.description,
+        emoji: newMeal.emoji,
+        addedBy: currentMember.id,
+        addedByName: currentMember.name,
+        addedAt: new Date().toISOString()
+      };
 
-    saveMealPlans([...mealPlans, meal]);
+      saveMealPlans([...mealPlans, meal]);
+    }
 
     setNewMeal({
       day: 'monday',
@@ -94,6 +112,18 @@ export default function Meals() {
       emoji: '🍳'
     });
     setIsDialogOpen(false);
+  };
+
+  const handleEditMeal = (meal: MealPlan) => {
+    setEditingMeal(meal);
+    setNewMeal({
+      day: meal.day,
+      mealType: meal.mealType,
+      dishName: meal.dishName,
+      description: meal.description || '',
+      emoji: meal.emoji || '🍳'
+    });
+    setIsDialogOpen(true);
   };
 
   const deleteMeal = (id: string) => {
@@ -134,14 +164,14 @@ export default function Meals() {
               </CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-orange-600 hover:bg-orange-700">
+                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => setEditingMeal(null)}>
                     <Icon name="Plus" size={18} className="mr-2" />
                     Добавить блюдо
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Добавить блюдо в меню</DialogTitle>
+                    <DialogTitle>{editingMeal ? 'Редактировать блюдо' : 'Добавить блюдо в меню'}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div>
@@ -205,8 +235,8 @@ export default function Meals() {
                       />
                     </div>
                     <Button onClick={handleAddMeal} className="w-full bg-orange-600 hover:bg-orange-700">
-                      <Icon name="Plus" size={18} className="mr-2" />
-                      Добавить
+                      <Icon name={editingMeal ? "Save" : "Plus"} size={18} className="mr-2" />
+                      {editingMeal ? 'Сохранить' : 'Добавить'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -294,14 +324,24 @@ export default function Meals() {
                                         {meal.addedByName}
                                       </p>
                                     </div>
-                                    <Button
-                                      onClick={() => deleteMeal(meal.id)}
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    >
-                                      <Icon name="Trash2" size={14} />
-                                    </Button>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        onClick={() => handleEditMeal(meal)}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                      >
+                                        <Icon name="Pencil" size={14} />
+                                      </Button>
+                                      <Button
+                                        onClick={() => deleteMeal(meal.id)}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <Icon name="Trash2" size={14} />
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               ))}

@@ -149,8 +149,22 @@ export default function MemberProfile() {
           </CardContent>
         </Card>
 
+        {isOwner && (
+          <Card className="mb-6 bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <Button 
+                onClick={() => navigate('/permissions')}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <Icon name="Shield" size={18} className="mr-2" />
+                Управление правами всех членов семьи
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
             <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="User" size={16} />
               <span>Профиль</span>
@@ -167,12 +181,6 @@ export default function MemberProfile() {
               <Icon name="CheckSquare" size={16} />
               <span>Задачи</span>
             </TabsTrigger>
-            {isOwner && (
-              <TabsTrigger value="permissions" className="flex items-center justify-center gap-1 md:gap-2">
-                <Icon name="Shield" size={16} />
-                <span>Права</span>
-              </TabsTrigger>
-            )}
             {isChild && (
               <>
                 <TabsTrigger value="dreams" className="flex items-center justify-center gap-1 md:gap-2">
@@ -328,12 +336,6 @@ export default function MemberProfile() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {isOwner && (
-            <TabsContent value="permissions">
-              <PermissionsManager member={member} />
-            </TabsContent>
-          )}
 
           {isChild && (
             <>

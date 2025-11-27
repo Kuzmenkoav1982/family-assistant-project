@@ -67,7 +67,15 @@ export function MembersTabContent({
               </h3>
               <p className="text-sm text-gray-600">Просмотр и редактирование профилей всех членов семьи</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+            <Button 
+              onClick={() => navigate('/permissions')}
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <Icon name="Shield" size={16} className="mr-2" />
+              Управление правами
+            </Button>
             <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
