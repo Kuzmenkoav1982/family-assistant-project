@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,10 @@ export function VotingWidget() {
   const [selectedVoting, setSelectedVoting] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [contextMenuVoting, setContextMenuVoting] = useState<string | null>(null);
+  const [longPressActive, setLongPressActive] = useState<string | null>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTriggered = useRef(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -110,6 +114,56 @@ export function VotingWidget() {
     const isAuthor = voting.created_by === currentUser.id;
     
     return isOwner || isAuthor;
+  };
+
+  const handleLongPressStart = (votingId: string) => {
+    longPressTriggered.current = false;
+    setLongPressActive(votingId);
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      setLongPressActive(null);
+      const voting = votings.find(v => v.id === votingId);
+      if (voting && canDeleteVoting(voting)) {
+        setContextMenuVoting(votingId);
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+      }
+    }, 500);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    setLongPressActive(null);
+  };
+
+  const handleCardClick = (votingId: string) => {
+    if (!longPressTriggered.current) {
+      setSelectedVoting(votingId);
+    }
+    longPressTriggered.current = false;
+  };
+
+  const getVotingProgress = (voting: any) => {
+    if (!voting.options || voting.options.length === 0) return { votedCount: 0, totalMembers: members.length, percentage: 0 };
+    
+    const votedUserIds = new Set<string>();
+    voting.options.forEach((option: any) => {
+      if (option.votes) {
+        option.votes.forEach((vote: any) => {
+          votedUserIds.add(vote.user_id);
+        });
+      }
+    });
+    
+    const votedCount = votedUserIds.size;
+    const totalMembers = members.length || 1;
+    const percentage = Math.round((votedCount / totalMembers) * 100);
+    
+    return { votedCount, totalMembers, percentage };
   };
 
   const getVotingIcon = (type: string) => {
@@ -310,105 +364,164 @@ export function VotingWidget() {
           </div>
         ) : (
           <div className="space-y-3">
-            {votings.map(voting => (
-              <Card
-                key={voting.id}
-                className="cursor-pointer hover:shadow-md transition-all border-2 hover:border-purple-300"
-                onClick={() => setSelectedVoting(voting.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(voting.voting_type)} flex items-center justify-center flex-shrink-0`}>
-                      <Icon name={getVotingIcon(voting.voting_type)} size={20} className="text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0" onClick={(e) => { e.stopPropagation(); setSelectedVoting(voting.id); }}>
-                      <h4 className="font-semibold text-sm mb-1 truncate">{voting.title}</h4>
-                      <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Icon name="Clock" size={12} />
-                          До {new Date(voting.end_date).toLocaleDateString('ru-RU')}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {voting.options.length} вариантов
-                        </Badge>
+            {votings.map(voting => {
+              const progress = getVotingProgress(voting);
+              return (
+                <Card
+                  key={voting.id}
+                  className={`cursor-pointer hover:shadow-md transition-all border-2 hover:border-purple-300 select-none ${
+                    longPressActive === voting.id ? 'long-press-hint scale-[0.98] border-purple-400' : ''
+                  }`}
+                  onClick={() => handleCardClick(voting.id)}
+                  onTouchStart={() => handleLongPressStart(voting.id)}
+                  onTouchEnd={handleLongPressEnd}
+                  onTouchCancel={handleLongPressEnd}
+                  onMouseDown={() => handleLongPressStart(voting.id)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(voting.voting_type)} flex items-center justify-center flex-shrink-0`}>
+                        <Icon name={getVotingIcon(voting.voting_type)} size={20} className="text-white" />
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm mb-1 truncate">{voting.title}</h4>
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-600 mb-2">
+                          <span className="flex items-center gap-1">
+                            <Icon name="Clock" size={12} />
+                            До {new Date(voting.end_date).toLocaleDateString('ru-RU')}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {voting.options.length} вариантов
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">Проголосовало: {progress.votedCount} из {progress.totalMembers}</span>
+                            <span className="font-semibold text-purple-600">{progress.percentage}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div 
+                              className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all"
+                              style={{ width: `${progress.percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <Icon name="ChevronRight" size={20} className="text-gray-400 flex-shrink-0" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      {canDeleteVoting(voting) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 touch-manipulation active:scale-95"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDelete(voting.id);
-                          }}
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                          }}
-                          disabled={deletingId === voting.id}
-                          title="Удалить голосование"
-                        >
-                          {deletingId === voting.id ? (
-                            <Icon name="Loader" size={14} className="animate-spin" />
-                          ) : (
-                            <Icon name="Trash2" size={14} />
-                          )}
-                        </Button>
-                      )}
-                      <Icon name="ChevronRight" size={20} className="text-gray-400" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </CardContent>
+
+      <Dialog open={!!contextMenuVoting} onOpenChange={(open) => !open && setContextMenuVoting(null)}>
+        <DialogContent className="max-w-sm">
+          {contextMenuVoting && (() => {
+            const voting = votings.find(v => v.id === contextMenuVoting);
+            return voting ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(voting.voting_type)} flex items-center justify-center`}>
+                      <Icon name={getVotingIcon(voting.voting_type)} size={20} className="text-white" />
+                    </div>
+                    {voting.title}
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-2 pt-4">
+                  <Button
+                    onClick={() => {
+                      setContextMenuVoting(null);
+                      setSelectedVoting(voting.id);
+                    }}
+                    className="w-full justify-start bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200"
+                    variant="outline"
+                  >
+                    <Icon name="Eye" size={18} className="mr-2" />
+                    Открыть голосование
+                  </Button>
+                  
+                  {canDeleteVoting(voting) && (
+                    <Button
+                      onClick={async () => {
+                        setContextMenuVoting(null);
+                        await handleDelete(voting.id);
+                      }}
+                      disabled={deletingId === voting.id}
+                      className="w-full justify-start bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
+                      variant="outline"
+                    >
+                      {deletingId === voting.id ? (
+                        <>
+                          <Icon name="Loader" size={18} className="mr-2 animate-spin" />
+                          Удаление...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Trash2" size={18} className="mr-2" />
+                          Удалить голосование
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
+                  <Button
+                    onClick={() => setContextMenuVoting(null)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Отмена
+                  </Button>
+                </div>
+              </>
+            ) : null;
+          })()}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!selectedVoting} onOpenChange={(open) => !open && setSelectedVoting(null)}>
         <DialogContent className="max-w-2xl">
           {selectedVotingData && (
             <>
               <DialogHeader>
-                <div className="flex items-start justify-between gap-3">
-                  <DialogTitle className="flex items-center gap-2">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(selectedVotingData.voting_type)} flex items-center justify-center`}>
-                      <Icon name={getVotingIcon(selectedVotingData.voting_type)} size={20} className="text-white" />
-                    </div>
-                    {selectedVotingData.title}
-                  </DialogTitle>
-                  {canDeleteVoting(selectedVotingData) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 touch-manipulation active:scale-95"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        await handleDelete(selectedVotingData.id);
-                        setSelectedVoting(null);
-                      }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      disabled={deletingId === selectedVotingData.id}
-                    >
-                      {deletingId === selectedVotingData.id ? (
-                        <Icon name="Loader" size={16} className="animate-spin mr-2" />
-                      ) : (
-                        <Icon name="Trash2" size={16} className="mr-2" />
-                      )}
-                      Удалить
-                    </Button>
-                  )}
-                </div>
+                <DialogTitle className="flex items-center gap-2">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getVotingColor(selectedVotingData.voting_type)} flex items-center justify-center`}>
+                    <Icon name={getVotingIcon(selectedVotingData.voting_type)} size={20} className="text-white" />
+                  </div>
+                  {selectedVotingData.title}
+                </DialogTitle>
               </DialogHeader>
               
               {selectedVotingData.description && (
                 <p className="text-sm text-gray-600 -mt-2">{selectedVotingData.description}</p>
               )}
+
+              {(() => {
+                const progress = getVotingProgress(selectedVotingData);
+                return (
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-4 -mt-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-900">Прогресс голосования</span>
+                      <span className="text-sm font-bold text-purple-600">{progress.percentage}%</span>
+                    </div>
+                    <div className="w-full bg-purple-200 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
+                        style={{ width: `${progress.percentage}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-purple-700">
+                      Проголосовало {progress.votedCount} из {progress.totalMembers} членов семьи
+                    </p>
+                  </div>
+                );
+              })()}
 
               <div className="space-y-3">
                 {selectedVotingData.options.map(option => {
