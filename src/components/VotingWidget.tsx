@@ -22,7 +22,7 @@ export function VotingWidget() {
       const authUserStr = localStorage.getItem('authUser');
       if (authUserStr) {
         const authUser = JSON.parse(authUserStr);
-        return authUser.id;
+        return authUser.member_id || authUser.id;
       }
     } catch (e) {
       console.error('[ERROR getCurrentUserId] Error parsing auth user:', e);
