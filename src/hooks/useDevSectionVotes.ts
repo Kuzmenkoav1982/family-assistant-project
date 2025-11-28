@@ -37,7 +37,17 @@ export function useDevSectionVotes() {
 
   const castVote = async (sectionId: string, voteType: 'up' | 'down', comment?: string) => {
     try {
-      const memberId = localStorage.getItem('currentMemberId');
+      const authUserStr = localStorage.getItem('authUser');
+      let memberId = null;
+      
+      if (authUserStr) {
+        try {
+          const authUser = JSON.parse(authUserStr);
+          memberId = authUser.member_id;
+        } catch {
+          console.error('Error parsing authUser');
+        }
+      }
       
       const response = await fetch(DEV_VOTES_API, {
         method: 'POST',
