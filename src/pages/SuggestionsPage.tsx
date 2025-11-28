@@ -49,11 +49,6 @@ export default function SuggestionsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!currentUser) {
-      alert('Пожалуйста, войдите в систему');
-      return;
-    }
 
     setSubmitting(true);
 
@@ -65,9 +60,9 @@ export default function SuggestionsPage() {
         },
         body: JSON.stringify({
           type: 'suggestion',
-          user_id: currentUser.id,
-          user_name: currentUser.name,
-          user_email: currentUser.email || '',
+          user_id: currentUser?.id || 'guest',
+          user_name: currentUser?.name || 'Гость',
+          user_email: currentUser?.email || '',
           title: formData.title,
           description: formData.description,
           rating: null

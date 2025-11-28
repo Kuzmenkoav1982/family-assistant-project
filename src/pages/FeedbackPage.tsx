@@ -51,11 +51,6 @@ export default function FeedbackPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!currentUser) {
-      alert('Пожалуйста, войдите в систему');
-      return;
-    }
 
     setSubmitting(true);
 
@@ -67,9 +62,9 @@ export default function FeedbackPage() {
         },
         body: JSON.stringify({
           type: 'review',
-          user_id: currentUser.id,
-          user_name: currentUser.name,
-          user_email: currentUser.email || '',
+          user_id: currentUser?.id || 'guest',
+          user_name: currentUser?.name || 'Гость',
+          user_email: currentUser?.email || '',
           title: formData.title,
           description: formData.description,
           rating: formData.rating

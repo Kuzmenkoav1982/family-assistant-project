@@ -24,11 +24,6 @@ export default function SupportPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!currentUser) {
-      alert('Пожалуйста, войдите в систему');
-      return;
-    }
 
     setSubmitting(true);
 
@@ -40,8 +35,8 @@ export default function SupportPage() {
         },
         body: JSON.stringify({
           type: 'support',
-          user_id: currentUser.id,
-          user_name: currentUser.name,
+          user_id: currentUser?.id || 'guest',
+          user_name: currentUser?.name || 'Гость',
           user_email: formData.email,
           title: formData.title,
           description: formData.description,
