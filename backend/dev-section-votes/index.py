@@ -236,7 +236,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             section_id = body.get('section_id')
             vote_type = body.get('vote_type')
-            comment = body.get('comment', '').strip() or None
+            comment_raw = body.get('comment')
+            comment = comment_raw.strip() if comment_raw else None
             member_id = body.get('member_id')
             
             if not section_id or not vote_type:
