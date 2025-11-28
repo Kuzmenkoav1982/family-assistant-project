@@ -125,10 +125,10 @@ export default function Presentation() {
               className="h-32 w-32 object-contain"
             />
           </div>
-          <h1 className="text-5xl font-bold text-purple-900 mb-4">
+          <h1 className="text-5xl font-bold mb-4 text-slate-800">
             Наша семья
           </h1>
-          <p className="text-2xl text-purple-600">
+          <p className="text-2xl text-emerald-900">
             Объединяем семьи. Укрепляем общество.
           </p>
         </div>
