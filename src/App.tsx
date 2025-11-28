@@ -38,6 +38,7 @@ import SuggestionsPage from "./pages/SuggestionsPage";
 import SupportPage from "./pages/SupportPage";
 import AdminSupport from "./pages/AdminSupport";
 import AdminLogin from "./pages/AdminLogin";
+import { AuthProvider } from "@/lib/auth-context";
 
 const queryClient = new QueryClient();
 
@@ -76,52 +77,54 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/welcome" element={<Welcome />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/join" element={<JoinFamily />} />
-            <Route path="/oauth-debug" element={<OAuthDebug />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Index onLogout={handleLogout} />
-              </ProtectedRoute>
-            } />
-            <Route path="/instructions" element={<Instructions />} />
-            <Route path="/garage" element={<Garage />} />
-            <Route path="/health" element={<Health />} />
-            <Route path="/finance" element={<Finance />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/travel" element={<Travel />} />
-            <Route path="/pets" element={<Pets />} />
-            <Route path="/faith" element={<Faith />} />
-            <Route path="/tree" element={<Tree />} />
-            <Route path="/shopping" element={<Shopping />} />
-            <Route path="/meals" element={<Meals />} />
-            <Route path="/permissions" element={<PermissionsManagement />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/member/:memberId" element={<MemberProfile />} />
-            <Route path="/family-code" element={<FamilyCode />} />
-            <Route path="/presentation" element={<Presentation />} />
-            <Route path="/psychologist" element={<FamilyPsychologist />} />
-            <Route path="/rules" element={<FamilyRules />} />
-            <Route path="/voting" element={<VotingPage />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/suggestions" element={<SuggestionsPage />} />
-            <Route path="/support" element={<SupportPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/support" element={<AdminSupport />} />
-            <Route path="/launch-plan" element={<LaunchPlan />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/join" element={<JoinFamily />} />
+              <Route path="/oauth-debug" element={<OAuthDebug />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index onLogout={handleLogout} />
+                </ProtectedRoute>
+              } />
+              <Route path="/instructions" element={<Instructions />} />
+              <Route path="/garage" element={<Garage />} />
+              <Route path="/health" element={<Health />} />
+              <Route path="/finance" element={<Finance />} />
+              <Route path="/education" element={<Education />} />
+              <Route path="/travel" element={<Travel />} />
+              <Route path="/pets" element={<Pets />} />
+              <Route path="/faith" element={<Faith />} />
+              <Route path="/tree" element={<Tree />} />
+              <Route path="/shopping" element={<Shopping />} />
+              <Route path="/meals" element={<Meals />} />
+              <Route path="/permissions" element={<PermissionsManagement />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/member/:memberId" element={<MemberProfile />} />
+              <Route path="/family-code" element={<FamilyCode />} />
+              <Route path="/presentation" element={<Presentation />} />
+              <Route path="/psychologist" element={<FamilyPsychologist />} />
+              <Route path="/rules" element={<FamilyRules />} />
+              <Route path="/voting" element={<VotingPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/suggestions" element={<SuggestionsPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/support" element={<AdminSupport />} />
+              <Route path="/launch-plan" element={<LaunchPlan />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
