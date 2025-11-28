@@ -19,18 +19,14 @@ export function VotingWidget() {
   
   const getCurrentUserId = () => {
     try {
-      const authToken = localStorage.getItem('authToken');
-      if (authToken) {
-        const payload = JSON.parse(atob(authToken.split('.')[1]));
-        console.log('[DEBUG getCurrentUserId] Token payload:', payload);
-        const userId = payload.user_id || payload.sub || payload.id;
-        console.log('[DEBUG getCurrentUserId] Extracted user ID:', userId);
-        return userId;
+      const authUserStr = localStorage.getItem('authUser');
+      if (authUserStr) {
+        const authUser = JSON.parse(authUserStr);
+        return authUser.id;
       }
     } catch (e) {
-      console.error('[ERROR getCurrentUserId] Error parsing auth token:', e);
+      console.error('[ERROR getCurrentUserId] Error parsing auth user:', e);
     }
-    console.log('[DEBUG getCurrentUserId] No token found, returning null');
     return null;
   };
   
