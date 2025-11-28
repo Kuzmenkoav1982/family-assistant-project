@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "Get feedback list",
+      "method": "GET",
+      "path": "/?type=review",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "items": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create feedback",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "type": "review",
+        "user_id": "test-user",
+        "user_name": "Test User",
+        "title": "Great app",
+        "description": "Really helpful for family organization",
+        "rating": 5
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "id": "string",
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
