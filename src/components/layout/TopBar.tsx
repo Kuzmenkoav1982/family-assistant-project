@@ -7,6 +7,7 @@ import SettingsMenu from '@/components/SettingsMenu';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import { useState } from 'react';
 import type { FamilyMember } from '@/types/family.types';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TopBarProps {
   isVisible: boolean;
@@ -119,6 +120,25 @@ export default function TopBar({
           </Button>
           
           <SettingsMenu />
+          
+          {currentUser?.role === 'owner' && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => navigate('/admin/support')}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  title="Админ-панель"
+                >
+                  <Icon name="Shield" size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Админ-панель обращений</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
           
           <Button
             onClick={() => navigate('/instructions')}

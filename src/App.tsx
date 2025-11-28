@@ -36,6 +36,7 @@ import JoinFamily from "./pages/JoinFamily";
 import FeedbackPage from "./pages/FeedbackPage";
 import SuggestionsPage from "./pages/SuggestionsPage";
 import SupportPage from "./pages/SupportPage";
+import AdminSupport from "./pages/AdminSupport";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ const App = () => {
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/suggestions" element={<SuggestionsPage />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/admin/support" element={<AdminSupport />} />
             <Route path="/launch-plan" element={<LaunchPlan />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
