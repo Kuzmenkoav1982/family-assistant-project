@@ -111,11 +111,11 @@ export default function StatsCounter() {
     >
       <div className="flex items-center gap-1.5">
         <Icon name="Users" size={16} className="text-purple-600" />
-        <span className="text-xs text-purple-600 hidden sm:inline whitespace-nowrap">С нами уже</span>
+        <span className="text-xs hidden sm:inline whitespace-nowrap text-slate-800">С нами уже</span>
         <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-0 font-semibold tabular-nums">
           <AnimatedNumber value={stats.total_families} />
         </Badge>
-        <span className="text-xs text-purple-600 hidden sm:inline">семей</span>
+        <span className="text-xs hidden sm:inline text-slate-800">семей</span>
       </div>
       
       <div className="w-px h-4 bg-purple-300"></div>

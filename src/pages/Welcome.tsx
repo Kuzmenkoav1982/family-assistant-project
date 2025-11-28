@@ -89,7 +89,7 @@ export default function Welcome() {
                 alt="Наша семья"
                 className="w-12 h-12 object-contain"
               />
-              <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-neutral-600">
                 Наша семья
               </h1>
             </div>
@@ -218,7 +218,7 @@ export default function Welcome() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 rounded-2xl p-8 lg:p-12 text-white text-center">
+          <div className="from-orange-500 via-pink-500 to-purple-500 rounded-2xl p-8 lg:p-12 text-white text-center bg-slate-500">
             <h3 className="text-3xl lg:text-4xl font-bold mb-4">
               Готовы начать?
             </h3>
