@@ -151,8 +151,8 @@ def cast_section_vote(section_id: str, member_id: Optional[str], vote_type: str,
             
             update_query = f"""
                 UPDATE {SCHEMA}.dev_section_votes
-                SET vote_type = {escape_string(vote_type)},
-                    comment = {escape_string(comment) if comment else 'comment'}
+                SET vote_type = {escape_string(vote_type)}
+                {', comment = ' + escape_string(comment) if comment else ''}
                 WHERE id::text = {escape_string(str(existing_vote['id']))}
             """
             cur.execute(update_query)
