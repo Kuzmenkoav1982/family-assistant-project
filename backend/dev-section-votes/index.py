@@ -194,9 +194,12 @@ def cast_section_vote(section_id: str, member_id: Optional[str], vote_type: str,
             'votes': get_section_votes(section_id)
         }
     except Exception as e:
-        cur.close()
-        conn.close()
-        return {'error': str(e)}
+        print(f"Error in cast_section_vote: {str(e)}")
+        if 'cur' in locals():
+            cur.close()
+        if 'conn' in locals():
+            conn.close()
+        raise
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
@@ -258,10 +261,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps(result, default=str)
             }
         except Exception as e:
+            print(f"ERROR in POST handler: {str(e)}")
+            print(f"Error type: {type(e).__name__}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
             return {
                 'statusCode': 500,
                 'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-                'body': json.dumps({'error': str(e)})
+                'body': json.dumps({'error': str(e), 'type': type(e).__name__})
             }
     
     return {
