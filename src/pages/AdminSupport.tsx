@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import { useAuth } from '@/lib/auth-context';
 import func2url from '../../backend/func2url.json';
 
 interface FeedbackItem {
@@ -22,7 +21,6 @@ interface FeedbackItem {
 
 export default function AdminSupport() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const [supportItems, setSupportItems] = useState<FeedbackItem[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [suggestionItems, setSuggestionItems] = useState<FeedbackItem[]>([]);
@@ -31,12 +29,13 @@ export default function AdminSupport() {
   const feedbackUrl = func2url['feedback' as keyof typeof func2url];
 
   useEffect(() => {
-    if (currentUser?.role !== 'owner') {
-      navigate('/');
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken !== 'admin_authenticated') {
+      navigate('/admin/login');
       return;
     }
     loadAllData();
-  }, [currentUser]);
+  }, []);
 
   const loadAllData = async () => {
     try {
@@ -156,14 +155,28 @@ export default function AdminSupport() {
             На главную
           </Button>
           
-          <Button
-            onClick={loadAllData}
-            variant="outline"
-            className="gap-2"
-          >
-            <Icon name="RefreshCw" size={16} />
-            Обновить
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={loadAllData}
+              variant="outline"
+              className="gap-2"
+            >
+              <Icon name="RefreshCw" size={16} />
+              Обновить
+            </Button>
+            
+            <Button
+              onClick={() => {
+                localStorage.removeItem('adminToken');
+                navigate('/admin/login');
+              }}
+              variant="outline"
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Icon name="LogOut" size={16} />
+              Выйти
+            </Button>
+          </div>
         </div>
 
         <div className="text-center mb-8">

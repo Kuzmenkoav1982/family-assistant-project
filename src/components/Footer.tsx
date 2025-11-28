@@ -122,10 +122,19 @@ export default function Footer() {
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
             <p>© {currentYear} Наша семья. Все права защищены.</p>
-            <p className="flex items-center gap-2">
-              <Icon name="Heart" size={16} className="text-red-500" />
-              Создано с любовью к семьям
-            </p>
+            <div className="flex items-center gap-6">
+              <Link 
+                to="/admin/login"
+                className="text-gray-500 hover:text-orange-400 transition-colors flex items-center gap-1 text-xs"
+              >
+                <Icon name="Shield" size={12} />
+                Админ
+              </Link>
+              <p className="flex items-center gap-2">
+                <Icon name="Heart" size={16} className="text-red-500" />
+                Создано с любовью к семьям
+              </p>
+            </div>
           </div>
         </div>
       </div>
