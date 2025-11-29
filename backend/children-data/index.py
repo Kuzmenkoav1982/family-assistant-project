@@ -1,6 +1,9 @@
 import json
 import os
+import psycopg2
+import psycopg2.extras
 from typing import Dict, Any
+from datetime import datetime
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -131,6 +134,62 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         if action == 'add':
+            if data_type == 'medical_document':
+                try:
+                    db_url = os.environ.get('DATABASE_URL')
+                    if not db_url:
+                        return {
+                            'statusCode': 500,
+                            'headers': headers,
+                            'body': json.dumps({'success': False, 'error': 'DATABASE_URL не настроен'})
+                        }
+                    
+                    conn = psycopg2.connect(db_url)
+                    cursor = conn.cursor()
+                    
+                    insert_query = '''
+                        INSERT INTO children_medical_documents 
+                        (id, child_id, family_id, document_type, file_url, file_type, 
+                         original_filename, file_size, related_id, related_type, 
+                         title, description, uploaded_by, uploaded_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    '''
+                    
+                    values = (
+                        data.get('id'),
+                        child_id,
+                        data.get('family_id', ''),
+                        data.get('document_type'),
+                        data.get('file_url'),
+                        data.get('file_type'),
+                        data.get('original_filename'),
+                        data.get('file_size', 0),
+                        data.get('related_id'),
+                        data.get('related_type'),
+                        data.get('title'),
+                        data.get('description'),
+                        data.get('uploaded_by', ''),
+                        data.get('uploaded_at', datetime.now().isoformat())
+                    )
+                    
+                    cursor.execute(insert_query, values)
+                    conn.commit()
+                    
+                    cursor.close()
+                    conn.close()
+                    
+                    return {
+                        'statusCode': 200,
+                        'headers': headers,
+                        'body': json.dumps({'success': True, 'message': 'Документ сохранен в БД', 'id': data.get('id')})
+                    }
+                except Exception as e:
+                    return {
+                        'statusCode': 500,
+                        'headers': headers,
+                        'body': json.dumps({'success': False, 'error': f'Ошибка сохранения в БД: {str(e)}'})
+                    }
+            
             return {
                 'statusCode': 200,
                 'headers': headers,

@@ -86,7 +86,7 @@ export function useUploadMedicalFile() {
 
       const result = await response.json();
 
-      setProgress(100);
+      setProgress(90);
 
       const document: MedicalDocument = {
         id: result.documentId,
@@ -101,6 +101,39 @@ export function useUploadMedicalFile() {
         description,
         uploadedAt: result.uploadedAt || new Date().toISOString(),
       };
+
+      const saveResponse = await fetch('https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': localStorage.getItem('authToken') || '',
+        },
+        body: JSON.stringify({
+          action: 'add',
+          child_id: childId,
+          type: 'medical_document',
+          data: {
+            id: result.documentId,
+            document_type: documentType,
+            file_url: result.url,
+            file_type: file.type,
+            original_filename: file.name,
+            file_size: file.size,
+            related_id: relatedId,
+            related_type: relatedType,
+            title,
+            description,
+            uploaded_by: localStorage.getItem('userId') || '',
+            uploaded_at: result.uploadedAt || new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        console.warn('[DB SAVE WARNING] Файл загружен, но не сохранен в БД');
+      }
+
+      setProgress(100);
 
       setTimeout(() => {
         setUploading(false);
