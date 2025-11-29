@@ -5,6 +5,8 @@ import psycopg2.extras
 from typing import Dict, Any
 from datetime import datetime
 
+# Force rebuild to clear cache
+
 def escape_sql_string(value: Any) -> str:
     '''Экранирование значений для Simple Query Protocol'''
     if value is None:
