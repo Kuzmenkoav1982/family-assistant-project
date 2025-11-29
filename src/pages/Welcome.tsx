@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import StatsCounter from '@/components/StatsCounter';
 
 const screenshots = [
   {
@@ -92,7 +93,9 @@ export default function Welcome() {
                 Наша семья
               </h1>
             </div>
-
+            <div className="hidden md:block">
+              <StatsCounter />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button
