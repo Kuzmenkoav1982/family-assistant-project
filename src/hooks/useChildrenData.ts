@@ -23,7 +23,7 @@ interface ChildData {
   };
 }
 
-const CHILDREN_DATA_API = 'https://functions.poehali.dev/children-data';
+const CHILDREN_DATA_API = 'https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203';
 
 export function useChildrenData(childId: string) {
   const [data, setData] = useState<ChildData | null>(null);
@@ -33,9 +33,40 @@ export function useChildrenData(childId: string) {
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
   const fetchChildData = async (type: string = 'all') => {
+    if (!childId) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const token = getAuthToken();
+      
+      const response = await fetch(
+        `${CHILDREN_DATA_API}?child_id=${childId}&type=${type}`,
+        {
+          headers: {
+            'X-Auth-Token': token,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Ошибка загрузки данных');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setData(result.data);
+        setError(null);
+      } else {
+        throw new Error(result.error || 'Ошибка загрузки');
+      }
+      
+    } catch (err: any) {
+      console.error('[useChildrenData] Error:', err);
+      setError(err.message);
       
       const mockData: ChildData = {
         health: {
@@ -159,51 +190,108 @@ export function useChildrenData(childId: string) {
 
       setData(mockData);
       setError(null);
-      
-    } catch (err) {
-      setError('Ошибка загрузки данных');
-      console.error('Error fetching child data:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const addItem = async (type: string, itemData: any) => {
+    if (!childId) return { success: false, error: 'Child ID не указан' };
+    
     try {
       const token = getAuthToken();
       
-      console.log('Adding item:', { type, itemData, childId });
+      const response = await fetch(CHILDREN_DATA_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({
+          action: 'add',
+          child_id: childId,
+          type,
+          data: itemData,
+        }),
+      });
+
+      const result = await response.json();
       
-      await fetchChildData();
-      return { success: true, message: 'Добавлено', id: Date.now().toString() };
-    } catch (err) {
-      return { success: false, error: 'Ошибка добавления' };
+      if (result.success) {
+        await fetchChildData();
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error('[useChildrenData] Add error:', err);
+      return { success: false, error: err.message || 'Ошибка добавления' };
     }
   };
 
   const updateItem = async (type: string, itemId: string, itemData: any) => {
+    if (!childId) return { success: false, error: 'Child ID не указан' };
+    
     try {
       const token = getAuthToken();
       
-      console.log('Updating item:', { type, itemId, itemData, childId });
+      const response = await fetch(CHILDREN_DATA_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({
+          action: 'update',
+          child_id: childId,
+          type,
+          item_id: itemId,
+          data: itemData,
+        }),
+      });
+
+      const result = await response.json();
       
-      await fetchChildData();
-      return { success: true, message: 'Обновлено' };
-    } catch (err) {
-      return { success: false, error: 'Ошибка обновления' };
+      if (result.success) {
+        await fetchChildData();
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error('[useChildrenData] Update error:', err);
+      return { success: false, error: err.message || 'Ошибка обновления' };
     }
   };
 
   const deleteItem = async (type: string, itemId: string) => {
+    if (!childId) return { success: false, error: 'Child ID не указан' };
+    
     try {
       const token = getAuthToken();
       
-      console.log('Deleting item:', { type, itemId, childId });
+      const response = await fetch(CHILDREN_DATA_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          child_id: childId,
+          type,
+          item_id: itemId,
+        }),
+      });
+
+      const result = await response.json();
       
-      await fetchChildData();
-      return { success: true, message: 'Удалено' };
-    } catch (err) {
-      return { success: false, error: 'Ошибка удаления' };
+      if (result.success) {
+        await fetchChildData();
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error('[useChildrenData] Delete error:', err);
+      return { success: false, error: err.message || 'Ошибка удаления' };
     }
   };
 

@@ -65,7 +65,7 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Add medical document",
+      "name": "Add gift",
       "method": "POST",
       "path": "/",
       "headers": {
@@ -75,28 +75,24 @@
       "body": {
         "action": "add",
         "child_id": "test123",
-        "type": "medical_document",
+        "type": "gift",
         "data": {
-          "id": "doc_123456789",
-          "document_type": "prescription",
-          "file_url": "https://example.com/file.jpg",
-          "file_type": "image/jpeg",
-          "original_filename": "prescription.jpg",
-          "file_size": 1024000,
-          "uploaded_by": "user123",
-          "uploaded_at": "2024-11-29T10:00:00Z"
+          "event": "День рождения",
+          "date": "2025-03-15",
+          "gift": "Велосипед",
+          "given": false,
+          "notes": "Хочет синий"
         }
       },
       "expectedStatus": 200,
       "expectedBody": {
         "success": true,
-        "message": "string",
-        "id": "string"
+        "message": "string"
       },
       "bodyMatcher": "partial"
     },
     {
-      "name": "Update gift status",
+      "name": "Add dream",
       "method": "POST",
       "path": "/",
       "headers": {
@@ -104,12 +100,13 @@
         "Content-Type": "application/json"
       },
       "body": {
-        "action": "update",
+        "action": "add",
         "child_id": "test123",
-        "type": "gift",
-        "item_id": "gift1",
+        "type": "dream",
         "data": {
-          "given": true
+          "title": "Стать космонавтом",
+          "description": "Мечтаю полететь в космос",
+          "achieved": false
         }
       },
       "expectedStatus": 200,

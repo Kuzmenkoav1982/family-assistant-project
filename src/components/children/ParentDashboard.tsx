@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { HealthSection } from './HealthSection';
 import { DevelopmentSection } from './DevelopmentSection';
 import { SchoolSection } from './SchoolSection';
 import { GiftsSection } from './GiftsSection';
 import { PurchasesSection } from './PurchasesSection';
+import { SectionHelp } from './SectionHelp';
+import { useChildrenData } from '@/hooks/useChildrenData';
 import type { FamilyMember } from '@/types/family.types';
 
 interface ParentDashboardProps {
@@ -18,14 +21,39 @@ interface ParentDashboardProps {
 
 export function ParentDashboard({ child }: ParentDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const { data, loading, error, addItem, updateItem, deleteItem, fetchChildData } = useChildrenData(child.id);
 
   const age = child.age || 10;
-  const healthScore = 85;
-  const developmentScore = 78;
-  const schoolScore = 82;
+  const healthScore = data?.health ? 
+    Math.round((data.health.vaccinations.length * 10 + data.health.doctorVisits.length * 5) / 2) : 85;
+  const developmentScore = data?.development?.length ? 
+    Math.round(data.development.reduce((acc, d) => acc + d.current_level, 0) / data.development.length) : 78;
+  const schoolScore = data?.school?.grades?.length ? 
+    Math.round(data.school.grades.reduce((acc, g) => acc + (g.grade || 0), 0) / data.school.grades.length * 20) : 82;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Icon name="Loader2" size={32} className="animate-spin text-blue-600" />
+        <span className="ml-3 text-gray-600">Загрузка данных...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      <SectionHelp
+        emoji="🎯"
+        title="Добро пожаловать в родительский дашборд!"
+        description="Здесь вы можете отслеживать все аспекты развития ребёнка: здоровье, учёбу, хобби и планы."
+        tips={[
+          "Все данные сохраняются автоматически в реальном времени",
+          "Используйте разделы для организации информации по категориям",
+          "Добавляйте напоминания о важных событиях и задачах",
+          "Прикрепляйте документы и фото для истории роста и развития"
+        ]}
+      />
+
       <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
         <CardContent className="pt-6">
           <div className="flex items-center gap-6">
@@ -249,19 +277,59 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
           </Card>
         </TabsContent>
 
-        <TabsContent value="health">
+        <TabsContent value="health" className="space-y-6">
+          <SectionHelp
+            emoji="❤️"
+            title="Раздел Здоровье"
+            description="Отслеживайте медицинскую историю ребёнка: прививки, визиты к врачам, анализы и лекарства"
+            tips={[
+              "Добавляйте напоминания о прививках и визитах к врачам",
+              "Прикрепляйте фото рецептов и результатов анализов",
+              "Ведите график приёма лекарств с напоминаниями"
+            ]}
+          />
           <HealthSection child={child} />
         </TabsContent>
 
-        <TabsContent value="development">
+        <TabsContent value="development" className="space-y-6">
+          <SectionHelp
+            emoji="🎯"
+            title="Раздел Развитие"
+            description="Планируйте развитие ребёнка в разных областях: спорт, творчество, образование, soft skills"
+            tips={[
+              "Установите цели и отслеживайте прогресс",
+              "Добавьте кружки, секции и их расписание",
+              "Сохраняйте результаты тестов и конкурсов"
+            ]}
+          />
           <DevelopmentSection child={child} />
         </TabsContent>
 
-        <TabsContent value="school">
+        <TabsContent value="school" className="space-y-6">
+          <SectionHelp
+            emoji="📚"
+            title="Раздел Школа"
+            description="Отслеживайте успеваемость, домашние задания и достижения в учёбе"
+            tips={[
+              "Подключите интеграцию с электронным дневником",
+              "Отмечайте домашние задания и сроки сдачи",
+              "Анализируйте динамику оценок по предметам"
+            ]}
+          />
           <SchoolSection child={child} />
         </TabsContent>
 
         <TabsContent value="other" className="space-y-6">
+          <SectionHelp
+            emoji="🎁"
+            title="Раздел Подарки и Покупки"
+            description="Планируйте подарки на праздники и покупки для ребёнка по сезонам"
+            tips={[
+              "Составьте список желаемых подарков на праздники",
+              "Планируйте покупки одежды и вещей по сезонам",
+              "Оценивайте бюджет и приоритеты покупок"
+            ]}
+          />
           <GiftsSection child={child} />
           <PurchasesSection child={child} />
         </TabsContent>
