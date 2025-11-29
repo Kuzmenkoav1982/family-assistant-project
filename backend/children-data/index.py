@@ -89,6 +89,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
                 medications = [dict(row) for row in cur.fetchall()]
                 
+                for med in medications:
+                    med_id_safe = escape_sql_string(med['id'])
+                    cur.execute(f"SELECT * FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} ORDER BY time_of_day")
+                    med['schedule'] = [dict(row) for row in cur.fetchall()]
+                    
+                    cur.execute(f"""
+                        SELECT * FROM {schema}.children_medication_intake 
+                        WHERE medication_id = {med_id_safe} 
+                        AND scheduled_date >= CURRENT_DATE - INTERVAL '7 days'
+                        ORDER BY scheduled_date DESC, scheduled_time DESC
+                        LIMIT 100
+                    """)
+                    med['intakes'] = [dict(row) for row in cur.fetchall()]
+                
                 cur.execute(f"SELECT * FROM {schema}.children_medical_documents WHERE child_id = {child_id_safe} ORDER BY uploaded_at DESC")
                 documents = [dict(row) for row in cur.fetchall()]
                 
@@ -300,11 +314,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
                         VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
                                 {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('start_date'))}, 
-                                {escape_sql_string(data.get('end_date'))}, {escape_sql_string(data.get('schedule', ''))}, 
-                                {escape_sql_string(data.get('schedule', ''))}, {escape_sql_string(data.get('how_to_take', ''))}) 
+                                {escape_sql_string(data.get('end_date'))}, {escape_sql_string(data.get('frequency', ''))}, 
+                                {escape_sql_string(data.get('dosage', ''))}, {escape_sql_string(data.get('instructions', ''))}) 
                         RETURNING id
                     """)
                     result_id = cur.fetchone()['id']
+                    
+                    times = data.get('times', [])
+                    for time_str in times:
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
+                            VALUES ({escape_sql_string(result_id)}, {escape_sql_string(time_str)})
+                            RETURNING id
+                        """)
+                        schedule_id = cur.fetchone()['id']
+                        
+                        from datetime import datetime, timedelta
+                        start = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+                        end = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+                        current = start
+                        
+                        while current <= end:
+                            cur.execute(f"""
+                                INSERT INTO {schema}.children_medication_intake 
+                                (medication_id, schedule_id, scheduled_date, scheduled_time, taken)
+                                VALUES ({escape_sql_string(result_id)}, {escape_sql_string(schedule_id)}, 
+                                        {escape_sql_string(str(current))}, {escape_sql_string(time_str)}, FALSE)
+                            """)
+                            current += timedelta(days=1)
+                    
                     conn.commit()
                     
                 elif data_type == 'grade':
@@ -478,6 +516,43 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 cur.execute(f"DELETE FROM {schema}.{table_map[data_type]} WHERE id = {record_id_safe}")
+                conn.commit()
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True})
+                }
+            
+            elif action == 'mark_intake':
+                intake_id = data.get('intake_id')
+                taken = data.get('taken', True)
+                
+                if not intake_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'success': False, 'error': 'Не указан intake_id'})
+                    }
+                
+                intake_id_safe = escape_sql_string(intake_id)
+                taken_safe = escape_sql_string(taken)
+                
+                if taken:
+                    cur.execute(f"""
+                        UPDATE {schema}.children_medication_intake 
+                        SET taken = TRUE, taken_at = CURRENT_TIMESTAMP
+                        WHERE id = {intake_id_safe}
+                    """)
+                else:
+                    cur.execute(f"""
+                        UPDATE {schema}.children_medication_intake 
+                        SET taken = FALSE, taken_at = NULL
+                        WHERE id = {intake_id_safe}
+                    """)
+                
                 conn.commit()
                 cur.close()
                 conn.close()

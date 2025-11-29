@@ -54,7 +54,15 @@ export function HealthSection({ child }: HealthSectionProps) {
   const [newDoctorVisitData, setNewDoctorVisitData] = useState({ doctor: '', specialty: '', date: '', status: 'planned', notes: '' });
 
   const [newMedicationDialog, setNewMedicationDialog] = useState(false);
-  const [newMedicationData, setNewMedicationData] = useState({ name: '', startDate: '', endDate: '', schedule: '', howToTake: '' });
+  const [newMedicationData, setNewMedicationData] = useState({ 
+    name: '', 
+    startDate: '', 
+    endDate: '', 
+    frequency: '', 
+    dosage: '',
+    instructions: '',
+    times: ['09:00'] as string[]
+  });
   const [viewDocumentsDialog, setViewDocumentsDialog] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<MedicalDocument[]>([]);
   
@@ -168,7 +176,12 @@ export function HealthSection({ child }: HealthSectionProps) {
 
   const handleAddMedication = async () => {
     if (!newMedicationData.name || !newMedicationData.startDate || !newMedicationData.endDate) {
-      alert('Заполните обязательные поля');
+      alert('Заполните обязательные поля: название, дата начала и окончания');
+      return;
+    }
+    
+    if (newMedicationData.times.length === 0) {
+      alert('Добавьте хотя бы одно время приема');
       return;
     }
 
@@ -176,14 +189,24 @@ export function HealthSection({ child }: HealthSectionProps) {
       name: newMedicationData.name,
       start_date: newMedicationData.startDate,
       end_date: newMedicationData.endDate,
-      schedule: newMedicationData.schedule,
-      how_to_take: newMedicationData.howToTake,
+      frequency: newMedicationData.frequency,
+      dosage: newMedicationData.dosage,
+      instructions: newMedicationData.instructions,
+      times: newMedicationData.times,
       family_id: localStorage.getItem('familyId') || '',
     });
 
     if (result.success) {
       setNewMedicationDialog(false);
-      setNewMedicationData({ name: '', startDate: '', endDate: '', schedule: '', howToTake: '' });
+      setNewMedicationData({ 
+        name: '', 
+        startDate: '', 
+        endDate: '', 
+        frequency: '', 
+        dosage: '',
+        instructions: '',
+        times: ['09:00']
+      });
     } else {
       alert(result.error || 'Ошибка добавления');
     }
@@ -195,6 +218,39 @@ export function HealthSection({ child }: HealthSectionProps) {
     const result = await deleteItem('doctor_visit', id);
     if (!result.success) {
       alert(result.error || 'Ошибка удаления');
+    }
+  };
+
+  const handleMarkIntake = async (intakeId: string, taken: boolean) => {
+    try {
+      const token = localStorage.getItem('authToken') || '';
+      const response = await fetch('https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({
+          action: 'mark_intake',
+          child_id: child.id,
+          type: 'medication',
+          data: {
+            intake_id: intakeId,
+            taken: taken,
+          },
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        await refetch();
+      } else {
+        alert(result.error || 'Ошибка обновления');
+      }
+    } catch (error) {
+      console.error('Error marking intake:', error);
+      alert('Ошибка обновления');
     }
   };
 
@@ -329,20 +385,77 @@ export function HealthSection({ child }: HealthSectionProps) {
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Периодичность приема</label>
-                    <Input 
-                      placeholder="Например: 3 раза в день" 
-                      value={newMedicationData.schedule}
-                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, schedule: e.target.value }))}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Дозировка</label>
+                      <Input 
+                        placeholder="Например: 500 мг" 
+                        value={newMedicationData.dosage}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, dosage: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Частота</label>
+                      <Input 
+                        placeholder="Например: 3 раза в день" 
+                        value={newMedicationData.frequency}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, frequency: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Как принимать</label>
+                    <label className="text-sm font-medium mb-2 block">Время приема *</label>
+                    <div className="space-y-2">
+                      {newMedicationData.times.map((time, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input 
+                            type="time" 
+                            value={time}
+                            onChange={(e) => {
+                              const newTimes = [...newMedicationData.times];
+                              newTimes[index] = e.target.value;
+                              setNewMedicationData(prev => ({ ...prev, times: newTimes }));
+                            }}
+                            className="flex-1"
+                          />
+                          {newMedicationData.times.length > 1 && (
+                            <Button 
+                              type="button"
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                const newTimes = newMedicationData.times.filter((_, i) => i !== index);
+                                setNewMedicationData(prev => ({ ...prev, times: newTimes }));
+                              }}
+                            >
+                              <Icon name="X" size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          setNewMedicationData(prev => ({ 
+                            ...prev, 
+                            times: [...prev.times, '09:00'] 
+                          }));
+                        }}
+                      >
+                        <Icon name="Plus" size={16} className="mr-2" />
+                        Добавить время
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Инструкция по приему</label>
                     <Textarea 
                       placeholder="Например: После еды, запивать водой" 
-                      value={newMedicationData.howToTake}
-                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, howToTake: e.target.value }))}
+                      value={newMedicationData.instructions}
+                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, instructions: e.target.value }))}
                     />
                   </div>
                   <Button className="w-full" onClick={handleAddMedication}>Сохранить</Button>
@@ -358,24 +471,99 @@ export function HealthSection({ child }: HealthSectionProps) {
               <p className="text-sm">Добавьте первое лекарство</p>
             </div>
           ) : (
-            medications.map((med: any) => (
-              <Card key={med.id} className="border-2">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{med.name}</CardTitle>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {med.start_date} - {med.end_date}
-                      </p>
+            medications.map((med: any) => {
+              const todayIntakes = (med.intakes || []).filter((intake: any) => {
+                const intakeDate = new Date(intake.scheduled_date).toDateString();
+                const today = new Date().toDateString();
+                return intakeDate === today;
+              });
+              
+              const upcomingIntakes = todayIntakes.filter((intake: any) => !intake.taken);
+              const completedToday = todayIntakes.filter((intake: any) => intake.taken).length;
+              
+              return (
+                <Card key={med.id} className="border-2">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <CardTitle className="text-lg">{med.name}</CardTitle>
+                          {med.dosage && <Badge variant="outline">{med.dosage}</Badge>}
+                          {med.frequency && <Badge>{med.frequency}</Badge>}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          📅 {new Date(med.start_date).toLocaleDateString('ru-RU')} - {new Date(med.end_date).toLocaleDateString('ru-RU')}
+                        </p>
+                        {med.instructions && (
+                          <p className="text-sm text-gray-600 mt-2">💊 {med.instructions}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-600">
+                          Сегодня: {completedToday}/{todayIntakes.length}
+                        </div>
+                      </div>
                     </div>
-                    {med.frequency && <Badge>{med.frequency}</Badge>}
-                  </div>
-                  {med.instructions && (
-                    <p className="text-sm text-gray-600 mt-2">{med.instructions}</p>
-                  )}
-                </CardHeader>
-              </Card>
-            ))
+                  </CardHeader>
+                  <CardContent>
+                    {(med.schedule || []).length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium mb-3">⏰ Расписание приема:</p>
+                        {(med.schedule || []).map((scheduleItem: any) => {
+                          const todayIntake = todayIntakes.find((intake: any) => 
+                            intake.schedule_id === scheduleItem.id
+                          );
+                          
+                          return (
+                            <div key={scheduleItem.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={todayIntake?.taken || false}
+                                  onChange={(e) => {
+                                    if (todayIntake) {
+                                      handleMarkIntake(todayIntake.id, e.target.checked);
+                                    }
+                                  }}
+                                  className="w-5 h-5 cursor-pointer"
+                                  disabled={!todayIntake}
+                                />
+                                <div>
+                                  <span className="text-sm font-medium">
+                                    {scheduleItem.time_of_day.slice(0, 5)}
+                                  </span>
+                                  {todayIntake?.taken_at && (
+                                    <p className="text-xs text-gray-500">
+                                      Принято: {new Date(todayIntake.taken_at).toLocaleTimeString('ru-RU', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit' 
+                                      })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              {todayIntake?.taken ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  ✓ Принято
+                                </Badge>
+                              ) : todayIntake ? (
+                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                  ⏳ Ожидается
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-gray-50 text-gray-500">
+                                  Не сегодня
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </CardContent>
       </Card>
