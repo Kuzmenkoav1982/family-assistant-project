@@ -181,6 +181,8 @@ export function LeftMenu({
                   navigate('/meals');
                 } else if (section.id === 'shopping') {
                   navigate('/shopping');
+                } else if (section.id === 'calendar') {
+                  navigate('/calendar');
                 } else {
                   setActiveSection(section.id);
                 }

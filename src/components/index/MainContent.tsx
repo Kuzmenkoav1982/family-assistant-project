@@ -184,8 +184,8 @@ export function MainContent({
               Задачи
             </Button>
             <Button
-              onClick={() => setActiveSection('calendar')}
-              variant={activeSection === 'calendar' ? 'default' : 'outline'}
+              onClick={() => navigate('/calendar')}
+              variant="outline"
               className="text-xs py-1.5 px-2.5 h-auto"
             >
               <Icon name="Calendar" size={14} className="mr-1" />
