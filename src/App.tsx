@@ -39,6 +39,8 @@ import SuggestionsPage from "./pages/SuggestionsPage";
 import SupportPage from "./pages/SupportPage";
 import AdminSupport from "./pages/AdminSupport";
 import AdminLogin from "./pages/AdminLogin";
+import NationalitiesPage from "./pages/NationalitiesPage";
+import NationalityDetailPage from "./pages/NationalityDetailPage";
 import { AuthProvider } from "@/lib/auth-context";
 
 const queryClient = new QueryClient();
@@ -118,6 +120,8 @@ const App = () => {
               <Route path="/support" element={<SupportPage />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/support" element={<AdminSupport />} />
+              <Route path="/nationalities" element={<NationalitiesPage />} />
+              <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
               <Route path="/launch-plan" element={<LaunchPlan />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />

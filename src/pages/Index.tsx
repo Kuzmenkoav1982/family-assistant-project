@@ -3032,6 +3032,27 @@ export default function Index({ onLogout }: IndexProps) {
                     </div>
                   </CardContent>
                 </Card>
+                
+                <Card 
+                  className="mb-4 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50"
+                  onClick={() => navigate('/nationalities')}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <span className="text-3xl">🏛️</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-1 text-purple-900">Народы России</h3>
+                        <p className="text-sm text-purple-700">
+                          Познавательный раздел о культуре и традициях народов нашей страны
+                        </p>
+                      </div>
+                      <Icon name="ChevronRight" size={28} className="text-purple-600 flex-shrink-0" />
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <div className="flex justify-end mb-4">
                   <Button 
                     onClick={() => {
