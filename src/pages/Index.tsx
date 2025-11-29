@@ -61,7 +61,7 @@ import {
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { GoalsSection } from '@/components/GoalsSection';
-import { getTranslation, type LanguageCode } from '@/translations';
+import { getTranslation, languageOptions, type LanguageCode } from '@/translations';
 import { DEMO_FAMILY } from '@/data/demoFamily';
 import SettingsMenu from '@/components/SettingsMenu';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
@@ -207,6 +207,10 @@ export default function Index({ onLogout }: IndexProps) {
     return (saved as ThemeType) || 'middle';
   });
   const [showThemeSelector, setShowThemeSelector] = useState(false);
+  
+  const [appearanceMode, setAppearanceMode] = useState<'light' | 'dark' | 'system' | 'auto'>(() => {
+    return (localStorage.getItem('appearanceMode') as 'light' | 'dark' | 'system' | 'auto') || 'light';
+  });
   const [showWelcome, setShowWelcome] = useState(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     return !hasSeenWelcome;
@@ -328,6 +332,31 @@ export default function Index({ onLogout }: IndexProps) {
     setShowHints(false);
     localStorage.setItem('hasSeenHints', 'true');
   };
+
+  useEffect(() => {
+    localStorage.setItem('appearanceMode', appearanceMode);
+    
+    const applyTheme = (isDark: boolean) => {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    if (appearanceMode === 'dark') {
+      applyTheme(true);
+    } else if (appearanceMode === 'light') {
+      applyTheme(false);
+    } else if (appearanceMode === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark);
+    } else if (appearanceMode === 'auto') {
+      const hour = new Date().getHours();
+      const isDark = hour < 6 || hour >= 20;
+      applyTheme(isDark);
+    }
+  }, [appearanceMode]);
 
   const handleNextHint = () => {
     if (currentHintStep < hints.length - 1) {
@@ -516,6 +545,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'familySwitcher', icon: 'Users', label: 'Переключатель семьи' },
     { id: 'language', icon: 'Languages', label: 'Язык' },
     { id: 'style', icon: 'Palette', label: 'Стиль' },
+    { id: 'appearance', icon: 'Moon', label: 'Оформление' },
   ];
 
   const menuSections = availableSections.map(s => ({ ...s, ready: true }));
@@ -1430,6 +1460,19 @@ export default function Index({ onLogout }: IndexProps) {
                 </Button>
               )}
               
+              {topPanelSections.includes('appearance') && (
+                <Button
+                  onClick={() => setShowTopPanelSettings(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                  title="Настройки оформления"
+                >
+                  <Icon name="Moon" size={18} />
+                  <span className="text-sm hidden md:inline">Вид</span>
+                </Button>
+              )}
+              
               <Button
                 onClick={toggleAutoHide}
                 variant="ghost"
@@ -1449,16 +1492,8 @@ export default function Index({ onLogout }: IndexProps) {
                       {t('selectLanguage')}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {[
-                      { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-                      { code: 'en', name: 'English', flag: '🇬🇧' },
-                      { code: 'es', name: 'Español', flag: '🇪🇸' },
-                      { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-                      { code: 'fr', name: 'Français', flag: '🇫🇷' },
-                      { code: 'zh', name: '中文', flag: '🇨🇳' },
-                      { code: 'ar', name: 'العربية', flag: '🇸🇦' }
-                    ].map((lang) => (
+                  <CardContent className="space-y-2 max-h-[60vh] overflow-y-auto">
+                    {languageOptions.map((lang) => (
                       <button
                         key={lang.code}
                         onClick={() => handleLanguageChange(lang.code)}
@@ -3748,6 +3783,20 @@ export default function Index({ onLogout }: IndexProps) {
         availableSections={availableTopPanelSections}
         selectedSections={topPanelSections}
         onSectionsChange={handleTopPanelSectionsChange}
+        showLanguageSettings={true}
+        currentLanguage={currentLanguage}
+        languageOptions={languageOptions}
+        onLanguageChange={(code) => {
+          setCurrentLanguage(code as LanguageCode);
+          localStorage.setItem('familyOrganizerLanguage', code);
+          setShowLanguageSelector(false);
+        }}
+        showAppearanceSettings={true}
+        appearanceMode={appearanceMode}
+        onAppearanceModeChange={(mode) => {
+          setAppearanceMode(mode);
+          localStorage.setItem('appearanceMode', mode);
+        }}
       />
 
       <PanelSettings
