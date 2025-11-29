@@ -62,19 +62,21 @@ export function HealthSection({ child }: HealthSectionProps) {
   const medications = data?.health?.medications || [];
   const doctorVisits = data?.health?.doctorVisits || [];
   
-  const healthDocuments: MedicalDocument[] = (data?.health?.documents || []).map((doc: any) => ({
-    id: doc.id,
-    childId: doc.child_id,
-    documentType: doc.document_type,
-    fileUrl: doc.file_url,
-    fileType: doc.file_type,
-    originalFilename: doc.original_filename,
-    relatedId: doc.related_id,
-    relatedType: doc.related_type,
-    title: doc.title,
-    description: doc.description,
-    uploadedAt: doc.uploaded_at || doc.created_at
-  }));
+  const healthDocuments: MedicalDocument[] = Array.isArray(data?.health?.documents) 
+    ? data.health.documents.map((doc: any) => ({
+        id: doc.id,
+        childId: doc.child_id,
+        documentType: doc.document_type,
+        fileUrl: doc.file_url,
+        fileType: doc.file_type,
+        originalFilename: doc.original_filename,
+        relatedId: doc.related_id,
+        relatedType: doc.related_type,
+        title: doc.title,
+        description: doc.description,
+        uploadedAt: doc.uploaded_at || doc.created_at
+      }))
+    : [];
 
   const handleFileUpload = async (file: File, documentType: 'prescription' | 'analysis' | 'doctor_visit' | 'vaccination' | 'other', relatedId?: string) => {
     setUploadingFor(documentType);
