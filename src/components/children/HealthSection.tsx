@@ -424,10 +424,6 @@ export function HealthSection({ child }: HealthSectionProps) {
             ))
           )}
         </CardContent>
-              </Button>
-            </div>
-          ))}
-        </CardContent>
       </Card>
 
       <Card>
