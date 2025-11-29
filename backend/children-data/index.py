@@ -97,7 +97,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     cur.execute(f"""
                         SELECT * FROM {schema}.children_medication_intake 
                         WHERE medication_id = {med_id_safe} 
-                        AND scheduled_date >= CURRENT_DATE - INTERVAL '7 days'
+                        AND scheduled_date >= (CURRENT_DATE - 7)
                         ORDER BY scheduled_date DESC, scheduled_time DESC
                         LIMIT 100
                     """)
