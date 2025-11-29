@@ -43,11 +43,12 @@ export function useChildrenData(childId: string) {
       const token = getAuthToken();
       
       const response = await fetch(
-        `${CHILDREN_DATA_API}?child_id=${childId}&type=${type}`,
+        `${CHILDREN_DATA_API}?child_id=${childId}&type=${type}&_t=${Date.now()}`,
         {
           headers: {
             'X-Auth-Token': token,
           },
+          cache: 'no-store',
         }
       );
 
