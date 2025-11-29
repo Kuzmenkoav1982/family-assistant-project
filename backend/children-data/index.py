@@ -5,7 +5,8 @@ import psycopg2.extras
 from typing import Dict, Any
 from datetime import datetime
 
-# Force rebuild to clear cache
+# Version: 2025-11-30-01 - Fixed medication loading
+VERSION = "2025-11-30-01"
 
 def escape_sql_string(value: Any) -> str:
     '''Экранирование значений для Simple Query Protocol'''
@@ -28,6 +29,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context - object with attributes: request_id, function_name
     Returns: HTTP response dict
     '''
+    print(f"[VERSION] {VERSION} | Request ID: {context.request_id}")
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
@@ -88,12 +90,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(f"SELECT * FROM {schema}.children_doctor_visits WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 doctor_visits = [dict(row) for row in cur.fetchall()]
                 
+                print(f"[DEBUG] Loading medications for child {child_id}")
                 cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
                 medications = [dict(row) for row in cur.fetchall()]
+                print(f"[DEBUG] Found {len(medications)} medications")
                 
                 for med in medications:
                     med['schedule'] = []
                     med['intakes'] = []
+                print(f"[DEBUG] Medications loaded successfully")
                 
                 cur.execute(f"SELECT * FROM {schema}.children_medical_documents WHERE child_id = {child_id_safe} ORDER BY uploaded_at DESC")
                 documents = [dict(row) for row in cur.fetchall()]
