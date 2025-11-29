@@ -250,20 +250,20 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
         </TabsContent>
 
         <TabsContent value="health">
-          <HealthSection childId={child.id} />
+          <HealthSection child={child} />
         </TabsContent>
 
         <TabsContent value="development">
-          <DevelopmentSection childId={child.id} />
+          <DevelopmentSection child={child} />
         </TabsContent>
 
         <TabsContent value="school">
-          <SchoolSection childId={child.id} />
+          <SchoolSection child={child} />
         </TabsContent>
 
         <TabsContent value="other" className="space-y-6">
-          <GiftsSection childId={child.id} />
-          <PurchasesSection childId={child.id} />
+          <GiftsSection child={child} />
+          <PurchasesSection child={child} />
         </TabsContent>
       </Tabs>
     </div>

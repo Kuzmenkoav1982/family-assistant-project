@@ -57,7 +57,7 @@ export function useUploadMedicalFile() {
       
       setProgress(60);
 
-      const response = await fetch('/api/upload-medical-file', {
+      const response = await fetch('https://functions.poehali.dev/2db47477-9dfd-49f9-8f51-7ff388753d82', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

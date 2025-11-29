@@ -4,23 +4,9 @@
  * Returns: JSON с URL загруженного файла и ID документа
  */
 
-interface CloudFunctionEvent {
-  httpMethod: string;
-  headers: Record<string, string>;
-  queryStringParameters?: Record<string, string>;
-  body?: string;
-  isBase64Encoded: boolean;
-}
-
-interface CloudFunctionContext {
-  requestId: string;
-  functionName: string;
-  functionVersion: string;
-  memoryLimitInMB: number;
-}
-
-export const handler = async (event: CloudFunctionEvent, context: CloudFunctionContext): Promise<any> => {
-  const { httpMethod, body } = event;
+export async function handler(event, context) {
+  const httpMethod = event.httpMethod;
+  const body = event.body;
 
   if (httpMethod === 'OPTIONS') {
     return {
@@ -51,16 +37,22 @@ export const handler = async (event: CloudFunctionEvent, context: CloudFunctionC
   try {
     console.log('[MEDICAL-UPLOAD] Starting medical file upload');
     const data = JSON.parse(body || '{}');
-    const { file, filename, fileType, documentType, childId, relatedId, relatedType } = data;
+    const file = data.file;
+    const filename = data.filename;
+    const fileType = data.fileType;
+    const documentType = data.documentType;
+    const childId = data.childId;
+    const relatedId = data.relatedId;
+    const relatedType = data.relatedType;
 
     console.log('[MEDICAL-UPLOAD] File info:', {
-      filename,
-      fileType,
-      documentType,
-      childId,
-      relatedId,
-      relatedType,
-      fileLength: file?.length || 0
+      filename: filename,
+      fileType: fileType,
+      documentType: documentType,
+      childId: childId,
+      relatedId: relatedId,
+      relatedType: relatedType,
+      fileLength: file ? file.length : 0
     });
 
     if (!file || !filename || !documentType || !childId) {
@@ -127,21 +119,21 @@ export const handler = async (event: CloudFunctionEvent, context: CloudFunctionC
       body: JSON.stringify({
         success: true,
         url: fileUrl,
-        documentId,
+        documentId: documentId,
         filename: uniqueFilename,
         uploadedAt: new Date().toISOString(),
         metadata: {
-          childId,
-          documentType,
-          relatedId,
-          relatedType,
-          fileType,
+          childId: childId,
+          documentType: documentType,
+          relatedId: relatedId,
+          relatedType: relatedType,
+          fileType: fileType,
           originalFilename: filename
         }
       }),
       isBase64Encoded: false
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('[MEDICAL-UPLOAD ERROR]', error);
     return {
       statusCode: 500,
@@ -156,4 +148,4 @@ export const handler = async (event: CloudFunctionEvent, context: CloudFunctionC
       isBase64Encoded: false
     };
   }
-};
+}
