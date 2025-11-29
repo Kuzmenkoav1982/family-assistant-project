@@ -2178,7 +2178,6 @@ export default function Index({ onLogout }: IndexProps) {
           
           <p className="text-lg lg:text-xl text-gray-700 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
             {activeSection === 'tasks' && 'Управление задачами семьи'}
-            {activeSection === 'calendar' && 'Семейные события и планы'}
             {activeSection === 'family' && 'Просмотр и редактирование профилей всех членов семьи'}
             {activeSection === 'goals' && 'Долгосрочное планирование и контроль целей'}
             {activeSection === 'cohesion' && 'Анализ сплочённости и рейтинг семьи'}
@@ -3779,6 +3778,7 @@ export default function Index({ onLogout }: IndexProps) {
         availableSections={availableSections}
         selectedSections={bottomBarSections}
         onSectionsChange={handleBottomBarSectionsChange}
+        onKuzyaClick={() => setShowKuzyaDialog(true)}
       />
 
       <PanelSettings

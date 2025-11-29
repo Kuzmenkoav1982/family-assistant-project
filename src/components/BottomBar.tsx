@@ -16,6 +16,7 @@ interface BottomBarProps {
   availableSections: Array<{ id: string; label: string; icon: string }>;
   selectedSections: string[];
   onSectionsChange: (sections: string[]) => void;
+  onKuzyaClick?: () => void;
 }
 
 export default function BottomBar({
@@ -27,7 +28,8 @@ export default function BottomBar({
   onVisibilityChange,
   availableSections,
   selectedSections,
-  onSectionsChange
+  onSectionsChange,
+  onKuzyaClick
 }: BottomBarProps) {
   const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
@@ -105,6 +107,16 @@ export default function BottomBar({
               ))}
             </div>
 
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onKuzyaClick}
+              className="text-white hover:bg-white/20"
+              title="Помощь и поддержка"
+            >
+              <Icon name="MessageCircle" size={20} />
+            </Button>
+            
             <Button
               variant="ghost"
               size="sm"
