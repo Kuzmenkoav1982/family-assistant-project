@@ -90,6 +90,8 @@ export default function BottomBar({
                       navigate('/shopping');
                     } else if (section.id === 'meals') {
                       navigate('/meals');
+                    } else if (section.id === 'calendar') {
+                      navigate('/calendar');
                     } else {
                       onSectionChange(section.id);
                     }
