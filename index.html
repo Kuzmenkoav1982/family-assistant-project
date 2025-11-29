@@ -62,7 +62,15 @@
 <!-- /Yandex.Metrika counter -->
 
 <!-- Jivo Chat -->
-<script src="//code.jivo.ru/widget/dBxvRHiOdG" async></script>
+<script>
+  window.jivo_onLoadCallback = function(){
+    jivo_api.setContactInfo({ 
+      name: "Гость",
+      description: "Посетитель сайта"
+    });
+  };
+</script>
+<script src="//code.jivo.ru/widget/kMoMrH0Kye" async></script>
 <!-- /Jivo Chat -->
 </body>
 </html>
