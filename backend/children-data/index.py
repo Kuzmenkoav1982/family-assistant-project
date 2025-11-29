@@ -5,6 +5,20 @@ import psycopg2.extras
 from typing import Dict, Any
 from datetime import datetime
 
+def escape_sql_string(value: Any) -> str:
+    '''Экранирование значений для Simple Query Protocol'''
+    if value is None:
+        return 'NULL'
+    if isinstance(value, bool):
+        return 'TRUE' if value else 'FALSE'
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, str):
+        return "'" + value.replace("'", "''") + "'"
+    if isinstance(value, datetime):
+        return "'" + value.isoformat() + "'"
+    return "'" + str(value).replace("'", "''") + "'"
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Управление данными детских профилей (здоровье, развитие, школа, подарки)
@@ -57,21 +71,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             schema = 't_p5815085_family_assistant_pro'
             child_data = {}
+            child_id_safe = escape_sql_string(child_id)
             
             if data_type in ['all', 'health']:
-                cur.execute(f"SELECT * FROM {schema}.children_vaccinations WHERE member_id = %s ORDER BY date DESC", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_vaccinations WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 vaccinations = [dict(row) for row in cur.fetchall()]
                 
-                cur.execute(f"SELECT * FROM {schema}.children_prescriptions WHERE member_id = %s ORDER BY date DESC", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_prescriptions WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 prescriptions = [dict(row) for row in cur.fetchall()]
                 
-                cur.execute(f"SELECT * FROM {schema}.children_analyses WHERE member_id = %s ORDER BY date DESC", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_analyses WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 analyses = [dict(row) for row in cur.fetchall()]
                 
-                cur.execute(f"SELECT * FROM {schema}.children_doctor_visits WHERE member_id = %s ORDER BY date DESC", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_doctor_visits WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 doctor_visits = [dict(row) for row in cur.fetchall()]
                 
-                cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = %s", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
                 medications = [dict(row) for row in cur.fetchall()]
                 
                 child_data['health'] = {
@@ -83,63 +98,40 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             if data_type in ['all', 'purchases']:
-                cur.execute(f"""
-                    SELECT pp.*, json_agg(
-                        json_build_object(
-                            'id', pi.id,
-                            'name', pi.name,
-                            'priority', pi.priority,
-                            'estimated_cost', pi.estimated_cost,
-                            'purchased', pi.purchased,
-                            'notes', pi.notes
-                        )
-                    ) as items
-                    FROM {schema}.children_purchase_plans pp
-                    LEFT JOIN {schema}.children_purchase_items pi ON pp.id = pi.plan_id
-                    WHERE pp.member_id = %s
-                    GROUP BY pp.id
-                    ORDER BY pp.created_at DESC
-                """, (child_id,))
-                child_data['purchases'] = [dict(row) for row in cur.fetchall()]
+                cur.execute(f"SELECT * FROM {schema}.children_purchase_plans WHERE member_id = {child_id_safe} ORDER BY created_at DESC")
+                purchase_plans = [dict(row) for row in cur.fetchall()]
+                
+                for plan in purchase_plans:
+                    plan_id_safe = escape_sql_string(plan['id'])
+                    cur.execute(f"SELECT * FROM {schema}.children_purchase_items WHERE plan_id = {plan_id_safe}")
+                    plan['items'] = [dict(row) for row in cur.fetchall()]
+                
+                child_data['purchases'] = purchase_plans
             
             if data_type in ['all', 'gifts']:
-                cur.execute(f"SELECT * FROM {schema}.children_gifts WHERE member_id = %s ORDER BY date", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_gifts WHERE member_id = {child_id_safe} ORDER BY date")
                 child_data['gifts'] = [dict(row) for row in cur.fetchall()]
             
             if data_type in ['all', 'development']:
-                cur.execute(f"""
-                    SELECT cd.*, json_agg(
-                        json_build_object(
-                            'id', ca.id,
-                            'type', ca.type,
-                            'name', ca.name,
-                            'schedule', ca.schedule,
-                            'cost', ca.cost,
-                            'status', ca.status
-                        )
-                    ) FILTER (WHERE ca.id IS NOT NULL) as activities,
-                    json_agg(
-                        json_build_object(
-                            'id', ct.id,
-                            'name', ct.name,
-                            'date', ct.date,
-                            'score', ct.score
-                        )
-                    ) FILTER (WHERE ct.id IS NOT NULL) as tests
-                    FROM {schema}.children_development cd
-                    LEFT JOIN {schema}.children_activities ca ON cd.id = ca.development_id
-                    LEFT JOIN {schema}.children_tests ct ON cd.id = ct.development_id
-                    WHERE cd.member_id = %s
-                    GROUP BY cd.id
-                """, (child_id,))
-                child_data['development'] = [dict(row) for row in cur.fetchall()]
+                cur.execute(f"SELECT * FROM {schema}.children_development WHERE member_id = {child_id_safe}")
+                development_rows = [dict(row) for row in cur.fetchall()]
+                
+                for dev in development_rows:
+                    dev_id_safe = escape_sql_string(dev['id'])
+                    cur.execute(f"SELECT * FROM {schema}.children_activities WHERE development_id = {dev_id_safe}")
+                    dev['activities'] = [dict(row) for row in cur.fetchall()]
+                    
+                    cur.execute(f"SELECT * FROM {schema}.children_tests WHERE development_id = {dev_id_safe}")
+                    dev['tests'] = [dict(row) for row in cur.fetchall()]
+                
+                child_data['development'] = development_rows
             
             if data_type in ['all', 'school']:
-                cur.execute(f"SELECT * FROM {schema}.children_school WHERE member_id = %s LIMIT 1", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_school WHERE member_id = {child_id_safe} LIMIT 1")
                 school_row = cur.fetchone()
                 
                 if school_row:
-                    cur.execute(f"SELECT * FROM {schema}.children_grades WHERE member_id = %s ORDER BY date DESC LIMIT 50", (child_id,))
+                    cur.execute(f"SELECT * FROM {schema}.children_grades WHERE member_id = {child_id_safe} ORDER BY date DESC LIMIT 50")
                     grades = [dict(row) for row in cur.fetchall()]
                     
                     school_data = dict(school_row)
@@ -154,30 +146,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
             
             if data_type in ['all', 'dreams']:
-                cur.execute(f"SELECT * FROM {schema}.children_dreams WHERE member_id = %s ORDER BY created_date DESC", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_dreams WHERE member_id = {child_id_safe} ORDER BY created_date DESC")
                 child_data['dreams'] = [dict(row) for row in cur.fetchall()]
             
             if data_type in ['all', 'diary']:
-                cur.execute(f"SELECT * FROM {schema}.children_diary WHERE member_id = %s ORDER BY date DESC LIMIT 50", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_diary WHERE member_id = {child_id_safe} ORDER BY date DESC LIMIT 50")
                 child_data['diary'] = [dict(row) for row in cur.fetchall()]
             
             if data_type in ['all', 'piggyBank']:
-                cur.execute(f"SELECT * FROM {schema}.children_piggybank WHERE member_id = %s LIMIT 1", (child_id,))
+                cur.execute(f"SELECT * FROM {schema}.children_piggybank WHERE member_id = {child_id_safe} LIMIT 1")
                 piggy_row = cur.fetchone()
                 
                 if piggy_row:
-                    cur.execute(f"SELECT * FROM {schema}.children_transactions WHERE piggybank_id = %s ORDER BY date DESC LIMIT 100", (piggy_row['id'],))
+                    piggy_id_safe = escape_sql_string(piggy_row['id'])
+                    cur.execute(f"SELECT * FROM {schema}.children_transactions WHERE piggybank_id = {piggy_id_safe} ORDER BY date DESC LIMIT 100")
                     transactions = [dict(row) for row in cur.fetchall()]
                     
                     piggy_data = dict(piggy_row)
                     piggy_data['transactions'] = transactions
                     child_data['piggyBank'] = piggy_data
                 else:
-                    cur.execute(f"INSERT INTO {schema}.children_piggybank (member_id, balance) VALUES (%s, 0) RETURNING *", (child_id,))
-                    conn.commit()
-                    new_piggy = dict(cur.fetchone())
-                    new_piggy['transactions'] = []
-                    child_data['piggyBank'] = new_piggy
+                    child_data['piggyBank'] = {
+                        'id': None,
+                        'balance': 0,
+                        'transactions': []
+                    }
             
             cur.close()
             conn.close()
@@ -218,36 +211,53 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             schema = 't_p5815085_family_assistant_pro'
             
+            child_id_safe = escape_sql_string(child_id)
+            
             if action == 'add':
                 if data_type == 'vaccination':
                     cur.execute(f"""
                         INSERT INTO {schema}.children_vaccinations (member_id, family_id, date, vaccine, notes)
-                        VALUES (%s, %s, %s, %s, %s) RETURNING id
-                    """, (child_id, data.get('family_id', ''), data.get('date'), data.get('vaccine'), data.get('notes', '')))
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('date'))}, {escape_sql_string(data.get('vaccine'))}, 
+                                {escape_sql_string(data.get('notes', ''))}) 
+                        RETURNING id
+                    """)
                     result_id = cur.fetchone()['id']
                     conn.commit()
                     
                 elif data_type == 'doctor_visit':
                     cur.execute(f"""
                         INSERT INTO {schema}.children_doctor_visits (member_id, family_id, date, doctor, specialty, status, notes)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
-                    """, (child_id, data.get('family_id', ''), data.get('date'), data.get('doctor'), data.get('specialty'), data.get('status', 'planned'), data.get('notes', '')))
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('date'))}, {escape_sql_string(data.get('doctor'))}, 
+                                {escape_sql_string(data.get('specialty'))}, {escape_sql_string(data.get('status', 'planned'))}, 
+                                {escape_sql_string(data.get('notes', ''))}) 
+                        RETURNING id
+                    """)
                     result_id = cur.fetchone()['id']
                     conn.commit()
                     
                 elif data_type == 'gift':
                     cur.execute(f"""
                         INSERT INTO {schema}.children_gifts (member_id, family_id, event, date, gift, given, notes)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
-                    """, (child_id, data.get('family_id', ''), data.get('event'), data.get('date'), data.get('gift'), data.get('given', False), data.get('notes', '')))
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('event'))}, {escape_sql_string(data.get('date'))}, 
+                                {escape_sql_string(data.get('gift'))}, {escape_sql_string(data.get('given', False))}, 
+                                {escape_sql_string(data.get('notes', ''))}) 
+                        RETURNING id
+                    """)
                     result_id = cur.fetchone()['id']
                     conn.commit()
                     
                 elif data_type == 'dream':
                     cur.execute(f"""
                         INSERT INTO {schema}.children_dreams (member_id, family_id, title, description, created_date, achieved)
-                        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
-                    """, (child_id, data.get('family_id', ''), data.get('title'), data.get('description', ''), data.get('created_date', datetime.now().date()), data.get('achieved', False)))
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('title'))}, {escape_sql_string(data.get('description', ''))}, 
+                                {escape_sql_string(data.get('created_date', datetime.now().date()))}, 
+                                {escape_sql_string(data.get('achieved', False))}) 
+                        RETURNING id
+                    """)
                     result_id = cur.fetchone()['id']
                     conn.commit()
                     
@@ -259,38 +269,69 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             'body': json.dumps({'success': False, 'error': 'DATABASE_URL не настроен'})
                         }
                     
-                    insert_query = f'''
+                    cur.execute(f'''
                         INSERT INTO {schema}.children_medical_documents 
                         (id, child_id, family_id, document_type, file_url, file_type, 
                          original_filename, file_size, related_id, related_type, 
                          title, description, uploaded_by, uploaded_at)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    '''
-                    
-                    values = (
-                        data.get('id'),
-                        child_id,
-                        data.get('family_id', ''),
-                        data.get('document_type'),
-                        data.get('file_url'),
-                        data.get('file_type'),
-                        data.get('original_filename'),
-                        data.get('file_size', 0),
-                        data.get('related_id'),
-                        data.get('related_type'),
-                        data.get('title'),
-                        data.get('description'),
-                        data.get('uploaded_by', ''),
-                        data.get('uploaded_at', datetime.now().isoformat())
-                    )
-                    
-                    cur.execute(insert_query, values)
+                        VALUES ({escape_sql_string(data.get('id'))}, {child_id_safe}, 
+                                {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('document_type'))}, 
+                                {escape_sql_string(data.get('file_url'))}, 
+                                {escape_sql_string(data.get('file_type'))}, 
+                                {escape_sql_string(data.get('original_filename'))}, 
+                                {escape_sql_string(data.get('file_size', 0))}, 
+                                {escape_sql_string(data.get('related_id'))}, 
+                                {escape_sql_string(data.get('related_type'))}, 
+                                {escape_sql_string(data.get('title'))}, 
+                                {escape_sql_string(data.get('description'))}, 
+                                {escape_sql_string(data.get('uploaded_by', ''))}, 
+                                {escape_sql_string(data.get('uploaded_at', datetime.now().isoformat()))})
+                    ''')
                     conn.commit()
                     result_id = data.get('id')
-                
+                    
+                elif data_type == 'grade':
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_grades (member_id, subject, grade, date, notes)
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('subject'))}, 
+                                {escape_sql_string(data.get('grade'))}, {escape_sql_string(data.get('date'))}, 
+                                {escape_sql_string(data.get('notes', ''))}) 
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
+                elif data_type == 'diary':
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_diary (member_id, family_id, date, entry)
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('date'))}, {escape_sql_string(data.get('entry'))}) 
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
+                elif data_type == 'transaction':
+                    piggybank_id = data.get('piggybank_id')
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_transactions 
+                        (piggybank_id, amount, type, description, date)
+                        VALUES ({escape_sql_string(piggybank_id)}, {escape_sql_string(data.get('amount'))}, 
+                                {escape_sql_string(data.get('type'))}, {escape_sql_string(data.get('description', ''))}, 
+                                {escape_sql_string(data.get('date', datetime.now().date()))}) 
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    
+                    cur.execute(f"""
+                        UPDATE {schema}.children_piggybank 
+                        SET balance = balance + {escape_sql_string(data.get('amount'))}
+                        WHERE id = {escape_sql_string(piggybank_id)}
+                    """)
+                    conn.commit()
+                    
                 else:
-                    cur.close()
-                    conn.close()
                     return {
                         'statusCode': 400,
                         'headers': headers,
@@ -303,78 +344,85 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 200,
                     'headers': headers,
-                    'body': json.dumps({'success': True, 'message': f'{data_type} добавлено', 'id': result_id}, default=str)
+                    'body': json.dumps({'success': True, 'id': result_id})
                 }
-            
+                
             elif action == 'update':
-                item_id = body.get('item_id')
-                if not item_id:
+                record_id = data.get('id')
+                if not record_id:
                     return {
                         'statusCode': 400,
                         'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Не указан item_id'})
+                        'body': json.dumps({'success': False, 'error': 'Не указан id записи'})
                     }
+                
+                record_id_safe = escape_sql_string(record_id)
                 
                 if data_type == 'vaccination':
                     cur.execute(f"""
-                        UPDATE {schema}.children_vaccinations
-                        SET date = %s, vaccine = %s, notes = %s
-                        WHERE id = %s AND member_id = %s
-                    """, (data.get('date'), data.get('vaccine'), data.get('notes', ''), item_id, child_id))
-                    conn.commit()
+                        UPDATE {schema}.children_vaccinations 
+                        SET date = {escape_sql_string(data.get('date'))}, 
+                            vaccine = {escape_sql_string(data.get('vaccine'))}, 
+                            notes = {escape_sql_string(data.get('notes', ''))}
+                        WHERE id = {record_id_safe}
+                    """)
+                    
+                elif data_type == 'doctor_visit':
+                    cur.execute(f"""
+                        UPDATE {schema}.children_doctor_visits 
+                        SET date = {escape_sql_string(data.get('date'))}, 
+                            doctor = {escape_sql_string(data.get('doctor'))}, 
+                            specialty = {escape_sql_string(data.get('specialty'))},
+                            status = {escape_sql_string(data.get('status'))},
+                            notes = {escape_sql_string(data.get('notes', ''))}
+                        WHERE id = {record_id_safe}
+                    """)
                     
                 elif data_type == 'gift':
                     cur.execute(f"""
-                        UPDATE {schema}.children_gifts
-                        SET event = %s, date = %s, gift = %s, given = %s, notes = %s
-                        WHERE id = %s AND member_id = %s
-                    """, (data.get('event'), data.get('date'), data.get('gift'), data.get('given', False), data.get('notes', ''), item_id, child_id))
-                    conn.commit()
+                        UPDATE {schema}.children_gifts 
+                        SET event = {escape_sql_string(data.get('event'))}, 
+                            date = {escape_sql_string(data.get('date'))}, 
+                            gift = {escape_sql_string(data.get('gift'))},
+                            given = {escape_sql_string(data.get('given'))},
+                            notes = {escape_sql_string(data.get('notes', ''))}
+                        WHERE id = {record_id_safe}
+                    """)
                     
                 elif data_type == 'dream':
                     cur.execute(f"""
-                        UPDATE {schema}.children_dreams
-                        SET title = %s, description = %s, achieved = %s
-                        WHERE id = %s AND member_id = %s
-                    """, (data.get('title'), data.get('description', ''), data.get('achieved', False), item_id, child_id))
-                    conn.commit()
-                
-                cur.close()
-                conn.close()
-                
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps({'success': True, 'message': f'{data_type} обновлено'})
-                }
-            
-            elif action == 'delete':
-                item_id = body.get('item_id')
-                if not item_id:
+                        UPDATE {schema}.children_dreams 
+                        SET title = {escape_sql_string(data.get('title'))}, 
+                            description = {escape_sql_string(data.get('description', ''))},
+                            achieved = {escape_sql_string(data.get('achieved', False))}
+                        WHERE id = {record_id_safe}
+                    """)
+                    
+                elif data_type == 'grade':
+                    cur.execute(f"""
+                        UPDATE {schema}.children_grades 
+                        SET subject = {escape_sql_string(data.get('subject'))}, 
+                            grade = {escape_sql_string(data.get('grade'))},
+                            date = {escape_sql_string(data.get('date'))},
+                            notes = {escape_sql_string(data.get('notes', ''))}
+                        WHERE id = {record_id_safe}
+                    """)
+                    
+                elif data_type == 'diary':
+                    cur.execute(f"""
+                        UPDATE {schema}.children_diary 
+                        SET date = {escape_sql_string(data.get('date'))}, 
+                            entry = {escape_sql_string(data.get('entry'))}
+                        WHERE id = {record_id_safe}
+                    """)
+                    
+                else:
                     return {
                         'statusCode': 400,
                         'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Не указан item_id'})
+                        'body': json.dumps({'success': False, 'error': f'Неизвестный тип данных: {data_type}'})
                     }
                 
-                table_mapping = {
-                    'vaccination': 'children_vaccinations',
-                    'doctor_visit': 'children_doctor_visits',
-                    'gift': 'children_gifts',
-                    'dream': 'children_dreams',
-                    'prescription': 'children_prescriptions',
-                    'analysis': 'children_analyses'
-                }
-                
-                table = table_mapping.get(data_type)
-                if not table:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps({'success': False, 'error': f'Неизвестный тип: {data_type}'})
-                    }
-                
-                cur.execute(f"DELETE FROM {schema}.{table} WHERE id = %s AND member_id = %s", (item_id, child_id))
                 conn.commit()
                 cur.close()
                 conn.close()
@@ -382,9 +430,54 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 200,
                     'headers': headers,
-                    'body': json.dumps({'success': True, 'message': f'{data_type} удалено'})
+                    'body': json.dumps({'success': True})
+                }
+                
+            elif action == 'delete':
+                record_id = data.get('id')
+                if not record_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'success': False, 'error': 'Не указан id записи'})
+                    }
+                
+                record_id_safe = escape_sql_string(record_id)
+                
+                table_map = {
+                    'vaccination': 'children_vaccinations',
+                    'doctor_visit': 'children_doctor_visits',
+                    'gift': 'children_gifts',
+                    'dream': 'children_dreams',
+                    'grade': 'children_grades',
+                    'diary': 'children_diary'
+                }
+                
+                if data_type not in table_map:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'success': False, 'error': f'Неизвестный тип данных: {data_type}'})
+                    }
+                
+                cur.execute(f"DELETE FROM {schema}.{table_map[data_type]} WHERE id = {record_id_safe}")
+                conn.commit()
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True})
                 }
             
+            else:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({'success': False, 'error': f'Неизвестное действие: {action}'})
+                }
+                
         except Exception as e:
             return {
                 'statusCode': 500,

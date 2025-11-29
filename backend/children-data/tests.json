@@ -60,7 +60,7 @@
       "expectedStatus": 200,
       "expectedBody": {
         "success": true,
-        "message": "string"
+        "id": "number"
       },
       "bodyMatcher": "partial"
     },
@@ -87,7 +87,7 @@
       "expectedStatus": 200,
       "expectedBody": {
         "success": true,
-        "message": "string"
+        "id": "number"
       },
       "bodyMatcher": "partial"
     },
@@ -112,7 +112,7 @@
       "expectedStatus": 200,
       "expectedBody": {
         "success": true,
-        "message": "string"
+        "id": "number"
       },
       "bodyMatcher": "partial"
     },
