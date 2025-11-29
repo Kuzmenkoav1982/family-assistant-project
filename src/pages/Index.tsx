@@ -75,7 +75,7 @@ import StatsCounter from '@/components/StatsCounter';
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
-import KuzyaFloatingButton from '@/components/KuzyaFloatingButton';
+
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 
@@ -1692,6 +1692,8 @@ export default function Index({ onLogout }: IndexProps) {
                     navigate('/meals');
                   } else if (section.id === 'shopping') {
                     navigate('/shopping');
+                  } else if (section.id === 'calendar') {
+                    navigate('/calendar');
                   } else {
                     setActiveSection(section.id);
                   }
@@ -3628,7 +3630,12 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
 
           <div className="space-y-6">
-            <Card key="sidebar-weekly-calendar" className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50" style={{ animationDelay: '0.5s' }}>
+            <Card 
+              key="sidebar-weekly-calendar" 
+              className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 cursor-pointer hover:shadow-lg transition-all" 
+              style={{ animationDelay: '0.5s' }}
+              onClick={() => navigate('/calendar')}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Calendar" size={24} />
@@ -3637,15 +3644,15 @@ export default function Index({ onLogout }: IndexProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {getWeekDays().map((day, index) => {
+                  {getWeekDays().slice(0, 3).map((day, index) => {
                     const dayEvents = calendarEvents.filter(event => event.date === day.fullDate);
                     return (
                       <div
                         key={day.fullDate}
-                        className={`p-3 rounded-lg border-2 transition-all hover:shadow-md ${
+                        className={`p-3 rounded-lg border-2 transition-all ${
                           index === 0 
                             ? 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300' 
-                            : 'bg-white border-gray-200 hover:border-purple-300'
+                            : 'bg-white border-gray-200'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
@@ -3661,19 +3668,19 @@ export default function Index({ onLogout }: IndexProps) {
                           </div>
                           {dayEvents.length > 0 && (
                             <Badge variant="secondary" className="text-xs">
-                              {dayEvents.length} событий
+                              {dayEvents.length}
                             </Badge>
                           )}
                         </div>
                         {dayEvents.length > 0 && (
                           <div className="space-y-1 mt-2">
-                            {dayEvents.map((event) => (
+                            {dayEvents.slice(0, 2).map((event) => (
                               <div key={event.id} className={`text-xs p-2 rounded ${event.color} border`}>
                                 <div className="flex items-center gap-1">
                                   <Icon name="Clock" size={12} />
                                   <span className="font-semibold">{event.time}</span>
                                 </div>
-                                <p className="font-medium mt-1">{event.title}</p>
+                                <p className="font-medium mt-1 truncate">{event.title}</p>
                               </div>
                             ))}
                           </div>
@@ -3682,6 +3689,9 @@ export default function Index({ onLogout }: IndexProps) {
                     );
                   })}
                 </div>
+                <Button variant="ghost" size="sm" className="w-full mt-3 text-purple-600">
+                  Открыть полный календарь →
+                </Button>
               </CardContent>
             </Card>
 

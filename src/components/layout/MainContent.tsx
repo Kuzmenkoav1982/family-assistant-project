@@ -49,7 +49,6 @@ export default function MainContent({
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'tasks':
-      case 'calendar':
       case 'family':
       case 'children':
       case 'chat':
