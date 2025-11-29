@@ -17,9 +17,10 @@ export default function Children() {
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
 
-  const children = members?.filter(m => m.role === 'Сын' || m.role === 'Дочь') || [];
+  const children = members?.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') || [];
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isParent = currentUser?.role === 'Родитель' || currentUser?.role === 'Отец' || currentUser?.role === 'Мать';
+  const currentMember = members?.find(m => m.user_id === currentUser?.id);
+  const isParent = currentMember?.role === 'Папа' || currentMember?.role === 'Мама' || currentMember?.role === 'Владелец' || currentUser?.role === 'Родитель';
 
   useEffect(() => {
     const childId = searchParams.get('childId');
