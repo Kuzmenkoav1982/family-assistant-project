@@ -2,19 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useChildrenData } from '@/hooks/useChildrenData';
 import type { FamilyMember } from '@/types/family.types';
 
 export function SchoolSection({ child }: { child: FamilyMember }) {
-  const grades = [
-    { subject: 'Математика', grade: 5, trend: 'up' },
-    { subject: 'Русский язык', grade: 4, trend: 'stable' },
-    { subject: 'Литература', grade: 5, trend: 'up' },
-    { subject: 'Английский', grade: 4, trend: 'down' },
-    { subject: 'История', grade: 5, trend: 'up' },
-    { subject: 'Физкультура', grade: 5, trend: 'stable' }
-  ];
+  const { data, loading } = useChildrenData(child.id);
+  
+  const grades = data?.school?.grades || [];
+  const schoolInfo = data?.school || { current_grade: '', mesh_integration: false };
 
-  const averageGrade = (grades.reduce((sum, g) => sum + g.grade, 0) / grades.length).toFixed(1);
+  const averageGrade = grades.length > 0 
+    ? (grades.reduce((sum: number, g: any) => sum + (g.grade || 0), 0) / grades.length).toFixed(1)
+    : '0.0';
 
   return (
     <div className="space-y-6">
@@ -42,36 +41,30 @@ export function SchoolSection({ child }: { child: FamilyMember }) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3">
-            {grades.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-xl font-bold text-blue-600">{item.grade}</span>
-                  </div>
-                  <span className="font-medium">{item.subject}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {item.trend === 'up' && (
-                    <Badge className="bg-green-100 text-green-700">
-                      <Icon name="TrendingUp" size={14} className="mr-1" />
-                      Растёт
-                    </Badge>
-                  )}
-                  {item.trend === 'down' && (
-                    <Badge className="bg-red-100 text-red-700">
-                      <Icon name="TrendingDown" size={14} className="mr-1" />
-                      Снижается
-                    </Badge>
-                  )}
-                  {item.trend === 'stable' && (
-                    <Badge variant="outline">
-                      <Icon name="Minus" size={14} className="mr-1" />
-                      Стабильно
-                    </Badge>
-                  )}
-                </div>
+            {loading ? (
+              <div className="text-center py-4 text-gray-500">Загрузка...</div>
+            ) : grades.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                <p>Оценок пока нет</p>
+                <p className="text-sm">Подключите электронный дневник или добавьте оценки вручную</p>
               </div>
-            ))}
+            ) : (
+              grades.map((item: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-xl font-bold text-blue-600">{item.grade}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">{item.subject}</span>
+                      {item.date && (
+                        <p className="text-xs text-gray-500">{item.date}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

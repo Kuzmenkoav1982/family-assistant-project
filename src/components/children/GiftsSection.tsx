@@ -1,18 +1,61 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import { useChildrenData } from '@/hooks/useChildrenData';
 import type { FamilyMember } from '@/types/family.types';
 
 export function GiftsSection({ child }: { child: FamilyMember }) {
-  const gifts = [
-    { event: 'День рождения', date: '2025-03-15', gift: 'Велосипед', given: false, notes: 'Хочет синий' },
-    { event: 'Новый год', date: '2025-01-01', gift: 'Конструктор LEGO', given: true, notes: '' },
-    { event: '8 марта', date: '2025-03-08', gift: 'Набор для рисования', given: false, notes: '' }
-  ];
+  const { data, loading, addItem, updateItem, deleteItem } = useChildrenData(child.id);
+  const [newGiftDialog, setNewGiftDialog] = useState(false);
+  const [newGiftData, setNewGiftData] = useState({ event: '', date: '', gift: '', notes: '' });
+  
+  const gifts = data?.gifts || [];
+  const upcomingGifts = gifts.filter((g: any) => !g.given && new Date(g.date) > new Date());
+  const givenGifts = gifts.filter((g: any) => g.given);
+  
+  const handleAddGift = async () => {
+    if (!newGiftData.event || !newGiftData.date || !newGiftData.gift) {
+      alert('Заполните обязательные поля');
+      return;
+    }
 
-  const upcomingGifts = gifts.filter(g => !g.given && new Date(g.date) > new Date());
-  const givenGifts = gifts.filter(g => g.given);
+    const result = await addItem('gift', {
+      event: newGiftData.event,
+      date: newGiftData.date,
+      gift: newGiftData.gift,
+      notes: newGiftData.notes,
+      given: false,
+      family_id: localStorage.getItem('familyId') || '',
+    });
+
+    if (result.success) {
+      setNewGiftDialog(false);
+      setNewGiftData({ event: '', date: '', gift: '', notes: '' });
+    } else {
+      alert(result.error || 'Ошибка добавления');
+    }
+  };
+  
+  const handleMarkAsGiven = async (giftId: string) => {
+    const result = await updateItem('gift', giftId, { given: true });
+    if (!result.success) {
+      alert(result.error || 'Ошибка обновления');
+    }
+  };
+  
+  const handleDeleteGift = async (giftId: string) => {
+    if (!confirm('Удалить этот подарок?')) return;
+    
+    const result = await deleteItem('gift', giftId);
+    if (!result.success) {
+      alert(result.error || 'Ошибка удаления');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -23,16 +66,62 @@ export function GiftsSection({ child }: { child: FamilyMember }) {
               <Icon name="Gift" size={24} />
               Предстоящие подарки
             </CardTitle>
-            <Button className="gap-2 bg-gradient-to-r from-pink-600 to-purple-600">
-              <Icon name="Plus" size={16} />
-              Добавить подарок
-            </Button>
+            <Dialog open={newGiftDialog} onOpenChange={setNewGiftDialog}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 bg-gradient-to-r from-pink-600 to-purple-600">
+                  <Icon name="Plus" size={16} />
+                  Добавить подарок
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Добавить подарок</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Событие *</label>
+                    <Input 
+                      placeholder="Например: День рождения" 
+                      value={newGiftData.event}
+                      onChange={(e) => setNewGiftData(prev => ({ ...prev, event: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Дата *</label>
+                    <Input 
+                      type="date" 
+                      value={newGiftData.date}
+                      onChange={(e) => setNewGiftData(prev => ({ ...prev, date: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Подарок *</label>
+                    <Input 
+                      placeholder="Например: Велосипед" 
+                      value={newGiftData.gift}
+                      onChange={(e) => setNewGiftData(prev => ({ ...prev, gift: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Примечания</label>
+                    <Textarea 
+                      placeholder="Дополнительная информация..." 
+                      value={newGiftData.notes}
+                      onChange={(e) => setNewGiftData(prev => ({ ...prev, notes: e.target.value }))}
+                    />
+                  </div>
+                  <Button className="w-full" onClick={handleAddGift}>Сохранить</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {upcomingGifts.length > 0 ? (
-            upcomingGifts.map((gift, idx) => (
-              <div key={idx} className="flex items-start gap-4 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+          {loading ? (
+            <div className="text-center py-4 text-gray-500">Загрузка...</div>
+          ) : upcomingGifts.length > 0 ? (
+            upcomingGifts.map((gift: any) => (
+              <div key={gift.id} className="flex items-start gap-4 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
                 <div className="text-4xl">🎁</div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-2">
@@ -49,13 +138,21 @@ export function GiftsSection({ child }: { child: FamilyMember }) {
                     )}
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" className="gap-1">
-                      <Icon name="Edit" size={14} />
-                      Изменить
-                    </Button>
-                    <Button size="sm" className="gap-1 bg-green-600 hover:bg-green-700">
+                    <Button 
+                      size="sm" 
+                      className="gap-1 bg-green-600 hover:bg-green-700"
+                      onClick={() => handleMarkAsGiven(gift.id)}
+                    >
                       <Icon name="Check" size={14} />
                       Подарен
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDeleteGift(gift.id)}
+                    >
+                      <Icon name="Trash2" size={14} />
                     </Button>
                   </div>
                 </div>

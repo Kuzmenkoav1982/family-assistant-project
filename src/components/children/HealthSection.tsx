@@ -43,55 +43,24 @@ interface DoctorVisit {
 }
 
 export function HealthSection({ child }: HealthSectionProps) {
-  const { data, loading } = useChildrenData(child.id);
+  const { data, loading, addItem, updateItem, deleteItem } = useChildrenData(child.id);
   const { uploadFile, uploading, progress } = useUploadMedicalFile();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [documents, setDocuments] = useState<MedicalDocument[]>([]);
   
-  const [vaccinations, setVaccinations] = useState<Vaccination[]>([
-    { id: '1', name: 'Корь, краснуха, паротит', date: '2023-05-15', nextDate: '2024-05-15', completed: true },
-    { id: '2', name: 'АДСМ (дифтерия, столбняк)', date: '2023-08-20', nextDate: '2024-08-20', completed: true },
-    { id: '3', name: 'Грипп', date: '2024-10-01', completed: false },
-  ]);
-
-  const [medications, setMedications] = useState<Medication[]>([
-    {
-      id: '1',
-      name: 'Амоксициллин',
-      startDate: '2024-11-25',
-      endDate: '2024-12-05',
-      schedule: '3 раза в день',
-      howToTake: 'После еды, запивать водой',
-      doses: [
-        { date: '2024-11-25', time: '08:00', taken: true },
-        { date: '2024-11-25', time: '14:00', taken: true },
-        { date: '2024-11-25', time: '20:00', taken: false },
-      ],
-    },
-  ]);
-
-  const [doctorVisits, setDoctorVisits] = useState<DoctorVisit[]>([
-    {
-      id: '1',
-      doctor: 'Иванова А.П.',
-      specialty: 'Педиатр',
-      date: '2024-03-15',
-      nextVisit: '2024-09-15',
-      notes: 'Плановый осмотр, все в норме',
-    },
-    {
-      id: '2',
-      doctor: 'Петров С.И.',
-      specialty: 'Окулист',
-      date: '2024-01-20',
-      nextVisit: '2024-12-15',
-      notes: 'Зрение -0.5, рекомендованы упражнения',
-    },
-  ]);
+  const [newVaccinationDialog, setNewVaccinationDialog] = useState(false);
+  const [newVaccinationData, setNewVaccinationData] = useState({ vaccine: '', date: '', notes: '' });
+  
+  const [newDoctorVisitDialog, setNewDoctorVisitDialog] = useState(false);
+  const [newDoctorVisitData, setNewDoctorVisitData] = useState({ doctor: '', specialty: '', date: '', status: 'planned', notes: '' });
 
   const [newMedicationDialog, setNewMedicationDialog] = useState(false);
   const [viewDocumentsDialog, setViewDocumentsDialog] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<MedicalDocument[]>([]);
+  
+  const vaccinations = data?.health?.vaccinations || [];
+  const medications = data?.health?.medications || [];
+  const doctorVisits = data?.health?.doctorVisits || [];
 
   const handleFileUpload = async (file: File, documentType: 'prescription' | 'analysis' | 'doctor_visit' | 'vaccination', relatedId?: string) => {
     setUploadingFor(documentType);
@@ -120,6 +89,68 @@ export function HealthSection({ child }: HealthSectionProps) {
     }
   };
 
+  const handleAddVaccination = async () => {
+    if (!newVaccinationData.vaccine || !newVaccinationData.date) {
+      alert('Заполните обязательные поля');
+      return;
+    }
+
+    const result = await addItem('vaccination', {
+      vaccine: newVaccinationData.vaccine,
+      date: newVaccinationData.date,
+      notes: newVaccinationData.notes,
+      family_id: localStorage.getItem('familyId') || '',
+    });
+
+    if (result.success) {
+      setNewVaccinationDialog(false);
+      setNewVaccinationData({ vaccine: '', date: '', notes: '' });
+    } else {
+      alert(result.error || 'Ошибка добавления');
+    }
+  };
+
+  const handleDeleteVaccination = async (id: string) => {
+    if (!confirm('Удалить эту прививку?')) return;
+    
+    const result = await deleteItem('vaccination', id);
+    if (!result.success) {
+      alert(result.error || 'Ошибка удаления');
+    }
+  };
+
+  const handleAddDoctorVisit = async () => {
+    if (!newDoctorVisitData.doctor || !newDoctorVisitData.date) {
+      alert('Заполните обязательные поля');
+      return;
+    }
+
+    const result = await addItem('doctor_visit', {
+      doctor: newDoctorVisitData.doctor,
+      specialty: newDoctorVisitData.specialty,
+      date: newDoctorVisitData.date,
+      status: newDoctorVisitData.status,
+      notes: newDoctorVisitData.notes,
+      family_id: localStorage.getItem('familyId') || '',
+    });
+
+    if (result.success) {
+      setNewDoctorVisitDialog(false);
+      setNewDoctorVisitData({ doctor: '', specialty: '', date: '', status: 'planned', notes: '' });
+    } else {
+      alert(result.error || 'Ошибка добавления');
+    }
+  };
+
+  const handleDeleteDoctorVisit = async (id: string) => {
+    if (!confirm('Удалить этот визит?')) return;
+    
+    const result = await deleteItem('doctor_visit', id);
+    if (!result.success) {
+      alert(result.error || 'Ошибка удаления');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -129,7 +160,7 @@ export function HealthSection({ child }: HealthSectionProps) {
               <Icon name="Syringe" size={20} />
               Прививки
             </CardTitle>
-            <Dialog>
+            <Dialog open={newVaccinationDialog} onOpenChange={setNewVaccinationDialog}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-2">
                   <Icon name="Plus" size={16} />
@@ -142,41 +173,67 @@ export function HealthSection({ child }: HealthSectionProps) {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Название</label>
-                    <Input placeholder="Например: Грипп" />
+                    <label className="text-sm font-medium mb-2 block">Название *</label>
+                    <Input 
+                      placeholder="Например: Грипп" 
+                      value={newVaccinationData.vaccine}
+                      onChange={(e) => setNewVaccinationData(prev => ({ ...prev, vaccine: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Дата</label>
-                    <Input type="date" />
+                    <label className="text-sm font-medium mb-2 block">Дата *</label>
+                    <Input 
+                      type="date" 
+                      value={newVaccinationData.date}
+                      onChange={(e) => setNewVaccinationData(prev => ({ ...prev, date: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Следующая дата (опционально)</label>
-                    <Input type="date" />
+                    <label className="text-sm font-medium mb-2 block">Примечания</label>
+                    <Textarea
+                      placeholder="Дополнительная информация"
+                      value={newVaccinationData.notes}
+                      onChange={(e) => setNewVaccinationData(prev => ({ ...prev, notes: e.target.value }))}
+                    />
                   </div>
-                  <Button className="w-full">Сохранить</Button>
+                  <Button className="w-full" onClick={handleAddVaccination}>Сохранить</Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {vaccinations.map((vac) => (
-            <div key={vac.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="text-2xl">{vac.completed ? '✅' : '📅'}</div>
-                <div>
-                  <p className="font-medium">{vac.name}</p>
-                  <p className="text-sm text-gray-500">Дата: {vac.date}</p>
-                  {vac.nextDate && (
-                    <p className="text-sm text-blue-600">Следующая: {vac.nextDate}</p>
-                  )}
-                </div>
-              </div>
-              <Button size="sm" variant="ghost">
-                <Icon name="Edit" size={16} />
-              </Button>
+          {loading ? (
+            <div className="text-center py-4 text-gray-500">Загрузка...</div>
+          ) : vaccinations.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">
+              <p>Прививок пока нет</p>
+              <p className="text-sm">Добавьте первую прививку, чтобы начать вести историю</p>
             </div>
-          ))}
+          ) : (
+            vaccinations.map((vac: any) => (
+              <div key={vac.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">💉</div>
+                  <div>
+                    <p className="font-medium">{vac.vaccine}</p>
+                    <p className="text-sm text-gray-500">Дата: {vac.date}</p>
+                    {vac.notes && (
+                      <p className="text-sm text-gray-600 mt-1">{vac.notes}</p>
+                    )}
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => handleDeleteVaccination(vac.id)}
+                >
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
 
@@ -279,7 +336,7 @@ export function HealthSection({ child }: HealthSectionProps) {
               <Icon name="Stethoscope" size={20} />
               План посещения врачей
             </CardTitle>
-            <Dialog>
+            <Dialog open={newDoctorVisitDialog} onOpenChange={setNewDoctorVisitDialog}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-2">
                   <Icon name="Plus" size={16} />
@@ -292,74 +349,81 @@ export function HealthSection({ child }: HealthSectionProps) {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">ФИО врача</label>
-                    <Input placeholder="Например: Иванова А.П." />
+                    <label className="text-sm font-medium mb-2 block">ФИО врача *</label>
+                    <Input 
+                      placeholder="Например: Иванова А.П." 
+                      value={newDoctorVisitData.doctor}
+                      onChange={(e) => setNewDoctorVisitData(prev => ({ ...prev, doctor: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Специальность</label>
-                    <Input placeholder="Например: Педиатр" />
+                    <Input 
+                      placeholder="Например: Педиатр" 
+                      value={newDoctorVisitData.specialty}
+                      onChange={(e) => setNewDoctorVisitData(prev => ({ ...prev, specialty: e.target.value }))}
+                    />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Дата посещения</label>
-                    <Input type="date" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Следующий визит</label>
-                    <Input type="date" />
+                    <label className="text-sm font-medium mb-2 block">Дата посещения *</label>
+                    <Input 
+                      type="date" 
+                      value={newDoctorVisitData.date}
+                      onChange={(e) => setNewDoctorVisitData(prev => ({ ...prev, date: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Заметки</label>
-                    <Textarea placeholder="Рекомендации, результаты осмотра..." />
+                    <Textarea 
+                      placeholder="Рекомендации, результаты осмотра..." 
+                      value={newDoctorVisitData.notes}
+                      onChange={(e) => setNewDoctorVisitData(prev => ({ ...prev, notes: e.target.value }))}
+                    />
                   </div>
-                  <div className="flex gap-2">
-                    <label className="flex-1">
-                      <Button variant="outline" className="w-full gap-2" type="button" disabled={uploadingFor === 'doctor_visit'}>
-                        <Icon name="Upload" size={16} />
-                        {uploadingFor === 'doctor_visit' ? `Загрузка ${progress}%` : 'Прикрепить фото'}
-                      </Button>
-                      <input
-                        type="file"
-                        accept="image/*,.pdf"
-                        className="hidden"
-                        onChange={(e) => handleFileInputChange(e, 'doctor_visit')}
-                        disabled={uploadingFor === 'doctor_visit'}
-                      />
-                    </label>
-                  </div>
-                  <Button className="w-full">Сохранить</Button>
+                  <Button className="w-full" onClick={handleAddDoctorVisit}>Сохранить</Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {doctorVisits.map((visit) => (
-            <div key={visit.id} className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-medium">{visit.doctor}</p>
-                  <p className="text-sm text-gray-600">{visit.specialty}</p>
-                </div>
-                <Button size="sm" variant="ghost">
-                  <Icon name="Edit" size={16} />
-                </Button>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Icon name="Calendar" size={14} className="text-gray-400" />
-                  <span>Последний визит: {visit.date}</span>
-                </div>
-                {visit.nextVisit && (
-                  <div className="flex items-center gap-2">
-                    <Icon name="CalendarClock" size={14} className="text-blue-500" />
-                    <span className="text-blue-600">Следующий: {visit.nextVisit}</span>
+          {loading ? (
+            <div className="text-center py-4 text-gray-500">Загрузка...</div>
+          ) : doctorVisits.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">
+              <p>Визитов к врачу пока нет</p>
+              <p className="text-sm">Добавьте первую запись</p>
+            </div>
+          ) : (
+            doctorVisits.map((visit: any) => (
+              <div key={visit.id} className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-medium">{visit.doctor}</p>
+                    <p className="text-sm text-gray-600">{visit.specialty}</p>
                   </div>
-                )}
-                <p className="text-gray-600 mt-2">{visit.notes}</p>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => handleDeleteDoctorVisit(visit.id)}
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Calendar" size={14} className="text-gray-400" />
+                    <span>Дата: {visit.date}</span>
+                  </div>
+                  {visit.notes && (
+                    <p className="text-gray-600 mt-2">{visit.notes}</p>
+                  )}
+                </div>
               </div>
-              <Button variant="link" className="mt-2 p-0 h-auto text-sm gap-1">
-                <Icon name="Calendar" size={14} />
-                Добавить в календарь семьи
+            ))
+          )}
+        </CardContent>
               </Button>
             </div>
           ))}
