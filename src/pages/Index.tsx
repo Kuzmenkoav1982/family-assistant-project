@@ -741,37 +741,7 @@ export default function Index({ onLogout }: IndexProps) {
     },
   ];
 
-  const handleDevSectionVote = async (sectionId: string, voteType: 'up' | 'down', withComment = false) => {
-    if (withComment) {
-      setPendingVote({ sectionId, voteType });
-      setShowCommentDialog(true);
-      return;
-    }
 
-    const result = await castDevVote(sectionId, voteType);
-    if (!result.success) {
-      alert('❌ Ошибка голосования: ' + result.error);
-    }
-  };
-
-  const handleSubmitVoteWithComment = async () => {
-    if (!pendingVote) return;
-
-    const result = await castDevVote(pendingVote.sectionId, pendingVote.voteType, voteComment.trim() || undefined);
-    
-    if (result.success) {
-      alert('✅ Голос учтён! Спасибо за ваш отзыв.');
-      setShowCommentDialog(false);
-      setVoteComment('');
-      setPendingVote(null);
-    } else {
-      alert('❌ Ошибка: ' + result.error);
-    }
-  };
-
-  const getDevSectionVotes = (sectionId: string) => {
-    return devSectionVotes[sectionId] || { up: 0, down: 0 };
-  };
 
   const moodOptions = [
     { emoji: '😊', label: 'Отлично' },
@@ -2047,46 +2017,9 @@ export default function Index({ onLogout }: IndexProps) {
                 </p>
 
                 <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => {
-                        if (selectedDevSection) {
-                          handleDevSectionVote(selectedDevSection.id, 'up', false);
-                        }
-                      }}
-                      className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                      size="lg"
-                    >
-                      <Icon name="ThumbsUp" size={18} className="mr-2" />
-                      Хочу! ({getDevSectionVotes(selectedDevSection?.id || '').up})
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        if (selectedDevSection) {
-                          handleDevSectionVote(selectedDevSection.id, 'down', false);
-                        }
-                      }}
-                      variant="outline"
-                      className="border-red-300 hover:bg-red-50"
-                      size="lg"
-                    >
-                      <Icon name="ThumbsDown" size={18} className="mr-2 text-red-600" />
-                      Не нужен ({getDevSectionVotes(selectedDevSection?.id || '').down})
-                    </Button>
+                  <div className="text-center py-4 text-sm text-gray-600">
+                    <p>Эта функция находится в разработке</p>
                   </div>
-                  
-                  <Button
-                    onClick={() => {
-                      if (selectedDevSection) {
-                        handleDevSectionVote(selectedDevSection.id, 'up', true);
-                      }
-                    }}
-                    variant="outline"
-                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
-                  >
-                    <Icon name="MessageSquare" size={18} className="mr-2" />
-                    Оставить комментарий или предложение
-                  </Button>
                 </div>
                 <p className="text-xs text-green-700 mt-3 text-center">
                   ✅ Ваше мнение очень важно для приоритизации разработки
