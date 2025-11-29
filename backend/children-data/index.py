@@ -88,22 +88,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(f"SELECT * FROM {schema}.children_doctor_visits WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 doctor_visits = [dict(row) for row in cur.fetchall()]
                 
-                cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
-                medications = [dict(row) for row in cur.fetchall()]
-                
-                for med in medications:
-                    med_id_safe = escape_sql_string(med['id'])
-                    cur.execute(f"SELECT * FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} ORDER BY time_of_day")
-                    med['schedule'] = [dict(row) for row in cur.fetchall()]
+                try:
+                    cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
+                    medications = [dict(row) for row in cur.fetchall()]
                     
-                    cur.execute(f"""
-                        SELECT * FROM {schema}.children_medication_intake 
-                        WHERE medication_id = {med_id_safe} 
-                        AND scheduled_date >= (CURRENT_DATE - 7)
-                        ORDER BY scheduled_date DESC, scheduled_time DESC
-                        LIMIT 100
-                    """)
-                    med['intakes'] = [dict(row) for row in cur.fetchall()]
+                    for med in medications:
+                        med_id_safe = escape_sql_string(med['id'])
+                        cur.execute(f"SELECT * FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} ORDER BY time_of_day")
+                        med['schedule'] = [dict(row) for row in cur.fetchall()]
+                        
+                        cur.execute(f"""
+                            SELECT * FROM {schema}.children_medication_intake 
+                            WHERE medication_id = {med_id_safe} 
+                            AND scheduled_date >= (CURRENT_DATE - 7)
+                            ORDER BY scheduled_date DESC, scheduled_time DESC
+                            LIMIT 100
+                        """)
+                        med['intakes'] = [dict(row) for row in cur.fetchall()]
+                except Exception as med_error:
+                    print(f"[ERROR loading medications] {str(med_error)}")
+                    medications = []
                 
                 cur.execute(f"SELECT * FROM {schema}.children_medical_documents WHERE child_id = {child_id_safe} ORDER BY uploaded_at DESC")
                 documents = [dict(row) for row in cur.fetchall()]
