@@ -89,12 +89,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
                 medications = [dict(row) for row in cur.fetchall()]
                 
+                cur.execute(f"SELECT * FROM {schema}.children_medical_documents WHERE child_id = {child_id_safe} ORDER BY uploaded_at DESC")
+                documents = [dict(row) for row in cur.fetchall()]
+                
                 child_data['health'] = {
                     'vaccinations': vaccinations,
                     'prescriptions': prescriptions,
                     'analyses': analyses,
                     'doctorVisits': doctor_visits,
-                    'medications': medications
+                    'medications': medications,
+                    'documents': documents
                 }
             
             if data_type in ['all', 'purchases']:
@@ -291,6 +295,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     conn.commit()
                     result_id = data.get('id')
                     
+                elif data_type == 'medication':
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('start_date'))}, 
+                                {escape_sql_string(data.get('end_date'))}, {escape_sql_string(data.get('schedule', ''))}, 
+                                {escape_sql_string(data.get('schedule', ''))}, {escape_sql_string(data.get('how_to_take', ''))}) 
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
                 elif data_type == 'grade':
                     cur.execute(f"""
                         INSERT INTO {schema}.children_grades (member_id, subject, grade, date, notes)
@@ -450,7 +466,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'gift': 'children_gifts',
                     'dream': 'children_dreams',
                     'grade': 'children_grades',
-                    'diary': 'children_diary'
+                    'diary': 'children_diary',
+                    'medication': 'children_medications'
                 }
                 
                 if data_type not in table_map:

@@ -43,10 +43,9 @@ interface DoctorVisit {
 }
 
 export function HealthSection({ child }: HealthSectionProps) {
-  const { data, loading, addItem, updateItem, deleteItem } = useChildrenData(child.id);
+  const { data, loading, addItem, updateItem, deleteItem, refetch } = useChildrenData(child.id);
   const { uploadFile, uploading, progress } = useUploadMedicalFile();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
-  const [documents, setDocuments] = useState<MedicalDocument[]>([]);
   
   const [newVaccinationDialog, setNewVaccinationDialog] = useState(false);
   const [newVaccinationData, setNewVaccinationData] = useState({ vaccine: '', date: '', notes: '' });
@@ -55,14 +54,29 @@ export function HealthSection({ child }: HealthSectionProps) {
   const [newDoctorVisitData, setNewDoctorVisitData] = useState({ doctor: '', specialty: '', date: '', status: 'planned', notes: '' });
 
   const [newMedicationDialog, setNewMedicationDialog] = useState(false);
+  const [newMedicationData, setNewMedicationData] = useState({ name: '', startDate: '', endDate: '', schedule: '', howToTake: '' });
   const [viewDocumentsDialog, setViewDocumentsDialog] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<MedicalDocument[]>([]);
   
   const vaccinations = data?.health?.vaccinations || [];
   const medications = data?.health?.medications || [];
   const doctorVisits = data?.health?.doctorVisits || [];
+  
+  const healthDocuments: MedicalDocument[] = (data?.health?.documents || []).map((doc: any) => ({
+    id: doc.id,
+    childId: doc.child_id,
+    documentType: doc.document_type,
+    fileUrl: doc.file_url,
+    fileType: doc.file_type,
+    originalFilename: doc.original_filename,
+    relatedId: doc.related_id,
+    relatedType: doc.related_type,
+    title: doc.title,
+    description: doc.description,
+    uploadedAt: doc.uploaded_at || doc.created_at
+  }));
 
-  const handleFileUpload = async (file: File, documentType: 'prescription' | 'analysis' | 'doctor_visit' | 'vaccination', relatedId?: string) => {
+  const handleFileUpload = async (file: File, documentType: 'prescription' | 'analysis' | 'doctor_visit' | 'vaccination' | 'other', relatedId?: string) => {
     setUploadingFor(documentType);
     const result = await uploadFile({
       file,
@@ -73,8 +87,8 @@ export function HealthSection({ child }: HealthSectionProps) {
     });
 
     if (result.success && result.document) {
-      setDocuments(prev => [...prev, result.document!]);
       console.log('Файл успешно загружен:', result.document);
+      refetch();
     } else {
       console.error('Ошибка загрузки:', result.error);
       alert(result.error || 'Ошибка загрузки файла');
@@ -82,7 +96,7 @@ export function HealthSection({ child }: HealthSectionProps) {
     setUploadingFor(null);
   };
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>, documentType: 'prescription' | 'analysis' | 'doctor_visit' | 'vaccination', relatedId?: string) => {
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>, documentType: 'prescription' | 'analysis' | 'doctor_visit' | 'vaccination' | 'other', relatedId?: string) => {
     const file = e.target.files?.[0];
     if (file) {
       handleFileUpload(file, documentType, relatedId);
@@ -137,6 +151,29 @@ export function HealthSection({ child }: HealthSectionProps) {
     if (result.success) {
       setNewDoctorVisitDialog(false);
       setNewDoctorVisitData({ doctor: '', specialty: '', date: '', status: 'planned', notes: '' });
+    } else {
+      alert(result.error || 'Ошибка добавления');
+    }
+  };
+
+  const handleAddMedication = async () => {
+    if (!newMedicationData.name || !newMedicationData.startDate || !newMedicationData.endDate) {
+      alert('Заполните обязательные поля');
+      return;
+    }
+
+    const result = await addItem('medication', {
+      name: newMedicationData.name,
+      start_date: newMedicationData.startDate,
+      end_date: newMedicationData.endDate,
+      schedule: newMedicationData.schedule,
+      how_to_take: newMedicationData.howToTake,
+      family_id: localStorage.getItem('familyId') || '',
+    });
+
+    if (result.success) {
+      setNewMedicationDialog(false);
+      setNewMedicationData({ name: '', startDate: '', endDate: '', schedule: '', howToTake: '' });
     } else {
       alert(result.error || 'Ошибка добавления');
     }
@@ -258,27 +295,47 @@ export function HealthSection({ child }: HealthSectionProps) {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Название препарата</label>
-                    <Input placeholder="Например: Амоксициллин" />
+                    <Input 
+                      placeholder="Например: Амоксициллин" 
+                      value={newMedicationData.name}
+                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, name: e.target.value }))}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Начало приема</label>
-                      <Input type="date" />
+                      <Input 
+                        type="date" 
+                        value={newMedicationData.startDate}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, startDate: e.target.value }))}
+                      />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Конец приема</label>
-                      <Input type="date" />
+                      <Input 
+                        type="date" 
+                        value={newMedicationData.endDate}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, endDate: e.target.value }))}
+                      />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Периодичность приема</label>
-                    <Input placeholder="Например: 3 раза в день" />
+                    <Input 
+                      placeholder="Например: 3 раза в день" 
+                      value={newMedicationData.schedule}
+                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, schedule: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Как принимать</label>
-                    <Textarea placeholder="Например: После еды, запивать водой" />
+                    <Textarea 
+                      placeholder="Например: После еды, запивать водой" 
+                      value={newMedicationData.howToTake}
+                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, howToTake: e.target.value }))}
+                    />
                   </div>
-                  <Button className="w-full">Сохранить</Button>
+                  <Button className="w-full" onClick={handleAddMedication}>Сохранить</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -431,7 +488,7 @@ export function HealthSection({ child }: HealthSectionProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Icon name="FileText" size={20} />
-              Прикрепленные файлы ({documents.length})
+              Прикрепленные файлы ({healthDocuments.length})
             </CardTitle>
             <label>
               <Button variant="outline" className="gap-2" disabled={uploading}>
@@ -449,7 +506,7 @@ export function HealthSection({ child }: HealthSectionProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {documents.length === 0 ? (
+          {healthDocuments.length === 0 ? (
             <div className="text-center py-8 space-y-3">
               <div className="text-4xl">📸</div>
               <p className="font-medium text-gray-700">Пока нет загруженных файлов</p>
@@ -459,7 +516,7 @@ export function HealthSection({ child }: HealthSectionProps) {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {documents.map((doc) => (
+              {healthDocuments.map((doc) => (
                 <div key={doc.id} className="relative group">
                   <button
                     onClick={() => {
