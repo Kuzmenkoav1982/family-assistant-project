@@ -6,9 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useChildrenData } from '@/hooks/useChildrenData';
+import type { FamilyMember } from '@/types/family.types';
 
 interface HealthSectionProps {
-  childId: string;
+  child: FamilyMember;
 }
 
 interface Vaccination {
@@ -38,7 +40,9 @@ interface DoctorVisit {
   notes: string;
 }
 
-export function HealthSection({ childId }: HealthSectionProps) {
+export function HealthSection({ child }: HealthSectionProps) {
+  const { data, loading } = useChildrenData(child.id);
+  
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([
     { id: '1', name: 'Корь, краснуха, паротит', date: '2023-05-15', nextDate: '2024-05-15', completed: true },
     { id: '2', name: 'АДСМ (дифтерия, столбняк)', date: '2023-08-20', nextDate: '2024-08-20', completed: true },

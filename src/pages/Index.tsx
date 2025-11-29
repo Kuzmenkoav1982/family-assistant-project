@@ -525,6 +525,7 @@ export default function Index({ onLogout }: IndexProps) {
   const availableSections = [
     { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
+    { id: 'children', icon: 'Users', label: 'Дети' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
     { id: 'goals', icon: 'Target', label: 'Цели' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },

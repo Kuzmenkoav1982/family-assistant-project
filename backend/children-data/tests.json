@@ -1,0 +1,111 @@
+{
+  "tests": [
+    {
+      "name": "Get child data - all types",
+      "method": "GET",
+      "path": "/?child_id=test123&type=all",
+      "headers": {
+        "X-Auth-Token": "test-token"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "data": {
+          "health": "object",
+          "purchases": "array",
+          "gifts": "array",
+          "development": "array",
+          "school": "object",
+          "dreams": "array",
+          "diary": "array",
+          "piggyBank": "object"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get child health data only",
+      "method": "GET",
+      "path": "/?child_id=test123&type=health",
+      "headers": {
+        "X-Auth-Token": "test-token"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "data": {
+          "health": "object"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Add vaccination",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "test-token",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "add",
+        "child_id": "test123",
+        "type": "vaccination",
+        "data": {
+          "date": "2024-12-01",
+          "vaccine": "COVID-19",
+          "notes": "Первая доза"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Update gift status",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "test-token",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "update",
+        "child_id": "test123",
+        "type": "gift",
+        "item_id": "gift1",
+        "data": {
+          "given": true
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Unauthorized request",
+      "method": "GET",
+      "path": "/?child_id=test123",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "success": false,
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

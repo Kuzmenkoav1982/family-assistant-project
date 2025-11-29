@@ -94,6 +94,8 @@ export default function BottomBar({
                       navigate('/meals');
                     } else if (section.id === 'calendar') {
                       navigate('/calendar');
+                    } else if (section.id === 'children') {
+                      navigate('/children');
                     } else {
                       onSectionChange(section.id);
                     }
