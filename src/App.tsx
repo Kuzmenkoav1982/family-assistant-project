@@ -41,6 +41,7 @@ import AdminSupport from "./pages/AdminSupport";
 import AdminLogin from "./pages/AdminLogin";
 import NationalitiesPage from "./pages/NationalitiesPage";
 import NationalityDetailPage from "./pages/NationalityDetailPage";
+import Children from "./pages/Children";
 import { AuthProvider } from "@/lib/auth-context";
 
 const queryClient = new QueryClient();
@@ -122,6 +123,7 @@ const App = () => {
               <Route path="/admin/support" element={<AdminSupport />} />
               <Route path="/nationalities" element={<NationalitiesPage />} />
               <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
+              <Route path="/children" element={<Children />} />
               <Route path="/launch-plan" element={<LaunchPlan />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />

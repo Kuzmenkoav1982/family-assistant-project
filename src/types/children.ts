@@ -1,42 +1,3 @@
-export interface FamilyMember {
-  id: string;
-  user_id?: string;
-  name: string;
-  role: string;
-  relationship?: string;
-  avatar: string;
-  avatar_type: string;
-  photo_url?: string;
-  photoUrl?: string;
-  avatarType?: string;
-  points: number;
-  level: number;
-  workload: number;
-  age?: number;
-  birthDate?: string;
-  created_at: string;
-  updated_at: string;
-  dreams?: Dream[];
-  piggyBank?: number;
-  achievements?: string[];
-  responsibilities?: string[];
-  health?: ChildHealth;
-  purchasePlans?: PurchasePlan[];
-  gifts?: Gift[];
-  development?: Development[];
-  school?: School;
-  diary?: DiaryEntry[];
-}
-
-export interface Dream {
-  id: string;
-  title: string;
-  description?: string;
-  created_date: string;
-  achieved?: boolean;
-  achieved_date?: string;
-}
-
 export interface ChildHealth {
   vaccinations: Vaccination[];
   prescriptions: Prescription[];
@@ -161,6 +122,15 @@ export interface Grade {
   date: string;
 }
 
+export interface Dream {
+  id: string;
+  title: string;
+  description?: string;
+  created_date: string;
+  achieved?: boolean;
+  achieved_date?: string;
+}
+
 export interface DiaryEntry {
   id: string;
   date: string;
@@ -169,10 +139,32 @@ export interface DiaryEntry {
   mood?: string;
 }
 
+export interface PiggyBank {
+  balance: number;
+  transactions: Transaction[];
+}
+
 export interface Transaction {
   id: string;
   date: string;
   amount: number;
   type: 'income' | 'expense';
   description: string;
+}
+
+export interface ChildProfile {
+  id: string;
+  name: string;
+  age: number;
+  avatar: string;
+  birthDate: string;
+  health: ChildHealth;
+  purchasePlans: PurchasePlan[];
+  gifts: Gift[];
+  development: Development[];
+  school?: School;
+  dreams: Dream[];
+  diary: DiaryEntry[];
+  piggyBank: PiggyBank;
+  achievements: string[];
 }
