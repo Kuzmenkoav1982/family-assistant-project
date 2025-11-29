@@ -1,0 +1,549 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Icon from '@/components/ui/icon';
+import { useNavigate } from 'react-router-dom';
+import { useTasks } from '@/hooks/useTasks';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyData } from '@/hooks/useFamilyData';
+import { ChildEducation } from '@/components/ChildEducation';
+import { ClickChamomile } from '@/components/ClickChamomile';
+import Footer from '@/components/Footer';
+import { getDailyMotto } from '@/utils/dailyMottos';
+import type {
+  FamilyMember,
+  Task,
+  Reminder,
+  Tradition,
+  FamilyValue,
+  BlogPost,
+  ImportantDate,
+
+  ChildProfile,
+  DevelopmentPlan,
+  ChatMessage,
+  FamilyAlbum,
+  FamilyNeed,
+  FamilyTreeMember,
+  CalendarEvent,
+  AIRecommendation,
+  ThemeType,
+  ShoppingItem,
+  FamilyGoal,
+} from '@/types/family.types';
+import { themes, getThemeClasses } from '@/config/themes';
+import {
+  initialChildrenProfiles,
+  initialDevelopmentPlans,
+  initialImportantDates,
+  initialFamilyValues,
+  initialBlogPosts,
+  initialTraditions,
+
+  initialChatMessages,
+  initialFamilyAlbum,
+  initialFamilyNeeds,
+  initialFamilyTree,
+  initialCalendarEvents,
+  initialAIRecommendations,
+  initialFamilyGoals,
+  initialComplaints,
+  initialShoppingList,
+  getWeekDays,
+} from '@/data/mockData';
+import { FamilyTabsContent } from '@/components/FamilyTabsContent';
+import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
+import { GoalsSection } from '@/components/GoalsSection';
+import { getTranslation, languageOptions, type LanguageCode } from '@/translations';
+import { DEMO_FAMILY } from '@/data/demoFamily';
+import SettingsMenu from '@/components/SettingsMenu';
+import FamilyInviteManager from '@/components/FamilyInviteManager';
+import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
+import BottomBar from '@/components/BottomBar';
+import PanelSettings from '@/components/PanelSettings';
+import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
+
+import StatsCounter from '@/components/StatsCounter';
+
+import { getCurrentMember } from '@/data/demoFamily';
+import { ComplaintBook } from '@/components/ComplaintBook';
+import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
+import KuzyaFloatingButton from '@/components/KuzyaFloatingButton';
+import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
+import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
+
+interface IndexProps {
+  onLogout?: () => void;
+}
+
+export default function Index({ onLogout }: IndexProps) {
+  const navigate = useNavigate();
+  const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembers();
+  const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
+  const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
+  
+  const authToken = localStorage.getItem('authToken');
+  const authUser = localStorage.getItem('user');
+  console.log('Index: authToken =', authToken ? 'EXISTS' : 'NULL');
+  console.log('Index: authUser =', authUser);
+  console.log('Index: familyMembersRaw =', familyMembersRaw);
+  console.log('Index: membersLoading =', membersLoading);
+
+  const familyMembers = familyMembersRaw || [];
+  const tasks = tasksRaw || [];
+  
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  
+  const setFamilyMembers = (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => {
+    console.warn('setFamilyMembers deprecated, use updateMember instead');
+  };
+  const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
+  const [familyValues, setFamilyValues] = useState<FamilyValue[]>(() => {
+    const saved = localStorage.getItem('familyValues');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialFamilyValues;
+      }
+    }
+    return initialFamilyValues;
+  });
+  const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
+  const [traditions, setTraditions] = useState<Tradition[]>(() => {
+    const saved = localStorage.getItem('traditions');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialTraditions;
+      }
+    }
+    return initialTraditions;
+  });
+
+  const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
+  const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
+  const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
+  const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(initialFamilyNeeds);
+  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
+  const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
+  const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
+  const [newMessage, setNewMessage] = useState('');
+  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(() => {
+    const saved = localStorage.getItem('shoppingList');
+    return saved ? JSON.parse(saved) : initialShoppingList;
+  });
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState<'products' | 'household' | 'clothes' | 'other'>('products');
+  const [newItemQuantity, setNewItemQuantity] = useState('');
+  const [newItemPriority, setNewItemPriority] = useState<'normal' | 'urgent'>('normal');
+  const [showAddItemDialog, setShowAddItemDialog] = useState(false);
+  const [familyGoals, setFamilyGoals] = useState<FamilyGoal[]>(() => {
+    const saved = localStorage.getItem('familyGoals');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialFamilyGoals;
+      }
+    }
+    return initialFamilyGoals;
+  });
+  
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    const currentUser = getMemberById(currentUserId);
+    if (!currentUser) return;
+
+    const message: ChatMessage = {
+      id: Date.now().toString(),
+      senderId: currentUserId,
+      senderName: currentUser.name,
+      senderAvatar: currentUser.avatar,
+      content: newMessage,
+      timestamp: new Date().toLocaleString('ru-RU', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      type: 'text'
+    };
+
+    setChatMessages([...chatMessages, message]);
+    setNewMessage('');
+  };
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
+    const saved = localStorage.getItem('calendarEvents');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialCalendarEvents;
+      }
+    }
+    return initialCalendarEvents;
+  });
+  const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
+    return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
+  });
+  
+  const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
+    const saved = localStorage.getItem('familyOrganizerTheme');
+    return (saved as ThemeType) || 'middle';
+  });
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
+  
+  const [appearanceMode, setAppearanceMode] = useState<'light' | 'dark' | 'system' | 'auto'>(() => {
+    return (localStorage.getItem('appearanceMode') as 'light' | 'dark' | 'system' | 'auto') || 'light';
+  });
+  const [showWelcome, setShowWelcome] = useState(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    return !hasSeenWelcome;
+  });
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>(() => {
+    return localStorage.getItem('currentUserId') || '1';
+  });
+
+  const { devSectionVotes, addDevSectionVote } = useDevSectionVotes();
+
+  const handleVote = (sectionKey: string, isUpvote: boolean) => {
+    addDevSectionVote({
+      sectionKey,
+      isUpvote,
+      userId: currentUserId,
+      userName: getMemberById(currentUserId)?.name || 'Unknown',
+      timestamp: new Date().toISOString()
+    });
+  };
+  
+  useEffect(() => {
+    if (showWelcome) {
+      navigate('/welcome');
+    }
+  }, [showWelcome, navigate]);
+
+  useEffect(() => {
+    localStorage.setItem('hasSeenWelcome', 'true');
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('familyOrganizerLanguage', currentLanguage);
+  }, [currentLanguage]);
+
+  useEffect(() => {
+    localStorage.setItem('familyOrganizerTheme', currentTheme);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('appearanceMode', appearanceMode);
+  }, [appearanceMode]);
+
+  useEffect(() => {
+    if (appearanceMode === 'auto') {
+      const hour = new Date().getHours();
+      const isDark = hour < 7 || hour >= 19;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else if (appearanceMode === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else if (appearanceMode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [appearanceMode]);
+
+  useEffect(() => {
+    localStorage.setItem('currentUserId', currentUserId);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    localStorage.setItem('familyValues', JSON.stringify(familyValues));
+  }, [familyValues]);
+
+  useEffect(() => {
+    localStorage.setItem('traditions', JSON.stringify(traditions));
+  }, [traditions]);
+
+  useEffect(() => {
+    localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+  }, [shoppingList]);
+
+  useEffect(() => {
+    localStorage.setItem('familyGoals', JSON.stringify(familyGoals));
+  }, [familyGoals]);
+
+  useEffect(() => {
+    localStorage.setItem('calendarEvents', JSON.stringify(calendarEvents));
+  }, [calendarEvents]);
+
+  const getMemberById = (id: string) => {
+    return familyMembers.find(m => m.id === id);
+  };
+
+  const toggleTask = async (taskId: string) => {
+    await toggleTaskDB(taskId);
+  };
+
+  const handleAddShoppingItem = () => {
+    if (!newItemName.trim()) return;
+    
+    const newItem: ShoppingItem = {
+      id: Date.now().toString(),
+      name: newItemName,
+      category: newItemCategory,
+      quantity: newItemQuantity || '1',
+      priority: newItemPriority,
+      completed: false,
+      addedBy: currentUserId
+    };
+    
+    setShoppingList([...shoppingList, newItem]);
+    setNewItemName('');
+    setNewItemQuantity('');
+    setShowAddItemDialog(false);
+  };
+
+  const toggleShoppingItem = (id: string) => {
+    setShoppingList(shoppingList.map(item => 
+      item.id === id ? { ...item, completed: !item.completed } : item
+    ));
+  };
+
+  const deleteShoppingItem = (id: string) => {
+    setShoppingList(shoppingList.filter(item => item.id !== id));
+  };
+
+  const addCalendarEvent = (event: Omit<CalendarEvent, 'id'>) => {
+    const newEvent: CalendarEvent = {
+      ...event,
+      id: Date.now().toString()
+    };
+    setCalendarEvents([...calendarEvents, newEvent]);
+  };
+
+  const deleteCalendarEvent = (id: string) => {
+    setCalendarEvents(calendarEvents.filter(e => e.id !== id));
+  };
+
+  const currentThemeConfig = themes[currentTheme];
+  const themeClasses = getThemeClasses(currentTheme);
+
+  const motto = getDailyMotto();
+
+  if (membersLoading || tasksLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className={`min-h-screen pb-20 ${themeClasses.background} ${themeClasses.pattern}`}>
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className={`p-2 rounded-lg ${themeClasses.accent} backdrop-blur-sm flex-shrink-0`}>
+                <Icon name={currentThemeConfig.icon} className={`w-6 h-6 ${themeClasses.textAccent}`} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className={`text-2xl font-bold ${themeClasses.text} truncate`}>
+                  {t('appTitle')}
+                </h1>
+                <p className={`text-sm ${themeClasses.textMuted} italic truncate`}>{motto}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <FamilyMemberSwitcher
+                currentUserId={currentUserId}
+                onUserChange={setCurrentUserId}
+                familyMembers={familyMembers}
+              />
+              
+              <SettingsMenu
+                currentLanguage={currentLanguage}
+                onLanguageChange={setCurrentLanguage}
+                currentTheme={currentTheme}
+                onThemeChange={setCurrentTheme}
+                appearanceMode={appearanceMode}
+                onAppearanceModeChange={setAppearanceMode}
+                onShowSettingsPanel={() => setShowSettingsPanel(true)}
+                onLogout={onLogout}
+              />
+            </div>
+          </div>
+
+          <StatsCounter
+            familyMembers={familyMembers}
+            tasks={tasks}
+            traditions={traditions}
+            familyGoals={familyGoals}
+            currentLanguage={currentLanguage}
+            themeClasses={themeClasses}
+          />
+
+          <Card className={`${themeClasses.card} shadow-lg`}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 ${themeClasses.text}`}>
+                <Icon name="Users" className="w-5 h-5" />
+                {t('familyMembers')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FamilyMembersGrid
+                familyMembers={familyMembers}
+                updateMember={updateMember}
+                deleteMember={deleteMember}
+                currentUserId={currentUserId}
+                themeClasses={themeClasses}
+                currentLanguage={currentLanguage}
+              />
+              
+              <AddFamilyMemberForm
+                onAddMember={addMember}
+                themeClasses={themeClasses}
+                currentLanguage={currentLanguage}
+              />
+            </CardContent>
+          </Card>
+
+          <FamilyTabsContent
+            tasks={tasks}
+            toggleTask={toggleTask}
+            createTask={createTask}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
+            reminders={reminders}
+            setReminders={setReminders}
+            importantDates={importantDates}
+            familyValues={familyValues}
+            setFamilyValues={setFamilyValues}
+            blogPosts={blogPosts}
+            traditions={traditions}
+            setTraditions={setTraditions}
+            childrenProfiles={childrenProfiles}
+            developmentPlans={developmentPlans}
+            chatMessages={chatMessages}
+            handleSendMessage={handleSendMessage}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            familyAlbum={familyAlbum}
+            setFamilyAlbum={setFamilyAlbum}
+            familyNeeds={familyNeeds}
+            setFamilyNeeds={setFamilyNeeds}
+            familyTree={familyTree}
+            setFamilyTree={setFamilyTree}
+            selectedTreeMember={selectedTreeMember}
+            setSelectedTreeMember={setSelectedTreeMember}
+            aiRecommendations={aiRecommendations}
+            shoppingList={shoppingList}
+            newItemName={newItemName}
+            setNewItemName={setNewItemName}
+            newItemCategory={newItemCategory}
+            setNewItemCategory={setNewItemCategory}
+            newItemQuantity={newItemQuantity}
+            setNewItemQuantity={setNewItemQuantity}
+            newItemPriority={newItemPriority}
+            setNewItemPriority={setNewItemPriority}
+            showAddItemDialog={showAddItemDialog}
+            setShowAddItemDialog={setShowAddItemDialog}
+            handleAddShoppingItem={handleAddShoppingItem}
+            toggleShoppingItem={toggleShoppingItem}
+            deleteShoppingItem={deleteShoppingItem}
+            calendarEvents={calendarEvents}
+            addCalendarEvent={addCalendarEvent}
+            deleteCalendarEvent={deleteCalendarEvent}
+            calendarFilter={calendarFilter}
+            setCalendarFilter={setCalendarFilter}
+            familyMembers={familyMembers}
+            getMemberById={getMemberById}
+            currentUserId={currentUserId}
+            themeClasses={themeClasses}
+            currentLanguage={currentLanguage}
+            t={t}
+            devSectionVotes={devSectionVotes}
+            onVote={handleVote}
+          />
+
+          <GoalsSection
+            familyGoals={familyGoals}
+            setFamilyGoals={setFamilyGoals}
+            themeClasses={themeClasses}
+            currentLanguage={currentLanguage}
+          />
+
+          <FamilyCohesionChart
+            themeClasses={themeClasses}
+            currentLanguage={currentLanguage}
+          />
+
+          <ClickChamomile
+            themeClasses={themeClasses}
+            currentLanguage={currentLanguage}
+          />
+
+          <ComplaintBook
+            themeClasses={themeClasses}
+            currentLanguage={currentLanguage}
+            currentUserId={currentUserId}
+            familyMembers={familyMembers}
+          />
+
+          <Footer currentLanguage={currentLanguage} />
+        </div>
+
+        <BottomBar
+          currentUserId={currentUserId}
+          onUserChange={setCurrentUserId}
+          familyMembers={familyMembers}
+          currentLanguage={currentLanguage}
+          themeClasses={themeClasses}
+        />
+
+        <PanelSettings
+          isOpen={showSettingsPanel}
+          onClose={() => setShowSettingsPanel(false)}
+          currentLanguage={currentLanguage}
+          onLanguageChange={setCurrentLanguage}
+          currentTheme={currentTheme}
+          onThemeChange={setCurrentTheme}
+          appearanceMode={appearanceMode}
+          onAppearanceModeChange={setAppearanceMode}
+          themeClasses={themeClasses}
+        />
+
+        <KuzyaFloatingButton currentLanguage={currentLanguage} />
+      </div>
+    </>
+  );
+}
