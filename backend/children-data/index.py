@@ -97,14 +97,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         cur.execute(f"SELECT * FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} ORDER BY time_of_day")
                         med['schedule'] = [dict(row) for row in cur.fetchall()]
                         
-                        cur.execute(f"""
-                            SELECT * FROM {schema}.children_medication_intake 
-                            WHERE medication_id = {med_id_safe} 
-                            AND scheduled_date >= (CURRENT_DATE - 7)
-                            ORDER BY scheduled_date DESC, scheduled_time DESC
-                            LIMIT 100
-                        """)
-                        med['intakes'] = [dict(row) for row in cur.fetchall()]
+                        if len(med['schedule']) > 0:
+                            cur.execute(f"""
+                                SELECT * FROM {schema}.children_medication_intake 
+                                WHERE medication_id = {med_id_safe} 
+                                AND scheduled_date >= (CURRENT_DATE - 7)
+                                ORDER BY scheduled_date DESC, scheduled_time DESC
+                                LIMIT 100
+                            """)
+                            med['intakes'] = [dict(row) for row in cur.fetchall()]
+                        else:
+                            med['intakes'] = []
                 except Exception as med_error:
                     print(f"[ERROR loading medications] {str(med_error)}")
                     medications = []
