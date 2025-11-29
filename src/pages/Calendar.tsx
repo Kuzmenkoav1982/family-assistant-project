@@ -29,6 +29,8 @@ export default function Calendar() {
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showDayEventsDialog, setShowDayEventsDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | Task | FamilyGoal | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showReminders, setShowReminders] = useState(false);
   
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
     const saved = localStorage.getItem('calendarEvents');
@@ -48,12 +50,52 @@ export default function Calendar() {
     category: 'personal',
     color: '#3b82f6',
     visibility: 'family' as 'family' | 'private',
-    attendees: [] as string[]
+    attendees: [] as string[],
+    reminderEnabled: true,
+    reminderDays: 1
   });
 
   useEffect(() => {
     localStorage.setItem('calendarEvents', JSON.stringify(events));
   }, [events]);
+
+  useEffect(() => {
+    checkReminders();
+    const interval = setInterval(checkReminders, 60000);
+    return () => clearInterval(interval);
+  }, [events]);
+
+  const checkReminders = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    const upcomingEvents = events.filter(e => {
+      if (!e.reminderEnabled) return false;
+      const eventDate = new Date(e.date);
+      const reminderDate = new Date(eventDate);
+      reminderDate.setDate(eventDate.getDate() - (e.reminderDays || 1));
+      const reminderStr = reminderDate.toISOString().split('T')[0];
+      return reminderStr === today.toISOString().split('T')[0];
+    });
+
+    if (upcomingEvents.length > 0) {
+      setShowReminders(true);
+    }
+  };
+
+  const getUpcomingReminders = () => {
+    const today = new Date();
+    return events.filter(e => {
+      if (!e.reminderEnabled) return false;
+      const eventDate = new Date(e.date);
+      const reminderDate = new Date(eventDate);
+      reminderDate.setDate(eventDate.getDate() - (e.reminderDays || 1));
+      const reminderStr = reminderDate.toISOString().split('T')[0];
+      return reminderStr === today.toISOString().split('T')[0];
+    });
+  };
 
   const getDaysInMonth = (date: Date): CalendarDay[] => {
     const year = date.getFullYear();
@@ -124,14 +166,21 @@ export default function Calendar() {
     const dateStr = date.toISOString().split('T')[0];
     const allEvents: (CalendarEvent | Task | FamilyGoal)[] = [];
     
-    const matchingEvents = events.filter(e => e.date === dateStr);
+    let matchingEvents = events.filter(e => e.date === dateStr);
+    if (categoryFilter !== 'all') {
+      matchingEvents = matchingEvents.filter(e => e.category === categoryFilter);
+    }
     allEvents.push(...matchingEvents);
     
-    const matchingTasks = (tasks || []).filter(t => t.deadline === dateStr);
-    allEvents.push(...matchingTasks);
+    if (categoryFilter === 'all' || categoryFilter === 'task') {
+      const matchingTasks = (tasks || []).filter(t => t.deadline === dateStr);
+      allEvents.push(...matchingTasks);
+    }
     
-    const matchingGoals = goals.filter(g => g.deadline === dateStr);
-    allEvents.push(...matchingGoals);
+    if (categoryFilter === 'all' || categoryFilter === 'goal') {
+      const matchingGoals = goals.filter(g => g.deadline === dateStr);
+      allEvents.push(...matchingGoals);
+    }
     
     return allEvents;
   };
@@ -187,7 +236,9 @@ export default function Calendar() {
       attendees: newEvent.attendees,
       createdBy: currentUser.id,
       createdByName: currentUser.name,
-      createdByAvatar: currentUser.avatar
+      createdByAvatar: currentUser.avatar,
+      reminderEnabled: newEvent.reminderEnabled,
+      reminderDays: newEvent.reminderDays
     };
 
     setEvents([...events, event]);
@@ -199,7 +250,9 @@ export default function Calendar() {
       category: 'personal',
       color: '#3b82f6',
       visibility: 'family',
-      attendees: []
+      attendees: [],
+      reminderEnabled: true,
+      reminderDays: 1
     });
     setShowEventDialog(false);
   };
@@ -249,6 +302,50 @@ export default function Calendar() {
     return 'Calendar';
   };
 
+  const getEventStats = () => {
+    const stats = {
+      total: events.length + (tasks?.length || 0) + goals.length,
+      byCategory: {} as Record<string, number>
+    };
+
+    events.forEach(e => {
+      stats.byCategory[e.category] = (stats.byCategory[e.category] || 0) + 1;
+    });
+
+    return stats;
+  };
+
+  const stats = getEventStats();
+
+  const exportToCSV = () => {
+    const csvRows = [
+      ['Дата', 'Время', 'Название', 'Категория', 'Описание', 'Видимость'].join(',')
+    ];
+
+    events.forEach(event => {
+      const row = [
+        event.date,
+        event.time || '',
+        `"${event.title}"`,
+        event.category,
+        `"${event.description || ''}"`,
+        event.visibility
+      ].join(',');
+      csvRows.push(row);
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `calendar_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -262,6 +359,84 @@ export default function Calendar() {
             {monthYear}
           </Badge>
         </div>
+
+        {getUpcomingReminders().length > 0 && (
+          <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Icon name="Bell" className="text-orange-600 animate-bounce" size={24} />
+                Напоминания о предстоящих событиях
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {getUpcomingReminders().map((event, index) => {
+                  const eventDate = new Date(event.date);
+                  const daysUntil = Math.ceil((eventDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border-2 border-orange-200 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: event.color + '20' }}
+                        >
+                          <Icon
+                            name="Calendar"
+                            style={{ color: event.color }}
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">{event.title}</h4>
+                          <p className="text-sm text-gray-600">
+                            {eventDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {event.time && ` в ${event.time}`}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge className="bg-orange-500 text-white">
+                        Через {daysUntil} {daysUntil === 1 ? 'день' : daysUntil < 5 ? 'дня' : 'дней'}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {stats.total > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-600 mb-1">Всего событий</p>
+                    <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
+                  </div>
+                  <Icon name="Calendar" size={32} className="text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {Object.entries(stats.byCategory).map(([category, count]) => (
+              <Card key={category} className="bg-white border-gray-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 capitalize">{category === 'personal' ? 'Личные' : category === 'family' ? 'Семейные' : category === 'work' ? 'Работа' : category === 'birthday' ? 'Дни рождения' : category}</p>
+                      <p className="text-2xl font-bold">{count}</p>
+                    </div>
+                    <div className={`w-3 h-3 rounded-full ${getCategoryColor(category)}`}></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         <Card>
           <CardHeader>
@@ -334,10 +509,93 @@ export default function Calendar() {
                   <Icon name="Plus" size={16} className="mr-1" />
                   Добавить
                 </Button>
+
+                {events.length > 0 && (
+                  <Button
+                    onClick={exportToCSV}
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
+                    <Icon name="Download" size={16} className="mr-1" />
+                    Экспорт
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 flex flex-wrap gap-3 items-center">
+              <div className="flex items-center gap-2">
+                <Icon name="Filter" size={16} className="text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Фильтр:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={categoryFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('all')}
+                  className="h-8 text-xs"
+                >
+                  Все
+                </Button>
+                <Button
+                  variant={categoryFilter === 'personal' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('personal')}
+                  className="h-8 text-xs"
+                >
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                  Личное
+                </Button>
+                <Button
+                  variant={categoryFilter === 'family' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('family')}
+                  className="h-8 text-xs"
+                >
+                  <span className="w-2 h-2 rounded-full bg-purple-500 mr-1"></span>
+                  Семейное
+                </Button>
+                <Button
+                  variant={categoryFilter === 'work' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('work')}
+                  className="h-8 text-xs"
+                >
+                  <span className="w-2 h-2 rounded-full bg-orange-500 mr-1"></span>
+                  Работа
+                </Button>
+                <Button
+                  variant={categoryFilter === 'birthday' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('birthday')}
+                  className="h-8 text-xs"
+                >
+                  <span className="w-2 h-2 rounded-full bg-pink-500 mr-1"></span>
+                  Дни рождения
+                </Button>
+                <Button
+                  variant={categoryFilter === 'task' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('task')}
+                  className="h-8 text-xs"
+                >
+                  <Icon name="CheckSquare" size={12} className="mr-1" />
+                  Задачи
+                </Button>
+                <Button
+                  variant={categoryFilter === 'goal' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCategoryFilter('goal')}
+                  className="h-8 text-xs"
+                >
+                  <Icon name="Target" size={12} className="mr-1" />
+                  Цели
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-7 gap-1 mb-2">
               {weekDays.map(day => (
                 <div key={day} className="text-center text-sm font-semibold text-gray-600 p-2">
@@ -500,6 +758,48 @@ export default function Calendar() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Bell" size={18} className="text-blue-600" />
+                      <span className="text-sm font-semibold">Напоминание</span>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newEvent.reminderEnabled}
+                        onChange={(e) => setNewEvent({ ...newEvent, reminderEnabled: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm">Включить</span>
+                    </label>
+                  </div>
+                  
+                  {newEvent.reminderEnabled && (
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Напомнить за:</label>
+                      <Select 
+                        value={newEvent.reminderDays.toString()} 
+                        onValueChange={(value) => setNewEvent({ ...newEvent, reminderDays: parseInt(value) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 день</SelectItem>
+                          <SelectItem value="2">2 дня</SelectItem>
+                          <SelectItem value="3">3 дня</SelectItem>
+                          <SelectItem value="7">1 неделю</SelectItem>
+                          <SelectItem value="14">2 недели</SelectItem>
+                          <SelectItem value="30">1 месяц</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               <div className="flex justify-end gap-2">
                 <Button

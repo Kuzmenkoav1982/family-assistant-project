@@ -300,6 +300,8 @@ export interface CalendarEvent {
   category: string;
   color: string;
   attendees?: string[];
+  reminderEnabled?: boolean;
+  reminderDays?: number;
 }
 
 export interface FamilyTreeMember {
