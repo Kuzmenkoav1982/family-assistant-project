@@ -344,47 +344,31 @@ export function HealthSection({ child }: HealthSectionProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {medications.map((med) => (
-            <Card key={med.id} className="border-2">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{med.name}</CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {med.startDate} - {med.endDate}
-                    </p>
-                  </div>
-                  <Badge>{med.schedule}</Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">{med.howToTake}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium mb-3">График приема:</p>
-                  {med.doses.map((dose, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={dose.taken}
-                          className="w-5 h-5"
-                          readOnly
-                        />
-                        <span className="text-sm">
-                          {dose.date} в {dose.time}
-                        </span>
-                      </div>
-                      {dose.taken ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-700">Принято</Badge>
-                      ) : (
-                        <Badge variant="outline">Ожидается</Badge>
-                      )}
+          {medications.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">
+              <p>Лекарств пока нет</p>
+              <p className="text-sm">Добавьте первое лекарство</p>
+            </div>
+          ) : (
+            medications.map((med: any) => (
+              <Card key={med.id} className="border-2">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{med.name}</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {med.start_date} - {med.end_date}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    {med.frequency && <Badge>{med.frequency}</Badge>}
+                  </div>
+                  {med.instructions && (
+                    <p className="text-sm text-gray-600 mt-2">{med.instructions}</p>
+                  )}
+                </CardHeader>
+              </Card>
+            ))
+          )}
         </CardContent>
       </Card>
 
