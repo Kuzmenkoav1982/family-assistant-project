@@ -6,13 +6,43 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { PermissionsManager } from '@/components/PermissionsManager';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 export default function PermissionsManagement() {
   const navigate = useNavigate();
-  const { members } = useFamilyMembers();
+  const { members, deleteMember } = useFamilyMembers();
   const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || '');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   const selectedMember = members.find(m => m.id === selectedMemberId);
+  const currentUserId = localStorage.getItem('userId') || '';
+
+  const handleDeleteClick = (memberId: string) => {
+    setDeletingMemberId(memberId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingMemberId || !deleteMember) return;
+
+    try {
+      const result = await deleteMember(deletingMemberId);
+      if (result.success) {
+        if (selectedMemberId === deletingMemberId) {
+          setSelectedMemberId(members.find(m => m.id !== deletingMemberId)?.id || '');
+        }
+        setDeleteDialogOpen(false);
+        setDeletingMemberId(null);
+      } else if (result.error) {
+        alert('Ошибка: ' + result.error);
+      }
+    } catch (error: any) {
+      alert('Ошибка удаления: ' + error.message);
+    }
+  };
+
+  const memberToDelete = members.find(m => m.id === deletingMemberId);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
@@ -35,26 +65,40 @@ export default function PermissionsManagement() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {members.map(member => (
-                <Button
-                  key={member.id}
-                  variant={selectedMemberId === member.id ? 'default' : 'outline'}
-                  onClick={() => setSelectedMemberId(member.id)}
-                  className="h-auto py-4 flex flex-col items-center gap-2"
-                >
-                  {member.avatarType === 'photo' && member.photoUrl ? (
-                    <img 
-                      src={member.photoUrl} 
-                      alt={member.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-3xl">{member.avatar}</span>
+                <div key={member.id} className="relative group">
+                  <Button
+                    variant={selectedMemberId === member.id ? 'default' : 'outline'}
+                    onClick={() => setSelectedMemberId(member.id)}
+                    className="h-auto py-4 flex flex-col items-center gap-2 w-full"
+                  >
+                    {member.avatarType === 'photo' && member.photoUrl ? (
+                      <img 
+                        src={member.photoUrl} 
+                        alt={member.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl">{member.avatar}</span>
+                    )}
+                    <div className="text-center">
+                      <div className="font-semibold">{member.name}</div>
+                      <div className="text-xs opacity-70">{member.role}</div>
+                    </div>
+                  </Button>
+                  {deleteMember && member.id !== currentUserId && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white border-red-300 text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(member.id);
+                      }}
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
                   )}
-                  <div className="text-center">
-                    <div className="font-semibold">{member.name}</div>
-                    <div className="text-xs opacity-70">{member.role}</div>
-                  </div>
-                </Button>
+                </div>
               ))}
             </div>
 
@@ -100,6 +144,56 @@ export default function PermissionsManagement() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Icon name="AlertTriangle" size={24} />
+              Подтвердите удаление
+            </DialogTitle>
+            <DialogDescription>
+              {memberToDelete && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    {memberToDelete.avatarType === 'photo' && memberToDelete.photoUrl ? (
+                      <img 
+                        src={memberToDelete.photoUrl} 
+                        alt={memberToDelete.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-4xl">{memberToDelete.avatar}</span>
+                    )}
+                    <div>
+                      <div className="font-semibold text-gray-900">{memberToDelete.name}</div>
+                      <div className="text-sm text-gray-600">{memberToDelete.role}</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    Вы уверены, что хотите удалить <strong>{memberToDelete.name}</strong> из семьи?
+                  </p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-800">
+                      <Icon name="AlertCircle" size={16} className="inline mr-1" />
+                      Это действие нельзя отменить. Все данные профиля будут потеряны.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              <Icon name="Trash2" size={16} className="mr-2" />
+              Удалить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
