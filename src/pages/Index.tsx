@@ -1647,10 +1647,16 @@ export default function Index({ onLogout }: IndexProps) {
               <button
                 key={section.id}
                 onClick={() => {
+                  console.log('Left menu clicked:', section.id);
                   if (section.id === 'psychologist') {
                     navigate('/psychologist');
                   } else if (section.id === 'rules-section') {
                     navigate('/rules');
+                  } else if (section.id === 'meals') {
+                    console.log('Navigating to /meals');
+                    navigate('/meals');
+                  } else if (section.id === 'shopping') {
+                    navigate('/shopping');
                   } else {
                     setActiveSection(section.id);
                   }
