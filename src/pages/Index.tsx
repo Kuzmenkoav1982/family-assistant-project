@@ -251,8 +251,6 @@ export default function Index({ onLogout }: IndexProps) {
   const [voteComment, setVoteComment] = useState('');
   const [showCommentDialog, setShowCommentDialog] = useState(false);
   const [pendingVote, setPendingVote] = useState<{ sectionId: string; voteType: 'up' | 'down' } | null>(null);
-  const { votes: devSectionVotes, castVote: castDevVote } = useDevSectionVotes();
-
 
   const authUserData = authUser ? JSON.parse(authUser) : null;
   const currentUser = authUserData?.member_id 
