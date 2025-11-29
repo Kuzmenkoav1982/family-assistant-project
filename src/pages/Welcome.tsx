@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import StatsCounter from '@/components/StatsCounter';
+import { openJivoChat } from '@/lib/jivo';
 
 const screenshots = [
   {
@@ -246,8 +247,17 @@ export default function Welcome() {
             </div>
           </div>
 
-          <div className="mt-12 text-center text-gray-600">
-            <p className="text-sm">
+          <div className="mt-12 text-center space-y-4">
+            <Button
+              onClick={openJivoChat}
+              variant="outline"
+              size="lg"
+              className="border-purple-300 hover:bg-purple-50"
+            >
+              <Icon name="Headphones" size={20} className="mr-2" />
+              Техническая поддержка
+            </Button>
+            <p className="text-sm text-gray-600">
               © 2025 Наша семья. Современный органайзер для семейной жизни
             </p>
           </div>
