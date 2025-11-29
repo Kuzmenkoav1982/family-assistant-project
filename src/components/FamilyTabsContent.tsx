@@ -62,6 +62,7 @@ interface FamilyTabsContentProps {
   getAISuggestedMeals: () => { name: string; reason: string; icon: string }[];
   exportStatsToCSV?: () => void;
   updateMember?: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<any>;
+  deleteMember?: (memberId: string) => Promise<any>;
 }
 
 function getNextOccurrence(task: Task): string | undefined {
@@ -136,6 +137,7 @@ export function FamilyTabsContent({
   getAISuggestedMeals,
   exportStatsToCSV,
   updateMember,
+  deleteMember,
 }: FamilyTabsContentProps) {
   const [taskFilter, setTaskFilter] = useState<string>('all');
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
@@ -222,6 +224,8 @@ export function FamilyTabsContent({
         setFamilyMembers={setFamilyMembers}
         getWorkloadColor={getWorkloadColor}
         updateMember={updateMember}
+        deleteMember={deleteMember}
+        currentUserId={selectedUserId}
       />
 
       <TreeTabContent 

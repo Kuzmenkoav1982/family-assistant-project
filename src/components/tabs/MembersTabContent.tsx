@@ -19,6 +19,8 @@ interface MembersTabContentProps {
   setFamilyMembers: React.Dispatch<React.SetStateAction<FamilyMember[]>>;
   getWorkloadColor: (workload: number) => string;
   updateMember?: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<any>;
+  deleteMember?: (memberId: string) => Promise<any>;
+  currentUserId?: string;
 }
 
 export function MembersTabContent({
@@ -26,6 +28,8 @@ export function MembersTabContent({
   setFamilyMembers,
   getWorkloadColor,
   updateMember,
+  deleteMember,
+  currentUserId,
 }: MembersTabContentProps) {
   const navigate = useNavigate();
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
@@ -35,6 +39,28 @@ export function MembersTabContent({
   const handleUpdatePermissions = async (memberId: string, permissions: any) => {
     if (updateMember) {
       await updateMember({ member_id: memberId, permissions });
+    }
+  };
+
+  const handleDeleteMember = async (memberId: string) => {
+    if (!deleteMember) return;
+    
+    const member = familyMembers.find(m => m.id === memberId);
+    if (!member) return;
+
+    const confirmMessage = `Вы уверены, что хотите удалить ${member.name}?\n\nЭто действие нельзя отменить.`;
+    
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      const result = await deleteMember(memberId);
+      if (result.success) {
+        setFamilyMembers(familyMembers.filter(m => m.id !== memberId));
+      } else if (result.error) {
+        alert('Ошибка: ' + result.error);
+      }
+    } catch (error: any) {
+      alert('Ошибка удаления: ' + error.message);
     }
   };
 
@@ -523,6 +549,17 @@ export function MembersTabContent({
                     <Icon name="Edit" className="mr-2" size={14} />
                     Редактировать
                   </Button>
+                  
+                  {deleteMember && member.id !== currentUserId && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeleteMember(member.id)}
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
+                  )}
                 </div>
 
                 {updateMember && (
