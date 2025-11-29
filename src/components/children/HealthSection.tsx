@@ -58,6 +58,14 @@ export function HealthSection({ child }: HealthSectionProps) {
   const [viewDocumentsDialog, setViewDocumentsDialog] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<MedicalDocument[]>([]);
   
+  if (loading || !data) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Загрузка данных...</p>
+      </div>
+    );
+  }
+  
   const vaccinations = data?.health?.vaccinations || [];
   const medications = data?.health?.medications || [];
   const doctorVisits = data?.health?.doctorVisits || [];
