@@ -287,7 +287,6 @@ export function MainContent({
       )}
 
       {(activeSection === 'tasks' || 
-        activeSection === 'calendar' || 
         activeSection === 'values' || 
         activeSection === 'traditions' || 
         activeSection === 'blog' || 
