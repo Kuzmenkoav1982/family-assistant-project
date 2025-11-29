@@ -32,6 +32,18 @@
         };
       </script>
       <script src="//code.jivo.ru/widget/kMoMrH0Kye" async></script>
+      <style>
+        /* Полностью скрываем виджет Jivo при загрузке */
+        jdiv[id^="jivo"],
+        jdiv.jivo-iframe-container,
+        #jivo-iframe-container,
+        .__jivoMobileButton {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      </style>
   </head>
 
 <body>

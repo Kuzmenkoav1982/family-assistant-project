@@ -18,9 +18,23 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
 
   const openJivoChat = () => {
     onOpenChange(false);
-    if (typeof window !== 'undefined' && (window as any).jivo_api) {
-      (window as any).jivo_api.open();
-    }
+    
+    // Показываем виджет и открываем чат
+    const jivoElements = document.querySelectorAll('jdiv[id^="jivo"], jdiv.jivo-iframe-container, #jivo-iframe-container, .__jivoMobileButton');
+    jivoElements.forEach((el: Element) => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.display = 'block';
+      htmlEl.style.visibility = 'visible';
+      htmlEl.style.opacity = '1';
+      htmlEl.style.pointerEvents = 'auto';
+    });
+    
+    // Открываем чат
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).jivo_api) {
+        (window as any).jivo_api.open();
+      }
+    }, 100);
   };
 
   return (
