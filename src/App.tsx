@@ -39,6 +39,7 @@ import SupportPage from "./pages/SupportPage";
 import AdminSupport from "./pages/AdminSupport";
 import AdminLogin from "./pages/AdminLogin";
 import { AuthProvider } from "@/lib/auth-context";
+import { useJivoWidget } from "@/hooks/useJivoWidget";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
+  useJivoWidget();
+  
   const handleLogout = () => {
     console.log('Logout - временно отключено');
   };

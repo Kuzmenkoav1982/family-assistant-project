@@ -16,6 +16,13 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
     navigate(path);
   };
 
+  const openJivoChat = () => {
+    onOpenChange(false);
+    if (typeof window !== 'undefined' && (window as any).jivo_api) {
+      (window as any).jivo_api.open();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -37,14 +44,14 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
           <p className="text-gray-700">Чем могу помочь?</p>
           <div className="grid gap-3">
             <Button
-              onClick={() => handleNavigation('/support')}
+              onClick={openJivoChat}
               variant="outline"
               className="h-auto py-4 flex items-start gap-3 hover:border-orange-500 hover:bg-orange-50"
             >
               <Icon name="Headphones" size={24} className="text-orange-600 mt-1" />
               <div className="text-left">
                 <div className="font-semibold">Техническая поддержка</div>
-                <div className="text-sm text-gray-600">Возникла проблема или нужна помощь?</div>
+                <div className="text-sm text-gray-600">Напишите нам в чат прямо сейчас</div>
               </div>
             </Button>
 
