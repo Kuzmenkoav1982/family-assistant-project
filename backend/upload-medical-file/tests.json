@@ -1,0 +1,118 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedHeaders": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS"
+      }
+    },
+    {
+      "name": "Upload prescription image",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-Auth-Token": "test-token",
+        "X-User-Id": "user123"
+      },
+      "body": {
+        "file": "data:image/jpeg;base64,/9j/4AAQSkZJRg==",
+        "filename": "prescription.jpg",
+        "fileType": "image/jpeg",
+        "documentType": "prescription",
+        "childId": "child123",
+        "relatedId": "presc123",
+        "relatedType": "prescription"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "url": "string",
+        "documentId": "string",
+        "filename": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Upload analysis PDF",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "file": "data:application/pdf;base64,JVBERi0xLjQK",
+        "filename": "analysis.pdf",
+        "fileType": "application/pdf",
+        "documentType": "analysis",
+        "childId": "child456"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing required fields",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "file": "data:image/jpeg;base64,/9j/4AAQSkZJRg==",
+        "filename": "test.jpg"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unsupported file type",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "file": "data:text/plain;base64,dGVzdA==",
+        "filename": "test.txt",
+        "fileType": "text/plain",
+        "documentType": "prescription",
+        "childId": "child123"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Invalid document type",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "file": "data:image/jpeg;base64,/9j/4AAQSkZJRg==",
+        "filename": "test.jpg",
+        "fileType": "image/jpeg",
+        "documentType": "invalid_type",
+        "childId": "child123"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
