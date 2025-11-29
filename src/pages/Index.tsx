@@ -76,7 +76,6 @@ import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 
-import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 
 interface IndexProps {

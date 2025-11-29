@@ -209,34 +209,18 @@ export function useFamilyMembers() {
     }
   };
 
-  // Polling: проверяем появление токена каждые 100мс в течение 10 секунд
+  // Однократная загрузка при монтировании
   useEffect(() => {
-    let attempts = 0;
-    const maxAttempts = 100; // 100 * 100ms = 10 секунд
+    const token = getAuthToken();
     
-    const checkTokenInterval = setInterval(() => {
-      attempts++;
-      const token = getAuthToken();
-      
-      console.log(`[DEBUG useFamilyMembers POLLING] Attempt ${attempts}/${maxAttempts}, token:`, token ? 'EXISTS' : 'MISSING', 'hasFetched:', hasFetched);
-      
-      if (token && !hasFetched) {
-        console.log('[DEBUG useFamilyMembers POLLING] Token found and not fetched yet! Calling fetchMembers...');
-        fetchMembers();
-        clearInterval(checkTokenInterval);
-      }
-      
-      if (attempts >= maxAttempts) {
-        console.log('[DEBUG useFamilyMembers POLLING] Max attempts reached, stopping');
-        clearInterval(checkTokenInterval);
-        setLoading(false);
-      }
-    }, 100);
+    if (token && !hasFetched) {
+      fetchMembers();
+    } else if (!token) {
+      setLoading(false);
+    }
+  }, []);
 
-    return () => clearInterval(checkTokenInterval);
-  }, [hasFetched]);
-
-  // Периодическое обновление (каждые 5 секунд)
+  // Периодическое обновление (каждые 30 секунд)
   useEffect(() => {
     if (!hasFetched) return;
     
@@ -245,7 +229,7 @@ export function useFamilyMembers() {
       if (token) {
         fetchMembers(true);
       }
-    }, 5000);
+    }, 30000);
     
     return () => clearInterval(interval);
   }, [hasFetched]);
