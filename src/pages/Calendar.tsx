@@ -52,7 +52,12 @@ export default function Calendar() {
     visibility: 'family' as 'family' | 'private',
     attendees: [] as string[],
     reminderEnabled: true,
-    reminderDays: 1
+    reminderDays: 1,
+    isRecurring: false,
+    recurringFrequency: 'weekly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
+    recurringInterval: 1,
+    recurringEndDate: '',
+    recurringDaysOfWeek: [] as number[]
   });
 
   useEffect(() => {
@@ -162,11 +167,63 @@ export default function Calendar() {
     return days;
   };
 
+  const isRecurringEventOnDate = (event: CalendarEvent, targetDate: Date): boolean => {
+    if (!event.isRecurring || !event.recurringPattern) return false;
+
+    const eventDate = new Date(event.date);
+    const targetDateStr = targetDate.toISOString().split('T')[0];
+    
+    if (targetDate < eventDate) return false;
+    
+    if (event.recurringPattern.endDate) {
+      const endDate = new Date(event.recurringPattern.endDate);
+      if (targetDate > endDate) return false;
+    }
+
+    const { frequency, interval, daysOfWeek } = event.recurringPattern;
+    const diffTime = targetDate.getTime() - eventDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (frequency === 'daily') {
+      return diffDays % interval === 0;
+    }
+
+    if (frequency === 'weekly') {
+      if (daysOfWeek && daysOfWeek.length > 0) {
+        const targetDayOfWeek = targetDate.getDay();
+        const weeksDiff = Math.floor(diffDays / 7);
+        return weeksDiff % interval === 0 && daysOfWeek.includes(targetDayOfWeek);
+      }
+      return diffDays % (interval * 7) === 0;
+    }
+
+    if (frequency === 'monthly') {
+      const eventDay = eventDate.getDate();
+      const targetDay = targetDate.getDate();
+      const monthsDiff = (targetDate.getFullYear() - eventDate.getFullYear()) * 12 + 
+                        (targetDate.getMonth() - eventDate.getMonth());
+      return monthsDiff % interval === 0 && eventDay === targetDay;
+    }
+
+    if (frequency === 'yearly') {
+      const yearsDiff = targetDate.getFullYear() - eventDate.getFullYear();
+      const sameMonthDay = targetDate.getMonth() === eventDate.getMonth() && 
+                          targetDate.getDate() === eventDate.getDate();
+      return yearsDiff % interval === 0 && sameMonthDay;
+    }
+
+    return false;
+  };
+
   const getEventsForDate = (date: Date): (CalendarEvent | Task | FamilyGoal)[] => {
     const dateStr = date.toISOString().split('T')[0];
     const allEvents: (CalendarEvent | Task | FamilyGoal)[] = [];
     
-    let matchingEvents = events.filter(e => e.date === dateStr);
+    let matchingEvents = events.filter(e => {
+      if (e.date === dateStr) return true;
+      return isRecurringEventOnDate(e, date);
+    });
+    
     if (categoryFilter !== 'all') {
       matchingEvents = matchingEvents.filter(e => e.category === categoryFilter);
     }
@@ -238,7 +295,16 @@ export default function Calendar() {
       createdByName: currentUser.name,
       createdByAvatar: currentUser.avatar,
       reminderEnabled: newEvent.reminderEnabled,
-      reminderDays: newEvent.reminderDays
+      reminderDays: newEvent.reminderDays,
+      isRecurring: newEvent.isRecurring,
+      recurringPattern: newEvent.isRecurring ? {
+        frequency: newEvent.recurringFrequency,
+        interval: newEvent.recurringInterval,
+        endDate: newEvent.recurringEndDate || undefined,
+        daysOfWeek: newEvent.recurringFrequency === 'weekly' && newEvent.recurringDaysOfWeek.length > 0 
+          ? newEvent.recurringDaysOfWeek 
+          : undefined
+      } : undefined
     };
 
     setEvents([...events, event]);
@@ -252,7 +318,12 @@ export default function Calendar() {
       visibility: 'family',
       attendees: [],
       reminderEnabled: true,
-      reminderDays: 1
+      reminderDays: 1,
+      isRecurring: false,
+      recurringFrequency: 'weekly',
+      recurringInterval: 1,
+      recurringEndDate: '',
+      recurringDaysOfWeek: []
     });
     setShowEventDialog(false);
   };
@@ -796,6 +867,110 @@ export default function Calendar() {
                           <SelectItem value="30">1 месяц</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Repeat" size={18} className="text-green-600" />
+                      <span className="text-sm font-semibold">Повторяющееся событие</span>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newEvent.isRecurring}
+                        onChange={(e) => setNewEvent({ ...newEvent, isRecurring: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm">Включить</span>
+                    </label>
+                  </div>
+                  
+                  {newEvent.isRecurring && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Периодичность:</label>
+                        <Select 
+                          value={newEvent.recurringFrequency} 
+                          onValueChange={(value: 'daily' | 'weekly' | 'monthly' | 'yearly') => 
+                            setNewEvent({ ...newEvent, recurringFrequency: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Каждый день</SelectItem>
+                            <SelectItem value="weekly">Каждую неделю</SelectItem>
+                            <SelectItem value="monthly">Каждый месяц</SelectItem>
+                            <SelectItem value="yearly">Каждый год</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Интервал:</label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={newEvent.recurringInterval}
+                          onChange={(e) => setNewEvent({ ...newEvent, recurringInterval: Math.max(1, parseInt(e.target.value) || 1) })}
+                          placeholder="Каждые N периодов"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {newEvent.recurringFrequency === 'daily' && `Каждые ${newEvent.recurringInterval} дн.`}
+                          {newEvent.recurringFrequency === 'weekly' && `Каждые ${newEvent.recurringInterval} нед.`}
+                          {newEvent.recurringFrequency === 'monthly' && `Каждые ${newEvent.recurringInterval} мес.`}
+                          {newEvent.recurringFrequency === 'yearly' && `Каждые ${newEvent.recurringInterval} год(а)`}
+                        </p>
+                      </div>
+
+                      {newEvent.recurringFrequency === 'weekly' && (
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Дни недели:</label>
+                          <div className="flex flex-wrap gap-2">
+                            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, index) => {
+                              const dayValue = index === 6 ? 0 : index + 1;
+                              const isSelected = newEvent.recurringDaysOfWeek.includes(dayValue);
+                              return (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() => {
+                                    const newDays = isSelected
+                                      ? newEvent.recurringDaysOfWeek.filter(d => d !== dayValue)
+                                      : [...newEvent.recurringDaysOfWeek, dayValue].sort();
+                                    setNewEvent({ ...newEvent, recurringDaysOfWeek: newDays });
+                                  }}
+                                  className={`w-10 h-10 rounded-full text-xs font-medium transition-all ${
+                                    isSelected 
+                                      ? 'bg-green-500 text-white' 
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {day}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Оставьте пустым для повторения в день недели начальной даты</p>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Дата окончания (необязательно):</label>
+                        <Input
+                          type="date"
+                          value={newEvent.recurringEndDate}
+                          onChange={(e) => setNewEvent({ ...newEvent, recurringEndDate: e.target.value })}
+                          min={newEvent.date}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Оставьте пустым для бесконечного повторения</p>
+                      </div>
                     </div>
                   )}
                 </CardContent>

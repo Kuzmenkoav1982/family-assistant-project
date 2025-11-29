@@ -302,6 +302,13 @@ export interface CalendarEvent {
   attendees?: string[];
   reminderEnabled?: boolean;
   reminderDays?: number;
+  isRecurring?: boolean;
+  recurringPattern?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: number;
+    endDate?: string;
+    daysOfWeek?: number[];
+  };
 }
 
 export interface FamilyTreeMember {
