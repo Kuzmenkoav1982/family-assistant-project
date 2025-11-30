@@ -867,10 +867,12 @@ export function HealthSection({ child }: HealthSectionProps) {
               <Icon name="FileText" size={20} />
               Прикрепленные файлы ({healthDocuments.length})
             </CardTitle>
-            <label>
-              <Button variant="outline" className="gap-2" disabled={uploading}>
-                <Icon name="Upload" size={16} />
-                {uploading ? `Загрузка ${progress}%` : 'Загрузить файл'}
+            <label className="cursor-pointer">
+              <Button variant="outline" className="gap-2" disabled={uploading} type="button" asChild>
+                <span>
+                  <Icon name="Upload" size={16} />
+                  {uploading ? `Загрузка ${progress}%` : 'Загрузить файл'}
+                </span>
               </Button>
               <input
                 type="file"
