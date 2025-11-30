@@ -679,8 +679,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     cur.execute(f"""
                         INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
                         VALUES ({med_id_safe}, {escape_sql_string(default_time)})
-                        RETURNING id
                     """)
+                    
+                    cur.execute(f"SELECT id FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} ORDER BY id DESC LIMIT 1")
                     schedule_id = cur.fetchone()['id']
                     print(f"[REBUILD] Created schedule_id: {schedule_id}")
                     
