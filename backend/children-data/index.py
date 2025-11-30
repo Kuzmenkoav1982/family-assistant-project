@@ -597,6 +597,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     
                     print(f"[MED UPDATE] Recreated schedule with {len(times)} times")
                     
+                elif data_type == 'development_area':
+                    cur.execute(f"""
+                        UPDATE {schema}.children_development 
+                        SET area = {escape_sql_string(data.get('area'))}, 
+                            current_level = {escape_sql_string(data.get('current_level'))},
+                            target_level = {escape_sql_string(data.get('target_level'))}
+                        WHERE id = {record_id_safe}
+                    """)
+                    
                 else:
                     return {
                         'statusCode': 400,

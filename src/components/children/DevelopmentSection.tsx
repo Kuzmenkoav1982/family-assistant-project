@@ -153,6 +153,21 @@ export function DevelopmentSection({ child }: { child: FamilyMember }) {
     }
   };
 
+  const handleUpdateProgress = async (areaId: string, newLevel: number) => {
+    const area = developmentAreas.find((a: any) => a.id === areaId);
+    if (!area) return;
+
+    const result = await updateItem('development_area', areaId, {
+      area: area.area,
+      current_level: newLevel,
+      target_level: area.target_level
+    });
+
+    if (!result.success) {
+      alert(result.error || 'Ошибка обновления прогресса');
+    }
+  };
+
   const handleDeleteActivity = async (id: string) => {
     if (!confirm('Удалить это занятие?')) return;
     
@@ -269,6 +284,28 @@ export function DevelopmentSection({ child }: { child: FamilyMember }) {
                     <span className="text-sm text-gray-600">
                       {area.current_level}% → {area.target_level}%
                     </span>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateProgress(area.id, Math.min(area.current_level + 5, area.target_level))}
+                        disabled={area.current_level >= area.target_level}
+                        className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        title="Увеличить прогресс на 5%"
+                      >
+                        <Icon name="Plus" size={14} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateProgress(area.id, Math.max(area.current_level - 5, 0))}
+                        disabled={area.current_level <= 0}
+                        className="h-7 px-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                        title="Уменьшить прогресс на 5%"
+                      >
+                        <Icon name="Minus" size={14} />
+                      </Button>
+                    </div>
                     <Button
                       size="sm"
                       variant="ghost"
