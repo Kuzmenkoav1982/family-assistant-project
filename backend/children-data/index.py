@@ -435,6 +435,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     """)
                     conn.commit()
                     
+                elif data_type == 'development_area':
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_development 
+                        (member_id, family_id, area, current_level, target_level)
+                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))},
+                                {escape_sql_string(data.get('area'))}, {escape_sql_string(data.get('current_level', 0))},
+                                {escape_sql_string(data.get('target_level', 100))})
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
+                elif data_type == 'activity':
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_activities 
+                        (development_id, type, name, schedule, cost, status)
+                        VALUES ({escape_sql_string(data.get('development_id'))}, {escape_sql_string(data.get('type'))},
+                                {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('schedule', ''))},
+                                {escape_sql_string(data.get('cost', 0))}, {escape_sql_string(data.get('status', 'active'))})
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
+                elif data_type == 'test':
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_tests 
+                        (development_id, test_name, date, result, notes)
+                        VALUES ({escape_sql_string(data.get('development_id'))}, {escape_sql_string(data.get('test_name'))},
+                                {escape_sql_string(data.get('date'))}, {escape_sql_string(data.get('result', ''))},
+                                {escape_sql_string(data.get('notes', ''))})
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
                 else:
                     return {
                         'statusCode': 400,
@@ -596,7 +632,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'dream': 'children_dreams',
                     'grade': 'children_grades',
                     'diary': 'children_diary',
-                    'medication': 'children_medications'
+                    'medication': 'children_medications',
+                    'development_area': 'children_development',
+                    'activity': 'children_activities',
+                    'test': 'children_tests'
                 }
                 
                 if data_type not in table_map:
