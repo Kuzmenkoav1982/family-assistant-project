@@ -13,6 +13,7 @@ import { GiftsSection } from './GiftsSection';
 import { PurchasesSection } from './PurchasesSection';
 import { SectionHelp } from './SectionHelp';
 import { useChildrenDataQuery, useChildDataMutation } from '@/hooks/useChildrenDataQuery';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import type { FamilyMember } from '@/types/family.types';
 
 interface ParentDashboardProps {
@@ -61,12 +62,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
     Math.round(data.school.grades.reduce((acc, g) => acc + (g.grade || 0), 0) / data.school.grades.length * 20) : 82;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Icon name="Loader2" size={32} className="animate-spin text-blue-600" />
-        <span className="ml-3 text-gray-600">Загрузка данных...</span>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

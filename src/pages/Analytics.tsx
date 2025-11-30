@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useFamilyDataQuery } from '@/hooks/useFamilyDataQuery';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AnalyticsSkeleton } from '@/components/skeletons/AnalyticsSkeleton';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -14,14 +15,7 @@ export default function Analytics() {
   const { data: familyData, isLoading } = useFamilyDataQuery();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <Icon name="Loader2" size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-lg text-gray-600">Загрузка аналитики...</p>
-        </div>
-      </div>
-    );
+    return <AnalyticsSkeleton />;
   }
 
   const members = familyData?.members || [];
