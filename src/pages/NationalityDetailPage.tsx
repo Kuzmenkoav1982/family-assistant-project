@@ -502,3 +502,5 @@ export function NationalityDetailPage() {
     </div>
   );
 }
+
+export default NationalityDetailPage;
