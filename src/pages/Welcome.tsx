@@ -247,6 +247,118 @@ export default function Welcome() {
             </div>
           </div>
 
+          <div className="mt-12 bg-white rounded-2xl shadow-xl p-8 lg:p-12">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 mb-4 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <Icon name="Smartphone" size={28} />
+                <span className="font-bold text-xl">Установите приложение</span>
+              </div>
+              <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Мобильное приложение для iOS и Android
+              </h3>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Установите наше приложение на свой телефон и получите быстрый доступ к семейному органайзеру
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white">
+                      <Icon name="Apple" size={24} />
+                    </div>
+                    <h4 className="text-2xl font-bold text-blue-600">iOS (iPhone/iPad)</h4>
+                  </div>
+                  <ol className="space-y-3 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">1</span>
+                      <span>Откройте сайт в браузере <strong>Safari</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">2</span>
+                      <span>Нажмите кнопку <strong>"Поделиться"</strong> <Icon name="Share" size={16} className="inline" /> (внизу экрана)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">3</span>
+                      <span>Выберите <strong>"На экран 'Домой'"</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">4</span>
+                      <span>Нажмите <strong>"Добавить"</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">5</span>
+                      <span>Готово! Иконка приложения появится на главном экране</span>
+                    </li>
+                  </ol>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-green-200 hover:border-green-400 transition-all">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white">
+                      <Icon name="Smartphone" size={24} />
+                    </div>
+                    <h4 className="text-2xl font-bold text-green-600">Android</h4>
+                  </div>
+                  <ol className="space-y-3 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">1</span>
+                      <span>Откройте сайт в браузере <strong>Chrome</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">2</span>
+                      <span>Нажмите кнопку <strong>"Меню"</strong> <Icon name="MoreVertical" size={16} className="inline" /> (три точки вверху справа)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">3</span>
+                      <span>Выберите <strong>"Установить приложение"</strong> или <strong>"Добавить на главный экран"</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">4</span>
+                      <span>Подтвердите установку</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">5</span>
+                      <span>Готово! Приложение установлено на ваш телефон</span>
+                    </li>
+                  </ol>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white">
+                  <Icon name="Sparkles" size={24} />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-purple-600 mb-2">Преимущества мобильного приложения</h4>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-center gap-2">
+                      <Icon name="Check" size={18} className="text-green-500" />
+                      <span>Работает без интернета (офлайн-режим)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Icon name="Check" size={18} className="text-green-500" />
+                      <span>Push-уведомления о задачах и событиях</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Icon name="Check" size={18} className="text-green-500" />
+                      <span>Быстрый доступ с главного экрана</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Icon name="Check" size={18} className="text-green-500" />
+                      <span>Полноэкранный режим (как обычное приложение)</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-12 text-center space-y-4">
             <Button
               onClick={openJivoChat}
