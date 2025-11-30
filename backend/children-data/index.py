@@ -682,10 +682,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         RETURNING id
                     """)
                     schedule_id = cur.fetchone()['id']
+                    print(f"[REBUILD] Created schedule_id: {schedule_id}")
                     
-                    start = med['start_date']
-                    end = med['end_date']
+                    start = datetime.strptime(str(med['start_date']), '%Y-%m-%d').date() if isinstance(med['start_date'], str) else med['start_date']
+                    end = datetime.strptime(str(med['end_date']), '%Y-%m-%d').date() if isinstance(med['end_date'], str) else med['end_date']
                     current = start
+                    print(f"[REBUILD] Date range: {start} to {end}")
                     
                     intake_count = 0
                     while current <= end:

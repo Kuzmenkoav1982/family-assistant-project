@@ -701,16 +701,16 @@ export function HealthSection({ child }: HealthSectionProps) {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {(med.schedule || []).length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium mb-3">⏰ Расписание приема:</p>
-                        {(med.schedule || []).map((scheduleItem: any) => {
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium mb-3">⏰ Расписание приема:</p>
+                      {(med.schedule && med.schedule.length > 0) ? (
+                        (med.schedule || []).map((scheduleItem: any) => {
                           const todayIntake = todayIntakes.find((intake: any) => 
                             intake.schedule_id === scheduleItem.id
                           );
                           
                           return (
-                            <div key={scheduleItem.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={scheduleItem.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-2 border-blue-200">
                               <div className="flex items-center gap-3">
                                 <input
                                   type="checkbox"
@@ -721,7 +721,6 @@ export function HealthSection({ child }: HealthSectionProps) {
                                     }
                                   }}
                                   className="w-5 h-5 cursor-pointer"
-                                  disabled={!todayIntake}
                                 />
                                 <div>
                                   <span className="text-sm font-medium">
@@ -739,22 +738,31 @@ export function HealthSection({ child }: HealthSectionProps) {
                               </div>
                               {todayIntake?.taken ? (
                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                  ✓ Принято
-                                </Badge>
-                              ) : todayIntake ? (
-                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                                  ⏳ Ожидается
+                                  <Icon name="Check" size={14} className="mr-1" />
+                                  Принято
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="bg-gray-50 text-gray-500">
-                                  Не сегодня
-                                </Badge>
+                                <Button 
+                                  size="sm" 
+                                  className="gap-1 bg-green-600 hover:bg-green-700"
+                                  onClick={() => todayIntake && handleMarkIntake(todayIntake.id, true)}
+                                  disabled={!todayIntake}
+                                >
+                                  <Icon name="Check" size={14} />
+                                  Отметить прием
+                                </Button>
                               )}
                             </div>
                           );
-                        })}
-                      </div>
-                    )}
+                        })
+                      ) : (
+                        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
+                          <p className="text-sm text-yellow-800">
+                            Расписание не создано. Пересоздайте лекарство или создайте расписание.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               );
