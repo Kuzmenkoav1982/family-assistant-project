@@ -130,7 +130,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 child_data['purchases'] = purchase_plans
             
             if data_type in ['all', 'gifts']:
-                cur.execute(f"SELECT * FROM {schema}.children_gifts WHERE member_id = {child_id_safe} ORDER BY date")
+                cur.execute(f"SELECT * FROM {schema}.children_gifts WHERE member_id = {child_id_safe} ORDER BY date DESC")
                 child_data['gifts'] = [dict(row) for row in cur.fetchall()]
             
             if data_type in ['all', 'development']:
@@ -152,7 +152,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 school_row = cur.fetchone()
                 
                 if school_row:
-                    cur.execute(f"SELECT * FROM {schema}.children_grades WHERE member_id = {child_id_safe} ORDER BY date DESC LIMIT 50")
+                    school_id_safe = escape_sql_string(school_row['id'])
+                    cur.execute(f"SELECT * FROM {schema}.children_grades WHERE school_id = {school_id_safe} ORDER BY date DESC LIMIT 50")
                     grades = [dict(row) for row in cur.fetchall()]
                     
                     school_data = dict(school_row)
