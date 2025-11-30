@@ -1,0 +1,55 @@
+{
+  "name": "Семейный Ассистент Pro",
+  "short_name": "Семья Pro",
+  "description": "Полноценный семейный помощник для управления задачами, событиями, здоровьем и развитием детей",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Добавить задачу",
+      "short_name": "Задача",
+      "description": "Быстро добавить новую задачу",
+      "url": "/?action=add-task",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Календарь событий",
+      "short_name": "Календарь",
+      "description": "Открыть семейный календарь",
+      "url": "/?action=calendar",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Аналитика",
+      "short_name": "Аналитика",
+      "description": "Посмотреть статистику семьи",
+      "url": "/analytics",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
