@@ -1,0 +1,47 @@
+{
+  "tests": [
+    {
+      "name": "Subscribe to notifications",
+      "method": "POST",
+      "headers": {
+        "X-Auth-Token": "test-token-123"
+      },
+      "body": {
+        "action": "subscribe",
+        "subscription": {
+          "endpoint": "https://fcm.googleapis.com/fcm/send/test",
+          "keys": {
+            "p256dh": "test-key",
+            "auth": "test-auth"
+          }
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get subscription status",
+      "method": "GET",
+      "headers": {
+        "X-Auth-Token": "test-token-123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unauthorized request",
+      "method": "GET",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "success": false
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

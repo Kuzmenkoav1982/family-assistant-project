@@ -93,6 +93,17 @@ export default function BottomBar({
                 <span className="ml-1 text-xs hidden sm:inline">Аналитика</span>
               </Button>
 
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/settings')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Настройки"
+              >
+                <Icon name="Settings" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Настройки</span>
+              </Button>
+
               {displaySections.map(section => (
                 <Button
                   key={section.id}

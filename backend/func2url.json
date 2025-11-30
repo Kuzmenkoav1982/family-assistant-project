@@ -1,4 +1,5 @@
 {
+  "push-notifications": "https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94",
   "upload-file": "https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0",
   "upload-medical-file": "https://functions.poehali.dev/2db47477-9dfd-49f9-8f51-7ff388753d82",
   "children-data": "https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203",
