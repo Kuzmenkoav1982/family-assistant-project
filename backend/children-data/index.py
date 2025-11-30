@@ -676,26 +676,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     print(f"[REBUILD] Rebuilding schedule for {med['name']} (ID: {med_id})")
                     
                     default_time = '09:00'
-                    cur.execute(f"""
-                        INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
-                        VALUES ({med_id_safe}, {escape_sql_string(default_time)})
-                    """)
-                    conn.commit()
-                    print(f"[REBUILD] INSERT completed, now querying for schedule_id")
+                    print(f"[REBUILD] Executing INSERT for med_id={med_id}, time={default_time}")
                     
-                    cur.close()
-                    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                    
-                    cur.execute(f"SELECT id FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} AND time_of_day = {escape_sql_string(default_time)} ORDER BY id DESC LIMIT 1")
-                    result = cur.fetchone()
-                    print(f"[REBUILD] SELECT result: {result}")
-                    
-                    if not result:
-                        print(f"[REBUILD ERROR] Failed to find created schedule for med_id={med_id}")
+                    try:
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
+                            VALUES ({med_id_safe}, {escape_sql_string(default_time)})
+                        """)
+                        print(f"[REBUILD] INSERT executed, now committing...")
+                        conn.commit()
+                        print(f"[REBUILD] Commit completed, now querying for schedule_id")
+                        
+                        cur.execute(f"SELECT id FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} AND time_of_day = {escape_sql_string(default_time)} ORDER BY id DESC LIMIT 1")
+                        result = cur.fetchone()
+                        print(f"[REBUILD] SELECT result: {result}")
+                        
+                        if not result:
+                            print(f"[REBUILD ERROR] Failed to find created schedule for med_id={med_id}")
+                            continue
+                        
+                        schedule_id = result['id']
+                        print(f"[REBUILD] Created schedule_id: {schedule_id}")
+                    except Exception as rebuild_error:
+                        print(f"[REBUILD ERROR] Exception during rebuild: {str(rebuild_error)}")
+                        conn.rollback()
                         continue
-                    
-                    schedule_id = result['id']
-                    print(f"[REBUILD] Created schedule_id: {schedule_id}")
                     
                     start = datetime.strptime(str(med['start_date']), '%Y-%m-%d').date() if isinstance(med['start_date'], str) else med['start_date']
                     end = datetime.strptime(str(med['end_date']), '%Y-%m-%d').date() if isinstance(med['end_date'], str) else med['end_date']
