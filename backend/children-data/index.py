@@ -676,18 +676,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     print(f"[REBUILD] Rebuilding schedule for {med['name']} (ID: {med_id})")
                     
                     default_time = '09:00'
-                    print(f"[REBUILD] Executing INSERT for med_id={med_id}, time={default_time}")
+                    start = datetime.strptime(str(med['start_date']), '%Y-%m-%d').date() if isinstance(med['start_date'], str) else med['start_date']
+                    print(f"[REBUILD] Executing INSERT for med_id={med_id}, time={default_time}, date={start}")
                     
                     try:
                         cur.execute(f"""
-                            INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
-                            VALUES ({med_id_safe}, {escape_sql_string(default_time)})
+                            INSERT INTO {schema}.children_medication_schedule (medication_id, date, time, time_of_day)
+                            VALUES ({med_id_safe}, {escape_sql_string(str(start))}, {escape_sql_string(default_time)}, {escape_sql_string(default_time)})
                         """)
                         print(f"[REBUILD] INSERT executed, now committing...")
                         conn.commit()
                         print(f"[REBUILD] Commit completed, now querying for schedule_id")
                         
-                        cur.execute(f"SELECT id FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} AND time_of_day = {escape_sql_string(default_time)} ORDER BY id DESC LIMIT 1")
+                        cur.execute(f"SELECT id FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} AND date = {escape_sql_string(str(start))} ORDER BY id DESC LIMIT 1")
                         result = cur.fetchone()
                         print(f"[REBUILD] SELECT result: {result}")
                         
@@ -702,7 +703,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         conn.rollback()
                         continue
                     
-                    start = datetime.strptime(str(med['start_date']), '%Y-%m-%d').date() if isinstance(med['start_date'], str) else med['start_date']
                     end = datetime.strptime(str(med['end_date']), '%Y-%m-%d').date() if isinstance(med['end_date'], str) else med['end_date']
                     current = start
                     print(f"[REBUILD] Date range: {start} to {end}")
