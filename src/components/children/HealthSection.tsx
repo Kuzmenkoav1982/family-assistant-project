@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useChildrenData } from '@/hooks/useChildrenData';
 import { useUploadMedicalFile, type MedicalDocument } from '@/hooks/useUploadMedicalFile';
+import { useMedicationNotifications } from '@/hooks/useMedicationNotifications';
 import type { FamilyMember } from '@/types/family.types';
 
 interface HealthSectionProps {
@@ -47,6 +49,10 @@ export function HealthSection({ child }: HealthSectionProps) {
   const { uploadFile, uploading, progress } = useUploadMedicalFile();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   
+  const medications = data?.health?.medications || [];
+  const { permission, settings, requestPermission, updateSettings } = useMedicationNotifications(medications);
+  const [notificationSettingsDialog, setNotificationSettingsDialog] = useState(false);
+  
   const [newVaccinationDialog, setNewVaccinationDialog] = useState(false);
   const [newVaccinationData, setNewVaccinationData] = useState({ vaccine: '', date: '', notes: '' });
   
@@ -77,7 +83,6 @@ export function HealthSection({ child }: HealthSectionProps) {
   }
   
   const vaccinations = data?.health?.vaccinations || [];
-  const medications = data?.health?.medications || [];
   const doctorVisits = data?.health?.doctorVisits || [];
   
   const healthDocuments: MedicalDocument[] = Array.isArray(data?.health?.documents) 
@@ -416,7 +421,18 @@ export function HealthSection({ child }: HealthSectionProps) {
               <Icon name="Pill" size={20} />
               Лекарства
             </CardTitle>
-            <Dialog open={newMedicationDialog} onOpenChange={setNewMedicationDialog}>
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => setNotificationSettingsDialog(true)}
+              >
+                <Icon name="Bell" size={16} />
+                Уведомления
+                {settings.enabled && <Badge variant="outline" className="ml-1 bg-green-50 text-green-700">ВКЛ</Badge>}
+              </Button>
+              <Dialog open={newMedicationDialog} onOpenChange={setNewMedicationDialog}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-2">
                   <Icon name="Plus" size={16} />
@@ -641,6 +657,7 @@ export function HealthSection({ child }: HealthSectionProps) {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -1002,6 +1019,99 @@ export function HealthSection({ child }: HealthSectionProps) {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={notificationSettingsDialog} onOpenChange={setNotificationSettingsDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Bell" size={20} />
+              Настройка уведомлений о приёме лекарств
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            {permission === 'denied' && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">
+                  ⚠️ Уведомления заблокированы в настройках браузера. Пожалуйста, разрешите уведомления для этого сайта.
+                </p>
+              </div>
+            )}
+            
+            {permission === 'default' && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 mb-3">
+                  💡 Для получения напоминаний о приёме лекарств нужно разрешить уведомления
+                </p>
+                <Button 
+                  onClick={requestPermission}
+                  className="w-full gap-2"
+                >
+                  <Icon name="Bell" size={16} />
+                  Разрешить уведомления
+                </Button>
+              </div>
+            )}
+
+            {permission === 'granted' && (
+              <>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">Включить уведомления</p>
+                    <p className="text-sm text-gray-500">Получать напоминания о приёме лекарств</p>
+                  </div>
+                  <Switch
+                    checked={settings.enabled}
+                    onCheckedChange={(checked) => updateSettings({ enabled: checked })}
+                  />
+                </div>
+
+                {settings.enabled && (
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">Звуковой сигнал</p>
+                        <p className="text-sm text-gray-500">Проигрывать звук при уведомлении</p>
+                      </div>
+                      <Switch
+                        checked={settings.soundEnabled}
+                        onCheckedChange={(checked) => updateSettings({ soundEnabled: checked })}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium">Напоминать за (минут)</label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[5, 10, 15, 30].map((minutes) => (
+                          <Button
+                            key={minutes}
+                            variant={settings.minutesBefore === minutes ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => updateSettings({ minutesBefore: minutes })}
+                          >
+                            {minutes}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Icon name="Check" size={20} className="text-green-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-green-900">Уведомления настроены!</p>
+                          <p className="text-sm text-green-700 mt-1">
+                            Вы будете получать напоминания за {settings.minutesBefore} минут до приёма лекарства и в момент приёма.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
