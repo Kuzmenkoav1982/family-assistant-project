@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { VirtualizedList } from '@/components/VirtualizedList';
 import type { FamilyMember } from '@/types/family.types';
 
 interface FamilyMembersGridProps {
@@ -8,24 +9,12 @@ interface FamilyMembersGridProps {
   onMemberClick: (member: FamilyMember) => void;
 }
 
-export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridProps) {
-  return (
-    <div className="space-y-4">
-      <div className="text-center p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-        <p className="text-sm font-medium text-blue-900">
-          <Icon name="Info" className="inline mr-2" size={16} />
-          Нажмите на карточку участника, чтобы открыть его полный профиль с возможностью редактирования
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {members.map((member, index) => (
-          <Card
-            key={member.id}
-            className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-102 animate-fade-in group"
-            style={{ animationDelay: `${index * 0.1}s` }}
-            onClick={() => onMemberClick(member)}
-          >
+const MemberCard = ({ member, index, onClick }: { member: FamilyMember; index: number; onClick: () => void }) => (
+  <Card
+    className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-102 animate-fade-in group"
+    style={{ animationDelay: `${index * 0.1}s` }}
+    onClick={onClick}
+  >
             <CardContent className="p-5">
               <div className="flex items-start gap-4">
                 <div className="relative">
@@ -91,6 +80,54 @@ export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridP
               </div>
             </CardContent>
           </Card>
+);
+
+export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridProps) {
+  if (members.length > 50) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+          <p className="text-sm font-medium text-blue-900">
+            <Icon name="Info" className="inline mr-2" size={16} />
+            Нажмите на карточку участника, чтобы открыть его полный профиль с возможностью редактирования
+          </p>
+        </div>
+        
+        <VirtualizedList
+          items={members}
+          estimateSize={180}
+          overscan={3}
+          renderItem={(member, index) => (
+            <div className="px-2 mb-4">
+              <MemberCard 
+                member={member} 
+                index={index} 
+                onClick={() => onMemberClick(member)} 
+              />
+            </div>
+          )}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+        <p className="text-sm font-medium text-blue-900">
+          <Icon name="Info" className="inline mr-2" size={16} />
+          Нажмите на карточку участника, чтобы открыть его полный профиль с возможностью редактирования
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {members.map((member, index) => (
+          <MemberCard 
+            key={member.id}
+            member={member} 
+            index={index} 
+            onClick={() => onMemberClick(member)} 
+          />
         ))}
       </div>
     </div>

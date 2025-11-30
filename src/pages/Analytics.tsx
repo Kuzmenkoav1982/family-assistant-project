@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFamilyDataQuery } from '@/hooks/useFamilyDataQuery';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { AnalyticsSkeleton } from '@/components/skeletons/AnalyticsSkeleton';
+import { VirtualizedList } from '@/components/VirtualizedList';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -340,21 +341,41 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 {upcomingEvents.length > 0 ? (
-                  <div className="space-y-4">
-                    {upcomingEvents.map((event: any) => (
-                      <div key={event.id} className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
-                        <div className="w-12 h-12 bg-purple-600 text-white rounded-lg flex flex-col items-center justify-center">
-                          <span className="text-xs">{new Date(event.date).toLocaleDateString('ru', { month: 'short' })}</span>
-                          <span className="text-lg font-bold">{new Date(event.date).getDate()}</span>
+                  upcomingEvents.length > 20 ? (
+                    <VirtualizedList
+                      items={upcomingEvents}
+                      estimateSize={120}
+                      renderItem={(event: any) => (
+                        <div className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100 mb-4 mx-2">
+                          <div className="w-12 h-12 bg-purple-600 text-white rounded-lg flex flex-col items-center justify-center">
+                            <span className="text-xs">{new Date(event.date).toLocaleDateString('ru', { month: 'short' })}</span>
+                            <span className="text-lg font-bold">{new Date(event.date).getDate()}</span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                            <Badge variant="secondary" className="mt-2">{event.type}</Badge>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{event.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-                          <Badge variant="secondary" className="mt-2">{event.type}</Badge>
+                      )}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      {upcomingEvents.map((event: any) => (
+                        <div key={event.id} className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                          <div className="w-12 h-12 bg-purple-600 text-white rounded-lg flex flex-col items-center justify-center">
+                            <span className="text-xs">{new Date(event.date).toLocaleDateString('ru', { month: 'short' })}</span>
+                            <span className="text-lg font-bold">{new Date(event.date).getDate()}</span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                            <Badge variant="secondary" className="mt-2">{event.type}</Badge>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )
                 ) : (
                   <div className="text-center py-12 text-gray-500">
                     <Icon name="Calendar" size={48} className="mx-auto mb-4 opacity-20" />
