@@ -311,6 +311,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     result_id = data.get('id')
                     
                 elif data_type == 'medication':
+                    print(f"[DEBUG ADD MEDICATION] child_id={child_id}, data={data}")
+                    print(f"[DEBUG ADD MEDICATION] name={data.get('name')}, start={data.get('start_date')}, end={data.get('end_date')}")
+                    print(f"[DEBUG ADD MEDICATION] times={data.get('times')}")
+                    
                     cur.execute(f"""
                         INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
                         VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
