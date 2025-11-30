@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -25,49 +26,65 @@ export default function Analytics() {
   const traditions = familyData?.traditions || [];
   const blogPosts = familyData?.blog_posts || [];
 
-  const completedTasks = tasks.filter((t: any) => t.completed).length;
-  const totalTasks = tasks.length;
-  const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const taskStats = useMemo(() => {
+    const completedTasks = tasks.filter((t: any) => t.completed).length;
+    const totalTasks = tasks.length;
+    const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    return { completedTasks, totalTasks, taskCompletionRate };
+  }, [tasks]);
 
-  const activeMembers = members.filter((m: any) => m.role !== 'inactive').length;
+  const { completedTasks, totalTasks, taskCompletionRate } = taskStats;
+
+  const activeMembers = useMemo(() => 
+    members.filter((m: any) => m.role !== 'inactive').length
+  , [members]);
+  
   const childrenCount = children.length;
 
-  const tasksByMember = members.map((member: any) => ({
-    name: member.name,
-    completed: tasks.filter((t: any) => t.assignedTo === member.id && t.completed).length,
-    pending: tasks.filter((t: any) => t.assignedTo === member.id && !t.completed).length,
-  }));
-
-  const memberActivity = members.map((member: any) => {
-    const memberTasks = tasks.filter((t: any) => t.assignedTo === member.id);
-    const memberEvents = calendarEvents.filter((e: any) => e.participants?.includes(member.id));
-    return {
+  const tasksByMember = useMemo(() => 
+    members.map((member: any) => ({
       name: member.name,
-      tasks: memberTasks.length,
-      events: memberEvents.length,
-      total: memberTasks.length + memberEvents.length,
-    };
-  }).sort((a, b) => b.total - a.total);
+      completed: tasks.filter((t: any) => t.assignedTo === member.id && t.completed).length,
+      pending: tasks.filter((t: any) => t.assignedTo === member.id && !t.completed).length,
+    }))
+  , [members, tasks]);
 
-  const monthlyActivity = [
+  const memberActivity = useMemo(() => 
+    members.map((member: any) => {
+      const memberTasks = tasks.filter((t: any) => t.assignedTo === member.id);
+      const memberEvents = calendarEvents.filter((e: any) => e.participants?.includes(member.id));
+      return {
+        name: member.name,
+        tasks: memberTasks.length,
+        events: memberEvents.length,
+        total: memberTasks.length + memberEvents.length,
+      };
+    }).sort((a, b) => b.total - a.total)
+  , [members, tasks, calendarEvents]);
+
+  const monthlyActivity = useMemo(() => [
     { month: 'Янв', tasks: 12, events: 8 },
     { month: 'Фев', tasks: 15, events: 10 },
     { month: 'Мар', tasks: 18, events: 12 },
     { month: 'Апр', tasks: 14, events: 9 },
     { month: 'Май', tasks: 20, events: 15 },
     { month: 'Июн', tasks: 16, events: 11 },
-  ];
+  ], []);
 
-  const familyRoles = [
-    { name: 'Родители', value: members.filter((m: any) => m.role === 'Родитель').length },
-    { name: 'Дети', value: members.filter((m: any) => m.role === 'Ребёнок').length },
-    { name: 'Другие', value: members.filter((m: any) => !['Родитель', 'Ребёнок'].includes(m.role)).length },
-  ].filter(item => item.value > 0);
+  const familyRoles = useMemo(() => 
+    [
+      { name: 'Родители', value: members.filter((m: any) => m.role === 'Родитель').length },
+      { name: 'Дети', value: members.filter((m: any) => m.role === 'Ребёнок').length },
+      { name: 'Другие', value: members.filter((m: any) => !['Родитель', 'Ребёнок'].includes(m.role)).length },
+    ].filter(item => item.value > 0)
+  , [members]);
 
-  const upcomingEvents = calendarEvents
-    .filter((e: any) => new Date(e.date) >= new Date())
-    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 5);
+  const upcomingEvents = useMemo(() => 
+    calendarEvents
+      .filter((e: any) => new Date(e.date) >= new Date())
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5)
+  , [calendarEvents]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">

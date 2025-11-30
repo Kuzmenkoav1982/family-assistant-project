@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -25,16 +25,16 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
   const { data, isLoading: loading, error, refetch: fetchChildData } = useChildrenDataQuery(child.id);
   const mutation = useChildDataMutation(child.id);
 
-  const addItem = async (type: string, itemData: any) => {
+  const addItem = useCallback(async (type: string, itemData: any) => {
     return mutation.mutateAsync({
       action: 'add',
       child_id: child.id,
       type,
       data: itemData,
     });
-  };
+  }, [mutation, child.id]);
 
-  const updateItem = async (type: string, itemId: string, itemData: any) => {
+  const updateItem = useCallback(async (type: string, itemId: string, itemData: any) => {
     return mutation.mutateAsync({
       action: 'update',
       child_id: child.id,
@@ -42,24 +42,33 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
       item_id: itemId,
       data: itemData,
     });
-  };
+  }, [mutation, child.id]);
 
-  const deleteItem = async (type: string, itemId: string) => {
+  const deleteItem = useCallback(async (type: string, itemId: string) => {
     return mutation.mutateAsync({
       action: 'delete',
       child_id: child.id,
       type,
       item_id: itemId,
     });
-  };
+  }, [mutation, child.id]);
 
   const age = child.age || 10;
-  const healthScore = data?.health ? 
-    Math.round((data.health.vaccinations.length * 10 + data.health.doctorVisits.length * 5) / 2) : 85;
-  const developmentScore = data?.development?.length ? 
-    Math.round(data.development.reduce((acc, d) => acc + d.current_level, 0) / data.development.length) : 78;
-  const schoolScore = data?.school?.grades?.length ? 
-    Math.round(data.school.grades.reduce((acc, g) => acc + (g.grade || 0), 0) / data.school.grades.length * 20) : 82;
+  
+  const healthScore = useMemo(() => {
+    if (!data?.health) return 85;
+    return Math.round((data.health.vaccinations.length * 10 + data.health.doctorVisits.length * 5) / 2);
+  }, [data?.health]);
+  
+  const developmentScore = useMemo(() => {
+    if (!data?.development?.length) return 78;
+    return Math.round(data.development.reduce((acc, d) => acc + d.current_level, 0) / data.development.length);
+  }, [data?.development]);
+  
+  const schoolScore = useMemo(() => {
+    if (!data?.school?.grades?.length) return 82;
+    return Math.round(data.school.grades.reduce((acc, g) => acc + (g.grade || 0), 0) / data.school.grades.length * 20);
+  }, [data?.school?.grades]);
 
   if (loading) {
     return <DashboardSkeleton />;

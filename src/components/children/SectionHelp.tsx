@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 
@@ -8,7 +9,7 @@ interface SectionHelpProps {
   emoji?: string;
 }
 
-export function SectionHelp({ title, description, tips, emoji = '💡' }: SectionHelpProps) {
+export const SectionHelp = memo(function SectionHelp({ title, description, tips, emoji = '💡' }: SectionHelpProps) {
   return (
     <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
       <CardContent className="p-4">
@@ -35,4 +36,4 @@ export function SectionHelp({ title, description, tips, emoji = '💡' }: Sectio
       </CardContent>
     </Card>
   );
-}
+});
