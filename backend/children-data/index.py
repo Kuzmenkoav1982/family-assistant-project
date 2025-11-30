@@ -399,12 +399,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
                 
             elif action == 'update':
-                record_id = data.get('id')
+                record_id = body.get('item_id')
                 if not record_id:
                     return {
                         'statusCode': 400,
                         'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Не указан id записи'})
+                        'body': json.dumps({'success': False, 'error': 'Не указан item_id'})
                     }
                 
                 record_id_safe = escape_sql_string(record_id)
@@ -467,6 +467,44 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         WHERE id = {record_id_safe}
                     """)
                     
+                elif data_type == 'medication':
+                    cur.execute(f"""
+                        UPDATE {schema}.children_medications 
+                        SET name = {escape_sql_string(data.get('name'))}, 
+                            start_date = {escape_sql_string(data.get('start_date'))},
+                            end_date = {escape_sql_string(data.get('end_date'))},
+                            frequency = {escape_sql_string(data.get('frequency', ''))},
+                            dosage = {escape_sql_string(data.get('dosage', ''))},
+                            instructions = {escape_sql_string(data.get('instructions', ''))}
+                        WHERE id = {record_id_safe}
+                    """)
+                    
+                    cur.execute(f"DELETE FROM {schema}.children_medication_schedule WHERE medication_id = {record_id_safe}")
+                    cur.execute(f"DELETE FROM {schema}.children_medication_intake WHERE medication_id = {record_id_safe}")
+                    
+                    times = data.get('times', [])
+                    for time_str in times:
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
+                            VALUES ({record_id_safe}, {escape_sql_string(time_str)})
+                            RETURNING id
+                        """)
+                        schedule_id = cur.fetchone()['id']
+                        
+                        from datetime import datetime, timedelta
+                        start = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+                        end = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+                        current = start
+                        
+                        while current <= end:
+                            cur.execute(f"""
+                                INSERT INTO {schema}.children_medication_intake 
+                                (medication_id, schedule_id, scheduled_date, scheduled_time, taken)
+                                VALUES ({record_id_safe}, {escape_sql_string(schedule_id)}, 
+                                        {escape_sql_string(str(current))}, {escape_sql_string(time_str)}, FALSE)
+                            """)
+                            current += timedelta(days=1)
+                    
                 else:
                     return {
                         'statusCode': 400,
@@ -485,12 +523,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
                 
             elif action == 'delete':
-                record_id = data.get('id')
+                record_id = body.get('item_id')
                 if not record_id:
                     return {
                         'statusCode': 400,
                         'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Не указан id записи'})
+                        'body': json.dumps({'success': False, 'error': 'Не указан item_id'})
                     }
                 
                 record_id_safe = escape_sql_string(record_id)
