@@ -114,6 +114,7 @@ export function useUploadMedicalFile() {
           type: 'medical_document',
           data: {
             id: result.documentId,
+            family_id: localStorage.getItem('familyId') || '',
             document_type: documentType,
             file_url: result.url,
             file_type: file.type,

@@ -651,6 +651,8 @@ export function HealthSection({ child }: HealthSectionProps) {
             </div>
           ) : (
             medications.map((med: any) => {
+              console.log('[DEBUG MEDICATION]', med.name, 'schedule:', med.schedule, 'intakes:', med.intakes);
+              
               const todayIntakes = (med.intakes || []).filter((intake: any) => {
                 const intakeDate = new Date(intake.scheduled_date).toDateString();
                 const today = new Date().toDateString();

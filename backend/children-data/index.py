@@ -102,6 +102,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     
                     cur.execute(f"SELECT * FROM {schema}.children_medication_intake WHERE medication_id = {med_id_safe} ORDER BY scheduled_date, scheduled_time")
                     med['intakes'] = [dict(row) for row in cur.fetchall()]
+                    
+                    print(f"[DEBUG MED] '{med['name']}': schedule={len(med['schedule'])}, intakes={len(med['intakes'])}")
                 print(f"[DEBUG] Medications loaded successfully")
                 
                 cur.execute(f"SELECT * FROM {schema}.children_medical_documents WHERE child_id = {child_id_safe} ORDER BY uploaded_at DESC")
