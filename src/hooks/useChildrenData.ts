@@ -61,6 +61,35 @@ export function useChildrenData(childId: string) {
       if (result.success) {
         setData(result.data);
         setError(null);
+        
+        if (result.data?.health?.medications) {
+          const needsRebuild = result.data.health.medications.some((med: any) => 
+            (!med.schedule || med.schedule.length === 0)
+          );
+          
+          if (needsRebuild) {
+            console.log('[useChildrenData] Medications need schedule rebuild, calling rebuild...');
+            try {
+              await fetch(CHILDREN_DATA_API, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Auth-Token': token,
+                },
+                body: JSON.stringify({
+                  action: 'rebuild_medication_schedule',
+                  child_id: childId,
+                  type: 'medication',
+                  data: {}
+                })
+              });
+              console.log('[useChildrenData] Schedule rebuilt, refetching data...');
+              await fetchChildData(type);
+            } catch (rebuildError) {
+              console.error('[useChildrenData] Rebuild failed:', rebuildError);
+            }
+          }
+        }
       } else {
         throw new Error(result.error || 'Ошибка загрузки');
       }

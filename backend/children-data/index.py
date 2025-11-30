@@ -3,7 +3,7 @@ import os
 import psycopg2
 import psycopg2.extras
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Version: 2025-11-30-01 - Fixed medication loading
 VERSION = "2025-11-30-01"
@@ -283,74 +283,117 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     conn.commit()
                     
                 elif data_type == 'medical_document':
-                    if not db_url:
+                    try:
+                        if not db_url:
+                            return {
+                                'statusCode': 500,
+                                'headers': headers,
+                                'body': json.dumps({'success': False, 'error': 'DATABASE_URL не настроен'})
+                            }
+                        
+                        print(f"[DOC SAVE] Saving document: id={data.get('id')}, child_id={child_id}, type={data.get('document_type')}")
+                        print(f"[DOC SAVE] family_id={data.get('family_id')}, file_url={data.get('file_url')[:50]}...")
+                        
+                        cur.execute(f'''
+                            INSERT INTO {schema}.children_medical_documents 
+                            (id, child_id, family_id, document_type, file_url, file_type, 
+                             original_filename, file_size, related_id, related_type, 
+                             title, description, uploaded_by, uploaded_at)
+                            VALUES ({escape_sql_string(data.get('id'))}, {child_id_safe}, 
+                                    {escape_sql_string(data.get('family_id', ''))}, 
+                                    {escape_sql_string(data.get('document_type'))}, 
+                                    {escape_sql_string(data.get('file_url'))}, 
+                                    {escape_sql_string(data.get('file_type'))}, 
+                                    {escape_sql_string(data.get('original_filename'))}, 
+                                    {escape_sql_string(data.get('file_size', 0))}, 
+                                    {escape_sql_string(data.get('related_id'))}, 
+                                    {escape_sql_string(data.get('related_type'))}, 
+                                    {escape_sql_string(data.get('title'))}, 
+                                    {escape_sql_string(data.get('description'))}, 
+                                    {escape_sql_string(data.get('uploaded_by', ''))}, 
+                                    {escape_sql_string(data.get('uploaded_at', datetime.now().isoformat()))})
+                        ''')
+                        conn.commit()
+                        result_id = data.get('id')
+                        print(f"[DOC SAVE] Successfully saved document {result_id}")
+                        
+                    except Exception as doc_error:
+                        print(f"[DOC SAVE ERROR] Failed to save document: {str(doc_error)}")
+                        conn.rollback()
                         return {
                             'statusCode': 500,
                             'headers': headers,
-                            'body': json.dumps({'success': False, 'error': 'DATABASE_URL не настроен'})
+                            'body': json.dumps({'success': False, 'error': f'Ошибка сохранения документа: {str(doc_error)}'})
                         }
                     
-                    cur.execute(f'''
-                        INSERT INTO {schema}.children_medical_documents 
-                        (id, child_id, family_id, document_type, file_url, file_type, 
-                         original_filename, file_size, related_id, related_type, 
-                         title, description, uploaded_by, uploaded_at)
-                        VALUES ({escape_sql_string(data.get('id'))}, {child_id_safe}, 
-                                {escape_sql_string(data.get('family_id', ''))}, 
-                                {escape_sql_string(data.get('document_type'))}, 
-                                {escape_sql_string(data.get('file_url'))}, 
-                                {escape_sql_string(data.get('file_type'))}, 
-                                {escape_sql_string(data.get('original_filename'))}, 
-                                {escape_sql_string(data.get('file_size', 0))}, 
-                                {escape_sql_string(data.get('related_id'))}, 
-                                {escape_sql_string(data.get('related_type'))}, 
-                                {escape_sql_string(data.get('title'))}, 
-                                {escape_sql_string(data.get('description'))}, 
-                                {escape_sql_string(data.get('uploaded_by', ''))}, 
-                                {escape_sql_string(data.get('uploaded_at', datetime.now().isoformat()))})
-                    ''')
-                    conn.commit()
-                    result_id = data.get('id')
-                    
                 elif data_type == 'medication':
-                    print(f"[DEBUG ADD MEDICATION] child_id={child_id}, data={data}")
-                    print(f"[DEBUG ADD MEDICATION] name={data.get('name')}, start={data.get('start_date')}, end={data.get('end_date')}")
-                    print(f"[DEBUG ADD MEDICATION] times={data.get('times')}")
-                    
-                    cur.execute(f"""
-                        INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
-                        VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
-                                {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('start_date'))}, 
-                                {escape_sql_string(data.get('end_date'))}, {escape_sql_string(data.get('frequency', ''))}, 
-                                {escape_sql_string(data.get('dosage', ''))}, {escape_sql_string(data.get('instructions', ''))}) 
-                        RETURNING id
-                    """)
-                    result_id = cur.fetchone()['id']
-                    
-                    times = data.get('times', [])
-                    for time_str in times:
+                    try:
+                        print(f"[MED ADD] Starting medication add: {data.get('name')}")
+                        
                         cur.execute(f"""
-                            INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
-                            VALUES ({escape_sql_string(result_id)}, {escape_sql_string(time_str)})
+                            INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
+                            VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
+                                    {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('start_date'))}, 
+                                    {escape_sql_string(data.get('end_date'))}, {escape_sql_string(data.get('frequency', ''))}, 
+                                    {escape_sql_string(data.get('dosage', ''))}, {escape_sql_string(data.get('instructions', ''))}) 
                             RETURNING id
                         """)
-                        schedule_id = cur.fetchone()['id']
+                        result_id = cur.fetchone()['id']
+                        print(f"[MED ADD] Created medication ID: {result_id}")
                         
-                        from datetime import datetime, timedelta
+                        times = data.get('times', [])
+                        print(f"[MED ADD] Times to schedule: {times}")
+                        
+                        if not times:
+                            print("[MED ADD ERROR] No times provided!")
+                            conn.commit()
+                            return {
+                                'statusCode': 400,
+                                'headers': headers,
+                                'body': json.dumps({'success': False, 'error': 'Необходимо указать время приёма'})
+                            }
+                        
                         start = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
                         end = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
-                        current = start
+                        print(f"[MED ADD] Date range: {start} to {end}")
                         
-                        while current <= end:
+                        schedule_count = 0
+                        intake_count = 0
+                        
+                        for time_str in times:
+                            print(f"[MED ADD] Creating schedule for time: {time_str}")
                             cur.execute(f"""
-                                INSERT INTO {schema}.children_medication_intake 
-                                (medication_id, schedule_id, scheduled_date, scheduled_time, taken)
-                                VALUES ({escape_sql_string(result_id)}, {escape_sql_string(schedule_id)}, 
-                                        {escape_sql_string(str(current))}, {escape_sql_string(time_str)}, FALSE)
+                                INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
+                                VALUES ({escape_sql_string(result_id)}, {escape_sql_string(time_str)})
+                                RETURNING id
                             """)
-                            current += timedelta(days=1)
-                    
-                    conn.commit()
+                            schedule_id = cur.fetchone()['id']
+                            schedule_count += 1
+                            print(f"[MED ADD] Created schedule ID: {schedule_id}")
+                            
+                            current = start
+                            while current <= end:
+                                cur.execute(f"""
+                                    INSERT INTO {schema}.children_medication_intake 
+                                    (medication_id, schedule_id, scheduled_date, scheduled_time, taken)
+                                    VALUES ({escape_sql_string(result_id)}, {escape_sql_string(schedule_id)}, 
+                                            {escape_sql_string(str(current))}, {escape_sql_string(time_str)}, FALSE)
+                                """)
+                                intake_count += 1
+                                current += timedelta(days=1)
+                        
+                        print(f"[MED ADD] Created {schedule_count} schedules, {intake_count} intakes")
+                        conn.commit()
+                        print(f"[MED ADD] Successfully committed medication {result_id}")
+                        
+                    except Exception as med_error:
+                        print(f"[MED ADD ERROR] Failed to add medication: {str(med_error)}")
+                        conn.rollback()
+                        return {
+                            'statusCode': 500,
+                            'headers': headers,
+                            'body': json.dumps({'success': False, 'error': f'Ошибка добавления лекарства: {str(med_error)}'})
+                        }
                     
                 elif data_type == 'grade':
                     cur.execute(f"""
@@ -478,6 +521,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     """)
                     
                 elif data_type == 'medication':
+                    print(f"[MED UPDATE] Updating medication {record_id_safe}")
                     cur.execute(f"""
                         UPDATE {schema}.children_medications 
                         SET name = {escape_sql_string(data.get('name'))}, 
@@ -491,8 +535,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     
                     cur.execute(f"DELETE FROM {schema}.children_medication_schedule WHERE medication_id = {record_id_safe}")
                     cur.execute(f"DELETE FROM {schema}.children_medication_intake WHERE medication_id = {record_id_safe}")
+                    print(f"[MED UPDATE] Deleted old schedule and intakes")
                     
                     times = data.get('times', [])
+                    start = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+                    end = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+                    
                     for time_str in times:
                         cur.execute(f"""
                             INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
@@ -501,11 +549,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         """)
                         schedule_id = cur.fetchone()['id']
                         
-                        from datetime import datetime, timedelta
-                        start = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
-                        end = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
                         current = start
-                        
                         while current <= end:
                             cur.execute(f"""
                                 INSERT INTO {schema}.children_medication_intake 
@@ -514,6 +558,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                                         {escape_sql_string(str(current))}, {escape_sql_string(time_str)}, FALSE)
                             """)
                             current += timedelta(days=1)
+                    
+                    print(f"[MED UPDATE] Recreated schedule with {len(times)} times")
                     
                 else:
                     return {
@@ -606,6 +652,65 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps({'success': True})
+                }
+            
+            elif action == 'rebuild_medication_schedule':
+                print(f"[REBUILD] Starting schedule rebuild for child {child_id}")
+                
+                cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
+                medications = [dict(row) for row in cur.fetchall()]
+                print(f"[REBUILD] Found {len(medications)} medications to rebuild")
+                
+                rebuilt_count = 0
+                for med in medications:
+                    med_id = med['id']
+                    med_id_safe = escape_sql_string(med_id)
+                    
+                    cur.execute(f"SELECT COUNT(*) as cnt FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe}")
+                    schedule_count = cur.fetchone()['cnt']
+                    
+                    if schedule_count > 0:
+                        print(f"[REBUILD] Medication {med['name']} (ID: {med_id}) already has schedule, skipping")
+                        continue
+                    
+                    print(f"[REBUILD] Rebuilding schedule for {med['name']} (ID: {med_id})")
+                    
+                    default_time = '09:00'
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_medication_schedule (medication_id, time_of_day)
+                        VALUES ({med_id_safe}, {escape_sql_string(default_time)})
+                        RETURNING id
+                    """)
+                    schedule_id = cur.fetchone()['id']
+                    
+                    start = med['start_date']
+                    end = med['end_date']
+                    current = start
+                    
+                    intake_count = 0
+                    while current <= end:
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_medication_intake 
+                            (medication_id, schedule_id, scheduled_date, scheduled_time, taken)
+                            VALUES ({med_id_safe}, {escape_sql_string(schedule_id)}, 
+                                    {escape_sql_string(str(current))}, {escape_sql_string(default_time)}, FALSE)
+                        """)
+                        intake_count += 1
+                        current += timedelta(days=1)
+                    
+                    print(f"[REBUILD] Created schedule and {intake_count} intakes for {med['name']}")
+                    rebuilt_count += 1
+                
+                conn.commit()
+                print(f"[REBUILD] Successfully rebuilt {rebuilt_count} medications")
+                
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'rebuilt': rebuilt_count})
                 }
             
             else:
