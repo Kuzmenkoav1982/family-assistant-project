@@ -756,10 +756,50 @@ export function HealthSection({ child }: HealthSectionProps) {
                           );
                         })
                       ) : (
-                        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
-                          <p className="text-sm text-yellow-800">
-                            Расписание не создано. Пересоздайте лекарство или создайте расписание.
-                          </p>
+                        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <div className="text-center mb-3">
+                            <p className="text-sm text-yellow-800 font-medium mb-1">
+                              📋 Расписание не создано
+                            </p>
+                            <p className="text-xs text-yellow-700">
+                              Создайте расписание приема чтобы отмечать прием лекарства
+                            </p>
+                          </div>
+                          <Button 
+                            className="w-full bg-blue-600 hover:bg-blue-700 gap-2"
+                            onClick={async () => {
+                              const CHILDREN_DATA_API = 'https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203';
+                              try {
+                                const token = localStorage.getItem('authToken') || '';
+                                const response = await fetch(CHILDREN_DATA_API, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Auth-Token': token,
+                                  },
+                                  body: JSON.stringify({
+                                    action: 'rebuild_medication_schedule',
+                                    child_id: child.id,
+                                    type: 'medication',
+                                    data: {}
+                                  })
+                                });
+                                const result = await response.json();
+                                if (result.success) {
+                                  await fetchChildData();
+                                  alert('✅ Расписание создано! Теперь можно отмечать прием.');
+                                } else {
+                                  alert('Ошибка: ' + (result.error || 'Не удалось создать расписание'));
+                                }
+                              } catch (error) {
+                                console.error('Rebuild error:', error);
+                                alert('Ошибка создания расписания: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
+                              }
+                            }}
+                          >
+                            <Icon name="CalendarPlus" size={16} />
+                            Создать расписание приема
+                          </Button>
                         </div>
                       )}
                     </div>
