@@ -82,6 +82,17 @@ export default function BottomBar({
                 <Icon name="Home" size={20} />
               </Button>
 
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/analytics')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Аналитика"
+              >
+                <Icon name="BarChart3" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Аналитика</span>
+              </Button>
+
               {displaySections.map(section => (
                 <Button
                   key={section.id}

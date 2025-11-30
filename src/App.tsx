@@ -42,6 +42,7 @@ import AdminLogin from "./pages/AdminLogin";
 import NationalitiesPage from "./pages/NationalitiesPage";
 import NationalityDetailPage from "./pages/NationalityDetailPage";
 import Children from "./pages/Children";
+import Analytics from "./pages/Analytics";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
 
@@ -123,6 +124,7 @@ const App = () => {
               <Route path="/nationalities" element={<NationalitiesPage />} />
               <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
               <Route path="/children" element={<Children />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="/launch-plan" element={<LaunchPlan />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
