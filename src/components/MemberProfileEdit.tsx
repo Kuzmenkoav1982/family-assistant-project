@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import type { FamilyMember } from '@/types/family.types';
 
 interface MemberProfileEditProps {
@@ -17,7 +18,7 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
   const [saving, setSaving] = useState(false);
   const [avatarType, setAvatarType] = useState<'emoji' | 'photo'>(member.photoUrl ? 'photo' : 'emoji');
   const [photoUrl, setPhotoUrl] = useState(member.photoUrl || '');
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const { upload, uploading: uploadingPhoto } = useFileUpload();
   const [formData, setFormData] = useState({
     name: member.name || '',
     role: member.role || '',
@@ -59,42 +60,13 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
       return;
     }
 
-    setUploadingPhoto(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        const base64Image = evt.target?.result as string;
-        
-        const response = await fetch('https://functions.poehali.dev/9d65e9a3-87e4-47e6-af40-7131a667debd', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            image: base64Image,
-            filename: file.name
-          })
-        });
-
-        if (!response.ok) throw new Error('Ошибка загрузки');
-
-        const data = await response.json();
-        if (data.success && data.url) {
-          setPhotoUrl(data.url);
-          setAvatarType('photo');
-        } else {
-          throw new Error(data.error || 'Ошибка загрузки');
-        }
-      };
-      reader.onerror = () => {
-        throw new Error('Ошибка чтения файла');
-      };
-      reader.readAsDataURL(file);
+      const url = await upload(file, 'avatars');
+      setPhotoUrl(url);
+      setAvatarType('photo');
     } catch (error) {
       console.error('Upload error:', error);
       alert('Ошибка загрузки фото. Попробуйте ещё раз.');
-    } finally {
-      setUploadingPhoto(false);
     }
   };
 

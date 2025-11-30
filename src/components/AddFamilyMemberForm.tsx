@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import type { FamilyMember } from '@/types/family.types';
 
 interface AddFamilyMemberFormProps {
@@ -25,6 +26,7 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState(editingMember?.avatar || '👤');
+  const { upload, uploading } = useFileUpload();
 
   const avatarOptions = ['👨', '👩', '👴', '👵', '👦', '👧', '🧑', '👶', '🧔', '👨‍🦱', '👩‍🦰', '🧑‍🦳', '👱', '🧓', '👤'];
 
@@ -98,23 +100,31 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
             <Input
               type="file"
               accept="image/*"
-              onChange={(e) => {
+              disabled={uploading}
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                    const photoUrl = event.target?.result as string;
+                  try {
+                    const url = await upload(file, 'avatars');
                     setFormData({ 
                       ...formData, 
-                      photoUrl, 
+                      photoUrl: url, 
                       avatarType: 'photo' 
                     });
-                  };
-                  reader.readAsDataURL(file);
+                  } catch (error) {
+                    console.error('Upload failed:', error);
+                    alert('Ошибка загрузки фото. Попробуйте ещё раз.');
+                  }
                 }
               }}
             />
-            {formData.photoUrl && (
+            {uploading && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                <Icon name="Loader2" size={16} className="animate-spin" />
+                Загрузка фото...
+              </div>
+            )}
+            {formData.photoUrl && !uploading && (
               <div className="mt-2 flex items-center gap-2">
                 <img src={formData.photoUrl} alt="Preview" className="w-16 h-16 rounded-full object-cover" />
                 <Button
