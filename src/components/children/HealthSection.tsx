@@ -43,7 +43,7 @@ interface DoctorVisit {
 }
 
 export function HealthSection({ child }: HealthSectionProps) {
-  const { data, loading, addItem, updateItem, deleteItem, refetch } = useChildrenData(child.id);
+  const { data, loading, addItem, updateItem, deleteItem, fetchChildData } = useChildrenData(child.id);
   const { uploadFile, uploading, progress } = useUploadMedicalFile();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   
@@ -54,6 +54,8 @@ export function HealthSection({ child }: HealthSectionProps) {
   const [newDoctorVisitData, setNewDoctorVisitData] = useState({ doctor: '', specialty: '', date: '', status: 'planned', notes: '' });
 
   const [newMedicationDialog, setNewMedicationDialog] = useState(false);
+  const [editMedicationDialog, setEditMedicationDialog] = useState(false);
+  const [editingMedicationId, setEditingMedicationId] = useState<string | null>(null);
   const [newMedicationData, setNewMedicationData] = useState({ 
     name: '', 
     startDate: '', 
@@ -106,7 +108,7 @@ export function HealthSection({ child }: HealthSectionProps) {
 
     if (result.success && result.document) {
       console.log('Файл успешно загружен:', result.document);
-      refetch();
+      fetchChildData();
     } else {
       console.error('Ошибка загрузки:', result.error);
       alert(result.error || 'Ошибка загрузки файла');
@@ -212,6 +214,67 @@ export function HealthSection({ child }: HealthSectionProps) {
     }
   };
 
+  const handleEditMedication = (med: any) => {
+    setEditingMedicationId(med.id);
+    setNewMedicationData({
+      name: med.name,
+      startDate: med.start_date,
+      endDate: med.end_date,
+      frequency: med.frequency || '',
+      dosage: med.dosage || '',
+      instructions: med.instructions || '',
+      times: (med.schedule || []).map((s: any) => s.time_of_day.slice(0, 5))
+    });
+    setEditMedicationDialog(true);
+  };
+
+  const handleUpdateMedication = async () => {
+    if (!newMedicationData.name || !newMedicationData.startDate || !newMedicationData.endDate) {
+      alert('Заполните обязательные поля: название, дата начала и окончания');
+      return;
+    }
+    
+    if (newMedicationData.times.length === 0) {
+      alert('Добавьте хотя бы одно время приема');
+      return;
+    }
+
+    const result = await updateItem('medication', editingMedicationId!, {
+      name: newMedicationData.name,
+      start_date: newMedicationData.startDate,
+      end_date: newMedicationData.endDate,
+      frequency: newMedicationData.frequency,
+      dosage: newMedicationData.dosage,
+      instructions: newMedicationData.instructions,
+      times: newMedicationData.times,
+    });
+
+    if (result.success) {
+      setEditMedicationDialog(false);
+      setEditingMedicationId(null);
+      setNewMedicationData({ 
+        name: '', 
+        startDate: '', 
+        endDate: '', 
+        frequency: '', 
+        dosage: '',
+        instructions: '',
+        times: ['09:00']
+      });
+    } else {
+      alert(result.error || 'Ошибка обновления');
+    }
+  };
+
+  const handleDeleteMedication = async (id: string) => {
+    if (!confirm('Удалить это лекарство? Это также удалит все отметки о приёме.')) return;
+    
+    const result = await deleteItem('medication', id);
+    if (!result.success) {
+      alert(result.error || 'Ошибка удаления');
+    }
+  };
+
   const handleDeleteDoctorVisit = async (id: string) => {
     if (!confirm('Удалить этот визит?')) return;
     
@@ -222,9 +285,11 @@ export function HealthSection({ child }: HealthSectionProps) {
   };
 
   const handleMarkIntake = async (intakeId: string, taken: boolean) => {
+    const CHILDREN_DATA_API = 'https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203';
+    
     try {
       const token = localStorage.getItem('authToken') || '';
-      const response = await fetch('https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203', {
+      const response = await fetch(CHILDREN_DATA_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -241,16 +306,20 @@ export function HealthSection({ child }: HealthSectionProps) {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
       
       if (result.success) {
-        await refetch();
+        await fetchChildData();
       } else {
         alert(result.error || 'Ошибка обновления');
       }
     } catch (error) {
       console.error('Error marking intake:', error);
-      alert('Ошибка обновления');
+      alert('Ошибка обновления: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
     }
   };
 
@@ -462,6 +531,116 @@ export function HealthSection({ child }: HealthSectionProps) {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Dialog open={editMedicationDialog} onOpenChange={setEditMedicationDialog}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Редактировать лекарство</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Название препарата</label>
+                    <Input 
+                      placeholder="Например: Амоксициллин" 
+                      value={newMedicationData.name}
+                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Начало приема</label>
+                      <Input 
+                        type="date" 
+                        value={newMedicationData.startDate}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, startDate: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Конец приема</label>
+                      <Input 
+                        type="date" 
+                        value={newMedicationData.endDate}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, endDate: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Дозировка</label>
+                      <Input 
+                        placeholder="Например: 500 мг" 
+                        value={newMedicationData.dosage}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, dosage: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Частота</label>
+                      <Input 
+                        placeholder="Например: 3 раза в день" 
+                        value={newMedicationData.frequency}
+                        onChange={(e) => setNewMedicationData(prev => ({ ...prev, frequency: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Время приема *</label>
+                    <div className="space-y-2">
+                      {newMedicationData.times.map((time, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input 
+                            type="time" 
+                            value={time}
+                            onChange={(e) => {
+                              const newTimes = [...newMedicationData.times];
+                              newTimes[index] = e.target.value;
+                              setNewMedicationData(prev => ({ ...prev, times: newTimes }));
+                            }}
+                            className="flex-1"
+                          />
+                          {newMedicationData.times.length > 1 && (
+                            <Button 
+                              type="button"
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                const newTimes = newMedicationData.times.filter((_, i) => i !== index);
+                                setNewMedicationData(prev => ({ ...prev, times: newTimes }));
+                              }}
+                            >
+                              <Icon name="X" size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          setNewMedicationData(prev => ({ 
+                            ...prev, 
+                            times: [...prev.times, '09:00'] 
+                          }));
+                        }}
+                      >
+                        <Icon name="Plus" size={16} className="mr-2" />
+                        Добавить время
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Инструкция по приему</label>
+                    <Textarea 
+                      placeholder="Например: После еды, запивать водой" 
+                      value={newMedicationData.instructions}
+                      onChange={(e) => setNewMedicationData(prev => ({ ...prev, instructions: e.target.value }))}
+                    />
+                  </div>
+                  <Button className="w-full" onClick={handleUpdateMedication}>Сохранить изменения</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -498,8 +677,24 @@ export function HealthSection({ child }: HealthSectionProps) {
                           <p className="text-sm text-gray-600 mt-2">💊 {med.instructions}</p>
                         )}
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEditMedication(med)}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Icon name="Edit" size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteMedication(med.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Icon name="Trash2" size={16} />
+                        </Button>
+                        <div className="text-sm font-medium text-gray-600 ml-2">
                           Сегодня: {completedToday}/{todayIntakes.length}
                         </div>
                       </div>
