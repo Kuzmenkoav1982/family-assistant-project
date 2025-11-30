@@ -117,29 +117,35 @@ export function NotificationsSettings() {
               )}
             </Button>
 
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                <Icon name="Info" size={16} />
-                Когда вы будете получать уведомления:
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+              <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <Icon name="Sparkles" size={18} className="text-purple-600" />
+                Автоматические напоминания
               </h5>
-              <ul className="space-y-1.5 text-sm text-gray-700">
+              <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <Icon name="Check" size={14} className="mt-0.5 flex-shrink-0 text-green-600" />
-                  <span>Напоминания о предстоящих задачах</span>
+                  <Icon name="Clock" size={16} className="mt-0.5 flex-shrink-0 text-blue-600" />
+                  <span><strong>Задачи:</strong> уведомления за день до срока выполнения</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Icon name="Check" size={14} className="mt-0.5 flex-shrink-0 text-green-600" />
-                  <span>События в семейном календаре</span>
+                  <Icon name="Calendar" size={16} className="mt-0.5 flex-shrink-0 text-purple-600" />
+                  <span><strong>События:</strong> напоминания о предстоящих мероприятиях</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Icon name="Check" size={14} className="mt-0.5 flex-shrink-0 text-green-600" />
-                  <span>Важные даты (дни рождения, годовщины)</span>
+                  <Icon name="Pill" size={16} className="mt-0.5 flex-shrink-0 text-pink-600" />
+                  <span><strong>Лекарства:</strong> напоминания о приёме медикаментов детям</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Icon name="Check" size={14} className="mt-0.5 flex-shrink-0 text-green-600" />
-                  <span>Новые сообщения в семейном чате</span>
+                  <Icon name="Gift" size={16} className="mt-0.5 flex-shrink-0 text-orange-600" />
+                  <span><strong>Важные даты:</strong> дни рождения и годовщины членов семьи</span>
                 </li>
               </ul>
+              <div className="mt-3 p-3 bg-white rounded border border-blue-200">
+                <p className="text-xs text-gray-600 flex items-start gap-2">
+                  <Icon name="Info" size={14} className="mt-0.5 flex-shrink-0" />
+                  <span>Уведомления отправляются автоматически каждый день в 9:00. Вы можете выключить их в любое время.</span>
+                </p>
+              </div>
             </div>
           </div>
         )}
