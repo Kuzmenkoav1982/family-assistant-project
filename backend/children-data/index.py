@@ -692,7 +692,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         cur.execute(f"""
                             INSERT INTO {schema}.children_medication_intake 
                             (medication_id, schedule_id, scheduled_date, scheduled_time, taken)
-                            VALUES ({med_id_safe}, {escape_sql_string(schedule_id)}, 
+                            VALUES ({med_id_safe}, {schedule_id}, 
                                     {escape_sql_string(str(current))}, {escape_sql_string(default_time)}, FALSE)
                         """)
                         intake_count += 1
