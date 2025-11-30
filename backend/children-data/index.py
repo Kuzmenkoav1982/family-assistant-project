@@ -681,9 +681,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         VALUES ({med_id_safe}, {escape_sql_string(default_time)})
                     """)
                     conn.commit()
+                    print(f"[REBUILD] INSERT completed, now querying for schedule_id")
+                    
+                    cur.close()
+                    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
                     
                     cur.execute(f"SELECT id FROM {schema}.children_medication_schedule WHERE medication_id = {med_id_safe} AND time_of_day = {escape_sql_string(default_time)} ORDER BY id DESC LIMIT 1")
-                    schedule_id = cur.fetchone()['id']
+                    result = cur.fetchone()
+                    print(f"[REBUILD] SELECT result: {result}")
+                    
+                    if not result:
+                        print(f"[REBUILD ERROR] Failed to find created schedule for med_id={med_id}")
+                        continue
+                    
+                    schedule_id = result['id']
                     print(f"[REBUILD] Created schedule_id: {schedule_id}")
                     
                     start = datetime.strptime(str(med['start_date']), '%Y-%m-%d').date() if isinstance(med['start_date'], str) else med['start_date']
