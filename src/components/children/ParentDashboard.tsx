@@ -12,7 +12,7 @@ import { SchoolSection } from './SchoolSection';
 import { GiftsSection } from './GiftsSection';
 import { PurchasesSection } from './PurchasesSection';
 import { SectionHelp } from './SectionHelp';
-import { useChildrenData } from '@/hooks/useChildrenData';
+import { useChildrenDataQuery, useChildDataMutation } from '@/hooks/useChildrenDataQuery';
 import type { FamilyMember } from '@/types/family.types';
 
 interface ParentDashboardProps {
@@ -21,7 +21,36 @@ interface ParentDashboardProps {
 
 export function ParentDashboard({ child }: ParentDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const { data, loading, error, addItem, updateItem, deleteItem, fetchChildData } = useChildrenData(child.id);
+  const { data, isLoading: loading, error, refetch: fetchChildData } = useChildrenDataQuery(child.id);
+  const mutation = useChildDataMutation(child.id);
+
+  const addItem = async (type: string, itemData: any) => {
+    return mutation.mutateAsync({
+      action: 'add',
+      child_id: child.id,
+      type,
+      data: itemData,
+    });
+  };
+
+  const updateItem = async (type: string, itemId: string, itemData: any) => {
+    return mutation.mutateAsync({
+      action: 'update',
+      child_id: child.id,
+      type,
+      item_id: itemId,
+      data: itemData,
+    });
+  };
+
+  const deleteItem = async (type: string, itemId: string) => {
+    return mutation.mutateAsync({
+      action: 'delete',
+      child_id: child.id,
+      type,
+      item_id: itemId,
+    });
+  };
 
   const age = child.age || 10;
   const healthScore = data?.health ? 
