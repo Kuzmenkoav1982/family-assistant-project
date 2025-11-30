@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
 import type { FamilyMember } from '@/types/family.types';
@@ -19,10 +20,11 @@ const MemberCard = ({ member, index, onClick }: { member: FamilyMember; index: n
               <div className="flex items-start gap-4">
                 <div className="relative">
                   {member.photoUrl ? (
-                    <img 
+                    <LazyImage 
                       src={member.photoUrl} 
                       alt={member.name}
                       className="w-20 h-20 rounded-full object-cover border-3 border-purple-300 group-hover:border-purple-500 transition-colors"
+                      wrapperClassName="w-20 h-20 rounded-full"
                     />
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-4xl border-3 border-purple-300 group-hover:border-purple-500 transition-colors">

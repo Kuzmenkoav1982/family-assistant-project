@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 
 interface NationalityHeaderProps {
@@ -26,10 +27,11 @@ export function NationalityHeader({ name, nameRu, population, region, image }: N
 
       <Card className="overflow-hidden mb-6">
         <div className="h-64 relative overflow-hidden">
-          <img 
+          <LazyImage 
             src={image} 
             alt={nameRu}
             className="w-full h-full object-cover"
+            wrapperClassName="h-64"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           <div className="absolute bottom-6 left-6 right-6">
