@@ -78,6 +78,7 @@ import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
+import { TasksWidget } from '@/components/TasksWidget';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -3700,6 +3701,10 @@ export default function Index({ onLogout }: IndexProps) {
                 )}
               </CardContent>
             </Card>
+
+            <div className="animate-fade-in" style={{ animationDelay: '0.65s' }}>
+              <TasksWidget />
+            </div>
 
             <Card key="sidebar-ai-tips" className="animate-fade-in border-green-200 bg-gradient-to-br from-green-50 to-emerald-50" style={{ animationDelay: '0.7s' }}>
               <CardHeader>
