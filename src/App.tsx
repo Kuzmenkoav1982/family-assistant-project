@@ -88,6 +88,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PWAInstallPrompt />
             <Routes>
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<Login />} />
@@ -137,7 +138,6 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
-      <PWAInstallPrompt />
     </QueryClientProvider>
   );
 };
