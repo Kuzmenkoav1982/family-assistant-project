@@ -85,17 +85,6 @@ export default function BottomBar({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/analytics')}
-                className="text-white hover:bg-white/20 whitespace-nowrap"
-                title="Аналитика"
-              >
-                <Icon name="BarChart3" size={18} />
-                <span className="ml-1 text-xs hidden sm:inline">Аналитика</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
                 onClick={() => navigate('/settings')}
                 className="text-white hover:bg-white/20 whitespace-nowrap"
                 title="Настройки"
@@ -118,6 +107,8 @@ export default function BottomBar({
                       navigate('/calendar');
                     } else if (section.id === 'children') {
                       navigate('/children');
+                    } else if (section.id === 'analytics') {
+                      navigate('/analytics');
                     } else {
                       onSectionChange(section.id);
                     }

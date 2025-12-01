@@ -525,7 +525,8 @@ export default function Index({ onLogout }: IndexProps) {
   const availableSections = [
     { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
-    { id: 'children', icon: 'Users', label: 'Дети' },
+    { id: 'children', icon: 'Baby', label: 'Дети' },
+    { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
     { id: 'goals', icon: 'Target', label: 'Цели' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
@@ -553,7 +554,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [bottomBarSections, setBottomBarSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('bottomBarSections');
-    return saved ? JSON.parse(saved) : ['calendar', 'tasks', 'shopping'];
+    return saved ? JSON.parse(saved) : ['analytics', 'children', 'calendar', 'shopping'];
   });
 
   const [leftPanelSections, setLeftPanelSections] = useState<string[]>(() => {

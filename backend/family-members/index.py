@@ -195,11 +195,13 @@ def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
         
         delete_query = f"UPDATE {SCHEMA}.family_members SET family_id = NULL WHERE id = {escape_string(member_id)}"
         cur.execute(delete_query)
+        conn.commit()
         cur.close()
         conn.close()
         
         return {'success': True}
     except Exception as e:
+        conn.rollback()
         cur.close()
         conn.close()
         return {'error': str(e)}

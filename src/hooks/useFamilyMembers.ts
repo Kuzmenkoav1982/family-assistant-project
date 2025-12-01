@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface FamilyMember {
   id: string;
@@ -23,17 +23,22 @@ interface FamilyMember {
 
 const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5';
 
-// Глобальный флаг для предотвращения множественных вызовов
-const fetchState = { hasFetched: false };
-
 export function useFamilyMembers() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isFetchingRef = useRef(false);
+  const hasInitialFetchRef = useRef(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
-  const fetchMembers = async (silent = false) => {
+  const fetchMembers = useCallback(async (silent = false) => {
+    if (isFetchingRef.current) {
+      console.log('[useFamilyMembers] Fetch already in progress, skipping');
+      return;
+    }
+
+    isFetchingRef.current = true;
     const token = getAuthToken();
     console.log('[DEBUG useFamilyMembers] Starting fetch, token:', token ? 'EXISTS' : 'MISSING');
     console.log('[DEBUG useFamilyMembers] API URL:', FAMILY_MEMBERS_API);
@@ -86,8 +91,9 @@ export function useFamilyMembers() {
       if (!silent) {
         setLoading(false);
       }
+      isFetchingRef.current = false;
     }
-  };
+  }, []);
 
   const addMember = async (memberData: Partial<FamilyMember>) => {
     try {
@@ -208,30 +214,28 @@ export function useFamilyMembers() {
     }
   };
 
-  // Одноразовая загрузка при монтировании
   useEffect(() => {
     const token = getAuthToken();
     
-    if (token && !fetchState.hasFetched) {
-      console.log('[DEBUG useFamilyMembers] Initial fetch on mount');
-      fetchState.hasFetched = true;
+    if (token && !hasInitialFetchRef.current) {
+      console.log('[useFamilyMembers] Initial fetch on mount');
+      hasInitialFetchRef.current = true;
       fetchMembers();
     } else if (!token) {
       setLoading(false);
     }
-  }, []);
+  }, [fetchMembers]);
 
-  // Периодическое обновление (каждые 30 секунд)
   useEffect(() => {
     const interval = setInterval(() => {
       const token = getAuthToken();
-      if (token && fetchState.hasFetched) {
+      if (token && hasInitialFetchRef.current && !isFetchingRef.current) {
         fetchMembers(true);
       }
-    }, 30000); // 30 секунд вместо 5
+    }, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMembers]);
 
   return {
     members,

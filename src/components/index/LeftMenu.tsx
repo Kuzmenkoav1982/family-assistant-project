@@ -183,6 +183,8 @@ export function LeftMenu({
                   navigate('/shopping');
                 } else if (section.id === 'calendar') {
                   navigate('/calendar');
+                } else if (section.id === 'children') {
+                  navigate('/children');
                 } else {
                   setActiveSection(section.id);
                 }
