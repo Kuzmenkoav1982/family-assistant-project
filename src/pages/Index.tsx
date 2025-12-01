@@ -3674,34 +3674,6 @@ export default function Index({ onLogout }: IndexProps) {
               </CardContent>
             </Card>
 
-            <Card key="sidebar-reminders" className="animate-fade-in border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50" style={{ animationDelay: '0.6s' }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Bell" size={24} />
-                  Напоминания
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {reminders.length > 0 ? (
-                  <div className="space-y-2">
-                    {reminders.filter(r => !r.notified).map(reminder => (
-                      <div key={reminder.id} className="p-3 bg-white border-2 border-orange-300 rounded-lg">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Icon name="Clock" size={16} className="text-orange-500" />
-                          <span className="font-semibold text-orange-700">{reminder.time}</span>
-                        </div>
-                        <p className="text-sm">{reminder.taskTitle}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Нет активных напоминаний
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
             <div className="animate-fade-in" style={{ animationDelay: '0.65s' }}>
               <TasksWidget />
             </div>

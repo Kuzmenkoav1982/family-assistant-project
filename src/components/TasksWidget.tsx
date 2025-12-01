@@ -17,7 +17,7 @@ export function TasksWidget() {
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    assignee_id: '',
+    assignee_id: 'unassigned',
     points: 10,
     priority: 'medium' as 'low' | 'medium' | 'high',
     category: 'Дом'
@@ -32,7 +32,7 @@ export function TasksWidget() {
     await createTask({
       title: newTask.title,
       description: newTask.description,
-      assignee_id: newTask.assignee_id || null,
+      assignee_id: newTask.assignee_id === 'unassigned' ? null : newTask.assignee_id,
       points: newTask.points,
       priority: newTask.priority,
       category: newTask.category,
@@ -42,7 +42,7 @@ export function TasksWidget() {
     setNewTask({
       title: '',
       description: '',
-      assignee_id: '',
+      assignee_id: 'unassigned',
       points: 10,
       priority: 'medium',
       category: 'Дом'
@@ -134,7 +134,7 @@ export function TasksWidget() {
                         <SelectValue placeholder="Не назначено" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Не назначено</SelectItem>
+                        <SelectItem value="unassigned">Не назначено</SelectItem>
                         {members?.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
                             {member.name}
