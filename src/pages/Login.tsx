@@ -56,7 +56,14 @@ export default function Login() {
     
     const loginUrl = `${AUTH_URL}?oauth=yandex&callback_url=${encodeURIComponent(callbackUrl)}&frontend_url=${encodeURIComponent(FRONTEND_URL + '/login')}`;
     
-    window.location.href = loginUrl;
+    // Проверяем, находимся ли мы внутри iframe (preview-режим poehali.dev)
+    if (window.top !== window.self) {
+      // Открываем в родительском окне (выходим из iframe)
+      window.top!.location.href = loginUrl;
+    } else {
+      // Обычный редирект для прямого доступа
+      window.location.href = loginUrl;
+    }
   };
 
   return (
