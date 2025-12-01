@@ -1,4 +1,5 @@
 {
+  "shopping": "https://functions.poehali.dev/3f85241b-6c17-4d3d-a5f2-99b3af90af1b",
   "notification-scheduler": "https://functions.poehali.dev/1f91cf2c-e194-4bc4-a216-531a511d6b16",
   "push-notifications": "https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94",
   "upload-file": "https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0",
@@ -6,7 +7,6 @@
   "children-data": "https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203",
   "feedback": "https://functions.poehali.dev/9c3026e3-96bc-47fc-a37c-e9bde2b23239",
   "votings": "https://functions.poehali.dev/af463fd6-2a6f-4b47-9d37-8967f1750af4",
-  "shopping-list": "https://functions.poehali.dev/0d958ab6-4d99-42d8-a38f-fe72a62c82de",
   "family-goals": "https://functions.poehali.dev/30d07694-f397-4f4e-8215-4c884ea6fa5c",
   "important-dates": "https://functions.poehali.dev/f87023a0-77bb-4166-b64f-f02975ce225f",
   "traditions": "https://functions.poehali.dev/ab1992d8-47b7-4874-ad3f-b2ff55447bdd",

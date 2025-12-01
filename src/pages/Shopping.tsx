@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,82 +7,62 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { ShoppingItem } from '@/types/family.types';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
-
-const STORAGE_KEY = 'family_shopping_list';
+import { useShopping } from '@/hooks/useShopping';
 
 const CATEGORIES = [
-  { value: 'products', label: '🥛 Продукты', icon: 'ShoppingBasket' },
-  { value: 'household', label: '🧴 Хозтовары', icon: 'Home' },
-  { value: 'clothes', label: '👕 Одежда', icon: 'Shirt' },
-  { value: 'other', label: '📦 Другое', icon: 'Package' }
+  { value: 'Продукты', label: '🥛 Продукты', icon: 'ShoppingBasket' },
+  { value: 'Хозтовары', label: '🧴 Хозтовары', icon: 'Home' },
+  { value: 'Одежда', label: '👕 Одежда', icon: 'Shirt' },
+  { value: 'Другое', label: '📦 Другое', icon: 'Package' }
 ];
 
 export default function Shopping() {
   const navigate = useNavigate();
-  const { members } = useFamilyMembers();
-  const [items, setItems] = useState<ShoppingItem[]>([]);
+  const { items, loading, createItem, toggleBought, deleteItem, clearBought } = useShopping();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'bought'>('active');
   
   const [newItem, setNewItem] = useState({
     name: '',
-    category: 'products' as ShoppingItem['category'],
+    category: 'Продукты',
     quantity: '',
-    priority: 'normal' as ShoppingItem['priority']
+    priority: 'normal' as 'urgent' | 'normal' | 'low'
   });
 
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setItems(JSON.parse(saved));
-    }
-  }, []);
-
-  const saveItems = (updatedItems: ShoppingItem[]) => {
-    setItems(updatedItems);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
-  };
-
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.name.trim()) return;
 
-    const currentMember = members[0] || { id: 'demo', name: 'Пользователь', avatar: '👤' };
-    
-    const item: ShoppingItem = {
-      id: Date.now().toString(),
+    await createItem({
       name: newItem.name,
       category: newItem.category,
       quantity: newItem.quantity,
-      priority: newItem.priority,
-      bought: false,
-      addedBy: currentMember.id,
-      addedByName: currentMember.name,
-      addedAt: new Date().toISOString()
-    };
-
-    saveItems([...items, item]);
+      priority: newItem.priority
+    });
     
     setNewItem({
       name: '',
-      category: 'products',
+      category: 'Продукты',
       quantity: '',
       priority: 'normal'
     });
     setIsDialogOpen(false);
   };
 
-  const toggleBought = (id: string) => {
-    const updated = items.map(item =>
-      item.id === id ? { ...item, bought: !item.bought } : item
-    );
-    saveItems(updated);
+  const handleToggleBought = (id: string, bought: boolean) => {
+    toggleBought(id, !bought);
   };
 
-  const deleteItem = (id: string) => {
-    saveItems(items.filter(item => item.id !== id));
+  const handleDeleteItem = (id: string) => {
+    if (window.confirm('Удалить эту покупку?')) {
+      deleteItem(id);
+    }
+  };
+
+  const handleClearBought = () => {
+    if (window.confirm('Удалить все купленные товары?')) {
+      clearBought();
+    }
   };
 
   const filteredItems = items.filter(item => {
@@ -94,6 +74,17 @@ export default function Shopping() {
 
   const activeCount = items.filter(i => !i.bought).length;
   const boughtCount = items.filter(i => i.bought).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Загрузка списка покупок...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 lg:p-8">
@@ -112,6 +103,17 @@ export default function Shopping() {
               <Icon name="CheckCircle" size={14} className="mr-1" />
               Куплено: {boughtCount}
             </Badge>
+            {boughtCount > 0 && (
+              <Button
+                onClick={handleClearBought}
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700"
+              >
+                <Icon name="Trash2" size={14} className="mr-1" />
+                Очистить купленные
+              </Button>
+            )}
           </div>
         </div>
 
@@ -146,7 +148,7 @@ export default function Shopping() {
                       <label className="text-sm font-medium mb-2 block">Категория</label>
                       <Select
                         value={newItem.category}
-                        onValueChange={(value: ShoppingItem['category']) =>
+                        onValueChange={(value: string) =>
                           setNewItem({ ...newItem, category: value })
                         }
                       >
@@ -174,7 +176,7 @@ export default function Shopping() {
                       <label className="text-sm font-medium mb-2 block">Приоритет</label>
                       <Select
                         value={newItem.priority}
-                        onValueChange={(value: ShoppingItem['priority']) =>
+                        onValueChange={(value: 'urgent' | 'normal' | 'low') =>
                           setNewItem({ ...newItem, priority: value })
                         }
                       >
@@ -259,7 +261,7 @@ export default function Shopping() {
                       }`}
                     >
                       <Button
-                        onClick={() => toggleBought(item.id)}
+                        onClick={() => handleToggleBought(item.id, item.bought)}
                         variant="ghost"
                         size="sm"
                         className="p-0 h-auto"
@@ -292,7 +294,7 @@ export default function Shopping() {
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Добавил: {item.addedByName} • {new Date(item.addedAt).toLocaleString('ru-RU', {
+                          Добавил: {item.added_by_name} • {new Date(item.created_at).toLocaleString('ru-RU', {
                             day: 'numeric',
                             month: 'short',
                             hour: '2-digit',
@@ -302,7 +304,7 @@ export default function Shopping() {
                       </div>
 
                       <Button
-                        onClick={() => deleteItem(item.id)}
+                        onClick={() => handleDeleteItem(item.id)}
                         variant="ghost"
                         size="sm"
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
