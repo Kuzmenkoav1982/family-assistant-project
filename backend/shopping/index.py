@@ -71,7 +71,7 @@ def get_shopping_items(family_id: str, bought: Optional[bool] = None) -> List[Di
         where_clause += f" AND bought = {escape_string(bought)}"
     
     query = f"""
-        SELECT * FROM {SCHEMA}.shopping_items
+        SELECT * FROM {SCHEMA}.shopping_items_v2
         {where_clause}
         ORDER BY bought ASC, priority DESC, created_at DESC
     """
@@ -96,7 +96,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
     
     # For UUID fields, we need to cast the string to uuid
     insert_query = f"""
-        INSERT INTO {SCHEMA}.shopping_items (
+        INSERT INTO {SCHEMA}.shopping_items_v2 (
             id, family_id, name, category, quantity, priority, bought,
             added_by, added_by_name, notes
         ) VALUES (
@@ -117,7 +117,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
         print(f"[DEBUG] Insert query: {insert_query}")
         cur.execute(insert_query)
         
-        select_query = f"SELECT * FROM {SCHEMA}.shopping_items WHERE id = {escape_string(item_id)}::uuid"
+        select_query = f"SELECT * FROM {SCHEMA}.shopping_items_v2 WHERE id = {escape_string(item_id)}::uuid"
         cur.execute(select_query)
         item = cur.fetchone()
         
@@ -135,7 +135,7 @@ def update_shopping_item(item_id: str, family_id: str, user_id: str, data: Dict[
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    check_query = f"SELECT id FROM {SCHEMA}.shopping_items WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
+    check_query = f"SELECT id FROM {SCHEMA}.shopping_items_v2 WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
@@ -172,7 +172,7 @@ def update_shopping_item(item_id: str, family_id: str, user_id: str, data: Dict[
     fields.append("updated_at = CURRENT_TIMESTAMP")
     
     query = f"""
-        UPDATE {SCHEMA}.shopping_items 
+        UPDATE {SCHEMA}.shopping_items_v2 
         SET {', '.join(fields)}
         WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}
         RETURNING *
@@ -189,14 +189,14 @@ def delete_shopping_item(item_id: str, family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
     
-    check_query = f"SELECT id FROM {SCHEMA}.shopping_items WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
+    check_query = f"SELECT id FROM {SCHEMA}.shopping_items_v2 WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
         conn.close()
         return {'error': 'Покупка не найдена'}
     
-    delete_query = f"DELETE FROM {SCHEMA}.shopping_items WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
+    delete_query = f"DELETE FROM {SCHEMA}.shopping_items_v2 WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(delete_query)
     cur.close()
     conn.close()
@@ -207,7 +207,7 @@ def clear_bought_items(family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
     
-    delete_query = f"DELETE FROM {SCHEMA}.shopping_items WHERE family_id::text = {escape_string(family_id)} AND bought = TRUE"
+    delete_query = f"DELETE FROM {SCHEMA}.shopping_items_v2 WHERE family_id::text = {escape_string(family_id)} AND bought = TRUE"
     cur.execute(delete_query)
     cur.close()
     conn.close()
