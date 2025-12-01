@@ -1,5 +1,5 @@
 """
-Business: CRUD операции для задач семьи с поддержкой повторяющихся задач (fixed FK constraints)
+Business: CRUD операции для задач семьи (tasks_v2 без FK constraints)
 Args: event с httpMethod, body (title, assignee_id, points, etc), headers с X-Auth-Token
 Returns: JSON со списком задач или результатом операции
 """
@@ -70,14 +70,14 @@ def get_tasks(family_id: str, completed: Optional[bool] = None) -> List[Dict[str
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    where_clause = f"WHERE t.family_id = {escape_string(family_id, is_uuid=True)}"
+    where_clause = f"WHERE t.family_id::text = {escape_string(family_id)}"
     if completed is not None:
         where_clause += f" AND t.completed = {escape_string(completed)}"
     
     query = f"""
         SELECT t.*, fm.name as assignee_name
-        FROM {SCHEMA}.tasks t
-        LEFT JOIN {SCHEMA}.family_members fm ON t.assignee_id = fm.id
+        FROM {SCHEMA}.tasks_v2 t
+        LEFT JOIN {SCHEMA}.family_members fm ON t.assignee_id::text = fm.id::text
         {where_clause}
         ORDER BY t.created_at DESC
     """
@@ -96,30 +96,20 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     task_id = f"'{str(uuid.uuid4())}'"
     
     insert_query = f"""
-        INSERT INTO {SCHEMA}.tasks (
+        INSERT INTO {SCHEMA}.tasks_v2 (
             id, family_id, title, description, assignee_id, completed, 
-            points, priority, category, deadline, reminder_time, is_recurring,
-            recurring_frequency, recurring_interval, recurring_days_of_week,
-            recurring_end_date, next_occurrence, cooking_day
+            points, priority, category, deadline
         ) VALUES (
             {task_id}::uuid,
-            {escape_string(family_id, is_uuid=True)},
+            {escape_string(family_id)}::uuid,
             {escape_string(data.get('title'))},
             {escape_string(data.get('description') or '')},
-            {escape_string(data.get('assignee_id'), is_uuid=True)},
+            {escape_string(data.get('assignee_id'))}::uuid,
             {escape_string(data.get('completed', False))},
             {escape_string(data.get('points', 10))},
             {escape_string(data.get('priority', 'medium'))},
             {escape_string(data.get('category') or 'Дом')},
-            {escape_string(data.get('deadline'))},
-            {escape_string(data.get('reminder_time'))},
-            {escape_string(data.get('is_recurring', False))},
-            {escape_string(data.get('recurring_frequency'))},
-            {escape_string(data.get('recurring_interval'))},
-            {escape_string(data.get('recurring_days_of_week'))},
-            {escape_string(data.get('recurring_end_date'))},
-            {escape_string(data.get('next_occurrence'))},
-            {escape_string(data.get('cooking_day'))}
+            {escape_string(data.get('deadline'))}
         )
     """
     
@@ -129,7 +119,7 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         cur.execute(insert_query)
         print(f"[create_task] Task inserted, fetching...")
         
-        select_query = f"SELECT * FROM {SCHEMA}.tasks WHERE id = {task_id}::uuid"
+        select_query = f"SELECT * FROM {SCHEMA}.tasks_v2 WHERE id = {task_id}::uuid"
         cur.execute(select_query)
         task = cur.fetchone()
         
@@ -147,7 +137,7 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}"
+    check_query = f"SELECT id FROM {SCHEMA}.tasks_v2 WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
@@ -157,11 +147,12 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     fields = []
     
     for field in ['title', 'description', 'assignee_id', 'completed', 'points', 
-                  'priority', 'category', 'deadline', 'reminder_time', 'is_recurring',
-                  'recurring_frequency', 'recurring_interval', 'recurring_days_of_week',
-                  'recurring_end_date', 'next_occurrence', 'cooking_day']:
+                  'priority', 'category', 'deadline']:
         if field in data:
-            fields.append(f"{field} = {escape_string(data[field])}")
+            if field == 'assignee_id':
+                fields.append(f"{field} = {escape_string(data[field])}::uuid")
+            else:
+                fields.append(f"{field} = {escape_string(data[field])}")
     
     if not fields:
         cur.close()
@@ -171,9 +162,9 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     fields.append("updated_at = CURRENT_TIMESTAMP")
     
     query = f"""
-        UPDATE {SCHEMA}.tasks 
+        UPDATE {SCHEMA}.tasks_v2 
         SET {', '.join(fields)}
-        WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}
+        WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}
         RETURNING *
     """
     
@@ -188,14 +179,14 @@ def delete_task(task_id: str, family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor()
     
-    check_query = f"SELECT id FROM {SCHEMA}.tasks WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}"
+    check_query = f"SELECT id FROM {SCHEMA}.tasks_v2 WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(check_query)
     if not cur.fetchone():
         cur.close()
         conn.close()
         return {'error': 'Задача не найдена'}
     
-    update_query = f"UPDATE {SCHEMA}.tasks SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id = {escape_string(task_id, is_uuid=True)} AND family_id = {escape_string(family_id, is_uuid=True)}"
+    update_query = f"UPDATE {SCHEMA}.tasks_v2 SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(update_query)
     cur.close()
     conn.close()
