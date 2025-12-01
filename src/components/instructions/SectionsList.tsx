@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { useNavigate } from 'react-router-dom';
 import { Section } from './sectionsData';
 
 interface SectionsListProps {
@@ -9,9 +10,22 @@ interface SectionsListProps {
 }
 
 export default function SectionsList({ sections, onSelectSection }: SectionsListProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            onClick={() => navigate('/')} 
+            variant="outline" 
+            className="gap-2"
+          >
+            <Icon name="ArrowLeft" size={18} />
+            На главную
+          </Button>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             📚 Инструкции по использованию
