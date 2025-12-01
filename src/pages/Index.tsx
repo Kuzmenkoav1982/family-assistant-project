@@ -1745,11 +1745,11 @@ export default function Index({ onLogout }: IndexProps) {
                       <div className="flex items-center gap-1">
                         <button className="flex items-center gap-0.5 hover:bg-green-100 rounded px-1 py-0.5 transition-colors">
                           <Icon name="ThumbsUp" size={10} className="text-green-600" />
-                          <span className="text-[9px] font-medium text-green-600">{section.votes.up}</span>
+                          <span className="text-[9px] font-medium text-green-600">{section.votes?.up || 0}</span>
                         </button>
                         <button className="flex items-center gap-0.5 hover:bg-red-100 rounded px-1 py-0.5 transition-colors">
                           <Icon name="ThumbsDown" size={10} className="text-red-600" />
-                          <span className="text-[9px] font-medium text-red-600">{section.votes.down}</span>
+                          <span className="text-[9px] font-medium text-red-600">{section.votes?.down || 0}</span>
                         </button>
                       </div>
                     </div>
