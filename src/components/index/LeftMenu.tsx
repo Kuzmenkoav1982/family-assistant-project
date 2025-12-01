@@ -204,53 +204,7 @@ export function LeftMenu({
             </button>
           ))}
           
-          <div className="pt-2 mt-2 border-t border-gray-200">
-            <button
-              onClick={() => setShowInDevelopment(!showInDevelopment)}
-              className="w-full flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-gray-100 transition-all"
-            >
-              <div className="flex items-center gap-2">
-                <Icon name="Wrench" size={16} />
-                <span className="text-xs font-medium text-gray-600">В разработке</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Badge variant="secondary" className="text-[10px] px-1 py-0">{inDevelopmentSections.length}</Badge>
-                <Icon name={showInDevelopment ? 'ChevronUp' : 'ChevronDown'} size={14} className="text-gray-400" />
-              </div>
-            </button>
-            
-            {showInDevelopment && (
-              <div className="mt-1 space-y-1 animate-fade-in">
-                {inDevelopmentSections.map((section, index) => (
-                  <div
-                    key={section.id}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-all"
-                    style={{ animationDelay: `${index * 0.03}s` }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Icon name={section.icon as any} size={16} className="text-gray-500" />
-                      <span className="text-xs text-gray-600">{section.label}</span>
-                    </div>
-                    {section.votes && (
-                      <div className="flex items-center gap-1">
-                        <button className="flex items-center gap-0.5 hover:bg-green-100 rounded px-1 py-0.5 transition-colors">
-                          <Icon name="ThumbsUp" size={10} className="text-green-600" />
-                          <span className="text-[9px] font-medium text-green-600">{section.votes?.up || 0}</span>
-                        </button>
-                        <button className="flex items-center gap-0.5 hover:bg-red-100 rounded px-1 py-0.5 transition-colors">
-                          <Icon name="ThumbsDown" size={10} className="text-red-600" />
-                          <span className="text-[9px] font-medium text-red-600">{section.votes?.down || 0}</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                <p className="text-[9px] text-gray-500 text-center py-2 px-2">
-                  💡 Голосуйте за функции, которые хотите видеть первыми!
-                </p>
-              </div>
-            )}
-          </div>
+
         </div>
       </div>
       

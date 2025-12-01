@@ -229,8 +229,111 @@ def cast_vote(member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         conn.close()
         return {'error': str(e)}
 
+def get_feature_votes(section_id: Optional[str] = None) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        if section_id:
+            query = f"""
+                SELECT 
+                    section_id,
+                    COUNT(*) FILTER (WHERE vote_type = 'up') as up_votes,
+                    COUNT(*) FILTER (WHERE vote_type = 'down') as down_votes
+                FROM {SCHEMA}.feature_votes
+                WHERE section_id = {escape_string(section_id)}
+                GROUP BY section_id
+            """
+            cur.execute(query)
+            result = cur.fetchone()
+            
+            if result:
+                votes_data = {
+                    'section_id': result['section_id'],
+                    'up': int(result['up_votes']),
+                    'down': int(result['down_votes'])
+                }
+            else:
+                votes_data = {'section_id': section_id, 'up': 0, 'down': 0}
+            
+            cur.close()
+            conn.close()
+            return votes_data
+        else:
+            query = f"""
+                SELECT 
+                    section_id,
+                    COUNT(*) FILTER (WHERE vote_type = 'up') as up_votes,
+                    COUNT(*) FILTER (WHERE vote_type = 'down') as down_votes
+                FROM {SCHEMA}.feature_votes
+                GROUP BY section_id
+            """
+            cur.execute(query)
+            results = cur.fetchall()
+            
+            votes_map = {}
+            for row in results:
+                votes_map[row['section_id']] = {
+                    'up': int(row['up_votes']),
+                    'down': int(row['down_votes'])
+                }
+            
+            cur.close()
+            conn.close()
+            return votes_map
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
+def cast_feature_vote(user_id: str, section_id: str, vote_type: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        query = f"""
+            INSERT INTO {SCHEMA}.feature_votes 
+                (section_id, user_id, vote_type)
+            VALUES ({escape_string(section_id)}, {escape_string(user_id)}, {escape_string(vote_type)})
+            ON CONFLICT (section_id, user_id) 
+            DO UPDATE SET vote_type = EXCLUDED.vote_type, updated_at = CURRENT_TIMESTAMP
+        """
+        cur.execute(query)
+        
+        stats_query = f"""
+            SELECT 
+                section_id,
+                COUNT(*) FILTER (WHERE vote_type = 'up') as up_votes,
+                COUNT(*) FILTER (WHERE vote_type = 'down') as down_votes
+            FROM {SCHEMA}.feature_votes
+            WHERE section_id = {escape_string(section_id)}
+            GROUP BY section_id
+        """
+        cur.execute(stats_query)
+        result = cur.fetchone()
+        
+        votes_data = {
+            'section_id': section_id,
+            'up': int(result['up_votes']) if result else 0,
+            'down': int(result['down_votes']) if result else 0
+        }
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'message': 'Голос учтён',
+            'votes': votes_data
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
+    path = event.get('path', '')
     
     if method == 'OPTIONS':
         return {
@@ -238,10 +341,87 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
             'body': ''
+        }
+    
+    if '/feature-votes' in path or event.get('queryStringParameters', {}).get('type') == 'feature':
+        headers = event.get('headers', {})
+        user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+        
+        if method == 'GET':
+            query_params = event.get('queryStringParameters', {}) or {}
+            section_id = query_params.get('section_id')
+            
+            votes_data = get_feature_votes(section_id)
+            
+            if 'error' in votes_data:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps(votes_data)
+                }
+            
+            if section_id:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True, 'votes': votes_data})
+                }
+            else:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'success': True, 'votes': votes_data})
+                }
+        
+        elif method == 'POST':
+            if not user_id:
+                return {
+                    'statusCode': 401,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'User authentication required'})
+                }
+            
+            try:
+                body = json.loads(event.get('body', '{}'))
+                section_id = body.get('section_id')
+                vote_type = body.get('vote_type')
+                
+                if not section_id or vote_type not in ['up', 'down']:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Invalid section_id or vote_type'})
+                    }
+                
+                result = cast_feature_vote(user_id, section_id, vote_type)
+                
+                if 'error' in result:
+                    return {
+                        'statusCode': 500,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps(result)
+                    }
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps(result)
+                }
+            except Exception as e:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': str(e)})
+                }
+        
+        return {
+            'statusCode': 405,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'Method not allowed'})
         }
     
     token = event.get('headers', {}).get('X-Auth-Token') or event.get('headers', {}).get('x-auth-token')
