@@ -13,7 +13,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
-SCHEMA = '"t_p5815085_family_assistant_pro"'
+SCHEMA = 't_p5815085_family_assistant_pro'
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -94,6 +94,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
     user_data = cur.fetchone()
     user_name = user_data['name'] if user_data else 'Неизвестно'
     
+    # For UUID fields, we need to cast the string to uuid
     insert_query = f"""
         INSERT INTO {SCHEMA}.shopping_items (
             id, family_id, name, category, quantity, priority, bought,
@@ -101,14 +102,14 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
         ) VALUES (
             {escape_string(item_id)}::uuid,
             {escape_string(family_id)}::uuid,
-            {escape_string(data.get('name'))},
+            {escape_string(data.get('name', ''))},
             {escape_string(data.get('category', 'Продукты'))},
             {escape_string(data.get('quantity', ''))},
             {escape_string(data.get('priority', 'normal'))},
             FALSE,
             {escape_string(user_id)}::uuid,
             {escape_string(user_name)},
-            {escape_string(data.get('notes', ''))}
+            {escape_string(data.get('notes', '') if data.get('notes') else '')}
         )
     """
     
