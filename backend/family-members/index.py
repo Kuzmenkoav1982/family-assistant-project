@@ -193,7 +193,7 @@ def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
             conn.close()
             return {'error': 'Нельзя удалить члена семьи с привязанным аккаунтом'}
         
-        delete_query = f"UPDATE {SCHEMA}.family_members SET family_id = NULL WHERE id = {escape_string(member_id)}"
+        delete_query = f"DELETE FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
         cur.execute(delete_query)
         conn.commit()
         cur.close()

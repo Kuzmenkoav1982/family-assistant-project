@@ -1840,8 +1840,8 @@ export default function Index({ onLogout }: IndexProps) {
                 Семья
               </Button>
               <Button
-                onClick={() => setActiveSection('children')}
-                variant={activeSection === 'children' ? 'default' : 'outline'}
+                onClick={() => navigate('/children')}
+                variant="outline"
                 className="text-xs py-1.5 px-2.5 h-auto"
               >
                 <Icon name="Baby" size={14} className="mr-1" />

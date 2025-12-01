@@ -28,7 +28,7 @@ export default function Children() {
     
     if (childId) {
       setSelectedChildId(childId);
-    } else if (children.length > 0) {
+    } else if (children.length > 0 && !selectedChildId) {
       setSelectedChildId(children[0].id);
     }
     
@@ -37,7 +37,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, children.length, isParent]);
+  }, [searchParams, isParent]);
 
   if (!children || children.length === 0) {
     return (
