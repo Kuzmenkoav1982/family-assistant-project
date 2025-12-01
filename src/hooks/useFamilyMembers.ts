@@ -23,12 +23,13 @@ interface FamilyMember {
 
 const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5';
 
+// Глобальный флаг для предотвращения множественных вызовов
+const fetchState = { hasFetched: false };
+
 export function useFamilyMembers() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
-  const hasFetchedRef = useRef(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -60,9 +61,6 @@ export function useFamilyMembers() {
       console.log('[DEBUG useFamilyMembers] data.success:', data.success);
       console.log('[DEBUG useFamilyMembers] data.members:', data.members);
       
-      setHasFetched(true);
-      hasFetchedRef.current = true;
-      
       if (data.success && data.members) {
         // Конвертируем snake_case в camelCase для frontend
         const convertedMembers = data.members.map((m: any) => ({
@@ -80,8 +78,6 @@ export function useFamilyMembers() {
         }
       }
     } catch (err) {
-      setHasFetched(true);
-      hasFetchedRef.current = true;
       if (!silent) {
         setError('Ошибка загрузки данных');
         setMembers([]);
@@ -212,44 +208,24 @@ export function useFamilyMembers() {
     }
   };
 
-  // Polling: проверяем появление токена каждые 100мс в течение 10 секунд
+  // Одноразовая загрузка при монтировании
   useEffect(() => {
-    let attempts = 0;
-    const maxAttempts = 100; // 100 * 100ms = 10 секунд
-    let isMounted = true;
+    const token = getAuthToken();
     
-    const checkTokenInterval = setInterval(() => {
-      attempts++;
-      const token = getAuthToken();
-      
-      console.log(`[DEBUG useFamilyMembers POLLING] Attempt ${attempts}/${maxAttempts}, token:`, token ? 'EXISTS' : 'MISSING', 'hasFetched:', hasFetchedRef.current);
-      
-      if (token && !hasFetchedRef.current && isMounted) {
-        console.log('[DEBUG useFamilyMembers POLLING] Token found and not fetched yet! Calling fetchMembers...');
-        fetchMembers();
-        clearInterval(checkTokenInterval);
-      }
-      
-      if (attempts >= maxAttempts) {
-        console.log('[DEBUG useFamilyMembers POLLING] Max attempts reached, stopping');
-        clearInterval(checkTokenInterval);
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }, 100);
-
-    return () => {
-      isMounted = false;
-      clearInterval(checkTokenInterval);
-    };
+    if (token && !fetchState.hasFetched) {
+      console.log('[DEBUG useFamilyMembers] Initial fetch on mount');
+      fetchState.hasFetched = true;
+      fetchMembers();
+    } else if (!token) {
+      setLoading(false);
+    }
   }, []);
 
   // Периодическое обновление (каждые 30 секунд)
   useEffect(() => {
     const interval = setInterval(() => {
       const token = getAuthToken();
-      if (token && hasFetchedRef.current) {
+      if (token && fetchState.hasFetched) {
         fetchMembers(true);
       }
     }, 30000); // 30 секунд вместо 5
