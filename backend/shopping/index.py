@@ -113,6 +113,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
     """
     
     try:
+        print(f"[DEBUG] Insert query: {insert_query}")
         cur.execute(insert_query)
         
         select_query = f"SELECT * FROM {SCHEMA}.shopping_items WHERE id = {escape_string(item_id)}::uuid"
@@ -124,6 +125,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
         return dict(item) if item else {}
     except Exception as e:
         print(f"[create_shopping_item] Error: {e}")
+        print(f"[DEBUG] Failed query: {insert_query}")
         cur.close()
         conn.close()
         raise
