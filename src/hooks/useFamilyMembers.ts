@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface FamilyMember {
   id: string;
@@ -28,6 +28,7 @@ export function useFamilyMembers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasFetched, setHasFetched] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -60,6 +61,7 @@ export function useFamilyMembers() {
       console.log('[DEBUG useFamilyMembers] data.members:', data.members);
       
       setHasFetched(true);
+      hasFetchedRef.current = true;
       
       if (data.success && data.members) {
         // Конвертируем snake_case в camelCase для frontend
@@ -79,6 +81,7 @@ export function useFamilyMembers() {
       }
     } catch (err) {
       setHasFetched(true);
+      hasFetchedRef.current = true;
       if (!silent) {
         setError('Ошибка загрузки данных');
         setMembers([]);
@@ -213,14 +216,15 @@ export function useFamilyMembers() {
   useEffect(() => {
     let attempts = 0;
     const maxAttempts = 100; // 100 * 100ms = 10 секунд
+    let isMounted = true;
     
     const checkTokenInterval = setInterval(() => {
       attempts++;
       const token = getAuthToken();
       
-      console.log(`[DEBUG useFamilyMembers POLLING] Attempt ${attempts}/${maxAttempts}, token:`, token ? 'EXISTS' : 'MISSING', 'hasFetched:', hasFetched);
+      console.log(`[DEBUG useFamilyMembers POLLING] Attempt ${attempts}/${maxAttempts}, token:`, token ? 'EXISTS' : 'MISSING', 'hasFetched:', hasFetchedRef.current);
       
-      if (token && !hasFetched) {
+      if (token && !hasFetchedRef.current && isMounted) {
         console.log('[DEBUG useFamilyMembers POLLING] Token found and not fetched yet! Calling fetchMembers...');
         fetchMembers();
         clearInterval(checkTokenInterval);
@@ -229,26 +233,29 @@ export function useFamilyMembers() {
       if (attempts >= maxAttempts) {
         console.log('[DEBUG useFamilyMembers POLLING] Max attempts reached, stopping');
         clearInterval(checkTokenInterval);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }, 100);
 
-    return () => clearInterval(checkTokenInterval);
-  }, [hasFetched]);
+    return () => {
+      isMounted = false;
+      clearInterval(checkTokenInterval);
+    };
+  }, []);
 
-  // Периодическое обновление (каждые 5 секунд)
+  // Периодическое обновление (каждые 30 секунд)
   useEffect(() => {
-    if (!hasFetched) return;
-    
     const interval = setInterval(() => {
       const token = getAuthToken();
-      if (token) {
+      if (token && hasFetchedRef.current) {
         fetchMembers(true);
       }
-    }, 5000);
+    }, 30000); // 30 секунд вместо 5
     
     return () => clearInterval(interval);
-  }, [hasFetched]);
+  }, []);
 
   return {
     members,

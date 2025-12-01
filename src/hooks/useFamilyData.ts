@@ -119,15 +119,24 @@ export function useFamilyData() {
   };
 
   useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     fetchFamilyData();
     
     // Автосинхронизация каждую минуту
     const syncInterval = setInterval(() => {
-      fetchFamilyData();
+      const currentToken = getAuthToken();
+      if (currentToken) {
+        fetchFamilyData();
+      }
     }, 60000); // 60 секунд
     
     return () => clearInterval(syncInterval);
-  }, [fetchFamilyData]);
+  }, []);
 
   return {
     data,
