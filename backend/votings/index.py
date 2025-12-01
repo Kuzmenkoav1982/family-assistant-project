@@ -114,13 +114,22 @@ def get_votings(family_id: str, status: Optional[str] = None) -> List[Dict[str, 
             cur.execute(votes_query)
             vote_stats = cur.fetchone()
             
+            votes_list_query = f"""
+                SELECT member_id::text as member_id, vote_value, created_at
+                FROM {SCHEMA}.votes
+                WHERE option_id::text = {escape_string(str(option['id']))}
+            """
+            cur.execute(votes_list_query)
+            votes_list = cur.fetchall()
+            
             voting_dict['options'].append({
                 'id': str(option['id']),
                 'option_text': option['option_text'],
                 'description': option['description'],
                 'total_votes': int(vote_stats['total_votes']) if vote_stats and vote_stats['total_votes'] is not None else 0,
                 'yes_votes': int(vote_stats['yes_votes']) if vote_stats and vote_stats['yes_votes'] is not None else 0,
-                'no_votes': int(vote_stats['no_votes']) if vote_stats and vote_stats['no_votes'] is not None else 0
+                'no_votes': int(vote_stats['no_votes']) if vote_stats and vote_stats['no_votes'] is not None else 0,
+                'votes': [{'member_id': v['member_id'], 'vote_value': v['vote_value'], 'created_at': str(v['created_at'])} for v in votes_list]
             })
         
         result.append(voting_dict)

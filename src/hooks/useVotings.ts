@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 
+interface Vote {
+  member_id: string;
+  vote_value: boolean;
+  created_at: string;
+}
+
 interface VotingOption {
   id: string;
   option_text: string;
@@ -7,6 +13,7 @@ interface VotingOption {
   total_votes: number;
   yes_votes: number;
   no_votes: number;
+  votes?: Vote[];
 }
 
 interface Voting {

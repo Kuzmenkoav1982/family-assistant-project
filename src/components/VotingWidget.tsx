@@ -106,16 +106,16 @@ export function VotingWidget() {
   const getVotingProgress = (voting: any) => {
     if (!voting.options || voting.options.length === 0) return { votedCount: 0, totalMembers: members.length, percentage: 0 };
     
-    const votedUserIds = new Set<string>();
+    const votedMemberIds = new Set<string>();
     voting.options.forEach((option: any) => {
-      if (option.votes) {
+      if (option.votes && Array.isArray(option.votes)) {
         option.votes.forEach((vote: any) => {
-          votedUserIds.add(vote.user_id);
+          votedMemberIds.add(vote.member_id);
         });
       }
     });
     
-    const votedCount = votedUserIds.size;
+    const votedCount = votedMemberIds.size;
     const totalMembers = members.length || 1;
     const percentage = Math.round((votedCount / totalMembers) * 100);
     
