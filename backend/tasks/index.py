@@ -1,5 +1,5 @@
 """
-Business: CRUD операции для задач семьи с поддержкой повторяющихся задач
+Business: CRUD операции для задач семьи с поддержкой повторяющихся задач (fixed FK constraints)
 Args: event с httpMethod, body (title, assignee_id, points, etc), headers с X-Auth-Token
 Returns: JSON со списком задач или результатом операции
 """
