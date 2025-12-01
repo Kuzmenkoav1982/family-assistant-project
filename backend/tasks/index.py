@@ -18,6 +18,9 @@ SCHEMA = 't_p5815085_family_assistant_pro'
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = True
+    cur = conn.cursor()
+    cur.execute(f"SET search_path TO {SCHEMA}, public")
+    cur.close()
     return conn
 
 def escape_string(value: Any, is_uuid: bool = False) -> str:
