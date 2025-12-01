@@ -55,11 +55,15 @@ export function PurchasesSection({ child }: { child: FamilyMember }) {
     if (!newItem.name.trim()) return;
 
     try {
+      const authUser = JSON.parse(localStorage.getItem('authUser') || '{}');
+      const familyId = authUser.family_id || '';
+      
       await mutation.mutateAsync({
         action: 'add',
         child_id: child.id,
         type: 'purchase_item',
         data: {
+          family_id: familyId,
           season: currentSeason,
           name: newItem.name,
           category: newItem.category,

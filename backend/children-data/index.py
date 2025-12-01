@@ -472,6 +472,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     result_id = cur.fetchone()['id']
                     conn.commit()
                     
+                elif data_type == 'purchase_item':
+                    family_id = data.get('family_id', '')
+                    season = data.get('season', 'winter')
+                    category = data.get('category', 'Одежда')
+                    
+                    cur.execute(f"""
+                        SELECT id FROM {schema}.children_purchase_plans 
+                        WHERE member_id = {child_id_safe} AND season = {escape_sql_string(season)}
+                        LIMIT 1
+                    """)
+                    plan = cur.fetchone()
+                    
+                    if plan:
+                        plan_id = plan['id']
+                    else:
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_purchase_plans 
+                            (member_id, family_id, season, category)
+                            VALUES ({child_id_safe}, {escape_sql_string(family_id)}, 
+                                    {escape_sql_string(season)}, {escape_sql_string(category)})
+                            RETURNING id
+                        """)
+                        plan_id = cur.fetchone()['id']
+                    
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_purchase_items 
+                        (plan_id, name, priority, estimated_cost, purchased)
+                        VALUES ({escape_sql_string(plan_id)}, {escape_sql_string(data.get('name'))},
+                                {escape_sql_string(data.get('priority', 'medium'))}, 
+                                {escape_sql_string(data.get('estimated_cost'))},
+                                FALSE)
+                        RETURNING id
+                    """)
+                    result_id = cur.fetchone()['id']
+                    conn.commit()
+                    
                 else:
                     return {
                         'statusCode': 400,
@@ -606,6 +642,30 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             target_level = {escape_sql_string(data.get('target_level'))}
                         WHERE id = {record_id_safe}
                     """)
+                    
+                elif data_type == 'purchase_item':
+                    update_fields = []
+                    if 'purchased' in data:
+                        purchased = data.get('purchased')
+                        update_fields.append(f"purchased = {escape_sql_string(purchased)}")
+                        if purchased:
+                            update_fields.append(f"purchase_date = CURRENT_DATE")
+                        else:
+                            update_fields.append(f"purchase_date = NULL")
+                    
+                    if 'name' in data:
+                        update_fields.append(f"name = {escape_sql_string(data.get('name'))}")
+                    if 'priority' in data:
+                        update_fields.append(f"priority = {escape_sql_string(data.get('priority'))}")
+                    if 'estimated_cost' in data:
+                        update_fields.append(f"estimated_cost = {escape_sql_string(data.get('estimated_cost'))}")
+                    
+                    if update_fields:
+                        cur.execute(f"""
+                            UPDATE {schema}.children_purchase_items 
+                            SET {', '.join(update_fields)}
+                            WHERE id = {record_id_safe}
+                        """)
                     
                 else:
                     return {
