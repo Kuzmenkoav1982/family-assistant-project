@@ -87,7 +87,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    item_id = f"'{str(uuid.uuid4())}'"
+    item_id = str(uuid.uuid4())
     
     user_query = f"SELECT name FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(user_id)} LIMIT 1"
     cur.execute(user_query)
@@ -99,7 +99,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
             id, family_id, name, category, quantity, priority, bought,
             added_by, added_by_name, notes
         ) VALUES (
-            {item_id}::uuid,
+            {escape_string(item_id)}::uuid,
             {escape_string(family_id)}::uuid,
             {escape_string(data.get('name'))},
             {escape_string(data.get('category', 'Продукты'))},
@@ -115,7 +115,7 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
     try:
         cur.execute(insert_query)
         
-        select_query = f"SELECT * FROM {SCHEMA}.shopping_items WHERE id = {item_id}::uuid"
+        select_query = f"SELECT * FROM {SCHEMA}.shopping_items WHERE id = {escape_string(item_id)}::uuid"
         cur.execute(select_query)
         item = cur.fetchone()
         
