@@ -20,35 +20,6 @@ export default function Analytics() {
     return <AnalyticsSkeleton />;
   }
 
-  if (error || !familyData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              📊 Аналитика семьи
-            </h1>
-            <Button onClick={() => navigate('/')} variant="outline" className="gap-2">
-              <Icon name="ArrowLeft" size={18} />
-              На главную
-            </Button>
-          </div>
-          <Card className="p-8 text-center">
-            <Icon name="AlertCircle" size={64} className="mx-auto mb-4 text-orange-500" />
-            <h2 className="text-2xl font-bold mb-2">Не удалось загрузить данные</h2>
-            <p className="text-muted-foreground mb-4">
-              {error ? (error as Error).message : 'Проверьте подключение к интернету'}
-            </p>
-            <Button onClick={() => window.location.reload()} className="gap-2">
-              <Icon name="RefreshCw" size={18} />
-              Обновить страницу
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   const members = familyData?.members || [];
   const tasks = familyData?.tasks || [];
   const children = familyData?.children_profiles || [];
