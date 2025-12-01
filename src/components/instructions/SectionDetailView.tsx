@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import { Section } from './sectionsData';
 
 interface SectionDetailViewProps {
@@ -10,6 +11,9 @@ interface SectionDetailViewProps {
 }
 
 export default function SectionDetailView({ section, onBack }: SectionDetailViewProps) {
+  const navigate = useNavigate();
+  const isDevelopment = section.id === 'blog' || section.id === 'tree';
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
@@ -23,12 +27,24 @@ export default function SectionDetailView({ section, onBack }: SectionDetailView
         </Button>
 
         <Card className="shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+          <CardHeader className={`text-white ${
+            isDevelopment 
+              ? 'bg-gradient-to-r from-amber-400 to-orange-500' 
+              : 'bg-gradient-to-r from-blue-500 to-purple-500'
+          }`}>
             <CardTitle className="flex items-center gap-3 text-2xl">
               <Icon name={section.icon as any} size={32} />
               {section.title}
+              {isDevelopment && (
+                <Badge className="bg-white/20 text-white border-white/30">
+                  <Icon name="Wrench" size={12} className="mr-1" />
+                  В разработке
+                </Badge>
+              )}
             </CardTitle>
-            <p className="text-blue-100 mt-2">{section.description}</p>
+            <p className={isDevelopment ? 'text-amber-100 mt-2' : 'text-blue-100 mt-2'}>
+              {section.description}
+            </p>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             <div>
@@ -126,9 +142,19 @@ export default function SectionDetailView({ section, onBack }: SectionDetailView
               </div>
             </div>
 
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t space-y-3">
+              {!isDevelopment && section.route && (
+                <Button 
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                  onClick={() => navigate(section.route!)}
+                >
+                  <Icon name="ExternalLink" className="mr-2" size={18} />
+                  Перейти в раздел "{section.title}"
+                </Button>
+              )}
               <Button 
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-500"
+                variant="outline"
+                className="w-full"
                 onClick={onBack}
               >
                 Вернуться к списку разделов

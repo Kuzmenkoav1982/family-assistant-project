@@ -577,6 +577,34 @@ export default function Index({ onLogout }: IndexProps) {
 
   const inDevelopmentSections = [
     { 
+      id: 'blog', 
+      icon: 'BookOpen', 
+      label: 'Блог',
+      description: 'Семейный блог для публикации историй, рецептов и важных событий',
+      features: [
+        { icon: '✍️', title: 'Публикации', description: 'Делитесь историями, рецептами, фотографиями' },
+        { icon: '💬', title: 'Комментарии', description: 'Обсуждение публикаций всей семьёй' },
+        { icon: '❤️', title: 'Реакции', description: 'Лайки и реакции на посты' },
+        { icon: '🏷️', title: 'Категории', description: 'Сортировка по темам: путешествия, кулинария, дети' },
+        { icon: '🔖', title: 'Избранное', description: 'Сохраняйте важные публикации' },
+        { icon: '📅', title: 'Архив', description: 'История всех публикаций по годам' },
+      ]
+    },
+    { 
+      id: 'tree', 
+      icon: 'GitBranch', 
+      label: 'Древо',
+      description: 'Генеалогическое древо семьи с историей поколений',
+      features: [
+        { icon: '🌳', title: 'Визуализация древа', description: 'Красивое графическое отображение родословной' },
+        { icon: '👤', title: 'Профили предков', description: 'Детальная информация о каждом члене рода' },
+        { icon: '📸', title: 'Фото и документы', description: 'Прикрепляйте фотографии и архивные документы' },
+        { icon: '📖', title: 'Истории жизни', description: 'Биографии и истории родственников' },
+        { icon: '🔍', title: 'Поиск родственников', description: 'Найдите связи между членами семьи' },
+        { icon: '📤', title: 'Экспорт GEDCOM', description: 'Совместимость с другими программами' },
+      ]
+    },
+    { 
       id: 'cohesion', 
       icon: 'TrendingUp', 
       label: 'Сплочённость',
@@ -1862,25 +1890,6 @@ export default function Index({ onLogout }: IndexProps) {
               >
                 <Icon name="Calendar" size={14} className="mr-1" />
                 Календарь
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-purple-50/80 border border-purple-200">
-              <Button
-                onClick={() => setActiveSection('blog')}
-                variant={activeSection === 'blog' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="BookOpen" size={14} className="mr-1" />
-                Блог
-              </Button>
-              <Button
-                onClick={() => setActiveSection('tree')}
-                variant={activeSection === 'tree' ? 'default' : 'outline'}
-                className="text-xs py-1.5 px-2.5 h-auto"
-              >
-                <Icon name="GitBranch" size={14} className="mr-1" />
-                Древо
               </Button>
             </div>
 
