@@ -78,12 +78,6 @@ export function VotingCreateDialog({
 
   return (
     <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-500">
-          <Icon name="Plus" size={16} className="mr-1" />
-          Создать
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

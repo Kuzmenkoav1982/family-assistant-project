@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useVotings } from '@/hooks/useVotings';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
@@ -154,13 +155,22 @@ export function VotingWidget() {
             )}
           </CardTitle>
           
-          <VotingCreateDialog 
-            showCreateDialog={showCreateDialog}
-            setShowCreateDialog={setShowCreateDialog}
-            onCreateVoting={handleCreateVoting}
-          />
+          <Button 
+            size="sm" 
+            className="bg-gradient-to-r from-purple-500 to-pink-500"
+            onClick={() => setShowCreateDialog(true)}
+          >
+            <Icon name="Plus" size={16} className="mr-1" />
+            Создать
+          </Button>
         </div>
       </CardHeader>
+      
+      <VotingCreateDialog 
+        showCreateDialog={showCreateDialog}
+        setShowCreateDialog={setShowCreateDialog}
+        onCreateVoting={handleCreateVoting}
+      />
       
       <CardContent>
         {votings.length === 0 ? (
