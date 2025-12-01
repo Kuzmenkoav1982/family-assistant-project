@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import type { FamilyMember } from '@/types/family.types';
 import { useChildrenDataQuery, useChildDataMutation } from '@/hooks/useChildrenDataQuery';
@@ -9,6 +14,14 @@ import { useChildrenDataQuery, useChildDataMutation } from '@/hooks/useChildrenD
 export function PurchasesSection({ child }: { child: FamilyMember }) {
   const { data, isLoading } = useChildrenDataQuery(child.id, 'purchases');
   const mutation = useChildDataMutation(child.id);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentSeason, setCurrentSeason] = useState<'winter' | 'spring' | 'summer' | 'autumn'>('winter');
+  const [newItem, setNewItem] = useState({
+    name: '',
+    category: 'Одежда',
+    estimated_cost: '',
+    priority: 'medium' as 'high' | 'medium' | 'low'
+  });
 
   const seasonIcons = {
     winter: '❄️',
@@ -36,6 +49,34 @@ export function PurchasesSection({ child }: { child: FamilyMember }) {
     } catch (error) {
       console.error('Ошибка при обновлении покупки:', error);
     }
+  };
+
+  const handleAddPurchase = async () => {
+    if (!newItem.name.trim()) return;
+
+    try {
+      await mutation.mutateAsync({
+        action: 'add',
+        child_id: child.id,
+        type: 'purchase_item',
+        data: {
+          season: currentSeason,
+          name: newItem.name,
+          category: newItem.category,
+          estimated_cost: newItem.estimated_cost ? parseInt(newItem.estimated_cost) : null,
+          priority: newItem.priority
+        }
+      });
+      setIsDialogOpen(false);
+      setNewItem({ name: '', category: 'Одежда', estimated_cost: '', priority: 'medium' });
+    } catch (error) {
+      console.error('Ошибка при добавлении покупки:', error);
+    }
+  };
+
+  const openAddDialog = (season: 'winter' | 'spring' | 'summer' | 'autumn') => {
+    setCurrentSeason(season);
+    setIsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -93,7 +134,10 @@ export function PurchasesSection({ child }: { child: FamilyMember }) {
                       <span className="text-3xl">{seasonIcons[season]}</span>
                       <h3 className="text-xl font-bold">{seasonLabels[season]}</h3>
                     </div>
-                    <Button className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600">
+                    <Button 
+                      className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600"
+                      onClick={() => openAddDialog(season)}
+                    >
                       <Icon name="Plus" size={16} />
                       Добавить покупку
                     </Button>
@@ -179,6 +223,82 @@ export function PurchasesSection({ child }: { child: FamilyMember }) {
           </Tabs>
         </CardContent>
       </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-2xl">{seasonIcons[currentSeason]}</span>
+              Добавить покупку - {seasonLabels[currentSeason]}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Название *</Label>
+              <Input
+                id="name"
+                placeholder="Например: Зимняя куртка"
+                value={newItem.name}
+                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Категория</Label>
+              <Select value={newItem.category} onValueChange={(value) => setNewItem({ ...newItem, category: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Одежда">Одежда</SelectItem>
+                  <SelectItem value="Обувь">Обувь</SelectItem>
+                  <SelectItem value="Школа">Школа</SelectItem>
+                  <SelectItem value="Спорт">Спорт</SelectItem>
+                  <SelectItem value="Другое">Другое</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cost">Примерная стоимость (₽)</Label>
+              <Input
+                id="cost"
+                type="number"
+                placeholder="5000"
+                value={newItem.estimated_cost}
+                onChange={(e) => setNewItem({ ...newItem, estimated_cost: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="priority">Приоритет</Label>
+              <Select value={newItem.priority} onValueChange={(value: 'high' | 'medium' | 'low') => setNewItem({ ...newItem, priority: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">🔴 Срочно</SelectItem>
+                  <SelectItem value="medium">🟡 Средний</SelectItem>
+                  <SelectItem value="low">🟢 Низкий</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-purple-600"
+              onClick={handleAddPurchase}
+              disabled={!newItem.name.trim()}
+            >
+              <Icon name="Plus" size={16} className="mr-1" />
+              Добавить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
