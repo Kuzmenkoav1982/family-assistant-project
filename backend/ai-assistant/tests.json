@@ -1,0 +1,40 @@
+{
+  "tests": [
+    {
+      "name": "Простой вопрос к AI",
+      "method": "POST",
+      "body": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "Привет! Как дела?"
+          }
+        ]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "response": "string",
+        "model": "yandexgpt-lite"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Вопрос с системным промптом",
+      "method": "POST",
+      "body": {
+        "systemPrompt": "Ты семейный помощник. Отвечай кратко и по делу.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Что приготовить на ужин?"
+          }
+        ]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "response": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
