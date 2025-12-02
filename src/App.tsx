@@ -47,6 +47,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Recipes from "./pages/Recipes";
 import AIAssistant from "./pages/AIAssistant";
+import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
 
@@ -91,6 +92,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <PWAInstallPrompt />
+            <AIAssistantWidget />
             <Routes>
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<Login />} />
