@@ -1,0 +1,43 @@
+{
+  "tests": [
+    {
+      "name": "Get all recipes",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-Family-Id": "test_family"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create recipe",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Family-Id": "test_family",
+        "X-User-Id": "test_user"
+      },
+      "body": {
+        "name": "Борщ",
+        "description": "Традиционный украинский суп",
+        "category": "soup",
+        "cuisine": "russian",
+        "cooking_time": 90,
+        "difficulty": "medium",
+        "servings": 6,
+        "ingredients": "Свекла - 2 шт\nКапуста - 300г\nМясо - 500г",
+        "instructions": "1. Сварить мясо\n2. Добавить овощи\n3. Варить 1 час",
+        "dietary_tags": []
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

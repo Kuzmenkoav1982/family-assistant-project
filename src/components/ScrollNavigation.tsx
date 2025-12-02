@@ -52,6 +52,7 @@ const navigationGroups: NavigationGroup[] = [
     color: 'yellow',
     items: [
       { id: 'children', label: 'Дети', icon: 'Baby', route: '/children' },
+      { id: 'recipes', label: 'Рецепты', icon: 'ChefHat', route: '/recipes' },
       { id: 'tree', label: 'Древо', icon: 'GitBranch', variant: 'dev', route: '/tree' },
       { id: 'garage', label: 'Гараж', icon: 'Car', variant: 'dev', route: '/garage' },
       { id: 'health', label: 'Здоровье', icon: 'Heart', variant: 'dev', route: '/health' },

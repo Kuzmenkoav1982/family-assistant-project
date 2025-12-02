@@ -109,6 +109,8 @@ export default function BottomBar({
                       navigate('/children');
                     } else if (section.id === 'analytics') {
                       navigate('/analytics');
+                    } else if (section.id === 'recipes') {
+                      navigate('/recipes');
                     } else {
                       onSectionChange(section.id);
                     }
