@@ -2,8 +2,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import AIAssistantWidget from '@/components/AIAssistantWidget';
 
 interface KuzyaHelperDialogProps {
   open: boolean;
@@ -12,16 +10,31 @@ interface KuzyaHelperDialogProps {
 
 export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDialogProps) {
   const navigate = useNavigate();
-  const [aiOpen, setAiOpen] = useState(false);
 
   const handleNavigation = (path: string) => {
     onOpenChange(false);
     navigate(path);
   };
 
-  const openAIAssistant = () => {
+  const openJivoChat = () => {
     onOpenChange(false);
-    setAiOpen(true);
+    
+    // Показываем виджет и открываем чат
+    const jivoElements = document.querySelectorAll('jdiv[id^="jivo"], jdiv.jivo-iframe-container, #jivo-iframe-container, .__jivoMobileButton');
+    jivoElements.forEach((el: Element) => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.display = 'block';
+      htmlEl.style.visibility = 'visible';
+      htmlEl.style.opacity = '1';
+      htmlEl.style.pointerEvents = 'auto';
+    });
+    
+    // Открываем чат
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).jivo_api) {
+        (window as any).jivo_api.open();
+      }
+    }, 100);
   };
 
   return (
@@ -46,14 +59,14 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
             <p className="text-gray-700">Чем могу помочь?</p>
             <div className="grid gap-3">
               <Button
-                onClick={openAIAssistant}
+                onClick={openJivoChat}
                 variant="outline"
                 className="h-auto py-4 flex items-start gap-3 hover:border-orange-500 hover:bg-orange-50"
               >
-                <Icon name="Bot" size={24} className="text-orange-600 mt-1" />
+                <Icon name="Headphones" size={24} className="text-orange-600 mt-1" />
                 <div className="text-left">
-                  <div className="font-semibold">AI Помощник Кузя</div>
-                  <div className="text-sm text-gray-600">Умный семейный ассистент на базе YandexGPT</div>
+                  <div className="font-semibold">Техническая поддержка</div>
+                  <div className="text-sm text-gray-600">Напишите нам в чат прямо сейчас</div>
                 </div>
               </Button>
 
@@ -84,8 +97,6 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
           </div>
         </DialogContent>
       </Dialog>
-
-      <AIAssistantWidget isOpen={aiOpen} onOpenChange={setAiOpen} />
     </>
   );
 }
