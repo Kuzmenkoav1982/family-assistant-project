@@ -4,11 +4,10 @@ import type { Recipe, RecipeFilters, OCRResponse } from '@/types/recipe.types';
 const RECIPES_API_URL = 'https://functions.poehali.dev/1469e458-c83d-4831-b626-ea58c331d634';
 
 const getHeaders = () => {
-  const authUser = JSON.parse(localStorage.getItem('authUser') || '{}');
+  const token = localStorage.getItem('authToken') || '';
   return {
     'Content-Type': 'application/json',
-    'X-Family-Id': authUser.family_id || '',
-    'X-User-Id': authUser.id || ''
+    'X-Auth-Token': token
   };
 };
 

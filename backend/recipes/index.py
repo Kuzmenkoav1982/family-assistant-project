@@ -2,14 +2,61 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import base64
 import requests
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+SCHEMA = 't_p5815085_family_assistant_pro'
+
+def escape_string(value: Any) -> str:
+    if value is None:
+        return 'NULL'
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, bool):
+        return 'TRUE' if value else 'FALSE'
+    return "'" + str(value).replace("'", "''") + "'"
+
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True
+    return conn
+
+def verify_token(token: str) -> Optional[str]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    query = f"""
+        SELECT user_id FROM {SCHEMA}.sessions 
+        WHERE token = {escape_string(token)} AND expires_at > CURRENT_TIMESTAMP
+    """
+    cur.execute(query)
+    session = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    return str(session['user_id']) if session else None
+
+def get_user_family_id(user_id: str) -> Optional[str]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    query = f"""
+        SELECT family_id FROM {SCHEMA}.family_members 
+        WHERE user_id::text = {escape_string(user_id)} LIMIT 1
+    """
+    cur.execute(query)
+    member = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    return str(member['family_id']) if member and member['family_id'] else None
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Manage family recipes with OCR support for image recognition
-    Args: event with httpMethod, body, queryStringParameters
+    Args: event with httpMethod, body, queryStringParameters, headers with X-Auth-Token
           context with request_id
     Returns: HTTP response with recipes data
     '''
@@ -21,7 +68,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Family-Id',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -29,26 +76,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     headers = event.get('headers', {})
-    family_id = headers.get('x-family-id') or headers.get('X-Family-Id', '')
+    token = headers.get('x-auth-token') or headers.get('X-Auth-Token', '')
     
-    if not family_id:
+    if not token:
         return {
             'statusCode': 401,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Family ID required'}),
+            'body': json.dumps({'error': 'Authentication required'}),
             'isBase64Encoded': False
         }
     
-    db_url = os.environ.get('DATABASE_URL')
-    if not db_url:
+    user_id = verify_token(token)
+    if not user_id:
         return {
-            'statusCode': 500,
+            'statusCode': 401,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Database configuration missing'}),
+            'body': json.dumps({'error': 'Invalid or expired token'}),
             'isBase64Encoded': False
         }
     
-    conn = psycopg2.connect(db_url)
+    family_id = get_user_family_id(user_id)
+    if not family_id:
+        return {
+            'statusCode': 403,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'User not in a family'}),
+            'isBase64Encoded': False
+        }
+    
+    conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
@@ -235,7 +291,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             instructions = body_data.get('instructions', '').strip()
             dietary_tags = body_data.get('dietary_tags', [])
             image_url = body_data.get('image_url')
-            created_by = headers.get('x-user-id') or headers.get('X-User-Id', family_id)
+            created_by = user_id
             
             if not name or not ingredients or not instructions:
                 return {
