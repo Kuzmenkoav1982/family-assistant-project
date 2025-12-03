@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import func2url from '@/../../backend/func2url.json';
+import func2url from '../../backend/func2url.json';
 
 export default function Settings() {
   const navigate = useNavigate();
