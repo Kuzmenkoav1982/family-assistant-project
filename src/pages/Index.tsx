@@ -100,6 +100,31 @@ export default function Index({ onLogout }: IndexProps) {
   const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];
   
+  const [familyName, setFamilyName] = useState('Наша семья');
+  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');
+  
+  useEffect(() => {
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        console.log('[DEBUG Index] userData from localStorage:', user);
+        if (user.family_name) {
+          console.log('[DEBUG Index] Setting family name:', user.family_name);
+          setFamilyName(user.family_name);
+        }
+        if (user.logo_url) {
+          console.log('[DEBUG Index] Setting logo URL:', user.logo_url);
+          setFamilyLogo(user.logo_url);
+        }
+      } catch (e) {
+        console.error('[DEBUG Index] Error parsing userData:', e);
+      }
+    } else {
+      console.log('[DEBUG Index] No userData in localStorage');
+    }
+  }, []);
+  
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
   const setFamilyMembers = (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => {
@@ -1775,14 +1800,17 @@ export default function Index({ onLogout }: IndexProps) {
             <div className="flex items-center justify-between w-full mb-2">
               <div className="flex items-center gap-4">
                 <img 
-                  src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                  alt="Наша семья"
-                  className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
+                  src={familyLogo} 
+                  alt={familyName}
+                  className="w-28 h-28 lg:w-36 lg:h-36 object-contain rounded-full"
                   style={{ border: 'none', outline: 'none' }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
+                  }}
                 />
                 <div className="flex flex-col gap-1">
                   <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                    Наша семья
+                    {familyName}
                   </h1>
                 </div>
               </div>
@@ -1792,22 +1820,25 @@ export default function Index({ onLogout }: IndexProps) {
                 <StatsCounter />
               </div>
             </div>
-            <p className="text-sm lg:text-base text-gray-700 font-medium flex items-center justify-center gap-2 mt-2">
-              {getDailyMotto()}
-              {localStorage.getItem('authToken') && (
-                <Badge className="bg-gradient-to-r from-red-500 to-yellow-500 text-white">
-                  <Icon name="Shield" className="mr-1" size={12} />
-                  OAuth
-                </Badge>
-              )}
-              {syncing && (
-                <Badge className="bg-blue-600 animate-pulse">
-                  <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />
-                  Синхронизация
-                </Badge>
-              )}
-
-            </p>
+            <div className="flex flex-col items-center gap-3 mt-4">
+              <p className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] text-center px-4">
+                {getDailyMotto()}
+              </p>
+              <div className="flex items-center gap-2">
+                {localStorage.getItem('authToken') && (
+                  <Badge className="bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-lg">
+                    <Icon name="Shield" className="mr-1" size={12} />
+                    OAuth
+                  </Badge>
+                )}
+                {syncing && (
+                  <Badge className="bg-blue-600 animate-pulse shadow-lg">
+                    <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />
+                    Синхронизация
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

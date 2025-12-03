@@ -83,35 +83,54 @@ export default function Settings() {
                     
                     setIsUploading(true);
                     try {
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      
-                      const response = await fetch(func2url['upload-file'], {
-                        method: 'POST',
-                        headers: {
-                          'X-Auth-Token': token || ''
-                        },
-                        body: formData
-                      });
-                      
-                      const data = await response.json();
-                      
-                      if (response.ok && data.url) {
-                        setFamilyLogo(data.url);
-                        toast({
-                          title: 'Успешно!',
-                          description: 'Логотип загружен'
+                      const reader = new FileReader();
+                      reader.onload = async () => {
+                        const base64 = (reader.result as string).split(',')[1];
+                        
+                        const response = await fetch(func2url['upload-file'], {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-Auth-Token': token || ''
+                          },
+                          body: JSON.stringify({
+                            file: base64,
+                            fileName: file.name,
+                            folder: 'family-logos'
+                          })
                         });
-                      } else {
-                        throw new Error(data.error || 'Ошибка загрузки');
-                      }
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok && data.url) {
+                          setFamilyLogo(data.url);
+                          toast({
+                            title: 'Успешно!',
+                            description: 'Логотип загружен'
+                          });
+                        } else {
+                          throw new Error(data.error || 'Ошибка загрузки');
+                        }
+                        
+                        setIsUploading(false);
+                      };
+                      
+                      reader.onerror = () => {
+                        toast({
+                          title: 'Ошибка',
+                          description: 'Не удалось прочитать файл',
+                          variant: 'destructive'
+                        });
+                        setIsUploading(false);
+                      };
+                      
+                      reader.readAsDataURL(file);
                     } catch (error) {
                       toast({
                         title: 'Ошибка',
                         description: String(error),
                         variant: 'destructive'
                       });
-                    } finally {
                       setIsUploading(false);
                     }
                   }}
