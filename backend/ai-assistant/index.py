@@ -1,8 +1,69 @@
 import json
 import os
 import requests
+import psycopg2
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+
+
+def get_db_connection():
+    """Создает подключение к БД"""
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        raise Exception('DATABASE_URL не настроен')
+    return psycopg2.connect(database_url)
+
+
+def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
+    """Загружает последние сообщения из истории чата"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT role, content 
+            FROM chat_messages 
+            WHERE family_id::text = %s 
+            ORDER BY created_at DESC 
+            LIMIT %s
+        """
+        cursor.execute(query, (family_id, limit))
+        rows = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        # Переворачиваем чтобы старые сообщения были первыми
+        history = []
+        for row in reversed(rows):
+            history.append({
+                'role': row[0],
+                'content': row[1]
+            })
+        
+        return history
+    except Exception as e:
+        print(f'[ERROR] Ошибка загрузки истории: {str(e)}')
+        return []
+
+
+def save_message(family_id: str, user_id: Optional[int], role: str, content: str):
+    """Сохраняет сообщение в БД"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            INSERT INTO chat_messages (family_id, sender_id, role, content, type, created_at)
+            VALUES (%s::uuid, %s, %s, %s, 'text', NOW())
+        """
+        cursor.execute(query, (family_id, user_id, role, content))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f'[ERROR] Ошибка сохранения сообщения: {str(e)}')
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -43,6 +104,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body_data = json.loads(event.get('body', '{}'))
         messages: List[Dict[str, str]] = body_data.get('messages', [])
         system_prompt: Optional[str] = body_data.get('systemPrompt')
+        family_id: Optional[str] = body_data.get('familyId')
+        user_id: Optional[int] = body_data.get('userId')
         
         if not messages:
             return {
@@ -72,6 +135,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'Content-Type': 'application/json'
         }
         
+        # Загружаем историю из БД, если есть family_id
+        history_messages = []
+        if family_id:
+            history_messages = load_chat_history(family_id, limit=10)
+        
         # Подготавливаем сообщения для YandexGPT
         yandex_messages = []
         
@@ -82,10 +150,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'text': system_prompt
             })
         
-        # Добавляем сообщения пользователя
+        # Добавляем историю из БД
+        for msg in history_messages:
+            yandex_messages.append({
+                'role': msg['role'],
+                'text': msg['content']
+            })
+        
+        # Добавляем текущие сообщения пользователя
+        user_message_content = ''
         for msg in messages:
             role = msg.get('role', 'user')
             content = msg.get('content', '')
+            
+            # Сохраняем последнее сообщение пользователя для записи в БД
+            if role == 'user':
+                user_message_content = content
             
             # YandexGPT использует 'user' и 'assistant'
             if role in ['user', 'assistant']:
@@ -134,6 +214,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Получаем текст ответа
         ai_response = alternatives[0].get('message', {}).get('text', '')
+        
+        # Сохраняем сообщения в БД, если есть family_id
+        if family_id and user_message_content:
+            save_message(family_id, user_id, 'user', user_message_content)
+            save_message(family_id, user_id, 'assistant', ai_response)
         
         return {
             'statusCode': 200,
