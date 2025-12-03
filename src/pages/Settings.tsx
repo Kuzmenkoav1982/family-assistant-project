@@ -15,6 +15,7 @@ export default function Settings() {
   const [familyName, setFamilyName] = useState('');
   const [familyLogo, setFamilyLogo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const token = localStorage.getItem('authToken');
   
@@ -61,12 +62,69 @@ export default function Settings() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="familyLogo">Логотип семьи (URL)</Label>
+              <Label>Логотип семьи</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast({
+                        title: 'Ошибка',
+                        description: 'Размер файла не должен превышать 5 МБ',
+                        variant: 'destructive'
+                      });
+                      return;
+                    }
+                    
+                    setIsUploading(true);
+                    try {
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      
+                      const response = await fetch(func2url['upload-file'], {
+                        method: 'POST',
+                        headers: {
+                          'X-Auth-Token': token || ''
+                        },
+                        body: formData
+                      });
+                      
+                      const data = await response.json();
+                      
+                      if (response.ok && data.url) {
+                        setFamilyLogo(data.url);
+                        toast({
+                          title: 'Успешно!',
+                          description: 'Логотип загружен'
+                        });
+                      } else {
+                        throw new Error(data.error || 'Ошибка загрузки');
+                      }
+                    } catch (error) {
+                      toast({
+                        title: 'Ошибка',
+                        description: String(error),
+                        variant: 'destructive'
+                      });
+                    } finally {
+                      setIsUploading(false);
+                    }
+                  }}
+                  disabled={isUploading}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-gray-500">Или вставьте URL изображения:</p>
               <Input
                 id="familyLogo"
                 placeholder="https://example.com/logo.png"
                 value={familyLogo}
                 onChange={(e) => setFamilyLogo(e.target.value)}
+                disabled={isUploading}
               />
               {familyLogo && (
                 <div className="mt-2">
@@ -135,7 +193,7 @@ export default function Settings() {
                   setIsLoading(false);
                 }
               }} 
-              disabled={isLoading}
+              disabled={isLoading || isUploading}
               className="w-full"
             >
               {isLoading ? 'Сохранение...' : 'Сохранить информацию о семье'}
