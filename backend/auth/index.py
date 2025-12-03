@@ -193,13 +193,14 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             cur.execute(update_invite)
             
             select_family = f"""
-                SELECT name FROM {SCHEMA}.families WHERE id = {escape_string(invite['family_id'])}
+                SELECT name, logo_url FROM {SCHEMA}.families WHERE id = {escape_string(invite['family_id'])}
             """
             cur.execute(select_family)
             family = cur.fetchone()
             
             user_data['family_id'] = str(invite['family_id'])
             user_data['family_name'] = family['name']
+            user_data['logo_url'] = family.get('logo_url')
             user_data['member_id'] = str(member['id'])
         elif not skip_family_creation:
             default_family_name = family_name or f"Семья {phone}"
@@ -231,6 +232,7 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             
             user_data['family_id'] = str(family['id'])
             user_data['family_name'] = family['name']
+            user_data['logo_url'] = family.get('logo_url')
             user_data['member_id'] = str(member['id'])
         
         cur.close()
@@ -283,7 +285,7 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
         cur.execute(insert_session)
         
         member_query = f"""
-            SELECT fm.id, fm.family_id, f.name as family_name
+            SELECT fm.id, fm.family_id, f.name as family_name, f.logo_url
             FROM {SCHEMA}.family_members fm
             JOIN {SCHEMA}.families f ON f.id = fm.family_id
             WHERE fm.user_id = {escape_string(user['id'])}
@@ -301,6 +303,7 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
         if member:
             user_data['family_id'] = str(member['family_id'])
             user_data['family_name'] = member['family_name']
+            user_data['logo_url'] = member.get('logo_url')
             user_data['member_id'] = str(member['id'])
         
         cur.close()
@@ -344,7 +347,7 @@ def get_current_user(token: str) -> Dict[str, Any]:
             return {'error': 'Сессия истекла'}
         
         member_query = f"""
-            SELECT fm.id, fm.family_id, f.name as family_name
+            SELECT fm.id, fm.family_id, f.name as family_name, f.logo_url
             FROM {SCHEMA}.family_members fm
             JOIN {SCHEMA}.families f ON f.id = fm.family_id
             WHERE fm.user_id = {escape_string(session['user_id'])}
@@ -365,6 +368,7 @@ def get_current_user(token: str) -> Dict[str, Any]:
         if member:
             user_data['family_id'] = str(member['family_id'])
             user_data['family_name'] = member['family_name']
+            user_data['logo_url'] = member.get('logo_url')
             user_data['member_id'] = str(member['id'])
         
         cur.close()
@@ -533,7 +537,7 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
         cur.execute(insert_session)
         
         member_query = f"""
-            SELECT fm.id, fm.family_id, f.name as family_name
+            SELECT fm.id, fm.family_id, f.name as family_name, f.logo_url
             FROM {SCHEMA}.family_members fm
             JOIN {SCHEMA}.families f ON f.id = fm.family_id
             WHERE fm.user_id = {escape_string(user_id)}
@@ -553,6 +557,7 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
         if member:
             user_data['family_id'] = str(member['family_id'])
             user_data['family_name'] = member['family_name']
+            user_data['logo_url'] = member.get('logo_url')
             user_data['member_id'] = str(member['id'])
         
         cur.close()

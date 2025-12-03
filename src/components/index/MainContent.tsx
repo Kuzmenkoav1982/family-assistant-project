@@ -66,6 +66,7 @@ export function MainContent({
     if (userData) {
       const user = JSON.parse(userData);
       if (user.family_name) setFamilyName(user.family_name);
+      if (user.logo_url) setFamilyLogo(user.logo_url);
     }
   }, []);
 
@@ -116,11 +117,6 @@ export function MainContent({
               <Badge className="bg-blue-600 animate-pulse">
                 <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />
                 Синхронизация
-              </Badge>
-            )}
-            {!syncing && getLastSyncTime() && (
-              <Badge variant="outline" className="text-xs">
-                Обновлено: {new Date(getLastSyncTime()!).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
               </Badge>
             )}
           </p>
