@@ -24,6 +24,7 @@ export default function Settings() {
     if (userData) {
       const user = JSON.parse(userData);
       if (user.family_name) setFamilyName(user.family_name);
+      if (user.logo_url) setFamilyLogo(user.logo_url);
     }
   }, []);
 
@@ -178,6 +179,7 @@ export default function Settings() {
                     if (userData) {
                       const user = JSON.parse(userData);
                       user.family_name = familyName;
+                      user.logo_url = familyLogo;
                       localStorage.setItem('userData', JSON.stringify(user));
                     }
                   } else {
