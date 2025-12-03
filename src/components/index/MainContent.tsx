@@ -10,6 +10,7 @@ import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { GoalsSection } from '@/components/GoalsSection';
 import StatsCounter from '@/components/StatsCounter';
 import type { FamilyMember, Task, FamilyGoal } from '@/types/family.types';
+import { useState, useEffect } from 'react';
 
 interface MainContentProps {
   activeSection: string;
@@ -57,6 +58,16 @@ export function MainContent({
   getLastSyncTime
 }: MainContentProps) {
   const navigate = useNavigate();
+  const [familyName, setFamilyName] = useState('Наша семья');
+  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');
+  
+  useEffect(() => {
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.family_name) setFamilyName(user.family_name);
+    }
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
@@ -74,14 +85,17 @@ export function MainContent({
           <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
               <img 
-                src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                alt="Наша семья"
-                className="w-28 h-28 lg:w-36 lg:h-36 object-contain"
+                src={familyLogo} 
+                alt={familyName}
+                className="w-28 h-28 lg:w-36 lg:h-36 object-contain rounded-full"
                 style={{ border: 'none', outline: 'none' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
+                }}
               />
               <div className="flex flex-col gap-1">
                 <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Наша семья
+                  {familyName}
                 </h1>
               </div>
             </div>
