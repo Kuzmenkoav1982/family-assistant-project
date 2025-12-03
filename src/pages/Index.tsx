@@ -1806,11 +1806,7 @@ export default function Index({ onLogout }: IndexProps) {
                   Синхронизация
                 </Badge>
               )}
-              {!syncing && getLastSyncTime() && (
-                <Badge variant="outline" className="text-xs">
-                  Обновлено: {new Date(getLastSyncTime()!).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                </Badge>
-              )}
+
             </p>
           </div>
         </div>
