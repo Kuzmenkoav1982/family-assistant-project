@@ -3,9 +3,28 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
+import func2url from '@/../../backend/func2url.json';
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [familyName, setFamilyName] = useState('');
+  const [familyLogo, setFamilyLogo] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const token = localStorage.getItem('authToken');
+  
+  useEffect(() => {
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.family_name) setFamilyName(user.family_name);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-20">
@@ -22,6 +41,107 @@ export default function Settings() {
             На главную
           </Button>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Users" size={24} className="text-orange-600" />
+              Информация о семье
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="familyName">Название семьи</Label>
+              <Input
+                id="familyName"
+                placeholder="Например: Семья Ивановых"
+                value={familyName}
+                onChange={(e) => setFamilyName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="familyLogo">Логотип семьи (URL)</Label>
+              <Input
+                id="familyLogo"
+                placeholder="https://example.com/logo.png"
+                value={familyLogo}
+                onChange={(e) => setFamilyLogo(e.target.value)}
+              />
+              {familyLogo && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-600 mb-2">Предпросмотр:</p>
+                  <img 
+                    src={familyLogo} 
+                    alt="Логотип семьи" 
+                    className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            
+            <Button 
+              onClick={async () => {
+                if (!familyName && !familyLogo) {
+                  toast({
+                    title: 'Ошибка',
+                    description: 'Заполните хотя бы одно поле',
+                    variant: 'destructive'
+                  });
+                  return;
+                }
+
+                setIsLoading(true);
+                try {
+                  const response = await fetch(func2url['family-data'], {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-Auth-Token': token || ''
+                    },
+                    body: JSON.stringify({
+                      name: familyName || undefined,
+                      logoUrl: familyLogo || undefined
+                    })
+                  });
+
+                  const data = await response.json();
+
+                  if (response.ok && data.success) {
+                    toast({
+                      title: 'Успешно!',
+                      description: 'Информация о семье обновлена'
+                    });
+                    
+                    const userData = localStorage.getItem('userData');
+                    if (userData) {
+                      const user = JSON.parse(userData);
+                      user.family_name = familyName;
+                      localStorage.setItem('userData', JSON.stringify(user));
+                    }
+                  } else {
+                    throw new Error(data.error || 'Ошибка обновления');
+                  }
+                } catch (error) {
+                  toast({
+                    title: 'Ошибка',
+                    description: String(error),
+                    variant: 'destructive'
+                  });
+                } finally {
+                  setIsLoading(false);
+                }
+              }} 
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? 'Сохранение...' : 'Сохранить информацию о семье'}
+            </Button>
+          </CardContent>
+        </Card>
 
         <NotificationsSettings />
 
