@@ -93,6 +93,28 @@ export default function BottomBar({
                 <span className="ml-1 text-xs hidden sm:inline">Настройки</span>
               </Button>
 
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/development')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Развитие"
+              >
+                <Icon name="Brain" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Развитие</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/life-road')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Дорога жизни"
+              >
+                <Icon name="MapPin" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Дорога жизни</span>
+              </Button>
+
               {displaySections.map(section => (
                 <Button
                   key={section.id}
