@@ -37,7 +37,7 @@ export default function Login() {
         const user = JSON.parse(userStr);
         console.log('[DEBUG Login] Saving token and user to localStorage');
         localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('userData', JSON.stringify(user));
         console.log('[DEBUG Login] Token saved, navigating to /');
         
         // Небольшая задержка, чтобы localStorage точно успел записаться
