@@ -4,6 +4,7 @@ import requests
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: AI-ассистент для семьи на базе YandexGPT
