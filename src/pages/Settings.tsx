@@ -64,10 +64,30 @@ export default function Settings() {
             
             <div className="space-y-2">
               <Label>Логотип семьи</Label>
-              <div className="flex gap-2">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                <p className="text-sm text-gray-700 mb-2">
+                  💡 <strong>Как добавить логотип:</strong>
+                </p>
+                <ol className="text-xs text-gray-600 space-y-1 ml-4 list-decimal">
+                  <li>Загрузите изображение на <a href="https://imgbb.com" target="_blank" className="text-blue-600 hover:underline">ImgBB.com</a> (бесплатно, без регистрации)</li>
+                  <li>Скопируйте прямую ссылку на изображение</li>
+                  <li>Вставьте ссылку в поле ниже</li>
+                </ol>
+              </div>
+              <Input
+                id="familyLogo"
+                placeholder="https://i.ibb.co/ваше-изображение.png"
+                value={familyLogo}
+                onChange={(e) => setFamilyLogo(e.target.value)}
+                disabled={isUploading}
+                className="mb-2"
+              />
+              <details className="text-xs text-gray-500">
+                <summary className="cursor-pointer hover:text-gray-700">Или загрузите файл (экспериментально)</summary>
                 <Input
                   type="file"
                   accept="image/*"
+                  className="mt-2"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -135,17 +155,8 @@ export default function Settings() {
                     }
                   }}
                   disabled={isUploading}
-                  className="flex-1"
                 />
-              </div>
-              <p className="text-xs text-gray-500">Или вставьте URL изображения:</p>
-              <Input
-                id="familyLogo"
-                placeholder="https://example.com/logo.png"
-                value={familyLogo}
-                onChange={(e) => setFamilyLogo(e.target.value)}
-                disabled={isUploading}
-              />
+              </details>
               {familyLogo && (
                 <div className="mt-2">
                   <p className="text-sm text-gray-600 mb-2">Предпросмотр:</p>
