@@ -2,13 +2,21 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import FamilyManager from '@/components/auth/FamilyManager';
+import { useToast } from '@/hooks/use-toast';
+import func2url from '../../backend/func2url.json';
 
 export default function FamilySettings() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [token, setToken] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [familyName, setFamilyName] = useState('');
+  const [familyLogo, setFamilyLogo] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('auth_token');
@@ -39,6 +47,87 @@ export default function FamilySettings() {
           </Button>
           <h1 className="text-3xl font-bold">Настройки семьи</h1>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Home" size={24} />
+              Информация о семье
+            </CardTitle>
+            <CardDescription>Название и эмблема вашей семьи</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="familyName">Название семьи</Label>
+              <Input
+                id="familyName"
+                value={familyName}
+                onChange={(e) => setFamilyName(e.target.value)}
+                placeholder="Например: Семья Ивановых"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="familyLogo">URL эмблемы семьи</Label>
+              <Input
+                id="familyLogo"
+                value={familyLogo}
+                onChange={(e) => setFamilyLogo(e.target.value)}
+                placeholder="https://..."
+              />
+              {familyLogo && (
+                <div className="mt-2">
+                  <img src={familyLogo} alt="Эмблема" className="w-20 h-20 rounded-full object-cover" />
+                </div>
+              )}
+            </div>
+            <Button onClick={async () => {
+              if (!familyName && !familyLogo) {
+                toast({
+                  title: 'Ошибка',
+                  description: 'Заполните хотя бы одно поле',
+                  variant: 'destructive'
+                });
+                return;
+              }
+
+              setIsLoading(true);
+              try {
+                const response = await fetch(func2url['family-data'], {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Auth-Token': token || ''
+                  },
+                  body: JSON.stringify({
+                    name: familyName || undefined,
+                    logoUrl: familyLogo || undefined
+                  })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                  toast({
+                    title: 'Успешно!',
+                    description: 'Информация о семье обновлена'
+                  });
+                } else {
+                  throw new Error(data.error || 'Ошибка обновления');
+                }
+              } catch (error) {
+                toast({
+                  title: 'Ошибка',
+                  description: String(error),
+                  variant: 'destructive'
+                });
+              } finally {
+                setIsLoading(false);
+              }
+            }} disabled={isLoading}>
+              {isLoading ? 'Сохранение...' : 'Сохранить'}
+            </Button>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

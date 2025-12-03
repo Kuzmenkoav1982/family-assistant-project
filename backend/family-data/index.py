@@ -209,6 +209,38 @@ def get_family_data(family_id: int) -> Dict[str, Any]:
         cur.close()
         conn.close()
 
+def update_family_info(family_id: str, name: Optional[str] = None, logo_url: Optional[str] = None) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        updates = []
+        if name is not None:
+            updates.append(f"name = {escape_string(name)}")
+        if logo_url is not None:
+            updates.append(f"logo_url = {escape_string(logo_url)}")
+        
+        if not updates:
+            return {'success': False, 'error': 'Нет данных для обновления'}
+        
+        query = f"""
+            UPDATE {SCHEMA}.families
+            SET {', '.join(updates)}, updated_at = NOW()
+            WHERE id = {escape_string(family_id)}::uuid
+            RETURNING id, name, logo_url
+        """
+        cur.execute(query)
+        result = cur.fetchone()
+        
+        if result:
+            return {'success': True, 'family': dict(result)}
+        return {'success': False, 'error': 'Семья не найдена'}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+    finally:
+        cur.close()
+        conn.close()
+
 def save_test_result(family_id: int, child_member_id: int, test_data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -246,7 +278,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
@@ -332,6 +364,38 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Неизвестное действие'}),
                 'isBase64Encoded': False
             }
+        
+        elif method == 'PUT':
+            raw_body = event.get('body') or '{}'
+            body = json.loads(raw_body) if raw_body else {}
+            
+            name = body.get('name')
+            logo_url = body.get('logoUrl')
+            
+            if not name and not logo_url:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Нет данных для обновления'}),
+                    'isBase64Encoded': False
+                }
+            
+            result = update_family_info(str(family_id), name, logo_url)
+            
+            if result.get('success'):
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result),
+                    'isBase64Encoded': False
+                }
+            else:
+                return {
+                    'statusCode': 500,
+                    'headers': headers,
+                    'body': json.dumps(result),
+                    'isBase64Encoded': False
+                }
         
         return {
             'statusCode': 405,
