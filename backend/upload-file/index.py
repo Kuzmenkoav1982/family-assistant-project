@@ -83,13 +83,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
     content_type = content_type_map.get(file_ext.lower(), 'application/octet-stream')
     
-    s3_client.put_object(
-        Bucket=bucket_name,
-        Key=unique_name,
-        Body=file_data,
-        ContentType=content_type,
-        ACL='public-read'
-    )
+    try:
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key=unique_name,
+            Body=file_data,
+            ContentType=content_type
+        )
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'S3 upload failed: {str(e)}'}),
+            'isBase64Encoded': False
+        }
     
     file_url = f"https://storage.yandexcloud.net/{bucket_name}/{unique_name}"
     
