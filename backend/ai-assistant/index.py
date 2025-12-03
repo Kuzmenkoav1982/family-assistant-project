@@ -104,10 +104,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
         # Отправляем запрос к YandexGPT
+        print(f'[DEBUG] Отправка запроса к YandexGPT. ModelUri: gpt://{folder_id}/yandexgpt-lite')
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         
         if response.status_code != 200:
             error_text = response.text
+            print(f'[ERROR] YandexGPT вернул {response.status_code}: {error_text}')
             return {
                 'statusCode': response.status_code,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
