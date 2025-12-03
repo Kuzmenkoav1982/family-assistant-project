@@ -14,6 +14,7 @@ export interface FamilyMember {
   workload: number;
   age?: number;
   birthDate?: string;
+  birthTime?: string;
   created_at: string;
   updated_at: string;
   dreams?: Dream[];
@@ -26,7 +27,34 @@ export interface FamilyMember {
   development?: Development[];
   school?: School;
   diary?: DiaryEntry[];
+  profile?: MemberProfile;
 }
+
+export interface MemberProfile {
+  height?: number;
+  weight?: number;
+  lifestyle?: string;
+  habits?: string[];
+  badHabits?: string[];
+  hobbies?: string[];
+  triggers?: string[];
+  loveLanguages?: LoveLanguage[];
+  boundaries?: string[];
+  energyType?: 'жаворонок' | 'сова' | 'голубь';
+  personalityType?: 'интроверт' | 'экстраверт' | 'амбиверт';
+  stressRelief?: string[];
+  favoriteThings?: string[];
+  dislikedThings?: string[];
+  communicationStyle?: string;
+  additionalInfo?: string;
+}
+
+export type LoveLanguage = 
+  | 'words_of_affirmation'
+  | 'quality_time' 
+  | 'receiving_gifts'
+  | 'acts_of_service'
+  | 'physical_touch';
 
 export interface Dream {
   id: string;

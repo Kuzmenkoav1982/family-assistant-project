@@ -12,7 +12,8 @@ import { MemberProfileEdit } from '@/components/MemberProfileEdit';
 import { MemberCalendar } from '@/components/MemberCalendar';
 import { VotingWidget } from '@/components/VotingWidget';
 import { PermissionsManager } from '@/components/PermissionsManager';
-import type { Dream, FamilyMember } from '@/types/family.types';
+import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionnaire';
+import type { Dream, FamilyMember, MemberProfile } from '@/types/family.types';
 import { DEMO_FAMILY } from '@/data/demoFamily';
 
 export default function MemberProfile() {
@@ -164,10 +165,14 @@ export default function MemberProfile() {
         )}
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="User" size={16} />
               <span>Профиль</span>
+            </TabsTrigger>
+            <TabsTrigger value="questionnaire" className="flex items-center justify-center gap-1 md:gap-2">
+              <Icon name="FileText" size={16} />
+              <span>Анкета</span>
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center justify-center gap-1 md:gap-2">
               <Icon name="BarChart3" size={16} />
@@ -200,6 +205,15 @@ export default function MemberProfile() {
               member={member}
               onSave={async (updates) => {
                 await updateMember({ id: member.id, ...updates });
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="questionnaire">
+            <MemberProfileQuestionnaire
+              member={member}
+              onSave={async (profile: MemberProfile) => {
+                await updateMember({ id: member.id, profile });
               }}
             />
           </TabsContent>

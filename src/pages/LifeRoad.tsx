@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { RoadVisualization } from '@/components/RoadVisualization';
 
 interface LifeEvent {
   id: string;
@@ -336,6 +337,27 @@ export default function LifeRoad() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Визуализация дороги */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="MapPin" size={20} />
+              Визуализация дороги жизни
+            </CardTitle>
+            <CardDescription>
+              Водитель: {familyMembers.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || familyMembers[0]?.name || 'Семья'} 
+              {familyMembers.length > 1 && ` | Пассажиры: ${familyMembers.slice(1).map(m => m.name).join(', ')}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RoadVisualization 
+              events={sortedEvents}
+              familyMembers={familyMembers}
+              driverName={familyMembers.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || familyMembers[0]?.name || 'Семья'}
+            />
+          </CardContent>
+        </Card>
 
         {/* Filters */}
         <div className="mb-6 space-y-4">

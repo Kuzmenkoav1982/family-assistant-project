@@ -1378,6 +1378,22 @@ export default function Index({ onLogout }: IndexProps) {
           onMouseEnter={() => autoHideTopBar && setIsTopBarVisible(true)}
         >
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {familyLogo && (
+                <img 
+                  src={familyLogo} 
+                  alt={familyName}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
+              <h2 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
+                {familyName}
+              </h2>
+            </div>
+
             <div className="flex items-center gap-2">
               <Button
                 onClick={() => setShowTopPanelSettings(true)}
