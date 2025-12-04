@@ -29,7 +29,7 @@ export default function Children() {
     const childId = searchParams.get('childId');
     const mode = searchParams.get('mode') as 'parent' | 'child' | null;
     
-    if (childId) {
+    if (childId && childId !== selectedChildId) {
       setSelectedChildId(childId);
     } else if (children.length > 0 && !selectedChildId) {
       setSelectedChildId(children[0].id);
@@ -40,7 +40,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, isParent]);
+  }, [searchParams, isParent, children, selectedChildId]);
 
   if (!children || children.length === 0) {
     return (
