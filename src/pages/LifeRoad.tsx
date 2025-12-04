@@ -63,7 +63,7 @@ const INITIAL_EVENTS: LifeEvent[] = [
 
 export default function LifeRoad() {
   const navigate = useNavigate();
-  const { familyMembers, isLoading } = useFamilyMembers();
+  const { members, loading } = useFamilyMembers();
   const [events, setEvents] = useState<LifeEvent[]>(
     JSON.parse(localStorage.getItem('lifeRoadEvents') || JSON.stringify(INITIAL_EVENTS))
   );
@@ -116,7 +116,7 @@ export default function LifeRoad() {
     const event: LifeEvent = {
       id: Date.now().toString(),
       ...newEvent,
-      createdBy: familyMembers[0]?.id || 'unknown',
+      createdBy: (members && members[0]?.id) || 'unknown',
       createdAt: new Date().toISOString()
     };
 
@@ -146,7 +146,7 @@ export default function LifeRoad() {
     return `${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'} назад`;
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="text-center">

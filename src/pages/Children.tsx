@@ -40,11 +40,24 @@ export default function Children() {
                    currentUser?.role === 'Родитель';
   
   // Debug logs
-  console.log('[Children] members:', members);
-  console.log('[Children] children:', children);
-  console.log('[Children] currentUser:', currentUser);
-  console.log('[Children] currentMember:', currentMember);
-  console.log('[Children] isParent:', isParent);
+  console.log('[Children] ========== DEBUG START ==========');
+  console.log('[Children] members array:', members);
+  console.log('[Children] members length:', members?.length);
+  console.log('[Children] children array:', children);
+  console.log('[Children] currentUser from localStorage:', currentUser);
+  console.log('[Children] currentUser.id:', currentUser?.id);
+  console.log('[Children] currentUser.user_id:', currentUser?.user_id);
+  console.log('[Children] currentUser.role:', currentUser?.role);
+  console.log('[Children] currentMember found:', currentMember);
+  console.log('[Children] currentMember?.role:', currentMember?.role);
+  console.log('[Children] isParent calculated:', isParent);
+  console.log('[Children] All members details:', members?.map(m => ({
+    id: m.id,
+    user_id: m.user_id,
+    name: m.name,
+    role: m.role
+  })));
+  console.log('[Children] ========== DEBUG END ==========');
 
   useEffect(() => {
     if (!Array.isArray(members) || members.length === 0) return;

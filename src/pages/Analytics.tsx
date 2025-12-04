@@ -108,6 +108,67 @@ export default function Analytics() {
           </Button>
         </div>
 
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-blue-900 text-lg">
+                    Как работает раздел Аналитика
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-blue-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">📊 Для чего нужна аналитика?</p>
+                        <p className="text-sm">
+                          Раздел аналитики помогает отслеживать активность семьи, видеть общую картину выполнения задач, 
+                          участия в событиях и развития детей. Все данные обновляются автоматически.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📈 Что можно отслеживать?</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Активность членов семьи:</strong> Кто сколько выполнил задач и посетил событий</li>
+                          <li><strong>Выполнение задач:</strong> Процент завершённых задач и динамика</li>
+                          <li><strong>События:</strong> Предстоящие и прошедшие семейные мероприятия</li>
+                          <li><strong>Статистика по месяцам:</strong> Тренды активности вашей семьи</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Как использовать аналитику?</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Следите за балансом нагрузки между членами семьи</li>
+                          <li>Планируйте задачи на основе статистики выполнения</li>
+                          <li>Отмечайте самых активных участников семейной жизни</li>
+                          <li>Анализируйте, кому нужна помощь с задачами</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-blue-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Регулярно просматривайте аналитику, чтобы справедливо 
+                          распределять задачи и обязанности между всеми членами семьи.
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
+
         <div className="grid md:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
             <CardContent className="pt-6">
