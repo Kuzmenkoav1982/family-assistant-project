@@ -346,15 +346,15 @@ export default function LifeRoad() {
               Визуализация дороги жизни
             </CardTitle>
             <CardDescription>
-              Водитель: {familyMembers.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || familyMembers[0]?.name || 'Семья'} 
-              {familyMembers.length > 1 && ` | Пассажиры: ${familyMembers.slice(1).map(m => m.name).join(', ')}`}
+              Водитель: {members.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || members[0]?.name || 'Семья'} 
+              {members.length > 1 && ` | Пассажиры: ${members.slice(1).map(m => m.name).join(', ')}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <RoadVisualization 
               events={sortedEvents}
-              familyMembers={familyMembers}
-              driverName={familyMembers.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || familyMembers[0]?.name || 'Семья'}
+              familyMembers={members}
+              driverName={members.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || members[0]?.name || 'Семья'}
             />
           </CardContent>
         </Card>
