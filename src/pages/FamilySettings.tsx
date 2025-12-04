@@ -29,17 +29,7 @@ export default function FamilySettings() {
 
     setToken(storedToken);
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUserData(user);
-      
-      // Загружаем данные семьи из localStorage
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      if (userData.family_name) {
-        setFamilyName(userData.family_name);
-      }
-      if (userData.logo_url) {
-        setFamilyLogo(userData.logo_url);
-      }
+      setUserData(JSON.parse(storedUser));
     }
   }, [navigate]);
 
@@ -77,105 +67,18 @@ export default function FamilySettings() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="familyLogo">Эмблема семьи</Label>
+              <Label htmlFor="familyLogo">URL эмблемы семьи</Label>
+              <Input
+                id="familyLogo"
+                value={familyLogo}
+                onChange={(e) => setFamilyLogo(e.target.value)}
+                placeholder="https://..."
+              />
               {familyLogo && (
-                <div className="mb-4">
-                  <img src={familyLogo} alt="Эмблема" className="w-32 h-32 rounded-full object-cover border-4 border-purple-200" />
+                <div className="mt-2">
+                  <img src={familyLogo} alt="Эмблема" className="w-20 h-20 rounded-full object-cover" />
                 </div>
               )}
-              <div className="flex gap-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    
-                    // Проверка размера (максимум 5МБ)
-                    if (file.size > 5 * 1024 * 1024) {
-                      toast({
-                        title: 'Ошибка',
-                        description: 'Размер файла не должен превышать 5МБ',
-                        variant: 'destructive'
-                      });
-                      return;
-                    }
-                    
-                    setIsLoading(true);
-                    try {
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      
-                      // Загружаем файл
-                      const uploadResponse = await fetch(func2url['upload-file'], {
-                        method: 'POST',
-                        headers: {
-                          'X-Auth-Token': token || ''
-                        },
-                        body: formData
-                      });
-                      
-                      const uploadData = await uploadResponse.json();
-                      
-                      if (!uploadResponse.ok || !uploadData.success) {
-                        throw new Error(uploadData.error || 'Ошибка загрузки файла');
-                      }
-                      
-                      const logoUrl = uploadData.url;
-                      setFamilyLogo(logoUrl);
-                      
-                      // Сразу сохраняем в БД
-                      const updateResponse = await fetch(func2url['family-data'], {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          'X-Auth-Token': token || ''
-                        },
-                        body: JSON.stringify({
-                          logoUrl: logoUrl
-                        })
-                      });
-                      
-                      const updateData = await updateResponse.json();
-                      
-                      if (updateResponse.ok && updateData.success) {
-                        toast({
-                          title: 'Успешно!',
-                          description: 'Эмблема семьи обновлена'
-                        });
-                        
-                        // Обновляем localStorage
-                        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                        userData.logo_url = logoUrl;
-                        localStorage.setItem('userData', JSON.stringify(userData));
-                      } else {
-                        throw new Error(updateData.error || 'Ошибка сохранения');
-                      }
-                    } catch (error) {
-                      toast({
-                        title: 'Ошибка',
-                        description: String(error),
-                        variant: 'destructive'
-                      });
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
-                  className="flex-1"
-                  disabled={isLoading}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFamilyLogo('')}
-                  disabled={!familyLogo || isLoading}
-                >
-                  <Icon name="X" size={16} />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Загрузите изображение (максимум 5МБ). Поддерживаются JPG, PNG, GIF.
-              </p>
             </div>
             <Button onClick={async () => {
               if (!familyName && !familyLogo) {
@@ -208,12 +111,6 @@ export default function FamilySettings() {
                     title: 'Успешно!',
                     description: 'Информация о семье обновлена'
                   });
-                  
-                  // Обновляем localStorage
-                  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                  if (familyName) userData.family_name = familyName;
-                  if (familyLogo) userData.logo_url = familyLogo;
-                  localStorage.setItem('userData', JSON.stringify(userData));
                 } else {
                   throw new Error(data.error || 'Ошибка обновления');
                 }
