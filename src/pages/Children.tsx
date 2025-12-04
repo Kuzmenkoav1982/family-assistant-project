@@ -65,11 +65,20 @@ export default function Children() {
     const childId = searchParams.get('childId');
     const mode = searchParams.get('mode') as 'parent' | 'child' | null;
     
-    if (childId && childId !== selectedChildId) {
-      setSelectedChildId(childId);
-    } else if (children.length > 0 && !selectedChildId && !isParent) {
-      // Автоматически выбираем первого ребёнка ТОЛЬКО для детей (не родителей)
-      setSelectedChildId(children[0].id);
+    if (childId) {
+      // Если в URL указан childId - выбираем его
+      if (childId !== selectedChildId) {
+        setSelectedChildId(childId);
+      }
+    } else {
+      // Если childId НЕТ в URL
+      if (isParent) {
+        // Для родителей - очищаем выбор (показываем экран выбора)
+        setSelectedChildId(null);
+      } else if (children.length > 0 && !selectedChildId) {
+        // Для детей - автоматически выбираем первого ребёнка
+        setSelectedChildId(children[0].id);
+      }
     }
     
     if (mode) {
