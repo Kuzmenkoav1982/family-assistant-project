@@ -384,7 +384,8 @@ export function HealthSection({ child }: HealthSectionProps) {
                   <Button className="w-full" onClick={handleAddVaccination}>Сохранить</Button>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-3">

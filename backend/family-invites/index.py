@@ -12,17 +12,18 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-from twilio.rest import Client
+import boto3
+from botocore.exceptions import ClientError
+import requests
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+YANDEX_POSTBOX_ACCESS_KEY = os.environ.get('YANDEX_POSTBOX_ACCESS_KEY')
+YANDEX_POSTBOX_SECRET_KEY = os.environ.get('YANDEX_POSTBOX_SECRET_KEY')
+YANDEX_SMS_API_KEY = os.environ.get('YANDEX_SMS_API_KEY')
+YANDEX_SMS_SENDER = os.environ.get('YANDEX_SMS_SENDER', 'FamilyApp')
+FROM_EMAIL = os.environ.get('FROM_EMAIL', 'noreply@family-assistant.app')
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -65,47 +66,82 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     return str(member['family_id']) if member else None
 
 def send_email_invite(email: str, invite_code: str, family_name: str, role: str) -> bool:
-    if not SENDGRID_API_KEY:
-        print('SendGrid API key not configured')
+    if not all([YANDEX_POSTBOX_ACCESS_KEY, YANDEX_POSTBOX_SECRET_KEY]):
+        print('Yandex Postbox credentials not configured')
         return False
     
     try:
-        message = Mail(
-            from_email='noreply@family-assistant.app',
-            to_emails=email,
-            subject=f'Приглашение в семью "{family_name}"',
-            html_content=f'''
+        ses_client = boto3.client(
+            'ses',
+            region_name='ru-central1',
+            endpoint_url='https://postbox.cloud.yandex.net',
+            aws_access_key_id=YANDEX_POSTBOX_ACCESS_KEY,
+            aws_secret_access_key=YANDEX_POSTBOX_SECRET_KEY
+        )
+        
+        html_body = f'''
+        <html>
+        <body>
             <h2>Приглашение в семью</h2>
             <p>Вас пригласили присоединиться к семье <strong>{family_name}</strong> с ролью <strong>{role}</strong>.</p>
             <p>Ваш код приглашения: <strong>{invite_code}</strong></p>
             <p>Перейдите по ссылке для присоединения:</p>
-            <a href="https://family-assistant.app/join?code={invite_code}">Присоединиться к семье</a>
+            <a href="https://family-assistant.app/join?code={invite_code}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Присоединиться к семье</a>
             <p><small>Ссылка действительна 7 дней</small></p>
-            '''
-        )
+        </body>
+        </html>
+        '''
         
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
-        return response.status_code == 202
+        response = ses_client.send_email(
+            Source=FROM_EMAIL,
+            Destination={'ToAddresses': [email]},
+            Message={
+                'Subject': {'Data': f'Приглашение в семью "{family_name}"', 'Charset': 'UTF-8'},
+                'Body': {
+                    'Html': {'Data': html_body, 'Charset': 'UTF-8'},
+                    'Text': {'Data': f'Приглашение в семью {family_name}. Код: {invite_code}. Ссылка: https://family-assistant.app/join?code={invite_code}', 'Charset': 'UTF-8'}
+                }
+            }
+        )
+        return True
+    except ClientError as e:
+        print(f'Error sending email via Yandex Postbox: {e}')
+        return False
     except Exception as e:
-        print(f'Error sending email: {e}')
+        print(f'Unexpected error sending email: {e}')
         return False
 
 def send_sms_invite(phone: str, invite_code: str, family_name: str) -> bool:
-    if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
-        print('Twilio credentials not configured')
+    if not YANDEX_SMS_API_KEY:
+        print('Yandex SMS API key not configured')
         return False
     
     try:
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
-            body=f'Приглашение в семью "{family_name}". Код: {invite_code}. Ссылка: https://family-assistant.app/join?code={invite_code}',
-            from_=TWILIO_PHONE_NUMBER,
-            to=phone
-        )
-        return message.sid is not None
+        url = 'https://sms.yandex.ru/sendsms'
+        
+        message_text = f'Приглашение в семью "{family_name}". Код: {invite_code}. Ссылка: https://family-assistant.app/join?code={invite_code}'
+        
+        params = {
+            'phone': phone,
+            'text': message_text,
+            'sender': YANDEX_SMS_SENDER
+        }
+        
+        headers = {
+            'Authorization': f'Bearer {YANDEX_SMS_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.post(url, json=params, headers=headers)
+        
+        if response.status_code == 200:
+            result = response.json()
+            return result.get('status') == 'ok'
+        else:
+            print(f'SMS API error: {response.status_code} - {response.text}')
+            return False
     except Exception as e:
-        print(f'Error sending SMS: {e}')
+        print(f'Error sending SMS via Yandex: {e}')
         return False
 
 def create_invite(user_id: str, max_uses: int = 1, days_valid: int = 7, invite_type: str = 'link', invite_value: str = '', role: str = 'parent') -> Dict[str, Any]:
