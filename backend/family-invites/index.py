@@ -12,9 +12,17 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from twilio.rest import Client
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
+
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -56,7 +64,51 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     return str(member['family_id']) if member else None
 
-def create_invite(user_id: str, max_uses: int = 1, days_valid: int = 7) -> Dict[str, Any]:
+def send_email_invite(email: str, invite_code: str, family_name: str, role: str) -> bool:
+    if not SENDGRID_API_KEY:
+        print('SendGrid API key not configured')
+        return False
+    
+    try:
+        message = Mail(
+            from_email='noreply@family-assistant.app',
+            to_emails=email,
+            subject=f'Приглашение в семью "{family_name}"',
+            html_content=f'''
+            <h2>Приглашение в семью</h2>
+            <p>Вас пригласили присоединиться к семье <strong>{family_name}</strong> с ролью <strong>{role}</strong>.</p>
+            <p>Ваш код приглашения: <strong>{invite_code}</strong></p>
+            <p>Перейдите по ссылке для присоединения:</p>
+            <a href="https://family-assistant.app/join?code={invite_code}">Присоединиться к семье</a>
+            <p><small>Ссылка действительна 7 дней</small></p>
+            '''
+        )
+        
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        return response.status_code == 202
+    except Exception as e:
+        print(f'Error sending email: {e}')
+        return False
+
+def send_sms_invite(phone: str, invite_code: str, family_name: str) -> bool:
+    if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
+        print('Twilio credentials not configured')
+        return False
+    
+    try:
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=f'Приглашение в семью "{family_name}". Код: {invite_code}. Ссылка: https://family-assistant.app/join?code={invite_code}',
+            from_=TWILIO_PHONE_NUMBER,
+            to=phone
+        )
+        return message.sid is not None
+    except Exception as e:
+        print(f'Error sending SMS: {e}')
+        return False
+
+def create_invite(user_id: str, max_uses: int = 1, days_valid: int = 7, invite_type: str = 'link', invite_value: str = '', role: str = 'parent') -> Dict[str, Any]:
     family_id = get_user_family_id(user_id)
     if not family_id:
         return {'error': 'Пользователь не состоит в семье'}
@@ -84,18 +136,26 @@ def create_invite(user_id: str, max_uses: int = 1, days_valid: int = 7) -> Dict[
         (family_id,)
     )
     family = cur.fetchone()
+    family_name = family['name'] if family else 'Семья'
     
     cur.close()
     conn.close()
     
+    sent = False
+    if invite_type == 'email' and invite_value:
+        sent = send_email_invite(invite_value, code, family_name, role)
+    elif invite_type == 'sms' and invite_value:
+        sent = send_sms_invite(invite_value, code, family_name)
+    
     return {
         'success': True,
+        'sent': sent,
         'invite': {
             'id': str(invite['id']),
             'code': invite['invite_code'],
             'max_uses': invite['max_uses'],
             'expires_at': invite['expires_at'].isoformat(),
-            'family_name': family['name']
+            'family_name': family_name
         }
     }
 
@@ -271,7 +331,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if action == 'create':
                 max_uses = body.get('max_uses', 1)
                 days_valid = body.get('days_valid', 7)
-                result = create_invite(user_id, max_uses, days_valid)
+                invite_type = body.get('invite_type', 'link')
+                invite_value = body.get('invite_value', '')
+                role = body.get('role', 'parent')
+                result = create_invite(user_id, max_uses, days_valid, invite_type, invite_value, role)
                 
                 if 'error' in result:
                     return {

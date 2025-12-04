@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import { useChildrenData } from '@/hooks/useChildrenData';
 import { useUploadMedicalFile, type MedicalDocument } from '@/hooks/useUploadMedicalFile';
 import { useMedicationNotifications } from '@/hooks/useMedicationNotifications';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { FamilyMember } from '@/types/family.types';
 
 interface HealthSectionProps {
@@ -47,11 +48,17 @@ interface DoctorVisit {
 export function HealthSection({ child }: HealthSectionProps) {
   const { data, loading, addItem, updateItem, deleteItem, fetchChildData } = useChildrenData(child.id);
   const { uploadFile, uploading, progress } = useUploadMedicalFile();
+  const { canDo, role } = usePermissions();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   
   const medications = data?.health?.medications || [];
   const { permission, settings, requestPermission, updateSettings } = useMedicationNotifications(medications);
   const [notificationSettingsDialog, setNotificationSettingsDialog] = useState(false);
+  
+  const canAddDoctor = canDo('health', 'doctor.add');
+  const canAddMedicine = canDo('health', 'medicine.add');
+  const canMarkMedicine = canDo('health', 'medicine.mark');
+  const canDelete = canDo('health', 'delete');
   
   const [newVaccinationDialog, setNewVaccinationDialog] = useState(false);
   const [newVaccinationData, setNewVaccinationData] = useState({ vaccine: '', date: '', notes: '' });
@@ -337,13 +344,14 @@ export function HealthSection({ child }: HealthSectionProps) {
               <Icon name="Syringe" size={20} />
               Прививки
             </CardTitle>
-            <Dialog open={newVaccinationDialog} onOpenChange={setNewVaccinationDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
-                  <Icon name="Plus" size={16} />
-                  Добавить прививку
-                </Button>
-              </DialogTrigger>
+            {canAddDoctor && (
+              <Dialog open={newVaccinationDialog} onOpenChange={setNewVaccinationDialog}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <Icon name="Plus" size={16} />
+                    Добавить прививку
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Добавить прививку</DialogTitle>
