@@ -35,7 +35,6 @@ import type {
   FamilyNeed,
   FamilyTreeMember,
   CalendarEvent,
-  AIRecommendation,
   ThemeType,
   ShoppingItem,
   FamilyGoal,
@@ -54,7 +53,6 @@ import {
   initialFamilyNeeds,
   initialFamilyTree,
   initialCalendarEvents,
-  initialAIRecommendations,
   initialFamilyGoals,
   initialComplaints,
   initialShoppingList,
@@ -164,7 +162,6 @@ export default function Index({ onLogout }: IndexProps) {
   const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(initialFamilyNeeds);
   const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
-  const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   const [widgetSettings, setWidgetSettings] = useState(() => {
     const saved = localStorage.getItem('widgetSettings');
@@ -563,9 +560,9 @@ export default function Index({ onLogout }: IndexProps) {
   };
 
   const isWidgetEnabled = (widgetId: string) => {
-    if (!widgetSettings) return widgetId !== 'ai-advice';
+    if (!widgetSettings) return true;
     const widget = widgetSettings.find((w: WidgetConfig) => w.id === widgetId);
-    return widget ? widget.enabled : widgetId !== 'ai-advice';
+    return widget ? widget.enabled : true;
   };
 
   const handleWidgetSettingsSave = (settings: WidgetConfig[]) => {
@@ -2209,9 +2206,20 @@ export default function Index({ onLogout }: IndexProps) {
           }}>
           <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/85 to-white/80 backdrop-blur-[1px]"></div>
           <div className="relative">
-          <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mb-3 mt-2 animate-fade-in`}>
-            {getSectionTitle(activeSection)}
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-3">
+            <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mt-2 animate-fade-in`}>
+              {getSectionTitle(activeSection)}
+            </h1>
+            <Button
+              onClick={() => setShowWidgetSettings(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Icon name="Settings" size={16} />
+              Настроить виджеты
+            </Button>
+          </div>
           
           <p className="text-lg lg:text-xl text-gray-700 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
             {activeSection === 'tasks' && 'Управление задачами семьи'}
@@ -3756,33 +3764,7 @@ export default function Index({ onLogout }: IndexProps) {
               <TasksWidget />
             </div>
 
-            <Card key="sidebar-ai-tips" className="animate-fade-in border-green-200 bg-gradient-to-br from-green-50 to-emerald-50" style={{ animationDelay: '0.7s' }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Sparkles" size={24} />
-                  AI Советы
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-white border-2 border-green-300 rounded-lg">
-                    <p className="text-sm font-semibold text-green-700 mb-1">Баланс нагрузки</p>
-                    <p className="text-xs text-muted-foreground">
-                      {avgWorkload > 60 
-                        ? 'Рекомендуем перераспределить задачи для снижения нагрузки'
-                        : 'Отличный баланс! Все члены семьи вовлечены равномерно'
-                      }
-                    </p>
-                  </div>
-                  <div className="p-3 bg-white border-2 border-blue-300 rounded-lg">
-                    <p className="text-sm font-semibold text-blue-700 mb-1">Семейное время</p>
-                    <p className="text-xs text-muted-foreground">
-                      Не забудьте про воскресный семейный обед!
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
         </div>
       </div>
@@ -3863,6 +3845,12 @@ export default function Index({ onLogout }: IndexProps) {
       <KuzyaHelperDialog 
         open={showKuzyaDialog}
         onOpenChange={setShowKuzyaDialog}
+      />
+      
+      <WidgetSettings
+        isOpen={showWidgetSettings}
+        onClose={() => setShowWidgetSettings(false)}
+        onSave={handleWidgetSettingsSave}
       />
       
       <Footer />

@@ -36,13 +36,6 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     description: 'Активные задачи и список дел'
   },
   {
-    id: 'ai-advice',
-    name: 'AI Советы',
-    icon: 'Sparkles',
-    enabled: false,
-    description: 'Персональные рекомендации (в разработке)'
-  },
-  {
     id: 'family-members',
     name: 'Профили членов семьи',
     icon: 'Users',
