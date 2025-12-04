@@ -22,7 +22,6 @@ import type {
   FamilyNeed,
   FamilyTreeMember,
   CalendarEvent,
-  AIRecommendation,
 } from '@/types/family.types';
 import { MembersTabContent } from '@/components/tabs/MembersTabContent';
 import { TreeTabContent } from '@/components/tabs/TreeTabContent';
@@ -51,7 +50,6 @@ interface FamilyTabsContentProps {
   setFamilyTree: React.Dispatch<React.SetStateAction<FamilyTreeMember[]>>;
   selectedTreeMember: FamilyTreeMember | null;
   setSelectedTreeMember: React.Dispatch<React.SetStateAction<FamilyTreeMember | null>>;
-  aiRecommendations: AIRecommendation[];
   selectedUserId: string;
   newMessage: string;
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -126,7 +124,6 @@ export function FamilyTabsContent({
   setFamilyTree,
   selectedTreeMember,
   setSelectedTreeMember,
-  aiRecommendations,
   selectedUserId,
   newMessage,
   setNewMessage,

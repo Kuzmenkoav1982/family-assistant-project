@@ -3679,7 +3679,6 @@ export default function Index({ onLogout }: IndexProps) {
                 setFamilyTree={setFamilyTree}
                 selectedTreeMember={selectedTreeMember}
                 setSelectedTreeMember={setSelectedTreeMember}
-                aiRecommendations={aiRecommendations}
                 selectedUserId={currentUserId}
                 newMessage={newMessage}
                 setNewMessage={setNewMessage}
