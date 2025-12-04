@@ -71,6 +71,8 @@ export default function LeftSidebar({
                   navigate('/shopping');
                 } else if (section.id === 'meals') {
                   navigate('/meals');
+                } else if (section.id === 'development') {
+                  navigate('/development');
                 } else {
                   onSectionChange(section.id);
                 }
