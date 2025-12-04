@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -66,6 +68,7 @@ export default function Recipes() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [addMethod, setAddMethod] = useState<'text' | 'photo' | 'ocr'>('text');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const [newRecipe, setNewRecipe] = useState({
     name: '',
@@ -241,6 +244,126 @@ export default function Recipes() {
             Добавить рецепт
           </Button>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mb-6">
+          <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-orange-900 text-lg">
+                    Как работать с рецептами
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-orange-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-orange-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">👩‍🍳 Для чего нужна книга рецептов?</p>
+                        <p className="text-sm">
+                          Собирайте все любимые рецепты семьи в одном месте! Больше не нужно искать записки в блокнотах или переписывать от бабушки. 
+                          Всё рецепты всегда под рукой с любого устройства.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Возможности раздела</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>3 способа добавления:</strong> текст, фото блюда, сканирование рецепта (OCR)</li>
+                          <li><strong>Категории:</strong> Завтраки, супы, основные блюда, десерты и др.</li>
+                          <li><strong>Кухни мира:</strong> Русская, итальянская, азиатская и другие</li>
+                          <li><strong>Фильтры:</strong> Поиск, категория, кухня, избранное</li>
+                          <li><strong>Детали:</strong> Время приготовления, сложность, порции</li>
+                          <li><strong>Диетические метки:</strong> Вегетарианское, без глютена, детское</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📝 Как добавить рецепт вручную?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Нажмите <strong>"Добавить рецепт"</strong> → выберите вкладку <strong>"Текст"</strong></li>
+                          <li>Введите название блюда</li>
+                          <li>Добавьте описание (опционально)</li>
+                          <li>Выберите категорию и кухню</li>
+                          <li>Укажите время приготовления, сложность и количество порций</li>
+                          <li>Впишите список ингредиентов (каждый с новой строки)</li>
+                          <li>Опишите шаги приготовления</li>
+                          <li>Добавьте диетические метки если нужно</li>
+                          <li>Можно добавить фото блюда</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📸 Как добавить рецепт через фото?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Нажмите <strong>"Добавить рецепт"</strong> → выберите <strong>"Фото"</strong></li>
+                          <li>Загрузите фотографию готового блюда</li>
+                          <li>AI автоматически распознает блюдо</li>
+                          <li>Проверьте и дополните данные при необходимости</li>
+                          <li>Сохраните рецепт</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📜 Как оцифровать старый рецепт? (OCR)</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Нажмите <strong>"Добавить рецепт"</strong> → выберите <strong>"OCR"</strong></li>
+                          <li>Сфотографируйте рецепт из книги или блокнота</li>
+                          <li>AI распознает текст и структурирует рецепт</li>
+                          <li>Проверьте результат и исправьте ошибки если есть</li>
+                          <li>Сохраните — рецепт бабушки теперь в цифровом виде!</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">❤️ Избранное и поиск</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Нажимайте на сердечко чтобы добавить в избранное</li>
+                          <li>Кнопка с сердечком вверху показывает только любимые</li>
+                          <li>Используйте поиск по названию или ингредиентам</li>
+                          <li>Фильтруйте по категориям и кухням</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Полезные советы</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Семейные рецепты:</strong> Оцифруйте рецепты бабушек и мам через OCR</li>
+                          <li><strong>Планируйте меню:</strong> Связывайте с разделом "Питание"</li>
+                          <li><strong>Список покупок:</strong> Копируйте ингредиенты в раздел "Покупки"</li>
+                          <li><strong>Фотографируйте:</strong> Добавляйте фото готовых блюд — так легче запомнить</li>
+                          <li><strong>Корректируйте:</strong> Редактируйте рецепты по своему вкусу</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🔄 Связь с другими разделами</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Планируйте меню на неделю в разделе "Питание"</li>
+                          <li>Добавляйте ингредиенты в "Покупки"</li>
+                          <li>Сохраняйте рецепты из семейных традиций</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-orange-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Используйте OCR чтобы оцифровать рецепты из старых книг и блокнотов. 
+                          Так вы сохраните семейные рецепты навсегда!
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         <Card className="mb-6 shadow-sm">
           <CardContent className="pt-6">

@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
@@ -48,6 +50,7 @@ export default function FamilyRules() {
   const [newRuleDescription, setNewRuleDescription] = useState('');
   const [newRuleCategory, setNewRuleCategory] = useState('Общие');
   const [currentUser] = useState('Пользователь');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const currentUserData = familyMembers.find(m => m.name === currentUser);
 
@@ -136,6 +139,72 @@ export default function FamilyRules() {
             На главную
           </Button>
         </header>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-yellow-900 text-lg">
+                    Как работают семейные правила
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-yellow-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-yellow-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">⚖️ Для чего нужны семейные правила?</p>
+                        <p className="text-sm">
+                          Семейные правила — это договорённости, которые помогают всем членам семьи жить в гармонии, 
+                          избегать конфликтов и понимать, что можно, а что нельзя. Правила создают структуру и 
+                          предсказуемость в семейной жизни.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Основные возможности</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Создание правил:</strong> Любой член семьи может предложить новое правило</li>
+                          <li><strong>Категории:</strong> Общие, Традиции, Технологии, Финансы, Распорядок, Учёба, Домашние дела</li>
+                          <li><strong>Голосование:</strong> Правила обычных членов семьи требуют одобрения</li>
+                          <li><strong>Статусы:</strong> Утверждено, На голосовании, Отклонено</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Как использовать</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Владелец и Администратор</strong> могут утверждать правила единолично — они вступают в силу сразу</li>
+                          <li><strong>Обычные участники</strong> предлагают правило на голосование — нужно одобрение всех остальных</li>
+                          <li>Голосуйте "За" или "Против" предложенных правил</li>
+                          <li>Правила можно удалять (с подтверждением)</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">💡 Советы</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Формулируйте правила чётко и однозначно</li>
+                          <li>Используйте категории для лучшей организации</li>
+                          <li>Обсуждайте правила всей семьёй перед голосованием</li>
+                          <li>Периодически пересматривайте правила — удаляйте неактуальные</li>
+                          <li>Правила должны быть справедливыми и выполнимыми для всех</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         <Card className="border-2 border-indigo-200 bg-indigo-50/50">
           <CardContent className="pt-6">

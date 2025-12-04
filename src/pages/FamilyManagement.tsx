@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/utils/permissions';
 import InviteMemberDialog from '@/components/FamilyManagement/InviteMemberDialog';
@@ -32,6 +33,7 @@ export default function FamilyManagement() {
   const [error, setError] = useState('');
   const [currentUserRole, setCurrentUserRole] = useState<Role>('viewer');
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const familyId = localStorage.getItem('familyId');
   const currentUserId = localStorage.getItem('userId');
@@ -159,6 +161,72 @@ export default function FamilyManagement() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Инструкция */}
+      <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+        <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 mb-6">
+          <div className="flex items-start gap-3">
+            <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div className="flex-1">
+              <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                <h3 className="font-semibold text-blue-900 text-lg">
+                  Как управлять семьёй
+                </h3>
+                <Icon 
+                  name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                  className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                />
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="mt-3 space-y-3">
+                <AlertDescription className="text-blue-800">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="font-medium mb-2">👨‍👩‍👧‍👦 Для чего нужен этот раздел?</p>
+                      <p className="text-sm">
+                        Здесь вы управляете составом семьи, приглашаете новых участников, назначаете роли 
+                        и настраиваете права доступа. Это центр администрирования вашей семейной системы.
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="font-medium mb-2">✨ Основные возможности</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        <li><strong>Приглашение участников:</strong> Отправляйте приглашения по email</li>
+                        <li><strong>Управление ролями:</strong> Назначайте роли (Администратор, Участник, Наблюдатель)</li>
+                        <li><strong>Права доступа:</strong> Смотрите матрицу прав для каждой роли</li>
+                        <li><strong>Статусы:</strong> Отслеживайте активных участников и ожидающие приглашения</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="font-medium mb-2">🎯 Роли и права</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        <li><strong>Администратор:</strong> Полный доступ ко всем функциям, кроме удаления семьи</li>
+                        <li><strong>Участник:</strong> Может создавать и редактировать контент, но не управлять семьёй</li>
+                        <li><strong>Наблюдатель:</strong> Только просмотр информации без права изменений</li>
+                        <li><strong>Владелец:</strong> Создатель семьи, имеет все права включая удаление</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="font-medium mb-2">💡 Советы по управлению</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        <li>Назначайте роли в соответствии с реальными обязанностями</li>
+                        <li>Роль Администратор подходит для родителей</li>
+                        <li>Детям обычно достаточно роли Участник</li>
+                        <li>Наблюдатель хорош для бабушек/дедушек или нянь</li>
+                        <li>Регулярно проверяйте список ожидающих приглашений</li>
+                        <li>При необходимости можно изменить роль участника</li>
+                      </ul>
+                    </div>
+                  </div>
+                </AlertDescription>
+              </CollapsibleContent>
+            </div>
+          </div>
+        </Alert>
+      </Collapsible>
 
       <Tabs defaultValue="members" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">

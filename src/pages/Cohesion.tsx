@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
@@ -22,6 +24,7 @@ export default function Cohesion() {
   const tasks = isTestMode ? testTasks : (tasksRaw || []);
   const [chatMessages] = useState<ChatMessage[]>(initialChatMessages);
   const [familyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
@@ -40,6 +43,89 @@ export default function Cohesion() {
             </h1>
           </div>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-purple-900 text-lg">
+                    Что такое сплочённость семьи?
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-purple-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-purple-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">❤️ Для чего нужен этот раздел?</p>
+                        <p className="text-sm">
+                          Сплочённость — это показатель того, насколько активно члены семьи взаимодействуют друг с другом. 
+                          Высокий уровень сплочённости говорит о здоровой и дружной семье.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📊 Как рассчитывается сплочённость?</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Количество участников:</strong> Чем больше активных членов, тем лучше</li>
+                          <li><strong>Выполнение задач:</strong> Количество завершённых дел вместе</li>
+                          <li><strong>Активность в чате:</strong> Количество сообщений и общение</li>
+                          <li><strong>Совместные моменты:</strong> Фото в семейном альбоме</li>
+                          <li><strong>Последняя активность:</strong> Когда в последний раз что-то делали вместе</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Как повысить сплочённость?</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Регулярное общение:</strong> Пишите в семейный чат каждый день</li>
+                          <li><strong>Совместные задачи:</strong> Создавайте и выполняйте дела вместе</li>
+                          <li><strong>Делитесь моментами:</strong> Добавляйте фото в семейный альбом</li>
+                          <li><strong>Планируйте события:</strong> Используйте календарь для совместных дел</li>
+                          <li><strong>Вовлекайте всех:</strong> Убедитесь что каждый участвует в семейной жизни</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📈 Уровни сплочённости</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Высокая (80-100%):</strong> Отличный результат! Семья очень дружная</li>
+                          <li><strong>Хорошая (60-80%):</strong> Семья активна, есть куда расти</li>
+                          <li><strong>Средняя (40-60%):</strong> Стоит уделить больше внимания общению</li>
+                          <li><strong>Низкая (меньше 40%):</strong> Нужно больше совместных дел</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🔗 Связь с другими разделами</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Используйте раздел "Задачи" для совместной работы</li>
+                          <li>Добавляйте события в "Календарь" для совместного времени</li>
+                          <li>Планируйте семейные ужины в разделе "Питание"</li>
+                          <li>Создавайте семейные традиции и ритуалы</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-purple-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Сплочённость — это не цифра, а результат любви и заботы. 
+                          Используйте этот показатель как подсказку для улучшения семейных отношений!
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         <Card>
           <CardHeader>

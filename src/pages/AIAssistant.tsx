@@ -3,6 +3,8 @@ import { Send, Bot, User, Loader2 } from 'lucide-react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../backend/func2url.json';
 
@@ -22,6 +24,7 @@ const AIAssistant = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -113,6 +116,73 @@ const AIAssistant = () => {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">AI Ассистент</h1>
           <p className="text-gray-600">Ваш умный помощник по семейным делам</p>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 mb-6">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-green-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-green-900 text-lg">
+                    Как эффективно использовать AI Ассистента
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-green-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-green-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">🤖 Что умеет Кузя?</p>
+                        <p className="text-sm">
+                          Кузя — ваш умный семейный помощник-космонавт. Он помогает с рецептами, планированием дел, 
+                          советами по воспитанию детей, домашним хозяйством и любыми другими семейными вопросами. 
+                          Кузя понимает контекст и запоминает предыдущие сообщения в рамках беседы.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Основные возможности</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Рецепты и кулинария:</strong> Идеи блюд, советы по готовке, замена ингредиентов</li>
+                          <li><strong>Планирование:</strong> Помощь в организации дел, расписаний и событий</li>
+                          <li><strong>Воспитание детей:</strong> Советы по развитию, обучению, решению конфликтов</li>
+                          <li><strong>Домашнее хозяйство:</strong> Уборка, организация, уход за вещами</li>
+                          <li><strong>Семейный досуг:</strong> Идеи для совместного времяпрепровождения</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Как задавать вопросы</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Будьте конкретны: "Что приготовить из курицы на ужин?" лучше чем "Что приготовить?"</li>
+                          <li>Указывайте детали: возраст детей, количество порций, ограничения по времени</li>
+                          <li>Можно задавать уточняющие вопросы — Кузя помнит контекст беседы</li>
+                          <li>Используйте быстрые вопросы внизу для начала диалога</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">💡 Советы для лучших результатов</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Начинайте новую тему с чистого листа, обновив страницу</li>
+                          <li>Если ответ не подходит, переформулируйте вопрос по-другому</li>
+                          <li>Можно попросить Кузю дать несколько вариантов ответа</li>
+                          <li>Используйте Shift+Enter для переноса строки в сообщении</li>
+                          <li>Кузя может помочь с планированием на основе данных из других разделов</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         {/* Chat Container */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col h-[calc(100vh-280px)]">

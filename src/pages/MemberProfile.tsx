@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
@@ -60,6 +62,7 @@ export default function MemberProfile() {
 
   const isChild = member.age && member.age < 18;
   const isOwner = member.role === 'Папа' || member.role.toLowerCase().includes('владел');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const handleAddDream = async (dream: Omit<Dream, 'id' | 'createdAt'>) => {
     const newDream: Dream = {
@@ -99,6 +102,139 @@ export default function MemberProfile() {
           <Icon name="ArrowLeft" className="mr-2" size={16} />
           Назад
         </Button>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-purple-900 text-lg">
+                    Как работать с профилем
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-purple-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-purple-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">👤 Для чего нужен профиль члена семьи?</p>
+                        <p className="text-sm">
+                          Профиль — это личное пространство каждого члена семьи. Здесь хранятся мечты, достижения, настроение, 
+                          личные цели и финансы. Каждый может развиваться в своём темпе и видеть свой прогресс.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Возможности профиля</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Базовая инфо:</strong> Имя, возраст, роль в семье, фото или аватар</li>
+                          <li><strong>Геймификация:</strong> Баллы, уровень, достижения</li>
+                          <li><strong>Мечты:</strong> Личные цели и желания с прогрессом</li>
+                          <li><strong>Копилка:</strong> Личные сбережения и финансовые цели</li>
+                          <li><strong>Календарь:</strong> Личные события и задачи</li>
+                          <li><strong>Настроение:</strong> Отметка текущего эмоционального состояния</li>
+                          <li><strong>Анкета:</strong> Расширенная информация о личности</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Вкладки профиля</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Общее:</strong> Основная информация, баллы, уровень</li>
+                          <li><strong>Мечты:</strong> Управление личными целями и желаниями</li>
+                          <li><strong>Копилка:</strong> Личные финансы и сбережения</li>
+                          <li><strong>Календарь:</strong> Личные события и напоминания</li>
+                          <li><strong>Редактировать:</strong> Изменение данных профиля</li>
+                          <li><strong>Анкета:</strong> Дополнительные сведения</li>
+                          <li><strong>Права:</strong> (для владельца) Управление доступом</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎁 Как работать с мечтами?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Перейдите во вкладку <strong>"Мечты"</strong></li>
+                          <li>Нажмите <strong>"Добавить мечту"</strong></li>
+                          <li>Укажите название (например, "Новый велосипед", "Поехать на море")</li>
+                          <li>Добавьте описание и стоимость (если нужно)</li>
+                          <li>Выберите эмодзи для визуализации</li>
+                          <li>Отмечайте прогресс по мере приближения к цели</li>
+                          <li>Отметьте как "Выполнено" когда мечта сбудется!</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🐷 Как работать с копилкой?</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Перейдите во вкладку <strong>"Копилка"</strong></li>
+                          <li>Добавляйте поступления (карманные деньги, подарки, заработок)</li>
+                          <li>Отмечайте расходы (покупки, траты на мечты)</li>
+                          <li>Видите историю всех операций</li>
+                          <li>Следите за текущим балансом</li>
+                          <li>Учите детей управлять финансами</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📝 Редактирование профиля</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Перейдите во вкладку <strong>"Редактировать"</strong></li>
+                          <li>Измените имя, возраст, роль</li>
+                          <li>Выберите фото или эмодзи-аватар</li>
+                          <li>Укажите дополнительные данные</li>
+                          <li>Сохраните изменения</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📊 Система баллов и уровней</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Баллы начисляются за выполнение задач</li>
+                          <li>Уровень растёт по мере накопления баллов</li>
+                          <li>Достижения за особые заслуги</li>
+                          <li>Мотивация через геймификацию</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">😊 Отметка настроения</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Нажмите на текущее настроение</li>
+                          <li>Выберите эмодзи которое отражает ваше состояние</li>
+                          <li>Другие члены семьи увидят ваш настрой</li>
+                          <li>Помогает лучше понимать друг друга</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Полезные советы</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Регулярность:</strong> Обновляйте профиль хотя бы раз в неделю</li>
+                          <li><strong>Индивидуальность:</strong> Пусть каждый оформит свой профиль по-своему</li>
+                          <li><strong>Поддержка:</strong> Помогайте достигать мечт друг друга</li>
+                          <li><strong>Приватность:</strong> Уважайте личное пространство каждого</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-purple-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Используйте профили чтобы лучше узнавать друг друга. 
+                          Мечты, настроение и цели помогают лучше понимать и поддерживать близких!
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         <Card className="mb-6">
           <CardContent className="p-6">

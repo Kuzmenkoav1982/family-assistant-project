@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useFamilyDataQuery } from '@/hooks/useFamilyDataQuery';
@@ -15,6 +17,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 export default function Analytics() {
   const navigate = useNavigate();
   const { data: familyData, isLoading, error } = useFamilyDataQuery();
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   if (isLoading) {
     return <AnalyticsSkeleton />;
