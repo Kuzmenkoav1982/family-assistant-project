@@ -299,7 +299,8 @@ export default function Development() {
         )}
 
         {/* Filters */}
-        {!activeTest && <div className="mb-6 space-y-4">
+        {!activeTest && (
+          <div className="mb-6 space-y-4">
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Категория</p>
             <div className="flex flex-wrap gap-2">
@@ -341,6 +342,7 @@ export default function Development() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Tests Grid */}
         {!activeTest && (
