@@ -122,8 +122,6 @@ export default function BottomBar({
                       navigate('/analytics');
                     } else if (section.id === 'recipes') {
                       navigate('/recipes');
-                    } else if (section.id === 'development') {
-                      navigate('/development');
                     } else {
                       onSectionChange(section.id);
                     }
