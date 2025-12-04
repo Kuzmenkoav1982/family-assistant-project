@@ -191,7 +191,7 @@ export default function Development() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !familyMembers) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <div className="text-center">
@@ -264,7 +264,7 @@ export default function Development() {
                   <Icon name="Users" size={24} className="text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">{familyMembers.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{familyMembers?.length || 0}</p>
                   <p className="text-sm text-gray-600">Участников</p>
                 </div>
               </div>
