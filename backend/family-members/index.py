@@ -146,6 +146,10 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             permissions_json = json.dumps(data['permissions'])
             fields.append(f"permissions = '{permissions_json}'::jsonb")
         
+        if 'development' in data:
+            development_json = json.dumps(data['development'])
+            fields.append(f"development = '{development_json}'::jsonb")
+        
         if not fields:
             cur.close()
             conn.close()
