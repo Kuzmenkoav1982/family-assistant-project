@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
@@ -114,6 +116,7 @@ export default function Development() {
   const [selectedMember, setSelectedMember] = useState<string>('all');
   const [activeTest, setActiveTest] = useState<string | null>(null);
   const [savingResult, setSavingResult] = useState(false);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const categories = [
     { id: 'all', label: 'Все категории', icon: 'Grid' },
@@ -298,6 +301,81 @@ export default function Development() {
               <p className="text-gray-600">Психологические тесты для всей семьи</p>
             </div>
           </div>
+
+          {/* Инструкция */}
+          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mt-6">
+            <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+              <div className="flex items-start gap-3">
+                <Icon name="Info" className="h-5 w-5 text-purple-600 mt-0.5" />
+                <div className="flex-1">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                    <h3 className="font-semibold text-purple-900 text-lg">
+                      Как пользоваться разделом "Развитие"
+                    </h3>
+                    <Icon 
+                      name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                      className="h-5 w-5 text-purple-600 transition-transform group-hover:scale-110" 
+                    />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-3 space-y-3">
+                    <AlertDescription className="text-purple-800">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="font-medium mb-2">🎯 Для чего нужен этот раздел?</p>
+                          <p className="text-sm">
+                            Раздел "Развитие" помогает каждому члену семьи лучше понять себя и друг друга через научно обоснованные психологические тесты. 
+                            Это инструмент для личностного роста, улучшения коммуникации и укрепления семейных отношений.
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="font-medium mb-2">✨ Какая польза от тестов?</p>
+                          <ul className="text-sm space-y-1 list-disc list-inside">
+                            <li>Определите свой эмоциональный интеллект и стиль общения</li>
+                            <li>Узнайте, как каждый член семьи воспринимает любовь и заботу</li>
+                            <li>Научитесь эффективно разрешать конфликты и управлять стрессом</li>
+                            <li>Поймите свой стиль воспитания и финансовую грамотность</li>
+                            <li>Улучшите управление временем и семейную продуктивность</li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <p className="font-medium mb-2">📋 Как пройти тест?</p>
+                          <ol className="text-sm space-y-1 list-decimal list-inside">
+                            <li>Выберите интересующий тест из списка ниже</li>
+                            <li>Укажите, для кого вы проходите тест (себя или члена семьи)</li>
+                            <li>Отвечайте честно — здесь нет правильных или неправильных ответов</li>
+                            <li>Получите персональную интерпретацию результатов с рекомендациями</li>
+                            <li>Результаты сохраняются в профиле и доступны в истории</li>
+                          </ol>
+                        </div>
+
+                        <div>
+                          <p className="font-medium mb-2">🔐 Как используются результаты?</p>
+                          <p className="text-sm">
+                            Все результаты тестов хранятся конфиденциально в профиле члена семьи. Они помогают:
+                          </p>
+                          <ul className="text-sm space-y-1 list-disc list-inside mt-2">
+                            <li>Видеть динамику личностного развития со временем</li>
+                            <li>Получать персонализированные рекомендации для семьи</li>
+                            <li>Анализировать совместимость и сильные стороны каждого</li>
+                            <li>Планировать семейные активности с учётом особенностей всех</li>
+                          </ul>
+                        </div>
+
+                        <div className="pt-2 border-t border-purple-200">
+                          <p className="text-sm italic">
+                            💡 <strong>Совет:</strong> Проходите тесты регулярно (раз в 3-6 месяцев), чтобы отслеживать свой прогресс и изменения в семейной динамике.
+                          </p>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </CollapsibleContent>
+                </div>
+              </div>
+            </Alert>
+          </Collapsible>
         </div>
 
         {/* Stats */}
