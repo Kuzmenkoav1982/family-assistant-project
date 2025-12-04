@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { RoadVisualization } from '@/components/RoadVisualization';
@@ -70,6 +71,7 @@ export default function LifeRoad() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
   const [newEvent, setNewEvent] = useState({
     date: '',
     title: '',
@@ -170,6 +172,53 @@ export default function LifeRoad() {
             <Icon name="ArrowLeft" size={20} className="mr-2" />
             Назад
           </Button>
+
+          {/* Инструкция */}
+          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mb-6">
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader className="pb-3">
+                <CollapsibleTrigger className="flex items-center justify-between w-full hover:opacity-80 transition-opacity">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Icon name="Info" size={20} className="text-blue-600" />
+                    Как пользоваться разделом "Дорога жизни"
+                  </CardTitle>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    size={20} 
+                    className="text-blue-600"
+                  />
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent className="pt-0 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Icon name="Calendar" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      <strong>Добавляйте события:</strong> Нажмите "Добавить событие" чтобы записать важные моменты жизни семьи
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="MapPin" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      <strong>Визуализация:</strong> События отображаются на дороге в хронологическом порядке - от прошлого к будущему
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Monitor" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      <strong>Адаптивный вид:</strong> На компьютере дорога горизонтальная, на телефоне - вертикальная для удобства
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Star" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      <strong>Важность событий:</strong> Отмечайте критические моменты - они будут выделены на дороге
+                    </p>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
