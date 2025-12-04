@@ -343,7 +343,8 @@ export default function Development() {
         </div>
 
         {/* Tests Grid */}
-        {!activeTest && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!activeTest && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTests.map(test => {
             const completedCount = familyMembers.filter(member => 
               getMemberProgress(member.id, test.id)?.status === 'completed'
@@ -401,7 +402,8 @@ export default function Development() {
               </Card>
             );
           })}
-        </div>}
+        </div>
+        )}
 
         {!activeTest && filteredTests.length === 0 && (
           <Card className="text-center py-12">
