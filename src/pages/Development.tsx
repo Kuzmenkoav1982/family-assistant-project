@@ -127,6 +127,7 @@ export default function Development() {
   );
 
   const getMemberProgress = (memberId: string, testId: string) => {
+    if (!familyMembers || familyMembers.length === 0) return null;
     const member = familyMembers.find(m => m.id === memberId);
     if (!member?.development) return null;
     
@@ -329,7 +330,7 @@ export default function Development() {
               >
                 Все члены
               </Button>
-              {familyMembers.map(member => (
+              {familyMembers?.map(member => (
                 <Button
                   key={member.id}
                   variant={selectedMember === member.id ? 'default' : 'outline'}
@@ -348,10 +349,10 @@ export default function Development() {
         {!activeTest && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTests.map(test => {
-            const completedCount = familyMembers.filter(member => 
+            const completedCount = familyMembers?.filter(member => 
               getMemberProgress(member.id, test.id)?.status === 'completed'
-            ).length;
-            const totalMembers = selectedMember === 'all' ? familyMembers.length : 1;
+            ).length || 0;
+            const totalMembers = selectedMember === 'all' ? (familyMembers?.length || 0) : 1;
             const progress = totalMembers > 0 ? (completedCount / totalMembers) * 100 : 0;
 
             return (
