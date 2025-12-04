@@ -22,7 +22,7 @@ export default function Children() {
 
   // Safe data processing with Array.isArray check
   const children = Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [];
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = JSON.parse(localStorage.getItem('userData') || '{}');
   
   // Try to find by user_id first, then by id
   const currentMember = Array.isArray(members) 
