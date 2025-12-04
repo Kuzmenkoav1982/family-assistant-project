@@ -113,7 +113,7 @@ export function TopBar({
               )
             )}
 
-            {topPanelSections.includes('reset') && (
+            {topPanelSections.includes('reset') && !authToken && (
               <Button
                 onClick={handleLogoutLocal}
                 variant="ghost"
@@ -128,18 +128,16 @@ export function TopBar({
             
             {topPanelSections.includes('settings') && <SettingsMenu />}
             
-            {topPanelSections.includes('instructions') && (
-              <Button
-                onClick={() => navigate('/instructions')}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Инструкции"
-              >
-                <Icon name="BookOpen" size={18} />
-                <span className="text-sm hidden md:inline">Инструкции</span>
-              </Button>
-            )}
+            <Button
+              onClick={() => navigate('/settings')}
+              variant="ghost"
+              size="sm"
+              className="h-9 gap-1.5 px-3"
+              title="Настройки семьи"
+            >
+              <Icon name="UserCircle" size={18} />
+              <span className="text-sm hidden md:inline">Настройки семьи</span>
+            </Button>
             
             {topPanelSections.includes('presentation') && (
               <Button
