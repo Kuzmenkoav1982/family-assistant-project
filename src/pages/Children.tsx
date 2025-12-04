@@ -67,15 +67,13 @@ export default function Children() {
     
     if (childId) {
       // Если в URL указан childId - выбираем его
-      if (childId !== selectedChildId) {
-        setSelectedChildId(childId);
-      }
+      setSelectedChildId(childId);
     } else {
       // Если childId НЕТ в URL
       if (isParent) {
         // Для родителей - очищаем выбор (показываем экран выбора)
         setSelectedChildId(null);
-      } else if (children.length > 0 && !selectedChildId) {
+      } else if (children.length > 0) {
         // Для детей - автоматически выбираем первого ребёнка
         setSelectedChildId(children[0].id);
       }
@@ -86,7 +84,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, isParent, children, selectedChildId, members]);
+  }, [searchParams, isParent, children, members]);
 
   if (loading) {
     return (
