@@ -2374,20 +2374,22 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="family">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Users" />
-                      Профили членов семьи
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <FamilyMembersGrid 
-                      members={familyMembers}
-                      onMemberClick={(member) => navigate(`/member/${member.id}`)}
-                    />
-                  </CardContent>
-                </Card>
+                {isWidgetEnabled('family-members') && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Icon name="Users" />
+                        Профили членов семьи
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <FamilyMembersGrid 
+                        members={familyMembers}
+                        onMemberClick={(member) => navigate(`/member/${member.id}`)}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="calendar">
@@ -3299,24 +3301,26 @@ export default function Index({ onLogout }: IndexProps) {
               </TabsContent>
 
               <TabsContent value="goals">
-                <Card className="border-2 border-purple-200 bg-purple-50/50 mb-4">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                        <Icon name="Target" size={24} className="text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-2">Как работают цели?</h3>
-                        <div className="space-y-2 text-sm text-muted-foreground">
-                          <p><strong>Ставьте долгосрочные цели</strong> — накопить на квартиру, поехать в отпуск, сделать ремонт.</p>
-                          <p><strong>Добавляйте контрольные точки</strong> для отслеживания прогресса на диаграмме Ганта.</p>
-                          <p><strong>Получайте подсказки от ИИ</strong> для достижения целей быстрее.</p>
+                {isWidgetEnabled('goals') && (
+                  <>
+                    <Card className="border-2 border-purple-200 bg-purple-50/50 mb-4">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                            <Icon name="Target" size={24} className="text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg mb-2">Как работают цели?</h3>
+                            <div className="space-y-2 text-sm text-muted-foreground">
+                              <p><strong>Ставьте долгосрочные цели</strong> — накопить на квартиру, поехать в отпуск, сделать ремонт.</p>
+                              <p><strong>Добавляйте контрольные точки</strong> для отслеживания прогресса на диаграмме Ганта.</p>
+                              <p><strong>Получайте подсказки от ИИ</strong> для достижения целей быстрее.</p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <GoalsSection
+                      </CardContent>
+                    </Card>
+                    <GoalsSection
                   goals={familyGoals}
                   familyMembers={familyMembers}
                   currentUserId={currentUserId}
@@ -3343,6 +3347,8 @@ export default function Index({ onLogout }: IndexProps) {
                     localStorage.setItem('familyGoals', JSON.stringify(updatedGoals));
                   }}
                 />
+                  </>
+                )}
               </TabsContent>
 
               <TabsContent value="shopping">
