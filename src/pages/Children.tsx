@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,9 +20,12 @@ export default function Children() {
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
-  // Safe data processing with Array.isArray check
-  const children = Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [];
-  const currentUser = JSON.parse(localStorage.getItem('userData') || '{}');
+  // Safe data processing with Array.isArray check - use useMemo to prevent infinite loops
+  const children = useMemo(() => 
+    Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [],
+    [members]
+  );
+  const currentUser = useMemo(() => JSON.parse(localStorage.getItem('userData') || '{}'), []);
   
   // Try to find by user_id first, then by id
   const currentMember = Array.isArray(members) 
@@ -84,7 +87,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, isParent, children, members]);
+  }, [searchParams, isParent, children]);
 
   if (loading) {
     return (
