@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,6 +24,7 @@ export default function Shopping() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'bought'>('active');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
   
   const [newItem, setNewItem] = useState({
     name: '',
@@ -116,6 +119,92 @@ export default function Shopping() {
             )}
           </div>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-green-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-green-900 text-lg">
+                    Как вести список покупок
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-green-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-green-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">🛒 Для чего нужен список покупок?</p>
+                        <p className="text-sm">
+                          Список покупок помогает не забыть нужные товары в магазине и экономит время. 
+                          Все члены семьи могут добавлять товары, а кто идёт за покупками — видит полный список.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Возможности раздела</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Категории товаров:</strong> Продукты, хозтовары, одежда, другое</li>
+                          <li><strong>Приоритеты:</strong> Отмечайте срочные покупки (ургентно, обычно, несрочно)</li>
+                          <li><strong>Количество:</strong> Указывайте количество (например, "2 литра", "5 штук")</li>
+                          <li><strong>Отметка купленных:</strong> Отмечайте товары галочкой в магазине</li>
+                          <li><strong>Фильтры:</strong> Просматривайте только активные или купленные товары</li>
+                          <li><strong>Совместный доступ:</strong> Вся семья видит и редактирует список</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📝 Как добавить товар?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Нажмите кнопку <strong>"Добавить товар"</strong></li>
+                          <li>Введите название товара (например, "Молоко")</li>
+                          <li>Выберите категорию (продукты, хозтовары и т.д.)</li>
+                          <li>Укажите количество (опционально)</li>
+                          <li>Выберите приоритет (срочно, обычно, несрочно)</li>
+                          <li>Нажмите "Добавить" — товар появится в списке</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🛋️ В магазине</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Откройте список на телефоне</li>
+                          <li>Нажимайте на товар чтобы отметить как купленный</li>
+                          <li>Купленные товары автоматически переходят в низ списка</li>
+                          <li>После покупок можно очистить список от купленных</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Полезные советы</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Группируйте по категориям:</strong> Так удобнее ходить по магазину (сначала продукты, потом хозтовары)</li>
+                          <li><strong>Используйте приоритеты:</strong> Срочные товары отмечены красным — купите их в первую очередь</li>
+                          <li><strong>Добавляйте сразу:</strong> Закончилось что-то дома — сразу добавьте в список</li>
+                          <li><strong>Связь с меню:</strong> Смотрите недельное меню в "Питании" и добавляйте нужные продукты</li>
+                          <li><strong>Делегируйте:</strong> Отправьте кого-то за покупками — он увидит актуальный список</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-green-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Привыкните добавлять товары сразу, как только заметили что они закончились. 
+                          Это займёт 5 секунд, но сэкономит часы потом!
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         <Card>
           <CardHeader>

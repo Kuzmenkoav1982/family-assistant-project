@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,6 +50,7 @@ export default function Meals() {
   const [selectedDay, setSelectedDay] = useState<string>('monday');
   const [editingMeal, setEditingMeal] = useState<MealPlan | null>(null);
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const [newMeal, setNewMeal] = useState({
     day: 'monday',
@@ -192,6 +195,91 @@ export default function Meals() {
             </Badge>
           </div>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-orange-900 text-lg">
+                    Как планировать питание семьи
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-orange-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-orange-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">🍽️ Для чего нужен раздел Питание?</p>
+                        <p className="text-sm">
+                          Раздел помогает планировать меню на неделю для всей семьи. Это экономит время на решение "что приготовить", 
+                          упрощает покупки продуктов и помогает питаться разнообразно и сбалансированно.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Возможности раздела</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Недельное меню:</strong> Планируйте завтрак, обед и ужин на каждый день</li>
+                          <li><strong>Эмодзи блюд:</strong> Визуально отмечайте тип блюда для быстрого узнавания</li>
+                          <li><strong>Описание:</strong> Добавляйте заметки об ингредиентах или способе приготовления</li>
+                          <li><strong>Фильтры:</strong> Просматривайте меню по дням недели или по авторам</li>
+                          <li><strong>Совместное планирование:</strong> Все члены семьи могут добавлять блюда</li>
+                          <li><strong>История авторов:</strong> Видите кто что предложил приготовить</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📝 Как добавить блюдо?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Нажмите кнопку <strong>"+ Добавить блюдо"</strong></li>
+                          <li>Выберите день недели и прием пищи (завтрак/обед/ужин)</li>
+                          <li>Введите название блюда</li>
+                          <li>Опционально добавьте описание и эмодзи</li>
+                          <li>Нажмите "Добавить" — блюдо появится в расписании</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🎯 Как эффективно использовать?</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>Планируйте заранее:</strong> Составьте меню в выходные на всю неделю</li>
+                          <li><strong>Чередуйте блюда:</strong> Избегайте повторов — используйте разнообразные рецепты</li>
+                          <li><strong>Учитывайте предпочтения:</strong> Спросите у семьи что они хотели бы съесть</li>
+                          <li><strong>Связка с покупками:</strong> На основе меню составляйте список в разделе "Покупки"</li>
+                          <li><strong>Сохраняйте идеи:</strong> Записывайте понравившиеся блюда для будущих недель</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🔄 Управление меню</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Кликните на блюдо чтобы отредактировать детали</li>
+                          <li>Используйте фильтр по автору чтобы увидеть чьи предложения</li>
+                          <li>Удаляйте блюда кнопкой корзины если планы изменились</li>
+                          <li>Меню сохраняется автоматически в браузере</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-orange-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Вовлекайте детей в планирование меню — пусть каждый выберет одно любимое блюдо на неделю. 
+                          Это мотивирует их есть с аппетитом и учит планированию!
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         {mealPlans.length > 0 && (
           <Card className="bg-blue-50 border-blue-200">
