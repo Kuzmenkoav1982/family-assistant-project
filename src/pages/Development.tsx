@@ -7,6 +7,21 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
+import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
+import {
+  emotionalIntelligenceQuestions,
+  getEmotionalIntelligenceResults,
+  communicationStyleQuestions,
+  getCommunicationStyleResults,
+  loveLanguagesQuestions,
+  getLoveLanguagesResults
+} from '@/data/testQuestions';
+import {
+  conflictResolutionQuestions,
+  getConflictResolutionResults,
+  stressManagementQuestions,
+  getStressManagementResults
+} from '@/data/additionalTests';
 
 const DEVELOPMENT_TESTS = [
   {
@@ -96,6 +111,7 @@ export default function Development() {
   const { familyMembers, isLoading } = useFamilyMembers();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<string>('all');
+  const [activeTest, setActiveTest] = useState<string | null>(null);
 
   const categories = [
     { id: 'all', label: 'Все категории', icon: 'Grid' },
@@ -121,8 +137,57 @@ export default function Development() {
   };
 
   const handleStartTest = (testId: string) => {
-    console.log('Starting test:', testId);
-    // TODO: Implement test start logic
+    setActiveTest(testId);
+  };
+
+  const handleTestComplete = (testId: string, result: TestResult) => {
+    console.log('Test completed:', testId, result);
+    setActiveTest(null);
+    // TODO: Save results to member profile
+  };
+
+  const handleTestCancel = () => {
+    setActiveTest(null);
+  };
+
+  const getTestQuestions = (testId: string) => {
+    switch (testId) {
+      case 'emotional-intelligence':
+        return emotionalIntelligenceQuestions;
+      case 'communication-style':
+        return communicationStyleQuestions;
+      case 'love-languages':
+        return loveLanguagesQuestions;
+      case 'conflict-resolution':
+        return conflictResolutionQuestions;
+      case 'stress-management':
+        return stressManagementQuestions;
+      default:
+        return [];
+    }
+  };
+
+  const getTestResultsCalculator = (testId: string) => {
+    switch (testId) {
+      case 'emotional-intelligence':
+        return getEmotionalIntelligenceResults;
+      case 'communication-style':
+        return getCommunicationStyleResults;
+      case 'love-languages':
+        return getLoveLanguagesResults;
+      case 'conflict-resolution':
+        return getConflictResolutionResults;
+      case 'stress-management':
+        return getStressManagementResults;
+      default:
+        return () => ({
+          score: 0,
+          maxScore: 0,
+          category: '',
+          interpretation: '',
+          recommendations: []
+        });
+    }
   };
 
   if (isLoading) {
@@ -220,8 +285,21 @@ export default function Development() {
           </Card>
         </div>
 
+        {/* Active Test */}
+        {activeTest && (
+          <InteractiveTest
+            testId={activeTest}
+            testName={DEVELOPMENT_TESTS.find(t => t.id === activeTest)?.name || ''}
+            description={DEVELOPMENT_TESTS.find(t => t.id === activeTest)?.description || ''}
+            questions={getTestQuestions(activeTest)}
+            onComplete={(result) => handleTestComplete(activeTest, result)}
+            onCancel={handleTestCancel}
+            getResults={getTestResultsCalculator(activeTest)}
+          />
+        )}
+
         {/* Filters */}
-        <div className="mb-6 space-y-4">
+        {!activeTest && <div className="mb-6 space-y-4">
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Категория</p>
             <div className="flex flex-wrap gap-2">
@@ -265,7 +343,7 @@ export default function Development() {
         </div>
 
         {/* Tests Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!activeTest && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTests.map(test => {
             const completedCount = familyMembers.filter(member => 
               getMemberProgress(member.id, test.id)?.status === 'completed'
@@ -323,9 +401,9 @@ export default function Development() {
               </Card>
             );
           })}
-        </div>
+        </div>}
 
-        {filteredTests.length === 0 && (
+        {!activeTest && filteredTests.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
               <Icon name="Search" size={48} className="mx-auto mb-4 text-gray-400" />
