@@ -19,10 +19,7 @@ export default function Analytics() {
   const { data: familyData, isLoading, error } = useFamilyDataQuery();
   const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
-  if (isLoading) {
-    return <AnalyticsSkeleton />;
-  }
-
+  // Extract data before any conditional returns
   const members = familyData?.members || [];
   const tasks = familyData?.tasks || [];
   const children = familyData?.children_profiles || [];
@@ -89,6 +86,11 @@ export default function Analytics() {
       .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 5)
   , [calendarEvents]);
+
+  // Now check loading after all hooks
+  if (isLoading) {
+    return <AnalyticsSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
