@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { toast } from 'sonner';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
 import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
 import TestHistory from '@/components/TestHistory';
@@ -116,7 +117,7 @@ export default function Development() {
   const [selectedMember, setSelectedMember] = useState<string>('all');
   const [activeTest, setActiveTest] = useState<string | null>(null);
   const [savingResult, setSavingResult] = useState(false);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const categories = [
     { id: 'all', label: 'Все категории', icon: 'Grid' },
@@ -208,15 +209,23 @@ export default function Development() {
 
       if (updateResult.success) {
         console.log('Test result saved successfully');
-        // Показываем уведомление об успешном сохранении
-        alert('✅ Результаты теста сохранены!');
+        toast.success('Результаты сохранены!', {
+          description: 'Результаты теста успешно добавлены в профиль',
+          duration: 4000,
+        });
       } else {
         console.error('Failed to save test result:', updateResult.error);
-        alert('❌ Ошибка сохранения результатов: ' + updateResult.error);
+        toast.error('Ошибка сохранения', {
+          description: updateResult.error || 'Не удалось сохранить результаты теста',
+          duration: 5000,
+        });
       }
     } catch (error) {
       console.error('Error saving test result:', error);
-      alert('❌ Ошибка при сохранении результатов');
+      toast.error('Ошибка', {
+        description: 'Произошла ошибка при сохранении результатов',
+        duration: 5000,
+      });
     } finally {
       setSavingResult(false);
       setActiveTest(null);

@@ -17,7 +17,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 export default function Analytics() {
   const navigate = useNavigate();
   const { data: familyData, isLoading, error } = useFamilyDataQuery();
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   // Extract data before any conditional returns
   const members = familyData?.members || [];

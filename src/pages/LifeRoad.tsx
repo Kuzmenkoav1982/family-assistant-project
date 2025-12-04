@@ -71,7 +71,7 @@ export default function LifeRoad() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({
     date: '',
     title: '',

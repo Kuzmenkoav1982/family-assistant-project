@@ -24,7 +24,7 @@ const AIAssistant = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 

@@ -22,7 +22,7 @@ export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembers();
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   
   let member = members.find(m => m.id === memberId);
   

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function VotingPage() {
   const navigate = useNavigate();
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">

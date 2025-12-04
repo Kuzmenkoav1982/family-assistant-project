@@ -24,7 +24,7 @@ export default function Cohesion() {
   const tasks = isTestMode ? testTasks : (tasksRaw || []);
   const [chatMessages] = useState<ChatMessage[]>(initialChatMessages);
   const [familyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">

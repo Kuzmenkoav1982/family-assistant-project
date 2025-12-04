@@ -17,6 +17,8 @@ import { ChildEducation } from '@/components/ChildEducation';
 import { ClickChamomile } from '@/components/ClickChamomile';
 import Footer from '@/components/Footer';
 import { getDailyMotto } from '@/utils/dailyMottos';
+import WidgetSettings from '@/components/WidgetSettings';
+import type { WidgetConfig } from '@/components/WidgetSettings';
 import type {
   FamilyMember,
   Task,
@@ -163,6 +165,18 @@ export default function Index({ onLogout }: IndexProps) {
   const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
   const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
+  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
+  const [widgetSettings, setWidgetSettings] = useState(() => {
+    const saved = localStorage.getItem('widgetSettings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [newMessage, setNewMessage] = useState('');
   const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shoppingList');
@@ -546,6 +560,16 @@ export default function Index({ onLogout }: IndexProps) {
   const handleAutoHideBottomBarChange = (value: boolean) => {
     setAutoHideBottomBar(value);
     localStorage.setItem('autoHideBottomBar', String(value));
+  };
+
+  const isWidgetEnabled = (widgetId: string) => {
+    if (!widgetSettings) return widgetId !== 'ai-advice';
+    const widget = widgetSettings.find((w: WidgetConfig) => w.id === widgetId);
+    return widget ? widget.enabled : widgetId !== 'ai-advice';
+  };
+
+  const handleWidgetSettingsSave = (settings: WidgetConfig[]) => {
+    setWidgetSettings(settings);
   };
 
   const availableSections = [

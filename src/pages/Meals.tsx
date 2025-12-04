@@ -50,7 +50,7 @@ export default function Meals() {
   const [selectedDay, setSelectedDay] = useState<string>('monday');
   const [editingMeal, setEditingMeal] = useState<MealPlan | null>(null);
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const [newMeal, setNewMeal] = useState({
     day: 'monday',

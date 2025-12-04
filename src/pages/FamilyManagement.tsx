@@ -33,7 +33,7 @@ export default function FamilyManagement() {
   const [error, setError] = useState('');
   const [currentUserRole, setCurrentUserRole] = useState<Role>('viewer');
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const familyId = localStorage.getItem('familyId');
   const currentUserId = localStorage.getItem('userId');

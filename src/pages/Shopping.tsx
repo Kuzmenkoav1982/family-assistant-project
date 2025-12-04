@@ -24,7 +24,7 @@ export default function Shopping() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'bought'>('active');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   
   const [newItem, setNewItem] = useState({
     name: '',

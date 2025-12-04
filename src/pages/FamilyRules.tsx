@@ -50,7 +50,7 @@ export default function FamilyRules() {
   const [newRuleDescription, setNewRuleDescription] = useState('');
   const [newRuleCategory, setNewRuleCategory] = useState('Общие');
   const [currentUser] = useState('Пользователь');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const currentUserData = familyMembers.find(m => m.name === currentUser);
 

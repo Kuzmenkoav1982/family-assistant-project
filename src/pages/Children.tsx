@@ -18,7 +18,7 @@ export default function Children() {
   const { members, loading } = useFamilyMembers();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   // Safe data processing with Array.isArray check
   const children = Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [];

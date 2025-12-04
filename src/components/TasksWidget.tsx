@@ -16,7 +16,7 @@ export function TasksWidget() {
   const { tasks, loading, toggleTask, createTask } = useTasks();
   const { members } = useFamilyMembers();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',

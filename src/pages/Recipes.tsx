@@ -68,7 +68,7 @@ export default function Recipes() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [addMethod, setAddMethod] = useState<'text' | 'photo' | 'ocr'>('text');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const [newRecipe, setNewRecipe] = useState({
     name: '',

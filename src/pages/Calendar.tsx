@@ -33,7 +33,7 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | Task | FamilyGoal | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showReminders, setShowReminders] = useState(false);
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
     const saved = localStorage.getItem('calendarEvents');

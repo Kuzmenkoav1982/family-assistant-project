@@ -42,7 +42,7 @@ export default function InDevelopment({
     return votesData[title] || 42;
   });
 
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const handleVote = () => {
     if (hasVoted) return;
