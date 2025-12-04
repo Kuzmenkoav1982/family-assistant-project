@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
 import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
+import TestHistory from '@/components/TestHistory';
 import {
   emotionalIntelligenceQuestions,
   getEmotionalIntelligenceResults,
@@ -108,10 +109,11 @@ const DEVELOPMENT_TESTS = [
 
 export default function Development() {
   const navigate = useNavigate();
-  const { familyMembers, isLoading } = useFamilyMembers();
+  const { familyMembers, isLoading, updateMember } = useFamilyMembers();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<string>('all');
   const [activeTest, setActiveTest] = useState<string | null>(null);
+  const [savingResult, setSavingResult] = useState(false);
 
   const categories = [
     { id: 'all', label: 'Все категории', icon: 'Grid' },
@@ -141,10 +143,81 @@ export default function Development() {
     setActiveTest(testId);
   };
 
-  const handleTestComplete = (testId: string, result: TestResult) => {
+  const handleTestComplete = async (testId: string, result: TestResult) => {
     console.log('Test completed:', testId, result);
-    setActiveTest(null);
-    // TODO: Save results to member profile
+    
+    if (selectedMember === 'all') {
+      setActiveTest(null);
+      return;
+    }
+
+    setSavingResult(true);
+    
+    try {
+      const member = familyMembers?.find(m => m.id === selectedMember);
+      if (!member) {
+        console.error('Member not found');
+        setActiveTest(null);
+        setSavingResult(false);
+        return;
+      }
+
+      const testData: Test = {
+        id: testId,
+        name: DEVELOPMENT_TESTS.find(t => t.id === testId)?.name || testId,
+        description: result.interpretation,
+        completed_date: new Date().toISOString(),
+        score: result.score,
+        status: 'completed'
+      };
+
+      const currentDevelopment = member.development || [];
+      
+      // Находим область "psychology" или создаём новую
+      let psychologyDev = currentDevelopment.find(d => d.area === 'education');
+      
+      if (psychologyDev) {
+        // Обновляем существующий тест или добавляем новый
+        const existingTestIndex = psychologyDev.tests.findIndex(t => t.id === testId);
+        if (existingTestIndex >= 0) {
+          psychologyDev.tests[existingTestIndex] = testData;
+        } else {
+          psychologyDev.tests.push(testData);
+        }
+      } else {
+        // Создаём новую область развития
+        psychologyDev = {
+          id: 'psychology-' + Date.now(),
+          area: 'education',
+          current_level: 1,
+          target_level: 10,
+          activities: [],
+          tests: [testData]
+        };
+        currentDevelopment.push(psychologyDev);
+      }
+
+      // Сохраняем обновлённые данные
+      const updateResult = await updateMember({
+        id: selectedMember,
+        development: currentDevelopment
+      });
+
+      if (updateResult.success) {
+        console.log('Test result saved successfully');
+        // Показываем уведомление об успешном сохранении
+        alert('✅ Результаты теста сохранены!');
+      } else {
+        console.error('Failed to save test result:', updateResult.error);
+        alert('❌ Ошибка сохранения результатов: ' + updateResult.error);
+      }
+    } catch (error) {
+      console.error('Error saving test result:', error);
+      alert('❌ Ошибка при сохранении результатов');
+    } finally {
+      setSavingResult(false);
+      setActiveTest(null);
+    }
   };
 
   const handleTestCancel = () => {
@@ -250,7 +323,12 @@ export default function Development() {
                   <Icon name="CheckCircle2" size={24} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {familyMembers?.reduce((total, member) => {
+                      const tests = member.development?.flatMap(d => d.tests.filter(t => t.status === 'completed')) || [];
+                      return total + tests.length;
+                    }, 0) || 0}
+                  </p>
                   <p className="text-sm text-gray-600">Пройдено тестов</p>
                 </div>
               </div>
@@ -321,7 +399,14 @@ export default function Development() {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Член семьи</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              Член семьи
+              {selectedMember === 'all' && (
+                <span className="ml-2 text-xs text-orange-600 font-normal">
+                  (выберите конкретного человека для прохождения теста)
+                </span>
+              )}
+            </p>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={selectedMember === 'all' ? 'default' : 'outline'}
@@ -355,54 +440,67 @@ export default function Development() {
             const totalMembers = selectedMember === 'all' ? (familyMembers?.length || 0) : 1;
             const progress = totalMembers > 0 ? (completedCount / totalMembers) * 100 : 0;
 
+            // Получаем историю тестов для выбранного пользователя
+            const memberTestHistory = selectedMember !== 'all' 
+              ? familyMembers?.find(m => m.id === selectedMember)?.development
+                  ?.flatMap(d => d.tests.filter(t => t.id === test.id)) || []
+              : [];
+
             return (
-              <Card key={test.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`p-3 rounded-lg ${test.color} border`}>
-                      <Icon name={test.icon as any} size={24} />
-                    </div>
-                    {progress > 0 && (
-                      <Badge variant="outline" className="bg-green-50">
-                        <Icon name="CheckCircle2" size={14} className="mr-1" />
-                        {completedCount}/{totalMembers}
-                      </Badge>
-                    )}
-                  </div>
-                  <CardTitle className="text-lg">{test.name}</CardTitle>
-                  <CardDescription>{test.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Icon name="Clock" size={16} />
-                      {test.duration}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Icon name="FileText" size={16} />
-                      {test.questions} вопросов
-                    </div>
-                  </div>
-
-                  {progress > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600">Прогресс</span>
-                        <span className="font-medium">{Math.round(progress)}%</span>
+              <div key={test.id}>
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`p-3 rounded-lg ${test.color} border`}>
+                        <Icon name={test.icon as any} size={24} />
                       </div>
-                      <Progress value={progress} className="h-2" />
+                      {progress > 0 && (
+                        <Badge variant="outline" className="bg-green-50">
+                          <Icon name="CheckCircle2" size={14} className="mr-1" />
+                          {completedCount}/{totalMembers}
+                        </Badge>
+                      )}
                     </div>
-                  )}
+                    <CardTitle className="text-lg">{test.name}</CardTitle>
+                    <CardDescription>{test.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Icon name="Clock" size={16} />
+                        {test.duration}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Icon name="FileText" size={16} />
+                        {test.questions} вопросов
+                      </div>
+                    </div>
 
-                  <Button 
-                    className="w-full"
-                    onClick={() => handleStartTest(test.id)}
-                  >
-                    {progress > 0 ? 'Продолжить' : 'Начать тест'}
-                    <Icon name="ArrowRight" size={16} className="ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
+                    {progress > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="text-gray-600">Прогресс</span>
+                          <span className="font-medium">{Math.round(progress)}%</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                      </div>
+                    )}
+
+                    <Button 
+                      className="w-full"
+                      onClick={() => handleStartTest(test.id)}
+                      disabled={savingResult || selectedMember === 'all'}
+                    >
+                      {savingResult ? 'Сохранение...' : (progress > 0 ? 'Пройти ещё раз' : 'Начать тест')}
+                      <Icon name="ArrowRight" size={16} className="ml-2" />
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                {selectedMember !== 'all' && memberTestHistory.length > 0 && (
+                  <TestHistory tests={memberTestHistory} testName={test.name} />
+                )}
+              </div>
             );
           })}
         </div>
