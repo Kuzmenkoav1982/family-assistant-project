@@ -132,11 +132,11 @@ export function TopBar({
               onClick={() => navigate('/settings')}
               variant="ghost"
               size="sm"
-              className="h-9 gap-1.5 px-3"
-              title="Настройки семьи"
+              className="h-9 gap-1.5 px-3 border border-orange-300 bg-orange-50 hover:bg-orange-100"
+              title="Настройки семьи: название и логотип"
             >
-              <Icon name="UserCircle" size={18} />
-              <span className="text-sm hidden md:inline">Настройки семьи</span>
+              <Icon name="Settings2" size={18} className="text-orange-600" />
+              <span className="text-sm hidden md:inline text-orange-700 font-medium">Семья</span>
             </Button>
             
             {topPanelSections.includes('presentation') && (

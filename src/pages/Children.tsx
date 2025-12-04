@@ -129,7 +129,7 @@ export default function Children() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
@@ -140,11 +140,11 @@ export default function Children() {
           </Button>
 
           {isParent && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 z-50">
               <Button
                 variant={viewMode === 'parent' ? 'default' : 'outline'}
                 onClick={() => setViewMode('parent')}
-                className="gap-2"
+                className="gap-2 shadow-lg"
               >
                 <Icon name="BarChart3" size={18} />
                 Родительский режим
@@ -152,7 +152,7 @@ export default function Children() {
               <Button
                 variant={viewMode === 'child' ? 'default' : 'outline'}
                 onClick={() => setViewMode('child')}
-                className="gap-2"
+                className="gap-2 shadow-lg"
               >
                 <Icon name="Smile" size={18} />
                 Детский режим
@@ -162,7 +162,7 @@ export default function Children() {
         </div>
 
         {/* Инструкция */}
-        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mb-6">
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mb-6 relative z-10">
           <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
             <div className="flex items-start gap-3">
               <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5" />
