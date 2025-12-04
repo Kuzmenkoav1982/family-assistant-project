@@ -22,6 +22,7 @@ export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembers();
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
   
   let member = members.find(m => m.id === memberId);
   
@@ -62,7 +63,6 @@ export default function MemberProfile() {
 
   const isChild = member.age && member.age < 18;
   const isOwner = member.role === 'Папа' || member.role.toLowerCase().includes('владел');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const handleAddDream = async (dream: Omit<Dream, 'id' | 'createdAt'>) => {
     const newDream: Dream = {
