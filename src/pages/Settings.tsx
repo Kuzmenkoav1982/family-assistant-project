@@ -243,6 +243,14 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/family-management')}
+            >
+              <Icon name="Users" size={18} />
+              Управление семьёй и ролями
+            </Button>
             <Button variant="outline" className="w-full justify-start gap-2">
               <Icon name="Lock" size={18} />
               Изменить пароль
