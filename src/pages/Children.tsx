@@ -20,12 +20,14 @@ export default function Children() {
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
-  const children = members?.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') || [];
+  const children = (members || []).filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок');
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentMember = members?.find(m => m.user_id === currentUser?.id);
+  const currentMember = (members || []).find(m => m.user_id === currentUser?.id);
   const isParent = currentMember?.role === 'Папа' || currentMember?.role === 'Мама' || currentMember?.role === 'Владелец' || currentUser?.role === 'Родитель';
 
   useEffect(() => {
+    if (!members) return;
+    
     const childId = searchParams.get('childId');
     const mode = searchParams.get('mode') as 'parent' | 'child' | null;
     
@@ -40,7 +42,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, isParent, children, selectedChildId]);
+  }, [searchParams, isParent, children, selectedChildId, members]);
 
   if (loading) {
     return (
