@@ -20,13 +20,14 @@ export default function Children() {
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
-  const children = (members || []).filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок');
+  // Safe data processing with Array.isArray check
+  const children = Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [];
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentMember = (members || []).find(m => m.user_id === currentUser?.id);
+  const currentMember = Array.isArray(members) ? members.find(m => m.user_id === currentUser?.id) : undefined;
   const isParent = currentMember?.role === 'Папа' || currentMember?.role === 'Мама' || currentMember?.role === 'Владелец' || currentUser?.role === 'Родитель';
 
   useEffect(() => {
-    if (!members) return;
+    if (!Array.isArray(members) || members.length === 0) return;
     
     const childId = searchParams.get('childId');
     const mode = searchParams.get('mode') as 'parent' | 'child' | null;
