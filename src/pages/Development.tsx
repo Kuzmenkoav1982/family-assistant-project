@@ -109,7 +109,7 @@ const DEVELOPMENT_TESTS = [
 
 export default function Development() {
   const navigate = useNavigate();
-  const { familyMembers, isLoading, updateMember } = useFamilyMembers();
+  const { members: familyMembers, loading: isLoading, updateMember } = useFamilyMembers();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<string>('all');
   const [activeTest, setActiveTest] = useState<string | null>(null);
