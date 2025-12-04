@@ -1,0 +1,55 @@
+{
+  "tests": [
+    {
+      "name": "Отправка email",
+      "method": "POST",
+      "path": "/?action=email",
+      "body": {
+        "to": "test@example.com",
+        "subject": "Тестовое письмо",
+        "body": "Это тестовое письмо из Family Organizer"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "sent",
+        "method": "smtp"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Отправка SMS",
+      "method": "POST",
+      "path": "/?action=sms",
+      "body": {
+        "phone": "+79001234567",
+        "message": "Тестовое SMS сообщение"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "sent"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Невалидный email",
+      "method": "POST",
+      "path": "/?action=email",
+      "body": {
+        "to": "invalid-email",
+        "subject": "Тест",
+        "body": "Тест"
+      },
+      "expectedStatus": 400
+    },
+    {
+      "name": "Невалидный телефон",
+      "method": "POST",
+      "path": "/?action=sms",
+      "body": {
+        "phone": "123",
+        "message": "Тест"
+      },
+      "expectedStatus": 400
+    }
+  ]
+}
