@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useTasks } from '@/hooks/useTasks';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
@@ -31,6 +33,7 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | Task | FamilyGoal | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showReminders, setShowReminders] = useState(false);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
   
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
     const saved = localStorage.getItem('calendarEvents');
@@ -430,6 +433,88 @@ export default function Calendar() {
             {monthYear}
           </Badge>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-blue-900 text-lg">
+                    Как пользоваться календарём
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-blue-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">🗓️ Для чего нужен календарь?</p>
+                        <p className="text-sm">
+                          Календарь — это центр планирования семейной жизни. Здесь вы можете создавать события, отслеживать задачи и цели, 
+                          настраивать напоминания и делиться планами с членами семьи.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">✨ Возможности календаря</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li><strong>События:</strong> Дни рождения, встречи, праздники, важные даты</li>
+                          <li><strong>Категории:</strong> Личное, семейное, работа, здоровье, образование</li>
+                          <li><strong>Повторения:</strong> Настройте регулярные события (ежедневно, еженедельно, ежемесячно)</li>
+                          <li><strong>Напоминания:</strong> Получайте уведомления за 1-7 дней до события</li>
+                          <li><strong>Видимость:</strong> Делитесь событиями с семьёй или держите приватными</li>
+                          <li><strong>Интеграция:</strong> Видите задачи и цели из других разделов</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📋 Как создать событие?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Нажмите кнопку <strong>"+ Создать событие"</strong></li>
+                          <li>Заполните название, дату и время</li>
+                          <li>Выберите категорию (личное, семейное, работа и др.)</li>
+                          <li>Настройте напоминание и видимость</li>
+                          <li>При необходимости создайте повторяющееся событие</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🔔 Как работают напоминания?</p>
+                        <p className="text-sm">
+                          Вы можете настроить напоминание за 1-7 дней до события. Напоминания отображаются в верхней части календаря 
+                          и помогают не пропустить важные даты.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">👁️ Фильтры и просмотр</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Переключайтесь между месячным и недельным просмотром</li>
+                          <li>Используйте фильтры для отображения только нужных категорий</li>
+                          <li>Кликните на день для просмотра всех событий дня</li>
+                          <li>Цветные метки помогают быстро различать категории</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-blue-200">
+                        <p className="text-sm italic">
+                          💡 <strong>Совет:</strong> Создавайте повторяющиеся события для регулярных дел (тренировки, уроки, встречи) — 
+                          это сэкономит время и поможет сформировать привычки.
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         {getUpcomingReminders().length > 0 && (
           <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 shadow-lg">

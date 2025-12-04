@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 
 interface Feature {
@@ -39,6 +41,8 @@ export default function InDevelopment({
     const votesData = JSON.parse(votes);
     return votesData[title] || 42;
   });
+
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const handleVote = () => {
     if (hasVoted) return;
@@ -78,10 +82,93 @@ export default function InDevelopment({
           </CardHeader>
 
           <CardContent className="p-6 space-y-8">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6">
+            {/* Инструкция */}
+            <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+              <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                <div className="flex items-start gap-3">
+                  <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div className="flex-1">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                      <h3 className="font-semibold text-blue-900 text-lg">
+                        Как работать с разделами "В разработке"
+                      </h3>
+                      <Icon 
+                        name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                        className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                      />
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent className="mt-3 space-y-3">
+                      <AlertDescription className="text-blue-800">
+                        <div className="space-y-4">
+                          <div>
+                            <p className="font-medium mb-2">🚧 Что означает "В разработке"?</p>
+                            <p className="text-sm">
+                              Эти разделы приложения находятся в активной разработке. Мы тщательно проектируем каждую функцию, 
+                              чтобы она была максимально полезной для вашей семьи. Ваше участие поможет нам создать лучший продукт!
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="font-medium mb-2">✨ Что вы можете сделать?</p>
+                            <ul className="text-sm space-y-1 list-disc list-inside">
+                              <li><strong>Изучите планируемые функции</strong> — посмотрите список возможностей раздела</li>
+                              <li><strong>Проголосуйте за раздел</strong> — покажите, что этот функционал важен для вас</li>
+                              <li><strong>Оставьте предложения</strong> — напишите нам, какие дополнительные возможности хотели бы видеть</li>
+                              <li><strong>Следите за обновлениями</strong> — мы регулярно добавляем новые функции</li>
+                            </ul>
+                          </div>
+
+                          <div>
+                            <p className="font-medium mb-2">📊 Как работает голосование?</p>
+                            <p className="text-sm mb-2">
+                              Ваши голоса помогают нам приоритизировать разработку. Разделы с большим количеством голосов 
+                              будут реализованы быстрее. Один пользователь = один голос за раздел.
+                            </p>
+                            <p className="text-sm italic text-blue-700">
+                              💡 <strong>Важно:</strong> Голосуйте только за те разделы, которые действительно нужны вашей семье!
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="font-medium mb-2">⏱️ Когда будет готово?</p>
+                            <p className="text-sm">
+                              Сроки разработки зависят от:
+                            </p>
+                            <ul className="text-sm space-y-1 list-disc list-inside mt-2">
+                              <li>Количества голосов пользователей</li>
+                              <li>Технической сложности функций</li>
+                              <li>Приоритетов команды разработки</li>
+                              <li>Обратной связи от первых пользователей</li>
+                            </ul>
+                          </div>
+
+                          <div>
+                            <p className="font-medium mb-2">💬 Хотите внести вклад?</p>
+                            <p className="text-sm">
+                              Мы всегда открыты к вашим идеям! Если у вас есть предложения по функциям раздела, 
+                              напишите нам через форму обратной связи в настройках приложения. Лучшие идеи обязательно реализуем!
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-t border-blue-200">
+                            <p className="text-sm italic">
+                              🎯 <strong>Наша цель:</strong> Создать приложение, которое действительно помогает семьям организовывать жизнь. 
+                              Каждый раздел разрабатывается с учётом реальных потребностей пользователей.
+                            </p>
+                          </div>
+                        </div>
+                      </AlertDescription>
+                    </CollapsibleContent>
+                  </div>
+                </div>
+              </Alert>
+            </Collapsible>
+
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-6">
               <div className="flex items-center gap-3 mb-4">
-                <Icon name="Sparkles" size={24} className="text-blue-600" />
-                <h2 className="text-2xl font-bold text-blue-900">Что будет в этом разделе?</h2>
+                <Icon name="Sparkles" size={24} className="text-amber-600" />
+                <h2 className="text-2xl font-bold text-amber-900">Что будет в этом разделе?</h2>
               </div>
               <p className="text-gray-700 text-lg leading-relaxed">
                 Мы работаем над созданием этого функционала! Скоро здесь появятся полезные возможности для управления и организации.
