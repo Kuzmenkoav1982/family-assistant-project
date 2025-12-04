@@ -583,6 +583,17 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
   ];
 
+  const availableBottomBarSections = [
+    { id: 'analytics', icon: 'TrendingUp', label: 'Аналитика' },
+    { id: 'children', icon: 'Baby', label: 'Дети' },
+    { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
+    { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
+    { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
+    { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
+    { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
+    { id: 'goals', icon: 'Target', label: 'Цели' },
+  ];
+
   const availableTopPanelSections = [
     { id: 'stats', icon: 'Users', label: 'Счётчик семей' },
     { id: 'voting', icon: 'Vote', label: 'Голосования' },
