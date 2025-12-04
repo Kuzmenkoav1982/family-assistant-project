@@ -15,15 +15,15 @@ import type { FamilyMember } from '@/types/family.types';
 export default function Children() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { members } = useFamilyMembers();
+  const { members, loading } = useFamilyMembers();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   const children = members?.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') || [];
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const currentMember = members?.find(m => m.user_id === currentUser?.id);
   const isParent = currentMember?.role === 'Папа' || currentMember?.role === 'Мама' || currentMember?.role === 'Владелец' || currentUser?.role === 'Родитель';
-  const [isInstructionOpen, setIsInstructionOpen] = useState(true);
 
   useEffect(() => {
     const childId = searchParams.get('childId');
@@ -41,6 +41,17 @@ export default function Children() {
       setViewMode(isParent ? 'parent' : 'child');
     }
   }, [searchParams, isParent, children, selectedChildId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка профилей детей...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!children || children.length === 0) {
     return (
