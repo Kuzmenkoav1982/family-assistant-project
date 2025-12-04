@@ -337,7 +337,15 @@ export default function Children() {
                     onClick={() => setSelectedChildId(child.id)}
                   >
                     <CardContent className="pt-6 space-y-4">
-                      <div className="text-6xl">{child.avatar}</div>
+                      {child.avatarType === 'photo' && child.photoUrl ? (
+                        <img 
+                          src={child.photoUrl} 
+                          alt={child.name}
+                          className="w-24 h-24 rounded-full object-cover border-4 border-purple-300 mx-auto"
+                        />
+                      ) : (
+                        <div className="text-6xl">{child.avatar}</div>
+                      )}
                       <div>
                         <h3 className="text-xl font-bold text-gray-900">{child.name}</h3>
                         <p className="text-sm text-gray-600">{child.age} {child.age === 1 ? 'год' : child.age < 5 ? 'года' : 'лет'}</p>

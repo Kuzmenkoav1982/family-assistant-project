@@ -573,11 +573,12 @@ export default function Index({ onLogout }: IndexProps) {
   const availableSections = [
     { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
+    { id: 'development', icon: 'Brain', label: 'Развитие' },
     { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
     { id: 'ai-assistant', icon: 'Bot', label: 'AI Ассистент' },
     { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
-    { id: 'goals', icon: 'Target', label: 'Цели' },
+    { id: 'goals', icon: 'Target', label:'Цели' },
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
     { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
