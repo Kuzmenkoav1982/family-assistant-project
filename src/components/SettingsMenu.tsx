@@ -149,7 +149,7 @@ export default function SettingsMenu() {
           </DialogHeader>
 
           <Tabs defaultValue="invites" className="w-full flex-1 overflow-hidden flex flex-col">
-            <TabsList className="grid w-full grid-cols-6 mx-6 my-2">
+            <TabsList className="grid w-full grid-cols-7 mx-6 my-2">
               <TabsTrigger value="invites" className="text-xs md:text-sm">
                 <Icon name="Users" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Приглашения</span>
@@ -169,6 +169,11 @@ export default function SettingsMenu() {
                 <Icon name="Download" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Экспорт</span>
                 <span className="sm:hidden">Файл</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="text-xs md:text-sm">
+                <Icon name="Mail" className="mr-1 md:mr-2" size={14} />
+                <span className="hidden sm:inline">Уведомления</span>
+                <span className="sm:hidden">📧</span>
               </TabsTrigger>
               <TabsTrigger value="subscription" className="text-xs md:text-sm">
                 <Icon name="CreditCard" className="mr-1 md:mr-2" size={14} />
@@ -272,6 +277,10 @@ export default function SettingsMenu() {
               />
             </TabsContent>
 
+            <TabsContent value="notifications" className="flex-1 overflow-y-auto px-6 pb-6">
+              <NotificationTest />
+            </TabsContent>
+
             <TabsContent value="subscription" className="flex-1 overflow-y-auto px-6 pb-6">
               <SubscriptionSettings
                 subscription={subscription}
@@ -294,5 +303,178 @@ export default function SettingsMenu() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function NotificationTest() {
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState<string>('');
+
+  const NOTIFICATIONS_API = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774';
+
+  const handleSendEmail = async () => {
+    if (!email) {
+      setResult('⚠️ Введите email');
+      return;
+    }
+
+    setSending(true);
+    setResult('');
+    
+    try {
+      const response = await fetch(`${NOTIFICATIONS_API}?action=email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          subject: 'Тестовое письмо из Family Organizer',
+          body: 'Это тестовое письмо для проверки отправки email через Яндекс.Почту SMTP. Если вы получили это письмо, значит всё работает! 🎉'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResult('✅ Email успешно отправлен!');
+      } else {
+        setResult(`❌ Ошибка: ${data.error}`);
+      }
+    } catch (error) {
+      setResult(`❌ Ошибка сети: ${error}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSendSMS = async () => {
+    if (!phone) {
+      setResult('⚠️ Введите номер телефона');
+      return;
+    }
+
+    setSending(true);
+    setResult('');
+    
+    try {
+      const response = await fetch(`${NOTIFICATIONS_API}?action=sms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone,
+          message: 'Тест SMS из Family Organizer'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResult('✅ SMS успешно отправлено!');
+      } else {
+        setResult(`❌ Ошибка: ${data.error}`);
+      }
+    } catch (error) {
+      setResult(`❌ Ошибка сети: ${error}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        <div className="flex items-start gap-3">
+          <Icon name="Info" className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+          <div className="text-sm text-blue-800">
+            <p className="font-semibold mb-1">Тестирование уведомлений</p>
+            <p>Отправьте тестовый email или SMS, чтобы проверить работу системы уведомлений.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-white rounded-lg p-6 border">
+          <div className="flex items-center gap-2 mb-4">
+            <Icon name="Mail" className="text-purple-600" size={24} />
+            <h3 className="text-lg font-semibold">Email уведомления</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email получателя
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@mail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            
+            <Button
+              onClick={handleSendEmail}
+              disabled={sending}
+              className="w-full"
+            >
+              <Icon name="Send" size={18} className="mr-2" />
+              {sending ? 'Отправка...' : 'Отправить тестовый email'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-6 border">
+          <div className="flex items-center gap-2 mb-4">
+            <Icon name="MessageSquare" className="text-green-600" size={24} />
+            <h3 className="text-lg font-semibold">SMS уведомления</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Номер телефона
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+79001234567"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+            
+            <Button
+              onClick={handleSendSMS}
+              disabled={sending}
+              className="w-full"
+            >
+              <Icon name="Send" size={18} className="mr-2" />
+              {sending ? 'Отправка...' : 'Отправить тестовое SMS'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {result && (
+        <div className={`rounded-lg p-4 ${
+          result.startsWith('✅') 
+            ? 'bg-green-50 border border-green-200 text-green-800' 
+            : result.startsWith('❌') 
+            ? 'bg-red-50 border border-red-200 text-red-800'
+            : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+        }`}>
+          <p className="text-sm font-medium">{result}</p>
+        </div>
+      )}
+
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <p className="text-xs text-gray-600">
+          <strong>Примечание:</strong> Для работы email требуются секреты YANDEX_SMTP_LOGIN и YANDEX_SMTP_PASSWORD. 
+          Для SMS требуются YANDEX_CLOUD_API_KEY и YANDEX_FOLDER_ID.
+        </p>
+      </div>
+    </div>
   );
 }
