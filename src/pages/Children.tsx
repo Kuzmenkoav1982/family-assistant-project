@@ -67,7 +67,8 @@ export default function Children() {
     
     if (childId && childId !== selectedChildId) {
       setSelectedChildId(childId);
-    } else if (children.length > 0 && !selectedChildId) {
+    } else if (children.length > 0 && !selectedChildId && !isParent) {
+      // Автоматически выбираем первого ребёнка ТОЛЬКО для детей (не родителей)
       setSelectedChildId(children[0].id);
     }
     
@@ -289,26 +290,64 @@ export default function Children() {
           </Alert>
         </Collapsible>
 
-        <div className="mb-6">
-          <div className="flex gap-3 overflow-x-auto pb-4">
-            {children.map((child) => (
-              <Button
-                key={child.id}
-                variant={selectedChildId === child.id ? 'default' : 'outline'}
-                onClick={() => setSelectedChildId(child.id)}
-                className="gap-2 whitespace-nowrap"
-              >
-                <span className="text-2xl">{child.avatar}</span>
-                {child.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {viewMode === 'parent' ? (
-          <ParentDashboard child={selectedChild} />
+        {/* Если родитель и не выбран ребёнок - показываем экран выбора */}
+        {isParent && !selectedChildId ? (
+          <Card className="max-w-4xl mx-auto text-center py-16">
+            <CardContent className="space-y-8">
+              <div className="text-8xl mb-6">👨‍👩‍👧‍👦</div>
+              <h2 className="text-3xl font-bold text-gray-900">
+                Выберите ребёнка
+              </h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                Нажмите на имя ребёнка, чтобы просмотреть его профиль, достижения и прогресс в развитии
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto mt-8">
+                {children.map((child) => (
+                  <Card 
+                    key={child.id}
+                    className="hover:shadow-xl transition-all cursor-pointer hover:scale-105"
+                    onClick={() => setSelectedChildId(child.id)}
+                  >
+                    <CardContent className="pt-6 space-y-4">
+                      <div className="text-6xl">{child.avatar}</div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900">{child.name}</h3>
+                        <p className="text-sm text-gray-600">{child.age} {child.age === 1 ? 'год' : child.age < 5 ? 'года' : 'лет'}</p>
+                      </div>
+                      <Button className="w-full">
+                        Открыть профиль
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         ) : (
-          <ChildProfileComponent child={selectedChild} />
+          <>
+            <div className="mb-6">
+              <div className="flex gap-3 overflow-x-auto pb-4">
+                {children.map((child) => (
+                  <Button
+                    key={child.id}
+                    variant={selectedChildId === child.id ? 'default' : 'outline'}
+                    onClick={() => setSelectedChildId(child.id)}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <span className="text-2xl">{child.avatar}</span>
+                    {child.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {viewMode === 'parent' ? (
+              <ParentDashboard child={selectedChild} />
+            ) : (
+              <ChildProfileComponent child={selectedChild} />
+            )}
+          </>
         )}
       </div>
       <Footer />
