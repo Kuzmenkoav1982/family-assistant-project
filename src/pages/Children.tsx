@@ -24,7 +24,14 @@ export default function Children() {
   const children = Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [];
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const currentMember = Array.isArray(members) ? members.find(m => m.user_id === currentUser?.id) : undefined;
-  const isParent = currentMember?.role === 'Папа' || currentMember?.role === 'Мама' || currentMember?.role === 'Владелец' || currentUser?.role === 'Родитель';
+  const isParent = currentMember?.role === 'Папа' || currentMember?.role === 'Мама' || currentMember?.role === 'Владелец' || currentUser?.role === 'Родitель';
+  
+  // Debug logs
+  console.log('[Children] members:', members);
+  console.log('[Children] children:', children);
+  console.log('[Children] currentUser:', currentUser);
+  console.log('[Children] currentMember:', currentMember);
+  console.log('[Children] isParent:', isParent);
 
   useEffect(() => {
     if (!Array.isArray(members) || members.length === 0) return;
