@@ -21,10 +21,21 @@ export default function Children() {
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   // Safe data processing with Array.isArray check - use useMemo to prevent infinite loops
-  const children = useMemo(() => 
-    Array.isArray(members) ? members.filter(m => m.role === 'Сын' || m.role === 'Дочь' || m.role === 'Ребёнок') : [],
-    [members]
-  );
+  // Фильтруем всех детей по нескольким критериям
+  const children = useMemo(() => {
+    if (!Array.isArray(members)) return [];
+    
+    return members.filter(m => {
+      const role = m.role?.toLowerCase() || '';
+      // Проверяем различные варианты написания роли ребёнка
+      return role.includes('сын') || 
+             role.includes('дочь') || 
+             role.includes('ребёнок') || 
+             role.includes('ребенок') ||
+             role === 'сын' ||
+             role === 'дочь';
+    });
+  }, [members]);
   const currentUser = useMemo(() => JSON.parse(localStorage.getItem('userData') || '{}'), []);
   
   // Try to find by user_id first, then by id
@@ -58,7 +69,13 @@ export default function Children() {
     id: m.id,
     user_id: m.user_id,
     name: m.name,
-    role: m.role
+    role: m.role,
+    age: m.age
+  })));
+  console.log('[Children] Filtered children:', children.map(c => ({
+    name: c.name,
+    role: c.role,
+    age: c.age
   })));
   console.log('[Children] ========== DEBUG END ==========');
 
