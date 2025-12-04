@@ -567,6 +567,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const handleWidgetSettingsSave = (settings: WidgetConfig[]) => {
     setWidgetSettings(settings);
+    localStorage.setItem('widgetSettings', JSON.stringify(settings));
   };
 
   const availableSections = [
@@ -3694,74 +3695,78 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
 
           <div className="space-y-6">
-            <Card 
-              key="sidebar-weekly-calendar" 
-              className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 cursor-pointer hover:shadow-lg transition-all" 
-              style={{ animationDelay: '0.5s' }}
-              onClick={() => navigate('/calendar')}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Calendar" size={24} />
-                  Календарь на неделю
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {getWeekDays().slice(0, 3).map((day, index) => {
-                    const dayEvents = calendarEvents.filter(event => event.date === day.fullDate);
-                    return (
-                      <div
-                        key={day.fullDate}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          index === 0 
-                            ? 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300' 
-                            : 'bg-white border-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                              index === 0 ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {day.date}
+            {isWidgetEnabled('calendar') && (
+              <Card 
+                key="sidebar-weekly-calendar" 
+                className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 cursor-pointer hover:shadow-lg transition-all" 
+                style={{ animationDelay: '0.5s' }}
+                onClick={() => navigate('/calendar')}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Calendar" size={24} />
+                    Календарь на неделю
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {getWeekDays().slice(0, 3).map((day, index) => {
+                      const dayEvents = calendarEvents.filter(event => event.date === day.fullDate);
+                      return (
+                        <div
+                          key={day.fullDate}
+                          className={`p-3 rounded-lg border-2 transition-all ${
+                            index === 0 
+                              ? 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-300' 
+                              : 'bg-white border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                                index === 0 ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {day.date}
+                              </div>
+                              <span className={`font-semibold ${index === 0 ? 'text-purple-700' : 'text-gray-700'}`}>
+                                {day.day}
+                              </span>
                             </div>
-                            <span className={`font-semibold ${index === 0 ? 'text-purple-700' : 'text-gray-700'}`}>
-                              {day.day}
-                            </span>
+                            {dayEvents.length > 0 && (
+                              <Badge variant="secondary" className="text-xs">
+                                {dayEvents.length}
+                              </Badge>
+                            )}
                           </div>
                           {dayEvents.length > 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              {dayEvents.length}
-                            </Badge>
+                            <div className="space-y-1 mt-2">
+                              {dayEvents.slice(0, 2).map((event) => (
+                                <div key={event.id} className={`text-xs p-2 rounded ${event.color} border`}>
+                                  <div className="flex items-center gap-1">
+                                    <Icon name="Clock" size={12} />
+                                    <span className="font-semibold">{event.time}</span>
+                                  </div>
+                                  <p className="font-medium mt-1 truncate">{event.title}</p>
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
-                        {dayEvents.length > 0 && (
-                          <div className="space-y-1 mt-2">
-                            {dayEvents.slice(0, 2).map((event) => (
-                              <div key={event.id} className={`text-xs p-2 rounded ${event.color} border`}>
-                                <div className="flex items-center gap-1">
-                                  <Icon name="Clock" size={12} />
-                                  <span className="font-semibold">{event.time}</span>
-                                </div>
-                                <p className="font-medium mt-1 truncate">{event.title}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <Button variant="ghost" size="sm" className="w-full mt-3 text-purple-600">
-                  Открыть полный календарь →
-                </Button>
-              </CardContent>
-            </Card>
+                      );
+                    })}
+                  </div>
+                  <Button variant="ghost" size="sm" className="w-full mt-3 text-purple-600">
+                    Открыть полный календарь →
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
-            <div className="animate-fade-in" style={{ animationDelay: '0.65s' }}>
-              <TasksWidget />
-            </div>
+            {isWidgetEnabled('tasks') && (
+              <div className="animate-fade-in" style={{ animationDelay: '0.65s' }}>
+                <TasksWidget />
+              </div>
+            )}
 
 
           </div>
