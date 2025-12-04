@@ -185,6 +185,8 @@ export function LeftMenu({
                   navigate('/calendar');
                 } else if (section.id === 'children') {
                   navigate('/children');
+                } else if (section.id === 'development') {
+                  navigate('/development');
                 } else {
                   setActiveSection(section.id);
                 }

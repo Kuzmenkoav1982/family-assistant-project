@@ -574,6 +574,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'children', icon: 'Baby', label: 'Дети' },
+    { id: 'development', icon: 'Brain', label: 'Развитие' },
     { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
     { id: 'ai-assistant', icon: 'Bot', label: 'AI Ассистент' },
     { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
