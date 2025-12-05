@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -307,13 +307,48 @@ export default function SettingsMenu() {
   );
 }
 
+interface NotificationHistoryItem {
+  id: number;
+  notification_type: string;
+  recipient: string;
+  subject?: string;
+  message: string;
+  status: string;
+  error_message?: string;
+  sent_at: string;
+}
+
 function NotificationTest() {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [sending, setSending] = useState(false);
+  const [history, setHistory] = useState<NotificationHistoryItem[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
 
   const NOTIFICATIONS_API = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774';
+  const DB_API = 'https://db-proxy.poehali.workers.dev/';
+
+  const loadHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const response = await fetch(`${DB_API}?query=${encodeURIComponent(
+        'SELECT * FROM notification_history ORDER BY sent_at DESC LIMIT 20'
+      )}`);
+      const data = await response.json();
+      if (data.rows) {
+        setHistory(data.rows);
+      }
+    } catch (error) {
+      console.error('Failed to load notification history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -362,6 +397,7 @@ function NotificationTest() {
           variant: 'default'
         });
         setEmail('');
+        loadHistory();
       } else {
         toast({
           title: '❌ Ошибка отправки',
@@ -411,6 +447,7 @@ function NotificationTest() {
           variant: 'default'
         });
         setPhone('');
+        loadHistory();
       } else {
         toast({
           title: '❌ Ошибка отправки',
@@ -505,7 +542,82 @@ function NotificationTest() {
         </div>
       </div>
 
+      <div className="bg-white rounded-lg border">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon name="History" className="text-gray-600" size={24} />
+              <h3 className="text-lg font-semibold">История уведомлений</h3>
+            </div>
+            <Button 
+              onClick={loadHistory} 
+              variant="outline" 
+              size="sm"
+              disabled={loadingHistory}
+            >
+              <Icon name="RotateCw" size={16} className={loadingHistory ? 'animate-spin' : ''} />
+            </Button>
+          </div>
+        </div>
 
+        <div className="divide-y max-h-96 overflow-y-auto">
+          {loadingHistory ? (
+            <div className="p-8 text-center text-gray-500">
+              <Icon name="Loader2" className="mx-auto mb-2 animate-spin" size={32} />
+              <p>Загрузка истории...</p>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <Icon name="Inbox" className="mx-auto mb-2 text-gray-400" size={48} />
+              <p>История уведомлений пуста</p>
+              <p className="text-sm mt-1">Отправьте тестовое уведомление</p>
+            </div>
+          ) : (
+            history.map((item) => (
+              <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-1">
+                    {item.notification_type === 'email' ? (
+                      <Icon name="Mail" className="text-purple-600" size={20} />
+                    ) : (
+                      <Icon name="MessageSquare" className="text-green-600" size={20} />
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium text-sm truncate">{item.recipient}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        item.status === 'success' 
+                          ? 'bg-green-100 text-green-700' 
+                          : item.status === 'error'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {item.status === 'success' ? '✅' : item.status === 'error' ? '❌' : '⏳'} {item.status}
+                      </span>
+                    </div>
+                    
+                    {item.subject && (
+                      <p className="text-sm text-gray-700 mb-1">{item.subject}</p>
+                    )}
+                    
+                    <p className="text-xs text-gray-500 truncate">{item.message}</p>
+                    
+                    {item.error_message && (
+                      <p className="text-xs text-red-600 mt-1">⚠️ {item.error_message}</p>
+                    )}
+                    
+                    <p className="text-xs text-gray-400 mt-2">
+                      {new Date(item.sent_at).toLocaleString('ru-RU')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
 
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <p className="text-xs text-gray-600">
