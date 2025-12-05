@@ -127,7 +127,7 @@ const AIAssistant = () => {
         {/* Header */}
         <div className="mb-6 text-center">
           <img 
-            src="https://cdn.poehali.dev/files/30959398-cfa7-4f4e-aee8-fcb24b40cd24.png" 
+            src="https://cdn.poehali.dev/files/59a0a56b-d866-412a-8641-5e1d81b652e3.png" 
             alt="Кузя"
             className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-orange-300 shadow-lg"
           />
@@ -221,7 +221,7 @@ const AIAssistant = () => {
                   </div>
                 ) : (
                   <img 
-                    src="https://cdn.poehali.dev/files/30959398-cfa7-4f4e-aee8-fcb24b40cd24.png" 
+                    src="https://cdn.poehali.dev/files/59a0a56b-d866-412a-8641-5e1d81b652e3.png" 
                     alt="Кузя"
                     className="flex-shrink-0 w-10 h-10 rounded-full object-cover border-2 border-orange-300"
                   />
@@ -255,7 +255,7 @@ const AIAssistant = () => {
             {isLoading && (
               <div className="flex gap-3">
                 <img 
-                  src="https://cdn.poehali.dev/files/30959398-cfa7-4f4e-aee8-fcb24b40cd24.png" 
+                  src="https://cdn.poehali.dev/files/59a0a56b-d866-412a-8641-5e1d81b652e3.png" 
                   alt="Кузя"
                   className="flex-shrink-0 w-10 h-10 rounded-full object-cover border-2 border-orange-300"
                 />
