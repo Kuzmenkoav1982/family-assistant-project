@@ -17,7 +17,7 @@ export function WelcomeScreen({ showWelcome, welcomeText, onDismiss }: WelcomeSc
       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
       
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-        <div className="mb-8 animate-bounce-slow">
+        <div className="mb-8">
           <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
             <img 
               src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 

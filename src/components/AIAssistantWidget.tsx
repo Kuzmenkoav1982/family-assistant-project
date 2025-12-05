@@ -139,7 +139,7 @@ const AIAssistantWidget = () => {
     <>
       {/* Welcome Popup */}
       {showWelcome && !isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 animate-bounce-in">
+        <div className="fixed bottom-24 right-6 z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-xs border-4 border-orange-300">
             <button
               onClick={() => setShowWelcome(false)}
@@ -151,7 +151,7 @@ const AIAssistantWidget = () => {
               <img 
                 src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
                 alt="Кузя"
-                className="w-16 h-16 rounded-full object-cover object-top border-4 border-orange-400 flex-shrink-0 animate-bounce"
+                className="w-16 h-16 rounded-full object-cover object-top border-4 border-orange-400 flex-shrink-0"
               />
               <div>
                 <h3 className="font-bold text-gray-800 mb-1">Привет! Я Кузя! 🏡</h3>
