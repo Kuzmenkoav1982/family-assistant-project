@@ -473,20 +473,159 @@ export default function Presentation() {
               </div>
             </div>
 
-            {/* Блок 8: Коммуникация и поддержка */}
+            {/* Блок 8: СУПЕРСИЛА - ИИ и голосовое управление */}
+            <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-8 shadow-xl border-4 border-cyan-300">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-cyan-400 text-blue-900 px-4 py-1 rounded-full text-sm font-bold">
+                  🤖 ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ
+                </div>
+              </div>
+              <h3 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                <Icon name="Brain" size={36} className="text-cyan-300" />
+                ИИ-помощник и голосовое управление
+              </h3>
+              <div className="space-y-4 ml-2">
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="MessageSquare" className="text-blue-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Умный семейный ассистент</p>
+                      <p className="text-gray-700">ИИ знает все о вашей семье: предпочтения, расписание, интересы каждого члена. Отвечает на вопросы, даёт советы, помогает планировать.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Mic" className="text-purple-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Голосовое управление</p>
+                      <p className="text-gray-700">Интеграция с Алисой, Siri, Google Assistant. Скажите: "Добавь молоко в список покупок" или "Напомни Маше о тренировке" — ИИ всё сделает.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="MapPin" className="text-red-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Планирование путешествий</p>
+                      <p className="text-gray-700">ИИ изучает предпочтения семьи и предлагает направления для отдыха. Находит отели, туры, билеты с учётом бюджета и интересов каждого.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Theater" className="text-pink-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Культурные рекомендации</p>
+                      <p className="text-gray-700">Если кто-то любит театр — ИИ предложит спектакли. Кто-то увлекается кино — подберёт премьеры. Учитывает интересы каждого.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Search" className="text-green-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Поиск и мониторинг информации</p>
+                      <p className="text-gray-700">ИИ отслеживает цены на билеты, акции в магазинах, новые кружки для детей, скидки на отели — всё что важно вашей семье.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Sparkles" className="text-yellow-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Персональные предложения</p>
+                      <p className="text-gray-700">На основе анализа предпочтений ИИ предлагает рестораны, мероприятия, товары, услуги — точно то, что нужно вашей семье прямо сейчас.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Calendar" className="text-orange-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Умное планирование</p>
+                      <p className="text-gray-700">ИИ предлагает оптимальное расписание с учётом занятости всех, напоминает о важных событиях, предупреждает о конфликтах в календаре.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="ShoppingCart" className="text-indigo-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Автоматические списки покупок</p>
+                      <p className="text-gray-700">ИИ анализирует потребление продуктов, предлагает что докупить, напоминает о заканчивающихся товарах, оптимизирует бюджет.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Heart" className="text-rose-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Семейный психолог</p>
+                      <p className="text-gray-700">ИИ помогает разрешать конфликты, даёт советы по воспитанию детей, поддерживает в трудных ситуациях. Доступен 24/7.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="TrendingUp" className="text-cyan-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Аналитика и инсайты</p>
+                      <p className="text-gray-700">ИИ анализирует активность семьи, выявляет паттерны, предлагает улучшения: "Дети стали меньше читать" или "Семья давно не ездила вместе на природу".</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Zap" className="text-amber-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Быстрые команды</p>
+                      <p className="text-gray-700">"Создай задачу для всех", "Запланируй семейный ужин на выходных", "Покажи расходы за месяц" — говорите естественным языком, ИИ понимает всё.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Globe" className="text-emerald-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Синхронизация с устройствами</p>
+                      <p className="text-gray-700">Все голосовые помощники синхронизированы. Сказали команду на телефоне, умной колонке или часах — всё обновляется мгновенно.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-cyan-400 rounded-xl p-6 text-center">
+                <p className="text-blue-900 font-bold text-xl mb-2">
+                  🚀 ИИ делает управление семьёй простым и приятным
+                </p>
+                <p className="text-blue-800 text-lg">
+                  Просто говорите что нужно — технологии сделают всё за вас
+                </p>
+              </div>
+            </div>
+
+            {/* Блок 9: Коммуникация и сообщество */}
             <div className="bg-white rounded-2xl p-6 shadow-md">
               <h3 className="text-2xl font-bold text-indigo-600 mb-4 flex items-center gap-3">
                 <Icon name="MessageCircle" size={28} />
-                Коммуникация и поддержка
+                Коммуникация и сообщество
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
                   <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>AI-ассистент</strong> — умный помощник для решения семейных вопросов</p>
-                </div>
-                <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Сообщество</strong> — общайтесь с другими семьями, делитесь опытом</p>
+                  <p><strong>Сообщество семей</strong> — общайтесь с другими семьями, делитесь опытом и советами</p>
                 </div>
                 <div className="flex gap-3">
                   <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
@@ -494,12 +633,12 @@ export default function Presentation() {
                 </div>
                 <div className="flex gap-3">
                   <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Техподдержка</strong> — быстрая помощь в решении вопросов</p>
+                  <p><strong>Техподдержка 24/7</strong> — быстрая помощь в решении любых вопросов</p>
                 </div>
               </div>
             </div>
 
-            {/* Блок 9: Настройки и безопасность */}
+            {/* Блок 10: Настройки и безопасность */}
             <div className="bg-white rounded-2xl p-6 shadow-md">
               <h3 className="text-2xl font-bold text-slate-600 mb-4 flex items-center gap-3">
                 <Icon name="Settings" size={28} />
