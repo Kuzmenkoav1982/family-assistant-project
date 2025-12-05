@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -52,6 +53,7 @@ interface FoodDiaryEntry {
 }
 
 export default function Nutrition() {
+  const navigate = useNavigate();
   const { members } = useFamilyMembers();
   const [selectedMemberId, setSelectedMemberId] = useState<number>(1);
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
@@ -325,7 +327,10 @@ export default function Nutrition() {
         {/* Кнопка спросить Кузю */}
         <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
           <CardContent className="pt-6">
-            <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            <Button 
+              onClick={() => navigate('/ai-assistant')}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
               <Icon name="Sparkles" className="mr-2" />
               Спросить Кузю-диетолога
             </Button>
