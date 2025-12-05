@@ -6,6 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 
 const NUTRITION_API_URL = 'https://functions.poehali.dev/c592ffff-18dd-4d1c-b199-ff8832c83a2c';
@@ -59,6 +65,16 @@ export default function Nutrition() {
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
   const [foodDiary, setFoodDiary] = useState<FoodDiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [newEntry, setNewEntry] = useState({
+    product_id: null as number | null,
+    product_name: '',
+    amount: '',
+    meal_type: 'breakfast'
+  });
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -90,6 +106,68 @@ export default function Nutrition() {
     } catch (error) {
       console.error('Ошибка загрузки дневника:', error);
     }
+  };
+
+  const searchProducts = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const response = await fetch(
+        `${NUTRITION_API_URL}/?action=search&query=${encodeURIComponent(query)}`
+      );
+      const data = await response.json();
+      setSearchResults(data.products || []);
+    } catch (error) {
+      console.error('Ошибка поиска продуктов:', error);
+    }
+  };
+
+  const handleAddEntry = async () => {
+    if (!newEntry.product_id && !newEntry.product_name) return;
+    if (!newEntry.amount) return;
+
+    try {
+      const response = await fetch(NUTRITION_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_diary',
+          user_id: selectedMemberId,
+          meal_type: newEntry.meal_type,
+          product_id: newEntry.product_id,
+          product_name: newEntry.product_name,
+          amount: parseFloat(newEntry.amount)
+        })
+      });
+
+      if (response.ok) {
+        await loadNutritionData();
+        await loadFoodDiary();
+        setIsAddDialogOpen(false);
+        setNewEntry({
+          product_id: null,
+          product_name: '',
+          amount: '',
+          meal_type: 'breakfast'
+        });
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Ошибка добавления записи:', error);
+    }
+  };
+
+  const selectProduct = (product: any) => {
+    setNewEntry({
+      ...newEntry,
+      product_id: product.id,
+      product_name: product.name
+    });
+    setSearchQuery(product.name);
+    setSearchResults([]);
   };
 
   const getMealTypeLabel = (type: string) => {
@@ -143,7 +221,81 @@ export default function Nutrition() {
             </h1>
             <p className="text-gray-600 mt-1">Анализ и контроль питания семьи</p>
           </div>
+          <Button onClick={() => navigate('/')} variant="outline">
+            <Icon name="ArrowLeft" className="mr-2" size={16} />
+            Назад
+          </Button>
         </div>
+
+        {/* Инструкция */}
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-green-600 mt-0.5" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-green-900 text-lg">
+                    Как пользоваться разделом Питание
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-green-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-green-800">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-medium mb-2">🍎 Для чего нужен раздел Питание?</p>
+                        <p className="text-sm">
+                          Раздел помогает отслеживать питание всей семьи: калории, белки, жиры, углеводы. 
+                          Вы видите, сколько съели сегодня и сколько осталось до дневной нормы.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📝 Как добавить приём пищи?</p>
+                        <ol className="text-sm space-y-1 ml-4 list-decimal">
+                          <li>Нажмите кнопку "Добавить приём пищи"</li>
+                          <li>Выберите тип приёма: завтрак, обед, ужин или перекус</li>
+                          <li>Введите название продукта в поиск (например, "молоко")</li>
+                          <li>Выберите продукт из списка или введите свой</li>
+                          <li>Укажите количество в граммах</li>
+                          <li>Нажмите "Добавить" — данные автоматически пересчитаются</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">👨‍👩‍👧‍👦 Как отслеживать питание семьи?</p>
+                        <p className="text-sm">
+                          Переключайтесь между членами семьи с помощью кнопок с аватарами. 
+                          У каждого свой дневник питания и индивидуальные нормы калорий.
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">🤖 Кузя-диетолог в помощь!</p>
+                        <p className="text-sm">
+                          Нажмите "Спросить Кузю-диетолога" — он проанализирует ваш рацион, 
+                          подскажет сколько калорий в блюде и предложит здоровые альтернативы.
+                        </p>
+                      </div>
+
+                      <div className="bg-white/50 p-3 rounded-lg">
+                        <p className="font-medium mb-1 text-sm">💡 Совет:</p>
+                        <p className="text-sm">
+                          Заполняйте дневник сразу после еды — так проще не забыть. 
+                          В базе уже 60+ популярных продуктов с точными данными по КБЖУ.
+                        </p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         {/* Выбор члена семьи */}
         {members.length > 0 && (
@@ -195,6 +347,88 @@ export default function Nutrition() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Кнопка добавления */}
+        <div className="flex justify-end">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Icon name="Plus" size={18} />
+                Добавить приём пищи
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Добавить приём пищи</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div>
+                  <Label>Тип приёма пищи</Label>
+                  <Select
+                    value={newEntry.meal_type}
+                    onValueChange={(value) => setNewEntry({ ...newEntry, meal_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="breakfast">🍳 Завтрак</SelectItem>
+                      <SelectItem value="lunch">🍽️ Обед</SelectItem>
+                      <SelectItem value="dinner">🍷 Ужин</SelectItem>
+                      <SelectItem value="snack">🍎 Перекус</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Продукт</Label>
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      searchProducts(e.target.value);
+                    }}
+                    placeholder="Начните вводить название..."
+                  />
+                  {searchResults.length > 0 && (
+                    <div className="mt-2 border rounded-lg max-h-48 overflow-y-auto">
+                      {searchResults.map((product) => (
+                        <button
+                          key={product.id}
+                          onClick={() => selectProduct(product)}
+                          className="w-full text-left p-3 hover:bg-gray-100 border-b last:border-0"
+                        >
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {product.calories} ккал • Б: {product.protein}г • Ж: {product.fats}г • У: {product.carbs}г
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label>Количество (граммов)</Label>
+                  <Input
+                    type="number"
+                    value={newEntry.amount}
+                    onChange={(e) => setNewEntry({ ...newEntry, amount: e.target.value })}
+                    placeholder="100"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Отмена
+                </Button>
+                <Button onClick={handleAddEntry}>
+                  Добавить
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         {/* БЖУ карточки */}
         <div className="grid grid-cols-3 gap-4">

@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -29,6 +35,17 @@ export default function Trips() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newTrip, setNewTrip] = useState({
+    title: '',
+    destination: '',
+    country: '',
+    start_date: '',
+    end_date: '',
+    budget: '',
+    description: ''
+  });
 
   useEffect(() => {
     loadTrips(activeTab);
@@ -97,6 +114,45 @@ export default function Trips() {
     return trips.filter(trip => trip.status === status).length;
   };
 
+  const handleCreateTrip = async () => {
+    if (!newTrip.title || !newTrip.destination || !newTrip.start_date || !newTrip.end_date) {
+      alert('Заполните обязательные поля');
+      return;
+    }
+
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create_trip',
+          ...newTrip,
+          budget: newTrip.budget ? parseFloat(newTrip.budget) : null,
+          status: 'planning',
+          currency: 'RUB',
+          created_by: 1
+        })
+      });
+
+      if (response.ok) {
+        await loadTrips(activeTab);
+        setIsAddDialogOpen(false);
+        setNewTrip({
+          title: '',
+          destination: '',
+          country: '',
+          start_date: '',
+          end_date: '',
+          budget: '',
+          description: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error creating trip:', error);
+      alert('Ошибка при создании поездки');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-20">
       {/* Header */}
@@ -121,6 +177,77 @@ export default function Trips() {
               Wish List
             </Button>
           </div>
+
+          {/* Инструкция */}
+          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+            <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 mb-4">
+              <div className="flex items-start gap-3">
+                <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                    <h3 className="font-semibold text-blue-900 text-lg">
+                      Как планировать путешествия
+                    </h3>
+                    <Icon 
+                      name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                      className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                    />
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-3 space-y-3">
+                    <AlertDescription className="text-blue-800">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="font-medium mb-2">🗺️ Для чего нужен раздел Путешествия?</p>
+                          <p className="text-sm">
+                            Раздел помогает планировать семейные поездки: куда, когда, бюджет. 
+                            Храните билеты, маршруты, дневник впечатлений и фото в одном месте.
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="font-medium mb-2">✈️ Как создать поездку?</p>
+                          <ol className="text-sm space-y-1 ml-4 list-decimal">
+                            <li>Нажмите кнопку "+" внизу справа</li>
+                            <li>Укажите название и место назначения</li>
+                            <li>Выберите даты начала и окончания</li>
+                            <li>Установите бюджет (необязательно)</li>
+                            <li>Нажмите "Создать" — поездка добавится в список</li>
+                          </ol>
+                        </div>
+
+                        <div>
+                          <p className="font-medium mb-2">📋 Что можно добавить в поездку?</p>
+                          <ul className="text-sm space-y-1 ml-4 list-disc">
+                            <li><strong>Билеты и брони:</strong> авиа, отели, транспорт с номерами</li>
+                            <li><strong>Маршрут:</strong> план по дням с местами и временем</li>
+                            <li><strong>Дневник:</strong> записывайте впечатления прямо в поездке</li>
+                            <li><strong>Фото:</strong> создайте альбом из путешествия</li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <p className="font-medium mb-2">⭐ Wish List — места мечты</p>
+                          <p className="text-sm">
+                            Нажмите "Wish List" вверху — добавьте туда места, куда мечтаете поехать. 
+                            Когда придёт время — превратите мечту в реальную поездку одной кнопкой!
+                          </p>
+                        </div>
+
+                        <div className="bg-white/50 p-3 rounded-lg">
+                          <p className="font-medium mb-1 text-sm">💡 Совет:</p>
+                          <p className="text-sm">
+                            Ведите дневник путешествий и загружайте фото сразу — потом будет приятно вспоминать. 
+                            Все поездки архивируются автоматически.
+                          </p>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </CollapsibleContent>
+                </div>
+              </div>
+            </Alert>
+          </Collapsible>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full grid grid-cols-4 lg:grid-cols-5">
@@ -228,14 +355,98 @@ export default function Trips() {
         )}
       </div>
 
-      {/* Floating Add Button */}
-      <Button
-        onClick={() => navigate('/trips/create')}
-        className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg gap-2"
-        size="icon"
-      >
-        <Icon name="Plus" size={24} />
-      </Button>
+      {/* Floating Add Button with Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg gap-2"
+            size="icon"
+          >
+            <Icon name="Plus" size={24} />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Создать новую поездку</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Название поездки *</Label>
+              <Input
+                value={newTrip.title}
+                onChange={(e) => setNewTrip({ ...newTrip, title: e.target.value })}
+                placeholder="Летний отдых в Сочи"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Место назначения *</Label>
+                <Input
+                  value={newTrip.destination}
+                  onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
+                  placeholder="Сочи"
+                />
+              </div>
+              <div>
+                <Label>Страна</Label>
+                <Input
+                  value={newTrip.country}
+                  onChange={(e) => setNewTrip({ ...newTrip, country: e.target.value })}
+                  placeholder="Россия"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Дата начала *</Label>
+                <Input
+                  type="date"
+                  value={newTrip.start_date}
+                  onChange={(e) => setNewTrip({ ...newTrip, start_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Дата окончания *</Label>
+                <Input
+                  type="date"
+                  value={newTrip.end_date}
+                  onChange={(e) => setNewTrip({ ...newTrip, end_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Бюджет (₽)</Label>
+              <Input
+                type="number"
+                value={newTrip.budget}
+                onChange={(e) => setNewTrip({ ...newTrip, budget: e.target.value })}
+                placeholder="150000"
+              />
+            </div>
+
+            <div>
+              <Label>Описание</Label>
+              <Textarea
+                value={newTrip.description}
+                onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
+                placeholder="Семейный отдых на море..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleCreateTrip}>
+              Создать поездку
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
