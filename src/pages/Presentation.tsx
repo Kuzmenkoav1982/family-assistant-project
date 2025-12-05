@@ -567,6 +567,26 @@ export default function Presentation() {
 
                 <div className="bg-white/95 rounded-xl p-4">
                   <div className="flex gap-3">
+                    <Icon name="Apple" className="text-green-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">ИИ-диетолог и подсчёт калорий</p>
+                      <p className="text-gray-700">Ведёт учёт калорий для каждого члена семьи. Рассчитывает калорийность продуктов и готовых блюд. Анализирует рецепты: ИИ скажет сколько калорий в порции борща или салата. Предлагает здоровые альтернативы и персональные диеты.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Utensils" className="text-orange-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Анализ питания семьи</p>
+                      <p className="text-gray-700">ИИ отслеживает что ест каждый член семьи, считает БЖУ, витамины, минералы. Предупреждает о несбалансированном питании и даёт рекомендации по улучшению рациона.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
                     <Icon name="Heart" className="text-rose-600 flex-shrink-0" size={24} />
                     <div>
                       <p className="font-bold text-gray-900 text-lg mb-1">Семейный психолог</p>
