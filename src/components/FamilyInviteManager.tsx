@@ -34,6 +34,31 @@ export default function FamilyInviteManager() {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [familyName, setFamilyName] = useState(() => {
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return user.family_name || 'Наша семья';
+      } catch {
+        return 'Наша семья';
+      }
+    }
+    return 'Наша семья';
+  });
+  const [familyLogo, setFamilyLogo] = useState(() => {
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return user.logo_url || '';
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  });
+  const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -171,18 +196,105 @@ export default function FamilyInviteManager() {
     }
   };
 
+  const updateFamilySettings = async () => {
+    setIsUpdatingFamily(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/16e99fcf-e7c4-48d6-8764-c1eec654dcb1', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': getAuthToken()
+        },
+        body: JSON.stringify({
+          action: 'update_family',
+          family_name: familyName,
+          logo_url: familyLogo
+        })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        userData.family_name = familyName;
+        userData.logo_url = familyLogo;
+        localStorage.setItem('userData', JSON.stringify(userData));
+        alert('✅ Настройки семьи обновлены!');
+        window.location.reload();
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка обновления настроек');
+    } finally {
+      setIsUpdatingFamily(false);
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon name="Users" size={24} />
-          Приглашения в семью
-        </CardTitle>
-        <CardDescription>
-          Создавайте коды для приглашения родственников
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="Home" size={24} />
+            Настройки семьи
+          </CardTitle>
+          <CardDescription>
+            Название и логотип вашей семьи
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Название семьи</Label>
+            <Input
+              value={familyName}
+              onChange={(e) => setFamilyName(e.target.value)}
+              placeholder="Например: Семья Ивановых"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>URL логотипа семьи</Label>
+            <div className="flex gap-2">
+              <Input
+                value={familyLogo}
+                onChange={(e) => setFamilyLogo(e.target.value)}
+                placeholder="https://example.com/logo.png"
+              />
+              {familyLogo && (
+                <img 
+                  src={familyLogo} 
+                  alt="Предпросмотр"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
+                  }}
+                />
+              )}
+            </div>
+            <p className="text-xs text-gray-500">Вставьте URL изображения для логотипа</p>
+          </div>
+
+          <Button 
+            onClick={updateFamilySettings} 
+            disabled={isUpdatingFamily}
+            className="w-full"
+          >
+            {isUpdatingFamily ? 'Сохранение...' : 'Сохранить изменения'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="Users" size={24} />
+            Приглашения в семью
+          </CardTitle>
+          <CardDescription>
+            Создавайте коды для приглашения родственников
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-4">
           <h4 className="font-semibold mb-2 flex items-center gap-2">
             <Icon name="HelpCircle" size={18} className="text-purple-600" />
@@ -404,5 +516,6 @@ export default function FamilyInviteManager() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
