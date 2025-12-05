@@ -176,9 +176,6 @@ export function LeftMenu({
                   navigate('/psychologist');
                 } else if (section.id === 'rules-section') {
                   navigate('/rules');
-                } else if (section.id === 'meals') {
-                  console.log('Navigating to /nutrition');
-                  navigate('/nutrition');
                 } else if (section.id === 'shopping') {
                   navigate('/shopping');
                 } else if (section.id === 'calendar') {

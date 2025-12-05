@@ -574,7 +574,6 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'family', icon: 'Users', label: 'Профили семьи' },
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
-    { id: 'nutrition', icon: 'Apple', label: 'Питание' },
     { id: 'trips', icon: 'Plane', label: 'Путешествия' },
     { id: 'ai-assistant', icon: 'Bot', label: 'AI Ассистент' },
     { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
@@ -583,7 +582,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
     { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
-    { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
+    { id: 'meals', icon: 'UtensilsCrossed', label: 'Питание' },
   ];
 
   const availableTopPanelSections = [
