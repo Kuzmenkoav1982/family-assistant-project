@@ -252,6 +252,55 @@ def reset_password(token: str, new_password: str) -> Dict[str, Any]:
         'message': 'Пароль успешно изменён'
     }
 
+def update_family_settings(user_id: str, family_name: str, logo_url: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        cur.execute(
+            f"""
+            SELECT family_id FROM {SCHEMA}.family_members
+            WHERE user_id = %s
+            LIMIT 1
+            """,
+            (user_id,)
+        )
+        member = cur.fetchone()
+        
+        if not member:
+            cur.close()
+            conn.close()
+            return {'error': 'Пользователь не найден в семье'}
+        
+        family_id = member['family_id']
+        
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.families
+            SET name = %s, logo_url = %s, updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING id, name, logo_url
+            """,
+            (family_name, logo_url, family_id)
+        )
+        family = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        if not family:
+            return {'error': 'Семья не найдена'}
+        
+        return {
+            'success': True,
+            'family': dict(family)
+        }
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     
@@ -343,6 +392,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             result = reset_password(
                 body.get('token', ''),
                 body.get('new_password', '')
+            )
+            status = 200 if result.get('success') else 400
+            return {
+                'statusCode': status,
+                'headers': headers,
+                'body': json.dumps(result)
+            }
+        
+        elif action == 'update_family':
+            token = event.get('headers', {}).get('X-Auth-Token', '')
+            user_id = verify_token(token)
+            
+            if not user_id:
+                return {
+                    'statusCode': 401,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Требуется авторизация'})
+                }
+            
+            result = update_family_settings(
+                user_id,
+                body.get('family_name', ''),
+                body.get('logo_url', '')
             )
             status = 200 if result.get('success') else 400
             return {

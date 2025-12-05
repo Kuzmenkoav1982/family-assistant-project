@@ -201,7 +201,7 @@ export default function FamilyInviteManager() {
   const updateFamilySettings = async () => {
     setIsUpdatingFamily(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/16e99fcf-e7c4-48d6-8764-c1eec654dcb1', {
+      const response = await fetch('https://functions.poehali.dev/db70be67-64af-4e9d-ab90-8485ed49c99f', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -245,20 +245,34 @@ export default function FamilyInviteManager() {
 
     setIsUploadingLogo(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const response = await fetch('https://functions.poehali.dev/a92de75b-5a9d-4cf2-b4a8-e7b96f9fff98', {
+      const fileBase64 = await base64Promise;
+
+      const response = await fetch('https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'X-Auth-Token': getAuthToken()
         },
-        body: formData
+        body: JSON.stringify({
+          file: fileBase64,
+          fileName: file.name,
+          folder: 'family-logos'
+        })
       });
 
       const data = await response.json();
       
-      if (data.success && data.url) {
+      if (data.url) {
         setFamilyLogo(data.url);
         alert('✅ Логотип загружен! Не забудьте сохранить изменения.');
       } else {
