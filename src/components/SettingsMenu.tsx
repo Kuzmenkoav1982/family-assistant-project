@@ -9,6 +9,7 @@ import ExportSettings from './settings/ExportSettings';
 import SubscriptionSettings from './settings/SubscriptionSettings';
 import AccountSettings from './settings/AccountSettings';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const EXPORT_API = 'https://functions.poehali.dev/6db20156-2ce6-4ba2-923b-b3e8faf8a58b';
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
@@ -307,21 +308,24 @@ export default function SettingsMenu() {
 }
 
 function NotificationTest() {
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<string>('');
 
   const NOTIFICATIONS_API = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774';
 
   const handleSendEmail = async () => {
     if (!email) {
-      setResult('⚠️ Введите email');
+      toast({
+        title: '⚠️ Ошибка',
+        description: 'Введите email адрес получателя',
+        variant: 'destructive'
+      });
       return;
     }
 
     setSending(true);
-    setResult('');
     
     try {
       const response = await fetch(`${NOTIFICATIONS_API}?action=email`, {
@@ -330,19 +334,47 @@ function NotificationTest() {
         body: JSON.stringify({
           to: email,
           subject: 'Тестовое письмо из Family Organizer',
-          body: 'Это тестовое письмо для проверки отправки email через Яндекс.Почту SMTP. Если вы получили это письмо, значит всё работает! 🎉'
+          body: 'Это тестовое письмо для проверки отправки email через Яндекс.Почту SMTP. Если вы получили это письмо, значит всё работает! 🎉',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center;">
+                <h1 style="color: white; margin: 0;">📧 Тестовое письмо</h1>
+              </div>
+              <div style="background: #f8f9fa; padding: 40px; border-radius: 10px; margin-top: 20px; text-align: center;">
+                <p style="font-size: 18px; color: #333; margin-bottom: 20px;">
+                  Поздравляем! Система отправки email работает корректно! 🎉
+                </p>
+                <p style="font-size: 14px; color: #666;">
+                  Это тестовое письмо из Family Organizer через Яндекс.Почту SMTP
+                </p>
+              </div>
+            </div>
+          `
         })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setResult('✅ Email успешно отправлен!');
+        toast({
+          title: '✅ Успешно!',
+          description: `Email отправлен на ${email}`,
+          variant: 'default'
+        });
+        setEmail('');
       } else {
-        setResult(`❌ Ошибка: ${data.error}`);
+        toast({
+          title: '❌ Ошибка отправки',
+          description: data.error || 'Не удалось отправить email',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
-      setResult(`❌ Ошибка сети: ${error}`);
+      toast({
+        title: '❌ Ошибка сети',
+        description: 'Не удалось подключиться к серверу',
+        variant: 'destructive'
+      });
     } finally {
       setSending(false);
     }
@@ -350,12 +382,15 @@ function NotificationTest() {
 
   const handleSendSMS = async () => {
     if (!phone) {
-      setResult('⚠️ Введите номер телефона');
+      toast({
+        title: '⚠️ Ошибка',
+        description: 'Введите номер телефона в формате +79001234567',
+        variant: 'destructive'
+      });
       return;
     }
 
     setSending(true);
-    setResult('');
     
     try {
       const response = await fetch(`${NOTIFICATIONS_API}?action=sms`, {
@@ -363,19 +398,32 @@ function NotificationTest() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone: phone,
-          message: 'Тест SMS из Family Organizer'
+          message: '✅ Тест SMS из Family Organizer. Система уведомлений работает!'
         })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setResult('✅ SMS успешно отправлено!');
+        toast({
+          title: '✅ Успешно!',
+          description: `SMS отправлено на ${phone}`,
+          variant: 'default'
+        });
+        setPhone('');
       } else {
-        setResult(`❌ Ошибка: ${data.error}`);
+        toast({
+          title: '❌ Ошибка отправки',
+          description: data.error || 'Не удалось отправить SMS',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
-      setResult(`❌ Ошибка сети: ${error}`);
+      toast({
+        title: '❌ Ошибка сети',
+        description: 'Не удалось подключиться к серверу',
+        variant: 'destructive'
+      });
     } finally {
       setSending(false);
     }
@@ -457,17 +505,7 @@ function NotificationTest() {
         </div>
       </div>
 
-      {result && (
-        <div className={`rounded-lg p-4 ${
-          result.startsWith('✅') 
-            ? 'bg-green-50 border border-green-200 text-green-800' 
-            : result.startsWith('❌') 
-            ? 'bg-red-50 border border-red-200 text-red-800'
-            : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
-        }`}>
-          <p className="text-sm font-medium">{result}</p>
-        </div>
-      )}
+
 
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <p className="text-xs text-gray-600">
