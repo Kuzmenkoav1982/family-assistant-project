@@ -5,9 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { DEMO_MEAL_VOTES, type MealVote } from '@/data/demoRecipes';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 
 export default function MealVotingWidget() {
   const [votes, setVotes] = useState<MealVote[]>(DEMO_MEAL_VOTES);
+  const { familyMembers, loading } = useFamilyMembers();
   
   const getCurrentMemberId = () => {
     try {
@@ -23,11 +25,11 @@ export default function MealVotingWidget() {
   };
   
   const currentMemberId = getCurrentMemberId();
-  if (!currentMemberId) return null;
+  if (!currentMemberId || loading) return null;
 
   const activeVote = votes.find(v => v.status === 'active');
   
-  if (!activeVote) return null;
+  if (!activeVote || !activeVote.date) return null;
 
   const getMealTypeLabel = (type: string) => {
     const labels = {
@@ -86,7 +88,7 @@ export default function MealVotingWidget() {
       <CardContent className="pt-4 space-y-3">
         <div className="text-sm text-muted-foreground mb-3">
           <Icon name="Users" size={16} className="inline mr-1" />
-          Проголосовало: {totalVotes} из {DEMO_FAMILY.members.length}
+          Проголосовало: {totalVotes} из {familyMembers.length}
         </div>
 
         <div className="space-y-3">
@@ -94,7 +96,7 @@ export default function MealVotingWidget() {
             const votePercentage = totalVotes > 0 
               ? Math.round((option.votes.length / totalVotes) * 100) 
               : 0;
-            const isVoted = option.votes.includes(currentMember.id);
+            const isVoted = option.votes.includes(currentMemberId);
 
             return (
               <button
@@ -126,14 +128,14 @@ export default function MealVotingWidget() {
                 {option.votes.length > 0 && (
                   <div className="flex gap-1 mt-2 flex-wrap">
                     {option.votes.map(voterId => {
-                      const voter = DEMO_FAMILY.members.find(m => m.id === voterId);
+                      const voter = familyMembers.find(m => m.id === voterId);
                       return voter ? (
                         <div
                           key={voterId}
                           className="flex items-center gap-1 bg-white rounded-full px-2 py-0.5 text-xs border"
                         >
                           <img
-                            src={voter.avatar}
+                            src={voter.avatar || ''}
                             alt={voter.name}
                             className="w-4 h-4 rounded-full"
                           />
