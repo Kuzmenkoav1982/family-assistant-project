@@ -21,6 +21,24 @@ const RELATIONSHIPS = [
   'Другое'
 ];
 
+const isValidImageUrl = (url: string): boolean => {
+  if (!url) return true;
+  try {
+    const parsed = new URL(url);
+    const pathname = parsed.pathname.toLowerCase();
+    return (
+      pathname.endsWith('.jpg') || 
+      pathname.endsWith('.jpeg') || 
+      pathname.endsWith('.png') || 
+      pathname.endsWith('.gif') || 
+      pathname.endsWith('.webp') ||
+      url.includes('cdn.poehali.dev')
+    );
+  } catch {
+    return false;
+  }
+};
+
 export default function FamilyInviteManager() {
   const navigate = useNavigate();
   const [invites, setInvites] = useState<any[]>([]);
@@ -199,6 +217,11 @@ export default function FamilyInviteManager() {
   };
 
   const updateFamilySettings = async () => {
+    if (familyLogo && !isValidImageUrl(familyLogo)) {
+      alert('❌ Некорректный URL изображения. Убедитесь, что ссылка ведет напрямую на изображение (.jpg, .png, .gif) или загрузите файл.');
+      return;
+    }
+
     setIsUpdatingFamily(true);
     try {
       const response = await fetch('https://functions.poehali.dev/db70be67-64af-4e9d-ab90-8485ed49c99f', {
