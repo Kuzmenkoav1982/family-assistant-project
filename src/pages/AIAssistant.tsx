@@ -126,11 +126,13 @@ const AIAssistant = () => {
       <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mb-4">
-            <Icon name="Bot" className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">AI Ассистент</h1>
-          <p className="text-gray-600">Ваш умный помощник по семейным делам</p>
+          <img 
+            src="https://cdn.poehali.dev/files/30959398-cfa7-4f4e-aee8-fcb24b40cd24.png" 
+            alt="Кузя"
+            className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-orange-300 shadow-lg"
+          />
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Кузя 🚀🍎</h1>
+          <p className="text-gray-600">Ваш семейный AI-помощник и ИИ-диетолог</p>
         </div>
 
         {/* Инструкция */}
@@ -213,19 +215,17 @@ const AIAssistant = () => {
                 }`}
               >
                 {/* Avatar */}
-                <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                    message.role === 'user'
-                      ? 'bg-blue-500'
-                      : 'bg-gradient-to-br from-purple-500 to-pink-500'
-                  }`}
-                >
-                  {message.role === 'user' ? (
+                {message.role === 'user' ? (
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-blue-500">
                     <Icon name="User" className="w-5 h-5 text-white" />
-                  ) : (
-                    <Icon name="Bot" className="w-5 h-5 text-white" />
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <img 
+                    src="https://cdn.poehali.dev/files/30959398-cfa7-4f4e-aee8-fcb24b40cd24.png" 
+                    alt="Кузя"
+                    className="flex-shrink-0 w-10 h-10 rounded-full object-cover border-2 border-orange-300"
+                  />
+                )}
 
                 {/* Message */}
                 <div
@@ -254,9 +254,11 @@ const AIAssistant = () => {
 
             {isLoading && (
               <div className="flex gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Icon name="Bot" className="w-5 h-5 text-white" />
-                </div>
+                <img 
+                  src="https://cdn.poehali.dev/files/30959398-cfa7-4f4e-aee8-fcb24b40cd24.png" 
+                  alt="Кузя"
+                  className="flex-shrink-0 w-10 h-10 rounded-full object-cover border-2 border-orange-300"
+                />
                 <div className="flex-1">
                   <div className="inline-block px-4 py-3 rounded-2xl bg-gray-100">
                     <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
