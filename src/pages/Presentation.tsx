@@ -278,29 +278,146 @@ export default function Presentation() {
               </div>
             </div>
 
-            {/* Блок 5: Дети и образование */}
-            <div className="bg-white rounded-2xl p-6 shadow-md">
-              <h3 className="text-2xl font-bold text-orange-600 mb-4 flex items-center gap-3">
-                <Icon name="GraduationCap" size={28} />
-                Дети и образование
+            {/* Блок 5: ПРИОРИТЕТ - Развитие детей */}
+            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-8 shadow-xl border-4 border-yellow-300">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-yellow-400 text-orange-900 px-4 py-1 rounded-full text-sm font-bold">
+                  ⭐ ПРИОРИТЕТ
+                </div>
+              </div>
+              <h3 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                <Icon name="Baby" size={36} className="text-yellow-300" />
+                Развитие и воспитание детей
               </h3>
-              <div className="space-y-3 ml-11">
-                <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Профили детей</strong> — вес, рост, здоровье, достижения, развитие</p>
+              <div className="space-y-4 ml-2">
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="User" className="text-orange-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Полный профиль ребёнка</p>
+                      <p className="text-gray-700">Фото, дата рождения, возраст, вес, рост, группа здоровья, особенности развития. Вся информация в одном месте.</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Образование</strong> — расписание занятий, оценки, домашние задания, кружки</p>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="GraduationCap" className="text-blue-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Образование и учёба</p>
+                      <p className="text-gray-700">Расписание уроков, домашние задания, оценки, успеваемость по предметам, контакты учителей, родительские собрания.</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Развитие навыков</strong> — отслеживайте прогресс в учёбе, спорте, творчестве</p>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Sparkles" className="text-purple-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Кружки и секции</p>
+                      <p className="text-gray-700">Спортивные секции, творческие студии, языковые курсы — расписание, достижения, оплата, контакты тренеров.</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Медицинская карта</strong> — прививки, анализы, посещения врачей</p>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="TrendingUp" className="text-green-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Отслеживание развития</p>
+                      <p className="text-gray-700">Физическое развитие (рост, вес, спортивные нормативы), интеллектуальное (успеваемость, навыки), творческое (достижения, таланты).</p>
+                    </div>
+                  </div>
                 </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Heart" className="text-red-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Здоровье ребёнка</p>
+                      <p className="text-gray-700">Медицинская карта, прививки, анализы, визиты к врачам, аллергии, хронические заболевания, группа крови.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Trophy" className="text-yellow-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Достижения и награды</p>
+                      <p className="text-gray-700">Грамоты, медали, сертификаты, победы в соревнованиях и олимпиадах. Фото наград, описание достижений.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Target" className="text-indigo-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Цели и планы развития</p>
+                      <p className="text-gray-700">Ставьте цели для ребёнка (научиться плавать, выучить таблицу умножения), отслеживайте прогресс, отмечайте достижения.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Palette" className="text-pink-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Творческое портфолио</p>
+                      <p className="text-gray-700">Рисунки, поделки, стихи, сочинения — сохраняйте творческие работы ребёнка с датами и описаниями.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Calendar" className="text-cyan-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Режим дня</p>
+                      <p className="text-gray-700">Создайте расписание дня ребёнка: подъём, школа, кружки, домашние задания, прогулки, сон. Формируйте здоровые привычки.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="BookOpen" className="text-emerald-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Дневник развития</p>
+                      <p className="text-gray-700">Записывайте важные моменты: первые шаги, первое слово, смешные фразы, важные события. Создайте историю взросления.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Users" className="text-violet-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Социальное развитие</p>
+                      <p className="text-gray-700">Друзья, общение, навыки коммуникации, конфликты и их решение. Помогайте ребёнку строить здоровые отношения.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Brain" className="text-rose-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Психологическое состояние</p>
+                      <p className="text-gray-700">Отслеживайте настроение, эмоции, поведенческие особенности. Консультации с психологом, рекомендации специалистов.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-yellow-400 rounded-xl p-6 text-center">
+                <p className="text-orange-900 font-bold text-xl mb-2">
+                  🎯 Всё для гармоничного развития вашего ребёнка
+                </p>
+                <p className="text-orange-800 text-lg">
+                  От рождения до совершеннолетия — сохраняйте каждый важный момент
+                </p>
               </div>
             </div>
 
