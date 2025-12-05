@@ -115,7 +115,7 @@ export default function BottomBar({
                 <span className="ml-1 text-xs hidden sm:inline">Питание</span>
               </Button>
 
-              {displaySections.map(section => (
+              {displaySections.filter(section => section.id !== 'meals').map(section => (
                 <Button
                   key={section.id}
                   variant={activeSection === section.id ? 'secondary' : 'ghost'}
@@ -131,8 +131,6 @@ export default function BottomBar({
                       navigate('/analytics');
                     } else if (section.id === 'recipes') {
                       navigate('/recipes');
-                    } else if (section.id === 'meals') {
-                      navigate('/nutrition');
                     } else {
                       onSectionChange(section.id);
                     }
