@@ -575,7 +575,6 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
     { id: 'trips', icon: 'Plane', label: 'Путешествия' },
-    { id: 'ai-assistant', icon: 'Bot', label: 'AI Ассистент' },
     { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
     { id: 'goals', icon: 'Target', label:'Цели' },
