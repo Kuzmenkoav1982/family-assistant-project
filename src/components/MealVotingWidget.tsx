@@ -5,25 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { DEMO_MEAL_VOTES, type MealVote } from '@/data/demoRecipes';
+import { DEMO_FAMILY, getCurrentMember } from '@/data/demoFamily';
 
 export default function MealVotingWidget() {
   const [votes, setVotes] = useState<MealVote[]>(DEMO_MEAL_VOTES);
+  const currentMember = getCurrentMember();
   
-  const getCurrentMemberId = () => {
-    try {
-      const authUserStr = localStorage.getItem('authUser');
-      if (authUserStr) {
-        const authUser = JSON.parse(authUserStr);
-        return authUser.member_id || authUser.id;
-      }
-    } catch (e) {
-      console.error('Error getting current member ID:', e);
-    }
-    return null;
-  };
-  
-  const currentMemberId = getCurrentMemberId();
-  if (!currentMemberId) return null;
+  if (!currentMember) return null;
 
   const activeVote = votes.find(v => v.status === 'active');
   
@@ -44,20 +32,20 @@ export default function MealVotingWidget() {
         return {
           ...vote,
           options: vote.options.map(opt => {
-            const hasVoted = opt.votes.includes(currentMemberId);
+            const hasVoted = opt.votes.includes(currentMember.id);
             const isThisOption = opt.recipeId === recipeId;
             
             if (isThisOption && !hasVoted) {
               return {
                 ...opt,
-                votes: [...opt.votes, currentMemberId]
+                votes: [...opt.votes, currentMember.id]
               };
             }
             
             if (!isThisOption && hasVoted) {
               return {
                 ...opt,
-                votes: opt.votes.filter(v => v !== currentMemberId)
+                votes: opt.votes.filter(v => v !== currentMember.id)
               };
             }
             
@@ -70,7 +58,7 @@ export default function MealVotingWidget() {
   };
 
   const totalVotes = activeVote.options.reduce((sum, opt) => sum + opt.votes.length, 0);
-  const currentUserVote = activeVote.options.find(opt => opt.votes.includes(currentMemberId));
+  const currentUserVote = activeVote.options.find(opt => opt.votes.includes(currentMember.id));
 
   return (
     <Card className="border-2 border-orange-200 shadow-lg">

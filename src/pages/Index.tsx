@@ -62,6 +62,7 @@ import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { GoalsSection } from '@/components/GoalsSection';
 import { getTranslation, languageOptions, type LanguageCode } from '@/translations';
+import { DEMO_FAMILY } from '@/data/demoFamily';
 import SettingsMenu from '@/components/SettingsMenu';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
@@ -70,6 +71,8 @@ import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 
 import StatsCounter from '@/components/StatsCounter';
+
+import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 
