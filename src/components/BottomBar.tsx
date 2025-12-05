@@ -112,8 +112,6 @@ export default function BottomBar({
                   onClick={() => {
                     if (section.id === 'shopping') {
                       navigate('/shopping');
-                    } else if (section.id === 'meals') {
-                      navigate('/nutrition');
                     } else if (section.id === 'calendar') {
                       navigate('/calendar');
                     } else if (section.id === 'children') {
