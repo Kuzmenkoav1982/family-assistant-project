@@ -252,7 +252,17 @@ def get_food_diary(conn, user_id: int, diary_date: str) -> List[Dict]:
             """,
             (user_id, diary_date)
         )
-        return [dict(row) for row in cur.fetchall()]
+        results = []
+        for row in cur.fetchall():
+            result = dict(row)
+            # Конвертируем даты и Decimal в JSON-совместимые типы
+            for key, value in result.items():
+                if isinstance(value, Decimal):
+                    result[key] = float(value)
+                elif isinstance(value, (datetime, date)):
+                    result[key] = value.isoformat()
+            results.append(result)
+        return results
 
 
 def add_diary_entry(conn, data: Dict) -> Dict:
@@ -294,7 +304,16 @@ def add_diary_entry(conn, data: Dict) -> Dict:
              calories, protein, fats, carbs, data.get('notes'))
         )
         conn.commit()
-        return dict(cur.fetchone())
+        result = dict(cur.fetchone())
+        
+        # Конвертируем даты и Decimal в JSON-совместимые типы
+        for key, value in result.items():
+            if isinstance(value, Decimal):
+                result[key] = float(value)
+            elif isinstance(value, (datetime, date)):
+                result[key] = value.isoformat()
+        
+        return result
 
 
 def update_diary_entry(conn, data: Dict) -> Dict:
@@ -334,7 +353,16 @@ def update_diary_entry(conn, data: Dict) -> Dict:
             )
         
         conn.commit()
-        return dict(cur.fetchone())
+        result = dict(cur.fetchone())
+        
+        # Конвертируем даты и Decimal в JSON-совместимые типы
+        for key, value in result.items():
+            if isinstance(value, Decimal):
+                result[key] = float(value)
+            elif isinstance(value, (datetime, date)):
+                result[key] = value.isoformat()
+        
+        return result
 
 
 def delete_diary_entry(conn, entry_id: int) -> None:
