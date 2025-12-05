@@ -33,6 +33,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     GET /?action=products - получить все продукты
     GET /?action=diary&user_id=1&date=2024-01-15 - дневник питания
     POST / body: {"action":"add_diary",...} - добавить запись в дневник
+    POST / body: {"action":"delete_diary","entry_id":1} - удалить запись из дневника
     GET /?action=analytics&user_id=1&date=2024-01-15 - аналитика за день
     GET /?action=goals&user_id=1 - получить цели пользователя
     POST / body: {"action":"set_goals",...} - установить цели пользователя
@@ -102,6 +103,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 201,
                     'headers': headers,
                     'body': json.dumps({'entry': entry}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'delete_diary':
+                entry_id = body.get('entry_id')
+                delete_diary_entry(conn, entry_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
         
@@ -270,6 +281,13 @@ def add_diary_entry(conn, data: Dict) -> Dict:
         )
         conn.commit()
         return dict(cur.fetchone())
+
+
+def delete_diary_entry(conn, entry_id: int) -> None:
+    """Удалить запись из дневника питания"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM food_diary WHERE id = %s", (entry_id,))
+        conn.commit()
 
 
 def get_nutrition_analytics(conn, user_id: int, analytics_date: str) -> Dict:

@@ -153,6 +153,28 @@ export default function Trips() {
     }
   };
 
+  const handleDeleteTrip = async (tripId: number) => {
+    if (!confirm('Удалить эту поездку? Все связанные данные также будут удалены.')) return;
+
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_trip',
+          trip_id: tripId
+        })
+      });
+
+      if (response.ok) {
+        await loadTrips(activeTab);
+      }
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+      alert('Ошибка при удалении поездки');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-20">
       {/* Header */}
@@ -283,10 +305,12 @@ export default function Trips() {
             {trips.map((trip) => (
               <Card
                 key={trip.id}
-                className="p-6 hover:shadow-lg transition-all cursor-pointer"
-                onClick={() => navigate(`/trips/${trip.id}`)}
+                className="p-6 hover:shadow-lg transition-all group relative"
               >
-                <div className="flex gap-4">
+                <div 
+                  className="flex gap-4 cursor-pointer"
+                  onClick={() => navigate(`/trips/${trip.id}`)}
+                >
                   {/* Trip Image/Icon */}
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white">
@@ -349,6 +373,19 @@ export default function Trips() {
                     <Icon name="ChevronRight" size={24} className="text-gray-400" />
                   </div>
                 </div>
+                
+                {/* Delete Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteTrip(trip.id);
+                  }}
+                >
+                  <Icon name="Trash2" size={16} />
+                </Button>
               </Card>
             ))}
           </div>

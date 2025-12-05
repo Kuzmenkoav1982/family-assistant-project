@@ -39,6 +39,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     GET /?action=trip&id=1 - получить детали поездки
     POST / body: {"action":"create_trip",...} - создать поездку
     POST / body: {"action":"update_trip",...} - обновить поездку
+    POST / body: {"action":"delete_trip","trip_id":1} - удалить поездку
     
     GET /?action=bookings&trip_id=1 - получить брони поездки
     POST / body: {"action":"add_booking",...} - добавить бронь
@@ -117,6 +118,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps({'trip': trip}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'delete_trip':
+                trip_id = body.get('trip_id')
+                delete_trip(conn, trip_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
         
@@ -325,6 +336,17 @@ def update_trip(conn, data: Dict) -> Dict:
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
+
+
+def delete_trip(conn, trip_id: int) -> None:
+    """Удалить поездку и все связанные данные"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM trip_photos WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM trip_diary WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM trip_itinerary WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM trip_bookings WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM trips WHERE id = %s", (trip_id,))
+        conn.commit()
 
 
 def get_bookings(conn, trip_id: int) -> List[Dict]:

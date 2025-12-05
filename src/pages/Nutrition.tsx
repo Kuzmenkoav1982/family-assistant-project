@@ -160,6 +160,28 @@ export default function Nutrition() {
     }
   };
 
+  const handleDeleteEntry = async (entryId: number) => {
+    if (!confirm('Удалить эту запись?')) return;
+
+    try {
+      const response = await fetch(NUTRITION_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_diary',
+          entry_id: entryId
+        })
+      });
+
+      if (response.ok) {
+        await loadNutritionData();
+        await loadFoodDiary();
+      }
+    } catch (error) {
+      console.error('Ошибка удаления записи:', error);
+    }
+  };
+
   const selectProduct = (product: any) => {
     setNewEntry({
       ...newEntry,
@@ -539,14 +561,24 @@ export default function Nutrition() {
                       </div>
                       <div className="space-y-2">
                         {meals.map(meal => (
-                          <div key={meal.id} className="flex justify-between items-center text-sm bg-gray-50 rounded p-2">
+                          <div key={meal.id} className="flex justify-between items-center text-sm bg-gray-50 rounded p-2 group">
                             <div>
                               <div className="font-medium">{meal.product_name}</div>
                               <div className="text-gray-500 text-xs">
                                 {meal.amount}г · Б: {Math.round(meal.protein)}г · Ж: {Math.round(meal.fats)}г · У: {Math.round(meal.carbs)}г
                               </div>
                             </div>
-                            <div className="font-semibold">{Math.round(meal.calories)} ккал</div>
+                            <div className="flex items-center gap-2">
+                              <div className="font-semibold">{Math.round(meal.calories)} ккал</div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8"
+                                onClick={() => handleDeleteEntry(meal.id)}
+                              >
+                                <Icon name="Trash2" size={14} />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
