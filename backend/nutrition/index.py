@@ -33,6 +33,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     GET /?action=products - получить все продукты
     GET /?action=diary&user_id=1&date=2024-01-15 - дневник питания
     POST / body: {"action":"add_diary",...} - добавить запись в дневник
+    POST / body: {"action":"update_diary","entry_id":1,...} - обновить запись в дневнике
     POST / body: {"action":"delete_diary","entry_id":1} - удалить запись из дневника
     GET /?action=analytics&user_id=1&date=2024-01-15 - аналитика за день
     GET /?action=goals&user_id=1 - получить цели пользователя
@@ -101,6 +102,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 entry = add_diary_entry(conn, body)
                 return {
                     'statusCode': 201,
+                    'headers': headers,
+                    'body': json.dumps({'entry': entry}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'update_diary':
+                entry = update_diary_entry(conn, body)
+                return {
+                    'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps({'entry': entry}, ensure_ascii=False),
                     'isBase64Encoded': False
@@ -279,6 +289,46 @@ def add_diary_entry(conn, data: Dict) -> Dict:
             (user_id, meal_type, product_id, product_name, amount, 
              calories, protein, fats, carbs, data.get('notes'))
         )
+        conn.commit()
+        return dict(cur.fetchone())
+
+
+def update_diary_entry(conn, data: Dict) -> Dict:
+    """Обновить запись в дневнике питания"""
+    entry_id = data['entry_id']
+    amount = float(data['amount'])
+    meal_type = data.get('meal_type')
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        # Получаем текущую запись
+        cur.execute("SELECT * FROM food_diary WHERE id = %s", (entry_id,))
+        entry = dict(cur.fetchone())
+        
+        # Если есть product_id, пересчитываем БЖУ
+        if entry.get('product_id'):
+            cur.execute("SELECT * FROM nutrition_products WHERE id = %s", (entry['product_id'],))
+            product = dict(cur.fetchone())
+            
+            calories = (float(product['calories']) * amount) / 100
+            protein = (float(product['protein']) * amount) / 100
+            fats = (float(product['fats']) * amount) / 100
+            carbs = (float(product['carbs']) * amount) / 100
+            
+            cur.execute(
+                """
+                UPDATE food_diary 
+                SET amount = %s, meal_type = %s, calories = %s, protein = %s, fats = %s, carbs = %s
+                WHERE id = %s
+                RETURNING *
+                """,
+                (amount, meal_type or entry['meal_type'], calories, protein, fats, carbs, entry_id)
+            )
+        else:
+            cur.execute(
+                "UPDATE food_diary SET amount = %s, meal_type = %s WHERE id = %s RETURNING *",
+                (amount, meal_type or entry['meal_type'], entry_id)
+            )
+        
         conn.commit()
         return dict(cur.fetchone())
 

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -46,6 +47,8 @@ export default function Trips() {
     budget: '',
     description: ''
   });
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
   useEffect(() => {
     loadTrips(activeTab);
@@ -172,6 +175,49 @@ export default function Trips() {
     } catch (error) {
       console.error('Error deleting trip:', error);
       alert('Ошибка при удалении поездки');
+    }
+  };
+
+  const handleEditTrip = (trip: Trip) => {
+    setEditingTrip(trip);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTrip = async () => {
+    if (!editingTrip) return;
+    if (!editingTrip.title || !editingTrip.destination || !editingTrip.start_date || !editingTrip.end_date) {
+      alert('Заполните обязательные поля');
+      return;
+    }
+
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_trip',
+          id: editingTrip.id,
+          title: editingTrip.title,
+          destination: editingTrip.destination,
+          country: editingTrip.country,
+          start_date: editingTrip.start_date,
+          end_date: editingTrip.end_date,
+          budget: editingTrip.budget,
+          spent: editingTrip.spent,
+          status: editingTrip.status,
+          currency: editingTrip.currency,
+          description: editingTrip.description
+        })
+      });
+
+      if (response.ok) {
+        await loadTrips(activeTab);
+        setIsEditDialogOpen(false);
+        setEditingTrip(null);
+      }
+    } catch (error) {
+      console.error('Error updating trip:', error);
+      alert('Ошибка при обновлении поездки');
     }
   };
 
@@ -374,18 +420,31 @@ export default function Trips() {
                   </div>
                 </div>
                 
-                {/* Delete Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteTrip(trip.id);
-                  }}
-                >
-                  <Icon name="Trash2" size={16} />
-                </Button>
+                {/* Action Buttons */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditTrip(trip);
+                    }}
+                  >
+                    <Icon name="Pencil" size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTrip(trip.id);
+                    }}
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
@@ -480,6 +539,117 @@ export default function Trips() {
             </Button>
             <Button onClick={handleCreateTrip}>
               Создать поездку
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Trip Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Редактировать поездку</DialogTitle>
+          </DialogHeader>
+          {editingTrip && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Название *</Label>
+                  <Input
+                    value={editingTrip.title}
+                    onChange={(e) => setEditingTrip({ ...editingTrip, title: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Место назначения *</Label>
+                  <Input
+                    value={editingTrip.destination}
+                    onChange={(e) => setEditingTrip({ ...editingTrip, destination: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Страна</Label>
+                <Input
+                  value={editingTrip.country}
+                  onChange={(e) => setEditingTrip({ ...editingTrip, country: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Дата начала *</Label>
+                  <Input
+                    type="date"
+                    value={editingTrip.start_date}
+                    onChange={(e) => setEditingTrip({ ...editingTrip, start_date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Дата окончания *</Label>
+                  <Input
+                    type="date"
+                    value={editingTrip.end_date}
+                    onChange={(e) => setEditingTrip({ ...editingTrip, end_date: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Бюджет (₽)</Label>
+                  <Input
+                    type="number"
+                    value={editingTrip.budget}
+                    onChange={(e) => setEditingTrip({ ...editingTrip, budget: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label>Потрачено (₽)</Label>
+                  <Input
+                    type="number"
+                    value={editingTrip.spent}
+                    onChange={(e) => setEditingTrip({ ...editingTrip, spent: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Статус</Label>
+                <Select 
+                  value={editingTrip.status} 
+                  onValueChange={(value) => setEditingTrip({ ...editingTrip, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="wishlist">Мечта</SelectItem>
+                    <SelectItem value="planning">Планируем</SelectItem>
+                    <SelectItem value="booked">Забронировано</SelectItem>
+                    <SelectItem value="ongoing">В пути</SelectItem>
+                    <SelectItem value="completed">Завершено</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Описание</Label>
+                <Textarea
+                  value={editingTrip.description}
+                  onChange={(e) => setEditingTrip({ ...editingTrip, description: e.target.value })}
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleUpdateTrip}>
+              Сохранить
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -67,6 +67,7 @@ export default function Nutrition() {
   const [loading, setLoading] = useState(true);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [newEntry, setNewEntry] = useState({
@@ -75,6 +76,7 @@ export default function Nutrition() {
     amount: '',
     meal_type: 'breakfast'
   });
+  const [editingEntry, setEditingEntry] = useState<FoodDiaryEntry | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -179,6 +181,37 @@ export default function Nutrition() {
       }
     } catch (error) {
       console.error('Ошибка удаления записи:', error);
+    }
+  };
+
+  const handleEditEntry = (entry: FoodDiaryEntry) => {
+    setEditingEntry(entry);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateEntry = async () => {
+    if (!editingEntry) return;
+
+    try {
+      const response = await fetch(NUTRITION_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_diary',
+          entry_id: editingEntry.id,
+          amount: parseFloat(editingEntry.amount.toString()),
+          meal_type: editingEntry.meal_type
+        })
+      });
+
+      if (response.ok) {
+        await loadNutritionData();
+        await loadFoodDiary();
+        setIsEditDialogOpen(false);
+        setEditingEntry(null);
+      }
+    } catch (error) {
+      console.error('Ошибка обновления записи:', error);
     }
   };
 
@@ -568,8 +601,16 @@ export default function Nutrition() {
                                 {meal.amount}г · Б: {Math.round(meal.protein)}г · Ж: {Math.round(meal.fats)}г · У: {Math.round(meal.carbs)}г
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                               <div className="font-semibold">{Math.round(meal.calories)} ккал</div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-700 hover:bg-blue-50 h-8 w-8"
+                                onClick={() => handleEditEntry(meal)}
+                              >
+                                <Icon name="Pencil" size={14} />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -606,6 +647,58 @@ export default function Nutrition() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Entry Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать запись</DialogTitle>
+          </DialogHeader>
+          {editingEntry && (
+            <div className="space-y-4">
+              <div>
+                <Label>Продукт</Label>
+                <Input value={editingEntry.product_name} disabled className="bg-gray-100" />
+              </div>
+
+              <div>
+                <Label>Приём пищи</Label>
+                <Select 
+                  value={editingEntry.meal_type} 
+                  onValueChange={(value) => setEditingEntry({ ...editingEntry, meal_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="breakfast">🍳 Завтрак</SelectItem>
+                    <SelectItem value="lunch">🍽️ Обед</SelectItem>
+                    <SelectItem value="dinner">🍷 Ужин</SelectItem>
+                    <SelectItem value="snack">🍎 Перекус</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Количество (граммов)</Label>
+                <Input
+                  type="number"
+                  value={editingEntry.amount}
+                  onChange={(e) => setEditingEntry({ ...editingEntry, amount: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleUpdateEntry}>
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
