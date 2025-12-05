@@ -113,7 +113,7 @@ export default function BottomBar({
                     if (section.id === 'shopping') {
                       navigate('/shopping');
                     } else if (section.id === 'meals') {
-                      navigate('/meals');
+                      navigate('/nutrition');
                     } else if (section.id === 'calendar') {
                       navigate('/calendar');
                     } else if (section.id === 'children') {
