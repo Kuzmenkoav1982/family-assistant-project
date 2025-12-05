@@ -59,6 +59,7 @@ export default function FamilyInviteManager() {
     return '';
   });
   const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -230,6 +231,49 @@ export default function FamilyInviteManager() {
     }
   };
 
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('❌ Пожалуйста, выберите изображение');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ Размер файла не должен превышать 5 МБ');
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('https://functions.poehali.dev/a92de75b-5a9d-4cf2-b4a8-e7b96f9fff98', {
+        method: 'POST',
+        headers: {
+          'X-Auth-Token': getAuthToken()
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.url) {
+        setFamilyLogo(data.url);
+        alert('✅ Логотип загружен! Не забудьте сохранить изменения.');
+      } else {
+        alert(`❌ ${data.error || 'Ошибка загрузки'}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка загрузки файла');
+      console.error(error);
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -253,25 +297,51 @@ export default function FamilyInviteManager() {
           </div>
           
           <div className="space-y-2">
-            <Label>URL логотипа семьи</Label>
-            <div className="flex gap-2">
-              <Input
-                value={familyLogo}
-                onChange={(e) => setFamilyLogo(e.target.value)}
-                placeholder="https://example.com/logo.png"
-              />
+            <Label>Логотип семьи</Label>
+            <div className="flex gap-2 items-start">
+              <div className="flex-1 space-y-2">
+                <Input
+                  value={familyLogo}
+                  onChange={(e) => setFamilyLogo(e.target.value)}
+                  placeholder="https://example.com/logo.png"
+                />
+                <div className="flex gap-2">
+                  <label className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={isUploadingLogo}
+                      className="hidden"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      className="w-full"
+                      disabled={isUploadingLogo}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        (e.currentTarget.previousElementSibling as HTMLInputElement)?.click();
+                      }}
+                    >
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      {isUploadingLogo ? 'Загрузка...' : 'Загрузить файл'}
+                    </Button>
+                  </label>
+                </div>
+              </div>
               {familyLogo && (
                 <img 
                   src={familyLogo} 
                   alt="Предпросмотр"
-                  className="w-10 h-10 rounded-full object-cover border-2 border-purple-300"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-purple-300 flex-shrink-0"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
                   }}
                 />
               )}
             </div>
-            <p className="text-xs text-gray-500">Вставьте URL изображения для логотипа</p>
+            <p className="text-xs text-gray-500">Вставьте URL или загрузите файл (макс. 5 МБ)</p>
           </div>
 
           <Button 
