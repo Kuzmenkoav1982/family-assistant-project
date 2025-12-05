@@ -60,6 +60,7 @@ export default function FamilyInviteManager() {
   });
   const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -231,10 +232,7 @@ export default function FamilyInviteManager() {
     }
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const uploadLogoFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('❌ Пожалуйста, выберите изображение');
       return;
@@ -274,6 +272,32 @@ export default function FamilyInviteManager() {
     }
   };
 
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await uploadLogoFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await uploadLogoFile(file);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -298,50 +322,66 @@ export default function FamilyInviteManager() {
           
           <div className="space-y-2">
             <Label>Логотип семьи</Label>
-            <div className="flex gap-2 items-start">
+            <div className="flex gap-4 items-start">
               <div className="flex-1 space-y-2">
                 <Input
                   value={familyLogo}
                   onChange={(e) => setFamilyLogo(e.target.value)}
                   placeholder="https://example.com/logo.png"
                 />
-                <div className="flex gap-2">
-                  <label className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      disabled={isUploadingLogo}
-                      className="hidden"
+                
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+                    isDragging 
+                      ? 'border-purple-500 bg-purple-50' 
+                      : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50/50'
+                  } ${isUploadingLogo ? 'opacity-50 pointer-events-none' : ''}`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    disabled={isUploadingLogo}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center gap-2">
+                    <Icon 
+                      name={isUploadingLogo ? 'Loader2' : 'Upload'} 
+                      size={32} 
+                      className={`text-purple-500 ${isUploadingLogo ? 'animate-spin' : ''}`}
                     />
-                    <Button 
-                      type="button"
-                      variant="outline" 
-                      className="w-full"
-                      disabled={isUploadingLogo}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        (e.currentTarget.previousElementSibling as HTMLInputElement)?.click();
-                      }}
-                    >
-                      <Icon name="Upload" size={16} className="mr-2" />
-                      {isUploadingLogo ? 'Загрузка...' : 'Загрузить файл'}
-                    </Button>
-                  </label>
+                    {isUploadingLogo ? (
+                      <p className="text-sm font-medium text-purple-600">Загрузка...</p>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-gray-700">
+                          {isDragging ? 'Отпустите файл' : 'Перетащите изображение сюда'}
+                        </p>
+                        <p className="text-xs text-gray-500">или нажмите для выбора файла</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF (макс. 5 МБ)</p>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
+              
               {familyLogo && (
-                <img 
-                  src={familyLogo} 
-                  alt="Предпросмотр"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-purple-300 flex-shrink-0"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
-                  }}
-                />
+                <div className="flex flex-col items-center gap-2">
+                  <img 
+                    src={familyLogo} 
+                    alt="Предпросмотр"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-purple-300 shadow-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
+                    }}
+                  />
+                  <p className="text-xs text-gray-500 text-center">Предпросмотр</p>
+                </div>
               )}
             </div>
-            <p className="text-xs text-gray-500">Вставьте URL или загрузите файл (макс. 5 МБ)</p>
           </div>
 
           <Button 
