@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useVotings } from '@/hooks/useVotings';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
-import { getCurrentMember } from '@/data/demoFamily';
 import { VotingCard } from '@/components/voting/VotingCard';
 import { VotingCreateDialog } from '@/components/voting/VotingCreateDialog';
 import { VotingDetailsDialog } from '@/components/voting/VotingDetailsDialog';
@@ -14,7 +13,6 @@ import { VotingContextMenu } from '@/components/voting/VotingContextMenu';
 export function VotingWidget() {
   const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
   const { members } = useFamilyMembers();
-  const currentUser = getCurrentMember();
   
   const getCurrentUserId = () => {
     try {
@@ -208,7 +206,7 @@ export function VotingWidget() {
         }}
         onDelete={() => contextMenuVoting ? handleDelete(contextMenuVoting) : Promise.resolve()}
         deleting={deletingId === contextMenuVoting}
-        currentUser={currentUser}
+        currentUser={null}
         getCurrentUserId={getCurrentUserId}
       />
 
