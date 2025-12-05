@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "Get all trips",
+      "method": "GET",
+      "path": "/?action=trips&status=all",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "trips": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get trip details",
+      "method": "GET",
+      "path": "/?action=trip&id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "trip": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get wishlist",
+      "method": "GET",
+      "path": "/?action=wishlist",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "wishlist": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get trip bookings",
+      "method": "GET",
+      "path": "/?action=bookings&trip_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "bookings": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get trip itinerary",
+      "method": "GET",
+      "path": "/?action=itinerary&trip_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "itinerary": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

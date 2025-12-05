@@ -575,6 +575,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
     { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
     { id: 'nutrition', icon: 'Apple', label: 'Питание' },
+    { id: 'trips', icon: 'Plane', label: 'Путешествия' },
     { id: 'ai-assistant', icon: 'Bot', label: 'AI Ассистент' },
     { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
     { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
@@ -805,7 +806,8 @@ export default function Index({ onLogout }: IndexProps) {
         { icon: '📸', title: 'Фотоальбомы', description: 'Фото из путешествий' },
         { icon: '⭐', title: 'Wish list', description: 'Куда хотим поехать' },
         { icon: '📖', title: 'Дневник путешествий', description: 'Впечатления и истории' },
-      ]
+      ],
+      onClick: () => navigate('/trips')
     },
     { 
       id: 'pets', 
@@ -1790,6 +1792,8 @@ export default function Index({ onLogout }: IndexProps) {
                     navigate('/shopping');
                   } else if (section.id === 'calendar') {
                     navigate('/calendar');
+                  } else if (section.id === 'trips') {
+                    navigate('/trips');
                   } else {
                     setActiveSection(section.id);
                   }
