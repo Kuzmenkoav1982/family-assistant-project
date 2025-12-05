@@ -336,6 +336,10 @@ export default function FamilyInviteManager() {
           
           <div className="space-y-2">
             <Label>Логотип семьи</Label>
+            <p className="text-xs text-amber-600 flex items-center gap-1">
+              <Icon name="AlertCircle" size={12} />
+              Используйте прямую ссылку на изображение (должна заканчиваться на .jpg, .png, .gif) или загрузите файл ниже
+            </p>
             <div className="flex gap-4 items-start">
               <div className="flex-1 space-y-2">
                 <Input
