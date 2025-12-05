@@ -1,0 +1,66 @@
+{
+  "tests": [
+    {
+      "name": "Search products - молоко",
+      "method": "GET",
+      "path": "/?action=search&query=молоко",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "products": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get all products",
+      "method": "GET",
+      "path": "/?action=products",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "products": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get food diary for today",
+      "method": "GET",
+      "path": "/?action=diary&user_id=1&date=2024-12-05",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "diary": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get nutrition analytics",
+      "method": "GET",
+      "path": "/?action=analytics&user_id=1&date=2024-12-05",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "date": "string",
+        "totals": "object",
+        "progress": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Calculate recipe nutrition",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "calculate",
+        "ingredients": [
+          {"product_id": 1, "amount": 200},
+          {"product_id": 10, "amount": 150}
+        ],
+        "servings": 2
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "total": "object",
+        "per_serving": "object",
+        "servings": 2
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

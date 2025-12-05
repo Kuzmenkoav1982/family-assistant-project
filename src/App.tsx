@@ -50,6 +50,7 @@ import AIAssistant from "./pages/AIAssistant";
 import Development from "./pages/Development";
 import LifeRoad from "./pages/LifeRoad";
 import FamilyManagement from "./pages/FamilyManagement";
+import Nutrition from "./pages/Nutrition";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -137,6 +138,7 @@ const App = () => {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/recipes" element={<Recipes />} />
+              <Route path="/nutrition" element={<Nutrition />} />
               <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/development" element={<Development />} />
               <Route path="/life-road" element={<LifeRoad />} />
