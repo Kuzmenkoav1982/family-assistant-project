@@ -582,7 +582,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'values', icon: 'Heart', label: 'Ценности' },
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
     { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
-    { id: 'meals', icon: 'UtensilsCrossed', label: 'Питание' },
+    { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
   ];
 
   const availableTopPanelSections = [
