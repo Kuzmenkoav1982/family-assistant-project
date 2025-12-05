@@ -252,7 +252,7 @@ export default function Index({ onLogout }: IndexProps) {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     return !hasSeenWelcome;
   });
-  const [welcomeText, setWelcomeText] = useState('');
+  const [welcomeText] = useState('Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций.');
   const [isTopBarVisible, setIsTopBarVisible] = useState(true);
   const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
     return localStorage.getItem('autoHideTopBar') === 'true';

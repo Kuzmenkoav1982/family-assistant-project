@@ -33,9 +33,10 @@ export function WelcomeScreen({ showWelcome, welcomeText, onDismiss }: WelcomeSc
           </h1>
           
           <div className="min-h-[200px] flex items-center justify-center px-4">
-            <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl">
-              {welcomeText}
-              <span className="inline-block w-1 h-7 bg-purple-600 ml-1 animate-pulse"></span>
+            <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl relative">
+              <span className="welcome-gradient-wave">
+                {welcomeText}
+              </span>
             </p>
           </div>
           
