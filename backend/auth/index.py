@@ -10,6 +10,7 @@ import hashlib
 import secrets
 import re
 import urllib.parse
+import requests
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
@@ -19,6 +20,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
 YANDEX_CLIENT_SECRET = os.environ.get('YANDEX_CLIENT_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
+NOTIFICATIONS_URL = 'https://functions.poehali.dev/6d1ab9ca-e962-4e7e-a78a-ad88cd4d2e07'
 
 # Force redeploy to pick up updated secrets
 
@@ -40,6 +42,23 @@ def escape_string(value: Any) -> str:
     if isinstance(value, bool):
         return 'TRUE' if value else 'FALSE'
     return "'" + str(value).replace("'", "''") + "'"
+
+def generate_reset_code() -> str:
+    """Генерирует 6-значный код восстановления"""
+    return ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+
+def send_sms(phone: str, message: str) -> bool:
+    """Отправка SMS через notifications функцию"""
+    try:
+        response = requests.post(
+            f"{NOTIFICATIONS_URL}?action=sms",
+            json={'phone': phone, 'message': message},
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
+        return response.status_code == 200
+    except:
+        return False
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -383,6 +402,124 @@ def get_current_user(token: str) -> Dict[str, Any]:
         conn.close()
         return {'error': f'Ошибка получения пользователя: {str(e)}'}
 
+def request_password_reset(phone: str) -> Dict[str, Any]:
+    """Запрос на восстановление пароля - генерирует код и отправляет SMS"""
+    if not phone or not validate_phone(phone):
+        return {'error': 'Некорректный номер телефона'}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        check_query = f"SELECT id FROM {SCHEMA}.users WHERE phone = {escape_string(phone)}"
+        cur.execute(check_query)
+        user = cur.fetchone()
+        
+        if not user:
+            cur.close()
+            conn.close()
+            return {'error': 'Пользователь с таким телефоном не найден'}
+        
+        reset_code = generate_reset_code()
+        expires_at = datetime.now() + timedelta(minutes=10)
+        
+        delete_old = f"""
+            DELETE FROM {SCHEMA}.password_reset_tokens 
+            WHERE user_id = {escape_string(user['id'])}
+        """
+        cur.execute(delete_old)
+        
+        insert_reset = f"""
+            INSERT INTO {SCHEMA}.password_reset_tokens (user_id, reset_code, expires_at, used)
+            VALUES (
+                {escape_string(user['id'])},
+                {escape_string(reset_code)},
+                {escape_string(expires_at.isoformat())},
+                FALSE
+            )
+        """
+        cur.execute(insert_reset)
+        
+        sms_sent = send_sms(phone, f'Код восстановления пароля: {reset_code}. Действителен 10 минут.')
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'message': 'Код отправлен на ваш телефон',
+            'sms_sent': sms_sent
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка запроса восстановления: {str(e)}'}
+
+def reset_password(phone: str, reset_code: str, new_password: str) -> Dict[str, Any]:
+    """Сброс пароля по коду из SMS"""
+    if not phone or not reset_code or not new_password:
+        return {'error': 'Все поля обязательны'}
+    
+    if len(new_password) < 6:
+        return {'error': 'Пароль должен быть минимум 6 символов'}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        query = f"""
+            SELECT pr.user_id, pr.expires_at, pr.used, u.phone
+            FROM {SCHEMA}.password_reset_tokens pr
+            JOIN {SCHEMA}.users u ON u.id = pr.user_id
+            WHERE u.phone = {escape_string(phone)} 
+            AND pr.reset_code = {escape_string(reset_code)}
+        """
+        cur.execute(query)
+        reset = cur.fetchone()
+        
+        if not reset:
+            cur.close()
+            conn.close()
+            return {'error': 'Неверный код восстановления'}
+        
+        if reset['used']:
+            cur.close()
+            conn.close()
+            return {'error': 'Код уже использован'}
+        
+        if reset['expires_at'] < datetime.now():
+            cur.close()
+            conn.close()
+            return {'error': 'Код восстановления истёк'}
+        
+        password_hash = hash_password(new_password)
+        update_password = f"""
+            UPDATE {SCHEMA}.users
+            SET password_hash = {escape_string(password_hash)}
+            WHERE id = {escape_string(reset['user_id'])}
+        """
+        cur.execute(update_password)
+        
+        mark_used = f"""
+            UPDATE {SCHEMA}.password_reset_tokens
+            SET used = TRUE
+            WHERE user_id = {escape_string(reset['user_id'])}
+            AND reset_code = {escape_string(reset_code)}
+        """
+        cur.execute(mark_used)
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'message': 'Пароль успешно изменён'
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка сброса пароля: {str(e)}'}
+
 def oauth_login_yandex(callback_url: str, frontend_url: str = '') -> Dict[str, Any]:
     """Генерирует URL для редиректа на Yandex OAuth"""
     if not YANDEX_CLIENT_ID:
@@ -717,6 +854,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             result = login_user(
                 phone=body.get('phone'),
                 password=body.get('password')
+            )
+        elif action == 'request_reset':
+            result = request_password_reset(
+                phone=body.get('phone')
+            )
+        elif action == 'reset_password':
+            result = reset_password(
+                phone=body.get('phone'),
+                reset_code=body.get('reset_code'),
+                new_password=body.get('new_password')
             )
         else:
             return {
