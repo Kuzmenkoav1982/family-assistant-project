@@ -89,10 +89,28 @@ export default function Nutrition() {
       const response = await fetch(
         `${NUTRITION_API_URL}/?action=analytics&user_id=${selectedMemberId}&date=${today}`
       );
+      if (!response.ok) {
+        console.error('Error loading nutrition data:', response.status, response.statusText);
+        setNutritionData({
+          date: today,
+          totals: { total_calories: 0, total_protein: 0, total_fats: 0, total_carbs: 0, entries_count: 0 },
+          by_meal: [],
+          goals: { daily_calories: 2000, daily_protein: 100, daily_fats: 70, daily_carbs: 250 },
+          progress: { calories: 0, protein: 0, fats: 0, carbs: 0 }
+        });
+        return;
+      }
       const data = await response.json();
       setNutritionData(data);
     } catch (error) {
       console.error('Ошибка загрузки аналитики:', error);
+      setNutritionData({
+        date: today,
+        totals: { total_calories: 0, total_protein: 0, total_fats: 0, total_carbs: 0, entries_count: 0 },
+        by_meal: [],
+        goals: { daily_calories: 2000, daily_protein: 100, daily_fats: 70, daily_carbs: 250 },
+        progress: { calories: 0, protein: 0, fats: 0, carbs: 0 }
+      });
     } finally {
       setLoading(false);
     }
