@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { MemberProfile } from '@/types/family.types';
 
 const MEMBER_PROFILE_API = 'https://functions.poehali.dev/84bdef99-0e4b-420f-af04-60ac37c6af1c';
@@ -10,7 +10,7 @@ export function useMemberProfile() {
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
-  const saveProfile = async (memberId: string, profileData: MemberProfile): Promise<boolean> => {
+  const saveProfile = useCallback(async (memberId: string, profileData: MemberProfile): Promise<boolean> => {
     setSaving(true);
     setError(null);
     
@@ -59,9 +59,9 @@ export function useMemberProfile() {
     } finally {
       setSaving(false);
     }
-  };
+  }, []);
 
-  const getProfile = async (memberId: string): Promise<MemberProfile | null> => {
+  const getProfile = useCallback(async (memberId: string): Promise<MemberProfile | null> => {
     setLoading(true);
     setError(null);
     
@@ -91,7 +91,7 @@ export function useMemberProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return {
     saveProfile,
