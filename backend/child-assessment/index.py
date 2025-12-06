@@ -1,7 +1,7 @@
 import json
 import os
-from typing import Dict, Any, List
-from openai import OpenAI
+import requests
+from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -49,7 +49,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     age_description = age_ranges_map.get(age_range, 'от 1 года до 2 лет')
     
-    client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
     
     prompt = f"""Создай структурированную анкету для оценки развития ребенка возраста {age_description}.
 
@@ -83,14 +84,38 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 Верни ТОЛЬКО JSON, без дополнительного текста."""
 
-    response = client.chat.completions.create(
-        model='gpt-4o-mini',
-        messages=[{'role': 'user', 'content': prompt}],
-        temperature=0.7,
-        max_tokens=2000
+    yandex_response = requests.post(
+        'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+        headers={
+            'Authorization': f'Api-Key {api_key}',
+            'Content-Type': 'application/json'
+        },
+        json={
+            'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+            'completionOptions': {
+                'stream': False,
+                'temperature': 0.7,
+                'maxTokens': 2000
+            },
+            'messages': [
+                {
+                    'role': 'user',
+                    'text': prompt
+                }
+            ]
+        }
     )
     
-    content = response.choices[0].message.content.strip()
+    if yandex_response.status_code != 200:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'YandexGPT API error'}, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+    
+    result = yandex_response.json()
+    content = result['result']['alternatives'][0]['message']['text'].strip()
     
     if content.startswith('```json'):
         content = content[7:]

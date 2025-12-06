@@ -1,8 +1,8 @@
 import json
 import os
 import psycopg2
+import requests
 from typing import Dict, Any
-from openai import OpenAI
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -70,7 +70,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     conn.commit()
     
-    client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
     
     skills_summary = "\n".join([
         f"- {s['category']}: {s['skill_name']} ({s['skill_level']})"
@@ -115,14 +116,40 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 Будь конкретным, дай практические советы родителям."""
 
-    response = client.chat.completions.create(
-        model='gpt-4o',
-        messages=[{'role': 'user', 'content': prompt}],
-        temperature=0.7,
-        max_tokens=3000
+    yandex_response = requests.post(
+        'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+        headers={
+            'Authorization': f'Api-Key {api_key}',
+            'Content-Type': 'application/json'
+        },
+        json={
+            'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+            'completionOptions': {
+                'stream': False,
+                'temperature': 0.7,
+                'maxTokens': 3000
+            },
+            'messages': [
+                {
+                    'role': 'user',
+                    'text': prompt
+                }
+            ]
+        }
     )
     
-    content = response.choices[0].message.content.strip()
+    if yandex_response.status_code != 200:
+        cur.close()
+        conn.close()
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'YandexGPT API error'}, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+    
+    result = yandex_response.json()
+    content = result['result']['alternatives'][0]['message']['text'].strip()
     
     if content.startswith('```json'):
         content = content[7:]
