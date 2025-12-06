@@ -300,6 +300,41 @@ export default function Presentation() {
                   </div>
                 </div>
 
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-4 border-2 border-purple-300">
+                  <div className="flex gap-3">
+                    <Icon name="Brain" className="text-purple-700 flex-shrink-0" size={28} />
+                    <div>
+                      <p className="font-bold text-purple-900 text-lg mb-2 flex items-center gap-2">
+                        ИИ-оценка развития ребёнка
+                        <span className="bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">НОВОЕ</span>
+                      </p>
+                      <p className="text-gray-800 mb-3">Искусственный интеллект анализирует развитие ребёнка по возрастным нормам и создаёт персональный план развития.</p>
+                      <div className="space-y-2 text-sm text-gray-700">
+                        <div className="flex items-start gap-2">
+                          <span className="text-purple-600">✓</span>
+                          <span><strong>Анкеты по возрасту:</strong> 8 возрастных диапазонов от 0 до 7 лет с учётом норм развития</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-purple-600">✓</span>
+                          <span><strong>5 категорий навыков:</strong> крупная и мелкая моторика, речь, социальные навыки, когнитивное развитие</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-purple-600">✓</span>
+                          <span><strong>Детальный анализ:</strong> процентная оценка по каждой категории, сильные стороны и зоны роста</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-purple-600">✓</span>
+                          <span><strong>Персональный план:</strong> конкретные упражнения и задания с отслеживанием прогресса</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-purple-600">✓</span>
+                          <span><strong>Архив с графиком:</strong> история всех оценок и динамика развития ребёнка</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-white/95 rounded-xl p-4">
                   <div className="flex gap-3">
                     <Icon name="GraduationCap" className="text-blue-600 flex-shrink-0" size={24} />
