@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Get active plan for child",
+      "method": "GET",
+      "path": "/?child_id=1&status=active",
+      "expectedStatus": 200,
+      "expectedBody": "array",
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Update task completion",
+      "method": "PUT",
+      "path": "/",
+      "body": {
+        "task_id": 1,
+        "plan_id": 1,
+        "completed": true
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "progress": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -12,6 +13,9 @@ import { SchoolSection } from './SchoolSection';
 import { GiftsSection } from './GiftsSection';
 import { PurchasesSection } from './PurchasesSection';
 import { SectionHelp } from './SectionHelp';
+import { DevelopmentAssessment } from './DevelopmentAssessment';
+import { ActivePlanSection } from './ActivePlanSection';
+import { AssessmentsArchive } from './AssessmentsArchive';
 import { useChildrenDataQuery, useChildDataMutation } from '@/hooks/useChildrenDataQuery';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import type { FamilyMember } from '@/types/family.types';
@@ -21,7 +25,9 @@ interface ParentDashboardProps {
 }
 
 export function ParentDashboard({ child }: ParentDashboardProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [showAssessment, setShowAssessment] = useState(false);
   const { data, isLoading: loading, error, refetch: fetchChildData } = useChildrenDataQuery(child.id);
   const mutation = useChildDataMutation(child.id);
 
@@ -102,13 +108,32 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
                 <span>Баллы: {child.points}</span>
               </div>
             </div>
-            <Button variant="secondary" className="gap-2">
-              <Icon name="Download" size={18} />
-              Экспорт отчёта
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="default" 
+                className="gap-2 bg-white text-purple-600 hover:bg-gray-100"
+                onClick={() => setShowAssessment(true)}
+              >
+                <Icon name="Brain" size={18} />
+                Оценка развития
+              </Button>
+              <Button variant="secondary" className="gap-2">
+                <Icon name="Download" size={18} />
+                Экспорт отчёта
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      <DevelopmentAssessment
+        child={child}
+        open={showAssessment}
+        onClose={() => setShowAssessment(false)}
+        onComplete={(assessmentId, planId) => {
+          navigate(`/children/assessment-report?assessmentId=${assessmentId}&planId=${planId}&childId=${child.id}`);
+        }}
+      />
 
       <div className="grid md:grid-cols-3 gap-6">
         <Card>
@@ -178,24 +203,9 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
         </Card>
       </div>
 
-      <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <div className="text-3xl">🤖</div>
-            <div className="flex-1">
-              <CardTitle className="text-lg mb-2">Рекомендации ИИ</CardTitle>
-              <div className="space-y-2 text-sm text-gray-700">
-                <p>• Рекомендуется уделить больше внимания развитию математических навыков</p>
-                <p>• Отличные результаты в творческих заданиях - поддержите интерес к рисованию</p>
-                <p>• Назначьте визит к окулисту - последняя проверка была 8 месяцев назад</p>
-              </div>
-              <Button variant="link" className="mt-2 p-0 h-auto text-blue-600">
-                Посмотреть все рекомендации →
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      <ActivePlanSection child={child} />
+
+      <AssessmentsArchive child={child} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid grid-cols-5 w-full">

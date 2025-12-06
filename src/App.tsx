@@ -43,6 +43,7 @@ import AdminLogin from "./pages/AdminLogin";
 import NationalitiesPage from "./pages/NationalitiesPage";
 import NationalityDetailPage from "./pages/NationalityDetailPage";
 import Children from "./pages/Children";
+import AssessmentReport from "./pages/AssessmentReport";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Recipes from "./pages/Recipes";
@@ -138,6 +139,7 @@ const App = () => {
               <Route path="/nationalities" element={<NationalitiesPage />} />
               <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
               <Route path="/children" element={<Children />} />
+              <Route path="/children/assessment-report" element={<AssessmentReport />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/recipes" element={<Recipes />} />

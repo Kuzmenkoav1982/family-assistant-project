@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Analyze child development with skills",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "child_id": 1,
+        "family_id": 1,
+        "age_range": "1-2",
+        "skills": [
+          {
+            "category": "Крупная моторика",
+            "skill_name": "Самостоятельно ходит",
+            "skill_level": "уверенно"
+          }
+        ]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "assessment_id": "number",
+        "plan_id": "number",
+        "analysis": {
+          "overall_score": "number"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
