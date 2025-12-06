@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDialogLock } from '@/contexts/DialogLockContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,6 +57,7 @@ const getScoreLabel = (score: number): string => {
 
 export function DevelopmentAssessment({ child, open, onClose, onComplete }: DevelopmentAssessmentProps) {
   const queryClient = useQueryClient();
+  const { lockUpdates, unlockUpdates } = useDialogLock();
   const [step, setStep] = useState<'age' | 'questionnaire' | 'analyzing'>('age');
   const [selectedAge, setSelectedAge] = useState<string>('');
   const [questionnaire, setQuestionnaire] = useState<Category[]>([]);
@@ -66,10 +68,14 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
   useEffect(() => {
     console.log('[DevelopmentAssessment] open changed:', open);
     if (open) {
-      console.log('[DevelopmentAssessment] Cancelling all queries');
+      console.log('[DevelopmentAssessment] LOCKING all updates');
+      lockUpdates();
       queryClient.cancelQueries();
+    } else {
+      console.log('[DevelopmentAssessment] UNLOCKING updates');
+      unlockUpdates();
     }
-  }, [open, queryClient]);
+  }, [open, queryClient, lockUpdates, unlockUpdates]);
 
   useEffect(() => {
     console.log('[DevelopmentAssessment] Component mounted/updated');

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useContext } from 'react';
+import { DialogLockContext } from '@/contexts/DialogLockContext';
 
 interface FamilyMember {
   id: string;
@@ -24,6 +25,7 @@ interface FamilyMember {
 const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5';
 
 export function useFamilyMembers() {
+  const dialogLock = useContext(DialogLockContext);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -235,6 +237,11 @@ export function useFamilyMembers() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (dialogLock?.isDialogOpen) {
+        console.log('[useFamilyMembers] Skipping interval fetch - dialog is open');
+        return;
+      }
+      
       const token = getAuthToken();
       if (token && hasInitialFetchRef.current && !isFetchingRef.current) {
         fetchMembers(true);
@@ -242,7 +249,7 @@ export function useFamilyMembers() {
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [fetchMembers]);
+  }, [fetchMembers, dialogLock]);
 
   return {
     members,
