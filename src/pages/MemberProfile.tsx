@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useMemberProfile } from '@/hooks/useMemberProfile';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
 import { MemberProfileEdit } from '@/components/MemberProfileEdit';
@@ -22,6 +23,7 @@ export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembers();
+  const { saveProfile, saving: savingProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   
   let member = members.find(m => m.id === memberId);
@@ -349,7 +351,12 @@ export default function MemberProfile() {
             <MemberProfileQuestionnaire
               member={member}
               onSave={async (profile: MemberProfile) => {
-                await updateMember({ id: member.id, profile });
+                const success = await saveProfile(member.id, profile);
+                if (success) {
+                  alert('✅ Анкета успешно сохранена!');
+                } else {
+                  alert('❌ Ошибка при сохранении анкеты');
+                }
               }}
             />
           </TabsContent>

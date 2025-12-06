@@ -11,7 +11,7 @@ import type { FamilyMember, MemberProfile, LoveLanguage } from '@/types/family.t
 
 interface MemberProfileQuestionnaireProps {
   member: FamilyMember;
-  onSave: (profile: MemberProfile) => void;
+  onSave: (profile: MemberProfile) => Promise<void>;
 }
 
 const LOVE_LANGUAGES = [
@@ -24,6 +24,7 @@ const LOVE_LANGUAGES = [
 
 export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQuestionnaireProps) {
   const [profile, setProfile] = useState<MemberProfile>(member.profile || {});
+  const [saving, setSaving] = useState(false);
   const [newHabit, setNewHabit] = useState('');
   const [newBadHabit, setNewBadHabit] = useState('');
   const [newHobby, setNewHobby] = useState('');
@@ -53,8 +54,13 @@ export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQues
     setProfile({ ...profile, loveLanguages: updated });
   };
 
-  const handleSave = () => {
-    onSave(profile);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(profile);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -415,9 +421,23 @@ export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQues
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} size="lg" className="w-full">
-        <Icon name="Save" size={20} className="mr-2" />
-        Сохранить анкету
+      <Button 
+        onClick={handleSave} 
+        size="lg" 
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+        disabled={saving}
+      >
+        {saving ? (
+          <>
+            <Icon name="Loader" size={20} className="mr-2 animate-spin" />
+            Сохранение...
+          </>
+        ) : (
+          <>
+            <Icon name="Save" size={20} className="mr-2" />
+            Сохранить анкету
+          </>
+        )}
       </Button>
     </div>
   );
