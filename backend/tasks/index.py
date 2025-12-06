@@ -137,9 +137,11 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    check_query = f"SELECT id FROM {SCHEMA}.tasks_v2 WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    # Получаем текущую задачу
+    check_query = f"SELECT id, assignee_id, completed, points FROM {SCHEMA}.tasks_v2 WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
     cur.execute(check_query)
-    if not cur.fetchone():
+    old_task = cur.fetchone()
+    if not old_task:
         cur.close()
         conn.close()
         return {'error': 'Задача не найдена'}
@@ -170,6 +172,20 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     
     cur.execute(query)
     task = cur.fetchone()
+    
+    # Если задача помечена как выполненная и у неё есть исполнитель и баллы - начислить баллы
+    if data.get('completed') == True and not old_task['completed']:
+        assignee_id = task['assignee_id'] or old_task['assignee_id']
+        points = task['points'] or old_task['points'] or 0
+        
+        if assignee_id and points > 0:
+            update_points_query = f"""
+                UPDATE {SCHEMA}.family_members 
+                SET points = points + {points}
+                WHERE id::text = {escape_string(str(assignee_id))}
+            """
+            cur.execute(update_points_query)
+    
     cur.close()
     conn.close()
     

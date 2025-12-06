@@ -16,6 +16,23 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 
+def snake_to_camel(snake_str: str) -> str:
+    """Конвертирует snake_case в camelCase"""
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
+def camel_to_snake(camel_str: str) -> str:
+    """Конвертирует camelCase в snake_case"""
+    result = [camel_str[0].lower()]
+    for char in camel_str[1:]:
+        if char.isupper():
+            result.extend(['_', char.lower()])
+        else:
+            result.append(char)
+    return ''.join(result)
+
+
 def convert_decimals(obj: Any) -> Any:
     """Конвертирует Decimal и datetime в JSON-совместимые типы"""
     if isinstance(obj, Decimal):
@@ -27,6 +44,15 @@ def convert_decimals(obj: Any) -> Any:
     elif isinstance(obj, list):
         return [convert_decimals(item) for item in obj]
     return obj
+
+
+def db_to_frontend(db_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """Конвертирует snake_case ключи из БД в camelCase для фронтенда"""
+    result = {}
+    for key, value in db_dict.items():
+        camel_key = snake_to_camel(key)
+        result[camel_key] = convert_decimals(value)
+    return result
 
 
 def escape_string(value: Any) -> str:
@@ -80,6 +106,25 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         conn.close()
 
 
+def get_member_id_by_uuid(member_uuid: str) -> Optional[int]:
+    """Получить integer ID члена семьи по UUID"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        query = f"""
+            SELECT id FROM {SCHEMA}.family_members
+            WHERE id::text = {escape_string(member_uuid)}
+            LIMIT 1
+        """
+        cur.execute(query)
+        result = cur.fetchone()
+        return result['id'] if result else None
+    finally:
+        cur.close()
+        conn.close()
+
+
 def get_profile(member_id: int) -> Optional[Dict[str, Any]]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -92,7 +137,7 @@ def get_profile(member_id: int) -> Optional[Dict[str, Any]]:
         """
         cur.execute(query)
         result = cur.fetchone()
-        return convert_decimals(dict(result)) if result else None
+        return db_to_frontend(dict(result)) if result else None
     finally:
         cur.close()
         conn.close()
@@ -110,7 +155,7 @@ def get_family_profiles(family_id: str) -> list:
             WHERE mp.family_id = {escape_string(family_id)}::uuid
         """
         cur.execute(query)
-        return [convert_decimals(dict(row)) for row in cur.fetchall()]
+        return [db_to_frontend(dict(row)) for row in cur.fetchall()]
     finally:
         cur.close()
         conn.close()
@@ -133,8 +178,7 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
             # UPDATE
             updates = []
             for key, value in profile_data.items():
-                # Преобразуем camelCase в snake_case
-                snake_key = ''.join(['_' + c.lower() if c.isupper() else c for c in key]).lstrip('_')
+                snake_key = camel_to_snake(key)
                 updates.append(f"{snake_key} = {escape_string(value)}")
             
             if updates:
@@ -147,14 +191,14 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
                 """
                 cur.execute(query)
                 result = cur.fetchone()
-                return {'success': True, 'profile': convert_decimals(dict(result))}
+                return {'success': True, 'profile': db_to_frontend(dict(result))}
         else:
             # INSERT
             columns = ['member_id', 'family_id']
             values = [str(member_id), f"{escape_string(family_id)}::uuid"]
             
             for key, value in profile_data.items():
-                snake_key = ''.join(['_' + c.lower() if c.isupper() else c for c in key]).lstrip('_')
+                snake_key = camel_to_snake(key)
                 columns.append(snake_key)
                 values.append(escape_string(value))
             
@@ -165,7 +209,7 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
             """
             cur.execute(query)
             result = cur.fetchone()
-            return {'success': True, 'profile': convert_decimals(dict(result))}
+            return {'success': True, 'profile': db_to_frontend(dict(result))}
             
     except Exception as e:
         return {'success': False, 'error': str(e)}
@@ -221,11 +265,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if method == 'GET':
             params = event.get('queryStringParameters') or {}
-            member_id = params.get('memberId')
+            member_uuid = params.get('memberId')
             
-            if member_id:
+            if member_uuid:
+                # Получить integer ID по UUID
+                member_id = get_member_id_by_uuid(member_uuid)
+                if not member_id:
+                    return {
+                        'statusCode': 404,
+                        'headers': headers,
+                        'body': json.dumps({'success': False, 'error': 'Член семьи не найден'}),
+                        'isBase64Encoded': False
+                    }
+                
                 # Получить профиль конкретного члена
-                profile = get_profile(int(member_id))
+                profile = get_profile(member_id)
                 if profile:
                     return {
                         'statusCode': 200,
@@ -254,16 +308,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             raw_body = event.get('body') or '{}'
             body = json.loads(raw_body) if raw_body else {}
             
-            member_id = body.get('memberId')
+            member_uuid = body.get('memberId')
             profile_data = body.get('profileData', {})
             
-            if member_id is None:
+            if member_uuid is None:
                 return {
                     'statusCode': 400,
                     'headers': headers,
                     'body': json.dumps({'error': 'Не указан ID члена семьи'}),
                     'isBase64Encoded': False
                 }
+            
+            # Конвертируем UUID в integer ID
+            if isinstance(member_uuid, str) and '-' in member_uuid:
+                member_id = get_member_id_by_uuid(member_uuid)
+                if not member_id:
+                    return {
+                        'statusCode': 404,
+                        'headers': headers,
+                        'body': json.dumps({'success': False, 'error': 'Член семьи не найден'}),
+                        'isBase64Encoded': False
+                    }
+            else:
+                member_id = int(member_uuid)
             
             result = upsert_profile(member_id, str(family_id), profile_data)
             

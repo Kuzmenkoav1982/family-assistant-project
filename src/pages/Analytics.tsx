@@ -45,14 +45,14 @@ export default function Analytics() {
   const tasksByMember = useMemo(() => 
     members.map((member: any) => ({
       name: member.name,
-      completed: tasks.filter((t: any) => t.assignedTo === member.id && t.completed).length,
-      pending: tasks.filter((t: any) => t.assignedTo === member.id && !t.completed).length,
+      completed: tasks.filter((t: any) => t.assignee_id === member.id && t.completed).length,
+      pending: tasks.filter((t: any) => t.assignee_id === member.id && !t.completed).length,
     }))
   , [members, tasks]);
 
   const memberActivity = useMemo(() => 
     members.map((member: any) => {
-      const memberTasks = tasks.filter((t: any) => t.assignedTo === member.id);
+      const memberTasks = tasks.filter((t: any) => t.assignee_id === member.id);
       const memberEvents = calendarEvents.filter((e: any) => e.participants?.includes(member.id));
       return {
         name: member.name,
