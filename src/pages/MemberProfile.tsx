@@ -26,6 +26,7 @@ export default function MemberProfile() {
   const { saveProfile, getProfile, loading: loadingProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   
   let member = members.find(m => m.id === memberId);
   
@@ -98,16 +99,15 @@ export default function MemberProfile() {
     });
   };
 
-  useEffect(() => {
-    if (member?.id) {
-      getProfile(member.id).then(profile => {
-        if (profile) {
-          setMemberProfile(profile);
-        }
-      });
+  const loadProfileIfNeeded = async () => {
+    if (member?.id && !profileLoaded) {
+      const profile = await getProfile(member.id);
+      if (profile) {
+        setMemberProfile(profile);
+      }
+      setProfileLoaded(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [member?.id]);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
@@ -359,7 +359,7 @@ export default function MemberProfile() {
             />
           </TabsContent>
 
-          <TabsContent value="questionnaire">
+          <TabsContent value="questionnaire" onFocus={loadProfileIfNeeded}>
             <MemberProfileQuestionnaire
               member={{...member, profile: memberProfile || undefined}}
               onSave={async (profile: MemberProfile) => {
