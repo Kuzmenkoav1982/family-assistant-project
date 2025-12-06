@@ -170,26 +170,39 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen && step === 'age') {
-        handleClose();
-      }
-    }} modal>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        // Разрешаем закрытие только на этапе выбора возраста
+        if (!isOpen && step === 'age') {
+          handleClose();
+        }
+      }} 
+      modal={true}
+    >
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] overflow-y-auto pointer-events-auto" 
+        className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden" 
         onInteractOutside={(e) => {
+          // Полная блокировка внешних кликов
           e.preventDefault();
-          e.stopPropagation();
         }} 
         onPointerDownOutside={(e) => {
+          // Полная блокировка pointer событий
           e.preventDefault();
-          e.stopPropagation();
         }}
         onEscapeKeyDown={(e) => {
+          // Блокируем Escape на этапах анкеты и анализа
           if (step !== 'age') {
             e.preventDefault();
           }
-        }}>
+        }}
+        // Отключаем автофокус который может вызывать закрытие
+        onOpenAutoFocus={(e) => {
+          if (step !== 'age') {
+            e.preventDefault();
+          }
+        }}
+      >
         {step === 'age' && (
           <>
             <DialogHeader>
