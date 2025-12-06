@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { GradientSlider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,7 +18,7 @@ interface DevelopmentAssessmentProps {
 
 interface Skill {
   skill_name: string;
-  level: 'not' | 'partial' | 'confident';
+  score: number;
 }
 
 interface Category {
@@ -38,11 +37,21 @@ const AGE_RANGES = [
   { value: '6-7', label: '6-7 лет', emoji: '🎓' },
 ];
 
-const SKILL_LEVELS = [
-  { value: 'not', label: 'Не умеет', color: 'bg-red-100 text-red-700' },
-  { value: 'partial', label: 'Частично', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'confident', label: 'Уверенно', color: 'bg-green-100 text-green-700' },
-];
+const getScoreColor = (score: number): string => {
+  if (score <= 3) return 'text-red-600';
+  if (score <= 6) return 'text-yellow-600';
+  return 'text-green-600';
+};
+
+const getScoreLabel = (score: number): string => {
+  if (score === 0) return 'Совсем не умеет';
+  if (score <= 2) return 'Только начинает';
+  if (score <= 4) return 'Получается с трудом';
+  if (score <= 6) return 'Получается неплохо';
+  if (score <= 8) return 'Хорошо владеет';
+  if (score === 9) return 'Почти отлично';
+  return 'Владеет в совершенстве';
+};
 
 export function DevelopmentAssessment({ child, open, onClose, onComplete }: DevelopmentAssessmentProps) {
   const [step, setStep] = useState<'age' | 'questionnaire' | 'analyzing'>('age');
@@ -74,7 +83,7 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
         cat.skills.forEach((skillName: string) => {
           initialSkills.set(`${cat.name}-${skillName}`, {
             skill_name: skillName,
-            level: 'not',
+            score: 5,
           });
         });
       });
@@ -89,11 +98,11 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
     }
   };
 
-  const handleSkillChange = (category: string, skillName: string, level: string) => {
+  const handleSkillChange = (category: string, skillName: string, score: number) => {
     const key = `${category}-${skillName}`;
     setSkills(new Map(skills.set(key, {
       skill_name: skillName,
-      level: level as 'not' | 'partial' | 'confident',
+      score,
     })));
   };
 
@@ -112,7 +121,8 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
         return {
           category,
           skill_name: skill.skill_name,
-          skill_level: skill.level,
+          skill_level: skill.score >= 7 ? 'confident' : skill.score >= 4 ? 'partial' : 'not',
+          skill_score: skill.score,
         };
       });
 
@@ -247,7 +257,7 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
             <DialogHeader>
               <DialogTitle>Анкета развития: {child.name}</DialogTitle>
               <DialogDescription>
-                Отметьте уровень владения каждым навыком
+                Оцените уровень владения каждым навыком по шкале от 0 до 10
               </DialogDescription>
             </DialogHeader>
 
@@ -266,33 +276,42 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
                       {category.name}
                     </h3>
                     
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {category.skills.map((skillName, skillIndex) => {
                         const key = `${category.name}-${skillName}`;
                         const currentSkill = skills.get(key);
+                        const score = currentSkill?.score ?? 5;
                         
                         return (
-                          <div key={skillIndex} className="border-b pb-4 last:border-0">
-                            <p className="font-medium mb-3">{skillName}</p>
-                            <RadioGroup
-                              value={currentSkill?.level || 'not'}
-                              onValueChange={(value) => handleSkillChange(category.name, skillName, value)}
-                              className="flex gap-3"
-                            >
-                              {SKILL_LEVELS.map((level) => (
-                                <div key={level.value} className="flex items-center">
-                                  <RadioGroupItem value={level.value} id={`${key}-${level.value}`} />
-                                  <Label
-                                    htmlFor={`${key}-${level.value}`}
-                                    className={`ml-2 cursor-pointer px-3 py-1 rounded-full text-sm ${
-                                      currentSkill?.level === level.value ? level.color : 'bg-gray-100'
-                                    }`}
-                                  >
-                                    {level.label}
-                                  </Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
+                          <div key={skillIndex} className="border-b pb-6 last:border-0">
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="font-medium flex-1">{skillName}</p>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
+                                  {score}
+                                </span>
+                                <span className="text-xs text-gray-500">/ 10</span>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <GradientSlider
+                                value={[score]}
+                                onValueChange={([value]) => handleSkillChange(category.name, skillName, value)}
+                                min={0}
+                                max={10}
+                                step={1}
+                                className="w-full"
+                              />
+                              
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-red-600 font-medium">0 - Не умеет</span>
+                                <span className={`font-semibold text-sm ${getScoreColor(score)}`}>
+                                  {getScoreLabel(score)}
+                                </span>
+                                <span className="text-green-600 font-medium">10 - Отлично</span>
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
