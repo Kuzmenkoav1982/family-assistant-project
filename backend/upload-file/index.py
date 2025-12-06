@@ -8,10 +8,10 @@ import uuid
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Upload files to Yandex Object Storage with automatic optimization
-    Args: event with httpMethod, body containing base64 file data
-          context with request_id
-    Returns: HTTP response with file URL
+    Business: Загрузка файлов в S3 хранилище
+    Args: event с httpMethod, body с base64 данными файла
+          context с request_id
+    Returns: HTTP ответ с URL файла
     '''
     method: str = event.get('httpMethod', 'POST')
     
@@ -48,11 +48,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    access_key = os.environ.get('YANDEX_S3_ACCESS_KEY')
-    secret_key = os.environ.get('YANDEX_S3_SECRET_KEY')
-    bucket_name = os.environ.get('YANDEX_S3_BUCKET_NAME')
+    access_key = os.environ.get('AWS_ACCESS_KEY_ID')
+    secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
     
-    if not all([access_key, secret_key, bucket_name]):
+    if not all([access_key, secret_key]):
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
@@ -62,10 +61,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     s3_client = boto3.client(
         's3',
-        endpoint_url='https://storage.yandexcloud.net',
+        endpoint_url='https://bucket.poehali.dev',
         aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-        region_name='ru-central1'
+        aws_secret_access_key=secret_key
     )
     
     file_data = base64.b64decode(file_base64)
@@ -85,7 +83,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         s3_client.put_object(
-            Bucket=bucket_name,
+            Bucket='files',
             Key=unique_name,
             Body=file_data,
             ContentType=content_type
@@ -98,7 +96,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    file_url = f"https://storage.yandexcloud.net/{bucket_name}/{unique_name}"
+    file_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{unique_name}"
     
     return {
         'statusCode': 200,
