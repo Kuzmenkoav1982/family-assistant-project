@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +28,13 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [showAssessment, setShowAssessment] = useState(false);
-  const { data, isLoading: loading, error, refetch: fetchChildData } = useChildrenDataQuery(child.id);
+  const assessmentChildRef = useRef(child);
+  const { data, isLoading: loading, error, refetch: fetchChildData } = useChildrenDataQuery(child.id, 'all', !showAssessment);
   const mutation = useChildDataMutation(child.id);
+
+  useEffect(() => {
+    assessmentChildRef.current = child;
+  }, [child]);
 
   const addItem = useCallback(async (type: string, itemData: any) => {
     return mutation.mutateAsync({
@@ -127,14 +132,18 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
         </CardContent>
       </Card>
 
-      <DevelopmentAssessment
-        child={child}
-        open={showAssessment}
-        onClose={() => setShowAssessment(false)}
-        onComplete={(assessmentId, planId) => {
-          navigate(`/children/assessment-report?assessmentId=${assessmentId}&planId=${planId}&childId=${child.id}`);
-        }}
-      />
+      {showAssessment && (
+        <DevelopmentAssessment
+          key={`assessment-${child.id}`}
+          child={assessmentChildRef.current}
+          open={showAssessment}
+          onClose={() => setShowAssessment(false)}
+          onComplete={(assessmentId, planId) => {
+            setShowAssessment(false);
+            navigate(`/children/assessment-report?assessmentId=${assessmentId}&planId=${planId}&childId=${child.id}`);
+          }}
+        />
+      )}
 
       <div className="grid md:grid-cols-3 gap-6">
         <Card>

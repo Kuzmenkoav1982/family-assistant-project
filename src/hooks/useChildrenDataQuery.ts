@@ -52,13 +52,15 @@ const fetchChildData = async (childId: string, type: string = 'all'): Promise<Ch
   return result.data;
 };
 
-export function useChildrenDataQuery(childId: string, type: string = 'all') {
+export function useChildrenDataQuery(childId: string, type: string = 'all', enabled: boolean = true) {
   return useQuery({
     queryKey: ['childData', childId, type],
     queryFn: () => fetchChildData(childId, type),
-    enabled: !!childId,
+    enabled: !!childId && enabled,
     staleTime: 3 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
   });
 }
 
