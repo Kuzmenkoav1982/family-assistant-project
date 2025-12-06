@@ -239,14 +239,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             raw_body = event.get('body') or '{}'
             body = json.loads(raw_body) if raw_body else {}
             
-            member_id = body.get('memberId', current_member_id)
+            member_id = body.get('memberId')
             profile_data = body.get('profileData', {})
             
-            if not profile_data:
+            if member_id is None:
                 return {
                     'statusCode': 400,
                     'headers': headers,
-                    'body': json.dumps({'error': 'Не указаны данные профиля'}),
+                    'body': json.dumps({'error': 'Не указан ID члена семьи'}),
                     'isBase64Encoded': False
                 }
             
