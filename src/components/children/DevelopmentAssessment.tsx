@@ -102,7 +102,7 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
     setError('');
 
     try {
-      const familyId = JSON.parse(localStorage.getItem('selectedFamily') || '{}').id;
+      const familyId = localStorage.getItem('familyId') || '';
       
       console.log('[DevelopmentAssessment] skills Map size:', skills.size);
       console.log('[DevelopmentAssessment] skills Map entries:', Array.from(skills.entries()));
