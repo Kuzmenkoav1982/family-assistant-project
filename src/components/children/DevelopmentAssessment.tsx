@@ -104,6 +104,9 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
     try {
       const familyId = JSON.parse(localStorage.getItem('selectedFamily') || '{}').id;
       
+      console.log('[DevelopmentAssessment] skills Map size:', skills.size);
+      console.log('[DevelopmentAssessment] skills Map entries:', Array.from(skills.entries()));
+      
       const skillsArray = Array.from(skills.entries()).map(([key, skill]) => {
         const category = key.split('-')[0];
         return {
@@ -120,6 +123,10 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
         skills: skillsArray,
       };
 
+      console.log('[DevelopmentAssessment] child.id:', child.id);
+      console.log('[DevelopmentAssessment] familyId:', familyId);
+      console.log('[DevelopmentAssessment] age_range:', selectedAge);
+      console.log('[DevelopmentAssessment] skillsArray length:', skillsArray.length);
       console.log('[DevelopmentAssessment] Sending analysis request:', requestBody);
 
       const response = await fetch(
