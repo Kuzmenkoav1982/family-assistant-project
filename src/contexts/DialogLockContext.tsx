@@ -6,7 +6,7 @@ interface DialogLockContextType {
   unlockUpdates: () => void;
 }
 
-const DialogLockContext = createContext<DialogLockContextType | undefined>(undefined);
+export const DialogLockContext = createContext<DialogLockContextType | undefined>(undefined);
 
 export function DialogLockProvider({ children }: { children: ReactNode }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
