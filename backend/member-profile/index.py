@@ -8,6 +8,7 @@ import json
 import os
 from typing import Dict, Any, Optional
 from decimal import Decimal
+from datetime import datetime, date
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -16,9 +17,11 @@ SCHEMA = 't_p5815085_family_assistant_pro'
 
 
 def convert_decimals(obj: Any) -> Any:
-    """Конвертирует Decimal в float для JSON сериализации"""
+    """Конвертирует Decimal и datetime в JSON-совместимые типы"""
     if isinstance(obj, Decimal):
         return float(obj)
+    elif isinstance(obj, (datetime, date)):
+        return obj.isoformat()
     elif isinstance(obj, dict):
         return {k: convert_decimals(v) for k, v in obj.items()}
     elif isinstance(obj, list):
