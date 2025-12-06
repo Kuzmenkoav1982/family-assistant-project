@@ -7,11 +7,23 @@ Returns: JSON с профилем или списком профилей
 import json
 import os
 from typing import Dict, Any, Optional
+from decimal import Decimal
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
+
+
+def convert_decimals(obj: Any) -> Any:
+    """Конвертирует Decimal в float для JSON сериализации"""
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_decimals(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_decimals(item) for item in obj]
+    return obj
 
 
 def escape_string(value: Any) -> str:
@@ -77,7 +89,7 @@ def get_profile(member_id: int) -> Optional[Dict[str, Any]]:
         """
         cur.execute(query)
         result = cur.fetchone()
-        return dict(result) if result else None
+        return convert_decimals(dict(result)) if result else None
     finally:
         cur.close()
         conn.close()
@@ -95,7 +107,7 @@ def get_family_profiles(family_id: str) -> list:
             WHERE mp.family_id = {escape_string(family_id)}::uuid
         """
         cur.execute(query)
-        return [dict(row) for row in cur.fetchall()]
+        return [convert_decimals(dict(row)) for row in cur.fetchall()]
     finally:
         cur.close()
         conn.close()
@@ -132,7 +144,7 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
                 """
                 cur.execute(query)
                 result = cur.fetchone()
-                return {'success': True, 'profile': dict(result)}
+                return {'success': True, 'profile': convert_decimals(dict(result))}
         else:
             # INSERT
             columns = ['member_id', 'family_id']
@@ -150,7 +162,7 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
             """
             cur.execute(query)
             result = cur.fetchone()
-            return {'success': True, 'profile': dict(result)}
+            return {'success': True, 'profile': convert_decimals(dict(result))}
             
     except Exception as e:
         return {'success': False, 'error': str(e)}
