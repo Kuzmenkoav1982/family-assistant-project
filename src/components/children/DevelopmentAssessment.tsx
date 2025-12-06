@@ -64,10 +64,19 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    console.log('[DevelopmentAssessment] open changed:', open);
     if (open) {
+      console.log('[DevelopmentAssessment] Cancelling all queries');
       queryClient.cancelQueries();
     }
   }, [open, queryClient]);
+
+  useEffect(() => {
+    console.log('[DevelopmentAssessment] Component mounted/updated');
+    return () => {
+      console.log('[DevelopmentAssessment] Component unmounting!');
+    };
+  }, []);
 
   const handleAgeSelect = async (ageRange: string) => {
     setSelectedAge(ageRange);
@@ -191,9 +200,13 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
     <Dialog 
       open={open} 
       onOpenChange={(isOpen) => {
+        console.log('[DevelopmentAssessment] onOpenChange called:', { isOpen, step, currentOpen: open });
         // Разрешаем закрытие только на этапе выбора возраста
         if (!isOpen && step === 'age') {
+          console.log('[DevelopmentAssessment] Allowing close on age step');
           handleClose();
+        } else if (!isOpen) {
+          console.log('[DevelopmentAssessment] BLOCKING close attempt on step:', step);
         }
       }} 
       modal={true}

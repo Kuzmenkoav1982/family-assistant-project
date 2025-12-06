@@ -36,6 +36,14 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
     assessmentChildRef.current = child;
   }, [child]);
 
+  useEffect(() => {
+    console.log('[ParentDashboard] showAssessment changed:', showAssessment);
+  }, [showAssessment]);
+
+  useEffect(() => {
+    console.log('[ParentDashboard] Component re-rendered');
+  });
+
   const addItem = useCallback(async (type: string, itemData: any) => {
     return mutation.mutateAsync({
       action: 'add',
