@@ -113,30 +113,39 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
         };
       });
 
+      const requestBody = {
+        child_id: child.id,
+        family_id: familyId,
+        age_range: selectedAge,
+        skills: skillsArray,
+      };
+
+      console.log('[DevelopmentAssessment] Sending analysis request:', requestBody);
+
       const response = await fetch(
         'https://functions.poehali.dev/4f5f584d-55d2-4a42-ae62-dfd8e9f4718e',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            child_id: child.id,
-            family_id: familyId,
-            age_range: selectedAge,
-            skills: skillsArray,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
+      console.log('[DevelopmentAssessment] Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Ошибка анализа данных');
+        const errorData = await response.text();
+        console.error('[DevelopmentAssessment] Error response:', errorData);
+        throw new Error(`Ошибка анализа: ${response.status} - ${errorData}`);
       }
 
       const data = await response.json();
+      console.log('[DevelopmentAssessment] Success response:', data);
       onComplete(data.assessment_id, data.plan_id);
       onClose();
     } catch (err) {
-      setError('Не удалось выполнить анализ. Попробуйте позже.');
-      console.error(err);
+      console.error('[DevelopmentAssessment] Error:', err);
+      setError(`Не удалось выполнить анализ: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
       setStep('questionnaire');
     }
   };
