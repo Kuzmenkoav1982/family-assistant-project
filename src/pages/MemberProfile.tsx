@@ -106,7 +106,8 @@ export default function MemberProfile() {
         }
       });
     }
-  }, [member?.id, getProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [member?.id]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
