@@ -80,6 +80,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not rows:
             cur.close()
             conn.close()
+            # Возвращаем 200 с пустым массивом вместо 404 для GET запросов без plan_id
+            if child_id and not plan_id:
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps([]),
+                    'isBase64Encoded': False
+                }
             return {
                 'statusCode': 404,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
