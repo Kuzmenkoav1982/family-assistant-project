@@ -303,7 +303,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps({'success': True, 'members': members}, default=str),
+                'body': json.dumps({'success': True, 'family_id': family_id, 'members': members}, default=str),
                 'isBase64Encoded': False
             }
         

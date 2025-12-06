@@ -64,9 +64,16 @@ export function useFamilyMembers() {
       const data = await response.json();
       console.log('[DEBUG useFamilyMembers] Response data:', data);
       console.log('[DEBUG useFamilyMembers] data.success:', data.success);
+      console.log('[DEBUG useFamilyMembers] data.family_id:', data.family_id);
       console.log('[DEBUG useFamilyMembers] data.members:', data.members);
       
       if (data.success && data.members) {
+        // Сохраняем family_id в localStorage для использования в других компонентах
+        if (data.family_id) {
+          localStorage.setItem('familyId', data.family_id);
+          console.log('[DEBUG useFamilyMembers] Saved familyId to localStorage:', data.family_id);
+        }
+        
         // Конвертируем snake_case в camelCase для frontend
         const convertedMembers = data.members.map((m: any) => ({
           ...m,
