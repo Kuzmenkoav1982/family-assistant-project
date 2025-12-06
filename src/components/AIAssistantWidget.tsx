@@ -45,7 +45,7 @@ const AIAssistantWidget = () => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [isWelcomePage]);
+  }, [isWelcomePage, isOpen, messages.length]);
 
   const quickActions = [
     { icon: '🍳', text: 'Что приготовить?', query: 'Подскажи простые идеи для семейного ужина на сегодня' },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
@@ -50,11 +50,7 @@ export default function Trips() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
-  useEffect(() => {
-    loadTrips(activeTab);
-  }, [activeTab]);
-
-  const loadTrips = async (status: string) => {
+  const loadTrips = useCallback(async (status: string) => {
     try {
       setLoading(true);
       const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=${status}`);
@@ -65,7 +61,11 @@ export default function Trips() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTrips(activeTab);
+  }, [activeTab, loadTrips]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 interface DialogLockContextType {
   isDialogOpen: boolean;
@@ -11,15 +11,15 @@ export const DialogLockContext = createContext<DialogLockContextType | undefined
 export function DialogLockProvider({ children }: { children: ReactNode }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const lockUpdates = () => {
+  const lockUpdates = useCallback(() => {
     console.log('[DialogLock] LOCKING all updates');
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const unlockUpdates = () => {
+  const unlockUpdates = useCallback(() => {
     console.log('[DialogLock] UNLOCKING updates');
     setIsDialogOpen(false);
-  };
+  }, []);
 
   return (
     <DialogLockContext.Provider value={{ isDialogOpen, lockUpdates, unlockUpdates }}>

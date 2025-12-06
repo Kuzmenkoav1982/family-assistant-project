@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,13 +67,7 @@ export default function Calendar() {
     localStorage.setItem('calendarEvents', JSON.stringify(events));
   }, [events]);
 
-  useEffect(() => {
-    checkReminders();
-    const interval = setInterval(checkReminders, 60000);
-    return () => clearInterval(interval);
-  }, [events]);
-
-  const checkReminders = () => {
+  const checkReminders = useCallback(() => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -91,7 +85,13 @@ export default function Calendar() {
     if (upcomingEvents.length > 0) {
       setShowReminders(true);
     }
-  };
+  }, [events]);
+
+  useEffect(() => {
+    checkReminders();
+    const interval = setInterval(checkReminders, 60000);
+    return () => clearInterval(interval);
+  }, [checkReminders]);
 
   const getUpcomingReminders = () => {
     const today = new Date();
