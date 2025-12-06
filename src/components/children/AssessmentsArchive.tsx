@@ -9,6 +9,7 @@ import type { FamilyMember } from '@/types/family.types';
 
 interface AssessmentsArchiveProps {
   child: FamilyMember;
+  onPlanDeleted?: () => void;
 }
 
 interface Plan {
@@ -22,10 +23,11 @@ interface Plan {
   };
 }
 
-export function AssessmentsArchive({ child }: AssessmentsArchiveProps) {
+export function AssessmentsArchive({ child, onPlanDeleted }: AssessmentsArchiveProps) {
   const navigate = useNavigate();
   const [archivedPlans, setArchivedPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchArchivedPlans();
@@ -47,6 +49,32 @@ export function AssessmentsArchive({ child }: AssessmentsArchiveProps) {
       console.error('Ошибка загрузки архива:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (planId: number) => {
+    if (!confirm('Удалить этот план из архива? Это действие нельзя отменить.')) {
+      return;
+    }
+
+    setDeletingId(planId);
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/fd083606-2bb4-436f-a07c-9daf165735a6?plan_id=${planId}`,
+        { method: 'DELETE' }
+      );
+
+      if (response.ok) {
+        setArchivedPlans(plans => plans.filter(p => p.id !== planId));
+        onPlanDeleted?.();
+      } else {
+        alert('Ошибка удаления плана');
+      }
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
+      alert('Ошибка удаления плана');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -119,15 +147,26 @@ export function AssessmentsArchive({ child }: AssessmentsArchiveProps) {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  navigate(`/children/assessment-report?planId=${plan.id}&childId=${child.id}`)
-                }
-              >
-                <Icon name="Eye" size={16} />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/children/assessment-report?planId=${plan.id}&childId=${child.id}`)
+                  }
+                >
+                  <Icon name="Eye" size={16} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(plan.id)}
+                  disabled={deletingId === plan.id}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              </div>
             </div>
           ))}
         </div>

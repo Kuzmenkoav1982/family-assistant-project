@@ -171,19 +171,25 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) {
+      if (!isOpen && step === 'age') {
         handleClose();
       }
     }} modal>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => {
-        if (step === 'questionnaire' || step === 'analyzing') {
+      <DialogContent 
+        className="max-w-4xl max-h-[90vh] overflow-y-auto pointer-events-auto" 
+        onInteractOutside={(e) => {
           e.preventDefault();
-        }
-      }} onEscapeKeyDown={(e) => {
-        if (step === 'questionnaire' || step === 'analyzing') {
+          e.stopPropagation();
+        }} 
+        onPointerDownOutside={(e) => {
           e.preventDefault();
-        }
-      }}>
+          e.stopPropagation();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (step !== 'age') {
+            e.preventDefault();
+          }
+        }}>
         {step === 'age' && (
           <>
             <DialogHeader>

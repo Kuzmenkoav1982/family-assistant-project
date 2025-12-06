@@ -10,6 +10,7 @@ import type { FamilyMember } from '@/types/family.types';
 
 interface ActivePlanSectionProps {
   child: FamilyMember;
+  onPlanDeleted?: () => void;
 }
 
 interface Plan {
@@ -27,10 +28,11 @@ interface Plan {
   }>;
 }
 
-export function ActivePlanSection({ child }: ActivePlanSectionProps) {
+export function ActivePlanSection({ child, onPlanDeleted }: ActivePlanSectionProps) {
   const navigate = useNavigate();
   const [activePlan, setActivePlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchActivePlan();
@@ -52,6 +54,32 @@ export function ActivePlanSection({ child }: ActivePlanSectionProps) {
       console.error('Ошибка загрузки плана:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!activePlan || !confirm('Удалить этот план развития? Это действие нельзя отменить.')) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/fd083606-2bb4-436f-a07c-9daf165735a6?plan_id=${activePlan.id}`,
+        { method: 'DELETE' }
+      );
+
+      if (response.ok) {
+        setActivePlan(null);
+        onPlanDeleted?.();
+      } else {
+        alert('Ошибка удаления плана');
+      }
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
+      alert('Ошибка удаления плана');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -83,9 +111,20 @@ export function ActivePlanSection({ child }: ActivePlanSectionProps) {
             <Icon name="Target" size={24} className="text-primary" />
             Активный план развития
           </CardTitle>
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            {activePlan.progress}% выполнено
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              {activePlan.progress}% выполнено
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Icon name="Trash2" size={18} />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
