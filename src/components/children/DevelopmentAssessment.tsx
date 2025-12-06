@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -54,12 +55,19 @@ const getScoreLabel = (score: number): string => {
 };
 
 export function DevelopmentAssessment({ child, open, onClose, onComplete }: DevelopmentAssessmentProps) {
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<'age' | 'questionnaire' | 'analyzing'>('age');
   const [selectedAge, setSelectedAge] = useState<string>('');
   const [questionnaire, setQuestionnaire] = useState<Category[]>([]);
   const [skills, setSkills] = useState<Map<string, Skill>>(new Map());
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      queryClient.cancelQueries();
+    }
+  }, [open, queryClient]);
 
   const handleAgeSelect = async (ageRange: string) => {
     setSelectedAge(ageRange);
