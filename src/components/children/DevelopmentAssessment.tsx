@@ -142,6 +142,9 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
   };
 
   const handleClose = () => {
+    if (step === 'analyzing') {
+      return;
+    }
     setStep('age');
     setSelectedAge('');
     setQuestionnaire([]);
@@ -151,7 +154,11 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen && step !== 'analyzing') {
+        handleClose();
+      }
+    }}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         {step === 'age' && (
           <>
