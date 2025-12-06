@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,9 @@ export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembers();
-  const { saveProfile, saving: savingProfile } = useMemberProfile();
+  const { saveProfile, getProfile, loading: loadingProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
   
   let member = members.find(m => m.id === memberId);
   
@@ -96,6 +97,16 @@ export default function MemberProfile() {
       piggyBank: newBalance
     });
   };
+
+  useEffect(() => {
+    if (member?.id) {
+      getProfile(member.id).then(profile => {
+        if (profile) {
+          setMemberProfile(profile);
+        }
+      });
+    }
+  }, [member?.id]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
@@ -349,10 +360,11 @@ export default function MemberProfile() {
 
           <TabsContent value="questionnaire">
             <MemberProfileQuestionnaire
-              member={member}
+              member={{...member, profile: memberProfile || undefined}}
               onSave={async (profile: MemberProfile) => {
                 const success = await saveProfile(member.id, profile);
                 if (success) {
+                  setMemberProfile(profile);
                   alert('✅ Анкета успешно сохранена!');
                 } else {
                   alert('❌ Ошибка при сохранении анкеты');
