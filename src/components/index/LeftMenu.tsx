@@ -184,6 +184,12 @@ export function LeftMenu({
                   navigate('/children');
                 } else if (section.id === 'development') {
                   navigate('/development');
+                } else if (section.id === 'trips') {
+                  navigate('/trips');
+                } else if (section.id === 'recipes') {
+                  navigate('/recipes');
+                } else if (section.id === 'analytics') {
+                  navigate('/analytics');
                 } else {
                   setActiveSection(section.id);
                 }
