@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
@@ -10,6 +11,7 @@ import { useState, useEffect } from 'react';
 import func2url from '../../backend/func2url.json';
 import { themes } from '@/config/themes';
 import type { ThemeType } from '@/types/family.types';
+import { languageOptions, type LanguageCode } from '@/translations';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -22,6 +24,12 @@ export default function Settings() {
     const saved = localStorage.getItem('theme');
     return (saved as ThemeType) || 'young';
   });
+  
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
+    return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
+  });
+  
+  const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   
   const token = localStorage.getItem('authToken');
   
@@ -345,7 +353,11 @@ export default function Settings() {
             </div>
 
             <div className="pt-3 border-t">
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start gap-2"
+                onClick={() => setShowLanguageDialog(true)}
+              >
                 <Icon name="Languages" size={18} />
                 Язык интерфейса
               </Button>
@@ -376,6 +388,51 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Languages" size={24} />
+              Выберите язык
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {languageOptions.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => {
+                  setCurrentLanguage(lang.code);
+                  localStorage.setItem('familyOrganizerLanguage', lang.code);
+                  toast({
+                    title: 'Язык изменён',
+                    description: `Выбран язык: ${lang.name}`
+                  });
+                  setShowLanguageDialog(false);
+                  setTimeout(() => window.location.reload(), 500);
+                }}
+                className={`
+                  w-full text-left p-3 rounded-lg border-2 transition-all hover:shadow-lg
+                  ${currentLanguage === lang.code 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-blue-300'
+                  }
+                `}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{lang.flag}</span>
+                    <span className="font-medium">{lang.name}</span>
+                  </div>
+                  {currentLanguage === lang.code && (
+                    <Icon name="Check" className="text-blue-600" size={20} />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
