@@ -20,13 +20,28 @@ export default function Settings() {
   const token = localStorage.getItem('authToken');
   
   useEffect(() => {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      const user = JSON.parse(userData);
-      if (user.family_name) setFamilyName(user.family_name);
-      if (user.logo_url) setFamilyLogo(user.logo_url);
-    }
-  }, []);
+    const loadFamilyData = async () => {
+      if (!token) return;
+      
+      try {
+        const response = await fetch(func2url['family-data'], {
+          headers: { 'X-Auth-Token': token }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.family) {
+            setFamilyName(data.family.name || '');
+            setFamilyLogo(data.family.logo_url || '');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load family data:', error);
+      }
+    };
+    
+    loadFamilyData();
+  }, [token]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-20">
