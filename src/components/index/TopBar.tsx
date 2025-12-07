@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SettingsMenu from '@/components/SettingsMenu';
+import SettingsDropdown from '@/components/SettingsDropdown';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import { useNavigate } from 'react-router-dom';
 import type { LanguageCode, ThemeType } from '@/types/family.types';
@@ -126,18 +127,7 @@ export function TopBar({
               </Button>
             )}
             
-            {topPanelSections.includes('settings') && <SettingsMenu />}
-            
-            <Button
-              onClick={() => navigate('/settings')}
-              variant="ghost"
-              size="sm"
-              className="h-9 gap-1.5 px-3 border border-orange-300 bg-orange-50 hover:bg-orange-100"
-              title="Настройки семьи: название и логотип"
-            >
-              <Icon name="Settings2" size={18} className="text-orange-600" />
-              <span className="text-sm hidden md:inline text-orange-700 font-medium">Семья</span>
-            </Button>
+            {topPanelSections.includes('settings') && <SettingsDropdown />}
             
             {topPanelSections.includes('presentation') && (
               <Button
@@ -152,18 +142,7 @@ export function TopBar({
               </Button>
             )}
             
-            {topPanelSections.includes('profile') && currentUser && (
-              <Button
-                onClick={() => navigate(`/member/${currentUser.id}`)}
-                variant="ghost"
-                size="sm"
-                className="h-9 gap-1.5 px-3"
-                title="Мой профиль"
-              >
-                <Icon name="UserCircle" size={18} />
-                <span className="text-sm hidden md:inline">Профиль</span>
-              </Button>
-            )}
+
             
             {topPanelSections.includes('familySwitcher') && <FamilyMemberSwitcher />}
           </div>
