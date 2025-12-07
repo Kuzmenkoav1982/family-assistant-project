@@ -101,9 +101,9 @@ export default function MemberProfile() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (member?.id && !profileLoaded) {
-        console.log('[MemberProfile] Loading profile for:', member.id);
-        const profile = await getProfile(member.id);
+      if (memberId && !profileLoaded) {
+        console.log('[MemberProfile] Loading profile for:', memberId);
+        const profile = await getProfile(memberId);
         console.log('[MemberProfile] Loaded profile:', profile);
         if (profile) {
           setMemberProfile(profile);
@@ -112,7 +112,7 @@ export default function MemberProfile() {
       }
     };
     loadProfile();
-  }, [member?.id, profileLoaded]);
+  }, [memberId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
