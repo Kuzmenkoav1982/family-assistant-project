@@ -614,11 +614,19 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('topPanelSections');
-    const sections = saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'settings', 'familySwitcher', 'language'];
+    let sections = saved ? JSON.parse(saved) : ['stats', 'auth', 'settings', 'familySwitcher'];
+    
+    // Миграция: удаляем кнопки которые теперь в Настройках
+    sections = sections.filter((s: string) => !['style', 'voting', 'presentation', 'reset', 'language', 'profile', 'instructions', 'appearance'].includes(s));
+    
     // Принудительно добавляем 'settings' если его нет
     if (!sections.includes('settings')) {
       sections.push('settings');
     }
+    
+    // Сохраняем обновленный список
+    localStorage.setItem('topPanelSections', JSON.stringify(sections));
+    
     return sections;
   });
 

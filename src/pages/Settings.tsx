@@ -279,20 +279,51 @@ export default function Settings() {
             <Button 
               variant="outline" 
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/family-management')}
+              onClick={() => {
+                toast({
+                  title: 'В разработке',
+                  description: 'Функция смены пароля скоро будет доступна'
+                });
+              }}
             >
-              <Icon name="Users" size={18} />
-              Управление семьёй и ролями
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
               <Icon name="Lock" size={18} />
               Изменить пароль
             </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => {
+                toast({
+                  title: 'В разработке',
+                  description: '2FA будет доступна в следующем обновлении'
+                });
+              }}
+            >
               <Icon name="Shield" size={18} />
               Двухфакторная аутентификация
             </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => {
+                const data = {
+                  exportDate: new Date().toISOString(),
+                  familyData: localStorage.getItem('userData'),
+                  members: localStorage.getItem('familyMembers'),
+                  tasks: localStorage.getItem('tasks')
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `family-data-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                toast({
+                  title: 'Экспорт завершен',
+                  description: 'Данные сохранены в файл'
+                });
+              }}
+            >
               <Icon name="Download" size={18} />
               Экспорт данных
             </Button>
@@ -377,11 +408,27 @@ export default function Settings() {
               <span className="text-sm text-gray-600">Версия</span>
               <span className="text-sm font-medium">1.0.0</span>
             </div>
-            <Button variant="outline" className="w-full justify-start gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/instructions')}
+            >
+              <Icon name="BookOpen" size={18} />
+              📖 Инструкции
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/privacy-policy')}
+            >
               <Icon name="FileText" size={18} />
               Политика конфиденциальности
             </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/terms-of-service')}
+            >
               <Icon name="HelpCircle" size={18} />
               Справка и поддержка
             </Button>
