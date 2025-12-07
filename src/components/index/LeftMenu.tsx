@@ -97,47 +97,6 @@ export function LeftMenu({
         </div>
         <div className="p-3 space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto">
           <div className="space-y-2 mb-3 pb-3 border-b border-gray-200">
-            {currentUser && (
-              <div className="w-full p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
-                <div className="flex items-center gap-3 mb-2">
-                  {currentUser.photoUrl ? (
-                    <img 
-                      src={currentUser.photoUrl} 
-                      alt={currentUser.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
-                    />
-                  ) : (
-                    <div className="text-2xl">{currentUser.avatar || '👤'}</div>
-                  )}
-                  <div className="flex-1 text-left">
-                    <div className="text-sm font-bold text-purple-700">Мой профиль</div>
-                    <div className="text-xs text-gray-600">{currentUser.name}</div>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => navigate(`/member/${currentUser.id}`)}
-                  variant="outline"
-                  size="sm"
-                  className="w-full h-8 text-xs border-purple-300 hover:bg-purple-100"
-                >
-                  <Icon name="Eye" size={14} className="mr-1" />
-                  Просмотр профиля
-                </Button>
-              </div>
-            )}
-            
-            <button
-              onClick={() => navigate('/instructions')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-blue-50 border-2 border-blue-200 hover:border-blue-300 transition-all"
-            >
-              <Icon name="BookOpen" size={20} className="text-blue-600" />
-              <div className="flex-1 text-left">
-                <div className="text-sm font-bold text-blue-700">Инструкции</div>
-                <div className="text-xs text-gray-600">Помощь по разделам</div>
-              </div>
-              <Icon name="ChevronRight" size={16} className="text-blue-400" />
-            </button>
-            
             <button
               onClick={() => setShowKuzyaDialog(true)}
               className="w-full flex items-center gap-3 p-3 rounded-lg bg-orange-50 border-2 border-orange-200 hover:border-orange-300 transition-all"
