@@ -1423,7 +1423,7 @@ export default function Index({ onLogout }: IndexProps) {
                   onClick={() => navigate('/voting')}
                   variant="default"
                   size="sm"
-                  className="h-9 gap-1.5 px-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                  className="h-9 gap-1.5 px-3"
                   title="Голосования"
                 >
                   <Icon name="Vote" size={18} />
@@ -1473,7 +1473,7 @@ export default function Index({ onLogout }: IndexProps) {
               {topPanelSections.includes('settings') && (
                 <div className="relative">
                   <SettingsDropdown />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" title="НОВОЕ"></div>
+              
                 </div>
               )}
               
