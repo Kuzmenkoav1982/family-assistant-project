@@ -17,8 +17,8 @@ export default function SettingsDropdown() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 w-9 p-0"
-          title="Настройки"
+          className="h-9 w-9 p-0 bg-green-500 hover:bg-green-600 text-white"
+          title="Настройки (НОВОЕ - проверь выпадающее меню)"
         >
           <Icon name="Settings" size={18} />
         </Button>
