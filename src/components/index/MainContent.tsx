@@ -218,6 +218,17 @@ export function MainContent({
             </Button>
           </div>
 
+          <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-orange-50/80 border border-orange-200">
+            <Button
+              onClick={() => navigate('/voting')}
+              variant="outline"
+              className="text-xs py-1.5 px-2.5 h-auto"
+            >
+              <Icon name="Vote" size={14} className="mr-1" />
+              Голосования
+            </Button>
+          </div>
+
           <div className="flex flex-wrap gap-2 p-2 rounded-lg bg-amber-50/80 border border-amber-200">
             <Dialog>
               <DialogTrigger asChild>

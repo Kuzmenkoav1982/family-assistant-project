@@ -583,6 +583,7 @@ export default function Index({ onLogout }: IndexProps) {
     { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
     { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
     { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
+    { id: 'voting', icon: 'Vote', label: 'Голосования' },
   ];
 
   const availableTopPanelSections = [
@@ -614,11 +615,19 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('topPanelSections');
-    const sections = saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'settings', 'familySwitcher', 'language'];
+    let sections = saved ? JSON.parse(saved) : ['stats', 'auth', 'settings', 'familySwitcher', 'language'];
+    
+    // Миграция: удаляем устаревшие кнопки
+    sections = sections.filter((s: string) => !['style', 'voting', 'presentation', 'reset'].includes(s));
+    
     // Принудительно добавляем 'settings' если его нет
     if (!sections.includes('settings')) {
       sections.push('settings');
     }
+    
+    // Сохраняем обновленный список
+    localStorage.setItem('topPanelSections', JSON.stringify(sections));
+    
     return sections;
   });
 
