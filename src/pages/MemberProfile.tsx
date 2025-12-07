@@ -112,7 +112,7 @@ export default function MemberProfile() {
       }
     };
     loadProfile();
-  }, [member?.id, profileLoaded, getProfile]);
+  }, [member?.id, profileLoaded]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
