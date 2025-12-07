@@ -345,7 +345,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             action = body.get('action', 'add')
             
-            if action == 'update':
+            if action == 'update' or action == 'update_permissions':
                 member_id = body.get('member_id') or body.get('id')
                 if not member_id:
                     return {
