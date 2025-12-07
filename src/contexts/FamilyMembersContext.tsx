@@ -85,7 +85,14 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         const convertedMembers = data.members.map((m: any) => ({
           ...m,
           avatarType: m.avatar_type,
-          photoUrl: m.photo_url
+          photoUrl: m.photo_url,
+          // Убеждаемся что данные из profile_data доступны в корневом объекте
+          achievements: m.achievements || [],
+          responsibilities: m.responsibilities || [],
+          foodPreferences: m.foodPreferences || { favorites: [], dislikes: [] },
+          dreams: m.dreams || [],
+          piggyBank: m.piggyBank || 0,
+          moodStatus: m.moodStatus || null
         }));
         console.log('[DEBUG FamilyMembersContext] Converted members:', convertedMembers);
         setMembers(convertedMembers);
@@ -154,6 +161,8 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       }
 
       const backendData: any = { ...memberData };
+      
+      // Конвертируем camelCase в snake_case для backend
       if (memberData.photoUrl) {
         backendData.photo_url = memberData.photoUrl;
         delete backendData.photoUrl;
@@ -163,8 +172,18 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         delete backendData.avatarType;
       }
       
+      // Сохраняем profile_data поля как есть (бэкенд их обработает)
+      // achievements, responsibilities, foodPreferences, dreams, piggyBank, moodStatus
+      // Они уже в правильном формате
+      
       delete backendData.id;
       delete backendData.member_id;
+
+      console.log('[DEBUG FamilyMembersContext] updateMember sending:', {
+        action: 'update',
+        member_id: memberId,
+        ...backendData
+      });
 
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'POST',
@@ -180,6 +199,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       });
 
       const data = await response.json();
+      console.log('[DEBUG FamilyMembersContext] updateMember response:', data);
       
       if (data.success) {
         await fetchMembers();
@@ -188,6 +208,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         return { success: false, error: data.error };
       }
     } catch (err) {
+      console.error('[DEBUG FamilyMembersContext] updateMember error:', err);
       return { success: false, error: 'Ошибка обновления члена семьи' };
     }
   };

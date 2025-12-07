@@ -92,13 +92,14 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
     setSaving(true);
 
     try {
-      const updates: Partial<FamilyMember> = {
+      const updates: Partial<FamilyMember> & any = {
         name: formData.name,
         role: formData.role,
         age: formData.age ? parseInt(formData.age) : undefined,
         avatar: formData.avatar,
         avatarType: avatarType,
         photoUrl: avatarType === 'photo' ? photoUrl : undefined,
+        // Эти данные будут сохранены в profile_data на бэкенде
         foodPreferences: {
           favorites: formData.favorites.split(',').map(s => s.trim()).filter(Boolean),
           dislikes: formData.dislikes.split(',').map(s => s.trim()).filter(Boolean),
@@ -107,9 +108,11 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
         responsibilities: formData.responsibilities.split(',').map(s => s.trim()).filter(Boolean),
       };
 
+      console.log('[MemberProfileEdit] Saving updates:', updates);
       await onSave(updates);
       alert('✅ Профиль обновлён!');
     } catch (error) {
+      console.error('[MemberProfileEdit] Save error:', error);
       alert('❌ Ошибка сохранения');
     } finally {
       setSaving(false);

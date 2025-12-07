@@ -70,7 +70,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     
     query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
-               photo_url, points, level, workload, age, permissions, created_at, updated_at
+               photo_url, points, level, workload, age, permissions, profile_data, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
         ORDER BY created_at ASC
@@ -82,7 +82,18 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     cur.close()
     conn.close()
     
-    result = [dict(m) for m in members]
+    # Объединяем данные из profile_data с основными полями
+    result = []
+    for m in members:
+        member_dict = dict(m)
+        profile_data = member_dict.get('profile_data', {})
+        if profile_data:
+            # Добавляем поля из profile_data в основной словарь
+            for field in ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus']:
+                if field in profile_data:
+                    member_dict[field] = profile_data[field]
+        result.append(member_dict)
+    
     print(f"[DEBUG] get_family_members returning: {result}")
     return result
 
@@ -129,12 +140,15 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        check_query = f"SELECT id FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
+        check_query = f"SELECT id, profile_data FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
         cur.execute(check_query)
-        if not cur.fetchone():
+        existing = cur.fetchone()
+        if not existing:
             cur.close()
             conn.close()
             return {'error': 'Член семьи не найден'}
+        
+        current_profile_data = dict(existing['profile_data']) if existing.get('profile_data') else {}
         
         fields = []
         for field in ['name', 'role', 'relationship', 'avatar', 'avatar_type', 
@@ -150,6 +164,19 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             development_json = json.dumps(data['development'])
             fields.append(f"development = '{development_json}'::jsonb")
         
+        # Обновляем profile_data с дополнительными полями
+        profile_fields = ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus']
+        profile_updated = False
+        for field in profile_fields:
+            if field in data:
+                current_profile_data[field] = data[field]
+                profile_updated = True
+        
+        if profile_updated:
+            profile_json = json.dumps(current_profile_data, ensure_ascii=False)
+            profile_json_escaped = profile_json.replace("'", "''")
+            fields.append(f"profile_data = '{profile_json_escaped}'::jsonb")
+        
         if not fields:
             cur.close()
             conn.close()
@@ -161,7 +188,7 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             UPDATE {SCHEMA}.family_members 
             SET {', '.join(fields)}
             WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}
-            RETURNING id, name, role, relationship, avatar, points, level, workload
+            RETURNING id, name, role, relationship, avatar, points, level, workload, profile_data
         """
         
         cur.execute(query)
