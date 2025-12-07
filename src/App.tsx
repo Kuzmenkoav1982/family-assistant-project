@@ -51,6 +51,7 @@ import AIAssistant from "./pages/AIAssistant";
 import Development from "./pages/Development";
 import LifeRoad from "./pages/LifeRoad";
 import FamilyManagement from "./pages/FamilyManagement";
+import FamilyInvite from "./pages/FamilyInvite";
 import Nutrition from "./pages/Nutrition";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
@@ -131,6 +132,7 @@ const App = () => {
               <Route path="/community" element={<Community />} />
               <Route path="/member/:memberId" element={<MemberProfile />} />
               <Route path="/family-code" element={<FamilyCode />} />
+              <Route path="/family-invite" element={<FamilyInvite />} />
               <Route path="/presentation" element={<Presentation />} />
               <Route path="/psychologist" element={<FamilyPsychologist />} />
               <Route path="/rules" element={<FamilyRules />} />

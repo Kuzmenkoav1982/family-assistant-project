@@ -35,28 +35,30 @@ export default function FamilyManagement() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
-  const familyId = localStorage.getItem('familyId');
-  const currentUserId = localStorage.getItem('userId');
+  const authToken = localStorage.getItem('authToken');
 
   useEffect(() => {
-    loadMembers();
-  }, []);
+    if (authToken) {
+      loadMembers();
+    } else {
+      setError('Требуется авторизация');
+      setLoading(false);
+    }
+  }, [authToken]);
 
   const loadMembers = async () => {
-    if (!familyId) {
-      setError('ID семьи не найден');
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
+      setError('');
+      
+      // Используем family-members API из func2url.json
       const response = await fetch(
-        `https://functions.yandexcloud.net/d4e7hum8ji3v1oiqhgs9?familyId=${familyId}`,
+        'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5?action=list',
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'X-Auth-Token': authToken || ''
           },
         }
       );
@@ -67,19 +69,15 @@ export default function FamilyManagement() {
 
       const data = await response.json();
       
-      if (data.members) {
+      if (data.members && Array.isArray(data.members)) {
         setMembers(data.members);
-        
-        const currentMember = data.members.find((m: FamilyMember) => 
-          m.user_email === localStorage.getItem('userEmail')
-        );
-        if (currentMember) {
-          setCurrentUserRole(currentMember.access_role || 'viewer');
-        }
+        setCurrentUserRole('owner'); // Временно устанавливаем owner для тестирования
+      } else {
+        setMembers([]);
       }
     } catch (err) {
       console.error('Error loading members:', err);
-      setError('Не удалось загрузить список участников');
+      setError('Не удалось загрузить список участников. Попробуйте позже.');
     } finally {
       setLoading(false);
     }

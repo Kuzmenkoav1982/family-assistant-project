@@ -32,9 +32,9 @@ export default function SettingsDropdown() {
           <Icon name="Users" size={16} className="mr-2" />
           Управление семьёй
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/family-code')}>
+        <DropdownMenuItem onClick={() => navigate('/family-invite')}>
           <Icon name="Key" size={16} className="mr-2" />
-          Семейный код
+          Инвайт-коды семьи
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/permissions')}>
           <Icon name="Shield" size={16} className="mr-2" />
