@@ -1,54 +1,43 @@
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { getTranslation, type LanguageCode } from '@/translations';
-import SettingsMenu from '@/components/SettingsMenu';
-import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import { useState } from 'react';
-import type { FamilyMember } from '@/types/family.types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { getTranslation, type LanguageCode } from '@/translations';
 
 interface TopBarProps {
   isVisible: boolean;
-  autoHide: boolean;
-  currentUser: FamilyMember | undefined;
   currentLanguage: LanguageCode;
-  showLanguageSelector: boolean;
-  showThemeSelector: boolean;
   currentTheme: string;
-  syncing: boolean;
-  showTopPanelSettings: boolean;
   onLogout: () => void;
   onVisibilityChange: (visible: boolean) => void;
-  onLanguageSelectorToggle: (show: boolean) => void;
-  onThemeSelectorToggle: (show: boolean) => void;
   onLanguageChange: (lang: string) => void;
   onThemeChange: (theme: string) => void;
-  onTopPanelSettingsToggle: (show: boolean) => void;
+  onResetDemo: () => void;
 }
 
 export default function TopBar({
   isVisible,
-  autoHide,
-  currentUser,
   currentLanguage,
-  showLanguageSelector,
-  showThemeSelector,
   currentTheme,
-  syncing,
-  showTopPanelSettings,
   onLogout,
   onVisibilityChange,
-  onLanguageSelectorToggle,
-  onThemeSelectorToggle,
   onLanguageChange,
   onThemeChange,
-  onTopPanelSettingsToggle
+  onResetDemo
 }: TopBarProps) {
   const navigate = useNavigate();
-  const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
+
+  const authToken = localStorage.getItem('authToken');
+  const isAuthenticated = !!authToken;
 
   const languages = [
     { code: 'ru', name: 'Русский', flag: '🇷🇺' },
@@ -61,238 +50,119 @@ export default function TopBar({
   ];
 
   const themes = [
-    { id: 'young', name: 'Молодёжный', icon: '🎨', description: 'Яркий и современный' },
-    { id: 'middle', name: 'Деловой', icon: '💼', description: 'Элегантный и строгий' },
-    { id: 'senior', name: 'Комфортный', icon: '🏡', description: 'Крупный шрифт, спокойные цвета' },
-    { id: 'apple', name: 'Apple', icon: '🍎', description: 'В стиле Apple' }
+    { id: 'young', name: 'Молодёжный', icon: '🎨' },
+    { id: 'middle', name: 'Деловой', icon: '💼' },
+    { id: 'senior', name: 'Комфортный', icon: '🏡' },
+    { id: 'apple', name: 'Apple', icon: '🍎' }
   ];
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle('dark');
+  };
 
   return (
     <div 
-      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg transition-all duration-300 ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
-      onMouseEnter={() => autoHide && onVisibilityChange(true)}
     >
-      <div className={`px-2 py-1.5 relative transition-all duration-300 ${
-        isExpanded ? 'pb-10' : ''
-      }`}>
-        {/* Кнопка разворота - всегда видна на мобильных */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="absolute bottom-0.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg hover:scale-110 transition-transform md:hidden z-10"
-          title={isExpanded ? 'Свернуть' : 'Развернуть панель'}
-        >
-          <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={14} />
-        </button>
-
-        <div className={`flex flex-wrap items-center justify-center gap-1.5 transition-all overflow-hidden ${
-          isExpanded ? 'max-h-[500px]' : 'max-h-14'
-        } md:flex-nowrap md:justify-between md:max-h-none`}>
-        <div className="flex items-center gap-1 flex-wrap justify-center">
-          <Button
-            onClick={() => onTopPanelSettingsToggle(!showTopPanelSettings)}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 border border-gray-300"
-            title="Настройки панели"
-          >
-            <Icon name="Settings2" size={16} />
-          </Button>
-          
-          <div className="w-px h-6 bg-gray-300 mx-0.5" />
-          
+      <div className="px-4 py-3 flex items-center justify-between max-w-screen-2xl mx-auto">
+        <div className="flex items-center gap-2">
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Наша семья"
-            className="h-8 w-8 object-contain"
-            style={{ border: 'none', outline: 'none' }}
+            className="h-8 w-8 object-contain cursor-pointer"
+            onClick={() => navigate('/')}
           />
-          <Button
-            onClick={onLogout}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Выход"
-          >
-            <Icon name="LogOut" size={16} />
-          </Button>
-          
-          <SettingsMenu />
-          
-          <Button
-            onClick={() => navigate('/instructions')}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Инструкции"
-          >
-            <Icon name="BookOpen" size={16} />
-          </Button>
-          
-          <Button
-            onClick={() => setShowKuzyaDialog(true)}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 relative"
-            title="Помощь и поддержка"
-          >
-            <img 
-              src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
-              alt="Кузя"
-              className="w-7 h-7 object-cover rounded-full"
-            />
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/psychologist')}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Семейный психолог ИИ"
-          >
-            <Icon name="Brain" size={16} />
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/rules')}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Семейные правила"
-          >
-            <Icon name="Scale" size={16} />
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/shopping')}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Список покупок"
-          >
-            <Icon name="ShoppingCart" size={16} />
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/meals')}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Меню на неделю"
-          >
-            <Icon name="UtensilsCrossed" size={16} />
-          </Button>
         </div>
-        
-        <div className="flex items-center gap-1 language-selector theme-selector relative">
-          <Button
-            onClick={() => onLanguageSelectorToggle(!showLanguageSelector)}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title={t('changeLanguage')}
-          >
-            <Icon name="Languages" size={16} />
-          </Button>
 
-          {showLanguageSelector && (
-            <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-2xl border-2 border-blue-200 p-2 w-64 z-[60] animate-fade-in">
-              <div className="flex items-center justify-between mb-2 pb-2 border-b">
-                <span className="text-sm font-bold text-gray-700">Выберите язык</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={() => onLanguageSelectorToggle(false)}
-                >
-                  <Icon name="X" size={14} />
-                </Button>
-              </div>
-              <div className="space-y-1 max-h-[300px] overflow-y-auto">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => onLanguageChange(lang.code)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                      currentLanguage === lang.code
-                        ? 'bg-blue-100 text-blue-900'
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="text-2xl">{lang.flag}</span>
-                    <span className="text-sm font-medium">{lang.name}</span>
-                    {currentLanguage === lang.code && (
-                      <Icon name="Check" size={16} className="ml-auto text-blue-600" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+        <div className="flex items-center gap-2">
+          {isAuthenticated ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onLogout}
+              className="h-9 w-9 p-0"
+              title="Выход"
+            >
+              <Icon name="LogOut" size={18} />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/welcome')}
+              className="h-9 w-9 p-0"
+              title="Вход"
+            >
+              <Icon name="LogIn" size={18} />
+            </Button>
           )}
 
           <Button
-            onClick={() => onThemeSelectorToggle(!showThemeSelector)}
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
-            title="Сменить тему"
+            className="h-9 w-9 p-0"
+            title="Переключатель семьи"
           >
-            <Icon name="Palette" size={16} />
+            <Icon name="Users" size={18} />
           </Button>
 
-          {showThemeSelector && (
-            <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-2xl border-2 border-indigo-200 p-3 w-80 z-[60] animate-fade-in">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b">
-                <span className="text-sm font-bold text-gray-700">Выберите тему</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={() => onThemeSelectorToggle(false)}
-                >
-                  <Icon name="X" size={14} />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {themes.map((theme) => (
-                  <button
-                    key={theme.id}
-                    onClick={() => onThemeChange(theme.id)}
-                    className={`w-full flex items-start gap-3 px-3 py-3 rounded-lg transition-all border-2 ${
-                      currentTheme === theme.id
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-3xl">{theme.icon}</span>
-                    <div className="flex-1 text-left">
-                      <div className="font-semibold text-sm mb-1">{theme.name}</div>
-                      <div className="text-xs text-gray-600">{theme.description}</div>
-                    </div>
-                    {currentTheme === theme.id && (
-                      <Icon name="Check" size={18} className="text-indigo-600 mt-1" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0"
+                title="Настройки"
+              >
+                <Icon name="Settings" size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem>
+                <Icon name="Globe" size={16} className="mr-2" />
+                <span>🌐 Язык</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <Icon name="Palette" size={16} className="mr-2" />
+                <span>🎨 Стиль</span>
+              </DropdownMenuItem>
 
-          {syncing && (
-            <Badge variant="outline" className="flex items-center gap-1 text-xs px-2 py-0.5">
-              <Icon name="Loader" className="animate-spin" size={10} />
-              <span className="hidden sm:inline">Синх...</span>
-            </Badge>
-          )}
-        </div>
+              <DropdownMenuItem onClick={toggleDarkMode}>
+                <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
+                <span>🌙 Тёмная тема</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={() => navigate('/instructions')}>
+                <Icon name="BookOpen" size={16} className="mr-2" />
+                <span>📖 Инструкции</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => navigate('/presentation')}>
+                <Icon name="Play" size={16} className="mr-2" />
+                <span>🎬 Презентация</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <Icon name="UserCircle" size={16} className="mr-2" />
+                <span>👤 Мой профиль</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={onResetDemo}>
+                <Icon name="RotateCcw" size={16} className="mr-2" />
+                <span>🔄 Сбросить демо</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      
-      <KuzyaHelperDialog 
-        open={showKuzyaDialog} 
-        onOpenChange={setShowKuzyaDialog}
-      />
     </div>
   );
 }

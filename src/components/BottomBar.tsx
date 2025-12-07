@@ -100,7 +100,7 @@ export default function BottomBar({
                 className="text-white hover:bg-white/20 whitespace-nowrap"
                 title="Дорога жизни"
               >
-                <Icon name="MapPin" size={18} />
+                <Icon name="Route" size={18} />
                 <span className="ml-1 text-xs hidden sm:inline">Дорога жизни</span>
               </Button>
 
@@ -115,7 +115,64 @@ export default function BottomBar({
                 <span className="ml-1 text-xs hidden sm:inline">Питание</span>
               </Button>
 
-              {displaySections.filter(section => section.id !== 'meals').map(section => (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/shopping')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Покупки"
+              >
+                <Icon name="ShoppingCart" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Покупки</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/recipes')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Рецепты"
+              >
+                <Icon name="ChefHat" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Рецепты</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/calendar')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Календарь"
+              >
+                <Icon name="Calendar" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Календарь</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/children')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Дети"
+              >
+                <Icon name="Baby" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Дети</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/analytics')}
+                className="text-white hover:bg-white/20 whitespace-nowrap"
+                title="Аналитика"
+              >
+                <Icon name="BarChart3" size={18} />
+                <span className="ml-1 text-xs hidden sm:inline">Аналитика</span>
+              </Button>
+
+              {displaySections.filter(section => 
+                !['development', 'life-road', 'nutrition', 'shopping', 'recipes', 'calendar', 'children', 'analytics', 'meals'].includes(section.id)
+              ).map(section => (
                 <Button
                   key={section.id}
                   variant={activeSection === section.id ? 'secondary' : 'ghost'}
