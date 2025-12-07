@@ -613,7 +613,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('topPanelSections');
-    return saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'reset', 'settings', 'instructions', 'presentation', 'profile', 'familySwitcher', 'language', 'style'];
+    return saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'reset', 'settings', 'presentation', 'familySwitcher', 'language', 'style'];
   });
 
 
