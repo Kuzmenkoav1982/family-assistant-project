@@ -614,7 +614,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('topPanelSections');
-    const sections = saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'reset', 'settings', 'presentation', 'familySwitcher', 'language', 'style'];
+    const sections = saved ? JSON.parse(saved) : ['stats', 'voting', 'auth', 'settings', 'familySwitcher', 'language'];
     // Принудительно добавляем 'settings' если его нет
     if (!sections.includes('settings')) {
       sections.push('settings');

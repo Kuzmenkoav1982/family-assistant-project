@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import func2url from '../../backend/func2url.json';
+import { themes } from '@/config/themes';
+import type { ThemeType } from '@/types/family.types';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -16,8 +18,16 @@ export default function Settings() {
   const [familyLogo, setFamilyLogo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as ThemeType) || 'young';
+  });
   
   const token = localStorage.getItem('authToken');
+  
+  useEffect(() => {
+    localStorage.setItem('theme', currentTheme);
+  }, [currentTheme]);
   
   useEffect(() => {
     const loadFamilyData = async () => {
@@ -288,15 +298,58 @@ export default function Settings() {
               Внешний вид
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <Icon name="Moon" size={18} />
-              Темная тема
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <Icon name="Languages" size={18} />
-              Язык интерфейса
-            </Button>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">Выберите стиль оформления</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Object.entries(themes).map(([key, theme]) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      setCurrentTheme(key as ThemeType);
+                      toast({
+                        title: 'Стиль изменён',
+                        description: `Применён стиль "${theme.name}"`
+                      });
+                      setTimeout(() => window.location.reload(), 500);
+                    }}
+                    className={`
+                      relative p-4 rounded-lg border-2 transition-all text-left
+                      ${currentTheme === key 
+                        ? 'border-purple-500 bg-purple-50 shadow-lg' 
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`
+                        w-12 h-12 rounded-lg bg-gradient-to-r ${theme.colors.primary} 
+                        flex items-center justify-center flex-shrink-0
+                      `}>
+                        <Icon name="Palette" size={24} className="text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 mb-1">{theme.name}</h4>
+                        <p className="text-xs text-gray-600 mb-1">{theme.description}</p>
+                        <p className="text-xs text-gray-500">{theme.ageRange}</p>
+                      </div>
+                      {currentTheme === key && (
+                        <div className="absolute top-2 right-2">
+                          <Icon name="Check" size={20} className="text-purple-600" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t">
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <Icon name="Languages" size={18} />
+                Язык интерфейса
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
