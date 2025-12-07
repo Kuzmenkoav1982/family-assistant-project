@@ -15,15 +15,13 @@ export function useMemberProfile() {
     setError(null);
     
     const token = getAuthToken();
-    const memberIdNum = parseInt(memberId);
     
     console.log('[DEBUG saveMemberProfile] Saving profile for member:', memberId);
-    console.log('[DEBUG saveMemberProfile] Member ID (parsed):', memberIdNum);
     console.log('[DEBUG saveMemberProfile] Profile data:', profileData);
     console.log('[DEBUG saveMemberProfile] Profile data keys:', Object.keys(profileData));
     
     const payload = {
-      memberId: memberIdNum,
+      memberId: memberId,
       profileData
     };
     
