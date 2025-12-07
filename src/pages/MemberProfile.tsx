@@ -26,7 +26,6 @@ export default function MemberProfile() {
   const { saveProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
-  const [profileLoaded, setProfileLoaded] = useState(false);
   
   let member = members.find(m => m.id === memberId);
   
@@ -100,7 +99,7 @@ export default function MemberProfile() {
   };
 
   useEffect(() => {
-    if (!memberId || profileLoaded) return;
+    if (!memberId) return;
     
     const loadProfile = async () => {
       console.log('[MemberProfile] Loading profile for:', memberId);
@@ -126,12 +125,10 @@ export default function MemberProfile() {
       } catch (err) {
         console.error('[MemberProfile] Error loading profile:', err);
       }
-      
-      setProfileLoaded(true);
     };
     
     loadProfile();
-  }, [memberId, profileLoaded]);
+  }, [memberId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
@@ -391,7 +388,6 @@ export default function MemberProfile() {
                 const success = await saveProfile(member.id, profile);
                 if (success) {
                   setMemberProfile(profile);
-                  setProfileLoaded(false);
                   alert('✅ Анкета успешно сохранена!');
                 } else {
                   alert('❌ Ошибка при сохранении анкеты');
