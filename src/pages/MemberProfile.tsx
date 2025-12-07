@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ export default function MemberProfile() {
   const { saveProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
+  const loadedMemberRef = useRef<string | null>(null);
   
   let member = members.find(m => m.id === memberId);
   
@@ -99,7 +100,10 @@ export default function MemberProfile() {
   };
 
   useEffect(() => {
-    if (!memberId) return;
+    // Загружаем профиль только если это новый член семьи
+    if (!memberId || loadedMemberRef.current === memberId) return;
+    
+    loadedMemberRef.current = memberId;
     
     const loadProfile = async () => {
       console.log('[MemberProfile] Loading profile for:', memberId);
