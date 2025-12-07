@@ -131,6 +131,8 @@ export default function BottomBar({
                       navigate('/analytics');
                     } else if (section.id === 'recipes') {
                       navigate('/recipes');
+                    } else if (section.id === 'voting') {
+                      navigate('/voting');
                     } else {
                       onSectionChange(section.id);
                     }
