@@ -56,7 +56,6 @@ import Nutrition from "./pages/Nutrition";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
-import Permissions from "./pages/Permissions";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -129,7 +128,7 @@ const App = () => {
               <Route path="/shopping" element={<Shopping />} />
               <Route path="/meals" element={<Meals />} />
               <Route path="/calendar" element={<Calendar />} />
-              <Route path="/permissions" element={<Permissions />} />
+              <Route path="/permissions" element={<PermissionsManagement />} />
               <Route path="/community" element={<Community />} />
               <Route path="/member/:memberId" element={<MemberProfile />} />
               <Route path="/family-code" element={<FamilyCode />} />

@@ -91,7 +91,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'recipes', label: 'Рецепты', icon: 'ChefHat', path: '/recipes' },
         { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
         { id: 'nutrition', label: 'Питание', icon: 'Apple', path: '/nutrition' },
-        { id: 'voting', label: 'Голосования', icon: 'Vote', path: '/voting' }
+        { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' }
       ]
     },
     {
