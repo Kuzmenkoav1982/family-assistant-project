@@ -1,17 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
-import { RoadVisualization } from '@/components/RoadVisualization';
+import { LifeRoadHeader } from '@/components/life-road/LifeRoadHeader';
+import { LifeRoadFilters } from '@/components/life-road/LifeRoadFilters';
+import { LifeRoadEventsList } from '@/components/life-road/LifeRoadEventsList';
+import { LifeRoadAddDialog } from '@/components/life-road/LifeRoadAddDialog';
 
 interface LifeEvent {
   id: string;
@@ -63,7 +55,6 @@ const INITIAL_EVENTS: LifeEvent[] = [
 ];
 
 export default function LifeRoad() {
-  const navigate = useNavigate();
   const { members, loading } = useFamilyMembersContext();
   const [events, setEvents] = useState<LifeEvent[]>(
     JSON.parse(localStorage.getItem('lifeRoadEvents') || JSON.stringify(INITIAL_EVENTS))
@@ -162,375 +153,40 @@ export default function LifeRoad() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="mb-4"
-          >
-            <Icon name="ArrowLeft" size={20} className="mr-2" />
-            Назад
-          </Button>
+        <LifeRoadHeader
+          isInstructionOpen={isInstructionOpen}
+          setIsInstructionOpen={setIsInstructionOpen}
+        />
 
-          {/* Инструкция */}
-          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mb-6">
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader className="pb-3">
-                <CollapsibleTrigger className="flex items-center justify-between w-full hover:opacity-80 transition-opacity">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Icon name="Info" size={20} className="text-blue-600" />
-                    Как пользоваться разделом "Дорога жизни"
-                  </CardTitle>
-                  <Icon 
-                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    size={20} 
-                    className="text-blue-600"
-                  />
-                </CollapsibleTrigger>
-              </CardHeader>
-              <CollapsibleContent>
-                <CardContent className="pt-0 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Icon name="Calendar" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-700">
-                      <strong>Добавляйте события:</strong> Нажмите "Добавить событие" чтобы записать важные моменты жизни семьи
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="MapPin" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-700">
-                      <strong>Визуализация:</strong> События отображаются на дороге в хронологическом порядке - от прошлого к будущему
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Monitor" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-700">
-                      <strong>Адаптивный вид:</strong> На компьютере дорога горизонтальная, на телефоне - вертикальная для удобства
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Star" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-700">
-                      <strong>Важность событий:</strong> Отмечайте критические моменты - они будут выделены на дороге
-                    </p>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl">
-                <Icon name="MapPin" size={32} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Дорога жизни</h1>
-                <p className="text-gray-600">История нашей семьи в событиях</p>
-              </div>
-            </div>
+        <LifeRoadFilters
+          events={events}
+          filteredEvents={filteredEvents}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          years={years}
+          categoryConfig={categoryConfig}
+          setShowAddDialog={setShowAddDialog}
+        />
 
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Icon name="Plus" size={20} />
-                  Добавить событие
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Новое событие</DialogTitle>
-                  <DialogDescription>
-                    Добавьте важное событие в историю вашей семьи
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Дата события *</Label>
-                    <Input
-                      type="date"
-                      value={newEvent.date}
-                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                    />
-                  </div>
+        <LifeRoadEventsList
+          filteredEvents={filteredEvents}
+          categoryConfig={categoryConfig}
+          importanceConfig={importanceConfig}
+          handleDeleteEvent={handleDeleteEvent}
+          getEventAge={getEventAge}
+        />
 
-                  <div>
-                    <Label>Название *</Label>
-                    <Input
-                      placeholder="Например: Окончание школы"
-                      value={newEvent.title}
-                      onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Описание</Label>
-                    <Textarea
-                      placeholder="Расскажите подробнее о событии..."
-                      value={newEvent.description}
-                      onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Категория</Label>
-                      <Select
-                        value={newEvent.category}
-                        onValueChange={(value) => setNewEvent({ ...newEvent, category: value as LifeEvent['category'] })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(categoryConfig).map(([key, config]) => (
-                            <SelectItem key={key} value={key}>
-                              <div className="flex items-center gap-2">
-                                <Icon name={config.icon as any} size={16} />
-                                {config.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label>Важность</Label>
-                      <Select
-                        value={newEvent.importance}
-                        onValueChange={(value) => setNewEvent({ ...newEvent, importance: value as LifeEvent['importance'] })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(importanceConfig).map(([key, config]) => (
-                            <SelectItem key={key} value={key}>
-                              {config.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <Button onClick={handleAddEvent} className="w-full" disabled={!newEvent.date || !newEvent.title}>
-                    <Icon name="Plus" size={16} className="mr-2" />
-                    Добавить событие
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Icon name="Calendar" size={24} className="text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{events.length}</p>
-                  <p className="text-sm text-gray-600">Всего событий</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-red-100 rounded-lg">
-                  <Icon name="Star" size={24} className="text-red-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {events.filter(e => e.importance === 'critical').length}
-                  </p>
-                  <p className="text-sm text-gray-600">Ключевых</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Icon name="Clock" size={24} className="text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{years.length}</p>
-                  <p className="text-sm text-gray-600">Лет истории</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Icon name="TrendingUp" size={24} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {events.filter(e => new Date(e.date).getFullYear() === new Date().getFullYear()).length}
-                  </p>
-                  <p className="text-sm text-gray-600">В этом году</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Визуализация дороги */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="MapPin" size={20} />
-              Визуализация дороги жизни
-            </CardTitle>
-            <CardDescription>
-              Водитель: {members.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || members[0]?.name || 'Семья'} 
-              {members.length > 1 && ` | Пассажиры: ${members.slice(1).map(m => m.name).join(', ')}`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RoadVisualization 
-              events={sortedEvents}
-              familyMembers={members}
-              driverName={members.find(m => m.role?.toLowerCase().includes('владел') || m.role?.toLowerCase().includes('папа'))?.name || members[0]?.name || 'Семья'}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Filters */}
-        <div className="mb-6 space-y-4">
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Категория</p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCategory('all')}
-              >
-                Все категории
-              </Button>
-              {Object.entries(categoryConfig).map(([key, config]) => (
-                <Button
-                  key={key}
-                  variant={selectedCategory === key ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(key)}
-                  className="gap-2"
-                >
-                  <Icon name={config.icon as any} size={16} />
-                  {config.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Год</p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedYear === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedYear('all')}
-              >
-                Все годы
-              </Button>
-              {years.map(year => (
-                <Button
-                  key={year}
-                  variant={selectedYear === year.toString() ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedYear(year.toString())}
-                >
-                  {year}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="relative">
-          <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 via-purple-400 to-pink-400"></div>
-
-          <div className="space-y-8">
-            {filteredEvents.map((event, index) => {
-              const config = categoryConfig[event.category];
-              const importanceStyle = importanceConfig[event.importance];
-
-              return (
-                <div key={event.id} className="relative pl-20">
-                  <div className={`absolute left-4 w-8 h-8 rounded-full border-4 border-white ${config.color} flex items-center justify-center shadow-lg z-10`}>
-                    <Icon name={config.icon as any} size={16} />
-                  </div>
-
-                  <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge className={config.color}>{config.label}</Badge>
-                            <Badge className={importanceStyle.color}>{importanceStyle.label}</Badge>
-                            <span className="text-sm text-gray-500">
-                              {new Date(event.date).toLocaleDateString('ru-RU')}
-                            </span>
-                          </div>
-                          <CardTitle className="text-xl">{event.title}</CardTitle>
-                          <CardDescription className="mt-2">{event.description}</CardDescription>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteEvent(event.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Icon name="Trash2" size={16} />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Icon name="Clock" size={16} />
-                          {getEventAge(event.date)}
-                        </div>
-                        {event.participants.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Icon name="Users" size={16} />
-                            {event.participants.length} участников
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              );
-            })}
-          </div>
-
-          {filteredEvents.length === 0 && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <Icon name="Calendar" size={48} className="mx-auto mb-4 text-gray-400" />
-                <p className="text-lg text-gray-600">События не найдены</p>
-                <p className="text-sm text-gray-500 mt-2">Попробуйте изменить фильтры или добавьте первое событие</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        <LifeRoadAddDialog
+          showAddDialog={showAddDialog}
+          setShowAddDialog={setShowAddDialog}
+          newEvent={newEvent}
+          setNewEvent={setNewEvent}
+          handleAddEvent={handleAddEvent}
+          categoryConfig={categoryConfig}
+          importanceConfig={importanceConfig}
+        />
       </div>
     </div>
   );
