@@ -386,6 +386,7 @@ export default function MemberProfile() {
 
           <TabsContent value="questionnaire">
             <MemberProfileQuestionnaire
+              key={`questionnaire-${memberId}-${memberProfile ? 'loaded' : 'empty'}`}
               member={{...member, profile: memberProfile || undefined}}
               onSave={async (profile: MemberProfile) => {
                 console.log('[MemberProfile] Saving questionnaire:', profile);
