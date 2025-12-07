@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useMemberProfile } from '@/hooks/useMemberProfile';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
@@ -22,7 +22,7 @@ import { DEMO_FAMILY } from '@/data/demoFamily';
 export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
-  const { members, updateMember } = useFamilyMembers();
+  const { members, updateMember } = useFamilyMembersContext();
   const { saveProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);

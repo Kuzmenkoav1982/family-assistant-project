@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { RoadVisualization } from '@/components/RoadVisualization';
 
 interface LifeEvent {
@@ -64,7 +64,7 @@ const INITIAL_EVENTS: LifeEvent[] = [
 
 export default function LifeRoad() {
   const navigate = useNavigate();
-  const { members, loading } = useFamilyMembers();
+  const { members, loading } = useFamilyMembersContext();
   const [events, setEvents] = useState<LifeEvent[]>(
     JSON.parse(localStorage.getItem('lifeRoadEvents') || JSON.stringify(INITIAL_EVENTS))
   );

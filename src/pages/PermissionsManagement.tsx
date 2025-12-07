@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { PermissionsManager } from '@/components/PermissionsManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 export default function PermissionsManagement() {
   const navigate = useNavigate();
-  const { members, deleteMember } = useFamilyMembers();
+  const { members, deleteMember } = useFamilyMembersContext();
   const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);

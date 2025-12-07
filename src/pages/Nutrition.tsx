@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
 const NUTRITION_API_URL = 'https://functions.poehali.dev/c592ffff-18dd-4d1c-b199-ff8832c83a2c';
 
@@ -60,7 +60,7 @@ interface FoodDiaryEntry {
 
 export default function Nutrition() {
   const navigate = useNavigate();
-  const { members } = useFamilyMembers();
+  const { members } = useFamilyMembersContext();
   const [selectedMemberId, setSelectedMemberId] = useState<number>(1);
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
   const [foodDiary, setFoodDiary] = useState<FoodDiaryEntry[]>([]);

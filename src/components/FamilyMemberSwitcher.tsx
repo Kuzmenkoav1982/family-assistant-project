@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
 interface FamilyMember {
   id: string;
@@ -17,7 +17,7 @@ interface FamilyMember {
 }
 
 export default function FamilyMemberSwitcher() {
-  const { members, loading } = useFamilyMembers();
+  const { members, loading } = useFamilyMembersContext();
   const [isOpen, setIsOpen] = useState(false);
   const [currentMemberId, setCurrentMemberId] = useState<string>('');
   

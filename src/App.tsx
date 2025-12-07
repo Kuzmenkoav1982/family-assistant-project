@@ -59,6 +59,7 @@ import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
 import { DialogLockProvider } from "@/contexts/DialogLockContext";
+import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -97,10 +98,11 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <DialogLockProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+          <FamilyMembersProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
             <PWAInstallPrompt />
             <AIAssistantWidget />
             <Routes>
@@ -159,8 +161,9 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-          </TooltipProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </FamilyMembersProvider>
         </DialogLockProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useTasks } from '@/hooks/useTasks';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export function TasksWidget() {
   const { tasks, loading, toggleTask, createTask } = useTasks();
-  const { members } = useFamilyMembers();
+  const { members } = useFamilyMembersContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [newTask, setNewTask] = useState({

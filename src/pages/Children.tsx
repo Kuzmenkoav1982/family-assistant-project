@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import Footer from '@/components/Footer';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { ParentDashboard } from '@/components/children/ParentDashboard';
 import { ChildProfile as ChildProfileComponent } from '@/components/children/ChildProfile';
 import type { FamilyMember } from '@/types/family.types';
@@ -15,7 +15,7 @@ import type { FamilyMember } from '@/types/family.types';
 export default function Children() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { members, loading } = useFamilyMembers();
+  const { members, loading } = useFamilyMembersContext();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);

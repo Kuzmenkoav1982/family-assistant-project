@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { toast } from 'sonner';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
 import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
@@ -112,7 +112,7 @@ const DEVELOPMENT_TESTS = [
 
 export default function Development() {
   const navigate = useNavigate();
-  const { members: familyMembers, loading: isLoading, updateMember } = useFamilyMembers();
+  const { members: familyMembers, loading: isLoading, updateMember } = useFamilyMembersContext();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<string>('all');
   const [activeTest, setActiveTest] = useState<string | null>(null);

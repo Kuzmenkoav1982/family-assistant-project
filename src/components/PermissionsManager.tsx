@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import type { FamilyMember } from '@/types/family.types';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
 interface PermissionsManagerProps {
   member: FamilyMember;
@@ -23,7 +23,7 @@ const PERMISSION_CONFIG = [
 ];
 
 export function PermissionsManager({ member }: PermissionsManagerProps) {
-  const { updateMember } = useFamilyMembers();
+  const { updateMember } = useFamilyMembersContext();
   const [permissions, setPermissions] = useState(
     member.permissions || {
       tasks: true,

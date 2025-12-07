@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useVotings } from '@/hooks/useVotings';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { getCurrentMember } from '@/data/demoFamily';
 import { VotingCard } from '@/components/voting/VotingCard';
 import { VotingCreateDialog } from '@/components/voting/VotingCreateDialog';
@@ -13,7 +13,7 @@ import { VotingContextMenu } from '@/components/voting/VotingContextMenu';
 
 export function VotingWidget() {
   const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
-  const { members } = useFamilyMembers();
+  const { members } = useFamilyMembersContext();
   const currentUser = getCurrentMember();
   
   const getCurrentUserId = () => {

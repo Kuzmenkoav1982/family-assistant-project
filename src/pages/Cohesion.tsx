@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useTasks } from '@/hooks/useTasks';
 import { useState } from 'react';
 import { testFamilyMembers, testTasks } from '@/data/testFamilyData';
@@ -17,7 +17,7 @@ export default function Cohesion() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isTestMode = user.id?.startsWith('user-');
   
-  const { members: familyMembersRaw } = useFamilyMembers();
+  const { members: familyMembersRaw } = useFamilyMembersContext();
   const { tasks: tasksRaw } = useTasks();
   
   const familyMembers = isTestMode ? testFamilyMembers : (familyMembersRaw || []);

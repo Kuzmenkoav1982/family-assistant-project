@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import Icon from '@/components/ui/icon';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { MealDialog } from '@/components/meals/MealDialog';
 import { DayColumn } from '@/components/meals/DayColumn';
 
@@ -44,7 +44,7 @@ const MEAL_TYPES = [
 
 export default function Meals() {
   const navigate = useNavigate();
-  const { members } = useFamilyMembers();
+  const { members } = useFamilyMembersContext();
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string>('monday');
