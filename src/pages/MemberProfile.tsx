@@ -23,7 +23,7 @@ export default function MemberProfile() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembers();
-  const { saveProfile, getProfile, loading: loadingProfile } = useMemberProfile();
+  const { saveProfile } = useMemberProfile();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
@@ -100,19 +100,38 @@ export default function MemberProfile() {
   };
 
   useEffect(() => {
+    if (!memberId || profileLoaded) return;
+    
     const loadProfile = async () => {
-      if (memberId && !profileLoaded) {
-        console.log('[MemberProfile] Loading profile for:', memberId);
-        const profile = await getProfile(memberId);
-        console.log('[MemberProfile] Loaded profile:', profile);
-        if (profile) {
-          setMemberProfile(profile);
+      console.log('[MemberProfile] Loading profile for:', memberId);
+      
+      const token = localStorage.getItem('authToken') || '';
+      if (!token) return;
+      
+      try {
+        const response = await fetch(`https://functions.poehali.dev/84bdef99-0e4b-420f-af04-60ac37c6af1c?memberId=${memberId}`, {
+          method: 'GET',
+          headers: {
+            'X-Auth-Token': token
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[MemberProfile] Loaded profile:', data.profile);
+          if (data.profile) {
+            setMemberProfile(data.profile);
+          }
         }
-        setProfileLoaded(true);
+      } catch (err) {
+        console.error('[MemberProfile] Error loading profile:', err);
       }
+      
+      setProfileLoaded(true);
     };
+    
     loadProfile();
-  }, [memberId]);
+  }, [memberId, profileLoaded]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
@@ -365,24 +384,20 @@ export default function MemberProfile() {
           </TabsContent>
 
           <TabsContent value="questionnaire">
-            {loadingProfile ? (
-              <Card><CardContent className="p-8 text-center"><p>Загрузка анкеты...</p></CardContent></Card>
-            ) : (
-              <MemberProfileQuestionnaire
-                member={{...member, profile: memberProfile || undefined}}
-                onSave={async (profile: MemberProfile) => {
-                  console.log('[MemberProfile] Saving questionnaire:', profile);
-                  const success = await saveProfile(member.id, profile);
-                  if (success) {
-                    setMemberProfile(profile);
-                    setProfileLoaded(false);
-                    alert('✅ Анкета успешно сохранена!');
-                  } else {
-                    alert('❌ Ошибка при сохранении анкеты');
-                  }
-                }}
-              />
-            )}
+            <MemberProfileQuestionnaire
+              member={{...member, profile: memberProfile || undefined}}
+              onSave={async (profile: MemberProfile) => {
+                console.log('[MemberProfile] Saving questionnaire:', profile);
+                const success = await saveProfile(member.id, profile);
+                if (success) {
+                  setMemberProfile(profile);
+                  setProfileLoaded(false);
+                  alert('✅ Анкета успешно сохранена!');
+                } else {
+                  alert('❌ Ошибка при сохранении анкеты');
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="calendar">
