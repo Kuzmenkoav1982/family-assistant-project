@@ -99,15 +99,20 @@ export default function MemberProfile() {
     });
   };
 
-  const loadProfileIfNeeded = async () => {
-    if (member?.id && !profileLoaded) {
-      const profile = await getProfile(member.id);
-      if (profile) {
-        setMemberProfile(profile);
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (member?.id && !profileLoaded) {
+        console.log('[MemberProfile] Loading profile for:', member.id);
+        const profile = await getProfile(member.id);
+        console.log('[MemberProfile] Loaded profile:', profile);
+        if (profile) {
+          setMemberProfile(profile);
+        }
+        setProfileLoaded(true);
       }
-      setProfileLoaded(true);
-    }
-  };
+    };
+    loadProfile();
+  }, [member?.id, profileLoaded, getProfile]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
@@ -359,19 +364,25 @@ export default function MemberProfile() {
             />
           </TabsContent>
 
-          <TabsContent value="questionnaire" onFocus={loadProfileIfNeeded}>
-            <MemberProfileQuestionnaire
-              member={{...member, profile: memberProfile || undefined}}
-              onSave={async (profile: MemberProfile) => {
-                const success = await saveProfile(member.id, profile);
-                if (success) {
-                  setMemberProfile(profile);
-                  alert('✅ Анкета успешно сохранена!');
-                } else {
-                  alert('❌ Ошибка при сохранении анкеты');
-                }
-              }}
-            />
+          <TabsContent value="questionnaire">
+            {loadingProfile ? (
+              <Card><CardContent className="p-8 text-center"><p>Загрузка анкеты...</p></CardContent></Card>
+            ) : (
+              <MemberProfileQuestionnaire
+                member={{...member, profile: memberProfile || undefined}}
+                onSave={async (profile: MemberProfile) => {
+                  console.log('[MemberProfile] Saving questionnaire:', profile);
+                  const success = await saveProfile(member.id, profile);
+                  if (success) {
+                    setMemberProfile(profile);
+                    setProfileLoaded(false);
+                    alert('✅ Анкета успешно сохранена!');
+                  } else {
+                    alert('❌ Ошибка при сохранении анкеты');
+                  }
+                }}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="calendar">
@@ -383,6 +394,66 @@ export default function MemberProfile() {
 
           <TabsContent value="stats">
             <div className="grid md:grid-cols-2 gap-4">
+              {/* Данные из анкеты */}
+              {memberProfile && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Icon name="User" size={20} />
+                        Основные данные
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {memberProfile.height && <p className="text-sm"><strong>Рост:</strong> {memberProfile.height} см</p>}
+                      {memberProfile.weight && <p className="text-sm"><strong>Вес:</strong> {memberProfile.weight} кг</p>}
+                      {memberProfile.personalityType && <p className="text-sm"><strong>Тип:</strong> {memberProfile.personalityType}</p>}
+                      {memberProfile.energyType && <p className="text-sm"><strong>Энергетика:</strong> {memberProfile.energyType}</p>}
+                      {memberProfile.lifestyle && <p className="text-sm"><strong>Образ жизни:</strong> {memberProfile.lifestyle}</p>}
+                      {!memberProfile.height && !memberProfile.weight && !memberProfile.personalityType && (
+                        <p className="text-sm text-gray-500 text-center py-4">Заполните анкету для отображения данных</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {memberProfile.hobbies && memberProfile.hobbies.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Icon name="Star" size={20} />
+                          Хобби
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                          {memberProfile.hobbies.map((hobby, i) => (
+                            <Badge key={i} variant="outline" className="bg-purple-50">{hobby}</Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {memberProfile.loveLanguages && memberProfile.loveLanguages.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Icon name="Heart" size={20} />
+                          Языки любви
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                          {memberProfile.loveLanguages.map((lang, i) => (
+                            <Badge key={i} variant="outline" className="bg-pink-50">{lang}</Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

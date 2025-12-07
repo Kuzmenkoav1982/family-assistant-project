@@ -107,32 +107,52 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
 
 
 def get_member_id_by_uuid(member_uuid: str) -> Optional[int]:
-    """Получить integer ID члена семьи по UUID"""
+    """Получить ID члена семьи - просто проверяем что такой член семьи существует и возвращаем его integer id из member_profiles или создаем"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        # Проверяем существование члена семьи
         query = f"""
             SELECT id FROM {SCHEMA}.family_members
-            WHERE id::text = {escape_string(member_uuid)}
+            WHERE id = {escape_string(member_uuid)}::uuid
             LIMIT 1
         """
         cur.execute(query)
         result = cur.fetchone()
-        return result['id'] if result else None
+        
+        if not result:
+            return None
+            
+        # Теперь находим или создаем запись в member_profiles
+        check_profile = f"""
+            SELECT id FROM {SCHEMA}.member_profiles
+            WHERE member_id = {escape_string(member_uuid)}::uuid
+            LIMIT 1
+        """
+        cur.execute(check_profile)
+        profile = cur.fetchone()
+        
+        if profile:
+            return profile['id']
+        
+        # Если профиля нет - возвращаем просто None, он создастся при upsert
+        return None
+            
     finally:
         cur.close()
         conn.close()
 
 
-def get_profile(member_id: int) -> Optional[Dict[str, Any]]:
+def get_profile(member_uuid: str) -> Optional[Dict[str, Any]]:
+    """Получить профиль по UUID члена семьи"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
         query = f"""
             SELECT * FROM {SCHEMA}.member_profiles 
-            WHERE member_id = {member_id}
+            WHERE member_id = {escape_string(member_uuid)}::uuid
             LIMIT 1
         """
         cur.execute(query)
@@ -161,21 +181,36 @@ def get_family_profiles(family_id: str) -> list:
         conn.close()
 
 
-def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+def upsert_profile(member_uuid: str, family_id: str, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать или обновить профиль по UUID члена семьи"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        print(f"[DEBUG upsert_profile] member_uuid={member_uuid}, family_id={family_id}")
+        print(f"[DEBUG upsert_profile] profile_data keys: {list(profile_data.keys())}")
+        
+        # Проверяем существует ли член семьи
+        member_check = f"""
+            SELECT id FROM {SCHEMA}.family_members
+            WHERE id = {escape_string(member_uuid)}::uuid
+            LIMIT 1
+        """
+        cur.execute(member_check)
+        if not cur.fetchone():
+            return {'success': False, 'error': f'Член семьи с ID {member_uuid} не найден'}
+        
         # Проверяем существует ли профиль
         check_query = f"""
             SELECT id FROM {SCHEMA}.member_profiles 
-            WHERE member_id = {member_id}
+            WHERE member_id = {escape_string(member_uuid)}::uuid
         """
         cur.execute(check_query)
         existing = cur.fetchone()
         
         if existing:
             # UPDATE
+            print(f"[DEBUG upsert_profile] Updating existing profile id={existing['id']}")
             updates = []
             for key, value in profile_data.items():
                 snake_key = camel_to_snake(key)
@@ -186,16 +221,18 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
                 query = f"""
                     UPDATE {SCHEMA}.member_profiles
                     SET {', '.join(updates)}
-                    WHERE member_id = {member_id}
+                    WHERE member_id = {escape_string(member_uuid)}::uuid
                     RETURNING *
                 """
+                print(f"[DEBUG upsert_profile] UPDATE query: {query[:200]}")
                 cur.execute(query)
                 result = cur.fetchone()
                 return {'success': True, 'profile': db_to_frontend(dict(result))}
         else:
             # INSERT
+            print(f"[DEBUG upsert_profile] Creating new profile")
             columns = ['member_id', 'family_id']
-            values = [str(member_id), f"{escape_string(family_id)}::uuid"]
+            values = [f"{escape_string(member_uuid)}::uuid", f"{escape_string(family_id)}::uuid"]
             
             for key, value in profile_data.items():
                 snake_key = camel_to_snake(key)
@@ -207,11 +244,13 @@ def upsert_profile(member_id: int, family_id: str, profile_data: Dict[str, Any])
                 VALUES ({', '.join(values)})
                 RETURNING *
             """
+            print(f"[DEBUG upsert_profile] INSERT query: {query[:200]}")
             cur.execute(query)
             result = cur.fetchone()
             return {'success': True, 'profile': db_to_frontend(dict(result))}
             
     except Exception as e:
+        print(f"[ERROR upsert_profile] {str(e)}")
         return {'success': False, 'error': str(e)}
     finally:
         cur.close()
@@ -267,19 +306,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             params = event.get('queryStringParameters') or {}
             member_uuid = params.get('memberId')
             
+            print(f"[DEBUG GET] member_uuid from query: {member_uuid}")
+            
             if member_uuid:
-                # Получить integer ID по UUID
-                member_id = get_member_id_by_uuid(member_uuid)
-                if not member_id:
-                    return {
-                        'statusCode': 404,
-                        'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Член семьи не найден'}),
-                        'isBase64Encoded': False
-                    }
+                # Получить профиль конкретного члена по UUID
+                profile = get_profile(member_uuid)
+                print(f"[DEBUG GET] profile result: {profile is not None}")
                 
-                # Получить профиль конкретного члена
-                profile = get_profile(member_id)
                 if profile:
                     return {
                         'statusCode': 200,
@@ -311,6 +344,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             member_uuid = body.get('memberId')
             profile_data = body.get('profileData', {})
             
+            print(f"[DEBUG {method}] Received memberId: {member_uuid}, type: {type(member_uuid)}")
+            print(f"[DEBUG {method}] Received profileData keys: {list(profile_data.keys())}")
+            print(f"[DEBUG {method}] Full profileData: {json.dumps(profile_data, default=str, indent=2)}")
+            
             if member_uuid is None:
                 return {
                     'statusCode': 400,
@@ -319,20 +356,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            # Конвертируем UUID в integer ID
-            if isinstance(member_uuid, str) and '-' in member_uuid:
-                member_id = get_member_id_by_uuid(member_uuid)
-                if not member_id:
-                    return {
-                        'statusCode': 404,
-                        'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Член семьи не найден'}),
-                        'isBase64Encoded': False
-                    }
-            else:
-                member_id = int(member_uuid)
-            
-            result = upsert_profile(member_id, str(family_id), profile_data)
+            # Работаем напрямую с UUID
+            print(f"[DEBUG {method}] Calling upsert_profile with member_uuid={member_uuid}, family_id={family_id}")
+            result = upsert_profile(str(member_uuid), str(family_id), profile_data)
+            print(f"[DEBUG {method}] Upsert result: success={result.get('success')}, error={result.get('error', 'None')}")
             
             if result.get('success'):
                 return {

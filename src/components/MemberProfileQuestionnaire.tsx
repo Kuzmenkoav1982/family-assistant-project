@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,15 @@ const LOVE_LANGUAGES = [
 export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQuestionnaireProps) {
   const [profile, setProfile] = useState<MemberProfile>(member.profile || {});
   const [saving, setSaving] = useState(false);
+  
+  useEffect(() => {
+    console.log('[MemberProfileQuestionnaire] member.profile changed:', member.profile);
+    if (member.profile) {
+      setProfile(member.profile);
+    }
+  }, [member.profile]);
+  
+  console.log('[MemberProfileQuestionnaire] current profile state:', profile);
   const [newHabit, setNewHabit] = useState('');
   const [newBadHabit, setNewBadHabit] = useState('');
   const [newHobby, setNewHobby] = useState('');
@@ -57,6 +66,7 @@ export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQues
   const handleSave = async () => {
     setSaving(true);
     try {
+      console.log('[MemberProfileQuestionnaire] Saving profile:', profile);
       await onSave(profile);
     } finally {
       setSaving(false);
