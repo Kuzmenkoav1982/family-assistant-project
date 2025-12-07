@@ -255,7 +255,8 @@ export default function Index({ onLogout }: IndexProps) {
   const [welcomeText] = useState('Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций.');
   const [isTopBarVisible, setIsTopBarVisible] = useState(true);
   const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
-    return localStorage.getItem('autoHideTopBar') === 'true';
+    // Временно отключаем автоскрытие для проверки зелёной кнопки
+    return false;
   });
 
   const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(true);
