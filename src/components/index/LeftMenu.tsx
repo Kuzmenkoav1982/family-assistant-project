@@ -137,8 +137,6 @@ export function LeftMenu({
                   navigate('/recipes');
                 } else if (section.id === 'analytics') {
                   navigate('/analytics');
-                } else if (section.id === 'voting') {
-                  navigate('/voting');
                 } else {
                   setActiveSection(section.id);
                 }
