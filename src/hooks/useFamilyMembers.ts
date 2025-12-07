@@ -233,7 +233,7 @@ export function useFamilyMembers() {
     } else if (!token) {
       setLoading(false);
     }
-  }, [fetchMembers]);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -249,7 +249,7 @@ export function useFamilyMembers() {
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [fetchMembers, dialogLock]);
+  }, [dialogLock]);
 
   return {
     members,
