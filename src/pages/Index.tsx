@@ -63,7 +63,7 @@ import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { GoalsSection } from '@/components/GoalsSection';
 import { getTranslation, languageOptions, type LanguageCode } from '@/translations';
 import { DEMO_FAMILY } from '@/data/demoFamily';
-import SettingsMenu from '@/components/SettingsMenu';
+import SettingsDropdown from '@/components/SettingsDropdown';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import BottomBar from '@/components/BottomBar';
@@ -1470,7 +1470,12 @@ export default function Index({ onLogout }: IndexProps) {
                 </Button>
               )}
               
-              {topPanelSections.includes('settings') && <SettingsMenu />}
+              {topPanelSections.includes('settings') && (
+                <div className="relative">
+                  <SettingsDropdown />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" title="НОВОЕ"></div>
+                </div>
+              )}
               
               {topPanelSections.includes('instructions') && (
                 <Button
