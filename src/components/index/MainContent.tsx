@@ -109,20 +109,12 @@ export function MainContent({
             <p className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] text-center px-4">
               {getDailyMotto()}
             </p>
-            <div className="flex items-center gap-2">
-              {localStorage.getItem('authToken') && (
-                <Badge className="bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-lg">
-                  <Icon name="Shield" className="mr-1" size={12} />
-                  OAuth
-                </Badge>
-              )}
-              {syncing && (
-                <Badge className="bg-blue-600 animate-pulse shadow-lg">
-                  <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />
-                  Синхронизация
-                </Badge>
-              )}
-            </div>
+            {syncing && (
+              <Badge className="bg-blue-600 animate-pulse shadow-lg">
+                <Icon name="RefreshCw" className="mr-1 animate-spin" size={12} />
+                Синхронизация
+              </Badge>
+            )}
           </div>
         </div>
       </div>
