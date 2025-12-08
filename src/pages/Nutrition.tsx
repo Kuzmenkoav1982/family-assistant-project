@@ -61,7 +61,22 @@ interface FoodDiaryEntry {
 export default function Nutrition() {
   const navigate = useNavigate();
   const { members } = useFamilyMembersContext();
-  const [selectedMemberId, setSelectedMemberId] = useState<number>(1);
+  
+  // Get current user ID from localStorage
+  const getCurrentUserId = () => {
+    const authUserStr = localStorage.getItem('authUser');
+    if (authUserStr) {
+      try {
+        const authUser = JSON.parse(authUserStr);
+        return authUser.member_id || authUser.id || 1;
+      } catch {
+        return 1;
+      }
+    }
+    return 1;
+  };
+  
+  const [selectedMemberId, setSelectedMemberId] = useState<number>(getCurrentUserId());
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
   const [foodDiary, setFoodDiary] = useState<FoodDiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,11 +85,17 @@ export default function Nutrition() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [addMode, setAddMode] = useState<'search' | 'manual'>('search');
   const [newEntry, setNewEntry] = useState({
     product_id: null as number | null,
     product_name: '',
     amount: '',
-    meal_type: 'breakfast'
+    meal_type: 'breakfast',
+    // Manual input fields
+    calories: '',
+    protein: '',
+    fats: '',
+    carbs: ''
   });
   const [editingEntry, setEditingEntry] = useState<FoodDiaryEntry | null>(null);
   const today = new Date().toISOString().split('T')[0];
@@ -145,21 +166,41 @@ export default function Nutrition() {
   };
 
   const handleAddEntry = async () => {
-    if (!newEntry.product_id && !newEntry.product_name) return;
+    if (!newEntry.product_name) return;
     if (!newEntry.amount) return;
+    
+    // For manual mode, require nutritional data
+    if (addMode === 'manual' && (!newEntry.calories || !newEntry.protein || !newEntry.fats || !newEntry.carbs)) {
+      alert('Пожалуйста, заполните все поля БЖУ и калории');
+      return;
+    }
 
     try {
+      const requestBody: any = {
+        action: 'add_diary',
+        user_id: selectedMemberId,
+        meal_type: newEntry.meal_type,
+        product_name: newEntry.product_name,
+        amount: parseFloat(newEntry.amount)
+      };
+      
+      // Add product_id if from search
+      if (newEntry.product_id) {
+        requestBody.product_id = newEntry.product_id;
+      }
+      
+      // Add manual nutritional data if provided
+      if (addMode === 'manual') {
+        requestBody.calories = parseFloat(newEntry.calories);
+        requestBody.protein = parseFloat(newEntry.protein);
+        requestBody.fats = parseFloat(newEntry.fats);
+        requestBody.carbs = parseFloat(newEntry.carbs);
+      }
+      
       const response = await fetch(NUTRITION_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add_diary',
-          user_id: selectedMemberId,
-          meal_type: newEntry.meal_type,
-          product_id: newEntry.product_id,
-          product_name: newEntry.product_name,
-          amount: parseFloat(newEntry.amount)
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (response.ok) {
@@ -170,10 +211,15 @@ export default function Nutrition() {
           product_id: null,
           product_name: '',
           amount: '',
-          meal_type: 'breakfast'
+          meal_type: 'breakfast',
+          calories: '',
+          protein: '',
+          fats: '',
+          carbs: ''
         });
         setSearchQuery('');
         setSearchResults([]);
+        setAddMode('search');
       }
     } catch (error) {
       console.error('Ошибка добавления записи:', error);
@@ -237,7 +283,11 @@ export default function Nutrition() {
     setNewEntry({
       ...newEntry,
       product_id: product.id,
-      product_name: product.name
+      product_name: product.name,
+      calories: '',
+      protein: '',
+      fats: '',
+      carbs: ''
     });
     setSearchQuery(product.name);
     setSearchResults([]);
@@ -430,7 +480,7 @@ export default function Nutrition() {
                 Добавить приём пищи
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Добавить приём пищи</DialogTitle>
               </DialogHeader>
@@ -453,33 +503,127 @@ export default function Nutrition() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label>Продукт</Label>
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      searchProducts(e.target.value);
-                    }}
-                    placeholder="Начните вводить название..."
-                  />
-                  {searchResults.length > 0 && (
-                    <div className="mt-2 border rounded-lg max-h-48 overflow-y-auto">
-                      {searchResults.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => selectProduct(product)}
-                          className="w-full text-left p-3 hover:bg-gray-100 border-b last:border-0"
-                        >
-                          <div className="font-medium">{product.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {product.calories} ккал • Б: {product.protein}г • Ж: {product.fats}г • У: {product.carbs}г
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                {/* Mode Toggle */}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={addMode === 'search' ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setAddMode('search')}
+                  >
+                    <Icon name="Search" size={16} className="mr-2" />
+                    Поиск в базе
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={addMode === 'manual' ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setAddMode('manual')}
+                  >
+                    <Icon name="Pencil" size={16} className="mr-2" />
+                    Ручной ввод
+                  </Button>
                 </div>
+
+                {addMode === 'search' ? (
+                  <>
+                    <Alert className="bg-blue-50 border-blue-200">
+                      <Icon name="Info" className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-sm text-blue-800">
+                        Не нашли продукт в базе? Попробуйте <strong>Ручной ввод</strong> или{' '}
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-blue-600 underline"
+                          onClick={() => {
+                            setIsAddDialogOpen(false);
+                            navigate('/ai-assistant');
+                          }}
+                        >
+                          спросите у Кузи
+                        </Button>
+                        {' '}о калорийности продукта!
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div>
+                      <Label>Продукт</Label>
+                      <Input
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          searchProducts(e.target.value);
+                        }}
+                        placeholder="Начните вводить название..."
+                      />
+                      {searchResults.length > 0 && (
+                        <div className="mt-2 border rounded-lg max-h-48 overflow-y-auto">
+                          {searchResults.map((product) => (
+                            <button
+                              key={product.id}
+                              onClick={() => selectProduct(product)}
+                              className="w-full text-left p-3 hover:bg-gray-100 border-b last:border-0"
+                            >
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-xs text-gray-500">
+                                {product.calories} ккал • Б: {product.protein}г • Ж: {product.fats}г • У: {product.carbs}г
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Название продукта или блюда</Label>
+                      <Input
+                        value={newEntry.product_name}
+                        onChange={(e) => setNewEntry({ ...newEntry, product_name: e.target.value })}
+                        placeholder="Например: Борщ домашний"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Калории (ккал)</Label>
+                        <Input
+                          type="number"
+                          value={newEntry.calories}
+                          onChange={(e) => setNewEntry({ ...newEntry, calories: e.target.value })}
+                          placeholder="250"
+                        />
+                      </div>
+                      <div>
+                        <Label>Белки (г)</Label>
+                        <Input
+                          type="number"
+                          value={newEntry.protein}
+                          onChange={(e) => setNewEntry({ ...newEntry, protein: e.target.value })}
+                          placeholder="15"
+                        />
+                      </div>
+                      <div>
+                        <Label>Жиры (г)</Label>
+                        <Input
+                          type="number"
+                          value={newEntry.fats}
+                          onChange={(e) => setNewEntry({ ...newEntry, fats: e.target.value })}
+                          placeholder="10"
+                        />
+                      </div>
+                      <div>
+                        <Label>Углеводы (г)</Label>
+                        <Input
+                          type="number"
+                          value={newEntry.carbs}
+                          onChange={(e) => setNewEntry({ ...newEntry, carbs: e.target.value })}
+                          placeholder="30"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div>
                   <Label>Количество (граммов)</Label>
