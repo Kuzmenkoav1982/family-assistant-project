@@ -113,12 +113,11 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'development',
-      title: '💬 РАЗВИТИЕ И ПОМОЩЬ',
+      title: '💬 ПОМОЩЬ',
       icon: 'Brain',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
-        { id: 'life-road', label: 'Дорога жизни', icon: 'Route', path: '/life-road' },
-        { id: 'feedback', label: 'Жалобная книга', icon: 'MessageSquareWarning', path: '/feedback' }
+        { id: 'life-road', label: 'Дорога жизни', icon: 'Route', path: '/life-road' }
       ]
     },
     {

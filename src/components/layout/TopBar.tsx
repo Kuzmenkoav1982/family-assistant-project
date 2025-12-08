@@ -151,6 +151,11 @@ export default function TopBar({
                 <span>💬 Онлайн поддержка</span>
               </DropdownMenuItem>
 
+              <DropdownMenuItem onClick={() => navigate('/feedback')}>
+                <Icon name="MessageSquareText" size={16} className="mr-2" />
+                <span>📝 Отзывы</span>
+              </DropdownMenuItem>
+
               <DropdownMenuItem onClick={() => navigate('/instructions')}>
                 <Icon name="BookOpen" size={16} className="mr-2" />
                 <span>📖 Инструкции</span>
