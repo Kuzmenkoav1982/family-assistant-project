@@ -131,7 +131,7 @@ const AIAssistant = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/welcome')}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
             <Icon name="ArrowLeft" size={16} />
