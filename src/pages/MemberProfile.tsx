@@ -583,6 +583,11 @@ export default function MemberProfile() {
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="CheckSquare" size={20} />
                   Мои задачи
+                  {memberTasks.filter(t => !t.completed).length > 0 && (
+                    <Badge variant="outline" className="ml-2 bg-purple-50 text-purple-700 border-purple-200">
+                      {memberTasks.filter(t => !t.completed).length}
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
