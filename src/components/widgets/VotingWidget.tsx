@@ -13,13 +13,14 @@ export function VotingWidget() {
   const activeVotings = votings.filter(v => v.status === 'active');
 
   const getTopOption = (voting: typeof votings[0]) => {
-    if (voting.options.length === 0) return null;
+    if (!Array.isArray(voting.options) || voting.options.length === 0) return null;
     return voting.options.reduce((prev, current) => 
       current.yes_votes > prev.yes_votes ? current : prev
     );
   };
 
   const getTotalVotes = (voting: typeof votings[0]) => {
+    if (!Array.isArray(voting.options)) return 0;
     return voting.options.reduce((sum, opt) => sum + opt.yes_votes, 0);
   };
 

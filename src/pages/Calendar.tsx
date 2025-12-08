@@ -192,7 +192,7 @@ export default function Calendar() {
     }
 
     if (frequency === 'weekly') {
-      if (daysOfWeek && daysOfWeek.length > 0) {
+      if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
         const targetDayOfWeek = targetDate.getDay();
         const weeksDiff = Math.floor(diffDays / 7);
         return weeksDiff % interval === 0 && daysOfWeek.includes(targetDayOfWeek);

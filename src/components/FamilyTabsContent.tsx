@@ -78,7 +78,7 @@ function getNextOccurrence(task: Task): string | undefined {
       next.setDate(next.getDate() + interval);
       break;
     case 'weekly':
-      if (daysOfWeek && daysOfWeek.length > 0) {
+      if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
         const currentDay = next.getDay();
         const sortedDays = [...daysOfWeek].sort((a, b) => a - b);
         const nextDay = sortedDays.find(d => d > currentDay) || sortedDays[0];

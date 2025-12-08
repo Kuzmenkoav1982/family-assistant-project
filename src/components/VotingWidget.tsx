@@ -104,7 +104,7 @@ export function VotingWidget() {
   };
 
   const getVotingProgress = (voting: any) => {
-    if (!voting.options || voting.options.length === 0) return { votedCount: 0, totalMembers: members.length, percentage: 0 };
+    if (!voting.options || voting.options.length === 0) return { votedCount: 0, totalMembers: members?.length || 1, percentage: 0 };
     
     const votedMemberIds = new Set<string>();
     voting.options.forEach((option: any) => {
@@ -116,7 +116,7 @@ export function VotingWidget() {
     });
     
     const votedCount = votedMemberIds.size;
-    const totalMembers = members.length || 1;
+    const totalMembers = members?.length || 1;
     const percentage = Math.round((votedCount / totalMembers) * 100);
     
     return { votedCount, totalMembers, percentage };
