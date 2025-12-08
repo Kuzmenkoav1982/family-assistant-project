@@ -4,6 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'react-router-dom';
+import Icon from '@/components/ui/icon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -26,14 +35,37 @@ const AIAssistantWidget = () => {
   // Скрываем виджет на странице /welcome
   const isWelcomePage = location.pathname === '/welcome';
 
-  // Получаем роль Кузи из localStorage
-  const getKuzyaRole = () => {
-    return localStorage.getItem('kuzyaRole') || 'family-assistant';
+  // Состояние для роли Кузи
+  const [kuzyaRole, setKuzyaRole] = useState(() => localStorage.getItem('kuzyaRole') || 'family-assistant');
+
+  // Обновление роли
+  const handleRoleChange = (newRole: string) => {
+    setKuzyaRole(newRole);
+    localStorage.setItem('kuzyaRole', newRole);
+    toast({
+      title: 'Роль Кузи изменена',
+      description: getRoleInfo(newRole).name,
+    });
+  };
+
+  // Информация о ролях
+  const getRoleInfo = (role: string) => {
+    const roles: Record<string, { name: string; icon: string; description: string }> = {
+      'family-assistant': { name: 'Семейный помощник', icon: '🏡', description: 'Универсальный помощник' },
+      'cook': { name: 'Повар', icon: '🍳', description: 'Рецепты и кулинария' },
+      'organizer': { name: 'Организатор', icon: '📋', description: 'Планирование задач' },
+      'child-educator': { name: 'Воспитатель', icon: '👶', description: 'Советы по детям' },
+      'financial-advisor': { name: 'Финансовый советник', icon: '💰', description: 'Бюджет и экономия' },
+      'psychologist': { name: 'Психолог', icon: '🧠', description: 'Отношения в семье' },
+      'fitness-trainer': { name: 'Фитнес-тренер', icon: '💪', description: 'Здоровье и спорт' },
+      'travel-planner': { name: 'Тревел-планер', icon: '✈️', description: 'Организация поездок' },
+    };
+    return roles[role] || roles['family-assistant'];
   };
 
   // Получаем системный промпт в зависимости от роли
   const getSystemPrompt = () => {
-    const role = getKuzyaRole();
+    const role = kuzyaRole;
     const basePrompt = 'Ты умный домовой по имени "Кузя". Отвечай на русском языке, дружелюбно, с юмором домового, кратко и по делу. Используй эмодзи для наглядности.';
     
     const rolePrompts: Record<string, string> = {
@@ -206,32 +238,110 @@ const AIAssistantWidget = () => {
           }`}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-t-2xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img 
-                src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
-                alt="Кузя"
-                className="w-12 h-12 rounded-full object-cover object-top border-2 border-white/50"
-              />
-              <div>
-                <h3 className="font-bold">Кузя — AI Помощник</h3>
-                <p className="text-xs opacity-90">Всегда на связи</p>
+          <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-t-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <img 
+                  src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
+                  alt="Кузя"
+                  className="w-12 h-12 rounded-full object-cover object-top border-2 border-white/50"
+                />
+                <div>
+                  <h3 className="font-bold">Кузя — AI Помощник</h3>
+                  <p className="text-xs opacity-90">Всегда на связи</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="hover:bg-white/20 p-1 rounded"
+                >
+                  {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="hover:bg-white/20 p-1 rounded"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="hover:bg-white/20 p-1 rounded"
-              >
-                {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="hover:bg-white/20 p-1 rounded"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            
+            {/* Индикатор роли с дропдауном */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center justify-between transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{getRoleInfo(kuzyaRole).icon}</span>
+                    <div className="text-left">
+                      <div className="text-sm font-semibold">{getRoleInfo(kuzyaRole).name}</div>
+                      <div className="text-xs opacity-80">{getRoleInfo(kuzyaRole).description}</div>
+                    </div>
+                  </div>
+                  <Icon name="ChevronDown" size={16} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="start">
+                <DropdownMenuLabel>Выберите роль Кузи</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleRoleChange('family-assistant')}>
+                  <span className="mr-2">🏡</span>
+                  <div>
+                    <div className="font-medium">Семейный помощник</div>
+                    <div className="text-xs text-gray-500">Универсальный помощник</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('cook')}>
+                  <span className="mr-2">🍳</span>
+                  <div>
+                    <div className="font-medium">Повар</div>
+                    <div className="text-xs text-gray-500">Рецепты и кулинария</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('organizer')}>
+                  <span className="mr-2">📋</span>
+                  <div>
+                    <div className="font-medium">Организатор</div>
+                    <div className="text-xs text-gray-500">Планирование задач</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('child-educator')}>
+                  <span className="mr-2">👶</span>
+                  <div>
+                    <div className="font-medium">Воспитатель</div>
+                    <div className="text-xs text-gray-500">Советы по детям</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('financial-advisor')}>
+                  <span className="mr-2">💰</span>
+                  <div>
+                    <div className="font-medium">Финансовый советник</div>
+                    <div className="text-xs text-gray-500">Бюджет и экономия</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('psychologist')}>
+                  <span className="mr-2">🧠</span>
+                  <div>
+                    <div className="font-medium">Психолог</div>
+                    <div className="text-xs text-gray-500">Отношения в семье</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('fitness-trainer')}>
+                  <span className="mr-2">💪</span>
+                  <div>
+                    <div className="font-medium">Фитнес-тренер</div>
+                    <div className="text-xs text-gray-500">Здоровье и спорт</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('travel-planner')}>
+                  <span className="mr-2">✈️</span>
+                  <div>
+                    <div className="font-medium">Тревел-планер</div>
+                    <div className="text-xs text-gray-500">Организация поездок</div>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {!isMinimized && (
