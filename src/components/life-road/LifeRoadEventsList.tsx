@@ -117,7 +117,7 @@ export function LifeRoadEventsList({
                 <p className="text-gray-700 mb-4">{event.description}</p>
               )}
 
-              {event.participants?.length > 0 && (
+              {event.participants.length > 0 && (
                 <div className="mb-3">
                   <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
                     <Icon name="Users" size={14} />

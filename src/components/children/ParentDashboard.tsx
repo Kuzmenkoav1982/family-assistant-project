@@ -76,7 +76,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
   
   const healthScore = useMemo(() => {
     if (!data?.health) return 85;
-    return Math.round(((data.health.vaccinations?.length || 0) * 10 + (data.health.doctorVisits?.length || 0) * 5) / 2);
+    return Math.round((data.health.vaccinations.length * 10 + data.health.doctorVisits.length * 5) / 2);
   }, [data?.health]);
   
   const developmentScore = useMemo(() => {

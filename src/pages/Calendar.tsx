@@ -183,7 +183,7 @@ export default function Calendar() {
       if (targetDate > endDate) return false;
     }
 
-    const { frequency, interval, daysOfWeek = [] } = event.recurringPattern;
+    const { frequency, interval, daysOfWeek } = event.recurringPattern;
     const diffTime = targetDate.getTime() - eventDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
@@ -192,7 +192,7 @@ export default function Calendar() {
     }
 
     if (frequency === 'weekly') {
-      if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
+      if (daysOfWeek && daysOfWeek.length > 0) {
         const targetDayOfWeek = targetDate.getDay();
         const weeksDiff = Math.floor(diffDays / 7);
         return weeksDiff % interval === 0 && daysOfWeek.includes(targetDayOfWeek);

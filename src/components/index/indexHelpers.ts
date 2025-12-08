@@ -14,7 +14,7 @@ export const getNextOccurrenceDate = (task: Task): string | undefined => {
   if (!task.recurringPattern) return undefined;
   
   const now = new Date();
-  const { frequency, interval, daysOfWeek = [], endDate } = task.recurringPattern;
+  const { frequency, interval, daysOfWeek, endDate } = task.recurringPattern;
   
   if (endDate && new Date(endDate) < now) return undefined;
   

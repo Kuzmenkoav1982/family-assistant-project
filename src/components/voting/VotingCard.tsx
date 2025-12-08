@@ -65,7 +65,7 @@ export function VotingCard({
                 До {new Date(voting.end_date).toLocaleDateString('ru-RU')}
               </span>
               <Badge variant="outline" className="text-xs">
-                {voting.options?.length || 0} вариантов
+                {voting.options.length} вариантов
               </Badge>
             </div>
             <div className="space-y-1">
