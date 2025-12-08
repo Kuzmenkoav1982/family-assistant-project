@@ -14,10 +14,13 @@ import { VirtualizedList } from '@/components/VirtualizedList';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+type Period = 'week' | 'month' | 'quarter' | 'half-year' | 'year';
+
 export default function Analytics() {
   const navigate = useNavigate();
   const { data: familyData, isLoading, error } = useFamilyDataQuery();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [period, setPeriod] = useState<Period>('month');
 
   // Extract data before any conditional returns
   const members = familyData?.members || [];
@@ -66,35 +69,84 @@ export default function Analytics() {
   const monthlyActivity = useMemo(() => {
     const now = new Date();
     const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
-    const last6Months = [];
+    const result = [];
     
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthIndex = date.getMonth();
-      const year = date.getFullYear();
+    let periodsCount = 6;
+    let periodUnit: 'day' | 'week' | 'month' = 'month';
+    const periodOffset = 1;
+    
+    switch (period) {
+      case 'week':
+        periodsCount = 7;
+        periodUnit = 'day';
+        break;
+      case 'month':
+        periodsCount = 4;
+        periodUnit = 'week';
+        break;
+      case 'quarter':
+        periodsCount = 3;
+        periodUnit = 'month';
+        break;
+      case 'half-year':
+        periodsCount = 6;
+        periodUnit = 'month';
+        break;
+      case 'year':
+        periodsCount = 12;
+        periodUnit = 'month';
+        break;
+    }
+    
+    for (let i = periodsCount - 1; i >= 0; i--) {
+      let periodStart: Date;
+      let periodEnd: Date;
+      let label: string;
       
-      const monthTasks = tasks.filter((t: any) => {
+      if (periodUnit === 'day') {
+        periodStart = new Date(now);
+        periodStart.setDate(now.getDate() - i);
+        periodStart.setHours(0, 0, 0, 0);
+        periodEnd = new Date(periodStart);
+        periodEnd.setHours(23, 59, 59, 999);
+        label = periodStart.getDate().toString();
+      } else if (periodUnit === 'week') {
+        periodStart = new Date(now);
+        periodStart.setDate(now.getDate() - (i * 7));
+        periodStart.setHours(0, 0, 0, 0);
+        periodEnd = new Date(periodStart);
+        periodEnd.setDate(periodStart.getDate() + 6);
+        periodEnd.setHours(23, 59, 59, 999);
+        label = `Нед ${periodsCount - i}`;
+      } else {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        periodStart = new Date(date.getFullYear(), date.getMonth(), 1);
+        periodEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+        label = months[date.getMonth()];
+      }
+      
+      const periodTasks = tasks.filter((t: any) => {
         const taskDate = new Date(t.created_at || t.due_date || Date.now());
-        return taskDate.getMonth() === monthIndex && taskDate.getFullYear() === year;
+        return taskDate >= periodStart && taskDate <= periodEnd;
       }).length;
       
-      const monthEvents = calendarEvents.filter((e: any) => {
+      const periodEvents = calendarEvents.filter((e: any) => {
         const eventDate = new Date(e.date);
-        return eventDate.getMonth() === monthIndex && eventDate.getFullYear() === year;
+        return eventDate >= periodStart && eventDate <= periodEnd;
       }).length;
       
-      last6Months.push({
-        month: months[monthIndex],
-        tasks: monthTasks,
-        events: monthEvents,
+      result.push({
+        month: label,
+        tasks: periodTasks,
+        events: periodEvents,
       });
     }
     
-    console.log('📊 Аналитика - Активность по месяцам:', last6Months);
+    console.log('📊 Аналитика - Активность по периодам:', result);
     console.log('📊 Всего задач:', tasks.length, 'Всего событий:', calendarEvents.length);
     
-    return last6Months;
-  }, [tasks, calendarEvents]);
+    return result;
+  }, [tasks, calendarEvents, period]);
 
   const familyRoles = useMemo(() => 
     [
@@ -192,6 +244,55 @@ export default function Analytics() {
             </div>
           </Alert>
         </Collapsible>
+
+        {/* Переключатель периодов */}
+        <Card className="bg-white/80 backdrop-blur-sm">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <Icon name="Calendar" className="text-blue-600" size={20} />
+                <span className="font-semibold text-gray-700">Период отображения:</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant={period === 'week' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod('week')}
+                >
+                  Неделя
+                </Button>
+                <Button
+                  variant={period === 'month' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod('month')}
+                >
+                  Месяц
+                </Button>
+                <Button
+                  variant={period === 'quarter' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod('quarter')}
+                >
+                  Квартал
+                </Button>
+                <Button
+                  variant={period === 'half-year' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod('half-year')}
+                >
+                  Полугодие
+                </Button>
+                <Button
+                  variant={period === 'year' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod('year')}
+                >
+                  Год
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid md:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
