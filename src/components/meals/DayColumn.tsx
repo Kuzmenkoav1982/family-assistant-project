@@ -45,7 +45,7 @@ export function DayColumn({
       </CardHeader>
       <CardContent className="space-y-3 px-3 pb-3 flex-1 overflow-auto">
         {MEAL_TYPES.map(mealType => {
-          const meals = getMealsByType(dayValue, mealType.value as MealPlan['mealType']);
+          const meals = getMealsByType(dayValue, mealType.value as MealPlan['mealType']) || [];
           return (
             <div key={mealType.value} className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -64,7 +64,7 @@ export function DayColumn({
                 </Button>
               </div>
 
-              {meals.length === 0 ? (
+              {!meals || meals.length === 0 ? (
                 <Card className="bg-white/50 border-dashed border-gray-300">
                   <CardContent className="p-2 text-center text-[10px] text-muted-foreground">
                     Нет блюд
