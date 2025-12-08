@@ -78,7 +78,7 @@ export function ShoppingWidget() {
       <CardContent>
         {notBoughtItems.length === 0 ? (
           <div className="text-center py-6">
-            <Icon name="CheckCircle2" size={48} className="mx-auto text-blue-500 mb-2" />
+            <Icon name="CheckSquare" size={48} className="mx-auto text-blue-500 mb-2" />
             <p className="text-sm text-gray-600">Все покупки выполнены! 🎉</p>
           </div>
         ) : (
