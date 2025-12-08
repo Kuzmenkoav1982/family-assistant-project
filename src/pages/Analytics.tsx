@@ -90,6 +90,9 @@ export default function Analytics() {
       });
     }
     
+    console.log('📊 Аналитика - Активность по месяцам:', last6Months);
+    console.log('📊 Всего задач:', tasks.length, 'Всего событий:', calendarEvents.length);
+    
     return last6Months;
   }, [tasks, calendarEvents]);
 
@@ -258,17 +261,24 @@ export default function Analytics() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={monthlyActivity}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="tasks" stroke="#3b82f6" name="Задачи" strokeWidth={2} />
-                      <Line type="monotone" dataKey="events" stroke="#10b981" name="События" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {monthlyActivity.every(m => m.tasks === 0 && m.events === 0) ? (
+                    <div className="flex flex-col items-center justify-center h-[300px] text-gray-400">
+                      <Icon name="BarChart3" size={64} className="mb-4 opacity-20" />
+                      <p className="text-center">Данные появятся, когда вы создадите больше задач и событий</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={monthlyActivity}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis allowDecimals={false} domain={[0, 'auto']} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="tasks" stroke="#3b82f6" name="Задачи" strokeWidth={2} />
+                        <Line type="monotone" dataKey="events" stroke="#10b981" name="События" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </CardContent>
               </Card>
 
