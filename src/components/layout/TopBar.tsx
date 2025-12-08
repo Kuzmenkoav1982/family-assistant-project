@@ -41,9 +41,14 @@ export default function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
-  const [kuzyaRole, setKuzyaRole] = useState('family-assistant');
+  const [kuzyaRole, setKuzyaRole] = useState(() => localStorage.getItem('kuzyaRole') || 'family-assistant');
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
+
+  const handleKuzyaRoleChange = (newRole: string) => {
+    setKuzyaRole(newRole);
+    localStorage.setItem('kuzyaRole', newRole);
+  };
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
@@ -200,7 +205,7 @@ export default function TopBar({
                 <select 
                   className="w-full p-2 border rounded-md"
                   value={kuzyaRole}
-                  onChange={(e) => setKuzyaRole(e.target.value)}
+                  onChange={(e) => handleKuzyaRoleChange(e.target.value)}
                 >
                   <option value="family-assistant">🏡 Семейный помощник (по умолчанию)</option>
                   <option value="cook">🍳 Повар — специалист по рецептам</option>
