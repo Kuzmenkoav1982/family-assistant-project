@@ -1400,12 +1400,7 @@ export default function Index({ onLogout }: IndexProps) {
       <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out ${currentTheme === 'mono' ? 'theme-mono' : ''} ${currentTheme === '1' ? 'theme-1' : ''}`}>
         <TopBar
           isVisible={isTopBarVisible}
-          currentLanguage={currentLanguage}
-          currentTheme={currentTheme}
           onLogout={handleLogout}
-          onVisibilityChange={setIsTopBarVisible}
-          onLanguageChange={handleLanguageChange}
-          onThemeChange={handleThemeChange}
           onResetDemo={handleLogoutLocal}
         />
 
@@ -1836,7 +1831,7 @@ export default function Index({ onLogout }: IndexProps) {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Icon name="Users" />
-                        Профили членов семьи
+                        Профили семьи
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
