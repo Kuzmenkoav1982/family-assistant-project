@@ -32,7 +32,9 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isPinned, setIsPinned] = useState(false);
+  const [isPinned, setIsPinned] = useState(() => {
+    return localStorage.getItem('sidebarPinned') === 'true';
+  });
   const [autoHideTimer, setAutoHideTimer] = useState<NodeJS.Timeout | null>(null);
   
   const [openSections, setOpenSections] = useState<string[]>([
@@ -50,6 +52,13 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     );
   };
 
+  // Save isPinned to localStorage
+  const togglePin = () => {
+    const newValue = !isPinned;
+    setIsPinned(newValue);
+    localStorage.setItem('sidebarPinned', String(newValue));
+  };
+
   const menuSections: MenuSection[] = [
     {
       id: 'family',
@@ -57,8 +66,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       icon: 'Users',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/' },
-        { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
-        { id: 'my-profile', label: 'Мой профиль', icon: 'UserCircle', path: '/settings' }
+        { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' }
       ]
     },
     {
@@ -180,13 +188,13 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
           </h3>
           <div className="flex items-center gap-1">
             <Button
-              onClick={() => setIsPinned(!isPinned)}
+              onClick={togglePin}
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0"
-              title={isPinned ? 'Открепить панель' : 'Закрепить панель'}
+              className={`h-7 w-7 p-0 ${isPinned ? 'text-blue-600' : ''}`}
+              title={isPinned ? 'Открепить панель (автоскрытие выключено)' : 'Закрепить панель (отключить автоскрытие)'}
             >
-              <Icon name={isPinned ? "EyeOff" : "Eye"} size={14} />
+              <Icon name={isPinned ? "Pin" : "PinOff"} size={14} />
             </Button>
             <Button
               onClick={() => onVisibilityChange(false)}
