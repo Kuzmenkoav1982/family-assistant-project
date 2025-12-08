@@ -13,7 +13,7 @@ import { VotingContextMenu } from '@/components/voting/VotingContextMenu';
 
 export function VotingWidget() {
   const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
-  const { members } = useFamilyMembersContext();
+  const { members, loading: membersLoading } = useFamilyMembersContext();
   const currentUser = getCurrentMember();
   
   const getCurrentUserId = () => {
@@ -122,7 +122,7 @@ export function VotingWidget() {
     return { votedCount, totalMembers, percentage };
   };
 
-  if (loading) {
+  if (loading || membersLoading) {
     return (
       <Card>
         <CardHeader>
