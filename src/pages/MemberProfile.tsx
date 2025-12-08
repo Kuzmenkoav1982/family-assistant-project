@@ -585,7 +585,7 @@ export default function MemberProfile() {
                 <div className="text-center py-8 text-gray-500">
                   <Icon name="CheckSquare" size={48} className="mx-auto mb-4 opacity-50" />
                   <p>Задачи появятся здесь, когда они будут назначены</p>
-                  <Button className="mt-4" onClick={() => navigate('/')}>
+                  <Button className="mt-4" onClick={() => navigate('/?section=tasks')}>
                     <Icon name="Plus" size={16} className="mr-2" />
                     Создать задачу
                   </Button>
