@@ -4,58 +4,27 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useShopping } from '@/hooks/useShopping';
 
-interface ShoppingItem {
-  id: string;
-  name: string;
-  category: 'products' | 'household' | 'clothes' | 'other';
-  quantity?: string;
-  priority: 'normal' | 'urgent';
-  bought: boolean;
-  addedBy: string;
-  addedByName: string;
-  addedAt: string;
-}
-
-const categoryColors = {
-  products: 'bg-green-100 text-green-700 border-green-200',
-  household: 'bg-blue-100 text-blue-700 border-blue-200',
-  clothes: 'bg-purple-100 text-purple-700 border-purple-200',
-  other: 'bg-gray-100 text-gray-700 border-gray-200'
+const categoryColors: Record<string, string> = {
+  'Продукты': 'bg-green-100 text-green-700 border-green-200',
+  'Хозтовары': 'bg-blue-100 text-blue-700 border-blue-200',
+  'Одежда': 'bg-purple-100 text-purple-700 border-purple-200',
+  'Другое': 'bg-gray-100 text-gray-700 border-gray-200'
 };
 
-const categoryIcons = {
-  products: 'ShoppingBasket',
-  household: 'Home',
-  clothes: 'ShirtIcon',
-  other: 'Package'
+const categoryIcons: Record<string, string> = {
+  'Продукты': 'ShoppingBasket',
+  'Хозтовары': 'Home',
+  'Одежда': 'Shirt',
+  'Другое': 'Package'
 };
 
 export function ShoppingWidget() {
   const navigate = useNavigate();
-  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>([]);
+  const { items, toggleBought } = useShopping();
 
-  useEffect(() => {
-    const saved = localStorage.getItem('shoppingList');
-    if (saved) {
-      try {
-        setShoppingList(JSON.parse(saved));
-      } catch {
-        setShoppingList([]);
-      }
-    }
-  }, []);
-
-  const toggleItem = (itemId: string) => {
-    const updated = shoppingList.map(item =>
-      item.id === itemId ? { ...item, bought: !item.bought } : item
-    );
-    setShoppingList(updated);
-    localStorage.setItem('shoppingList', JSON.stringify(updated));
-  };
-
-  const notBoughtItems = shoppingList.filter(item => !item.bought);
+  const notBoughtItems = items.filter(item => !item.bought);
   const urgentItems = notBoughtItems.filter(item => item.priority === 'urgent');
 
   return (
@@ -89,13 +58,13 @@ export function ShoppingWidget() {
                 className={`p-3 rounded-lg border-2 ${item.priority === 'urgent' ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'} hover:shadow transition-all`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleItem(item.id);
+                  toggleBought(item.id, item.bought);
                 }}
               >
                 <div className="flex items-center gap-3">
                   <Checkbox
                     checked={item.bought}
-                    onCheckedChange={() => toggleItem(item.id)}
+                    onCheckedChange={() => toggleBought(item.id, item.bought)}
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div className="flex-1">
@@ -104,8 +73,8 @@ export function ShoppingWidget() {
                       {item.quantity && <span className="text-gray-500 ml-1">({item.quantity})</span>}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className={`text-[10px] ${categoryColors[item.category]}`}>
-                        <Icon name={categoryIcons[item.category] as any} size={10} className="mr-1" />
+                      <Badge variant="outline" className={`text-[10px] ${categoryColors[item.category] || categoryColors['Другое']}`}>
+                        <Icon name={(categoryIcons[item.category] || categoryIcons['Другое']) as any} size={10} className="mr-1" />
                         {item.category}
                       </Badge>
                       {item.priority === 'urgent' && (

@@ -1,40 +1,75 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useState, useEffect } from 'react';
 
-const allergyIcons: Record<string, string> = {
-  'глютен': '🌾',
-  'лактоза': '🥛',
-  'орехи': '🥜',
-  'рыба': '🐟',
-  'яйца': '🥚',
-  'соя': '🫘',
-  'морепродукты': '🦐'
-};
+const NUTRITION_API_URL = 'https://functions.poehali.dev/c592ffff-18dd-4d1c-b199-ff8832c83a2c';
+
+interface NutritionData {
+  totals: {
+    total_calories: number;
+    total_protein: number;
+    total_fats: number;
+    total_carbs: number;
+    entries_count: number;
+  };
+  goals: {
+    daily_calories: number;
+    daily_protein: number;
+    daily_fats: number;
+    daily_carbs: number;
+  };
+  progress: {
+    calories: number;
+    protein: number;
+    fats: number;
+    carbs: number;
+  };
+}
 
 export function NutritionWidget() {
   const navigate = useNavigate();
-  const { members } = useFamilyMembersContext();
+  const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const allFavorites = members?.flatMap(m => m.foodPreferences?.favorites || []) || [];
-  const allDislikes = members?.flatMap(m => m.foodPreferences?.dislikes || []) || [];
-  const allAllergies = members?.flatMap(m => m.foodPreferences?.allergies || []) || [];
+  useEffect(() => {
+    loadNutritionData();
+  }, []);
 
-  const uniqueAllergies = Array.from(new Set(allAllergies));
-  const topFavorites = [...new Set(allFavorites)].slice(0, 3);
-  
-  const getDietCount = (diet: string) => {
-    return members?.filter(m => m.foodPreferences?.diet === diet).length || 0;
+  const loadNutritionData = async () => {
+    try {
+      const authUserStr = localStorage.getItem('authUser');
+      if (!authUserStr) {
+        setLoading(false);
+        return;
+      }
+
+      const authUser = JSON.parse(authUserStr);
+      const userId = authUser.member_id || authUser.id || 1;
+      const today = new Date().toISOString().split('T')[0];
+
+      const response = await fetch(
+        `${NUTRITION_API_URL}/?action=analytics&user_id=${userId}&date=${today}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setNutritionData(data);
+      }
+    } catch (error) {
+      console.error('[NutritionWidget] Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const diets = [
-    { name: 'Веган', icon: '🌱', count: getDietCount('Веган') },
-    { name: 'Вегетарианец', icon: '🥗', count: getDietCount('Вегетарианец') },
-    { name: 'Без глютена', icon: '🌾', count: getDietCount('Безглютеновая') },
-  ].filter(d => d.count > 0);
+  const caloriesProgress = nutritionData?.progress?.calories || 0;
+  const totalCalories = nutritionData?.totals?.total_calories || 0;
+  const goalCalories = nutritionData?.goals?.daily_calories || 2000;
+  const entriesCount = nutritionData?.totals?.entries_count || 0;
 
   return (
     <Card 
@@ -45,87 +80,91 @@ export function NutritionWidget() {
         <CardTitle className="flex items-center gap-2">
           <Icon name="Apple" size={24} />
           Питание
-          {uniqueAllergies.length > 0 && (
-            <Badge className="ml-auto bg-red-500">
-              <Icon name="AlertTriangle" size={12} className="mr-1" />
-              {uniqueAllergies.length}
+          {entriesCount > 0 && (
+            <Badge className="ml-auto bg-orange-500">
+              {entriesCount} запис{entriesCount === 1 ? 'ь' : 'ей'}
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {uniqueAllergies.length > 0 && (
-            <div className="p-3 rounded-lg bg-red-50 border-2 border-red-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Icon name="AlertTriangle" size={16} className="text-red-600" />
-                <h4 className="font-bold text-sm text-red-700">Аллергии семьи</h4>
+        {loading ? (
+          <div className="text-center py-6">
+            <Icon name="Loader" size={48} className="mx-auto text-gray-400 mb-2 animate-spin" />
+            <p className="text-sm text-gray-600">Загрузка...</p>
+          </div>
+        ) : totalCalories === 0 ? (
+          <div className="text-center py-6">
+            <Icon name="Apple" size={48} className="mx-auto text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">Нет записей за сегодня</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Icon name="Flame" size={20} className="text-orange-600" />
+                  <h4 className="font-bold text-sm text-orange-700">Калории сегодня</h4>
+                </div>
+                <Badge variant="outline" className="text-xs bg-white border-orange-300 text-orange-700">
+                  {caloriesProgress.toFixed(0)}%
+                </Badge>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {uniqueAllergies.map((allergy, idx) => (
-                  <Badge 
-                    key={idx}
-                    variant="outline" 
-                    className="text-xs bg-white border-red-300 text-red-700"
-                  >
-                    {allergyIcons[allergy.toLowerCase()] || '⚠️'} {allergy}
-                  </Badge>
-                ))}
+              
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold text-orange-900">
+                    {totalCalories.toFixed(0)}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    из {goalCalories} ккал
+                  </span>
+                </div>
+                <Progress 
+                  value={caloriesProgress} 
+                  className="h-2"
+                />
               </div>
             </div>
-          )}
 
-          {diets.length > 0 && (
-            <div className="p-3 rounded-lg bg-green-50 border-2 border-green-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Icon name="Salad" size={16} className="text-green-600" />
-                <h4 className="font-bold text-sm text-green-700">Диеты</h4>
+            {nutritionData && (
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-[10px] text-gray-600 mb-1">Белки</p>
+                  <p className="text-sm font-bold text-blue-700">
+                    {nutritionData.totals.total_protein.toFixed(0)}г
+                  </p>
+                  <Progress 
+                    value={nutritionData.progress.protein} 
+                    className="h-1 mt-1"
+                  />
+                </div>
+                
+                <div className="p-2 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-[10px] text-gray-600 mb-1">Жиры</p>
+                  <p className="text-sm font-bold text-amber-700">
+                    {nutritionData.totals.total_fats.toFixed(0)}г
+                  </p>
+                  <Progress 
+                    value={nutritionData.progress.fats} 
+                    className="h-1 mt-1"
+                  />
+                </div>
+                
+                <div className="p-2 rounded-lg bg-green-50 border border-green-200">
+                  <p className="text-[10px] text-gray-600 mb-1">Углеводы</p>
+                  <p className="text-sm font-bold text-green-700">
+                    {nutritionData.totals.total_carbs.toFixed(0)}г
+                  </p>
+                  <Progress 
+                    value={nutritionData.progress.carbs} 
+                    className="h-1 mt-1"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                {diets.map((diet, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">
-                      {diet.icon} {diet.name}
-                    </span>
-                    <Badge variant="outline" className="text-[10px]">
-                      {diet.count} чел.
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {topFavorites.length > 0 && (
-            <div className="p-3 rounded-lg bg-amber-50 border-2 border-amber-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Icon name="Heart" size={16} className="text-amber-600" />
-                <h4 className="font-bold text-sm text-amber-700">Любимые блюда</h4>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {topFavorites.map((fav, idx) => (
-                  <Badge 
-                    key={idx}
-                    variant="outline" 
-                    className="text-xs bg-white border-amber-300 text-amber-700"
-                  >
-                    {fav}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {allDislikes.length > 0 && (
-            <div className="p-2 rounded bg-gray-50 border border-gray-200">
-              <p className="text-xs text-gray-600">
-                <Icon name="ThumbsDown" size={12} className="inline mr-1" />
-                Не любят: {allDislikes.slice(0, 2).join(', ')}
-                {allDislikes.length > 2 && ` +${allDislikes.length - 2}`}
-              </p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         
         <Button 
           variant="ghost" 

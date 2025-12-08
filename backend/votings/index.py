@@ -184,7 +184,59 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any]) -> Dict[
     except Exception as e:
         cur.close()
         conn.close()
-        return {'error': str(e)}
+        return {'success': False, 'error': str(e)}
+
+def delete_voting(voting_id: str, member_id: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        check_query = f"""
+            SELECT created_by FROM {SCHEMA}.votings 
+            WHERE id::text = {escape_string(voting_id)}
+        """
+        cur.execute(check_query)
+        voting = cur.fetchone()
+        
+        if not voting:
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': 'Голосование не найдено'}
+        
+        if str(voting['created_by']) != str(member_id):
+            cur.close()
+            conn.close()
+            return {'success': False, 'error': 'Нет прав на удаление'}
+        
+        delete_votes_query = f"""
+            DELETE FROM {SCHEMA}.votes 
+            WHERE voting_id::text = {escape_string(voting_id)}
+        """
+        cur.execute(delete_votes_query)
+        
+        delete_options_query = f"""
+            DELETE FROM {SCHEMA}.voting_options 
+            WHERE voting_id::text = {escape_string(voting_id)}
+        """
+        cur.execute(delete_options_query)
+        
+        delete_voting_query = f"""
+            DELETE FROM {SCHEMA}.votings 
+            WHERE id::text = {escape_string(voting_id)}
+        """
+        cur.execute(delete_voting_query)
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'message': 'Голосование удалено'
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'success': False, 'error': str(e)}
 
 def cast_vote(member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
@@ -236,7 +288,7 @@ def cast_vote(member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         cur.close()
         conn.close()
-        return {'error': str(e)}
+        return {'success': False, 'error': str(e)}
 
 def get_feature_votes(section_id: Optional[str] = None) -> Dict[str, Any]:
     conn = get_db_connection()
@@ -484,8 +536,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = create_voting(family_id, member_id, body)
             elif action == 'vote':
                 result = cast_vote(member_id, body)
+            elif action == 'delete':
+                voting_id = body.get('voting_id')
+                if not voting_id:
+                    result = {'success': False, 'error': 'Не указан voting_id'}
+                else:
+                    result = delete_voting(voting_id, member_id)
             else:
-                result = {'error': 'Неизвестное действие'}
+                result = {'success': False, 'error': 'Неизвестное действие'}
             
             if 'error' in result:
                 return {

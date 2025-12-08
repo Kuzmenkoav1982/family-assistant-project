@@ -4,52 +4,23 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-
-interface VotingOption {
-  id: string;
-  text: string;
-  votes: number;
-  votedBy: string[];
-}
-
-interface Voting {
-  id: string;
-  title: string;
-  description: string;
-  options: VotingOption[];
-  createdBy: string;
-  createdAt: string;
-  endsAt?: string;
-  status: 'active' | 'closed';
-}
+import { useVotings } from '@/hooks/useVotings';
 
 export function VotingWidget() {
   const navigate = useNavigate();
-  const [votings, setVotings] = useState<Voting[]>([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('familyVotings');
-    if (saved) {
-      try {
-        setVotings(JSON.parse(saved));
-      } catch {
-        setVotings([]);
-      }
-    }
-  }, []);
+  const { votings } = useVotings('active');
 
   const activeVotings = votings.filter(v => v.status === 'active');
 
-  const getTopOption = (voting: Voting) => {
+  const getTopOption = (voting: typeof votings[0]) => {
     if (voting.options.length === 0) return null;
     return voting.options.reduce((prev, current) => 
-      current.votes > prev.votes ? current : prev
+      current.yes_votes > prev.yes_votes ? current : prev
     );
   };
 
-  const getTotalVotes = (voting: Voting) => {
-    return voting.options.reduce((sum, opt) => sum + opt.votes, 0);
+  const getTotalVotes = (voting: typeof votings[0]) => {
+    return voting.options.reduce((sum, opt) => sum + opt.yes_votes, 0);
   };
 
   return (
@@ -105,23 +76,23 @@ export function VotingWidget() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-indigo-700">
-                          {topOption.text}
+                          {topOption.option_text}
                         </span>
                         <span className="text-gray-500">
-                          {topOption.votes} голос{topOption.votes !== 1 ? 'ов' : ''}
+                          {topOption.yes_votes} голос{topOption.yes_votes !== 1 ? 'ов' : ''}
                         </span>
                       </div>
                       <Progress 
-                        value={totalVotes > 0 ? (topOption.votes / totalVotes) * 100 : 0} 
+                        value={totalVotes > 0 ? (topOption.yes_votes / totalVotes) * 100 : 0} 
                         className="h-2"
                       />
                     </div>
                   )}
 
-                  {voting.endsAt && (
+                  {voting.end_date && (
                     <div className="flex items-center gap-1 mt-2 text-[10px] text-gray-500">
                       <Icon name="Clock" size={10} />
-                      <span>До {new Date(voting.endsAt).toLocaleDateString('ru-RU')}</span>
+                      <span>До {new Date(voting.end_date).toLocaleDateString('ru-RU')}</span>
                     </div>
                   )}
                 </div>
