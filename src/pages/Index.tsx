@@ -1236,7 +1236,7 @@ export default function Index({ onLogout }: IndexProps) {
         </DialogContent>
       </Dialog>
 
-      {showHints && !showProfileOnboarding && !membersLoading && (
+      {showHints && !showProfileOnboarding && !membersLoading && hints && hints[currentHintStep] && (
         <>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] animate-fade-in" onClick={handleDismissHints} />
           
