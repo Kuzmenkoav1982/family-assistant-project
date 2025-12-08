@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -15,6 +16,7 @@ interface Message {
 }
 
 const AIAssistant = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -124,6 +126,19 @@ const AIAssistant = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <div className="container max-w-4xl mx-auto px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/welcome')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <Icon name="ArrowLeft" size={16} />
+            Назад
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-6 text-center">
           <img 
