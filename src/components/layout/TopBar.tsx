@@ -9,32 +9,20 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { getTranslation, type LanguageCode } from '@/translations';
 
 interface TopBarProps {
   isVisible: boolean;
-  currentLanguage: LanguageCode;
-  currentTheme: string;
   onLogout: () => void;
-  onVisibilityChange: (visible: boolean) => void;
-  onLanguageChange: (lang: string) => void;
-  onThemeChange: (theme: string) => void;
   onResetDemo: () => void;
 }
 
 export default function TopBar({
   isVisible,
-  currentLanguage,
-  currentTheme,
   onLogout,
-  onVisibilityChange,
-  onLanguageChange,
-  onThemeChange,
   onResetDemo
 }: TopBarProps) {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
-  const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
 
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
@@ -46,23 +34,6 @@ export default function TopBar({
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
-
-  const languages = [
-    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'ar', name: 'العربية', flag: '🇸🇦' }
-  ];
-
-  const themes = [
-    { id: 'young', name: 'Молодёжный', icon: '🎨' },
-    { id: 'middle', name: 'Деловой', icon: '💼' },
-    { id: 'senior', name: 'Комфортный', icon: '🏡' },
-    { id: 'apple', name: 'Apple', icon: '🍎' }
-  ];
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -129,19 +100,9 @@ export default function TopBar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <Icon name="Globe" size={16} className="mr-2" />
-                <span>🌐 Язык</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem>
-                <Icon name="Palette" size={16} className="mr-2" />
-                <span>🎨 Стиль</span>
-              </DropdownMenuItem>
-
               <DropdownMenuItem onClick={toggleDarkMode}>
                 <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
-                <span>🌙 Тёмная тема</span>
+                <span>{darkMode ? "☀️" : "🌙"} {darkMode ? "Светлая тема" : "Тёмная тема"}</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
