@@ -43,11 +43,32 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     description: 'Карточки всех членов семьи'
   },
   {
-    id: 'goals',
-    name: 'Семейные цели',
-    icon: 'Target',
-    enabled: true,
-    description: 'Отслеживание прогресса по целям'
+    id: 'shopping',
+    name: 'Покупки',
+    icon: 'ShoppingCart',
+    enabled: false,
+    description: 'Список покупок семьи'
+  },
+  {
+    id: 'voting',
+    name: 'Голосование',
+    icon: 'ThumbsUp',
+    enabled: false,
+    description: 'Активные голосования семьи'
+  },
+  {
+    id: 'nutrition',
+    name: 'Питание',
+    icon: 'Apple',
+    enabled: false,
+    description: 'Рацион и предпочтения питания'
+  },
+  {
+    id: 'weekly-menu',
+    name: 'Меню на неделю',
+    icon: 'UtensilsCrossed',
+    enabled: false,
+    description: 'План питания на неделю'
   }
 ];
 
@@ -62,7 +83,16 @@ export default function WidgetSettings({ isOpen, onClose, onSave }: WidgetSettin
     const saved = localStorage.getItem('widgetSettings');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const savedWidgets = JSON.parse(saved);
+        
+        // Миграция: удаляем виджет "goals" если есть
+        const filteredWidgets = savedWidgets.filter((w: WidgetConfig) => w.id !== 'goals');
+        
+        // Добавляем новые виджеты если их нет
+        const existingIds = new Set(filteredWidgets.map((w: WidgetConfig) => w.id));
+        const newWidgets = DEFAULT_WIDGETS.filter(w => !existingIds.has(w.id));
+        
+        return [...filteredWidgets, ...newWidgets];
       } catch {
         return DEFAULT_WIDGETS;
       }

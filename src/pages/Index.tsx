@@ -81,6 +81,10 @@ import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
+import { ShoppingWidget } from '@/components/widgets/ShoppingWidget';
+import { VotingWidget } from '@/components/widgets/VotingWidget';
+import { NutritionWidget } from '@/components/widgets/NutritionWidget';
+import { WeeklyMenuWidget } from '@/components/widgets/WeeklyMenuWidget';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -3227,6 +3231,29 @@ export default function Index({ onLogout }: IndexProps) {
               </div>
             )}
 
+            {isWidgetEnabled('shopping') && (
+              <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                <ShoppingWidget />
+              </div>
+            )}
+
+            {isWidgetEnabled('voting') && (
+              <div className="animate-fade-in" style={{ animationDelay: '0.95s' }}>
+                <VotingWidget />
+              </div>
+            )}
+
+            {isWidgetEnabled('nutrition') && (
+              <div className="animate-fade-in" style={{ animationDelay: '1.1s' }}>
+                <NutritionWidget />
+              </div>
+            )}
+
+            {isWidgetEnabled('weekly-menu') && (
+              <div className="animate-fade-in" style={{ animationDelay: '1.25s' }}>
+                <WeeklyMenuWidget />
+              </div>
+            )}
 
           </div>
         </div>
