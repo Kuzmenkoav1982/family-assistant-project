@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useMemberProfile } from '@/hooks/useMemberProfile';
+import { useTasks } from '@/hooks/useTasks';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
 import { MemberProfileEdit } from '@/components/MemberProfileEdit';
@@ -24,6 +25,7 @@ export default function MemberProfile() {
   const navigate = useNavigate();
   const { members, updateMember } = useFamilyMembersContext();
   const { saveProfile } = useMemberProfile();
+  const { tasks, toggleTask, deleteTask } = useTasks();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
   const loadedMemberRef = useRef<string | null>(null);
@@ -67,6 +69,8 @@ export default function MemberProfile() {
 
   const isChild = member.age && member.age < 18;
   const isOwner = member.role === 'Папа' || member.role.toLowerCase().includes('владел');
+  
+  const memberTasks = tasks.filter(task => task.assignee_id === memberId);
 
   const handleAddDream = async (dream: Omit<Dream, 'id' | 'createdAt'>) => {
     const newDream: Dream = {
@@ -582,14 +586,85 @@ export default function MemberProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <Icon name="CheckSquare" size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>Задачи появятся здесь, когда они будут назначены</p>
-                  <Button className="mt-4" onClick={() => navigate('/?section=tasks')}>
-                    <Icon name="Plus" size={16} className="mr-2" />
-                    Создать задачу
-                  </Button>
-                </div>
+                {memberTasks.length > 0 ? (
+                  <div className="space-y-3">
+                    {memberTasks.map((task) => (
+                      <div 
+                        key={task.id}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          task.completed 
+                            ? 'bg-gray-50 border-gray-200 opacity-60' 
+                            : 'bg-white border-purple-200 hover:border-purple-400'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <button
+                            onClick={() => toggleTask(task.id)}
+                            className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                              task.completed
+                                ? 'bg-green-500 border-green-500'
+                                : 'border-gray-300 hover:border-purple-500'
+                            }`}
+                          >
+                            {task.completed && <Icon name="Check" size={14} className="text-white" />}
+                          </button>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h4 className={`font-semibold ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                {task.title}
+                              </h4>
+                              <Badge 
+                                variant="outline" 
+                                className={`flex-shrink-0 ${
+                                  task.priority === 'Срочный' ? 'bg-red-50 text-red-700 border-red-200' :
+                                  task.priority === 'Средний' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                  'bg-blue-50 text-blue-700 border-blue-200'
+                                }`}
+                              >
+                                {task.priority}
+                              </Badge>
+                            </div>
+                            
+                            {task.description && (
+                              <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                            )}
+                            
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Icon name="Star" size={12} />
+                                {task.points} баллов
+                              </span>
+                              {task.category && (
+                                <span className="flex items-center gap-1">
+                                  <Icon name="Tag" size={12} />
+                                  {task.category}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={() => deleteTask(task.id)}
+                            className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Удалить задачу"
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Icon name="CheckSquare" size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>Задачи появятся здесь, когда они будут назначены</p>
+                    <Button className="mt-4" onClick={() => navigate('/?section=tasks')}>
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Создать задачу
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
