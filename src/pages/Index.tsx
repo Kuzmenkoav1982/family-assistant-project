@@ -1894,7 +1894,7 @@ export default function Index({ onLogout }: IndexProps) {
                         createdByAvatar: currentUser?.avatar || '👤'
                       };
                       
-                      const updated = [...calendarEvents, newEvent];
+                      const updated = [...(calendarEvents || []), newEvent];
                       setCalendarEvents(updated);
                       localStorage.setItem('calendarEvents', JSON.stringify(updated));
                     }}
@@ -1922,7 +1922,7 @@ export default function Index({ onLogout }: IndexProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {calendarEvents
+                      {(calendarEvents || [])
                         .filter(event => {
                           if (calendarFilter === 'all') return true;
                           if (calendarFilter === 'personal') return event.createdBy === currentUserId;
@@ -1954,7 +1954,7 @@ export default function Index({ onLogout }: IndexProps) {
                                     size="sm"
                                     onClick={() => {
                                       if (window.confirm('Удалить это событие?')) {
-                                        const updated = calendarEvents.filter(e => e.id !== event.id);
+                                        const updated = (calendarEvents || []).filter(e => e.id !== event.id);
                                         setCalendarEvents(updated);
                                         localStorage.setItem('calendarEvents', JSON.stringify(updated));
                                       }
@@ -1977,7 +1977,7 @@ export default function Index({ onLogout }: IndexProps) {
                             </div>
                           </div>
                         ))}
-                      {calendarEvents.filter(event => {
+                      {(calendarEvents || []).filter(event => {
                         if (calendarFilter === 'all') return true;
                         if (calendarFilter === 'personal') return event.createdBy === currentUserId;
                         if (calendarFilter === 'family') return event.visibility === 'family';
@@ -3187,7 +3187,7 @@ export default function Index({ onLogout }: IndexProps) {
                 <CardContent>
                   <div className="space-y-2">
                     {getWeekDays().slice(0, 3).map((day, index) => {
-                      const dayEvents = calendarEvents.filter(event => event.date === day.fullDate);
+                      const dayEvents = (calendarEvents || []).filter(event => event.date === day.fullDate);
                       return (
                         <div
                           key={day.fullDate}
