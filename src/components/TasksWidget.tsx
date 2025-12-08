@@ -281,7 +281,7 @@ export function TasksWidget() {
 
         {activeTasks.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <Icon name="CheckCircle" size={48} className="mx-auto mb-2 text-green-500" />
+            <Icon name="CheckCircle2" size={48} className="mx-auto mb-2 text-blue-500" />
             <p>Все задачи выполнены! 🎉</p>
           </div>
         ) : (
