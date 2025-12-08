@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTasks } from '@/hooks/useTasks';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useFamilyData } from '@/hooks/useFamilyData';
@@ -92,6 +92,7 @@ interface IndexProps {
 
 export default function Index({ onLogout }: IndexProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembersContext();
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
@@ -271,6 +272,14 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [activeSection, setActiveSection] = useState<string>('family');
   const [showInDevelopment, setShowInDevelopment] = useState(false);
+
+  // Read section from URL params
+  useEffect(() => {
+    const sectionParam = searchParams.get('section');
+    if (sectionParam) {
+      setActiveSection(sectionParam);
+    }
+  }, [searchParams]);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
   const [chamomileEnabled, setChamomileEnabled] = useState(() => {
     return localStorage.getItem('chamomileEnabled') === 'true';

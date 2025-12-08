@@ -65,7 +65,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🏠 СЕМЬЯ И ЛЮДИ',
       icon: 'Users',
       items: [
-        { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/' },
+        { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
         { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' }
       ]
     },
@@ -74,8 +74,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '💖 ЦЕННОСТИ И КУЛЬТУРА',
       icon: 'Heart',
       items: [
-        { id: 'values', label: 'Ценности', icon: 'Heart', path: '/' },
-        { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/' },
+        { id: 'values', label: 'Ценности', icon: 'Heart', path: '/?section=values' },
+        { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/?section=traditions' },
         { id: 'family-code', label: 'Кодекс семьи', icon: 'ScrollText', path: '/rules' },
         { id: 'house-rules', label: 'Правила дома', icon: 'FileText', path: '/rules' }
       ]
@@ -85,8 +85,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🎯 ПЛАНИРОВАНИЕ',
       icon: 'Target',
       items: [
-        { id: 'goals', label: 'Цели', icon: 'Target', path: '/' },
-        { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/' },
+        { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
+        { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/?section=tasks' },
         { id: 'calendar', label: 'Календарь', icon: 'Calendar', path: '/calendar' },
         { id: 'analytics', label: 'Аналитика', icon: 'BarChart3', path: '/analytics' }
       ]
@@ -149,7 +149,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
 
   const isActive = (item: MenuItem) => {
     if (!item.path) return false;
-    return location.pathname === item.path;
+    // Compare full path including query params
+    const currentFullPath = location.pathname + location.search;
+    return currentFullPath === item.path;
   };
 
   const handleMouseEnter = () => {
