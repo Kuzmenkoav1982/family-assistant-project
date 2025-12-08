@@ -154,6 +154,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   };
 
   const handleMouseEnter = () => {
+    // На мобильных устройствах не используем автопоказ
+    if (window.innerWidth < 768) return;
+    
     if (autoHideTimer) {
       clearTimeout(autoHideTimer);
       setAutoHideTimer(null);
@@ -164,6 +167,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   };
 
   const handleMouseLeave = () => {
+    // На мобильных устройствах не закрываем панель автоматически
+    if (window.innerWidth < 768) return;
+    
     if (!isPinned && isVisible) {
       const timer = setTimeout(() => {
         onVisibilityChange(false);

@@ -174,17 +174,17 @@ export default function SettingsMenu() {
               <TabsTrigger value="notifications" className="text-xs md:text-sm">
                 <Icon name="Mail" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Уведомления</span>
-                <span className="sm:hidden">📧</span>
+                <span className="sm:hidden">Уведом.</span>
               </TabsTrigger>
               <TabsTrigger value="subscription" className="text-xs md:text-sm">
                 <Icon name="CreditCard" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Подписка</span>
-                <span className="sm:hidden">PRO</span>
+                <span className="sm:hidden">Подписка</span>
               </TabsTrigger>
               <TabsTrigger value="account" className="text-xs md:text-sm">
                 <Icon name="UserCog" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Аккаунт</span>
-                <span className="sm:hidden">Я</span>
+                <span className="sm:hidden">Аккаунт</span>
               </TabsTrigger>
             </TabsList>
 
