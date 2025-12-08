@@ -113,7 +113,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'development',
-      title: '💬 ПОМОЩЬ',
+      title: '💬 РАЗВИТИЕ',
       icon: 'Brain',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
