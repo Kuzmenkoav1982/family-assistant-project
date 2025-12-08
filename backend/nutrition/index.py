@@ -271,7 +271,7 @@ def add_diary_entry(conn, data: Dict) -> Dict:
     meal_type = data['meal_type']
     product_id = data.get('product_id')
     product_name = data.get('product_name')
-    amount = float(data['amount'])
+    amount = float(data.get('portion_grams', data.get('amount', 100)))  # Support both field names
     
     # Если указан product_id, берём данные из базы
     if product_id:
