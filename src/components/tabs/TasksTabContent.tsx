@@ -25,7 +25,7 @@ function getNextOccurrence(task: Task): string | undefined {
   if (!task.isRecurring || !task.recurringPattern) return undefined;
   
   const now = new Date();
-  const { frequency, interval, daysOfWeek, endDate } = task.recurringPattern;
+  const { frequency, interval, daysOfWeek = [], endDate } = task.recurringPattern;
   
   if (endDate && new Date(endDate) < now) return undefined;
   

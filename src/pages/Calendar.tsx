@@ -183,7 +183,7 @@ export default function Calendar() {
       if (targetDate > endDate) return false;
     }
 
-    const { frequency, interval, daysOfWeek } = event.recurringPattern;
+    const { frequency, interval, daysOfWeek = [] } = event.recurringPattern;
     const diffTime = targetDate.getTime() - eventDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
