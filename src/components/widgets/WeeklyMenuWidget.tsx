@@ -57,7 +57,7 @@ export function WeeklyMenuWidget() {
     'dinner': 'Ужин'
   } as Record<string, string>;
   
-  const currentDayOfWeek = new Date().toLocaleString('en-US', { weekday: 'lowercase' });
+  const currentDayOfWeek = new Date().toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
   const todayMeals = weeklyMenu.filter(plan => plan.day === currentDayOfWeek);
   
   const uniqueDays = Array.from(new Set(weeklyMenu.map(m => m.day)));
