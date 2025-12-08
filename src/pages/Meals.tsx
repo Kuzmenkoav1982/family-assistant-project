@@ -387,7 +387,7 @@ export default function Meals() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="hidden md:grid md:grid-cols-7 gap-4">
+              <div className="hidden md:grid md:grid-cols-7 gap-3 auto-rows-fr">
                 {DAYS_OF_WEEK.map(day => (
                   <DayColumn
                     key={day.value}

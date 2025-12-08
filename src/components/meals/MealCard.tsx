@@ -23,39 +23,41 @@ interface MealCardProps {
 
 export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
   return (
-    <Card className="bg-white hover:shadow-md transition-shadow">
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2 flex-1 min-w-0">
-            <span className="text-2xl flex-shrink-0">{meal.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-sm break-words">{meal.dishName}</h4>
-              {meal.description && (
-                <p className="text-xs text-muted-foreground mt-1 break-words">{meal.description}</p>
-              )}
-              <Badge variant="outline" className="mt-2 text-[10px] px-1 py-0">
-                <Icon name="User" size={10} className="mr-1" />
-                {meal.addedByName}
-              </Badge>
+    <Card className="bg-white hover:shadow-sm transition-shadow border border-gray-200">
+      <CardContent className="p-2">
+        <div className="space-y-1">
+          <div className="flex items-start justify-between gap-1">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <span className="text-lg flex-shrink-0">{meal.emoji}</span>
+              <h4 className="font-semibold text-xs leading-tight break-words line-clamp-2">{meal.dishName}</h4>
+            </div>
+            <div className="flex gap-0.5 flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 hover:bg-gray-100"
+                onClick={() => onEdit(meal)}
+                title="Редактировать"
+              >
+                <Icon name="Edit2" size={12} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => onDelete(meal.id)}
+                title="Удалить"
+              >
+                <Icon name="Trash2" size={12} />
+              </Button>
             </div>
           </div>
-          <div className="flex gap-1 flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0"
-              onClick={() => onEdit(meal)}
-            >
-              <Icon name="Edit2" size={14} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={() => onDelete(meal.id)}
-            >
-              <Icon name="Trash2" size={14} />
-            </Button>
+          {meal.description && (
+            <p className="text-[10px] text-muted-foreground leading-tight break-words line-clamp-2 pl-6">{meal.description}</p>
+          )}
+          <div className="flex items-center gap-1 pl-6">
+            <Icon name="User" size={8} className="text-gray-400" />
+            <span className="text-[9px] text-gray-500 truncate">{meal.addedByName}</span>
           </div>
         </div>
       </CardContent>

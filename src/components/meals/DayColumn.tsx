@@ -39,39 +39,39 @@ export function DayColumn({
   onDelete
 }: DayColumnProps) {
   return (
-    <Card className="bg-gradient-to-br from-orange-50 to-amber-50">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg text-center">{dayLabel}</CardTitle>
+    <Card className="bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col h-full">
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="text-sm font-bold text-center truncate">{dayLabel}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 px-3 pb-3 flex-1 overflow-auto">
         {MEAL_TYPES.map(mealType => {
           const meals = getMealsByType(dayValue, mealType.value as MealPlan['mealType']);
           return (
-            <div key={mealType.value} className="space-y-2">
+            <div key={mealType.value} className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold flex items-center gap-1">
-                  <span>{mealType.emoji}</span>
-                  <span>{mealType.label.replace(mealType.emoji, '').trim()}</span>
+                <h3 className="text-xs font-semibold flex items-center gap-1">
+                  <span className="text-base">{mealType.emoji}</span>
+                  <span className="truncate">{mealType.label.replace(mealType.emoji, '').trim()}</span>
                 </h3>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-xs"
+                  className="h-5 w-5 p-0 hover:bg-orange-200"
                   onClick={() => onQuickAdd(dayValue, mealType.value as MealPlan['mealType'])}
+                  title="Добавить блюдо"
                 >
-                  <Icon name="Plus" size={12} className="mr-1" />
-                  Добавить
+                  <Icon name="Plus" size={12} />
                 </Button>
               </div>
 
               {meals.length === 0 ? (
-                <Card className="bg-white/50 border-dashed">
-                  <CardContent className="p-3 text-center text-xs text-muted-foreground">
+                <Card className="bg-white/50 border-dashed border-gray-300">
+                  <CardContent className="p-2 text-center text-[10px] text-muted-foreground">
                     Нет блюд
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {meals.map(meal => (
                     <MealCard
                       key={meal.id}
