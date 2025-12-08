@@ -181,7 +181,7 @@ export default function Nutrition() {
         user_id: selectedMemberId,
         meal_type: newEntry.meal_type,
         product_name: newEntry.product_name,
-        amount: parseFloat(newEntry.amount)
+        portion_grams: parseFloat(newEntry.amount) // Backend expects portion_grams, not amount
       };
       
       // Add product_id if from search

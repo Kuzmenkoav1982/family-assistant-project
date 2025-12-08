@@ -5,8 +5,9 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import func2url from '../../../backend/func2url.json';
 
-const NUTRITION_API_URL = 'https://functions.poehali.dev/c592ffff-18dd-4d1c-b199-ff8832c83a2c';
+const NUTRITION_API_URL = func2url['nutrition'];
 
 interface NutritionData {
   totals: {
@@ -41,23 +42,38 @@ export function NutritionWidget() {
 
   const loadNutritionData = async () => {
     try {
+      // Try multiple sources for user ID
+      let userId = 1; // Default fallback
+      
+      // First try authUser
       const authUserStr = localStorage.getItem('authUser');
-      if (!authUserStr) {
-        setLoading(false);
-        return;
+      if (authUserStr) {
+        try {
+          const authUser = JSON.parse(authUserStr);
+          userId = authUser.member_id || authUser.id || userId;
+          console.log('[NutritionWidget] Using authUser ID:', userId);
+        } catch (e) {
+          console.error('[NutritionWidget] Failed to parse authUser:', e);
+        }
+      } else {
+        console.log('[NutritionWidget] No authUser found, using default ID:', userId);
       }
-
-      const authUser = JSON.parse(authUserStr);
-      const userId = authUser.member_id || authUser.id || 1;
+      
       const today = new Date().toISOString().split('T')[0];
+      const url = `${NUTRITION_API_URL}/?action=analytics&user_id=${userId}&date=${today}`;
+      
+      console.log('[NutritionWidget] Fetching:', url);
 
-      const response = await fetch(
-        `${NUTRITION_API_URL}/?action=analytics&user_id=${userId}&date=${today}`
-      );
+      const response = await fetch(url);
+      console.log('[NutritionWidget] Response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
+        console.log('[NutritionWidget] Received data:', data);
         setNutritionData(data);
+      } else {
+        const errorText = await response.text();
+        console.error('[NutritionWidget] Response not OK:', response.status, errorText);
       }
     } catch (error) {
       console.error('[NutritionWidget] Error loading data:', error);
