@@ -1677,15 +1677,6 @@ export default function Index({ onLogout }: IndexProps) {
             <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mt-2 animate-fade-in`}>
               {getSectionTitle(activeSection)}
             </h1>
-            <Button
-              onClick={() => setShowWidgetSettings(true)}
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              <Icon name="Settings" size={16} />
-              Настроить виджеты
-            </Button>
           </div>
           
           <p className="text-lg lg:text-xl text-gray-700 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
@@ -1852,6 +1843,7 @@ export default function Index({ onLogout }: IndexProps) {
                       <FamilyMembersGrid 
                         members={familyMembers}
                         onMemberClick={(member) => navigate(`/member/${member.id}`)}
+                        tasks={tasks}
                       />
                     </CardContent>
                   </Card>
@@ -3167,6 +3159,18 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
 
           <div className="space-y-6">
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setShowWidgetSettings(true)}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Icon name="Settings" size={16} />
+                Настроить виджеты
+              </Button>
+            </div>
+            
             {isWidgetEnabled('calendar') && (
               <Card 
                 key="sidebar-weekly-calendar" 

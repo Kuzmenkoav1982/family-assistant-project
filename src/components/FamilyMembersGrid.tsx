@@ -5,12 +5,23 @@ import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
 import type { FamilyMember } from '@/types/family.types';
 
+interface Task {
+  id: string;
+  assignee_id?: string;
+  completed: boolean;
+}
+
 interface FamilyMembersGridProps {
   members: FamilyMember[];
   onMemberClick: (member: FamilyMember) => void;
+  tasks?: Task[];
 }
 
-const MemberCard = ({ member, index, onClick }: { member: FamilyMember; index: number; onClick: () => void }) => (
+const MemberCard = ({ member, index, onClick, tasks = [] }: { member: FamilyMember; index: number; onClick: () => void; tasks?: Task[] }) => {
+  const activeTasks = tasks.filter(t => t.assignee_id === member.id && !t.completed);
+  const activeTasksCount = activeTasks.length;
+  
+  return (
   <Card
     className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-102 animate-fade-in group"
     style={{ animationDelay: `${index * 0.1}s` }}
@@ -69,10 +80,10 @@ const MemberCard = ({ member, index, onClick }: { member: FamilyMember; index: n
               
               <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                 <div className="text-xs text-gray-500">
-                  {member.workload > 0 ? (
+                  {activeTasksCount > 0 ? (
                     <>
-                      <Icon name="TrendingUp" size={12} className="inline mr-1" />
-                      Загрузка: {member.workload}%
+                      <Icon name="ListTodo" size={12} className="inline mr-1 text-blue-500" />
+                      {activeTasksCount} {activeTasksCount === 1 ? 'активная задача' : activeTasksCount < 5 ? 'активные задачи' : 'активных задач'}
                     </>
                   ) : (
                     'Нет активных задач'
@@ -82,9 +93,10 @@ const MemberCard = ({ member, index, onClick }: { member: FamilyMember; index: n
               </div>
             </CardContent>
           </Card>
-);
+  );
+};
 
-export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridProps) {
+export function FamilyMembersGrid({ members, onMemberClick, tasks = [] }: FamilyMembersGridProps) {
   if (members.length > 50) {
     return (
       <div className="space-y-4">
@@ -104,7 +116,8 @@ export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridP
               <MemberCard 
                 member={member} 
                 index={index} 
-                onClick={() => onMemberClick(member)} 
+                onClick={() => onMemberClick(member)}
+                tasks={tasks}
               />
             </div>
           )}
@@ -128,7 +141,8 @@ export function FamilyMembersGrid({ members, onMemberClick }: FamilyMembersGridP
             key={member.id}
             member={member} 
             index={index} 
-            onClick={() => onMemberClick(member)} 
+            onClick={() => onMemberClick(member)}
+            tasks={tasks}
           />
         ))}
       </div>
