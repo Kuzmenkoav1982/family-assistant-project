@@ -56,8 +56,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🏠 СЕМЬЯ И ЛЮДИ',
       icon: 'Users',
       items: [
-        { id: 'profiles', label: 'Профили семьи', icon: 'User', path: '/' },
-        { id: 'family-cards', label: 'Семья', icon: 'Users', path: '/' },
+        { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/' },
         { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
         { id: 'my-profile', label: 'Мой профиль', icon: 'UserCircle', path: '/settings' }
       ]
