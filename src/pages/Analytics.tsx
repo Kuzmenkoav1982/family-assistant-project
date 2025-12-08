@@ -63,14 +63,35 @@ export default function Analytics() {
     }).sort((a, b) => b.total - a.total)
   , [members, tasks, calendarEvents]);
 
-  const monthlyActivity = useMemo(() => [
-    { month: 'Янв', tasks: 12, events: 8 },
-    { month: 'Фев', tasks: 15, events: 10 },
-    { month: 'Мар', tasks: 18, events: 12 },
-    { month: 'Апр', tasks: 14, events: 9 },
-    { month: 'Май', tasks: 20, events: 15 },
-    { month: 'Июн', tasks: 16, events: 11 },
-  ], []);
+  const monthlyActivity = useMemo(() => {
+    const now = new Date();
+    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    const last6Months = [];
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthIndex = date.getMonth();
+      const year = date.getFullYear();
+      
+      const monthTasks = tasks.filter((t: any) => {
+        const taskDate = new Date(t.created_at || t.due_date || Date.now());
+        return taskDate.getMonth() === monthIndex && taskDate.getFullYear() === year;
+      }).length;
+      
+      const monthEvents = calendarEvents.filter((e: any) => {
+        const eventDate = new Date(e.date);
+        return eventDate.getMonth() === monthIndex && eventDate.getFullYear() === year;
+      }).length;
+      
+      last6Months.push({
+        month: months[monthIndex],
+        tasks: monthTasks,
+        events: monthEvents,
+      });
+    }
+    
+    return last6Months;
+  }, [tasks, calendarEvents]);
 
   const familyRoles = useMemo(() => 
     [
