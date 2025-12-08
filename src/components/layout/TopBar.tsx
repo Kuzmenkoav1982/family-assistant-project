@@ -3,13 +3,6 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -41,13 +34,14 @@ export default function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
-  const [kuzyaRole, setKuzyaRole] = useState(() => localStorage.getItem('kuzyaRole') || 'family-assistant');
-  const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
 
-  const handleKuzyaRoleChange = (newRole: string) => {
-    setKuzyaRole(newRole);
-    localStorage.setItem('kuzyaRole', newRole);
+  const openJivoChat = () => {
+    // @ts-ignore - Jivo глобальная переменная
+    if (window.jivo_api) {
+      // @ts-ignore
+      window.jivo_api.open();
+    }
   };
 
   const authToken = localStorage.getItem('authToken');
@@ -152,9 +146,9 @@ export default function TopBar({
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={() => setSupportDialogOpen(true)}>
-                <Icon name="HelpCircle" size={16} className="mr-2" />
-                <span>🆘 Поддержка и помощь</span>
+              <DropdownMenuItem onClick={openJivoChat}>
+                <Icon name="MessageCircle" size={16} className="mr-2" />
+                <span>💬 Онлайн поддержка</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={() => navigate('/instructions')}>
@@ -183,100 +177,7 @@ export default function TopBar({
         </div>
       </div>
 
-      {/* Диалог поддержки */}
-      <Dialog open={supportDialogOpen} onOpenChange={setSupportDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>🆘 Поддержка и помощь</DialogTitle>
-            <DialogDescription>
-              Выберите тип помощи или настройте Кузю
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Настройки Кузи */}
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Icon name="Bot" size={18} />
-                Настройки Кузи — AI помощника
-              </h3>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Роль Кузи:</label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  value={kuzyaRole}
-                  onChange={(e) => handleKuzyaRoleChange(e.target.value)}
-                >
-                  <option value="family-assistant">🏡 Семейный помощник (по умолчанию)</option>
-                  <option value="cook">🍳 Повар — специалист по рецептам</option>
-                  <option value="organizer">📋 Организатор — планирование дел</option>
-                  <option value="child-educator">👶 Воспитатель — советы по детям</option>
-                  <option value="financial-advisor">💰 Финансовый советник</option>
-                  <option value="psychologist">🧠 Семейный психолог</option>
-                  <option value="fitness-trainer">💪 Фитнес-тренер</option>
-                  <option value="travel-planner">✈️ Организатор путешествий</option>
-                </select>
-                <p className="text-xs text-gray-600">
-                  Выбранная роль определяет специализацию Кузи при ответах на ваши вопросы
-                </p>
-              </div>
-            </div>
 
-            {/* Техническая поддержка */}
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Icon name="Headphones" size={18} />
-                Техническая поддержка
-              </h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Возникли проблемы с работой приложения? Свяжитесь с нашей службой поддержки
-              </p>
-              <Button 
-                onClick={() => {
-                  navigate('/support');
-                  setSupportDialogOpen(false);
-                }}
-                className="w-full"
-              >
-                Написать в поддержку
-              </Button>
-            </div>
-
-            {/* Обратная связь */}
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Icon name="MessageSquare" size={18} />
-                Обратная связь и предложения
-              </h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Поделитесь своими идеями и предложениями по улучшению приложения
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => {
-                    navigate('/feedback');
-                    setSupportDialogOpen(false);
-                  }}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Жалобы
-                </Button>
-                <Button 
-                  onClick={() => {
-                    navigate('/suggestions');
-                    setSupportDialogOpen(false);
-                  }}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Предложения
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
