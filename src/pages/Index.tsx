@@ -326,17 +326,6 @@ export default function Index({ onLogout }: IndexProps) {
   //   }
   // }, [currentUser, membersLoading]);
 
-  useEffect(() => {
-    if (showHints && !showProfileOnboarding && !membersLoading) {
-      const timer = setTimeout(() => {
-        if (currentHintStep < hints.length - 1) {
-          setCurrentHintStep(currentHintStep + 1);
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [showHints, currentHintStep, showProfileOnboarding, membersLoading]);
-
   const hints = [
     {
       id: 'settings',
@@ -385,6 +374,17 @@ export default function Index({ onLogout }: IndexProps) {
     setShowHints(false);
     localStorage.setItem('hasSeenHints', 'true');
   };
+
+  useEffect(() => {
+    if (showHints && !showProfileOnboarding && !membersLoading) {
+      const timer = setTimeout(() => {
+        if (currentHintStep < hints.length - 1) {
+          setCurrentHintStep(currentHintStep + 1);
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showHints, currentHintStep, showProfileOnboarding, membersLoading, hints]);
 
   useEffect(() => {
     localStorage.setItem('appearanceMode', appearanceMode);
