@@ -64,7 +64,7 @@
 </noscript>
 <!-- /Yandex.Metrika counter -->
 
-<!-- Jivo Chat -->
+<!-- Jivo Chat - позиция слева внизу -->
 <script>
   window.jivo_onLoadCallback = function(){
     jivo_api.setContactInfo({ 
@@ -74,6 +74,15 @@
   };
 </script>
 <script src="//code.jivo.ru/widget/kMoMrH0Kye" async></script>
+<style>
+  /* Перемещение Jivo в левый нижний угол на мобильных */
+  @media (max-width: 768px) {
+    jdiv {
+      left: 16px !important;
+      right: auto !important;
+    }
+  }
+</style>
 <!-- /Jivo Chat -->
 </body>
 </html>

@@ -32,6 +32,8 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isPinned, setIsPinned] = useState(false);
+  const [autoHideTimer, setAutoHideTimer] = useState<NodeJS.Timeout | null>(null);
   
   const [openSections, setOpenSections] = useState<string[]>([
     'family', 
@@ -143,6 +145,25 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     return location.pathname === item.path;
   };
 
+  const handleMouseEnter = () => {
+    if (autoHideTimer) {
+      clearTimeout(autoHideTimer);
+      setAutoHideTimer(null);
+    }
+    if (!isPinned && !isVisible) {
+      onVisibilityChange(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isPinned && isVisible) {
+      const timer = setTimeout(() => {
+        onVisibilityChange(false);
+      }, 2000); // 2 секунды задержка
+      setAutoHideTimer(timer);
+    }
+  };
+
   return (
     <>
       <div 
@@ -150,20 +171,33 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
           isVisible ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ width: '280px' }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <Icon name="Menu" size={16} />
             Разделы
           </h3>
-          <Button
-            onClick={() => onVisibilityChange(false)}
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-          >
-            <Icon name="X" size={14} />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              onClick={() => setIsPinned(!isPinned)}
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              title={isPinned ? 'Открепить панель' : 'Закрепить панель'}
+            >
+              <Icon name={isPinned ? "EyeOff" : "Eye"} size={14} />
+            </Button>
+            <Button
+              onClick={() => onVisibilityChange(false)}
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+            >
+              <Icon name="X" size={14} />
+            </Button>
+          </div>
         </div>
 
         <div className="p-3 space-y-2">
