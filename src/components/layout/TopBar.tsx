@@ -175,10 +175,6 @@ export default function TopBar({
       </div>
 
       <SettingsMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-        </div>
-      </div>
-
-
     </div>
   );
 }
