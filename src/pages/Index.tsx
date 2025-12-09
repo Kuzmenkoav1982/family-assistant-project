@@ -1502,14 +1502,23 @@ export default function Index({ onLogout }: IndexProps) {
             </DialogHeader>
             
             <div className="space-y-6 p-6">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon name="Sparkles" size={20} className="text-blue-600" />
-                  <h3 className="text-lg font-bold text-blue-900">Что будет в этом разделе?</h3>
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Icon name="Sparkles" size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-900">Что будет в этом разделе?</h3>
+                  </div>
                 </div>
-                <p className="text-gray-700">
-                  Мы работаем над созданием этого функционала! Скоро здесь появятся полезные возможности для управления и организации.
+                <p className="text-gray-800 text-base leading-relaxed">
+                  {selectedDevSection?.description}
                 </p>
+                <div className="mt-4 pt-4 border-t border-blue-200">
+                  <p className="text-gray-700 text-sm">
+                    Мы активно работаем над реализацией этого функционала. Скоро здесь появятся все планируемые возможности, которые сделают управление семьёй ещё проще и удобнее.
+                  </p>
+                </div>
               </div>
 
               <div>
