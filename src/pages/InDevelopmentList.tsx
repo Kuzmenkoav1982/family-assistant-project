@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
-import Header from '@/components/layout/Header';
 
 interface DevSection {
   id: string;
@@ -187,10 +186,21 @@ export default function InDevelopmentList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50">
-      <Header 
-        title="В разработке"
-        onBackClick={() => navigate('/')}
-      />
+      {/* Шапка страницы */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Button
+            onClick={() => navigate('/')}
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+          >
+            <Icon name="ArrowLeft" size={18} />
+            Назад
+          </Button>
+          <h1 className="text-xl font-bold">В разработке</h1>
+        </div>
+      </div>
       
       <div className="container mx-auto px-4 py-6 max-w-6xl mt-16">
         {/* Заголовок */}
