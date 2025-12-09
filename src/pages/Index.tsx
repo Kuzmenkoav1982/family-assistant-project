@@ -72,8 +72,6 @@ import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import TopBar from '@/components/layout/TopBar';
 import Sidebar from '@/components/layout/Sidebar';
 
-import StatsCounter from '@/components/StatsCounter';
-
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
@@ -1449,19 +1447,16 @@ export default function Index({ onLogout }: IndexProps) {
                   }}
                 />
                 <div className="flex flex-col gap-1">
-                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 bg-clip-text text-transparent">
                     {familyName}
                   </h1>
                 </div>
               </div>
               
-              {/* Счётчик семей и пользователей */}
-              <div className="hidden sm:block">
-                <StatsCounter />
-              </div>
+
             </div>
             <div className="flex flex-col items-center gap-3 mt-4">
-              <p className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] text-center px-4">
+              <p className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-400 via-slate-500 via-slate-600 to-gray-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] text-center px-4">
                 {getDailyMotto()}
               </p>
               <div className="flex items-center gap-2">
