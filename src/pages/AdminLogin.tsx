@@ -24,7 +24,7 @@ export default function AdminLogin() {
     setTimeout(() => {
       if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
         localStorage.setItem('adminToken', 'admin_authenticated');
-        navigate('/admin/support');
+        navigate('/admin/dashboard');
       } else {
         setError('Неверный логин или пароль');
         setLoading(false);

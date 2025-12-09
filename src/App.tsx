@@ -46,6 +46,7 @@ import Children from "./pages/Children";
 import AssessmentReport from "./pages/AssessmentReport";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import AdminDashboard from "./pages/AdminDashboard";
 import Recipes from "./pages/Recipes";
 import AIAssistant from "./pages/AIAssistant";
 import Development from "./pages/Development";
@@ -143,6 +144,7 @@ const App = () => {
               <Route path="/support" element={<SupportPage />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/support" element={<AdminSupport />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/nationalities" element={<NationalitiesPage />} />
               <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
               <Route path="/children" element={<Children />} />
