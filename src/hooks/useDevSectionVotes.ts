@@ -41,15 +41,23 @@ export function useDevSectionVotes() {
   };
 
   const castVote = async (sectionId: string, voteType: 'up' | 'down', comment?: string) => {
-    const authUser = localStorage.getItem('user');
+    const authToken = localStorage.getItem('authToken');
+    const authUser = localStorage.getItem('userData');
     
-    if (!authUser) {
+    if (!authToken) {
       return { success: false, error: 'Необходимо войти для голосования' };
     }
     
-    try {
-      const userData = JSON.parse(authUser);
-      const userId = userData.id;
+    let userId = 'guest';
+    
+    if (authUser) {
+      try {
+        const userData = JSON.parse(authUser);
+        userId = userData.id || 'guest';
+      } catch (error) {
+        console.error('[useDevSectionVotes] Failed to parse user data:', error);
+      }
+    }
       
       const response = await fetch(`${FEATURE_VOTES_API}?type=feature`, {
         method: 'POST',
