@@ -79,12 +79,9 @@ export function useDevSectionVotes() {
       
       const data = await response.json();
       
-      if (data.success && data.votes) {
-        setVotes(prev => ({
-          ...prev,
-          [sectionId]: data.votes
-        }));
-        
+      if (data.success) {
+        // Перезагружаем все голоса после успешного голосования
+        await fetchVotes(true);
         return { success: true };
       }
       
