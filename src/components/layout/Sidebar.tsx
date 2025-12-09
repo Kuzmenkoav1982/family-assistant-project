@@ -130,6 +130,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     } else if (item.path) {
       navigate(item.path);
     }
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      onVisibilityChange(false);
+    }
   };
 
   const isActive = (item: MenuItem) => {
@@ -143,6 +147,15 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
 
   return (
     <>
+      {/* Backdrop for mobile */}
+      {isVisible && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          style={{ top: '64px' }}
+          onClick={() => onVisibilityChange(false)}
+        />
+      )}
+      
       <div 
         className={`fixed left-0 top-16 bottom-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg transition-transform duration-300 overflow-y-auto ${
           isVisible ? 'translate-x-0' : '-translate-x-full'

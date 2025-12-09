@@ -1414,6 +1414,7 @@ export default function Index({ onLogout }: IndexProps) {
           onLanguageChange={handleLanguageChange}
           onThemeChange={handleThemeChange}
           onResetDemo={handleLogoutLocal}
+          onMenuClick={() => setIsLeftMenuVisible(true)}
         />
 
         <Sidebar

@@ -21,6 +21,7 @@ interface TopBarProps {
   onLanguageChange: (lang: string) => void;
   onThemeChange: (theme: string) => void;
   onResetDemo: () => void;
+  onMenuClick?: () => void;
 }
 
 export default function TopBar({
@@ -31,7 +32,8 @@ export default function TopBar({
   onVisibilityChange,
   onLanguageChange,
   onThemeChange,
-  onResetDemo
+  onResetDemo,
+  onMenuClick
 }: TopBarProps) {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
@@ -62,6 +64,17 @@ export default function TopBar({
     >
       <div className="px-4 py-3 flex items-center justify-between max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-2">
+          {onMenuClick && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMenuClick}
+              className="h-9 w-9 p-0 md:hidden"
+              title="Меню"
+            >
+              <Icon name="Menu" size={18} />
+            </Button>
+          )}
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Наша семья"
