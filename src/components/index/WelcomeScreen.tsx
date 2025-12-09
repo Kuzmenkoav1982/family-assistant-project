@@ -28,7 +28,7 @@ export function WelcomeScreen({ showWelcome, welcomeText, onDismiss }: WelcomeSc
         </div>
         
         <div className="space-y-6">
-          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent mb-6 animate-fade-in">
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 bg-clip-text text-transparent mb-6 animate-fade-in">
             Наша семья
           </h1>
           
