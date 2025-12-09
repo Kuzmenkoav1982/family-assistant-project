@@ -98,7 +98,7 @@ export default function TestAccountSelector({ onSelectAccount }: TestAccountSele
             <div className="text-6xl mb-2">👨‍👩‍👦</div>
             <Badge className="bg-amber-500 text-white">ТЕСТОВЫЙ РЕЖИМ</Badge>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
             Семейный Органайзер
           </CardTitle>
           <p className="text-lg text-gray-600 mt-2">Выберите тестовый аккаунт для входа</p>

@@ -90,7 +90,7 @@ export default function Welcome() {
                 alt="Наша семья"
                 className="w-12 h-12 object-contain"
               />
-              <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-neutral-600">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
                 Наша семья
               </h1>
             </div>
@@ -124,7 +124,7 @@ export default function Welcome() {
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 text-base">
               Современный семейный органайзер
             </Badge>
-            <h2 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-cyan-900">
+            <h2 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
               Управляйте семьёй<br />как настоящей командой
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">

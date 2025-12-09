@@ -280,13 +280,14 @@
 .welcome-gradient-wave {
   background: linear-gradient(
     90deg,
-    #1f2937 0%,
-    #1f2937 35%,
-    #ea580c 40%,
-    #ec4899 50%,
-    #a855f7 60%,
-    #1f2937 65%,
-    #1f2937 100%
+    #475569 0%,
+    #475569 35%,
+    #64748b 40%,
+    #94a3b8 50%,
+    #cbd5e1 55%,
+    #94a3b8 60%,
+    #475569 65%,
+    #475569 100%
   );
   background-size: 200% 100%;
   background-clip: text;
