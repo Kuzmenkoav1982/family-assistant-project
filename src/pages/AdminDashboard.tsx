@@ -27,14 +27,30 @@ export default function AdminDashboard() {
   const [performanceRating, setPerformanceRating] = useState<'good' | 'needs-improvement' | 'poor'>('good');
   const [vitals, setVitals] = useState(getVitalsData());
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [usersStats, setUsersStats] = useState({ total: 5, today: 2, week: 4 });
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508');
+        const data = await response.json();
+        if (data.users) {
+          setUsersStats(data.users);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+
+    fetchStats();
+
     const interval = setInterval(() => {
       const rating = getPerformanceRating();
       setPerformanceRating(rating);
       setVitals(getVitalsData());
       generateAlerts(rating);
-    }, 5000);
+      fetchStats();
+    }, 10000);
 
     generateAlerts(performanceRating);
 
@@ -118,9 +134,9 @@ export default function AdminDashboard() {
     },
   ];
 
-  const usersCount = parseInt(localStorage.getItem('totalUsers') || '5');
-  const todayUsers = Math.floor(usersCount * 0.3);
-  const weekUsers = Math.floor(usersCount * 0.7);
+  const usersCount = usersStats.total;
+  const todayUsers = usersStats.today;
+  const weekUsers = usersStats.week;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-6">
@@ -252,13 +268,13 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="text-2xl font-bold text-slate-800">~$0</p>
+                  <p className="text-2xl font-bold text-slate-800">~0₽</p>
                   <p className="text-xs text-slate-600">В месяц (бесплатный tier)</p>
                 </div>
                 <div className="text-xs text-slate-500 pt-2 border-t">
                   <p>• До 10K пользователей - бесплатно</p>
-                  <p className="mt-1">• При 100K пользователей: ~$500/мес</p>
-                  <p className="mt-1">• При 1M пользователей: ~$7500/мес</p>
+                  <p className="mt-1">• При 100K пользователей: ~50 000₽/мес</p>
+                  <p className="mt-1">• При 1M пользователей: ~750 000₽/мес</p>
                 </div>
               </CardContent>
             </Card>
@@ -282,9 +298,9 @@ export default function AdminDashboard() {
                 <p className="text-xs text-slate-500">Загрузка контента</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-slate-600 font-medium">FID</p>
+                <p className="text-xs text-slate-600 font-medium">INP</p>
                 <p className="text-lg font-bold text-slate-800">
-                  {vitals.FID ? `${vitals.FID.toFixed(0)}ms` : '—'}
+                  {vitals.INP ? `${vitals.INP.toFixed(0)}ms` : '—'}
                 </p>
                 <p className="text-xs text-slate-500">Отклик на действия</p>
               </div>
@@ -313,7 +329,7 @@ export default function AdminDashboard() {
             <div className="mt-4 p-3 bg-slate-50 rounded-lg">
               <p className="text-xs text-slate-600">
                 <strong>Что это значит:</strong> Чем меньше цифры - тем быстрее сайт. 
-                Хорошо: LCP &lt; 2.5s, FID &lt; 100ms, CLS &lt; 0.1
+                Хорошо: LCP &lt; 2.5s, INP &lt; 200ms, CLS &lt; 0.1
               </p>
             </div>
           </CardContent>

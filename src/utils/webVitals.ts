@@ -1,8 +1,8 @@
-import { onCLS, onFID, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
 
 interface VitalsData {
   CLS: number | null;
-  FID: number | null;
+  INP: number | null;
   FCP: number | null;
   LCP: number | null;
   TTFB: number | null;
@@ -10,7 +10,7 @@ interface VitalsData {
 
 const vitalsData: VitalsData = {
   CLS: null,
-  FID: null,
+  INP: null,
   FCP: null,
   LCP: null,
   TTFB: null,
@@ -26,10 +26,17 @@ function sendToAnalytics(metric: Metric) {
     timestamp: Date.now(),
   });
 
+  const analyticsUrl = 'https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508';
+  
   if (navigator.sendBeacon) {
-    navigator.sendBeacon('/api/analytics', body);
+    navigator.sendBeacon(analyticsUrl, body);
   } else {
-    fetch('/api/analytics', { body, method: 'POST', keepalive: true });
+    fetch(analyticsUrl, { 
+      body, 
+      method: 'POST', 
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' }
+    }).catch(() => {});
   }
 }
 
@@ -39,8 +46,8 @@ export function initWebVitals() {
     sendToAnalytics(metric);
   });
   
-  onFID((metric) => {
-    vitalsData.FID = metric.value;
+  onINP((metric) => {
+    vitalsData.INP = metric.value;
     sendToAnalytics(metric);
   });
   
@@ -65,17 +72,17 @@ export function getVitalsData(): VitalsData {
 }
 
 export function getPerformanceRating(): 'good' | 'needs-improvement' | 'poor' {
-  const { LCP, FID, CLS } = vitalsData;
+  const { LCP, INP, CLS } = vitalsData;
   
-  if (LCP === null || FID === null || CLS === null) {
+  if (LCP === null || INP === null || CLS === null) {
     return 'good';
   }
 
-  if (LCP > 4000 || FID > 300 || CLS > 0.25) {
+  if (LCP > 4000 || INP > 500 || CLS > 0.25) {
     return 'poor';
   }
   
-  if (LCP > 2500 || FID > 100 || CLS > 0.1) {
+  if (LCP > 2500 || INP > 200 || CLS > 0.1) {
     return 'needs-improvement';
   }
   
