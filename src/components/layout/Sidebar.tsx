@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -41,7 +42,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     'family', 
     'values', 
     'planning', 
-    'household'
+    'household',
+    'in-dev'
   ]);
 
   const toggleSection = (sectionId: string) => {
@@ -116,8 +118,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '💬 РАЗВИТИЕ',
       icon: 'Brain',
       items: [
-        { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
-        { id: 'life-road', label: 'Дорога жизни', icon: 'Route', path: '/life-road' }
+        { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
       ]
     },
     {
@@ -125,15 +126,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🔧 В РАЗРАБОТКЕ',
       icon: 'Wrench',
       items: [
-        { id: 'tree', label: 'Древо', icon: 'GitBranch', path: '/tree', inDev: true },
-        { id: 'garage', label: 'Гараж', icon: 'Car', path: '/garage', inDev: true },
-        { id: 'health', label: 'Здоровье', icon: 'HeartPulse', path: '/health', inDev: true },
-        { id: 'finance', label: 'Финансы', icon: 'Wallet', path: '/finance', inDev: true },
-        { id: 'album', label: 'Альбом', icon: 'Image', inDev: true },
-        { id: 'blog', label: 'Блог', icon: 'BookOpen', inDev: true },
-        { id: 'chat', label: 'Чат', icon: 'MessageCircle', inDev: true },
-        { id: 'psychologist', label: 'Психолог ИИ', icon: 'BrainCircuit', path: '/psychologist', inDev: true },
-        { id: 'community', label: 'Сообщество', icon: 'Users2', path: '/community', inDev: true }
+        { id: 'in-development-list', label: 'В разработке', icon: 'Construction', path: '/in-development' },
+        { id: 'life-road', label: 'Дорога жизни', icon: 'Route', path: '/life-road', inDev: true }
       ]
     }
   ];
@@ -250,6 +244,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                   >
                     <Icon name={item.icon as any} size={16} />
                     <span className="text-sm flex-1 text-left">{item.label}</span>
+                    {item.id === 'in-development-list' && (
+                      <Badge variant="secondary" className="text-xs">9</Badge>
+                    )}
                     {item.inDev && (
                       <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded">
                         DEV

@@ -96,17 +96,6 @@ export default function BottomBar({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/life-road')}
-                className="text-white hover:bg-white/20 whitespace-nowrap"
-                title="Дорога жизни"
-              >
-                <Icon name="Route" size={18} />
-                <span className="ml-1 text-xs hidden sm:inline">Дорога жизни</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
                 onClick={() => navigate('/nutrition')}
                 className="text-white hover:bg-white/20 whitespace-nowrap"
                 title="Питание"

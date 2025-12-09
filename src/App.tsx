@@ -51,6 +51,7 @@ import AIAssistant from "./pages/AIAssistant";
 import Development from "./pages/Development";
 import LifeRoad from "./pages/LifeRoad";
 import FamilyManagement from "./pages/FamilyManagement";
+import InDevelopmentList from "./pages/InDevelopmentList";
 import FamilyInvite from "./pages/FamilyInvite";
 import Nutrition from "./pages/Nutrition";
 import Trips from "./pages/Trips";
@@ -156,6 +157,7 @@ const App = () => {
               <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/development" element={<Development />} />
               <Route path="/life-road" element={<LifeRoad />} />
+              <Route path="/in-development" element={<InDevelopmentList />} />
               <Route path="/family-management" element={<FamilyManagement />} />
               <Route path="/launch-plan" element={<LaunchPlan />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
