@@ -1,15 +1,8 @@
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { getTranslation, type LanguageCode } from '@/translations';
+import SettingsMenu from '@/components/SettingsMenu';
 
 interface TopBarProps {
   isVisible: boolean;
@@ -33,41 +26,10 @@ export default function TopBar({
   onResetDemo
 }: TopBarProps) {
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
-
-  const openJivoChat = () => {
-    // @ts-ignore - Jivo глобальная переменная
-    if (window.jivo_api) {
-      // @ts-ignore
-      window.jivo_api.open();
-    }
-  };
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
-
-  const languages = [
-    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'ar', name: 'العربية', flag: '🇸🇦' }
-  ];
-
-  const themes = [
-    { id: 'young', name: 'Молодёжный', icon: '🎨' },
-    { id: 'middle', name: 'Деловой', icon: '💼' },
-    { id: 'senior', name: 'Комфортный', icon: '🏡' },
-    { id: 'apple', name: 'Apple', icon: '🍎' }
-  ];
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
 
   return (
     <div 
@@ -117,68 +79,7 @@ export default function TopBar({
             <Icon name="Users" size={18} />
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 w-9 p-0"
-                title="Настройки"
-              >
-                <Icon name="Settings" size={18} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <Icon name="Globe" size={16} className="mr-2" />
-                <span>🌐 Язык</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem>
-                <Icon name="Palette" size={16} className="mr-2" />
-                <span>🎨 Стиль</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={toggleDarkMode}>
-                <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
-                <span>🌙 Тёмная тема</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={openJivoChat}>
-                <Icon name="MessageCircle" size={16} className="mr-2" />
-                <span>💬 Онлайн поддержка</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/feedback')}>
-                <Icon name="MessageSquareText" size={16} className="mr-2" />
-                <span>📝 Отзывы</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/instructions')}>
-                <Icon name="BookOpen" size={16} className="mr-2" />
-                <span>📖 Инструкции</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/presentation')}>
-                <Icon name="Play" size={16} className="mr-2" />
-                <span>🎬 Презентация</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Icon name="UserCircle" size={16} className="mr-2" />
-                <span>👤 Мой профиль</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={onResetDemo}>
-                <Icon name="RotateCcw" size={16} className="mr-2" />
-                <span>🔄 Сбросить демо</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SettingsMenu />
         </div>
       </div>
 
