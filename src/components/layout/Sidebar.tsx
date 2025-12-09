@@ -33,10 +33,7 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isPinned, setIsPinned] = useState(() => {
-    return localStorage.getItem('sidebarPinned') === 'true';
-  });
-  const [autoHideTimer, setAutoHideTimer] = useState<NodeJS.Timeout | null>(null);
+
   
   const [openSections, setOpenSections] = useState<string[]>([
     'family', 
@@ -54,12 +51,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     );
   };
 
-  // Save isPinned to localStorage
-  const togglePin = () => {
-    const newValue = !isPinned;
-    setIsPinned(newValue);
-    localStorage.setItem('sidebarPinned', String(newValue));
-  };
+
 
   const menuSections: MenuSection[] = [
     {
@@ -147,30 +139,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     return currentFullPath === item.path;
   };
 
-  const handleMouseEnter = () => {
-    // На мобильных устройствах не используем автопоказ
-    if (window.innerWidth < 768) return;
-    
-    if (autoHideTimer) {
-      clearTimeout(autoHideTimer);
-      setAutoHideTimer(null);
-    }
-    if (!isPinned && !isVisible) {
-      onVisibilityChange(true);
-    }
-  };
 
-  const handleMouseLeave = () => {
-    // На мобильных устройствах не закрываем панель автоматически
-    if (window.innerWidth < 768) return;
-    
-    if (!isPinned && isVisible) {
-      const timer = setTimeout(() => {
-        onVisibilityChange(false);
-      }, 2000); // 2 секунды задержка
-      setAutoHideTimer(timer);
-    }
-  };
 
   return (
     <>
@@ -179,8 +148,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
           isVisible ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ width: '280px' }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -188,15 +155,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
             Разделы
           </h3>
           <div className="flex items-center gap-1">
-            <Button
-              onClick={togglePin}
-              variant="ghost"
-              size="sm"
-              className={`h-7 w-7 p-0 ${isPinned ? 'text-blue-600' : ''}`}
-              title={isPinned ? 'Открепить панель (автоскрытие выключено)' : 'Закрепить панель (отключить автоскрытие)'}
-            >
-              <Icon name={isPinned ? "Pin" : "PinOff"} size={14} />
-            </Button>
+
             <Button
               onClick={() => onVisibilityChange(false)}
               variant="ghost"
