@@ -58,7 +58,8 @@ export function useDevSectionVotes() {
         console.error('[useDevSectionVotes] Failed to parse user data:', error);
       }
     }
-      
+    
+    try {
       const response = await fetch(`${FEATURE_VOTES_API}?type=feature`, {
         method: 'POST',
         headers: {
