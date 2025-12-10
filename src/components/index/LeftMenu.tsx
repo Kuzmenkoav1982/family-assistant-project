@@ -68,15 +68,6 @@ export function LeftMenu({
           </h3>
           <div className="flex items-center gap-1">
             <Button
-              onClick={() => setShowLeftPanelSettings(true)}
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0"
-              title="Настройки панели"
-            >
-              <Icon name="Settings" size={14} />
-            </Button>
-            <Button
               onClick={toggleAutoHide}
               variant="ghost"
               size="sm"
