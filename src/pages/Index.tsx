@@ -67,7 +67,6 @@ import SettingsDropdown from '@/components/SettingsDropdown';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
 import BottomBar from '@/components/BottomBar';
-import PanelSettings from '@/components/PanelSettings';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import TopBar from '@/components/layout/TopBar';
 import Sidebar from '@/components/layout/Sidebar';

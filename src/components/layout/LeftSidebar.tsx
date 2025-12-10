@@ -16,10 +16,8 @@ interface LeftSidebarProps {
   activeSection: string;
   sections: string[];
   menuSections: SectionItem[];
-  showLeftPanelSettings: boolean;
   onVisibilityChange: (visible: boolean) => void;
   onSectionChange: (sectionId: string) => void;
-  onLeftPanelSettingsToggle: (show: boolean) => void;
 }
 
 export default function LeftSidebar({
@@ -28,10 +26,8 @@ export default function LeftSidebar({
   activeSection,
   sections,
   menuSections,
-  showLeftPanelSettings,
   onVisibilityChange,
-  onSectionChange,
-  onLeftPanelSettingsToggle
+  onSectionChange
 }: LeftSidebarProps) {
   const navigate = useNavigate();
   const visibleSections = menuSections.filter(s => sections.includes(s.id));
