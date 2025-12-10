@@ -31,7 +31,6 @@ interface LeftMenuProps {
   inDevelopmentSections: InDevelopmentSection[];
   setShowKuzyaDialog: (show: boolean) => void;
   setShowFamilyInvite: (show: boolean) => void;
-  setShowLeftPanelSettings: (show: boolean) => void;
 }
 
 export function LeftMenu({
@@ -47,8 +46,7 @@ export function LeftMenu({
   setShowInDevelopment,
   inDevelopmentSections,
   setShowKuzyaDialog,
-  setShowFamilyInvite,
-  setShowLeftPanelSettings
+  setShowFamilyInvite
 }: LeftMenuProps) {
   const navigate = useNavigate();
 

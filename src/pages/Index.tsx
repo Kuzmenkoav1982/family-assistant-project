@@ -298,7 +298,6 @@ export default function Index({ onLogout }: IndexProps) {
     return localStorage.getItem('autoHideBottomBar') === 'true';
   });
   const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
-  const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
   const [selectedDevSection, setSelectedDevSection] = useState<typeof inDevelopmentSections[0] | null>(null);
   const [voteComment, setVoteComment] = useState('');
   const [showCommentDialog, setShowCommentDialog] = useState(false);
