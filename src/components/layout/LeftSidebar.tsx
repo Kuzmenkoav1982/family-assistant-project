@@ -51,15 +51,6 @@ export default function LeftSidebar({
             className="h-12 w-12 object-contain"
           />
           <h2 className="text-lg font-bold text-gray-700 flex-1">Разделы</h2>
-          <Button
-            onClick={() => onLeftPanelSettingsToggle(!showLeftPanelSettings)}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="Настроить разделы"
-          >
-            <Icon name="Settings2" size={16} />
-          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-2">
