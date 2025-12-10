@@ -120,7 +120,7 @@ export default function TopBar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 w-9 p-0 hidden"
+                className="h-9 w-9 p-0"
                 title="Настройки"
               >
                 <Icon name="Settings" size={18} />
