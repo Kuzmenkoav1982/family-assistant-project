@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const APP_VERSION = '1.2.0';
