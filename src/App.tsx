@@ -92,14 +92,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const APP_VERSION = '1.2.1';
-
 const App = () => {
   const handleLogout = () => {
     console.log('Logout - временно отключено');
   };
-
-  console.log('🚀 App Version:', APP_VERSION, '- Build:', new Date().toISOString());
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -110,9 +106,6 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter>
-            <div className="fixed top-2 left-2 z-[100] bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
-              v{APP_VERSION}
-            </div>
             <PWAInstallPrompt />
             <AIAssistantWidget />
             <Routes>

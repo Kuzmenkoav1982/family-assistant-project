@@ -43,7 +43,7 @@ export default function KuzyaFloatingButton() {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 flex items-end gap-3">
+      <div className="fixed bottom-8 right-6 z-50 flex items-end gap-3">
         {showPhrase && (
           <div className="bg-white rounded-2xl shadow-lg px-4 py-3 animate-in slide-in-from-right-5 fade-in duration-300 max-w-[200px]">
             <p className="text-sm font-medium text-gray-800">{phrase}</p>

@@ -11,8 +11,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getTranslation, type LanguageCode } from '@/translations';
 
-const APP_VERSION = '1.2.0';
-
 interface TopBarProps {
   isVisible: boolean;
   currentLanguage: LanguageCode;
@@ -39,8 +37,6 @@ export default function TopBar({
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
-
-  console.log('🚀 App Version:', APP_VERSION);
 
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
@@ -174,16 +170,18 @@ export default function TopBar({
         </DropdownMenu>
       </div>
 
-      <button
-        onClick={() => onVisibilityChange(!isVisible)}
-        className="fixed left-1/2 -translate-x-1/2 top-0 z-[60] bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-b-lg px-3 py-1 transition-all duration-300"
-      >
-        <Icon 
-          name={isVisible ? 'ChevronUp' : 'ChevronDown'} 
-          size={16} 
-          className="text-gray-600 dark:text-gray-400" 
-        />
-      </button>
+      {isVisible && (
+        <button
+          onClick={() => onVisibilityChange(false)}
+          className="fixed left-1/2 -translate-x-1/2 top-0 z-[60] bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-b-lg px-3 py-1 transition-all duration-300"
+        >
+          <Icon 
+            name="ChevronUp" 
+            size={16} 
+            className="text-gray-600 dark:text-gray-400" 
+          />
+        </button>
+      )}
     </div>
   );
 }

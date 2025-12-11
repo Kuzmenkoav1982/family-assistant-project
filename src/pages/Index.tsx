@@ -1417,6 +1417,16 @@ export default function Index({ onLogout }: IndexProps) {
           onMenuClick={() => setIsLeftMenuVisible(true)}
         />
 
+        {!isTopBarVisible && (
+          <button
+            onClick={() => setIsTopBarVisible(true)}
+            className="fixed left-1/2 -translate-x-1/2 top-0 z-[60] bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-b-lg px-3 py-1 transition-all duration-300"
+            title="Показать верхнюю панель"
+          >
+            <Icon name="ChevronDown" size={16} className="text-gray-600 dark:text-gray-400" />
+          </button>
+        )}
+
         <Sidebar
           isVisible={isLeftMenuVisible}
           onVisibilityChange={setIsLeftMenuVisible}
