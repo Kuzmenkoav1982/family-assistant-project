@@ -29,22 +29,6 @@ export default function BottomBar({
   onKuzyaClick
 }: BottomBarProps) {
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(() => {
-    const saved = localStorage.getItem('bottomBarManualMode');
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  const shouldShow = isManualMode || isVisible || (!autoHide) || isHovered;
-
-  const toggleManualMode = () => {
-    const newMode = !isManualMode;
-    setIsManualMode(newMode);
-    localStorage.setItem('bottomBarManualMode', JSON.stringify(newMode));
-    if (newMode) {
-      onVisibilityChange(true);
-    }
-  };
 
   const displaySections = availableSections.filter(s => selectedSections.includes(s.id));
 
@@ -52,10 +36,8 @@ export default function BottomBar({
     <>
       <div
         className={`fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg transition-transform duration-300 z-40 ${
-          shouldShow ? 'translate-y-0' : 'translate-y-full'
+          isVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         <div className="max-w-screen-2xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between gap-2">
@@ -190,37 +172,22 @@ export default function BottomBar({
             >
               <Icon name="MessageCircle" size={20} />
             </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onVisibilityChange(!isVisible)}
-              className="text-white hover:bg-white/20"
-              title={isVisible ? "Скрыть панель" : "Показать панель"}
-            >
-              <Icon name={isVisible ? "ChevronDown" : "ChevronUp"} size={20} />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleManualMode}
-              className={`text-white hover:bg-white/20 ${isManualMode ? 'bg-white/30' : ''}`}
-              title={isManualMode ? "Ручной режим: всегда доступна" : "Авто-режим: скрывается при переходах"}
-            >
-              <Icon name={isManualMode ? "Lock" : "Unlock"} size={20} />
-            </Button>
           </div>
         </div>
       </div>
 
-      {autoHide && !isVisible && (
-        <div
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-16 h-2 bg-blue-600/50 rounded-t-lg cursor-pointer z-50"
-          onMouseEnter={() => setIsHovered(true)}
-          title="Показать панель"
+      <button
+        onClick={() => onVisibilityChange(!isVisible)}
+        className={`fixed left-1/2 -translate-x-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-t-lg px-4 py-2 transition-all duration-300 ${
+          isVisible ? 'bottom-[52px]' : 'bottom-0'
+        }`}
+      >
+        <Icon 
+          name={isVisible ? 'ChevronDown' : 'ChevronUp'} 
+          size={20} 
+          className="text-gray-600" 
         />
-      )}
+      </button>
     </>
   );
 }
