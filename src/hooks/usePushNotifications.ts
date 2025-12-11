@@ -87,7 +87,7 @@ export function usePushNotifications() {
       const registration = await navigator.serviceWorker.ready;
       console.log('[DEBUG Push Hook] Service worker ready');
       
-      const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDEi2Oh7C_RO4BRp6NJkO6e3caCHBw5qZJpXNjNxdUeo';
+      const vapidPublicKey = 'BFI48D8n8_Yk-OyCsKWzqOYt8RLTQSfkCwwh1ck36dvnMc3vCTbkgv2a64JV19MqYGe7NY2dKJoW2JZIaaLbkqQ';
       
       console.log('[DEBUG Push Hook] Creating push subscription...');
       const subscription = await registration.pushManager.subscribe({
