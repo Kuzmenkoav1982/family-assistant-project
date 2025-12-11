@@ -162,22 +162,11 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         }`}
         style={{ width: '280px' }}
       >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <Icon name="Menu" size={16} />
             Разделы
           </h3>
-          <div className="flex items-center gap-1">
-
-            <Button
-              onClick={() => onVisibilityChange(false)}
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0"
-            >
-              <Icon name="X" size={14} />
-            </Button>
-          </div>
         </div>
 
         <div className="p-3 space-y-2">
