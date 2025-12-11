@@ -46,37 +46,48 @@ def send_email_smtp(to: str, subject: str, body: str, html: Optional[str] = None
     return {"status": "sent", "to": to, "method": "smtp"}
 
 
-def send_sms_yandex(phone: str, message: str) -> Dict[str, Any]:
-    """Отправка SMS через Yandex Cloud (требует настройки Yandex Cloud Messaging)"""
-    api_key = os.environ.get('YANDEX_CLOUD_API_KEY')
-    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+def send_sms_smsru(phone: str, message: str) -> Dict[str, Any]:
+    """
+    Отправка SMS через SMS.ru API (простой HTTP API)
+    Требует SMS_RU_API_KEY в секретах
+    Документация: https://sms.ru/api/send
+    """
+    api_key = os.environ.get('SMS_RU_API_KEY')
     
-    if not api_key or not folder_id:
-        raise ValueError("YANDEX_CLOUD_API_KEY и YANDEX_FOLDER_ID не настроены")
+    if not api_key:
+        return {
+            "status": "error",
+            "error": "SMS_RU_API_KEY не настроен. Получите ключ на https://sms.ru/panel/api",
+            "phone": phone,
+            "message": "Для отправки SMS настройте SMS_RU_API_KEY"
+        }
     
-    url = f"https://sms.api.cloud.yandex.net/sms/v1/messages"
-    headers = {
-        'Authorization': f'Api-Key {api_key}',
-        'Content-Type': 'application/json'
+    url = "https://sms.ru/sms/send"
+    params = {
+        'api_id': api_key,
+        'to': phone,
+        'msg': message,
+        'json': 1  # Ответ в JSON
     }
-    payload = {
-        'destination': phone,
-        'text': message,
-        'folder_id': folder_id
-    }
     
-    response = requests.post(url, headers=headers, json=payload, timeout=10)
+    response = requests.get(url, params=params, timeout=10)
     response.raise_for_status()
+    data = response.json()
     
-    return {"status": "sent", "phone": phone, "response": response.json()}
+    # SMS.ru возвращает {"status":"OK","status_code":100,"sms":{...}}
+    if data.get('status_code') == 100:
+        return {"status": "sent", "phone": phone, "response": data}
+    else:
+        error_msg = data.get('status_text', 'Unknown error')
+        return {"status": "error", "phone": phone, "error": error_msg, "response": data}
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    Отправка email и SMS уведомлений через Яндекс.Облако
+    Отправка email и SMS уведомлений
     
-    POST ?action=email - отправить email
-    POST ?action=sms - отправить SMS
+    POST ?action=email - отправить email через Яндекс.Почту SMTP
+    POST ?action=sms - отправить SMS через SMS.ru API
     """
     method: str = event.get('httpMethod', 'GET')
     
@@ -124,7 +135,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         elif action == 'sms':
             sms_req = SMSRequest(**body_data)
-            result = send_sms_yandex(
+            result = send_sms_smsru(
                 phone=sms_req.phone,
                 message=sms_req.message
             )
