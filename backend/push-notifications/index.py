@@ -145,6 +145,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 title = body.get('title', 'Семейный Ассистент')
                 message = body.get('message', '')
                 
+                print(f"[DEBUG Push] Sending notification: title={title}, message={message}")
+                
                 if not message:
                     cur.close()
                     conn.close()
@@ -155,10 +157,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 
+                print(f"[DEBUG Push] Fetching subscription for family_id={family_id}")
                 cur.execute(f"SELECT subscription_data FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")
                 subscription_row = cur.fetchone()
                 
                 if not subscription_row:
+                    print(f"[DEBUG Push] No subscription found for family_id={family_id}")
                     cur.close()
                     conn.close()
                     return {
@@ -169,9 +173,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 subscription_info = subscription_row['subscription_data']
+                print(f"[DEBUG Push] Found subscription: {type(subscription_info)}")
                 
                 vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
+                print(f"[DEBUG Push] VAPID key present: {bool(vapid_private_key)}")
+                
                 if not vapid_private_key:
+                    print(f"[DEBUG Push] VAPID key is empty!")
                     cur.close()
                     conn.close()
                     return {
@@ -185,6 +193,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 conn.close()
                 
                 try:
+                    print(f"[DEBUG Push] Calling webpush...")
                     webpush(
                         subscription_info=subscription_info,
                         data=json.dumps({
@@ -199,6 +208,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         }
                     )
                     
+                    print(f"[DEBUG Push] Notification sent successfully!")
+                    
                     return {
                         'statusCode': 200,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -211,12 +222,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 except WebPushException as e:
+                    print(f"[ERROR Push] WebPushException: {str(e)}")
                     return {
                         'statusCode': 500,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({
                             'success': False,
                             'error': f'Failed to send notification: {str(e)}'
+                        }),
+                        'isBase64Encoded': False
+                    }
+                except Exception as e:
+                    print(f"[ERROR Push] Unexpected error in webpush: {str(e)}")
+                    import traceback
+                    print(f"[ERROR Push] Traceback: {traceback.format_exc()}")
+                    return {
+                        'statusCode': 500,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({
+                            'success': False,
+                            'error': f'Internal error: {str(e)}'
                         }),
                         'isBase64Encoded': False
                     }
