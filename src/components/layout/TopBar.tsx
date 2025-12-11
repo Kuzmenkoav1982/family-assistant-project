@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { getTranslation, type LanguageCode } from '@/translations';
-import SettingsMenu from '@/components/SettingsMenu';
 
 const APP_VERSION = '1.2.0';
 
@@ -39,7 +38,6 @@ export default function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
 
   console.log('🚀 App Version:', APP_VERSION);
@@ -98,12 +96,6 @@ export default function TopBar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
-              <Icon name="Settings" size={16} className="mr-2" />
-              <span>Настройки семьи</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuSeparator />
             
             <DropdownMenuItem onClick={() => {
               const newLang = currentLanguage === 'ru' ? 'en' : 'ru';
@@ -181,8 +173,6 @@ export default function TopBar({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      <SettingsMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
       <button
         onClick={() => onVisibilityChange(!isVisible)}

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SettingsMenu from '@/components/SettingsMenu';
 import {
   Collapsible,
   CollapsibleContent,
@@ -33,6 +34,7 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   
   const [openSections, setOpenSections] = useState<string[]>([
@@ -162,8 +164,18 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         }`}
         style={{ width: '280px' }}
       >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-full justify-start gap-2 h-9 px-3 mb-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 hover:from-blue-100 hover:to-purple-100"
+            title="Настройки"
+          >
+            <Icon name="Settings" size={18} />
+            <span className="font-medium">Настройки</span>
+          </Button>
+          <h3 className="text-sm font-semibold flex items-center gap-2 mt-2">
             <Icon name="Menu" size={16} />
             Разделы
           </h3>
@@ -220,6 +232,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
           ))}
         </div>
       </div>
+
+      <SettingsMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
       <button
         onClick={() => onVisibilityChange(!isVisible)}
