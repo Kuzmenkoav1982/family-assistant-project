@@ -14,7 +14,9 @@ export function NotificationsSettings() {
     permission,
     subscribe,
     unsubscribe,
-    sendTestNotification
+    sendTestNotification,
+    isIOSDevice,
+    isIOSPWA
   } = usePushNotifications();
 
   const [isSendingTest, setIsSendingTest] = useState(false);
@@ -39,6 +41,59 @@ export function NotificationsSettings() {
     }
   };
 
+  if (!isSupported && isIOSDevice && !isIOSPWA) {
+    return (
+      <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="Smartphone" size={24} className="text-blue-600" />
+            iPhone/iPad: Установите PWA для уведомлений
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-700">
+            Safari не поддерживает Web Push API. Установите приложение на домашний экран для получения уведомлений:
+          </p>
+
+          <div className="bg-white rounded-lg p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">Откройте меню "Поделиться"</p>
+                <p className="text-sm text-gray-600">Нажмите кнопку <Icon name="Share" size={14} className="inline" /> внизу Safari</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">Добавьте на домашний экран</p>
+                <p className="text-sm text-gray-600">Выберите "На экран «Домой»" и нажмите "Добавить"</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">Откройте с домашнего экрана</p>
+                <p className="text-sm text-gray-600">Push-уведомления работают только в установленном приложении</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <Icon name="Lightbulb" size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-gray-700">
+                <strong>Альтернатива:</strong> Перейдите в Настройки → Уведомления и настройте Email/SMS уведомления — они работают без установки!
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!isSupported) {
     return (
       <Card className="border-orange-200 bg-orange-50">
@@ -49,8 +104,11 @@ export function NotificationsSettings() {
               <p className="font-medium text-orange-900 mb-1">
                 Push-уведомления не поддерживаются
               </p>
-              <p className="text-sm text-orange-700">
+              <p className="text-sm text-orange-700 mb-2">
                 Ваш браузер не поддерживает push-уведомления. Попробуйте использовать современный браузер (Chrome, Firefox, Edge).
+              </p>
+              <p className="text-xs text-orange-600">
+                💡 Используйте Email или SMS уведомления как альтернативу
               </p>
             </div>
           </div>

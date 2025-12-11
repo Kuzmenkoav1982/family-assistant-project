@@ -17,17 +17,35 @@ const urlBase64ToUint8Array = (base64String: string) => {
   return outputArray;
 };
 
+const isIOS = () => {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+};
+
+const isStandalone = () => {
+  return ('standalone' in window.navigator) && ((window.navigator as any).standalone === true);
+};
+
 export function usePushNotifications() {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [isIOSDevice, setIsIOSDevice] = useState(false);
+  const [isIOSPWA, setIsIOSPWA] = useState(false);
 
   useEffect(() => {
+    const iosDevice = isIOS();
+    const iosPWA = isStandalone();
+    
+    setIsIOSDevice(iosDevice);
+    setIsIOSPWA(iosPWA);
+
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       setIsSupported(true);
       setPermission(Notification.permission);
       checkSubscription();
+    } else if (iosDevice && !iosPWA) {
+      setIsSupported(false);
     }
   }, []);
 
@@ -161,6 +179,8 @@ export function usePushNotifications() {
     permission,
     subscribe,
     unsubscribe,
-    sendTestNotification
+    sendTestNotification,
+    isIOSDevice,
+    isIOSPWA
   };
 }
