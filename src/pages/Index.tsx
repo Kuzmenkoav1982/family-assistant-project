@@ -78,6 +78,7 @@ import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
+import PanelSettings from '@/components/PanelSettings';
 import { ShoppingWidget } from '@/components/widgets/ShoppingWidget';
 import { VotingWidget } from '@/components/widgets/VotingWidget';
 import { NutritionWidget } from '@/components/widgets/NutritionWidget';
