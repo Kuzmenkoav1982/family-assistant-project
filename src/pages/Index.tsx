@@ -107,20 +107,6 @@ export default function Index({ onLogout }: IndexProps) {
   
   const [familyName, setFamilyName] = useState('Наша семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');
-  const [currentUserId, setCurrentUserId] = useState<string>(() => {
-    const authUserStr = localStorage.getItem('user');
-    if (authUserStr) {
-      try {
-        const authUserData = JSON.parse(authUserStr);
-        if (authUserData?.member_id) {
-          return authUserData.member_id;
-        }
-      } catch (e) {
-        console.error('Error parsing authUser:', e);
-      }
-    }
-    return localStorage.getItem('currentUserId') || familyMembers[0]?.id || '';
-  });
   
   useEffect(() => {
     const userData = localStorage.getItem('userData');
@@ -143,12 +129,6 @@ export default function Index({ onLogout }: IndexProps) {
       console.log('[DEBUG Index] No userData in localStorage');
     }
   }, []);
-  
-  useEffect(() => {
-    if (currentUserId) {
-      localStorage.setItem('currentUserId', currentUserId);
-    }
-  }, [currentUserId]);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
@@ -327,6 +307,10 @@ export default function Index({ onLogout }: IndexProps) {
 
 
   const authUserData = authUser ? JSON.parse(authUser) : null;
+  const currentUser = authUserData?.member_id 
+    ? familyMembers.find(m => m.id === authUserData.member_id) || familyMembers[0]
+    : familyMembers[0];
+  const currentUserId = currentUser?.id || familyMembers[0]?.id || '';
 
   useEffect(() => {
     localStorage.setItem('familyGoals', JSON.stringify(familyGoals));
@@ -963,21 +947,6 @@ export default function Index({ onLogout }: IndexProps) {
     return next.toISOString().split('T')[0];
   };
 
-  const handleResetDemo = () => {
-    // Очищаем все данные демо-режима из localStorage
-    const keysToKeep = ['authToken', 'userData', 'familyId'];
-    const allKeys = Object.keys(localStorage);
-    
-    allKeys.forEach(key => {
-      if (!keysToKeep.includes(key)) {
-        localStorage.removeItem(key);
-      }
-    });
-    
-    // Перезагружаем страницу
-    window.location.reload();
-  };
-
   const addPoints = async (memberName: string, points: number) => {
     const member = familyMembers.find(m => m.name === memberName);
     if (member) {
@@ -1000,8 +969,6 @@ export default function Index({ onLogout }: IndexProps) {
   const getMemberById = (id: string) => {
     return familyMembers.find(m => m.id === id);
   };
-
-  const currentUser = getMemberById(currentUserId) || familyMembers[0];
 
   const getAISuggestedMeals = () => {
     const allFavorites = familyMembers.flatMap(m => m.foodPreferences?.favorites || []);
@@ -1442,17 +1409,6 @@ export default function Index({ onLogout }: IndexProps) {
           isVisible={isTopBarVisible}
           onVisibilityChange={setIsTopBarVisible}
           onMenuClick={() => setIsLeftMenuVisible(true)}
-          currentLanguage={currentLanguage}
-          currentTheme={currentTheme}
-          onLogout={handleLogout}
-          onLanguageChange={handleLanguageChange}
-          onThemeChange={handleThemeChange}
-          onResetDemo={handleResetDemo}
-          currentUserId={currentUserId}
-          onUserChange={setCurrentUserId}
-          familyMembers={familyMembers}
-          familyName={familyName}
-          familyLogo={familyLogo}
         />
 
         <Sidebar
@@ -3341,6 +3297,18 @@ export default function Index({ onLogout }: IndexProps) {
         selectedSections={bottomBarSections}
         onSectionsChange={handleBottomBarSectionsChange}
         onKuzyaClick={() => setShowKuzyaDialog(true)}
+        currentLanguage={currentLanguage}
+        currentTheme={theme}
+        onLogout={handleLogout}
+        onLanguageChange={(lang) => {
+          setCurrentLanguage(lang as LanguageCode);
+          localStorage.setItem('familyOrganizerLanguage', lang);
+        }}
+        onThemeChange={(newTheme) => {
+          setTheme(newTheme as ThemeType);
+          localStorage.setItem('familyOrganizerTheme', newTheme);
+        }}
+        onResetDemo={handleResetDemo}
       />
 
       <PanelSettings
