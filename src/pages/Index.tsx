@@ -107,6 +107,9 @@ export default function Index({ onLogout }: IndexProps) {
   
   const [familyName, setFamilyName] = useState('Наша семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');
+  const [currentUserId, setCurrentUserId] = useState<string>(() => {
+    return localStorage.getItem('currentUserId') || familyMembers[0]?.id || '';
+  });
   
   useEffect(() => {
     const userData = localStorage.getItem('userData');
@@ -129,6 +132,12 @@ export default function Index({ onLogout }: IndexProps) {
       console.log('[DEBUG Index] No userData in localStorage');
     }
   }, []);
+  
+  useEffect(() => {
+    if (currentUserId) {
+      localStorage.setItem('currentUserId', currentUserId);
+    }
+  }, [currentUserId]);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
@@ -984,6 +993,8 @@ export default function Index({ onLogout }: IndexProps) {
   const getMemberById = (id: string) => {
     return familyMembers.find(m => m.id === id);
   };
+
+  const currentUser = getMemberById(currentUserId) || familyMembers[0];
 
   const getAISuggestedMeals = () => {
     const allFavorites = familyMembers.flatMap(m => m.foodPreferences?.favorites || []);
