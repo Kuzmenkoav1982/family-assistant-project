@@ -110,9 +110,9 @@ export default function TopBar({
             variant="ghost"
             size="sm"
             className="h-9 w-9 p-0"
-            title="Переключатель семьи"
+            title="Приглашения и подписка"
           >
-            <Icon name="Users" size={18} />
+            <Icon name="UserPlus" size={18} />
           </Button>
 
           <DropdownMenu>
