@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useState } from 'react';
+import func2url from '../../backend/func2url.json';
 
 export function NotificationsSettings() {
   const {
@@ -20,6 +21,25 @@ export function NotificationsSettings() {
   } = usePushNotifications();
 
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isCheckingReminders, setIsCheckingReminders] = useState(false);
+
+  const handleCheckReminders = async () => {
+    setIsCheckingReminders(true);
+    try {
+      const response = await fetch(func2url['scheduled-reminders']);
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`✅ Проверка завершена!\nОтправлено: ${result.sent} уведомлений\nОшибок: ${result.failed}`);
+      } else {
+        alert(`❌ Ошибка: ${result.error}`);
+      }
+    } catch (error) {
+      alert('❌ Не удалось выполнить проверку напоминаний');
+    } finally {
+      setIsCheckingReminders(false);
+    }
+  };
 
   const handleToggle = async () => {
     if (isSubscribed) {
@@ -241,10 +261,33 @@ export function NotificationsSettings() {
                   <span><strong>Важные даты:</strong> дни рождения и годовщины членов семьи</span>
                 </li>
               </ul>
+              
+              <Button
+                onClick={handleCheckReminders}
+                disabled={isCheckingReminders}
+                variant="outline"
+                className="w-full gap-2 mt-4 bg-white hover:bg-blue-50"
+              >
+                {isCheckingReminders ? (
+                  <>
+                    <Icon name="Loader2" size={18} className="animate-spin" />
+                    Проверка напоминаний...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="RefreshCw" size={18} />
+                    Проверить напоминания сейчас
+                  </>
+                )}
+              </Button>
+              
               <div className="mt-3 p-3 bg-white rounded border border-blue-200">
                 <p className="text-xs text-gray-600 flex items-start gap-2">
                   <Icon name="Info" size={14} className="mt-0.5 flex-shrink-0" />
-                  <span>Уведомления отправляются автоматически каждый день в 9:00. Вы можете выключить их в любое время.</span>
+                  <span>
+                    <strong>Автоматическая проверка:</strong> Напоминания проверяются каждый день в 9:00, 14:00 и 19:00. 
+                    Или нажмите кнопку выше для ручной проверки прямо сейчас.
+                  </span>
                 </p>
               </div>
             </div>
