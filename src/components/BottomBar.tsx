@@ -194,24 +194,22 @@ export default function BottomBar({
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => onVisibilityChange(!isVisible)}
+              className="text-white hover:bg-white/20"
+              title={isVisible ? "Скрыть панель" : "Показать панель"}
+            >
+              <Icon name={isVisible ? "ChevronDown" : "ChevronUp"} size={20} />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={toggleManualMode}
               className={`text-white hover:bg-white/20 ${isManualMode ? 'bg-white/30' : ''}`}
-              title={isManualMode ? "Ручной режим: панель всегда видна" : "Авто-режим: панель скрывается"}
+              title={isManualMode ? "Ручной режим: всегда доступна" : "Авто-режим: скрывается при переходах"}
             >
               <Icon name={isManualMode ? "Lock" : "Unlock"} size={20} />
             </Button>
-            
-            {!isManualMode && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onVisibilityChange(!isVisible)}
-                className="text-white hover:bg-white/20"
-                title={isVisible ? "Скрыть панель" : "Показать панель"}
-              >
-                <Icon name={isVisible ? "ChevronDown" : "ChevronUp"} size={20} />
-              </Button>
-            )}
           </div>
         </div>
       </div>
