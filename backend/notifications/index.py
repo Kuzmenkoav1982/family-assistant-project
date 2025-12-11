@@ -27,10 +27,18 @@ def send_email_smtp(to: str, subject: str, body: str, html: Optional[str] = None
     smtp_login = os.environ.get('YANDEX_SMTP_LOGIN')
     smtp_password = os.environ.get('YANDEX_SMTP_PASSWORD')
     
+    # DEBUG: Log credentials (masked password)
+    print(f"[DEBUG] SMTP Login: {smtp_login}")
+    print(f"[DEBUG] SMTP Password length: {len(smtp_password) if smtp_password else 0}")
+    print(f"[DEBUG] SMTP Password first 4 chars: {smtp_password[:4] if smtp_password else 'None'}...")
+    
     if not smtp_login or not smtp_password:
         raise ValueError("YANDEX_SMTP_LOGIN и YANDEX_SMTP_PASSWORD не настроены")
     
     sender_email = smtp_login if '@' in smtp_login else f"{smtp_login}@yandex.ru"
+    
+    print(f"[DEBUG] Sender email: {sender_email}")
+    print(f"[DEBUG] Connecting to smtp.yandex.ru:465...")
     
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
@@ -41,9 +49,16 @@ def send_email_smtp(to: str, subject: str, body: str, html: Optional[str] = None
     if html:
         msg.attach(MIMEText(html, 'html', 'utf-8'))
     
-    with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as server:
-        server.login(sender_email, smtp_password)
-        server.send_message(msg)
+    try:
+        with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as server:
+            print(f"[DEBUG] Attempting login with: {sender_email}")
+            server.login(sender_email, smtp_password)
+            print(f"[DEBUG] Login successful! Sending email to {to}...")
+            server.send_message(msg)
+            print(f"[DEBUG] Email sent successfully!")
+    except Exception as e:
+        print(f"[ERROR] SMTP Error: {type(e).__name__}: {str(e)}")
+        raise
     
     return {"status": "sent", "to": to, "method": "smtp"}
 
