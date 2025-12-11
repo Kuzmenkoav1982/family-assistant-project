@@ -109,6 +109,7 @@ export default function TopBar({
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => navigate('/family-invite')}
             className="h-9 w-9 p-0"
             title="Приглашения и подписка"
           >
@@ -134,14 +135,22 @@ export default function TopBar({
               
               <DropdownMenuSeparator />
               
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                const newLang = currentLanguage === 'ru' ? 'en' : 'ru';
+                onLanguageChange(newLang);
+              }}>
                 <Icon name="Globe" size={16} className="mr-2" />
-                <span>Язык</span>
+                <span>Язык: {currentLanguage.toUpperCase()}</span>
               </DropdownMenuItem>
               
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                const themes = ['default', 'purple', 'ocean', 'sunset', 'forest', 'rose'];
+                const currentIndex = themes.indexOf(currentTheme);
+                const nextIndex = (currentIndex + 1) % themes.length;
+                onThemeChange(themes[nextIndex]);
+              }}>
                 <Icon name="Palette" size={16} className="mr-2" />
-                <span>Стиль</span>
+                <span>Стиль: {currentTheme}</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={toggleDarkMode}>
