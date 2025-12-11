@@ -8,30 +8,42 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing new service worker...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('[SW] Cache opened');
         return cache.addAll(urlsToCache);
       })
+      .then(() => {
+        console.log('[SW] Install complete, calling skipWaiting()');
+        return self.skipWaiting();
+      })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating new service worker...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('[SW] Claiming clients...');
+        return self.clients.claim();
+      })
+      .then(() => {
+        console.log('[SW] Service worker activated and ready!');
+      })
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
