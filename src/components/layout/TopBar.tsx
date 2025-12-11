@@ -87,120 +87,115 @@ export default function TopBar({
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          {isAuthenticated ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              onClick={onLogout}
-              className="h-9 w-9 p-0"
-              title="Выход"
+              className="h-9 px-3"
             >
-              <Icon name="LogOut" size={18} />
+              <Icon name="Menu" size={18} />
             </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/welcome')}
-              className="h-9 w-9 p-0"
-              title="Вход"
-            >
-              <Icon name="LogIn" size={18} />
-            </Button>
-          )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
+              <Icon name="Settings" size={16} className="mr-2" />
+              <span>Настройки семьи</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem onClick={() => {
+              const newLang = currentLanguage === 'ru' ? 'en' : 'ru';
+              onLanguageChange(newLang);
+            }}>
+              <Icon name="Globe" size={16} className="mr-2" />
+              <span>Язык: {currentLanguage.toUpperCase()}</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem onClick={() => {
+              const themes = ['default', 'purple', 'ocean', 'sunset', 'forest', 'rose'];
+              const currentIndex = themes.indexOf(currentTheme);
+              const nextIndex = (currentIndex + 1) % themes.length;
+              onThemeChange(themes[nextIndex]);
+            }}>
+              <Icon name="Palette" size={16} className="mr-2" />
+              <span>Стиль: {currentTheme}</span>
+            </DropdownMenuItem>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/family-invite')}
-            className="h-9 w-9 p-0"
-            title="Приглашения и подписка"
-          >
-            <Icon name="UserPlus" size={18} />
-          </Button>
+            <DropdownMenuItem onClick={toggleDarkMode}>
+              <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
+              <span>Тёмная тема</span>
+            </DropdownMenuItem>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 w-9 p-0"
-                title="Настройки"
-              >
-                <Icon name="Settings" size={18} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
-                <Icon name="Settings" size={16} className="mr-2" />
-                <span>Настройки семьи</span>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem onClick={openJivoChat}>
+              <Icon name="MessageCircle" size={16} className="mr-2" />
+              <span>Онлайн поддержка</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => navigate('/feedback')}>
+              <Icon name="MessageSquareText" size={16} className="mr-2" />
+              <span>Отзывы</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => navigate('/instructions')}>
+              <Icon name="BookOpen" size={16} className="mr-2" />
+              <span>Инструкции</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => navigate('/presentation')}>
+              <Icon name="Play" size={16} className="mr-2" />
+              <span>Презентация</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => navigate('/family-invite')}>
+              <Icon name="UserPlus" size={16} className="mr-2" />
+              <span>Приглашения и подписка</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <Icon name="UserCircle" size={16} className="mr-2" />
+              <span>Мой профиль</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem onClick={onResetDemo}>
+              <Icon name="RotateCcw" size={16} className="mr-2" />
+              <span>Сбросить демо</span>
+            </DropdownMenuItem>
+
+            {isAuthenticated ? (
+              <DropdownMenuItem onClick={onLogout}>
+                <Icon name="LogOut" size={16} className="mr-2" />
+                <span>Выход</span>
               </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem onClick={() => {
-                const newLang = currentLanguage === 'ru' ? 'en' : 'ru';
-                onLanguageChange(newLang);
-              }}>
-                <Icon name="Globe" size={16} className="mr-2" />
-                <span>Язык: {currentLanguage.toUpperCase()}</span>
+            ) : (
+              <DropdownMenuItem onClick={() => navigate('/welcome')}>
+                <Icon name="LogIn" size={16} className="mr-2" />
+                <span>Вход</span>
               </DropdownMenuItem>
-              
-              <DropdownMenuItem onClick={() => {
-                const themes = ['default', 'purple', 'ocean', 'sunset', 'forest', 'rose'];
-                const currentIndex = themes.indexOf(currentTheme);
-                const nextIndex = (currentIndex + 1) % themes.length;
-                onThemeChange(themes[nextIndex]);
-              }}>
-                <Icon name="Palette" size={16} className="mr-2" />
-                <span>Стиль: {currentTheme}</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={toggleDarkMode}>
-                <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
-                <span>Тёмная тема</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={openJivoChat}>
-                <Icon name="MessageCircle" size={16} className="mr-2" />
-                <span>Онлайн поддержка</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/feedback')}>
-                <Icon name="MessageSquareText" size={16} className="mr-2" />
-                <span>Отзывы</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/instructions')}>
-                <Icon name="BookOpen" size={16} className="mr-2" />
-                <span>Инструкции</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/presentation')}>
-                <Icon name="Play" size={16} className="mr-2" />
-                <span>Презентация</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Icon name="UserCircle" size={16} className="mr-2" />
-                <span>Мой профиль</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={onResetDemo}>
-                <Icon name="RotateCcw" size={16} className="mr-2" />
-                <span>Сбросить демо</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <SettingsMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+
+      <button
+        onClick={() => onVisibilityChange(!isVisible)}
+        className={`fixed left-1/2 -translate-x-1/2 z-40 bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-b-lg px-4 py-2 transition-all duration-300 ${
+          isVisible ? 'top-[52px]' : 'top-0'
+        }`}
+      >
+        <Icon 
+          name={isVisible ? 'ChevronUp' : 'ChevronDown'} 
+          size={20} 
+          className="text-gray-600 dark:text-gray-400" 
+        />
+      </button>
     </div>
   );
 }
