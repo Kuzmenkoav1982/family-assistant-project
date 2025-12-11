@@ -3,6 +3,7 @@ import os
 from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from pywebpush import webpush, WebPushException
 
 def escape_sql_string(value: Any) -> str:
     if value is None:
@@ -51,10 +52,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     schema = 't_p5815085_family_assistant_pro'
     
     token_safe = escape_sql_string(token)
-    cur.execute(f"SELECT family_id FROM {schema}.auth_tokens WHERE token = '{token_safe}' AND expires_at > NOW()")
-    auth_row = cur.fetchone()
+    cur.execute(f"SELECT user_id FROM {schema}.sessions WHERE token = '{token_safe}' AND expires_at > NOW()")
+    session_row = cur.fetchone()
     
-    if not auth_row:
+    if not session_row:
         cur.close()
         conn.close()
         return {
@@ -63,7 +64,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'success': False, 'error': 'Invalid or expired token'})
         }
     
-    family_id = auth_row['family_id']
+    user_id = session_row['user_id']
+    
+    cur.execute(f"SELECT family_id FROM {schema}.family_members WHERE user_id = '{escape_sql_string(user_id)}' LIMIT 1")
+    member_row = cur.fetchone()
+    
+    if not member_row:
+        cur.close()
+        conn.close()
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'error': 'User not in any family'})
+        }
+    
+    family_id = member_row['family_id']
     family_id_safe = escape_sql_string(family_id)
     
     if method == 'POST':
@@ -126,19 +141,55 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'success': False, 'error': 'No subscription found'})
                 }
             
+            subscription_info = subscription_row['subscription_data']
+            
+            vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
+            if not vapid_private_key:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'success': False, 'error': 'VAPID key not configured'})
+                }
+            
             cur.close()
             conn.close()
             
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'success': True, 
-                    'message': 'Notification queued',
-                    'title': title,
-                    'body': message
-                })
-            }
+            try:
+                webpush(
+                    subscription_info=subscription_info,
+                    data=json.dumps({
+                        'title': title,
+                        'body': message,
+                        'icon': '/icon-192.png',
+                        'url': '/'
+                    }),
+                    vapid_private_key=vapid_private_key,
+                    vapid_claims={
+                        'sub': 'mailto:support@family-assistant.app'
+                    }
+                )
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True, 
+                        'message': 'Notification sent successfully',
+                        'title': title,
+                        'body': message
+                    })
+                }
+            except WebPushException as e:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': False,
+                        'error': f'Failed to send notification: {str(e)}'
+                    })
+                }
     
     elif method == 'DELETE':
         cur.execute(f"DELETE FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")

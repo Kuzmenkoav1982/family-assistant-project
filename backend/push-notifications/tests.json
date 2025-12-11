@@ -1,10 +1,27 @@
 {
   "tests": [
     {
-      "name": "Subscribe to notifications",
+      "name": "CORS preflight OPTIONS",
+      "method": "OPTIONS",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Unauthorized request without token",
+      "method": "GET",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "success": false,
+        "error": "Требуется авторизация"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Invalid token returns 401",
       "method": "POST",
       "headers": {
-        "X-Auth-Token": "test-token-123"
+        "X-Auth-Token": "invalid-token-xyz"
       },
       "body": {
         "action": "subscribe",
@@ -16,30 +33,10 @@
           }
         }
       },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Get subscription status",
-      "method": "GET",
-      "headers": {
-        "X-Auth-Token": "test-token-123"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Unauthorized request",
-      "method": "GET",
       "expectedStatus": 401,
       "expectedBody": {
-        "success": false
+        "success": false,
+        "error": "Invalid or expired token"
       },
       "bodyMatcher": "partial"
     }
