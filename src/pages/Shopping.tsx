@@ -220,7 +220,7 @@ export default function Shopping() {
                     Добавить товар
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Добавить товар в список</DialogTitle>
                   </DialogHeader>
@@ -231,8 +231,6 @@ export default function Shopping() {
                         placeholder="Молоко, хлеб..."
                         value={newItem.name}
                         onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                        autoFocus={false}
-                        inputMode="text"
                       />
                     </div>
                     <div>
@@ -261,7 +259,6 @@ export default function Shopping() {
                         placeholder="2 литра, 1 кг..."
                         value={newItem.quantity}
                         onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                        inputMode="text"
                       />
                     </div>
                     <div>
