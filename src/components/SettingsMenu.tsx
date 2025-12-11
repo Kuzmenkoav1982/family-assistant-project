@@ -805,11 +805,66 @@ function NotificationTest() {
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p className="text-xs text-gray-600">
-          <strong>Примечание:</strong> Для работы email требуются секреты YANDEX_SMTP_LOGIN и YANDEX_SMTP_PASSWORD. 
-          Для SMS требуются YANDEX_CLOUD_API_KEY и YANDEX_FOLDER_ID.
-        </p>
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-5 border-2 border-blue-200">
+        <div className="flex items-start gap-3 mb-4">
+          <Icon name="Info" size={22} className="text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Настройка секретов для уведомлений</h4>
+            <p className="text-sm text-gray-700 mb-3">
+              Для работы системы уведомлений нужно добавить секреты в настройках проекта
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="bg-white rounded-lg p-4 border border-purple-200">
+            <div className="flex items-start gap-2 mb-2">
+              <Icon name="Mail" size={18} className="text-purple-600 flex-shrink-0 mt-0.5" />
+              <h5 className="font-semibold text-gray-900">Email уведомления (Яндекс.Почта)</h5>
+            </div>
+            <ul className="text-sm text-gray-700 space-y-1 mb-3 ml-6">
+              <li><strong>YANDEX_SMTP_LOGIN</strong> — ваш email (например: user@yandex.ru)</li>
+              <li><strong>YANDEX_SMTP_PASSWORD</strong> — пароль приложения из Яндекс ID</li>
+            </ul>
+            <a
+              href="https://id.yandex.ru/security/app-passwords"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Icon name="ExternalLink" size={16} />
+              Создать пароль приложения
+            </a>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 border border-green-200">
+            <div className="flex items-start gap-2 mb-2">
+              <Icon name="MessageSquare" size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+              <h5 className="font-semibold text-gray-900">SMS уведомления (SMS.ru)</h5>
+            </div>
+            <ul className="text-sm text-gray-700 space-y-1 mb-3 ml-6">
+              <li><strong>SMS_RU_API_KEY</strong> — API ключ из личного кабинета SMS.ru</li>
+            </ul>
+            <a
+              href="https://sms.ru/panel/api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Icon name="ExternalLink" size={16} />
+              Получить API ключ SMS.ru
+            </a>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <Icon name="Lightbulb" size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-900">
+                <strong>Как добавить секреты:</strong> Перейдите в настройки проекта → вкладка "Ядро" → раздел "Секреты" → добавьте нужные ключи и их значения
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
