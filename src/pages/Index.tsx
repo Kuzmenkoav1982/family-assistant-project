@@ -108,6 +108,17 @@ export default function Index({ onLogout }: IndexProps) {
   const [familyName, setFamilyName] = useState('Наша семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
+    const authUserStr = localStorage.getItem('user');
+    if (authUserStr) {
+      try {
+        const authUserData = JSON.parse(authUserStr);
+        if (authUserData?.member_id) {
+          return authUserData.member_id;
+        }
+      } catch (e) {
+        console.error('Error parsing authUser:', e);
+      }
+    }
     return localStorage.getItem('currentUserId') || familyMembers[0]?.id || '';
   });
   
@@ -316,10 +327,6 @@ export default function Index({ onLogout }: IndexProps) {
 
 
   const authUserData = authUser ? JSON.parse(authUser) : null;
-  const currentUser = authUserData?.member_id 
-    ? familyMembers.find(m => m.id === authUserData.member_id) || familyMembers[0]
-    : familyMembers[0];
-  const currentUserId = currentUser?.id || familyMembers[0]?.id || '';
 
   useEffect(() => {
     localStorage.setItem('familyGoals', JSON.stringify(familyGoals));
