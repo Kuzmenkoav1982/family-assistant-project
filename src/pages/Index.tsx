@@ -1409,6 +1409,17 @@ export default function Index({ onLogout }: IndexProps) {
           isVisible={isTopBarVisible}
           onVisibilityChange={setIsTopBarVisible}
           onMenuClick={() => setIsLeftMenuVisible(true)}
+          currentLanguage={currentLanguage}
+          currentTheme={currentTheme}
+          onLogout={handleLogout}
+          onLanguageChange={handleLanguageChange}
+          onThemeChange={handleThemeChange}
+          onResetDemo={handleResetDemo}
+          currentUserId={currentUserId}
+          onUserChange={setCurrentUserId}
+          familyMembers={familyMembers}
+          familyName={familyName}
+          familyLogo={familyLogo}
         />
 
         <Sidebar
@@ -3297,18 +3308,6 @@ export default function Index({ onLogout }: IndexProps) {
         selectedSections={bottomBarSections}
         onSectionsChange={handleBottomBarSectionsChange}
         onKuzyaClick={() => setShowKuzyaDialog(true)}
-        currentLanguage={currentLanguage}
-        currentTheme={theme}
-        onLogout={handleLogout}
-        onLanguageChange={(lang) => {
-          setCurrentLanguage(lang as LanguageCode);
-          localStorage.setItem('familyOrganizerLanguage', lang);
-        }}
-        onThemeChange={(newTheme) => {
-          setTheme(newTheme as ThemeType);
-          localStorage.setItem('familyOrganizerTheme', newTheme);
-        }}
-        onResetDemo={handleResetDemo}
       />
 
       <PanelSettings

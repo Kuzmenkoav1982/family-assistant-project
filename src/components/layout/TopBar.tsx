@@ -1,6 +1,10 @@
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import SettingsDropdown from '@/components/SettingsDropdown';
+import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
+import { type LanguageCode } from '@/translations';
+import { type ThemeType } from '@/types/family.types';
 
 const APP_VERSION = '1.2.0';
 
@@ -8,12 +12,34 @@ interface TopBarProps {
   isVisible: boolean;
   onVisibilityChange: (visible: boolean) => void;
   onMenuClick?: () => void;
+  currentLanguage: LanguageCode;
+  currentTheme: ThemeType;
+  onLogout: () => void;
+  onLanguageChange: (lang: string) => void;
+  onThemeChange: (theme: string) => void;
+  onResetDemo: () => void;
+  currentUserId: string;
+  onUserChange: (userId: string) => void;
+  familyMembers: any[];
+  familyName?: string;
+  familyLogo?: string;
 }
 
 export default function TopBar({
   isVisible,
   onVisibilityChange,
-  onMenuClick
+  onMenuClick,
+  currentLanguage,
+  currentTheme,
+  onLogout,
+  onLanguageChange,
+  onThemeChange,
+  onResetDemo,
+  currentUserId,
+  onUserChange,
+  familyMembers,
+  familyName = 'Наша семья',
+  familyLogo = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png'
 }: TopBarProps) {
   const navigate = useNavigate();
 
@@ -39,14 +65,31 @@ export default function TopBar({
             </Button>
           )}
           <img 
-            src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-            alt="Наша семья"
+            src={familyLogo} 
+            alt={familyName}
             className="h-8 w-8 object-contain cursor-pointer"
             onClick={() => navigate('/')}
           />
+          <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
+            {familyName}
+          </h1>
         </div>
 
-
+        <div className="flex items-center gap-2">
+          <FamilyMemberSwitcher
+            currentUserId={currentUserId}
+            onUserChange={onUserChange}
+            familyMembers={familyMembers}
+          />
+          <SettingsDropdown
+            currentLanguage={currentLanguage}
+            currentTheme={currentTheme}
+            onLogout={onLogout}
+            onLanguageChange={onLanguageChange}
+            onThemeChange={onThemeChange}
+            onResetDemo={onResetDemo}
+          />
+        </div>
       </div>
 
       <button
