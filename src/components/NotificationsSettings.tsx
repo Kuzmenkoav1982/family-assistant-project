@@ -23,9 +23,15 @@ export function NotificationsSettings() {
 
   const handleToggle = async () => {
     if (isSubscribed) {
-      await unsubscribe();
+      const success = await unsubscribe();
+      if (success) {
+        alert('✅ Push-уведомления отключены. Вы можете включить их заново в любое время.');
+      }
     } else {
-      await subscribe();
+      const success = await subscribe();
+      if (success) {
+        alert('✅ Push-уведомления включены! Попробуйте отправить тестовое уведомление.');
+      }
     }
   };
 
@@ -156,24 +162,61 @@ export function NotificationsSettings() {
 
         {isSubscribed && (
           <div className="space-y-3">
-            <Button
-              onClick={handleTestNotification}
-              disabled={isSendingTest}
-              variant="outline"
-              className="w-full gap-2"
-            >
-              {isSendingTest ? (
-                <>
-                  <Icon name="Loader2" size={18} className="animate-spin" />
-                  Отправка...
-                </>
-              ) : (
-                <>
-                  <Icon name="Send" size={18} />
-                  Отправить тестовое уведомление
-                </>
-              )}
-            </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                onClick={handleTestNotification}
+                disabled={isSendingTest || isLoading}
+                variant="outline"
+                className="w-full gap-2"
+              >
+                {isSendingTest ? (
+                  <>
+                    <Icon name="Loader2" size={18} className="animate-spin" />
+                    Отправка...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Send" size={18} />
+                    Отправить тестовое Push-уведомление
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={async () => {
+                  const success = await unsubscribe();
+                  if (success) {
+                    alert('✅ Push-уведомления отключены. Включите их заново, чтобы пересоздать подписку с актуальными ключами.');
+                  } else {
+                    alert('❌ Не удалось отключить уведомления. Попробуйте ещё раз.');
+                  }
+                }}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                {isLoading ? (
+                  <>
+                    <Icon name="Loader2" size={18} className="animate-spin" />
+                    Отключение...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="BellOff" size={18} />
+                    Отключить Push-уведомления
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Icon name="Info" size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-gray-700">
+                  <strong>Если уведомления не приходят:</strong> Отключите Push-уведомления и включите заново — это пересоздаст подписку с актуальными ключами.
+                </p>
+              </div>
+            </div>
 
             <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
               <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">

@@ -133,30 +133,39 @@ export function usePushNotifications() {
   };
 
   const unsubscribe = async () => {
+    console.log('[DEBUG Push Hook] Starting unsubscribe...');
     setIsLoading(true);
 
     try {
+      console.log('[DEBUG Push Hook] Getting service worker...');
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
+      console.log('[DEBUG Push Hook] Current subscription:', subscription);
 
       if (subscription) {
+        console.log('[DEBUG Push Hook] Unsubscribing from push...');
         await subscription.unsubscribe();
+        console.log('[DEBUG Push Hook] Unsubscribed successfully');
       }
 
       const token = localStorage.getItem('authToken');
+      console.log('[DEBUG Push Hook] Deleting subscription from backend...');
       
-      await fetch(PUSH_API_URL, {
+      const response = await fetch(PUSH_API_URL, {
         method: 'DELETE',
         headers: {
           'X-Auth-Token': token || ''
         }
       });
+      
+      console.log('[DEBUG Push Hook] Backend DELETE response:', response.status);
 
       setIsSubscribed(false);
       setIsLoading(false);
+      console.log('[DEBUG Push Hook] Unsubscribe complete!');
       return true;
     } catch (error) {
-      console.error('Error unsubscribing:', error);
+      console.error('[ERROR Push Hook] Unsubscribe error:', error);
       setIsLoading(false);
       return false;
     }
