@@ -42,7 +42,7 @@ export default function Login() {
         
         // Небольшая задержка, чтобы localStorage точно успел записаться
         setTimeout(() => {
-          navigate('/');
+          window.location.href = '/';
         }, 100);
       } catch (e) {
         console.error('Ошибка парсинга user:', e);
