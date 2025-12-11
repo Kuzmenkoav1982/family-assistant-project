@@ -30,8 +30,21 @@ export default function BottomBar({
 }: BottomBarProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const [isManualMode, setIsManualMode] = useState(() => {
+    const saved = localStorage.getItem('bottomBarManualMode');
+    return saved ? JSON.parse(saved) : false;
+  });
 
-  const shouldShow = isVisible || (!autoHide) || isHovered;
+  const shouldShow = isManualMode || isVisible || (!autoHide) || isHovered;
+
+  const toggleManualMode = () => {
+    const newMode = !isManualMode;
+    setIsManualMode(newMode);
+    localStorage.setItem('bottomBarManualMode', JSON.stringify(newMode));
+    if (newMode) {
+      onVisibilityChange(true);
+    }
+  };
 
   const displaySections = availableSections.filter(s => selectedSections.includes(s.id));
 
@@ -181,12 +194,24 @@ export default function BottomBar({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onVisibilityChange(!isVisible)}
-              className="text-white hover:bg-white/20"
-              title={isVisible ? "Скрыть панель" : "Показать панель"}
+              onClick={toggleManualMode}
+              className={`text-white hover:bg-white/20 ${isManualMode ? 'bg-white/30' : ''}`}
+              title={isManualMode ? "Ручной режим: панель всегда видна" : "Авто-режим: панель скрывается"}
             >
-              <Icon name={isVisible ? "ChevronDown" : "ChevronUp"} size={20} />
+              <Icon name={isManualMode ? "Lock" : "Unlock"} size={20} />
             </Button>
+            
+            {!isManualMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onVisibilityChange(!isVisible)}
+                className="text-white hover:bg-white/20"
+                title={isVisible ? "Скрыть панель" : "Показать панель"}
+              >
+                <Icon name={isVisible ? "ChevronDown" : "ChevronUp"} size={20} />
+              </Button>
+            )}
           </div>
         </div>
       </div>
