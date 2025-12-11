@@ -947,6 +947,21 @@ export default function Index({ onLogout }: IndexProps) {
     return next.toISOString().split('T')[0];
   };
 
+  const handleResetDemo = () => {
+    // Очищаем все данные демо-режима из localStorage
+    const keysToKeep = ['authToken', 'userData', 'familyId'];
+    const allKeys = Object.keys(localStorage);
+    
+    allKeys.forEach(key => {
+      if (!keysToKeep.includes(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Перезагружаем страницу
+    window.location.reload();
+  };
+
   const addPoints = async (memberName: string, points: number) => {
     const member = familyMembers.find(m => m.name === memberName);
     if (member) {
