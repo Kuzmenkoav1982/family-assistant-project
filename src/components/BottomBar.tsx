@@ -2,6 +2,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { getTranslation, type LanguageCode } from '@/translations';
+import SettingsMenu from '@/components/SettingsMenu';
 
 interface BottomBarProps {
   activeSection: string;
@@ -14,6 +23,12 @@ interface BottomBarProps {
   selectedSections: string[];
   onSectionsChange: (sections: string[]) => void;
   onKuzyaClick?: () => void;
+  currentLanguage: LanguageCode;
+  currentTheme: string;
+  onLogout: () => void;
+  onLanguageChange: (lang: string) => void;
+  onThemeChange: (theme: string) => void;
+  onResetDemo: () => void;
 }
 
 export default function BottomBar({
@@ -26,9 +41,34 @@ export default function BottomBar({
   availableSections,
   selectedSections,
   onSectionsChange,
-  onKuzyaClick
+  onKuzyaClick,
+  currentLanguage,
+  currentTheme,
+  onLogout,
+  onLanguageChange,
+  onThemeChange,
+  onResetDemo
 }: BottomBarProps) {
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
+  
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle('dark');
+  };
+  
+  const openJivoChat = () => {
+    // @ts-ignore - Jivo глобальная переменная
+    if (window.jivo_api) {
+      // @ts-ignore
+      window.jivo_api.open();
+    }
+  };
+  
+  const authToken = localStorage.getItem('authToken');
+  const isAuthenticated = !!authToken;
 
   const displaySections = availableSections.filter(s => selectedSections.includes(s.id));
 
@@ -41,6 +81,100 @@ export default function BottomBar({
       >
         <div className="max-w-screen-2xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                >
+                  <Icon name="Menu" size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 mb-2">
+                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
+                  <Icon name="Settings" size={16} className="mr-2" />
+                  <span>Настройки семьи</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={() => {
+                  const newLang = currentLanguage === 'ru' ? 'en' : 'ru';
+                  onLanguageChange(newLang);
+                }}>
+                  <Icon name="Globe" size={16} className="mr-2" />
+                  <span>Язык: {currentLanguage.toUpperCase()}</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={() => {
+                  const themes = ['default', 'purple', 'ocean', 'sunset', 'forest', 'rose'];
+                  const currentIndex = themes.indexOf(currentTheme);
+                  const nextIndex = (currentIndex + 1) % themes.length;
+                  onThemeChange(themes[nextIndex]);
+                }}>
+                  <Icon name="Palette" size={16} className="mr-2" />
+                  <span>Стиль: {currentTheme}</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={toggleDarkMode}>
+                  <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
+                  <span>Тёмная тема</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={openJivoChat}>
+                  <Icon name="MessageCircle" size={16} className="mr-2" />
+                  <span>Онлайн поддержка</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate('/feedback')}>
+                  <Icon name="MessageSquareText" size={16} className="mr-2" />
+                  <span>Отзывы</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate('/instructions')}>
+                  <Icon name="BookOpen" size={16} className="mr-2" />
+                  <span>Инструкции</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate('/presentation')}>
+                  <Icon name="Play" size={16} className="mr-2" />
+                  <span>Презентация</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate('/family-invite')}>
+                  <Icon name="UserPlus" size={16} className="mr-2" />
+                  <span>Приглашения и подписка</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <Icon name="UserCircle" size={16} className="mr-2" />
+                  <span>Мой профиль</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={onResetDemo}>
+                  <Icon name="RotateCcw" size={16} className="mr-2" />
+                  <span>Сбросить демо</span>
+                </DropdownMenuItem>
+
+                {isAuthenticated ? (
+                  <DropdownMenuItem onClick={onLogout}>
+                    <Icon name="LogOut" size={16} className="mr-2" />
+                    <span>Выход</span>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => navigate('/welcome')}>
+                    <Icon name="LogIn" size={16} className="mr-2" />
+                    <span>Вход</span>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <div className="flex items-center gap-2 flex-1 justify-center overflow-x-auto">
               <Button
                 variant={activeSection === 'home' ? 'secondary' : 'ghost'}
@@ -188,6 +322,8 @@ export default function BottomBar({
           className="text-gray-600" 
         />
       </button>
+      
+      <SettingsMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </>
   );
 }

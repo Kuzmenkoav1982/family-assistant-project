@@ -1407,13 +1407,7 @@ export default function Index({ onLogout }: IndexProps) {
       <div className={`min-h-screen ${themeClasses.background} ${themeClasses.baseFont} transition-all duration-700 ease-in-out ${currentTheme === 'mono' ? 'theme-mono' : ''} ${currentTheme === '1' ? 'theme-1' : ''}`}>
         <TopBar
           isVisible={isTopBarVisible}
-          currentLanguage={currentLanguage}
-          currentTheme={currentTheme}
-          onLogout={handleLogout}
           onVisibilityChange={setIsTopBarVisible}
-          onLanguageChange={handleLanguageChange}
-          onThemeChange={handleThemeChange}
-          onResetDemo={handleLogoutLocal}
           onMenuClick={() => setIsLeftMenuVisible(true)}
         />
 
@@ -3303,6 +3297,18 @@ export default function Index({ onLogout }: IndexProps) {
         selectedSections={bottomBarSections}
         onSectionsChange={handleBottomBarSectionsChange}
         onKuzyaClick={() => setShowKuzyaDialog(true)}
+        currentLanguage={currentLanguage}
+        currentTheme={theme}
+        onLogout={handleLogout}
+        onLanguageChange={(lang) => {
+          setCurrentLanguage(lang as LanguageCode);
+          localStorage.setItem('familyOrganizerLanguage', lang);
+        }}
+        onThemeChange={(newTheme) => {
+          setTheme(newTheme as ThemeType);
+          localStorage.setItem('familyOrganizerTheme', newTheme);
+        }}
+        onResetDemo={handleResetDemo}
       />
 
       <PanelSettings
