@@ -60,7 +60,10 @@ export function usePushNotifications() {
   };
 
   const subscribe = async () => {
+    console.log('[DEBUG Push Hook] Starting subscribe...');
+    
     if (!isSupported) {
+      console.log('[DEBUG Push Hook] Not supported');
       alert('Push-уведомления не поддерживаются в вашем браузере');
       return false;
     }
@@ -68,25 +71,34 @@ export function usePushNotifications() {
     setIsLoading(true);
 
     try {
+      console.log('[DEBUG Push Hook] Requesting permission...');
       const permission = await Notification.requestPermission();
       setPermission(permission);
+      console.log('[DEBUG Push Hook] Permission result:', permission);
 
       if (permission !== 'granted') {
+        console.log('[DEBUG Push Hook] Permission denied');
         alert('Вы отклонили разрешение на уведомления');
         setIsLoading(false);
         return false;
       }
 
+      console.log('[DEBUG Push Hook] Waiting for service worker...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('[DEBUG Push Hook] Service worker ready');
       
       const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDEi2Oh7C_RO4BRp6NJkO6e3caCHBw5qZJpXNjNxdUeo';
       
+      console.log('[DEBUG Push Hook] Creating push subscription...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
+      console.log('[DEBUG Push Hook] Push subscription created:', subscription);
 
       const token = localStorage.getItem('authToken');
+      console.log('[DEBUG Push Hook] Auth token present:', !!token);
+      console.log('[DEBUG Push Hook] Sending to backend:', PUSH_API_URL);
       
       const response = await fetch(PUSH_API_URL, {
         method: 'POST',
@@ -100,9 +112,12 @@ export function usePushNotifications() {
         })
       });
 
+      console.log('[DEBUG Push Hook] Backend response status:', response.status);
       const result = await response.json();
+      console.log('[DEBUG Push Hook] Backend response data:', result);
 
       if (result.success) {
+        console.log('[DEBUG Push Hook] Successfully subscribed!');
         setIsSubscribed(true);
         setIsLoading(false);
         return true;
@@ -110,7 +125,7 @@ export function usePushNotifications() {
         throw new Error(result.error || 'Failed to save subscription');
       }
     } catch (error) {
-      console.error('Error subscribing:', error);
+      console.error('[ERROR Push Hook] Subscribe error:', error);
       alert('Ошибка подписки на уведомления');
       setIsLoading(false);
       return false;
