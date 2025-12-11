@@ -24,6 +24,7 @@ interface Message {
 const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isManualMode, setIsManualMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +35,13 @@ const AIAssistantWidget = () => {
 
   // Скрываем виджет на странице /welcome
   const isWelcomePage = location.pathname === '/welcome';
+
+  // Скрываем виджет автоматически при переходе, если включен ручной режим
+  useEffect(() => {
+    if (!isManualMode && !isWelcomePage) {
+      setIsOpen(false);
+    }
+  }, [location.pathname, isManualMode, isWelcomePage]);
 
   // Состояние для роли Кузи
   const [kuzyaRole, setKuzyaRole] = useState(() => localStorage.getItem('kuzyaRole') || 'family-assistant');
@@ -257,6 +265,13 @@ const AIAssistantWidget = () => {
                   className="hover:bg-white/20 p-1 rounded"
                 >
                   {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setIsManualMode(!isManualMode)}
+                  className={`hover:bg-white/20 p-1 rounded ${isManualMode ? 'bg-white/30' : ''}`}
+                  title={isManualMode ? 'Ручной режим: виджет всегда виден' : 'Авто-режим: виджет скрывается'}
+                >
+                  {isManualMode ? <Icon name="Lock" className="w-4 h-4" /> : <Icon name="Unlock" className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}

@@ -12,6 +12,8 @@ import {
 import { getTranslation, type LanguageCode } from '@/translations';
 import SettingsMenu from '@/components/SettingsMenu';
 
+const APP_VERSION = '1.2.0';
+
 interface TopBarProps {
   isVisible: boolean;
   currentLanguage: LanguageCode;
@@ -39,6 +41,8 @@ export default function TopBar({
   const [darkMode, setDarkMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
+
+  console.log('🚀 App Version:', APP_VERSION);
 
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
