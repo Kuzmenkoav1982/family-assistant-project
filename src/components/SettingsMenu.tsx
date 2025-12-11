@@ -10,6 +10,7 @@ import SubscriptionSettings from './settings/SubscriptionSettings';
 import AccountSettings from './settings/AccountSettings';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const EXPORT_API = 'https://functions.poehali.dev/6db20156-2ce6-4ba2-923b-b3e8faf8a58b';
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
@@ -332,6 +333,121 @@ interface NotificationHistoryItem {
   sent_at: string;
 }
 
+function PushNotificationCard() {
+  const { toast } = useToast();
+  const {
+    isSupported,
+    isSubscribed,
+    isLoading,
+    permission,
+    subscribe,
+    sendTestNotification
+  } = usePushNotifications();
+  
+  const [isSendingTest, setIsSendingTest] = useState(false);
+
+  const handleTestNotification = async () => {
+    if (!isSubscribed) {
+      toast({
+        title: '⚠️ Подпишитесь на уведомления',
+        description: 'Сначала нужно включить Push-уведомления',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSendingTest(true);
+    const success = await sendTestNotification();
+    setIsSendingTest(false);
+    
+    if (success) {
+      toast({
+        title: '✅ Успешно!',
+        description: 'Тестовое Push-уведомление отправлено',
+        variant: 'default'
+      });
+    } else {
+      toast({
+        title: '❌ Ошибка',
+        description: 'Не удалось отправить Push-уведомление',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  if (!isSupported) {
+    return (
+      <div className="bg-orange-50 rounded-lg p-6 border border-orange-200">
+        <div className="flex items-start gap-3">
+          <Icon name="AlertCircle" size={24} className="text-orange-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-lg font-semibold text-orange-900 mb-1">
+              Push-уведомления не поддерживаются
+            </h3>
+            <p className="text-sm text-orange-700">
+              Ваш браузер не поддерживает push-уведомления. Попробуйте использовать Chrome, Firefox или Edge.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg p-6 border">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon name="Bell" className="text-blue-600" size={24} />
+        <h3 className="text-lg font-semibold">Push-уведомления</h3>
+        {permission === 'granted' && isSubscribed && (
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+            Включены
+          </span>
+        )}
+        {permission === 'denied' && (
+          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+            Заблокированы
+          </span>
+        )}
+      </div>
+      
+      <div className="space-y-3">
+        {!isSubscribed ? (
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 mb-3">
+            <p className="text-sm text-blue-800 mb-3">
+              Получайте уведомления о задачах, событиях и важных датах прямо на устройство
+            </p>
+            <Button
+              onClick={subscribe}
+              disabled={isLoading || permission === 'denied'}
+              className="w-full"
+            >
+              <Icon name="Bell" size={18} className="mr-2" />
+              {isLoading ? 'Подписка...' : 'Включить Push-уведомления'}
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={handleTestNotification}
+            disabled={isSendingTest}
+            className="w-full"
+          >
+            <Icon name="Send" size={18} className="mr-2" />
+            {isSendingTest ? 'Отправка...' : 'Отправить тестовое Push-уведомление'}
+          </Button>
+        )}
+
+        {permission === 'denied' && (
+          <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+            <p className="text-sm text-red-800">
+              <strong>Уведомления заблокированы.</strong> Разрешите их в настройках браузера для этого сайта.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function NotificationTest() {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -554,6 +670,8 @@ function NotificationTest() {
             </Button>
           </div>
         </div>
+
+        <PushNotificationCard />
       </div>
 
       <div className="bg-white rounded-lg border">
