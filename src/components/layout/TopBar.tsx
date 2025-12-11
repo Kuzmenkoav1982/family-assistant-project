@@ -66,7 +66,7 @@ export default function TopBar({
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      <div className="px-4 py-3 flex items-center justify-between max-w-screen-2xl mx-auto">
+      <div className="px-4 py-1.5 flex items-center justify-between max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-2">
           {onMenuClick && (
             <Button
@@ -82,7 +82,7 @@ export default function TopBar({
           <img 
             src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
             alt="Наша семья"
-            className="h-8 w-8 object-contain cursor-pointer"
+            className="h-6 w-6 object-contain cursor-pointer"
             onClick={() => navigate('/')}
           />
         </div>
@@ -92,9 +92,9 @@ export default function TopBar({
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 px-3"
+              className="h-7 px-2"
             >
-              <Icon name="Menu" size={18} />
+              <Icon name="Menu" size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -186,13 +186,11 @@ export default function TopBar({
 
       <button
         onClick={() => onVisibilityChange(!isVisible)}
-        className={`fixed left-1/2 -translate-x-1/2 z-40 bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-b-lg px-4 py-2 transition-all duration-300 ${
-          isVisible ? 'top-[52px]' : 'top-0'
-        }`}
+        className="fixed left-1/2 -translate-x-1/2 top-0 z-[60] bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-b-lg px-3 py-1 transition-all duration-300"
       >
         <Icon 
           name={isVisible ? 'ChevronUp' : 'ChevronDown'} 
-          size={20} 
+          size={16} 
           className="text-gray-600 dark:text-gray-400" 
         />
       </button>
