@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, EmailStr, Field
 
-# Redeploy to pick up new YANDEX_SMTP_PASSWORD secret
+# Redeploy to pick up new YANDEX_SMTP_LOGIN and YANDEX_SMTP_PASSWORD secrets
 
 
 class EmailRequest(BaseModel):
