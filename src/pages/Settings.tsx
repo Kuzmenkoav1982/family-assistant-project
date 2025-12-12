@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
+import { CalendarExport } from '@/components/CalendarExport';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -267,6 +268,8 @@ export default function Settings() {
         </Card>
 
         <NotificationsSettings />
+
+        <CalendarExport />
 
         <Card>
           <CardHeader>
