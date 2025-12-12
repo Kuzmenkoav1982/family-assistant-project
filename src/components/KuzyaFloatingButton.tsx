@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
 
 const isMobile = () => {
@@ -49,45 +48,45 @@ export default function KuzyaFloatingButton() {
   }, [showDialog, isDragging]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     dragStartPos.current = { x: e.clientX, y: e.clientY };
     
     longPressTimer.current = window.setTimeout(() => {
       setIsDragging(true);
-      if (buttonRef.current) {
-        buttonRef.current.style.cursor = 'grabbing';
-      }
     }, 500);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
 
     const deltaX = dragStartPos.current.x - e.clientX;
     const deltaY = e.clientY - dragStartPos.current.y;
 
-    setPosition(prev => {
-      const newBottom = Math.max(20, Math.min(window.innerHeight - 140, prev.bottom + deltaY));
-      const newRight = Math.max(20, Math.min(window.innerWidth - 140, prev.right + deltaX));
-      
-      const newPos = { bottom: newBottom, right: newRight };
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newPos));
-      
-      return newPos;
-    });
+    const newBottom = Math.max(20, Math.min(window.innerHeight - 140, position.bottom + deltaY));
+    const newRight = Math.max(20, Math.min(window.innerWidth - 140, position.right + deltaX));
+    
+    const newPos = { bottom: newBottom, right: newRight };
+    setPosition(newPos);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newPos));
 
     dragStartPos.current = { x: e.clientX, y: e.clientY };
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
     }
 
     if (isDragging) {
       setIsDragging(false);
-      if (buttonRef.current) {
-        buttonRef.current.style.cursor = 'pointer';
-      }
     } else {
       setShowDialog(true);
     }
@@ -118,29 +117,29 @@ export default function KuzyaFloatingButton() {
         onContextMenu={(e) => e.preventDefault()}
       >
         {showPhrase && !isDragging && (
-          <div className="bg-white rounded-2xl shadow-lg px-4 py-3 animate-in slide-in-from-right-5 fade-in duration-300 max-w-[200px]">
+          <div className="bg-white rounded-2xl shadow-lg px-4 py-3 animate-in slide-in-from-right-5 fade-in duration-300 max-w-[200px] pointer-events-none">
             <p className="text-sm font-medium text-gray-800">{phrase}</p>
             <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white rotate-45 shadow-lg" />
           </div>
         )}
         
-        <Button
-          className={`relative w-28 h-28 rounded-full shadow-2xl transition-all duration-300 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-0 overflow-hidden group border-4 border-white ${
-            isDragging ? 'scale-105' : 'hover:scale-110 hover:shadow-3xl'
+        <div
+          className={`relative w-28 h-28 rounded-full shadow-2xl transition-all duration-200 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 overflow-hidden border-4 border-white ${
+            isDragging ? 'scale-105' : ''
           }`}
           title="Кузя - ваш помощник (удерживайте чтобы перемещать)"
-          onPointerDown={(e) => e.preventDefault()}
           style={{
             WebkitTouchCallout: 'none',
-            WebkitUserSelect: 'none'
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
           }}
         >
-          <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors" />
+          <div className="absolute inset-0 bg-white/10 transition-colors" />
           
           <img 
             src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
             alt="Кузя"
-            className="w-20 h-20 object-contain relative z-10 pointer-events-none select-none"
+            className="w-20 h-20 object-contain relative z-10 pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             draggable="false"
             style={{
               WebkitTouchCallout: 'none',
@@ -150,7 +149,7 @@ export default function KuzyaFloatingButton() {
           />
           
           <div className="absolute top-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
-        </Button>
+        </div>
       </div>
 
       <KuzyaHelperDialog 
