@@ -238,8 +238,12 @@ export default function Presentation() {
                   <p><strong>Семейный календарь</strong> — планируйте события, встречи, дни рождения, праздники</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Автоматические напоминания</strong> — получайте уведомления о предстоящих событиях</p>
+                  <Icon name="Calendar" className="text-purple-600 flex-shrink-0" size={20} />
+                  <p><strong>Экспорт в iCal</strong> — выгружайте события в Google Calendar, Apple Calendar, Outlook одним кликом</p>
+                </div>
+                <div className="flex gap-3">
+                  <Icon name="Bell" className="text-amber-600 flex-shrink-0" size={20} />
+                  <p><strong>Push-уведомления</strong> — мгновенные оповещения о задачах, событиях и достижениях (поддержка iOS PWA)</p>
                 </div>
                 <div className="flex gap-3">
                   <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
@@ -278,7 +282,61 @@ export default function Presentation() {
               </div>
             </div>
 
-            {/* Блок 5: ПРИОРИТЕТ - Развитие детей */}
+            {/* Блок 5: AI-Ассистент Кузя */}
+            <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-8 shadow-xl border-4 border-violet-300">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-violet-200 text-violet-900 px-4 py-1 rounded-full text-sm font-bold">
+                  🤖 ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ
+                </div>
+              </div>
+              <h3 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                <Icon name="Bot" size={36} className="text-violet-200" />
+                AI-Ассистент Кузя
+              </h3>
+              <div className="space-y-4 ml-2">
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Sparkles" className="text-violet-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">8 экспертных ролей</p>
+                      <p className="text-gray-700">Семейный помощник, Повар, Органайзер, Педагог, Финансовый советник, Психолог, Фитнес-тренер, Планировщик путешествий</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="MessageSquare" className="text-violet-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Умный чат-помощник</p>
+                      <p className="text-gray-700">Консультации по питанию, расчёт БЖУ, подбор рецептов, советы по воспитанию, планирование бюджета</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <Icon name="Lightbulb" className="text-violet-600 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg mb-1">Персональные советы</p>
+                      <p className="text-gray-700">ИИ знает вашу семью и даёт рекомендации с учётом возраста детей, предпочтений и целей</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-violet-100 to-purple-100 rounded-xl p-4 border-2 border-violet-300">
+                  <div className="flex gap-3">
+                    <Icon name="Zap" className="text-violet-700 flex-shrink-0" size={24} />
+                    <div>
+                      <p className="font-bold text-violet-900 text-lg mb-1">Виджет быстрого доступа</p>
+                      <p className="text-gray-800">Плавающая кнопка на всех страницах — мгновенный вызов Кузи для помощи</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Блок 6: ПРИОРИТЕТ - Развитие детей */}
             <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-8 shadow-xl border-4 border-yellow-300">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-yellow-400 text-orange-900 px-4 py-1 rounded-full text-sm font-bold">

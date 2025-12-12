@@ -16,6 +16,13 @@ const screenshots = [
     color: 'from-blue-500 to-cyan-500'
   },
   {
+    title: 'AI-ассистент Кузя',
+    description: 'Умный помощник с 8 ролями: повар, психолог, финансист, педагог и другие',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
+    icon: 'Bot',
+    color: 'from-violet-500 to-purple-600'
+  },
+  {
     title: 'Задачи и поручения',
     description: 'Распределяйте задачи между членами семьи, отслеживайте прогресс и начисляйте баллы',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
@@ -23,18 +30,25 @@ const screenshots = [
     color: 'from-green-500 to-emerald-500'
   },
   {
-    title: 'Календарь событий',
-    description: 'Планируйте семейные мероприятия, дни рождения и важные даты',
+    title: 'Развитие детей с ИИ',
+    description: 'ИИ-оценка развития ребёнка, персональные планы и рекомендации на основе возраста',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
+    icon: 'Brain',
+    color: 'from-orange-500 to-red-500'
+  },
+  {
+    title: 'Календарь с экспортом',
+    description: 'Планируйте события и экспортируйте их в Google Calendar, Apple Calendar, Outlook',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
     icon: 'Calendar',
     color: 'from-purple-500 to-pink-500'
   },
   {
-    title: 'Развитие детей',
-    description: 'Отслеживайте успехи детей в учёбе, кружках и достижениях',
+    title: 'Push-уведомления',
+    description: 'Получайте мгновенные уведомления о задачах, событиях и достижениях',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'Baby',
-    color: 'from-orange-500 to-red-500'
+    icon: 'Bell',
+    color: 'from-amber-500 to-orange-500'
   },
   {
     title: 'Семейные ценности',
@@ -44,23 +58,27 @@ const screenshots = [
     color: 'from-pink-500 to-rose-500'
   },
   {
-    title: 'Цели и достижения',
-    description: 'Ставьте семейные цели и отмечайте их достижение вместе',
+    title: 'Аналитика и отчёты',
+    description: 'Следите за статистикой семьи, прогрессом задач и достижениями',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'Target',
+    icon: 'BarChart',
     color: 'from-indigo-500 to-blue-500'
   }
 ];
 
 const features = [
   { icon: 'Users', title: 'Профили семьи', description: 'Индивидуальные профили с фото и достижениями' },
+  { icon: 'Bot', title: 'AI-ассистент Кузя', description: '8 ролей: повар, психолог, финансист, педагог' },
   { icon: 'CheckSquare', title: 'Задачи', description: 'Система задач с баллами и уровнями' },
-  { icon: 'Calendar', title: 'Календарь', description: 'Семейные события и планирование' },
-  { icon: 'Baby', title: 'Дети', description: 'Развитие и образование детей' },
+  { icon: 'Brain', title: 'ИИ-оценка развития', description: 'Персональные планы для детей 0-7 лет' },
+  { icon: 'Calendar', title: 'Календарь + Экспорт', description: 'События с экспортом в iCal формат' },
+  { icon: 'Bell', title: 'Push-уведомления', description: 'Мгновенные оповещения о важных событиях' },
   { icon: 'Heart', title: 'Ценности', description: 'Семейные традиции и история' },
-  { icon: 'Target', title: 'Цели', description: 'Совместные достижения' },
-  { icon: 'GitBranch', title: 'Древо', description: 'Генеалогическое древо семьи' },
-  { icon: 'BookOpen', title: 'Блог', description: 'Семейный дневник и воспоминания' }
+  { icon: 'ShoppingCart', title: 'Покупки и питание', description: 'Списки покупок, рецепты, планирование меню' },
+  { icon: 'Activity', title: 'Здоровье', description: 'Медицинские карты, прививки, врачи' },
+  { icon: 'DollarSign', title: 'Финансы', description: 'Бюджет семьи и контроль расходов' },
+  { icon: 'Plane', title: 'Поездки', description: 'Планирование путешествий' },
+  { icon: 'BarChart', title: 'Аналитика', description: 'Статистика и отчёты' }
 ];
 
 export default function Welcome() {
