@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
+    const isIOS = typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
+    
     return (
       <input
         type={type}
@@ -12,6 +14,10 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
+        style={{
+          touchAction: 'manipulation',
+          WebkitUserSelect: isIOS ? 'text' : undefined
+        }}
         {...props}
       />
     )
