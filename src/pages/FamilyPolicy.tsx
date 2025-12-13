@@ -55,7 +55,10 @@ const policyDirections: PolicyDirection[] = [
       'Снижение уровня бедности семей с детьми до 8%',
       'Увеличение размера пособий выше инфляции'
     ],
-    documents: []
+    documents: [
+      { title: 'Единое пособие на детей до 17 лет', link: 'https://mintrud.gov.ru/ministry/programms/3/0' },
+      { title: 'Меры социальной поддержки семей', link: 'https://mintrud.gov.ru/ministry/programms' }
+    ]
   },
   {
     id: 'housing',
