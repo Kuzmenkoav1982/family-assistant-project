@@ -126,14 +126,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     result = yandex_response.json()
     content = result['result']['alternatives'][0]['message']['text'].strip()
     
+    # Агрессивная очистка markdown и лишнего текста
     if content.startswith('```json'):
         content = content[7:]
-    if content.startswith('```'):
+    elif content.startswith('```'):
         content = content[3:]
     if content.endswith('```'):
         content = content[:-3]
     
-    questionnaire = json.loads(content.strip())
+    content = content.strip()
+    
+    # Поиск JSON в ответе (на случай если есть текст до/после)
+    start = content.find('{')
+    end = content.rfind('}')
+    if start != -1 and end != -1:
+        content = content[start:end+1]
+    
+    try:
+        questionnaire = json.loads(content)
+    except json.JSONDecodeError as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({
+                'error': 'Failed to parse questionnaire JSON',
+                'details': str(e),
+                'content_preview': content[:500]
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
     
     return {
         'statusCode': 200,

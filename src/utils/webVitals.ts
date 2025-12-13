@@ -28,16 +28,15 @@ function sendToAnalytics(metric: Metric) {
 
   const analyticsUrl = 'https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508';
   
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(analyticsUrl, body);
-  } else {
-    fetch(analyticsUrl, { 
-      body, 
-      method: 'POST', 
-      keepalive: true,
-      headers: { 'Content-Type': 'application/json' }
-    }).catch(() => {});
-  }
+  // Always use fetch with proper headers instead of sendBeacon
+  fetch(analyticsUrl, { 
+    body, 
+    method: 'POST', 
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(() => {
+    // Silently fail - don't block user experience
+  });
 }
 
 export function initWebVitals() {
