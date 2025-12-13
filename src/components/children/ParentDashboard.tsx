@@ -142,7 +142,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
           onClose={() => setShowAssessment(false)}
           onComplete={(assessmentId, planId) => {
             setShowAssessment(false);
-            navigate(`/children/assessment-report?assessmentId=${assessmentId}&planId=${planId}&childId=${child.id}`);
+            navigate(`/children/assessment-report?assessmentId=${assessmentId}&planId=${planId}&childId=${child.id}&returnMode=parent`);
           }}
         />
       )}

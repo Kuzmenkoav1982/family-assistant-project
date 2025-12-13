@@ -53,6 +53,7 @@ export default function AssessmentReport() {
   const assessmentId = searchParams.get('assessmentId');
   const planId = searchParams.get('planId');
   const childId = searchParams.get('childId');
+  const returnMode = searchParams.get('returnMode') || 'parent';
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -150,7 +151,7 @@ export default function AssessmentReport() {
           <Alert variant="destructive">
             <AlertDescription>{error || 'План не найден'}</AlertDescription>
           </Alert>
-          <Button onClick={() => navigate('/children')} className="mt-4">
+          <Button onClick={() => navigate(`/children${childId ? `?childId=${childId}&mode=${returnMode}` : ''}`)} className="mt-4">
             Вернуться к детям
           </Button>
         </div>
@@ -172,7 +173,7 @@ export default function AssessmentReport() {
           <div>
             <Button
               variant="ghost"
-              onClick={() => navigate(`/children?childId=${childId}`)}
+              onClick={() => navigate(`/children?childId=${childId}&mode=${returnMode}`)}
               className="mb-4"
             >
               <Icon name="ArrowLeft" size={18} className="mr-2" />

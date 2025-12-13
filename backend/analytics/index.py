@@ -37,7 +37,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         if method == 'POST':
-            body_data = json.loads(event.get('body', '{}'))
+            body = event.get('body') or '{}'
+            body_data = json.loads(body) if body else {}
             
             metric_name = body_data.get('name')
             metric_value = body_data.get('value')

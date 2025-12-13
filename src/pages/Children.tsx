@@ -14,7 +14,7 @@ import type { FamilyMember } from '@/types/family.types';
 
 export default function Children() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { members, loading } = useFamilyMembersContext();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
@@ -151,7 +151,12 @@ export default function Children() {
             <div className="flex gap-2 z-50">
               <Button
                 variant={viewMode === 'parent' ? 'default' : 'outline'}
-                onClick={() => setViewMode('parent')}
+                onClick={() => {
+                  setViewMode('parent');
+                  if (selectedChildId) {
+                    setSearchParams({ childId: selectedChildId, mode: 'parent' });
+                  }
+                }}
                 className="gap-2 shadow-lg"
               >
                 <Icon name="BarChart3" size={18} />
@@ -159,7 +164,12 @@ export default function Children() {
               </Button>
               <Button
                 variant={viewMode === 'child' ? 'default' : 'outline'}
-                onClick={() => setViewMode('child')}
+                onClick={() => {
+                  setViewMode('child');
+                  if (selectedChildId) {
+                    setSearchParams({ childId: selectedChildId, mode: 'child' });
+                  }
+                }}
                 className="gap-2 shadow-lg"
               >
                 <Icon name="Smile" size={18} />
@@ -314,7 +324,10 @@ export default function Children() {
                   <Card 
                     key={child.id}
                     className="hover:shadow-xl transition-all cursor-pointer hover:scale-105"
-                    onClick={() => setSelectedChildId(child.id)}
+                    onClick={() => {
+                      setSelectedChildId(child.id);
+                      setSearchParams({ childId: child.id, mode: viewMode });
+                    }}
                   >
                     <CardContent className="pt-6 space-y-4">
                       {child.avatarType === 'photo' && child.photoUrl ? (
@@ -347,7 +360,10 @@ export default function Children() {
                   <Button
                     key={child.id}
                     variant={selectedChildId === child.id ? 'default' : 'outline'}
-                    onClick={() => setSelectedChildId(child.id)}
+                    onClick={() => {
+                      setSelectedChildId(child.id);
+                      setSearchParams({ childId: child.id, mode: viewMode });
+                    }}
                     className="gap-2 whitespace-nowrap"
                   >
                     <span className="text-2xl">{child.avatar}</span>

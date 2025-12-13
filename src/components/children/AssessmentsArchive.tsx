@@ -152,7 +152,7 @@ export function AssessmentsArchive({ child, onPlanDeleted }: AssessmentsArchiveP
                   variant="ghost"
                   size="sm"
                   onClick={() =>
-                    navigate(`/children/assessment-report?planId=${plan.id}&childId=${child.id}`)
+                    navigate(`/children/assessment-report?planId=${plan.id}&childId=${child.id}&returnMode=parent`)
                   }
                 >
                   <Icon name="Eye" size={16} />

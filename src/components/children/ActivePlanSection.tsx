@@ -144,7 +144,7 @@ export function ActivePlanSection({ child, onPlanDeleted }: ActivePlanSectionPro
           <Button
             onClick={() =>
               navigate(
-                `/children/assessment-report?planId=${activePlan.id}&childId=${child.id}`
+                `/children/assessment-report?planId=${activePlan.id}&childId=${child.id}&returnMode=parent`
               )
             }
             className="w-full"
