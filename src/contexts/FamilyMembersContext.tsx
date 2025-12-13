@@ -43,6 +43,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   const [error, setError] = useState<string | null>(null);
   const isFetchingRef = useRef(false);
   const hasInitialFetchRef = useRef(false);
+  const dialogLockRef = useRef(dialogLock);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -241,6 +242,10 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
+    dialogLockRef.current = dialogLock;
+  }, [dialogLock]);
+
+  useEffect(() => {
     const token = getAuthToken();
     
     if (token && !hasInitialFetchRef.current) {
@@ -250,11 +255,11 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     } else if (!token) {
       setLoading(false);
     }
-  }, []);
+  }, [fetchMembers]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (dialogLock?.isDialogOpen) {
+      if (dialogLockRef.current?.isDialogOpen) {
         console.log('[FamilyMembersContext] Skipping interval fetch - dialog is open');
         return;
       }
@@ -266,7 +271,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [dialogLock]);
+  }, [fetchMembers]);
 
   return (
     <FamilyMembersContext.Provider

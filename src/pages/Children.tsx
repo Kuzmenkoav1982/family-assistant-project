@@ -53,31 +53,8 @@ export default function Children() {
                    currentMember?.role === 'Родитель' ||
                    currentUser?.role === 'Родитель';
   
-  // Debug logs
-  console.log('[Children] ========== DEBUG START ==========');
-  console.log('[Children] members array:', members);
-  console.log('[Children] members length:', members?.length);
-  console.log('[Children] children array:', children);
-  console.log('[Children] currentUser from localStorage:', currentUser);
-  console.log('[Children] currentUser.id:', currentUser?.id);
-  console.log('[Children] currentUser.user_id:', currentUser?.user_id);
-  console.log('[Children] currentUser.role:', currentUser?.role);
-  console.log('[Children] currentMember found:', currentMember);
-  console.log('[Children] currentMember?.role:', currentMember?.role);
-  console.log('[Children] isParent calculated:', isParent);
-  console.log('[Children] All members details:', members?.map(m => ({
-    id: m.id,
-    user_id: m.user_id,
-    name: m.name,
-    role: m.role,
-    age: m.age
-  })));
-  console.log('[Children] Filtered children:', children.map(c => ({
-    name: c.name,
-    role: c.role,
-    age: c.age
-  })));
-  console.log('[Children] ========== DEBUG END ==========');
+  // Debug logs - uncomment if needed
+  // console.log('[Children] members:', members?.length, 'children:', children.length, 'isParent:', isParent);
 
   useEffect(() => {
     if (!Array.isArray(members) || members.length === 0) return;
@@ -152,7 +129,10 @@ export default function Children() {
     );
   }
 
-  const selectedChild = children.find(c => c.id === selectedChildId) || children[0];
+  const selectedChild = useMemo(() => 
+    children.find(c => c.id === selectedChildId) || children[0],
+    [children, selectedChildId]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
