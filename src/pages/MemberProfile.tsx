@@ -344,36 +344,36 @@ export default function MemberProfile() {
         )}
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            <TabsTrigger value="info" className="flex items-center justify-center gap-1 md:gap-2">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1 h-auto p-2">
+            <TabsTrigger value="info" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
               <Icon name="User" size={16} />
-              <span>Профиль</span>
+              <span className="text-[10px] md:text-sm">Профиль</span>
             </TabsTrigger>
-            <TabsTrigger value="questionnaire" className="flex items-center justify-center gap-1 md:gap-2">
+            <TabsTrigger value="questionnaire" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
               <Icon name="FileText" size={16} />
-              <span>Анкета</span>
+              <span className="text-[10px] md:text-sm">Анкета</span>
             </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center justify-center gap-1 md:gap-2">
+            <TabsTrigger value="stats" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
               <Icon name="BarChart3" size={16} />
-              <span>Статистика</span>
+              <span className="text-[10px] md:text-sm">Статистика</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center justify-center gap-1 md:gap-2">
+            <TabsTrigger value="calendar" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
               <Icon name="Calendar" size={16} />
-              <span>Календарь</span>
+              <span className="text-[10px] md:text-sm">Календарь</span>
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 md:gap-2">
+            <TabsTrigger value="tasks" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
               <Icon name="CheckSquare" size={16} />
-              <span>Задачи</span>
+              <span className="text-[10px] md:text-sm">Задачи</span>
             </TabsTrigger>
             {isChild && (
               <>
-                <TabsTrigger value="dreams" className="flex items-center justify-center gap-1 md:gap-2">
+                <TabsTrigger value="dreams" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
                   <Icon name="Sparkles" size={16} />
-                  <span>Мечты</span>
+                  <span className="text-[10px] md:text-sm">Мечты</span>
                 </TabsTrigger>
-                <TabsTrigger value="piggybank" className="flex items-center justify-center gap-1 md:gap-2">
+                <TabsTrigger value="piggybank" className="flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2 px-1 md:px-3 py-1.5 text-xs">
                   <Icon name="PiggyBank" size={16} />
-                  <span>Копилка</span>
+                  <span className="text-[10px] md:text-sm">Копилка</span>
                 </TabsTrigger>
               </>
             )}
