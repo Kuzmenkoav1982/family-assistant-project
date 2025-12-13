@@ -42,6 +42,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     'values', 
     'planning', 
     'household',
+    'family-state',
     'in-dev'
   ]);
 
@@ -72,7 +73,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       items: [
         { id: 'values', label: 'Ценности', icon: 'Heart', path: '/?section=values' },
         { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/?section=traditions' },
-        { id: 'family-code', label: 'Кодекс семьи', icon: 'ScrollText', path: '/rules' },
         { id: 'house-rules', label: 'Правила дома', icon: 'FileText', path: '/rules' }
       ]
     },
@@ -113,6 +113,17 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       icon: 'Brain',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
+      ]
+    },
+    {
+      id: 'family-state',
+      title: '🏛️ СЕМЬЯ И ГОСУДАРСТВО',
+      icon: 'Landmark',
+      items: [
+        { id: 'family-code', label: 'Семейный кодекс РФ', icon: 'Scale', path: '/family-code' },
+        { id: 'state-support', label: 'Господдержка семей', icon: 'HandHeart', path: '/state-support' },
+        { id: 'family-policy', label: 'Семейная политика', icon: 'Flag', path: '/family-policy' },
+        { id: 'family-news', label: 'Новости и инициативы', icon: 'Newspaper', path: '/family-news' }
       ]
     },
     {

@@ -58,6 +58,9 @@ import Nutrition from "./pages/Nutrition";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
+import StateSupport from "./pages/StateSupport";
+import FamilyPolicy from "./pages/FamilyPolicy";
+import FamilyNews from "./pages/FamilyNews";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -134,6 +137,9 @@ const App = () => {
               <Route path="/community" element={<Community />} />
               <Route path="/member/:memberId" element={<MemberProfile />} />
               <Route path="/family-code" element={<FamilyCode />} />
+              <Route path="/state-support" element={<StateSupport />} />
+              <Route path="/family-policy" element={<FamilyPolicy />} />
+              <Route path="/family-news" element={<FamilyNews />} />
               <Route path="/family-invite" element={<FamilyInvite />} />
               <Route path="/presentation" element={<Presentation />} />
               <Route path="/psychologist" element={<FamilyPsychologist />} />
