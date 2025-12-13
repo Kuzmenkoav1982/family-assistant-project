@@ -35,7 +35,7 @@ const policyDirections: PolicyDirection[] = [
       'Увеличение продолжительности жизни до 78 лет'
     ],
     documents: [
-      { title: 'Концепция демографической политики до 2025 года', link: 'https://rg.ru/documents/2023/10/02/demografija-dok.html' }
+      { title: 'Концепция демографической политики до 2025 года', link: 'https://mintrud.gov.ru/ministry/programms/6' }
     ]
   },
   {
@@ -55,10 +55,7 @@ const policyDirections: PolicyDirection[] = [
       'Снижение уровня бедности семей с детьми до 8%',
       'Увеличение размера пособий выше инфляции'
     ],
-    documents: [
-      { title: 'Социальный кодекс РФ', link: '#' },
-      { title: 'Программа поддержки малоимущих семей', link: '#' }
-    ]
+    documents: []
   },
   {
     id: 'housing',
@@ -78,7 +75,7 @@ const policyDirections: PolicyDirection[] = [
       'Строительство 50 млн кв.м. жилья для семей ежегодно'
     ],
     documents: [
-      { title: 'Национальный проект "Жилье и городская среда"', link: 'https://xn--80aapampemcchfmo7a3c9ehj.xn--p1ai/projects/zhilyo-i-gorodskaya-sreda' }
+      { title: 'Национальный проект "Жилье и городская среда"', link: 'https://minstroyrf.gov.ru/trades/natsionalnye-proekty/natsionalnyy-proekt-zhilye-i-gorodskaya-sreda/' }
     ]
   },
   {
@@ -120,7 +117,7 @@ const policyDirections: PolicyDirection[] = [
       'Создание системы раннего выявления заболеваний'
     ],
     documents: [
-      { title: 'Национальный проект "Здравоохранение"', link: 'https://minzdrav.gov.ru/poleznye-resursy/natsproektzdravoohranenie' }
+      { title: 'Национальный проект «Здравоохранение»', link: 'https://национальныепроекты.рф/projects/zdravookhranenie/' }
     ]
   },
   {
@@ -141,7 +138,7 @@ const policyDirections: PolicyDirection[] = [
       'Формирование уважения к институту брака'
     ],
     documents: [
-      { title: 'Концепция государственной семейной политики', link: '#' }
+      { title: 'Концепция государственной семейной политики', link: 'https://mintrud.gov.ru/ministry/programms/16' }
     ]
   }
 ];
