@@ -161,12 +161,107 @@ export default function Presentation() {
           </div>
         </section>
 
+        <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl shadow-xl p-10 mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Icon name="Users" className="text-blue-600" size={40} />
+            <h2 className="text-3xl font-bold text-gray-800">
+              Для кого это приложение?
+            </h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <Icon name="Baby" className="text-pink-600" size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Семьи с детьми до 7 лет</h3>
+                  <p className="text-gray-700">
+                    Отслеживайте развитие ребёнка с помощью ИИ, получайте персональные планы развития, 
+                    сохраняйте важные моменты взросления.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <Icon name="GraduationCap" className="text-blue-600" size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Семьи со школьниками</h3>
+                  <p className="text-gray-700">
+                    Организуйте учёбу, кружки, домашние задания. Мотивируйте детей 
+                    через систему баллов и достижений.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <Icon name="Users" className="text-purple-600" size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Многопоколенные семьи</h3>
+                  <p className="text-gray-700">
+                    Координируйте действия бабушек, дедушек, родителей и детей. 
+                    Справедливо распределяйте обязанности между всеми.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <Icon name="Heart" className="text-red-600" size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Молодые пары</h3>
+                  <p className="text-gray-700">
+                    Начните выстраивать семейные традиции, ставьте совместные цели, 
+                    планируйте будущее вместе.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
+            <div className="flex items-center gap-4 mb-4">
+              <Icon name="Sparkles" className="text-green-600" size={32} />
+              <h3 className="text-2xl font-bold text-gray-800">Бесплатно для всех семей</h3>
+            </div>
+            <p className="text-lg text-gray-700 mb-3">
+              Приложение полностью бесплатное. Без подписок, скрытых платежей и рекламы.
+            </p>
+            <p className="text-gray-600">
+              Мы верим, что инструменты для укрепления семьи должны быть доступны каждому.
+            </p>
+          </div>
+        </section>
+
         <section className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl shadow-xl p-10 mb-8">
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-4">
             <Icon name="Sparkles" className="text-yellow-500" size={40} />
             <h2 className="text-3xl font-bold text-gray-800">
               Возможности для вашей семьи
             </h2>
+          </div>
+
+          <div className="flex items-center gap-6 mb-8 p-4 bg-white/60 rounded-xl border-2 border-indigo-200">
+            <div className="flex items-center gap-2">
+              <span className="text-green-600 text-xl">✅</span>
+              <span className="font-semibold text-gray-700">Уже работает</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 text-xl">🔄</span>
+              <span className="font-semibold text-gray-700">Скоро появится</span>
+            </div>
           </div>
 
           <div className="grid gap-8">
@@ -178,19 +273,19 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Профили членов семьи</strong> — создайте индивидуальные профили с фото, датой рождения, достижениями и статистикой</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Уровни и опыт</strong> — система уровней мотивирует каждого члена семьи выполнять задачи и зарабатывать баллы</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Управление доступом</strong> — настройте права для каждого: кто может создавать задачи, управлять календарем, редактировать профили</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Семейный код</strong> — уникальный код для приглашения родственников в вашу семью</p>
                 </div>
               </div>
@@ -204,23 +299,23 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Задачи для всех</strong> — создавайте задачи, назначайте ответственных, устанавливайте сроки и приоритеты</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Система баллов</strong> — каждая выполненная задача приносит баллы и опыт, мотивируя всех участвовать</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Отслеживание прогресса</strong> — видите кто что сделал, сколько баллов заработал, какой вклад в семью</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Рецепты и меню</strong> — храните семейные рецепты, планируйте меню на неделю</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Рецепты и меню</strong> — храните семейные рецепты, планируйте меню на неделю <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Список покупок</strong> — создавайте общий список продуктов и необходимых покупок</p>
                 </div>
               </div>
@@ -234,24 +329,24 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Семейный календарь</strong> — планируйте события, встречи, дни рождения, праздники</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="Calendar" className="text-purple-600 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Экспорт в iCal</strong> — выгружайте события в Google Calendar, Apple Calendar, Outlook одним кликом</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="Bell" className="text-amber-600 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Push-уведомления</strong> — мгновенные оповещения о задачах, событиях и достижениях (поддержка iOS PWA)</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Путешествия</strong> — планируйте поездки, маршруты, достопримечательности</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Путешествия</strong> — планируйте поездки, маршруты, достопримечательности <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Дорожная карта жизни</strong> — отмечайте ключевые события и этапы жизни семьи</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Дорожная карта жизни</strong> — отмечайте ключевые события и этапы жизни семьи <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
               </div>
             </div>
@@ -264,20 +359,20 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Семейный бюджет</strong> — учёт доходов и расходов, планирование финансов</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Семейный бюджет</strong> — учёт доходов и расходов, планирование финансов <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Семейные цели</strong> — ставьте финансовые цели (квартира, машина, отпуск) и отслеживайте прогресс</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Гараж</strong> — учёт транспорта, ТО, страховки, расходы на обслуживание</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Гараж</strong> — учёт транспорта, ТО, страховки, расходы на обслуживание <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Аналитика</strong> — графики расходов, статистика по категориям, прогнозы</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Аналитика</strong> — графики расходов, статистика по категориям, прогнозы <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
               </div>
             </div>
@@ -344,7 +439,7 @@ export default function Presentation() {
                 </div>
               </div>
               <h3 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-                <Icon name="Baby" size={36} className="text-yellow-300" />
+                <Icon name="GraduationCap" size={36} className="text-yellow-300" />
                 Развитие и воспитание детей
               </h3>
               <div className="space-y-4 ml-2">
@@ -504,13 +599,50 @@ export default function Presentation() {
                 </div>
               </div>
 
-              <div className="mt-6 bg-yellow-400 rounded-xl p-6 text-center">
-                <p className="text-orange-900 font-bold text-xl mb-2">
-                  🎯 Всё для гармоничного развития вашего ребёнка
-                </p>
-                <p className="text-orange-800 text-lg">
-                  От рождения до совершеннолетия — сохраняйте каждый важный момент
-                </p>
+              <div className="mt-6 space-y-4">
+                <div className="bg-yellow-400 rounded-xl p-6 text-center">
+                  <p className="text-orange-900 font-bold text-xl mb-2">
+                    🎯 Всё для гармоничного развития вашего ребёнка
+                  </p>
+                  <p className="text-orange-800 text-lg">
+                    От рождения до совершеннолетия — сохраняйте каждый важный момент
+                  </p>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-6">
+                  <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Icon name="Target" className="text-orange-600" size={24} />
+                    Целевые действия для развития детей
+                  </h4>
+                  <div className="space-y-3 text-gray-700">
+                    <div className="flex items-start gap-3">
+                      <span className="text-orange-600 font-bold">📞</span>
+                      <div>
+                        <p className="font-semibold">Клик по номеру телефона</p>
+                        <p className="text-sm">Стоимость: 100 ₽ за целевое действие</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-orange-600 font-bold">📞</span>
+                      <div>
+                        <p className="font-semibold">Заказать обратный звонок</p>
+                        <p className="text-sm">Стоимость: 250 ₽ за заявку</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-orange-600 font-bold">📝</span>
+                      <div>
+                        <p className="font-semibold">Заявка на оценку развития ребенка</p>
+                        <p className="text-sm">Стоимость: 700 ₽ за заявку</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <p className="text-sm text-gray-600">
+                      💰 <strong>Недельный бюджет:</strong> 18 000 ₽
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -522,23 +654,23 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Семейный кодекс</strong> — определите ценности, правила и принципы вашей семьи</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Голосования</strong> — принимайте важные решения демократически, учитывая мнение всех</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Генеалогическое древо</strong> — создайте родословную, храните историю поколений</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Генеалогическое древо</strong> — создайте родословную, храните историю поколений <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Духовность и вера</strong> — раздел для хранения духовных практик и традиций</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Культурные особенности</strong> — информация о национальностях, традициях, обычаях семьи</p>
                 </div>
               </div>
@@ -552,16 +684,16 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Медицинские карты</strong> — храните информацию о здоровье всех членов семьи</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Медицинские карты</strong> — храните информацию о здоровье всех членов семьи <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Семейный психолог</strong> — встроенный AI-ассистент для психологической поддержки</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Домашние животные</strong> — профили питомцев, прививки, визиты к ветеринару</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Домашние животные</strong> — профили питомцев, прививки, визиты к ветеринару <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
               </div>
             </div>
@@ -737,15 +869,15 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Сообщество семей</strong> — общайтесь с другими семьями, делитесь опытом и советами</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Сообщество семей</strong> — общайтесь с другими семьями, делитесь опытом и советами <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Обратная связь</strong> — предлагайте новые функции, сообщайте о проблемах</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Техподдержка 24/7</strong> — быстрая помощь в решении любых вопросов</p>
                 </div>
               </div>
@@ -759,20 +891,20 @@ export default function Presentation() {
               </h3>
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Управление семьёй</strong> — добавляйте и удаляйте членов, настраивайте их права</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>Приватность</strong> — контролируйте, кто и что видит в семейном пространстве</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
                   <p><strong>PWA установка</strong> — установите приложение на телефон как обычное приложение</p>
                 </div>
                 <div className="flex gap-3">
-                  <Icon name="CheckCircle2" className="text-green-500 flex-shrink-0" size={20} />
-                  <p><strong>Многоязычность</strong> — поддержка разных языков и культур</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Многоязычность</strong> — поддержка разных языков и культур <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
               </div>
             </div>
