@@ -15,6 +15,10 @@ import type { ThemeType } from '@/types/family.types';
 import { languageOptions, type LanguageCode } from '@/translations';
 
 export default function Settings() {
+  console.log('[Settings] Component mounted, themes:', themes);
+  console.log('[Settings] Theme keys:', Object.keys(themes));
+  console.log('[Settings] First theme:', themes.young);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const [familyName, setFamilyName] = useState('');
@@ -344,45 +348,54 @@ export default function Settings() {
             <div className="space-y-2">
               <Label className="text-base font-semibold">Выберите стиль оформления</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(themes).map(([key, theme]) => (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setCurrentTheme(key as ThemeType);
-                      toast({
-                        title: 'Стиль изменён',
-                        description: `Применён стиль "${theme.name}"`
-                      });
-                      setTimeout(() => window.location.reload(), 500);
-                    }}
-                    className={`
-                      relative p-4 rounded-lg border-2 transition-all text-left
-                      ${currentTheme === key 
-                        ? 'border-purple-500 bg-purple-50 shadow-lg' 
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                      }
-                    `}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`
-                        w-12 h-12 rounded-lg bg-gradient-to-r ${theme.colors.primary} 
-                        flex items-center justify-center flex-shrink-0
-                      `}>
-                        <Icon name="Palette" size={24} className="text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900 mb-1">{theme.name}</h4>
-                        <p className="text-xs text-gray-600 mb-1">{theme.description}</p>
-                        <p className="text-xs text-gray-500">{theme.ageRange}</p>
-                      </div>
-                      {currentTheme === key && (
-                        <div className="absolute top-2 right-2">
-                          <Icon name="Check" size={20} className="text-purple-600" />
+                {Object.entries(themes).map(([key, theme]) => {
+                  console.log(`[Settings] Rendering theme ${key}:`, theme);
+                  
+                  if (!theme || !theme.colors) {
+                    console.error(`[Settings] Theme ${key} is invalid:`, theme);
+                    return null;
+                  }
+                  
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setCurrentTheme(key as ThemeType);
+                        toast({
+                          title: 'Стиль изменён',
+                          description: `Применён стиль "${theme.name}"`
+                        });
+                        setTimeout(() => window.location.reload(), 500);
+                      }}
+                      className={`
+                        relative p-4 rounded-lg border-2 transition-all text-left
+                        ${currentTheme === key 
+                          ? 'border-purple-500 bg-purple-50 shadow-lg' 
+                          : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`
+                          w-12 h-12 rounded-lg bg-gradient-to-r ${theme.colors.primary} 
+                          flex items-center justify-center flex-shrink-0
+                        `}>
+                          <Icon name="Palette" size={24} className="text-white" />
                         </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 mb-1">{theme.name}</h4>
+                          <p className="text-xs text-gray-600 mb-1">{theme.description}</p>
+                          <p className="text-xs text-gray-500">{theme.ageRange}</p>
+                        </div>
+                        {currentTheme === key && (
+                          <div className="absolute top-2 right-2">
+                            <Icon name="Check" size={20} className="text-purple-600" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
