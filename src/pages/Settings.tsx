@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
@@ -9,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { themes } from '@/config/themes';
 import type { ThemeType } from '@/types/family.types';
 import { languageOptions, type LanguageCode } from '@/translations';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
   console.log('[Settings] Component mounted, themes:', themes);
@@ -16,6 +18,7 @@ export default function Settings() {
   console.log('[Settings] First theme:', themes.young);
   
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
     const saved = localStorage.getItem('theme');
     return (saved as ThemeType) || 'young';
