@@ -204,3 +204,24 @@ export interface Transaction {
   type: 'income' | 'expense';
   description: string;
 }
+
+export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono' | '1';
+
+export interface ThemeConfig {
+  name: string;
+  description: string;
+  ageRange: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    text: string;
+  };
+  fontSize: {
+    base: string;
+    heading: string;
+  };
+  spacing: string;
+  borderRadius: string;
+}
