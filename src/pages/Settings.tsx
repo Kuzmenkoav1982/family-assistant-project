@@ -5,11 +5,7 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
 import { CalendarExport } from '@/components/CalendarExport';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import func2url from '../../backend/func2url.json';
 import { themes } from '@/config/themes';
 import type { ThemeType } from '@/types/family.types';
 import { languageOptions, type LanguageCode } from '@/translations';
@@ -20,11 +16,6 @@ export default function Settings() {
   console.log('[Settings] First theme:', themes.young);
   
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [familyName, setFamilyName] = useState('');
-  const [familyLogo, setFamilyLogo] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
     const saved = localStorage.getItem('theme');
     return (saved as ThemeType) || 'young';
@@ -36,35 +27,9 @@ export default function Settings() {
   
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   
-  const token = localStorage.getItem('authToken');
-  
   useEffect(() => {
     localStorage.setItem('theme', currentTheme);
   }, [currentTheme]);
-  
-  useEffect(() => {
-    const loadFamilyData = async () => {
-      if (!token) return;
-      
-      try {
-        const response = await fetch(func2url['family-data'], {
-          headers: { 'X-Auth-Token': token }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.family) {
-            setFamilyName(data.family.name || '');
-            setFamilyLogo(data.family.logo_url || '');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load family data:', error);
-      }
-    };
-    
-    loadFamilyData();
-  }, [token]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-20">
@@ -81,195 +46,6 @@ export default function Settings() {
             На главную
           </Button>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Users" size={24} className="text-orange-600" />
-              Информация о семье
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="familyName">Название семьи</Label>
-              <Input
-                id="familyName"
-                placeholder="Например: Семья Ивановых"
-                value={familyName}
-                onChange={(e) => setFamilyName(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Логотип семьи</Label>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
-                <p className="text-sm text-gray-700 mb-2">
-                  💡 <strong>Как добавить логотип:</strong>
-                </p>
-                <ol className="text-xs text-gray-600 space-y-1 ml-4 list-decimal">
-                  <li>Загрузите изображение на <a href="https://imgbb.com" target="_blank" className="text-blue-600 hover:underline">ImgBB.com</a> (бесплатно, без регистрации)</li>
-                  <li>Скопируйте прямую ссылку на изображение</li>
-                  <li>Вставьте ссылку в поле ниже</li>
-                </ol>
-              </div>
-              <Input
-                id="familyLogo"
-                placeholder="https://i.ibb.co/ваше-изображение.png"
-                value={familyLogo}
-                onChange={(e) => setFamilyLogo(e.target.value)}
-                disabled={isUploading}
-                className="mb-2"
-              />
-              <details className="text-xs text-gray-500">
-                <summary className="cursor-pointer hover:text-gray-700">Или загрузите файл (экспериментально)</summary>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="mt-2"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    
-                    if (file.size > 5 * 1024 * 1024) {
-                      toast({
-                        title: 'Ошибка',
-                        description: 'Размер файла не должен превышать 5 МБ',
-                        variant: 'destructive'
-                      });
-                      return;
-                    }
-                    
-                    setIsUploading(true);
-                    try {
-                      const reader = new FileReader();
-                      reader.onload = async () => {
-                        const base64 = (reader.result as string).split(',')[1];
-                        
-                        const response = await fetch(func2url['upload-file'], {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'X-Auth-Token': token || ''
-                          },
-                          body: JSON.stringify({
-                            file: base64,
-                            fileName: file.name,
-                            folder: 'family-logos'
-                          })
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (response.ok && data.url) {
-                          setFamilyLogo(data.url);
-                          toast({
-                            title: 'Успешно!',
-                            description: 'Логотип загружен'
-                          });
-                        } else {
-                          throw new Error(data.error || 'Ошибка загрузки');
-                        }
-                        
-                        setIsUploading(false);
-                      };
-                      
-                      reader.onerror = () => {
-                        toast({
-                          title: 'Ошибка',
-                          description: 'Не удалось прочитать файл',
-                          variant: 'destructive'
-                        });
-                        setIsUploading(false);
-                      };
-                      
-                      reader.readAsDataURL(file);
-                    } catch (error) {
-                      toast({
-                        title: 'Ошибка',
-                        description: String(error),
-                        variant: 'destructive'
-                      });
-                      setIsUploading(false);
-                    }
-                  }}
-                  disabled={isUploading}
-                />
-              </details>
-              {familyLogo && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-600 mb-2">Предпросмотр:</p>
-                  <img 
-                    src={familyLogo} 
-                    alt="Логотип семьи" 
-                    className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-            
-            <Button 
-              onClick={async () => {
-                if (!familyName && !familyLogo) {
-                  toast({
-                    title: 'Ошибка',
-                    description: 'Заполните хотя бы одно поле',
-                    variant: 'destructive'
-                  });
-                  return;
-                }
-
-                setIsLoading(true);
-                try {
-                  const response = await fetch(func2url['family-data'], {
-                    method: 'PUT',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-Auth-Token': token || ''
-                    },
-                    body: JSON.stringify({
-                      name: familyName || undefined,
-                      logoUrl: familyLogo || undefined
-                    })
-                  });
-
-                  const data = await response.json();
-
-                  if (response.ok && data.success) {
-                    toast({
-                      title: 'Успешно!',
-                      description: 'Информация о семье обновлена'
-                    });
-                    
-                    const userData = localStorage.getItem('userData');
-                    if (userData) {
-                      const user = JSON.parse(userData);
-                      user.family_name = familyName;
-                      user.logo_url = familyLogo;
-                      localStorage.setItem('userData', JSON.stringify(user));
-                    }
-                  } else {
-                    throw new Error(data.error || 'Ошибка обновления');
-                  }
-                } catch (error) {
-                  toast({
-                    title: 'Ошибка',
-                    description: String(error),
-                    variant: 'destructive'
-                  });
-                } finally {
-                  setIsLoading(false);
-                }
-              }} 
-              disabled={isLoading || isUploading}
-              className="w-full"
-            >
-              {isLoading ? 'Сохранение...' : 'Сохранить информацию о семье'}
-            </Button>
-          </CardContent>
-        </Card>
 
         <NotificationsSettings />
 
