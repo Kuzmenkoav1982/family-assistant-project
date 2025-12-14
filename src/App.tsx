@@ -60,6 +60,7 @@ import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
 import StateSupport from "./pages/StateSupport";
 import FamilyPolicy from "./pages/FamilyPolicy";
+import WhatIsFamily from "./pages/WhatIsFamily";
 import FamilyNews from "./pages/FamilyNews";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
@@ -139,6 +140,7 @@ const App = () => {
               <Route path="/family-code" element={<FamilyCode />} />
               <Route path="/state-support" element={<StateSupport />} />
               <Route path="/family-policy" element={<FamilyPolicy />} />
+              <Route path="/what-is-family" element={<WhatIsFamily />} />
               <Route path="/family-news" element={<FamilyNews />} />
               <Route path="/family-invite" element={<FamilyInvite />} />
               <Route path="/presentation" element={<Presentation />} />

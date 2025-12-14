@@ -215,6 +215,29 @@ export default function FamilyPolicy() {
           </CardHeader>
         </Card>
 
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300">
+          <CardContent className="p-8">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-full">
+                <Icon name="BookOpen" size={48} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">📖 Что такое Семья?</h3>
+              <p className="text-gray-700 max-w-2xl">
+                Узнайте полную историю института семьи: от древнего мира до наших дней, эволюцию роли семьи в России, 
+                и мировой рейтинг стран по поддержке семей
+              </p>
+              <Button 
+                onClick={() => navigate('/what-is-family')}
+                size="lg"
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+              >
+                <Icon name="BookOpen" className="mr-2" size={20} />
+                Читать историческую справку
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-gradient-to-r from-red-50 to-blue-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
