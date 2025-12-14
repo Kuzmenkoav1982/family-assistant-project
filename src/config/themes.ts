@@ -117,10 +117,15 @@ export const themes: Record<ThemeType, ThemeConfig> = {
 };
 
 export const getThemeClasses = (theme: ThemeType) => {
-  const config = themes[theme];
+  const config = themes[theme] || themes.young;
+  
+  if (!themes[theme]) {
+    console.warn(`[getThemeClasses] Theme "${theme}" not found, using "young" as fallback`);
+  }
   
   return {
     background: `bg-gradient-to-br ${config.colors.background}`,
+    gradient: `linear-gradient(135deg, var(--tw-gradient-stops))`,
     primaryGradient: `bg-gradient-to-r ${config.colors.primary}`,
     secondaryGradient: `bg-gradient-to-r ${config.colors.secondary}`,
     accentGradient: `bg-gradient-to-r ${config.colors.accent}`,
@@ -128,6 +133,8 @@ export const getThemeClasses = (theme: ThemeType) => {
     baseFont: config.fontSize.base,
     headingFont: config.fontSize.heading,
     spacing: config.spacing,
-    borderRadius: config.borderRadius
+    borderRadius: config.borderRadius,
+    sidebarBg: 'rgba(255, 255, 255, 0.9)',
+    border: 'rgba(0, 0, 0, 0.1)'
   };
 };
