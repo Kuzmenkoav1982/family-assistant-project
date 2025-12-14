@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
@@ -391,6 +392,91 @@ export default function Calendar() {
 
   const stats = getEventStats();
 
+  const formatDateToICS = (dateStr: string, timeStr?: string): string => {
+    const date = new Date(dateStr);
+    if (timeStr) {
+      const [hours, minutes] = timeStr.split(':');
+      date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    }
+    return date.toISOString().replace(/[-:]/g, '').split('T')[0];
+  };
+
+  const escapeICSString = (str: string): string => {
+    return str.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+  };
+
+  const exportToICS = () => {
+    const icsLines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Наша семья//Семейный календарь//RU',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:Наша семья - События',
+      'X-WR-TIMEZONE:Europe/Moscow',
+    ];
+
+    events.forEach(event => {
+      const eventStart = formatDateToICS(event.date, event.time);
+      const eventEnd = formatDateToICS(event.date, event.time);
+      const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      const uid = `${event.id || Math.random().toString(36)}@ourfamily.app`;
+
+      icsLines.push('BEGIN:VEVENT');
+      icsLines.push(`UID:${uid}`);
+      icsLines.push(`DTSTAMP:${now}`);
+      icsLines.push(`DTSTART:${eventStart}`);
+      icsLines.push(`DTEND:${eventEnd}`);
+      icsLines.push(`SUMMARY:${escapeICSString(event.title)}`);
+      
+      if (event.description) {
+        icsLines.push(`DESCRIPTION:${escapeICSString(event.description)}`);
+      }
+      
+      icsLines.push(`CATEGORIES:${event.category}`);
+      icsLines.push(`STATUS:CONFIRMED`);
+      
+      if (event.reminderEnabled && event.reminderDays) {
+        const reminderMinutes = event.reminderDays * 24 * 60;
+        icsLines.push('BEGIN:VALARM');
+        icsLines.push('ACTION:DISPLAY');
+        icsLines.push(`TRIGGER:-PT${reminderMinutes}M`);
+        icsLines.push(`DESCRIPTION:Напоминание: ${escapeICSString(event.title)}`);
+        icsLines.push('END:VALARM');
+      }
+
+      if (event.isRecurring && event.recurringPattern) {
+        const { frequency, interval, endDate, daysOfWeek } = event.recurringPattern;
+        let rrule = `FREQ=${frequency.toUpperCase()}`;
+        if (interval > 1) rrule += `;INTERVAL=${interval}`;
+        if (endDate) rrule += `;UNTIL=${formatDateToICS(endDate)}`;
+        if (frequency === 'weekly' && daysOfWeek && daysOfWeek.length > 0) {
+          const days = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+          const byDay = daysOfWeek.map(d => days[d]).join(',');
+          rrule += `;BYDAY=${byDay}`;
+        }
+        icsLines.push(`RRULE:${rrule}`);
+      }
+      
+      icsLines.push('END:VEVENT');
+    });
+
+    icsLines.push('END:VCALENDAR');
+
+    const icsContent = icsLines.join('\r\n');
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `наша-семья-календарь-${new Date().toISOString().split('T')[0]}.ics`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const exportToCSV = () => {
     const csvRows = [
       ['Дата', 'Время', 'Название', 'Категория', 'Описание', 'Видимость'].join(',')
@@ -499,6 +585,18 @@ export default function Calendar() {
                           <li>Используйте фильтры для отображения только нужных категорий</li>
                           <li>Кликните на день для просмотра всех событий дня</li>
                           <li>Цветные метки помогают быстро различать категории</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📤 Экспорт в другие календари</p>
+                        <p className="text-sm mb-2">
+                          Вы можете экспортировать все события в формате iCal (.ics) и импортировать их в любой календарь:
+                        </p>
+                        <ul className="text-sm space-y-1 list-disc list-inside ml-2">
+                          <li><strong>Google Calendar:</strong> Настройки → Импорт и экспорт → Выбрать файл → Импорт</li>
+                          <li><strong>Apple Calendar (Mac/iPhone):</strong> Откройте .ics файл → События добавятся автоматически</li>
+                          <li><strong>Outlook:</strong> Файл → Открыть и экспортировать → Импорт/экспорт → Импорт iCalendar (.ics)</li>
                         </ul>
                       </div>
 
@@ -667,15 +765,36 @@ export default function Calendar() {
                 </Button>
 
                 {events.length > 0 && (
-                  <Button
-                    onClick={exportToCSV}
-                    variant="outline"
-                    size="sm"
-                    className="h-8"
-                  >
-                    <Icon name="Download" size={16} className="mr-1" />
-                    Экспорт
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                      >
+                        <Icon name="Download" size={16} className="mr-1" />
+                        Экспорт
+                        <Icon name="ChevronDown" size={14} className="ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={exportToICS} className="cursor-pointer">
+                        <Icon name="Calendar" size={16} className="mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">iCal формат (.ics)</span>
+                          <span className="text-xs text-gray-500">Google, Apple, Outlook</span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={exportToCSV} className="cursor-pointer">
+                        <Icon name="FileSpreadsheet" size={16} className="mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">CSV формат</span>
+                          <span className="text-xs text-gray-500">Для Excel, таблиц</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             </div>
