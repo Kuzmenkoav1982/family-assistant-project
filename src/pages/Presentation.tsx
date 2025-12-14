@@ -161,6 +161,32 @@ export default function Presentation() {
           </div>
         </section>
 
+        <section className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl shadow-xl p-10 mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Icon name="Star" className="text-emerald-600" size={40} />
+            <h2 className="text-3xl font-bold text-gray-800">
+              Наша миссия
+            </h2>
+          </div>
+          
+          <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
+            <div className="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-2xl p-8 border-2 border-emerald-400 text-center">
+              <p className="font-bold text-2xl text-emerald-900 mb-3">
+                "Объединяя семьи, мы укрепляем общество"
+              </p>
+              <p className="text-gray-800">
+                Семья — это фундамент общества. Когда семьи работают как единая команда, 
+                дети вырастают ответственными, родители чувствуют поддержку, а старшее 
+                поколение остаётся вовлечённым в жизнь близких.
+              </p>
+            </div>
+            <p>
+              "Наша семья" помогает восстановить связи между поколениями, научить детей 
+              ответственности и создать атмосферу взаимопомощи и любви.
+            </p>
+          </div>
+        </section>
+
         <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl shadow-xl p-10 mb-8">
           <div className="flex items-center gap-4 mb-6">
             <Icon name="Users" className="text-blue-600" size={40} />
@@ -231,16 +257,14 @@ export default function Presentation() {
             </div>
           </div>
 
-          <div className="mt-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
-            <div className="flex items-center gap-4 mb-4">
-              <Icon name="Sparkles" className="text-green-600" size={32} />
-              <h3 className="text-2xl font-bold text-gray-800">Бесплатно для всех семей</h3>
+          <div className="mt-8 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-6 border-2 border-purple-300">
+            <div className="flex items-center gap-4 mb-3">
+              <Icon name="Sparkles" className="text-purple-600" size={32} />
+              <h3 className="text-xl font-bold text-purple-900">✨ Особенность</h3>
             </div>
-            <p className="text-lg text-gray-700 mb-3">
-              Приложение полностью бесплатное. Без подписок, скрытых платежей и рекламы.
-            </p>
-            <p className="text-gray-600">
-              Мы верим, что инструменты для укрепления семьи должны быть доступны каждому.
+            <p className="text-lg text-gray-800">
+              Мы объединяем до трёх поколений в одной семье — бабушки, родители, дети. 
+              Каждый видит свою роль и вклад.
             </p>
           </div>
         </section>
@@ -522,8 +546,8 @@ export default function Presentation() {
                   <p><strong>Гараж</strong> — учёт транспорта, ТО, страховки, расходы на обслуживание <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
-                  <p><strong>Аналитика</strong> — графики расходов, статистика по категориям, прогнозы <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
+                  <p><strong>Аналитика</strong> — графики расходов, статистика по категориям, прогнозы</p>
                 </div>
               </div>
             </div>
@@ -806,7 +830,7 @@ export default function Presentation() {
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
                   <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
-                  <p><strong>Семейный кодекс</strong> — определите ценности, правила и принципы вашей семьи</p>
+                  <p><strong>Семья и Государство</strong> — информация о государственных программах поддержки семей, льготах, субсидиях и правах</p>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
@@ -817,8 +841,8 @@ export default function Presentation() {
                   <p><strong>Генеалогическое древо</strong> — создайте родословную, храните историю поколений <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
-                  <p><strong>Духовность и вера</strong> — раздел для хранения духовных практик и традиций</p>
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Духовность и вера</strong> — раздел для хранения духовных практик и традиций <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
@@ -836,20 +860,68 @@ export default function Presentation() {
               <div className="space-y-3 ml-11">
                 <div className="flex gap-3">
                   <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
-                  <p><strong>Медицинские карты</strong> — храните информацию о здоровье всех членов семьи <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
-                  <p><strong>Семейный психолог</strong> — встроенный AI-ассистент для психологической поддержки</p>
+                  <p><strong>Медицинские карты</strong> — храните данные о здоровье всех членов семьи, прививки, анализы, диагнозы <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
-                  <p><strong>Домашние животные</strong> — профили питомцев, прививки, визиты к ветеринару <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                  <p><strong>Запись к врачам</strong> — отслеживайте визиты к специалистам, результаты обследований <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Спорт и фитнес</strong> — планы тренировок, трекер активности, цели по здоровью <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Питание</strong> — рацион, калории, полезные привычки, рекомендации диетолога <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
                 </div>
               </div>
             </div>
 
-            {/* Блок 8: СУПЕРСИЛА - ИИ и голосовое управление */}
+            {/* Блок 8: Питомцы */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <h3 className="text-2xl font-bold text-amber-600 mb-4 flex items-center gap-3">
+                <Icon name="Dog" size={28} />
+                Питомцы
+              </h3>
+              <div className="space-y-3 ml-11">
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Профили питомцев</strong> — кличка, порода, возраст, фото, особенности характера <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Здоровье питомцев</strong> — ветеринарные карты, прививки, визиты к ветеринару <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Уход и расписание</strong> — кормление, прогулки, груминг, дрессировка <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+              </div>
+            </div>
+
+            {/* Блок 9: Общение */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <h3 className="text-2xl font-bold text-indigo-600 mb-4 flex items-center gap-3">
+                <Icon name="MessageCircle" size={28} />
+                Общение
+              </h3>
+              <div className="space-y-3 ml-11">
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Семейный чат</strong> — общайтесь с родными в приватном пространстве, делитесь фото и новостями <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
+                  <p><strong>Видеозвонки</strong> — встроенные групповые видеозвонки для общения на расстоянии <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
+                  <p><strong>Уведомления и напоминания</strong> — автоматические напоминания о событиях и задачах</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Блок 10: СУПЕРСИЛА - ИИ и голосовое управление */}
             <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-8 shadow-xl border-4 border-cyan-300">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-cyan-400 text-blue-900 px-4 py-1 rounded-full text-sm font-bold">
@@ -1012,29 +1084,7 @@ export default function Presentation() {
               </div>
             </div>
 
-            {/* Блок 9: Коммуникация и сообщество */}
-            <div className="bg-white rounded-2xl p-6 shadow-md">
-              <h3 className="text-2xl font-bold text-indigo-600 mb-4 flex items-center gap-3">
-                <Icon name="MessageCircle" size={28} />
-                Коммуникация и сообщество
-              </h3>
-              <div className="space-y-3 ml-11">
-                <div className="flex gap-3">
-                  <span className="text-blue-600 flex-shrink-0 text-lg">🔄</span>
-                  <p><strong>Сообщество семей</strong> — общайтесь с другими семьями, делитесь опытом и советами <span className="text-blue-600 text-sm font-semibold">Скоро</span></p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
-                  <p><strong>Обратная связь</strong> — предлагайте новые функции, сообщайте о проблемах</p>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-green-600 flex-shrink-0 text-lg">✅</span>
-                  <p><strong>Техподдержка 24/7</strong> — быстрая помощь в решении любых вопросов</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Блок 10: Настройки и безопасность */}
+            {/* Блок 11: Настройки и безопасность */}
             <div className="bg-white rounded-2xl p-6 shadow-md">
               <h3 className="text-2xl font-bold text-slate-600 mb-4 flex items-center gap-3">
                 <Icon name="Settings" size={28} />
