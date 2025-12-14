@@ -165,16 +165,11 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
           </DialogHeader>
 
           <Tabs defaultValue="invites" className="w-full flex-1 overflow-hidden flex flex-col">
-            <TabsList className="grid w-full grid-cols-7 mx-6 my-2">
+            <TabsList className="grid w-full grid-cols-6 mx-6 my-2">
               <TabsTrigger value="invites" className="text-xs md:text-sm">
                 <Icon name="Users" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Приглашения</span>
                 <span className="sm:hidden">Семья</span>
-              </TabsTrigger>
-              <TabsTrigger value="launch" className="text-xs md:text-sm">
-                <Icon name="Rocket" className="mr-1 md:mr-2" size={14} />
-                <span className="hidden sm:inline">План запуска</span>
-                <span className="sm:hidden">План</span>
               </TabsTrigger>
               <TabsTrigger value="effects" className="text-xs md:text-sm">
                 <Icon name="Sparkles" className="mr-1 md:mr-2" size={14} />
@@ -204,76 +199,28 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
             </TabsList>
 
             <TabsContent value="invites" className="flex-1 overflow-y-auto px-6 pb-6">
-              <FamilyInviteManager />
-            </TabsContent>
-
-            <TabsContent value="launch" className="flex-1 overflow-y-auto px-6 pb-6">
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border-2 border-purple-300">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon name="Rocket" size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
-                        План запуска Семейного Органайзера
-                      </h3>
-                      <p className="text-gray-700 text-sm mb-4">
-                        Полный план для запуска проекта с 100 тестовыми пользователями. 
-                        Включает бюджет, сроки, технологии и пошаговый план действий.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white rounded-lg p-4 shadow">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon name="DollarSign" className="text-green-600" size={20} />
-                        <span className="text-sm font-semibold text-gray-600">Бюджет</span>
-                      </div>
-                      <div className="text-2xl font-bold text-gray-800">1.35М ₽</div>
-                      <div className="text-xs text-gray-500 mt-1">Полная версия</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 shadow">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon name="Calendar" className="text-blue-600" size={20} />
-                        <span className="text-sm font-semibold text-gray-600">Срок</span>
-                      </div>
-                      <div className="text-2xl font-bold text-gray-800">7 месяцев</div>
-                      <div className="text-xs text-gray-500 mt-1">До запуска</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 shadow">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon name="Users" className="text-purple-600" size={20} />
-                        <span className="text-sm font-semibold text-gray-600">Пользователи</span>
-                      </div>
-                      <div className="text-2xl font-bold text-gray-800">100</div>
-                      <div className="text-xs text-gray-500 mt-1">Тестовых</div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button 
-                      onClick={() => {
-                        setIsOpen(false);
-                        navigate('/launch-plan');
-                      }}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                    >
-                      <Icon name="FileText" className="mr-2" size={18} />
-                      Открыть полный план
-                    </Button>
-                  </div>
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-orange-50 to-pink-50 rounded-lg p-6 border border-orange-200">
+                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <Icon name="Home" size={20} className="text-orange-600" />
+                    Информация о семье
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Настройки названия и логотипа находятся в левом меню → Настройки → Информация о семье
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setIsOpen(false);
+                      setTimeout(() => navigate('/family-settings'), 100);
+                    }}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Icon name="ArrowRight" size={16} className="mr-2" />
+                    Перейти к настройкам семьи
+                  </Button>
                 </div>
-
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <div className="flex items-start gap-2">
-                    <Icon name="Lightbulb" className="text-amber-600 flex-shrink-0 mt-0.5" size={18} />
-                    <div className="text-sm text-gray-700">
-                      <strong>Оптимизированная версия:</strong> ~700,000₽ за 3-4 месяца (MVP с базовым функционалом)
-                    </div>
-                  </div>
-                </div>
+                <FamilyInviteManager />
               </div>
             </TabsContent>
 
