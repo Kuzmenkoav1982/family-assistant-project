@@ -245,6 +245,157 @@ export default function Presentation() {
           </div>
         </section>
 
+        <section className="bg-gradient-to-br from-orange-50 to-red-50 rounded-3xl shadow-xl p-10 mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Icon name="Lightbulb" className="text-orange-600" size={40} />
+            <h2 className="text-3xl font-bold text-gray-800">
+              Как приложение решает проблемы семьи
+            </h2>
+          </div>
+
+          <div className="space-y-8">
+            {/* Проблема 1 */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="AlertCircle" className="text-red-500" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Проблема</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Мама делает всё сама: готовит, убирает, помогает с уроками. Папа после работы устал. 
+                    Дети играют в телефоне. Бабушка обижается, что её не привлекают.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="CheckCircle" className="text-green-600" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Решение</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    <strong>"Наша семья"</strong> распределяет задачи справедливо: папа выносит мусор, дети накрывают на стол, 
+                    бабушка читает внукам сказку. Каждый получает баллы за вклад. Мама отдыхает!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Проблема 2 */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="AlertCircle" className="text-red-500" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Проблема</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Ребёнок забывает про кружки, домашние задания, важные события. Родители постоянно напоминают 
+                    и нервничают. Оценки падают, мотивация пропадает.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="CheckCircle" className="text-green-600" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Решение</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Семейный календарь с уведомлениями напоминает о событиях. Задачи по учёбе приносят баллы. 
+                    Ребёнок видит прогресс, растёт его уровень — появляется азарт и ответственность!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Проблема 3 */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="AlertCircle" className="text-red-500" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Проблема</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Деньги тратятся непонятно куда. К концу месяца семья в минусе. Ребёнок не понимает ценность денег 
+                    и просит новые игрушки каждый день.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="CheckCircle" className="text-green-600" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Решение</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Семейный бюджет показывает, куда уходят деньги. Ставим цель "Новая игровая приставка". 
+                    Ребёнок копит баллы, видит прогресс — учится планировать и ценить покупки!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Проблема 4 */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="AlertCircle" className="text-red-500" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Проблема</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Родители не знают, как развивается ребёнок: отстаёт он или норма? Что делать, чтобы помочь? 
+                    К психологу дорого, а советы в интернете противоречивые.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="CheckCircle" className="text-green-600" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Решение</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    ИИ-оценка развития ребёнка анализирует навыки (речь, моторика, социальные умения) и выдаёт 
+                    персональный план с конкретными упражнениями. Отслеживаете прогресс в графиках!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Проблема 5 */}
+            <div className="bg-white rounded-2xl p-6 shadow-md">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="AlertCircle" className="text-red-500" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Проблема</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Семья живёт в разных ритмах: кто-то рано встаёт, кто-то поздно ложится. Совместных дел нет. 
+                    Общение сводится к "Привет" и "Пока". Близость теряется.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon name="CheckCircle" className="text-green-600" size={24} />
+                    <h3 className="text-xl font-bold text-gray-800">Решение</h3>
+                  </div>
+                  <p className="text-gray-700 text-lg">
+                    Семейный календарь показывает, когда все свободны. Создаёте традицию "Воскресный завтрак вместе" 
+                    или "Вечер настолок в пятницу". Планируете совместные события — укрепляете связь!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 bg-gradient-to-r from-orange-100 to-red-100 rounded-2xl p-6 border-2 border-orange-300">
+            <p className="text-xl font-bold text-gray-800 text-center mb-2">
+              💡 Главное
+            </p>
+            <p className="text-lg text-gray-700 text-center">
+              "Наша семья" превращает хаос в систему, обиды — в справедливость, 
+              а разрозненных людей — в команду!
+            </p>
+          </div>
+        </section>
+
         <section className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl shadow-xl p-10 mb-8">
           <div className="flex items-center gap-4 mb-4">
             <Icon name="Sparkles" className="text-yellow-500" size={40} />
