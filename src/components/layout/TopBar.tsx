@@ -123,8 +123,8 @@ export default function TopBar({
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/settings')}>
-              <Icon name="UserCircle" size={16} className="mr-2" />
-              <span>Мой профиль</span>
+              <Icon name="Settings" size={16} className="mr-2" />
+              <span>Настройки</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
