@@ -52,8 +52,9 @@ const AIAssistantWidget = () => {
   const handleRoleChange = (newRole: string) => {
     setKuzyaRole(newRole);
     localStorage.setItem('kuzyaRole', newRole);
+    const displayName = assistantName || (assistantType === 'domovoy' ? 'Домового' : 'ассистента');
     toast({
-      title: 'Роль Кузи изменена',
+      title: `Роль ${displayName} изменена`,
       description: getRoleInfo(newRole).name,
     });
   };
