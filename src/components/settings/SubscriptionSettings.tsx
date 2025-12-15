@@ -71,92 +71,15 @@ export default function SubscriptionSettings({
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="p-6 bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 rounded-lg border-2 border-purple-200">
-              <div className="text-center mb-6">
-                <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-lg px-4 py-2">
-                  PRO версия - ДЕМО
-                </Badge>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Все функции доступны бесплатно</h3>
-                <p className="text-gray-600">Это демонстрационная версия приложения</p>
-              </div>
-              
-              <ul className="space-y-3 mb-6 max-w-2xl mx-auto">
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Безлимитные задачи</span>
-                    <p className="text-sm text-gray-600">Создавайте неограниченное количество задач для семьи</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Неограниченное число членов семьи</span>
-                    <p className="text-sm text-gray-600">Добавьте всех членов семьи без ограничений</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Семейный календарь и события</span>
-                    <p className="text-sm text-gray-600">Планируйте события, дни рождения, праздники</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Голосование за меню</span>
-                    <p className="text-sm text-gray-600">Семья решает вместе что готовить</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Рецепты и списки покупок</span>
-                    <p className="text-sm text-gray-600">Храните рецепты и планируйте покупки</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Финансовый учет семьи</span>
-                    <p className="text-sm text-gray-600">Отслеживайте доходы, расходы и бюджеты</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Здоровье семьи</span>
-                    <p className="text-sm text-gray-600">Медицинские записи, лекарства, врачи</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                  <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
-                  <div>
-                    <span className="font-semibold">Экспорт данных</span>
-                    <p className="text-sm text-gray-600">Экспорт в CSV и PDF форматы</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900 text-center mb-4">
-                <Icon name="Info" className="inline mr-2" size={16} />
-                Это демо-версия. Все функции доступны для ознакомления с возможностями приложения.
-              </p>
-              <div className="text-center">
-                <Button 
-                  size="lg"
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  onClick={() => window.location.href = '/pricing'}
-                >
-                  <Icon name="Sparkles" className="mr-2" size={20} />
-                  Выбрать тариф
-                </Button>
-              </div>
-            </div>
+          <div className="text-center py-8">
+            <Button 
+              size="lg"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              onClick={() => window.location.href = '/pricing'}
+            >
+              <Icon name="Sparkles" className="mr-2" size={20} />
+              Выбрать тариф
+            </Button>
           </div>
         )}
       </CardContent>

@@ -174,16 +174,27 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         style={{ width: '280px' }}
       >
         <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsSettingsOpen(true)}
-            className="w-full justify-start gap-2 h-9 px-3 mb-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 hover:from-blue-100 hover:to-purple-100"
-            title="Настройки"
-          >
-            <Icon name="Settings" size={18} />
-            <span className="font-medium">Настройки</span>
-          </Button>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex-1 justify-start gap-2 h-9 px-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 hover:from-blue-100 hover:to-purple-100"
+              title="Настройки"
+            >
+              <Icon name="Settings" size={18} />
+              <span className="font-medium">Настройки</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onVisibilityChange(false)}
+              className="h-9 w-9 p-0"
+              title="Закрыть меню"
+            >
+              <Icon name="X" size={18} />
+            </Button>
+          </div>
           <h3 className="text-sm font-semibold flex items-center gap-2 mt-2">
             <Icon name="Menu" size={16} />
             Разделы
