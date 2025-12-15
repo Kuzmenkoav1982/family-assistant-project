@@ -571,6 +571,49 @@
   --tw-gradient-to: #1a1a1a !important;
 }
 
+.theme-dark [class*="from-blue"],
+.theme-dark [class*="from-purple"],
+.theme-dark [class*="to-purple"],
+.theme-dark [class*="to-blue"] {
+  background: #1a1a1a !important;
+}
+
+.theme-dark [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+}
+
+.theme-dark .bg-white,
+.theme-dark [class*="bg-gray-"],
+.theme-dark [class*="bg-blue-"],
+.theme-dark [class*="bg-purple-"],
+.theme-dark [class*="bg-pink-"],
+.theme-dark [class*="bg-indigo-"],
+.theme-dark [class*="bg-green-"],
+.theme-dark [class*="bg-yellow-"],
+.theme-dark [class*="bg-red-"],
+.theme-dark [class*="bg-orange-"] {
+  background-color: #1a1a1a !important;
+}
+
+.theme-dark
+  [class*="text-gray-"]:not([class*="text-gray-100"]):not(
+    [class*="text-gray-200"]
+  ) {
+  color: #e5e7eb !important;
+}
+
+.theme-dark div[style*="backgroundImage"],
+.theme-dark div[style*="background-image"] {
+  background-image: none !important;
+  background-color: #1a1a1a !important;
+}
+
+.theme-dark div[style*="background:"],
+.theme-dark div[style*="background-color"] {
+  background: #1a1a1a !important;
+  background-color: #1a1a1a !important;
+}
+
 /* Стили для темы "1" (DVO Design) */
 .theme-1 {
   background: linear-gradient(135deg, #0a1628 0%, #162447 50%, #1f2e4d 100%);
