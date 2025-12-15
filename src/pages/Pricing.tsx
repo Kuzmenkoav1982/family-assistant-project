@@ -214,6 +214,25 @@ export default function Pricing() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
       {/* Header */}
       <div className="container mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
+            <Icon name="ArrowLeft" size={18} />
+            Назад
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/')}
+            className="gap-2"
+          >
+            <Icon name="Home" size={18} />
+            На главную
+          </Button>
+        </div>
+
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg px-6 py-2">
             💎 Выберите свой тариф
