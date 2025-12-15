@@ -20,8 +20,8 @@ export default function Settings() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
-    const saved = localStorage.getItem('theme');
-    return (saved as ThemeType) || 'young';
+    const saved = localStorage.getItem('familyOrganizerTheme');
+    return (saved as ThemeType) || 'middle';
   });
   
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
@@ -31,7 +31,7 @@ export default function Settings() {
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   
   useEffect(() => {
-    localStorage.setItem('theme', currentTheme);
+    localStorage.setItem('familyOrganizerTheme', currentTheme);
   }, [currentTheme]);
 
   return (

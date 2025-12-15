@@ -35,8 +35,8 @@ export default function TopBar({
   onMenuClick
 }: TopBarProps) {
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
+  const isDarkMode = currentTheme === 'dark' || currentTheme === '1';
 
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
@@ -47,8 +47,8 @@ export default function TopBar({
   };
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
+    const newTheme = isDarkMode ? 'young' : 'dark';
+    onThemeChange(newTheme);
   };
 
   const authToken = localStorage.getItem('authToken');
@@ -102,8 +102,8 @@ export default function TopBar({
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={toggleDarkMode}>
-              <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
-              <span>Тёмная тема</span>
+              <Icon name={isDarkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
+              <span>{isDarkMode ? "Светлая тема" : "Тёмная тема"}</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
