@@ -219,9 +219,17 @@ const AIAssistantWidget = () => {
               <X className="w-4 h-4" />
             </button>
             <div className="flex items-start gap-3">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-3xl border-4 border-orange-400 flex-shrink-0">
-                {assistantType === 'domovoy' ? '🏠' : '🤖'}
-              </div>
+              {assistantType === 'domovoy' ? (
+                <img 
+                  src="https://cdn.poehali.dev/files/Кузя.png"
+                  alt="Домовой"
+                  className="w-16 h-16 rounded-full object-cover border-4 border-orange-400 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl border-4 border-blue-400 flex-shrink-0">
+                  🤖
+                </div>
+              )}
               <div>
                 <h3 className="font-bold text-gray-800 mb-1">
                   Привет! Я {assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')}! {assistantType === 'domovoy' ? '🏡' : '🤖'}
@@ -258,9 +266,17 @@ const AIAssistantWidget = () => {
           <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-t-2xl">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl border-2 border-white/50">
-                  {assistantType === 'domovoy' ? '🏠' : '🤖'}
-                </div>
+                {assistantType === 'domovoy' ? (
+                  <img 
+                    src="https://cdn.poehali.dev/files/Кузя.png"
+                    alt="Домовой"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white/50"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl border-2 border-white/50">
+                    🤖
+                  </div>
+                )}
                 <div>
                   <h3 className="font-bold">
                     {assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')} — AI Помощник
@@ -374,9 +390,17 @@ const AIAssistantWidget = () => {
               <div className="h-[420px] overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50/30 to-white">
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-4xl border-4 border-orange-400 mx-auto mb-4">
-                      {assistantType === 'domovoy' ? '🏠' : '🤖'}
-                    </div>
+                    {assistantType === 'domovoy' ? (
+                      <img 
+                        src="https://cdn.poehali.dev/files/Кузя.png"
+                        alt="Домовой"
+                        className="w-20 h-20 rounded-full object-cover border-4 border-orange-400 mx-auto mb-4"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-4xl border-4 border-blue-400 mx-auto mb-4">
+                        🤖
+                      </div>
+                    )}
                     <h3 className="font-bold text-gray-800 mb-2">
                       Привет! Я {assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')}! {assistantType === 'domovoy' ? '🏡' : '🤖'}
                     </h3>
@@ -408,9 +432,15 @@ const AIAssistantWidget = () => {
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
                               <span className="text-white text-sm font-bold">Я</span>
                             </div>
+                          ) : assistantType === 'domovoy' ? (
+                            <img 
+                              src="https://cdn.poehali.dev/files/Кузя.png"
+                              alt="Домовой"
+                              className="w-8 h-8 rounded-full object-cover border-2 border-orange-400"
+                            />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-lg border-2 border-orange-400">
-                              {assistantType === 'domovoy' ? '🏠' : '🤖'}
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg border-2 border-blue-400">
+                              🤖
                             </div>
                           )}
                         </div>
@@ -433,9 +463,17 @@ const AIAssistantWidget = () => {
                     ))}
                     {isLoading && (
                       <div className="flex gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-lg border-2 border-orange-400">
-                          {assistantType === 'domovoy' ? '🏠' : '🤖'}
-                        </div>
+                        {assistantType === 'domovoy' ? (
+                          <img 
+                            src="https://cdn.poehali.dev/files/Кузя.png"
+                            alt="Домовой"
+                            className="w-8 h-8 rounded-full object-cover border-2 border-orange-400"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg border-2 border-blue-400">
+                            🤖
+                          </div>
+                        )}
                         <div className="bg-white border-2 border-orange-200 rounded-2xl px-3 py-2">
                           <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
                         </div>
@@ -480,9 +518,21 @@ const AIAssistantWidget = () => {
       {!isOpen && !showWelcome && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 rounded-full shadow-2xl border-4 border-orange-400 flex items-center justify-center transition-all hover:scale-110 animate-bounce-subtle text-3xl"
+          className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl border-4 flex items-center justify-center transition-all hover:scale-110 animate-bounce-subtle overflow-hidden ${
+            assistantType === 'domovoy' 
+              ? 'bg-white hover:bg-amber-50 border-orange-400' 
+              : 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-blue-400 text-3xl'
+          }`}
         >
-          {assistantType === 'domovoy' ? '🏠' : '🤖'}
+          {assistantType === 'domovoy' ? (
+            <img 
+              src="https://cdn.poehali.dev/files/Кузя.png"
+              alt="Домовой"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            '🤖'
+          )}
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
         </button>
       )}
