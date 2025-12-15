@@ -2,10 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
 import { CalendarExport } from '@/components/CalendarExport';
+import SubscriptionTab from '@/components/SubscriptionTab';
 import { useState, useEffect } from 'react';
 import { themes } from '@/config/themes';
 import type { ThemeType } from '@/types/family.types';
@@ -60,9 +62,23 @@ export default function Settings() {
           </Button>
         </div>
 
-        <NotificationsSettings />
+        <Tabs defaultValue="family" className="w-full">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="family" className="flex items-center gap-2">
+              <Icon name="Users" size={14} />
+              <span className="hidden sm:inline">Информация о семье</span>
+              <span className="sm:hidden">Семья</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="flex items-center gap-2">
+              <Icon name="CreditCard" size={14} />
+              <span className="hidden sm:inline">Подписка</span>
+              <span className="sm:hidden">Подписка</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <CalendarExport />
+          <TabsContent value="family" className="space-y-6 mt-6">
+            <NotificationsSettings />
+            <CalendarExport />
 
         <Card>
           <CardHeader>
@@ -201,44 +217,50 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Info" size={24} className="text-blue-600" />
-              О приложении
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Версия</span>
-              <span className="text-sm font-medium">1.0.0</span>
-            </div>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2"
-              onClick={() => navigate('/instructions')}
-            >
-              <Icon name="BookOpen" size={18} />
-              📖 Инструкции
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2"
-              onClick={() => navigate('/privacy-policy')}
-            >
-              <Icon name="FileText" size={18} />
-              Политика конфиденциальности
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2"
-              onClick={() => navigate('/terms-of-service')}
-            >
-              <Icon name="HelpCircle" size={18} />
-              Справка и поддержка
-            </Button>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Info" size={24} className="text-blue-600" />
+                  О приложении
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Версия</span>
+                  <span className="text-sm font-medium">1.0.0</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => navigate('/instructions')}
+                >
+                  <Icon name="BookOpen" size={18} />
+                  📖 Инструкции
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => navigate('/privacy-policy')}
+                >
+                  <Icon name="FileText" size={18} />
+                  Политика конфиденциальности
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => navigate('/terms-of-service')}
+                >
+                  <Icon name="HelpCircle" size={18} />
+                  Справка и поддержка
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscription" className="mt-6">
+            <SubscriptionTab />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
