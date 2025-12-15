@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
+const ADMIN_API = 'https://functions.poehali.dev/0785b781-b361-4def-810e-131977a99fbe';
 
 const plans = [
   {
@@ -65,6 +68,96 @@ export default function Pricing() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<any>(null);
+  const [checkingPromo, setCheckingPromo] = useState(false);
+
+  const applyPromoCode = async () => {
+    if (!promoCode) return;
+
+    setCheckingPromo(true);
+    try {
+      const response = await fetch(`${ADMIN_API}?action=promo-codes`, {
+        headers: {
+          'X-Admin-Token': 'admin_authenticated'
+        }
+      });
+
+      const data = await response.json();
+      const promo = data.promo_codes?.find(
+        (p: any) => p.code.toUpperCase() === promoCode.toUpperCase() && p.is_active
+      );
+
+      if (!promo) {
+        toast({
+          title: 'Промокод не найден',
+          description: 'Проверьте правильность кода',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Проверка лимитов
+      if (promo.max_uses && promo.current_uses >= promo.max_uses) {
+        toast({
+          title: 'Промокод исчерпан',
+          description: 'Этот промокод больше недоступен',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Проверка срока действия
+      if (promo.valid_until && new Date(promo.valid_until) < new Date()) {
+        toast({
+          title: 'Промокод истёк',
+          description: 'Срок действия промокода закончился',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      setAppliedPromo(promo);
+      toast({
+        title: '✅ Промокод применён!',
+        description: getPromoDescription(promo)
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка проверки',
+        description: 'Не удалось проверить промокод',
+        variant: 'destructive'
+      });
+    } finally {
+      setCheckingPromo(false);
+    }
+  };
+
+  const getPromoDescription = (promo: any) => {
+    if (promo.discount_type === 'percent') return `Скидка ${promo.discount_value}%`;
+    if (promo.discount_type === 'fixed') return `Скидка ₽${promo.discount_value}`;
+    if (promo.discount_type === 'free_days') return `+${promo.discount_value} дней в подарок`;
+    return 'Скидка применена';
+  };
+
+  const calculateFinalPrice = (originalPrice: number, planId: string) => {
+    if (!appliedPromo) return originalPrice;
+
+    // Проверка применимости к тарифу
+    if (appliedPromo.applicable_plans && !appliedPromo.applicable_plans.includes(planId)) {
+      return originalPrice;
+    }
+
+    if (appliedPromo.discount_type === 'percent') {
+      return Math.round(originalPrice * (1 - appliedPromo.discount_value / 100));
+    }
+
+    if (appliedPromo.discount_type === 'fixed') {
+      return Math.max(0, originalPrice - appliedPromo.discount_value);
+    }
+
+    return originalPrice;
+  };
 
   const handleSubscribe = async (planId: string) => {
     const token = localStorage.getItem('authToken');
@@ -90,6 +183,7 @@ export default function Pricing() {
         body: JSON.stringify({
           action: 'create',
           plan_type: planId,
+          promo_code: appliedPromo?.code || null,
           return_url: window.location.origin + '/settings'
         })
       });
@@ -132,6 +226,66 @@ export default function Pricing() {
           </p>
         </div>
 
+        {/* Promo Code Input */}
+        <Card className="max-w-md mx-auto mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Icon name="Tag" size={20} />
+              Есть промокод?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  placeholder="Введите код (например, SUMMER2024)"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  disabled={!!appliedPromo}
+                  className="font-mono"
+                />
+              </div>
+              {!appliedPromo ? (
+                <Button
+                  onClick={applyPromoCode}
+                  disabled={!promoCode || checkingPromo}
+                  variant="outline"
+                >
+                  {checkingPromo ? (
+                    <Icon name="Loader2" className="animate-spin" size={16} />
+                  ) : (
+                    <>
+                      <Icon name="Check" size={16} className="mr-1" />
+                      Применить
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    setAppliedPromo(null);
+                    setPromoCode('');
+                  }}
+                  variant="outline"
+                >
+                  <Icon name="X" size={16} />
+                </Button>
+              )}
+            </div>
+            {appliedPromo && (
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                <Icon name="CheckCircle2" className="text-green-600" size={20} />
+                <div>
+                  <p className="text-sm font-semibold text-green-900">
+                    Промокод {appliedPromo.code} применён!
+                  </p>
+                  <p className="text-xs text-green-700">{getPromoDescription(appliedPromo)}</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
           {plans.map((plan) => (
@@ -154,8 +308,36 @@ export default function Pricing() {
               <CardHeader className="text-center pb-8 pt-8">
                 <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
                 <div className="mb-4">
-                  <span className="text-5xl font-bold text-gray-900">₽{plan.price}</span>
-                  <span className="text-gray-600 ml-2">/ {plan.period}</span>
+                  {(() => {
+                    const finalPrice = calculateFinalPrice(plan.price, plan.id);
+                    const hasDiscount = finalPrice !== plan.price;
+                    
+                    return (
+                      <>
+                        {hasDiscount && (
+                          <div className="text-2xl text-gray-400 line-through mb-1">
+                            ₽{plan.price}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-center gap-2">
+                          <span className={`text-5xl font-bold ${hasDiscount ? 'text-green-600' : 'text-gray-900'}`}>
+                            ₽{finalPrice}
+                          </span>
+                          <span className="text-gray-600">/ {plan.period}</span>
+                        </div>
+                        {hasDiscount && appliedPromo.discount_type !== 'free_days' && (
+                          <Badge className="mt-2 bg-green-500">
+                            Экономия ₽{plan.price - finalPrice}
+                          </Badge>
+                        )}
+                        {hasDiscount && appliedPromo.discount_type === 'free_days' && (
+                          <Badge className="mt-2 bg-purple-500">
+                            +{appliedPromo.discount_value} дней в подарок
+                          </Badge>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 <CardDescription className="text-base">
                   {plan.period === '3 месяца' && '₽266/мес'}

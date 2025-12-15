@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Check notifications endpoint responds",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

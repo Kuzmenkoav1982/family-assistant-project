@@ -8,6 +8,7 @@ import SubscriptionsTable from '@/components/admin/SubscriptionsTable';
 import PromoCodesManager from '@/components/admin/PromoCodesManager';
 import PlansSettings from '@/components/admin/PlansSettings';
 import ReportsExport from '@/components/admin/ReportsExport';
+import CohortAnalysis from '@/components/admin/CohortAnalysis';
 
 const API_URL = 'https://functions.poehali.dev/0785b781-b361-4def-810e-131977a99fbe';
 
@@ -74,6 +75,10 @@ export default function AdminSubscriptions() {
               <Icon name="FileText" size={16} />
               Отчёты
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <Icon name="TrendingUp" size={16} />
+              Аналитика
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -94,6 +99,10 @@ export default function AdminSubscriptions() {
 
           <TabsContent value="reports" className="space-y-6">
             <ReportsExport apiUrl={API_URL} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <CohortAnalysis apiUrl={API_URL} />
           </TabsContent>
         </Tabs>
       </div>
