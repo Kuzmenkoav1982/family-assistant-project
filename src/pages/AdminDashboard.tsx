@@ -148,10 +148,16 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-slate-600 mt-2">Управление и мониторинг приложения простым языком</p>
           </div>
-          <Button variant="outline" onClick={() => window.location.href = '/'}>
-            <Icon name="ArrowLeft" size={16} className="mr-2" />
-            На главную
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/admin/subscriptions'}>
+              <Icon name="CreditCard" size={16} className="mr-2" />
+              Подписки
+            </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/'}>
+              <Icon name="ArrowLeft" size={16} className="mr-2" />
+              На главную
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -255,6 +261,31 @@ export default function AdminDashboard() {
                   <p className="text-xs text-slate-500">
                     До 100 пользователей: {100 - usersCount} семей
                   </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Icon name="CreditCard" size={18} className="text-purple-600" />
+                  Подписки
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-2xl font-bold text-purple-900">0</p>
+                  <p className="text-xs text-purple-600">Активных подписок</p>
+                </div>
+                <div className="pt-2 border-t border-purple-200">
+                  <Button
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    onClick={() => window.location.href = '/admin/subscriptions'}
+                  >
+                    <Icon name="BarChart3" size={14} className="mr-2" />
+                    Управление подписками
+                  </Button>
                 </div>
               </CardContent>
             </Card>

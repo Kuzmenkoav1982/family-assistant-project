@@ -64,6 +64,7 @@ import WhatIsFamily from "./pages/WhatIsFamily";
 import FamilyNews from "./pages/FamilyNews";
 import Pricing from "./pages/Pricing";
 import InvestorDeck from "./pages/InvestorDeck";
+import AdminSubscriptions from "./pages/AdminSubscriptions";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -176,6 +177,7 @@ const App = () => {
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/investor-deck" element={<InvestorDeck />} />
+              <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

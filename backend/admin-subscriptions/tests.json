@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "Unauthorized access without admin token",
+      "method": "GET",
+      "path": "/?action=dashboard",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Get dashboard stats with admin token",
+      "method": "GET",
+      "path": "/?action=dashboard",
+      "headers": {
+        "X-Admin-Token": "admin_authenticated"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "subscription_stats": "object"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
