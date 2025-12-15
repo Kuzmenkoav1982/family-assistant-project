@@ -135,7 +135,7 @@ export default function CohortAnalysis({ apiUrl }: Props) {
           </CardHeader>
           <CardContent>
             <Badge className="bg-green-500">Высокая</Badge>
-            <p className="text-xs text-gray-500 mt-2">Retention > 60% — отлично</p>
+            <p className="text-xs text-gray-500 mt-2">Retention {'>'}  60% — отлично</p>
           </CardContent>
         </Card>
       </div>
