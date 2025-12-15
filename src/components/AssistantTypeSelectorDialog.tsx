@@ -26,6 +26,7 @@ export default function AssistantTypeSelectorDialog({
   const { setAssistantType, setAssistantName } = useAIAssistant();
   const [selectedType, setSelectedType] = useState<AssistantType | null>(null);
   const [customName, setCustomName] = useState('');
+  const [domovoyName, setDomovoyName] = useState('');
 
   const handleConfirm = () => {
     if (!selectedType) return;
@@ -35,13 +36,16 @@ export default function AssistantTypeSelectorDialog({
     if (selectedType === 'neutral' && customName.trim()) {
       setAssistantName(customName.trim());
     } else if (selectedType === 'domovoy') {
-      setAssistantName('Домовой');
+      setAssistantName(domovoyName.trim() || 'Домовой');
     }
 
     onOpenChange(false);
   };
 
-  const isValid = selectedType && (selectedType === 'domovoy' || customName.trim().length > 0);
+  const isValid = selectedType && (
+    (selectedType === 'neutral' && customName.trim().length > 0) ||
+    (selectedType === 'domovoy')
+  );
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
@@ -130,6 +134,22 @@ export default function AssistantTypeSelectorDialog({
                   <Icon name="Sparkles" size={14} />
                   <span>Основан на славянском фольклоре</span>
                 </div>
+                
+                {selectedType === 'domovoy' && (
+                  <div className="space-y-2 pt-2 border-t mt-3">
+                    <Label htmlFor="domovoy-name">Придумайте имя Домовому (опционально)</Label>
+                    <Input
+                      id="domovoy-name"
+                      placeholder="Например: Кузя, Нафаня, Домовёнок..."
+                      value={domovoyName}
+                      onChange={(e) => setDomovoyName(e.target.value)}
+                      maxLength={30}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Оставьте пустым для имени "Домовой"
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </Card>

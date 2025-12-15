@@ -119,15 +119,13 @@ export default function AssistantSettings() {
               ) : (
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
                   <span className="font-medium">{assistantName || 'Не задано'}</span>
-                  {assistantType === 'neutral' && (
-                    <Button
-                      onClick={() => setIsEditingName(true)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <Icon name="Pencil" size={16} />
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => setIsEditingName(true)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Icon name="Pencil" size={16} />
+                  </Button>
                 </div>
               )}
             </div>
