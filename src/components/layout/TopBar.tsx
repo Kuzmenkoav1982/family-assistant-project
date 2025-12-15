@@ -100,16 +100,6 @@ export default function TopBar({
               <Icon name="Globe" size={16} className="mr-2" />
               <span>Язык: {currentLanguage.toUpperCase()}</span>
             </DropdownMenuItem>
-            
-            <DropdownMenuItem onClick={() => {
-              const themes = ['default', 'purple', 'ocean', 'sunset', 'forest', 'rose'];
-              const currentIndex = themes.indexOf(currentTheme);
-              const nextIndex = (currentIndex + 1) % themes.length;
-              onThemeChange(themes[nextIndex]);
-            }}>
-              <Icon name="Palette" size={16} className="mr-2" />
-              <span>Стиль: {currentTheme}</span>
-            </DropdownMenuItem>
 
             <DropdownMenuItem onClick={toggleDarkMode}>
               <Icon name={darkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
