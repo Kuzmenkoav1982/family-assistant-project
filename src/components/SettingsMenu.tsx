@@ -165,21 +165,11 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
           </DialogHeader>
 
           <Tabs defaultValue="invites" className="w-full flex-1 overflow-hidden flex flex-col">
-            <TabsList className="grid w-full grid-cols-6 mx-6 my-2">
+            <TabsList className="grid w-full grid-cols-4 mx-6 my-2">
               <TabsTrigger value="invites" className="text-xs md:text-sm">
                 <Icon name="Users" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Приглашения</span>
                 <span className="sm:hidden">Семья</span>
-              </TabsTrigger>
-              <TabsTrigger value="effects" className="text-xs md:text-sm">
-                <Icon name="Sparkles" className="mr-1 md:mr-2" size={14} />
-                <span className="hidden sm:inline">Эффекты</span>
-                <span className="sm:hidden">FX</span>
-              </TabsTrigger>
-              <TabsTrigger value="export" className="text-xs md:text-sm">
-                <Icon name="Download" className="mr-1 md:mr-2" size={14} />
-                <span className="hidden sm:inline">Экспорт</span>
-                <span className="sm:hidden">Файл</span>
               </TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs md:text-sm">
                 <Icon name="Mail" className="mr-1 md:mr-2" size={14} />
