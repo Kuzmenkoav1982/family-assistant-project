@@ -32,12 +32,12 @@ def verify_token(token: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
+    safe_token = token.replace("'", "''")
     cur.execute(
         f"""
         SELECT user_id FROM {SCHEMA}.sessions 
-        WHERE token = %s AND expires_at > CURRENT_TIMESTAMP
-        """,
-        (token,)
+        WHERE token = '{safe_token}' AND expires_at > CURRENT_TIMESTAMP
+        """
     )
     session = cur.fetchone()
     cur.close()
@@ -49,12 +49,12 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
+    safe_user_id = user_id.replace("'", "''")
     cur.execute(
         f"""
         SELECT family_id FROM {SCHEMA}.family_members 
-        WHERE user_id = %s LIMIT 1
-        """,
-        (user_id,)
+        WHERE user_id = '{safe_user_id}' LIMIT 1
+        """
     )
     member = cur.fetchone()
     cur.close()
@@ -124,33 +124,30 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
     
     try:
         end_date = datetime.now() + timedelta(days=30 * plan['months'])
+        safe_family_id = family_id.replace("'", "''")
+        safe_plan_type = plan_type.replace("'", "''")
+        safe_end_date = end_date.strftime('%Y-%m-%d %H:%M:%S')
         
         cur.execute(
             f"""
             INSERT INTO {SCHEMA}.subscriptions
             (family_id, plan_type, status, amount, end_date)
-            VALUES (%s, %s, %s, %s, %s)
+            VALUES ('{safe_family_id}', '{safe_plan_type}', 'pending', {plan['price']}, '{safe_end_date}')
             RETURNING id
-            """,
-            (family_id, plan_type, 'pending', plan['price'], end_date)
+            """
         )
         subscription = cur.fetchone()
+        
+        safe_user_id = user_id.replace("'", "''")
+        safe_payment_id = payment_result['payment_id'].replace("'", "''")
+        safe_description = f"Подписка {plan['name']}".replace("'", "''")
         
         cur.execute(
             f"""
             INSERT INTO {SCHEMA}.payments
             (subscription_id, family_id, user_id, amount, status, payment_id, description)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                subscription['id'],
-                family_id,
-                user_id,
-                plan['price'],
-                'pending',
-                payment_result['payment_id'],
-                f"Подписка {plan['name']}"
-            )
+            VALUES ('{subscription['id']}', '{safe_family_id}', '{safe_user_id}', {plan['price']}, 'pending', '{safe_payment_id}', '{safe_description}')
+            """
         )
         
         conn.commit()
@@ -174,14 +171,14 @@ def get_subscription_status(family_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
+    safe_family_id = family_id.replace("'", "''")
     cur.execute(
         f"""
         SELECT id, plan_type, status, amount, start_date, end_date, auto_renew
         FROM {SCHEMA}.subscriptions
-        WHERE family_id = %s AND status = 'active'
+        WHERE family_id = '{safe_family_id}' AND status = 'active'
         ORDER BY end_date DESC LIMIT 1
-        """,
-        (family_id,)
+        """
     )
     subscription = cur.fetchone()
     
