@@ -255,7 +255,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     } else if (!token) {
       setLoading(false);
     }
-  }, [fetchMembers]);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -271,7 +271,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [fetchMembers]);
+  }, []);
 
   return (
     <FamilyMembersContext.Provider
