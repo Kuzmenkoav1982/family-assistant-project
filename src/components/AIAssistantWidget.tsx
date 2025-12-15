@@ -258,8 +258,8 @@ const AIAssistantWidget = () => {
       {/* Chat Widget */}
       {isOpen && (
         <div 
-          className={`fixed bottom-6 right-6 z-50 bg-white rounded-2xl shadow-2xl border-2 border-orange-300 transition-all duration-300 ${
-            isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
+          className={`fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-orange-300 transition-all duration-300 ${
+            isMinimized ? 'w-80 h-16 bottom-6 right-6' : 'w-[95vw] md:w-96 h-[70vh] md:h-[600px] bottom-20 md:bottom-6 right-[2.5vw] md:right-6 max-h-[calc(100vh-180px)]'
           }`}
         >
           {/* Header */}
@@ -401,7 +401,7 @@ const AIAssistantWidget = () => {
           {!isMinimized && (
             <>
               {/* Messages */}
-              <div className="h-[420px] overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50/30 to-white">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50/30 to-white" style={{ maxHeight: 'calc(100% - 200px)' }}>
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
@@ -499,14 +499,14 @@ const AIAssistantWidget = () => {
               </div>
 
               {/* Input */}
-              <div className="p-3 bg-white border-t-2 border-orange-200 rounded-b-2xl">
+              <div className="p-3 bg-white border-t-2 border-orange-200 rounded-b-2xl flex-shrink-0">
                 <div className="flex gap-2">
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Напишите сообщение..."
-                    className="flex-1 min-h-[44px] max-h-[80px] resize-none text-sm border-2 border-orange-200 focus:border-orange-400"
+                    className="flex-1 min-h-[44px] max-h-[80px] resize-none text-sm border-2 border-orange-200 focus:border-orange-400 text-base"
                     disabled={isLoading}
                   />
                   <Button
