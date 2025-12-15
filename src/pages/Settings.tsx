@@ -124,10 +124,81 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Режим отображения</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    setCurrentTheme('middle');
+                    toast({
+                      title: 'Светлая тема',
+                      description: 'Применён светлый режим'
+                    });
+                    setTimeout(() => window.location.reload(), 500);
+                  }}
+                  className={`
+                    relative p-4 rounded-lg border-2 transition-all text-left
+                    ${currentTheme !== 'dark'
+                      ? 'border-purple-500 bg-purple-50 shadow-lg' 
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
+                      <Icon name="Sun" size={24} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900">Светлая</h4>
+                      <p className="text-xs text-gray-600">Дневной режим</p>
+                    </div>
+                    {currentTheme !== 'dark' && (
+                      <div className="absolute top-2 right-2">
+                        <Icon name="Check" size={20} className="text-purple-600" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setCurrentTheme('dark');
+                    toast({
+                      title: 'Тёмная тема',
+                      description: 'Применён ночной режим'
+                    });
+                    setTimeout(() => window.location.reload(), 500);
+                  }}
+                  className={`
+                    relative p-4 rounded-lg border-2 transition-all text-left
+                    ${currentTheme === 'dark'
+                      ? 'border-purple-500 bg-purple-50 shadow-lg' 
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0">
+                      <Icon name="Moon" size={24} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900">Тёмная</h4>
+                      <p className="text-xs text-gray-600">Ночной режим</p>
+                    </div>
+                    {currentTheme === 'dark' && (
+                      <div className="absolute top-2 right-2">
+                        <Icon name="Check" size={20} className="text-purple-600" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label className="text-base font-semibold">Выберите стиль оформления</Label>
+              <Label className="text-base font-semibold">Стиль оформления (для светлой темы)</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(themes).map(([key, theme]) => {
+                {Object.entries(themes).filter(([key]) => key !== 'dark').map(([key, theme]) => {
                   console.log(`[Settings] Rendering theme ${key}:`, theme);
                   
                   if (!theme || !theme.colors) {

@@ -36,7 +36,6 @@ export default function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
-  const isDarkMode = currentTheme === 'dark';
 
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
@@ -44,11 +43,6 @@ export default function TopBar({
       // @ts-ignore
       window.jivo_api.open();
     }
-  };
-
-  const toggleDarkMode = () => {
-    const newTheme = isDarkMode ? 'middle' : 'dark';
-    onThemeChange(newTheme);
   };
 
   const authToken = localStorage.getItem('authToken');
@@ -99,11 +93,6 @@ export default function TopBar({
             }}>
               <Icon name="Globe" size={16} className="mr-2" />
               <span>Язык: {currentLanguage.toUpperCase()}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem onClick={toggleDarkMode}>
-              <Icon name={isDarkMode ? "Sun" : "Moon"} size={16} className="mr-2" />
-              <span>{isDarkMode ? "Светлая тема" : "Тёмная тема"}</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
