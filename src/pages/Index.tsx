@@ -327,6 +327,14 @@ export default function Index({ onLogout }: IndexProps) {
     localStorage.setItem('familyOrganizerTheme', currentTheme);
   }, [currentTheme]);
   
+  // Проверяем актуальную тему из localStorage при монтировании
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('familyOrganizerTheme') as ThemeType;
+    if (savedTheme && savedTheme !== currentTheme) {
+      setCurrentTheme(savedTheme);
+    }
+  }, []);
+  
   // Слушаем изменения темы (для синхронизации между компонентами)
   useEffect(() => {
     const handleThemeChange = (e: CustomEvent<ThemeType>) => {
