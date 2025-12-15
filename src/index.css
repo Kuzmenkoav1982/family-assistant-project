@@ -347,6 +347,107 @@
   @apply rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900;
 }
 
+/* Стили для тёмной темы */
+.theme-dark {
+  background: linear-gradient(
+    135deg,
+    #000000 0%,
+    #0a0a0a 50%,
+    #000000 100%
+  ) !important;
+  color: white !important;
+  min-height: 100vh;
+}
+
+.theme-dark .card,
+.theme-dark [class*="Card"],
+.theme-dark [class*="bg-white"] {
+  @apply bg-[#1a1a1a]/90 border-white/10 !important;
+  backdrop-filter: blur(16px);
+  @apply shadow-2xl;
+}
+
+.theme-dark button,
+.theme-dark .button {
+  @apply bg-[#2a2a2a] border-white/10 text-white;
+  transition: all 0.3s ease;
+}
+
+.theme-dark button:hover,
+.theme-dark .button:hover {
+  @apply bg-[#3a3a3a] border-white/20;
+}
+
+.theme-dark input,
+.theme-dark textarea,
+.theme-dark select {
+  @apply bg-[#2a2a2a] border-white/10 text-white placeholder-gray-500 !important;
+}
+
+.theme-dark h1,
+.theme-dark h2,
+.theme-dark h3,
+.theme-dark h4,
+.theme-dark h5,
+.theme-dark h6 {
+  @apply text-white !important;
+}
+
+.theme-dark p {
+  @apply text-gray-200 !important;
+}
+
+.theme-dark span,
+.theme-dark div {
+  color: inherit;
+}
+
+.theme-dark .text-gray-600,
+.theme-dark .text-gray-700,
+.theme-dark .text-gray-800,
+.theme-dark .text-gray-900 {
+  @apply text-gray-300 !important;
+}
+
+.theme-dark
+  .bg-gradient-to-br:not([class*="from-purple"]):not([class*="from-blue"]),
+.theme-dark
+  .bg-gradient-to-r:not([class*="from-purple"]):not([class*="from-blue"]),
+.theme-dark [class*="bg-blue-50"],
+.theme-dark [class*="bg-purple-50"],
+.theme-dark [class*="bg-pink-50"],
+.theme-dark [class*="bg-indigo-50"],
+.theme-dark [class*="bg-gray-50"] {
+  @apply bg-[#1a1a1a]/90 !important;
+}
+
+.theme-dark .badge {
+  @apply bg-[#2a2a2a] text-gray-200 border-white/10;
+}
+
+.theme-dark [role="menuitem"],
+.theme-dark [class*="DropdownMenuItem"] {
+  @apply hover:bg-[#2a2a2a] text-gray-200;
+}
+
+.theme-dark [class*="Dialog"],
+.theme-dark [class*="Popover"] {
+  @apply bg-[#1a1a1a] border-white/10;
+}
+
+.theme-dark aside,
+.theme-dark nav {
+  @apply bg-[#0a0a0a]/95 border-white/10;
+}
+
+.theme-dark [class*="sidebar"] {
+  @apply bg-[#0a0a0a]/95 text-gray-200;
+}
+
+.theme-dark .scrollbar-thin {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
 /* Стили для темы "1" (DVO Design) */
 .theme-1 {
   background: linear-gradient(135deg, #0a1628 0%, #162447 50%, #1f2e4d 100%);

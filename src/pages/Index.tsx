@@ -316,6 +316,14 @@ export default function Index({ onLogout }: IndexProps) {
     localStorage.setItem('familyGoals', JSON.stringify(familyGoals));
   }, [familyGoals]);
 
+  useEffect(() => {
+    if (currentTheme === 'dark' || currentTheme === '1') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [currentTheme]);
+
   // Отключаем ProfileOnboarding в демо-режиме
   // useEffect(() => {
   //   const needsSetup = localStorage.getItem('needsProfileSetup');

@@ -205,7 +205,7 @@ export interface Transaction {
   description: string;
 }
 
-export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono' | '1';
+export type ThemeType = 'young' | 'middle' | 'senior' | 'apple' | 'mono' | '1' | 'dark';
 
 export interface ThemeConfig {
   name: string;

@@ -159,7 +159,7 @@ export default function Settings() {
                           w-12 h-12 rounded-lg bg-gradient-to-r ${theme.colors.primary} 
                           flex items-center justify-center flex-shrink-0
                         `}>
-                          <Icon name="Palette" size={24} className="text-white" />
+                          <Icon name={key === 'dark' ? 'Moon' : 'Palette'} size={24} className="text-white" />
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-gray-900 mb-1">{theme.name}</h4>

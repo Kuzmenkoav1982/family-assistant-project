@@ -113,6 +113,25 @@ export const themes: Record<ThemeType, ThemeConfig> = {
     },
     spacing: 'space-y-5',
     borderRadius: 'rounded-md'
+  },
+  
+  dark: {
+    name: 'Тёмная',
+    description: 'Полноценная тёмная тема с чёрным фоном',
+    ageRange: 'Ночной режим',
+    colors: {
+      primary: 'from-gray-200 to-white',
+      secondary: 'from-blue-400 to-cyan-400',
+      accent: 'from-purple-400 to-pink-400',
+      background: 'from-[#000000] via-[#0a0a0a] to-[#000000]',
+      text: 'text-white'
+    },
+    fontSize: {
+      base: 'text-base',
+      heading: 'text-4xl lg:text-6xl'
+    },
+    spacing: 'space-y-6',
+    borderRadius: 'rounded-2xl'
   }
 };
 
@@ -122,6 +141,8 @@ export const getThemeClasses = (theme: ThemeType) => {
   if (!themes[theme]) {
     console.warn(`[getThemeClasses] Theme "${theme}" not found, using "young" as fallback`);
   }
+  
+  const isDark = theme === 'dark' || theme === '1';
   
   return {
     background: `bg-gradient-to-br ${config.colors.background}`,
@@ -134,7 +155,10 @@ export const getThemeClasses = (theme: ThemeType) => {
     headingFont: config.fontSize.heading,
     spacing: config.spacing,
     borderRadius: config.borderRadius,
-    sidebarBg: 'rgba(255, 255, 255, 0.9)',
-    border: 'rgba(0, 0, 0, 0.1)'
+    sidebarBg: isDark ? 'rgba(17, 17, 17, 0.95)' : 'rgba(255, 255, 255, 0.9)',
+    border: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+    cardBg: isDark ? 'bg-[#1a1a1a]/90' : 'bg-white/90',
+    inputBg: isDark ? 'bg-[#2a2a2a]' : 'bg-white',
+    isDark
   };
 };
