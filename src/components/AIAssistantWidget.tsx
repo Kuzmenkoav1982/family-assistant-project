@@ -322,7 +322,9 @@ const AIAssistantWidget = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64" align="start">
-                <DropdownMenuLabel>Выберите роль Кузи</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {assistantType === 'domovoy' ? 'Роль Домового в семье' : 'Выберите роль ассистента'}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleRoleChange('family-assistant')}>
                   <span className="mr-2">🏡</span>
@@ -380,6 +382,18 @@ const AIAssistantWidget = () => {
                     <div className="text-xs text-gray-500">Организация поездок</div>
                   </div>
                 </DropdownMenuItem>
+                {assistantType === 'domovoy' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => window.location.href = '/domovoy'}>
+                      <Icon name="Sparkles" size={16} className="mr-2 text-amber-600" />
+                      <div>
+                        <div className="font-medium text-amber-700">О Домовом</div>
+                        <div className="text-xs text-gray-500">Узнать больше</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
