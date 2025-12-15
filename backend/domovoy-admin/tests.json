@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request returns CORS headers",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedHeaders": {
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "name": "GET without admin token returns 401",
+      "method": "GET",
+      "path": "/?action=dashboard",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET dashboard with valid admin token",
+      "method": "GET",
+      "path": "/?action=dashboard",
+      "headers": {
+        "X-Admin-Token": "admin_authenticated"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "stats": "object"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

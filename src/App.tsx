@@ -65,6 +65,7 @@ import FamilyNews from "./pages/FamilyNews";
 import Pricing from "./pages/Pricing";
 import InvestorDeck from "./pages/InvestorDeck";
 import AdminSubscriptions from "./pages/AdminSubscriptions";
+import AdminDomovoy from "./pages/AdminDomovoy";
 import DomovoyPage from "./pages/DomovoyPage";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
@@ -181,6 +182,7 @@ const App = () => {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/investor-deck" element={<InvestorDeck />} />
               <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+              <Route path="/admin/domovoy" element={<AdminDomovoy />} />
               <Route path="/domovoy" element={<DomovoyPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
