@@ -555,6 +555,22 @@
   border-bottom-color: white !important;
 }
 
+.theme-dark [class*="bg-gradient"] {
+  background: #1a1a1a !important;
+}
+
+.theme-dark [style*="gradient"] {
+  background: #1a1a1a !important;
+}
+
+.theme-dark [class*="from-white"],
+.theme-dark [class*="via-white"],
+.theme-dark [class*="to-white"] {
+  --tw-gradient-from: #1a1a1a !important;
+  --tw-gradient-via: #1a1a1a !important;
+  --tw-gradient-to: #1a1a1a !important;
+}
+
 /* Стили для темы "1" (DVO Design) */
 .theme-1 {
   background: linear-gradient(135deg, #0a1628 0%, #162447 50%, #1f2e4d 100%);
