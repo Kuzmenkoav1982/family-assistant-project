@@ -317,7 +317,7 @@ export default function Index({ onLogout }: IndexProps) {
   }, [familyGoals]);
 
   useEffect(() => {
-    if (currentTheme === 'dark' || currentTheme === '1') {
+    if (currentTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');

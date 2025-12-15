@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function Settings() {
   console.log('[Settings] Component mounted, themes:', themes);
   console.log('[Settings] Theme keys:', Object.keys(themes));
-  console.log('[Settings] First theme:', themes.young);
+  console.log('[Settings] First theme:', themes.middle);
   
   const navigate = useNavigate();
   const { toast } = useToast();

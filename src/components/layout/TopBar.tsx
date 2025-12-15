@@ -36,7 +36,7 @@ export default function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
-  const isDarkMode = currentTheme === 'dark' || currentTheme === '1';
+  const isDarkMode = currentTheme === 'dark';
 
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
@@ -47,7 +47,7 @@ export default function TopBar({
   };
 
   const toggleDarkMode = () => {
-    const newTheme = isDarkMode ? 'young' : 'dark';
+    const newTheme = isDarkMode ? 'middle' : 'dark';
     onThemeChange(newTheme);
   };
 
