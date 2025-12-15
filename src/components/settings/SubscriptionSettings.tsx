@@ -142,10 +142,20 @@ export default function SubscriptionSettings({
             </div>
 
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900 text-center">
+              <p className="text-sm text-blue-900 text-center mb-4">
                 <Icon name="Info" className="inline mr-2" size={16} />
                 Это демо-версия. Все функции доступны для ознакомления с возможностями приложения.
               </p>
+              <div className="text-center">
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  onClick={() => window.location.href = '/pricing'}
+                >
+                  <Icon name="Sparkles" className="mr-2" size={20} />
+                  Выбрать тариф
+                </Button>
+              </div>
             </div>
           </div>
         )}
