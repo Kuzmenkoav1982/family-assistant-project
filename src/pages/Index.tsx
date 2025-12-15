@@ -322,7 +322,20 @@ export default function Index({ onLogout }: IndexProps) {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Сохраняем тему в localStorage
+    localStorage.setItem('familyOrganizerTheme', currentTheme);
   }, [currentTheme]);
+  
+  // Слушаем изменения темы (для синхронизации между компонентами)
+  useEffect(() => {
+    const handleThemeChange = (e: CustomEvent<ThemeType>) => {
+      setCurrentTheme(e.detail);
+    };
+    
+    window.addEventListener('themeChange', handleThemeChange as EventListener);
+    return () => window.removeEventListener('themeChange', handleThemeChange as EventListener);
+  }, []);
 
   // Отключаем ProfileOnboarding в демо-режиме
   // useEffect(() => {

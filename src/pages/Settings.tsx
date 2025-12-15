@@ -39,6 +39,9 @@ export default function Settings() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Отправляем кастомное событие для синхронизации с другими компонентами
+    window.dispatchEvent(new CustomEvent('themeChange', { detail: currentTheme }));
   }, [currentTheme]);
 
   return (
