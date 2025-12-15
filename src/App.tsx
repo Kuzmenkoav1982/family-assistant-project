@@ -62,6 +62,8 @@ import StateSupport from "./pages/StateSupport";
 import FamilyPolicy from "./pages/FamilyPolicy";
 import WhatIsFamily from "./pages/WhatIsFamily";
 import FamilyNews from "./pages/FamilyNews";
+import Pricing from "./pages/Pricing";
+import InvestorDeck from "./pages/InvestorDeck";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -172,6 +174,8 @@ const App = () => {
               <Route path="/launch-plan" element={<LaunchPlan />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/investor-deck" element={<InvestorDeck />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
