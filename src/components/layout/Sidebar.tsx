@@ -143,10 +143,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     } else if (item.path) {
       navigate(item.path);
     }
-    // Close sidebar on mobile after navigation
-    if (window.innerWidth < 768) {
-      onVisibilityChange(false);
-    }
+    // Always close sidebar after navigation
+    onVisibilityChange(false);
   };
 
   const isActive = (item: MenuItem) => {
