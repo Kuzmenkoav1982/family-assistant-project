@@ -16,69 +16,11 @@ interface Subscription {
   auto_renew?: boolean;
 }
 
-const plans = [
-  {
-    id: 'basic',
-    name: 'Базовый',
-    price: '₽299',
-    period: '/ 1 месяц',
-    pricePerMonth: '₽299/мес',
-    description: 'Гибкая оплата',
-    features: [
-      'До 5 членов семьи',
-      'Основные функции',
-      'Календарь событий',
-      'Списки покупок',
-      'Финансовый учет',
-      'Техподдержка'
-    ]
-  },
-  {
-    id: 'standard',
-    name: 'Семейный',
-    price: '₽799',
-    period: '/ 3 месяца',
-    pricePerMonth: '₽266/мес',
-    popular: true,
-    description: 'Все функции Базового',
-    features: [
-      'До 10 членов семьи',
-      'Все функции Базового',
-      'Рецепты и меню',
-      'Голосования',
-      'Здоровье детей',
-      'Медицинские записи',
-      'Приоритетная поддержка',
-      'Экономия 20%'
-    ]
-  },
-  {
-    id: 'premium',
-    name: 'Премиум',
-    price: '₽2499',
-    period: '/ 12 месяцев',
-    pricePerMonth: '₽208/мес',
-    description: 'Все функции Семейного',
-    features: [
-      'Неограниченное число членов',
-      'Все функции Семейного',
-      'ИИ-помощник',
-      'Путешествия и поездки',
-      'Аналитика и отчеты',
-      'Экспорт данных',
-      'Семейное древо',
-      'VIP поддержка 24/7',
-      'Экономия 50%'
-    ]
-  }
-];
-
 export default function SubscriptionTab() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSubscription = async () => {
@@ -104,58 +46,6 @@ export default function SubscriptionTab() {
 
     fetchSubscription();
   }, []);
-
-  const handleSubscribe = async (planId: string) => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      toast({
-        title: 'Требуется авторизация',
-        description: 'Войдите в аккаунт для оформления подписки',
-        variant: 'destructive'
-      });
-      navigate('/login');
-      return;
-    }
-
-    setLoading(true);
-    setSelectedPlan(planId);
-
-    try {
-      const response = await fetch(PAYMENTS_API, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token
-        },
-        body: JSON.stringify({
-          action: 'create',
-          plan_type: planId,
-          return_url: window.location.origin + '/settings'
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.payment_url) {
-        window.location.href = data.payment_url;
-      } else {
-        toast({
-          title: 'Ошибка создания платежа',
-          description: data.error || 'Попробуйте позже',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Ошибка оформления платежа: HTTP Error 401',
-        description: 'Проверьте подключение к интернету',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-      setSelectedPlan(null);
-    }
-  };
 
   if (subscription?.has_subscription) {
     return (
@@ -219,118 +109,82 @@ export default function SubscriptionTab() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="CreditCard" size={24} className="text-purple-600" />
-            Подписка на "Наша семья"
-          </CardTitle>
-          <CardDescription>
-            Выберите подходящий тариф и начните организовывать жизнь вашей семьи
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <Card
-            key={plan.id}
-            className={`relative transition-all ${
-              plan.popular
-                ? 'border-purple-500 border-2 shadow-xl'
-                : 'hover:shadow-lg'
-            }`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                  🔥 Популярный
-                </Badge>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Icon name="CreditCard" size={24} className="text-purple-600" />
+          Управление подпиской
+        </CardTitle>
+        <CardDescription>
+          Выберите подходящий тарифный план
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="p-6 bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 rounded-lg border-2 border-purple-200">
+          <div className="text-center mb-6">
+            <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-lg px-4 py-2">
+              PRO версия - ДЕМО
+            </Badge>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Все функции доступны бесплатно</h3>
+            <p className="text-gray-600">Это демонстрационная версия приложения</p>
+          </div>
+          
+          <ul className="space-y-3 mb-6 max-w-2xl mx-auto">
+            <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
+              <div>
+                <span className="font-semibold">Безлимитные задачи</span>
+                <p className="text-sm text-gray-600">Создавайте неограниченное количество задач для семьи</p>
               </div>
-            )}
-            <CardHeader>
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <div className="space-y-1">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-purple-600">{plan.price}</span>
-                  <span className="text-gray-500 text-sm">{plan.period}</span>
-                </div>
-                <p className="text-sm text-gray-600">{plan.pricePerMonth}</p>
+            </li>
+            <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
+              <div>
+                <span className="font-semibold">Неограниченное число членов семьи</span>
+                <p className="text-sm text-gray-600">Добавьте всех членов семьи без ограничений</p>
               </div>
-              <CardDescription className="pt-2">{plan.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                onClick={() => handleSubscribe(plan.id)}
-                disabled={loading && selectedPlan === plan.id}
-                className={`w-full ${
-                  plan.popular
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-                    : ''
-                }`}
-              >
-                {loading && selectedPlan === plan.id ? (
-                  <>
-                    <Icon name="Loader2" className="mr-2 animate-spin" size={16} />
-                    Загрузка...
-                  </>
-                ) : (
-                  <>
-                    Выбрать тариф
-                    <Icon name="ArrowRight" className="ml-2" size={16} />
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </li>
+            <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
+              <div>
+                <span className="font-semibold">Семейный календарь и события</span>
+                <p className="text-sm text-gray-600">Планируйте события, дни рождения, праздники</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
+              <div>
+                <span className="font-semibold">Рецепты и списки покупок</span>
+                <p className="text-sm text-gray-600">Храните рецепты и планируйте покупки</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 p-3 bg-white rounded-lg">
+              <Icon name="Check" className="text-green-500 mt-0.5" size={20} />
+              <div>
+                <span className="font-semibold">Финансовый учет семьи</span>
+                <p className="text-sm text-gray-600">Отслеживайте доходы, расходы и бюджеты</p>
+              </div>
+            </li>
+          </ul>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Icon name="HelpCircle" size={20} />
-            Часто задаваемые вопросы
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h4 className="font-semibold mb-1">Можно ли отменить подписку?</h4>
-            <p className="text-sm text-gray-600">
-              Да, вы можете отменить подписку в любой момент. Доступ сохранится до конца оплаченного периода.
-            </p>
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-900 text-center mb-4">
+            <Icon name="Info" className="inline mr-2" size={16} />
+            Это демо-версия. Все функции доступны для ознакомления с возможностями приложения.
+          </p>
+          <div className="text-center">
+            <Button 
+              size="lg"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              onClick={() => navigate('/pricing')}
+            >
+              <Icon name="Sparkles" className="mr-2" size={20} />
+              Выбрать тариф
+            </Button>
           </div>
-          <div>
-            <h4 className="font-semibold mb-1">Как изменить тариф?</h4>
-            <p className="text-sm text-gray-600">
-              Вы можете перейти на другой тариф в любое время. Разница будет пересчитана пропорционально.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-1">Какие способы оплаты доступны?</h4>
-            <p className="text-sm text-gray-600">
-              Мы принимаем банковские карты (Visa, MasterCard, МИР) через ЮKassa.
-            </p>
-          </div>
-          <Button
-            variant="link"
-            className="p-0 h-auto"
-            onClick={() => window.open('https://t.me/your_support', '_blank')}
-          >
-            <Icon name="MessageCircle" className="mr-2" size={16} />
-            Остались вопросы? Напишите в поддержку
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
