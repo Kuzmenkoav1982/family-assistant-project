@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
 import { CalendarExport } from '@/components/CalendarExport';
 import SubscriptionTab from '@/components/SubscriptionTab';
+import AssistantSettings from '@/components/settings/AssistantSettings';
 import { useState, useEffect } from 'react';
 import { themes } from '@/config/themes';
 import type { ThemeType } from '@/types/family.types';
@@ -77,6 +78,7 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="family" className="space-y-6 mt-6">
+            <AssistantSettings />
             <NotificationsSettings />
             <CalendarExport />
 

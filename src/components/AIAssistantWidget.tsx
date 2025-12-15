@@ -13,6 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -32,6 +33,7 @@ const AIAssistantWidget = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const location = useLocation();
+  const { assistantType, assistantName, selectedRole } = useAIAssistant();
 
   // Скрываем виджет на странице /welcome
   const isWelcomePage = location.pathname === '/welcome';
@@ -74,7 +76,12 @@ const AIAssistantWidget = () => {
   // Получаем системный промпт в зависимости от роли
   const getSystemPrompt = () => {
     const role = kuzyaRole;
-    const basePrompt = 'Ты умный домовой по имени "Кузя". Отвечай на русском языке, дружелюбно, с юмором домового, кратко и по делу. Используй эмодзи для наглядности.';
+    const isDomovoy = assistantType === 'domovoy';
+    const name = assistantName || (isDomovoy ? 'Домовой' : 'Ассистент');
+    
+    const basePrompt = isDomovoy
+      ? `Ты добрый домовой, хранитель очага, по имени "${name}". Отвечай на русском языке тёплым семейным языком, с заботой и мудростью предков. Используй эмодзи 🏠🧙‍♂️ для наглядности.`
+      : `Ты AI-ассистент по имени "${name}". Отвечай на русском языке профессионально, точно и по делу. Используй эмодзи 🤖⚡ для наглядности.`;
     
     const rolePrompts: Record<string, string> = {
       'family-assistant': `${basePrompt} Ты семейный помощник. Помогаешь с домашними делами, рецептами, планированием, воспитанием детей, организацией быта и другими семейными вопросами.`,

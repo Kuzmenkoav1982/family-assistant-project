@@ -65,11 +65,13 @@ import FamilyNews from "./pages/FamilyNews";
 import Pricing from "./pages/Pricing";
 import InvestorDeck from "./pages/InvestorDeck";
 import AdminSubscriptions from "./pages/AdminSubscriptions";
+import DomovoyPage from "./pages/DomovoyPage";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
 import { DialogLockProvider } from "@/contexts/DialogLockContext";
 import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
+import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -109,10 +111,11 @@ const App = () => {
       <AuthProvider>
         <DialogLockProvider>
           <FamilyMembersProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+            <AIAssistantProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
             <PWAInstallPrompt />
             <AIAssistantWidget />
             <Routes>
@@ -178,11 +181,13 @@ const App = () => {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/investor-deck" element={<InvestorDeck />} />
               <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+              <Route path="/domovoy" element={<DomovoyPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
               </BrowserRouter>
-            </TooltipProvider>
+              </TooltipProvider>
+            </AIAssistantProvider>
           </FamilyMembersProvider>
         </DialogLockProvider>
       </AuthProvider>

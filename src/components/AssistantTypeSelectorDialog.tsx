@@ -1,0 +1,154 @@
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+import Icon from '@/components/ui/icon';
+import { useAIAssistant } from '@/contexts/AIAssistantContext';
+import type { AssistantType } from '@/contexts/AIAssistantContext';
+
+interface AssistantTypeSelectorDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function AssistantTypeSelectorDialog({
+  open,
+  onOpenChange
+}: AssistantTypeSelectorDialogProps) {
+  const { setAssistantType, setAssistantName } = useAIAssistant();
+  const [selectedType, setSelectedType] = useState<AssistantType | null>(null);
+  const [customName, setCustomName] = useState('');
+
+  const handleConfirm = () => {
+    if (!selectedType) return;
+
+    setAssistantType(selectedType);
+    
+    if (selectedType === 'neutral' && customName.trim()) {
+      setAssistantName(customName.trim());
+    } else if (selectedType === 'domovoy') {
+      setAssistantName('Домовой');
+    }
+
+    onOpenChange(false);
+  };
+
+  const isValid = selectedType && (selectedType === 'domovoy' || customName.trim().length > 0);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            🏠 Выберите вашего помощника
+          </DialogTitle>
+          <DialogDescription>
+            AI-ассистент будет помогать вам в организации семейной жизни
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Нейтральный AI */}
+          <Card
+            className={`p-6 cursor-pointer transition-all ${
+              selectedType === 'neutral'
+                ? 'border-blue-500 border-2 bg-blue-50'
+                : 'hover:border-gray-300 hover:shadow-md'
+            }`}
+            onClick={() => setSelectedType('neutral')}
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                🤖
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                  Нейтральный AI-ассистент
+                  {selectedType === 'neutral' && (
+                    <Icon name="CheckCircle2" className="text-blue-500" size={20} />
+                  )}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Практичный помощник без персонажа. Деловой стиль общения.
+                </p>
+                
+                {selectedType === 'neutral' && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <Label htmlFor="custom-name">Придумайте имя ассистенту</Label>
+                    <Input
+                      id="custom-name"
+                      placeholder="Например: Алиса, Помощник, AI-друг..."
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      maxLength={30}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Это имя будет использоваться в диалогах
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Домовой */}
+          <Card
+            className={`p-6 cursor-pointer transition-all ${
+              selectedType === 'domovoy'
+                ? 'border-amber-500 border-2 bg-amber-50'
+                : 'hover:border-gray-300 hover:shadow-md'
+            }`}
+            onClick={() => setSelectedType('domovoy')}
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-600 to-orange-500 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                🏠
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                  Домовой - хранитель очага
+                  {selectedType === 'domovoy' && (
+                    <Icon name="CheckCircle2" className="text-amber-500" size={20} />
+                  )}
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Добрый дух славянской культуры. Оберегает семью и дом, говорит тёплым языком.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-100 px-3 py-1.5 rounded-full w-fit">
+                  <Icon name="Sparkles" size={14} />
+                  <span>Основан на славянском фольклоре</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
+            <Icon name="Info" size={14} />
+            Вы сможете изменить выбор в любой момент в настройках
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={handleConfirm}
+            disabled={!isValid}
+            className="flex-1"
+            size="lg"
+          >
+            {selectedType === 'neutral' && '🤖 Выбрать нейтрального ассистента'}
+            {selectedType === 'domovoy' && '🏠 Выбрать Домового'}
+            {!selectedType && 'Выберите тип ассистента'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

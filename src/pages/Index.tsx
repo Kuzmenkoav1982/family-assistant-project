@@ -73,7 +73,9 @@ import Sidebar from '@/components/layout/Sidebar';
 
 import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
-import KuzyaHelperDialog from '@/components/KuzyaHelperDialog';
+import AIAssistantDialog from '@/components/AIAssistantDialog';
+import AssistantTypeSelectorDialog from '@/components/AssistantTypeSelectorDialog';
+import { useAIAssistant } from '@/contexts/AIAssistantContext';
 
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
@@ -94,6 +96,8 @@ export default function Index({ onLogout }: IndexProps) {
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembersContext();
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
+  const { assistantType } = useAIAssistant();
+  const [showAssistantSelector, setShowAssistantSelector] = useState(false);
   
   const authToken = localStorage.getItem('authToken');
   const authUser = localStorage.getItem('user');
@@ -129,6 +133,15 @@ export default function Index({ onLogout }: IndexProps) {
       console.log('[DEBUG Index] No userData in localStorage');
     }
   }, []);
+
+  useEffect(() => {
+    if (!assistantType) {
+      const timer = setTimeout(() => {
+        setShowAssistantSelector(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [assistantType]);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
@@ -3389,7 +3402,7 @@ export default function Index({ onLogout }: IndexProps) {
 
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
       
-      <KuzyaHelperDialog 
+      <AIAssistantDialog 
         open={showKuzyaDialog}
         onOpenChange={setShowKuzyaDialog}
       />
@@ -3398,6 +3411,11 @@ export default function Index({ onLogout }: IndexProps) {
         isOpen={showWidgetSettings}
         onClose={() => setShowWidgetSettings(false)}
         onSave={handleWidgetSettingsSave}
+      />
+
+      <AssistantTypeSelectorDialog
+        open={showAssistantSelector}
+        onOpenChange={setShowAssistantSelector}
       />
       
       <Footer />
