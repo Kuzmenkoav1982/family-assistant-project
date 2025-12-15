@@ -96,7 +96,7 @@ export default function Index({ onLogout }: IndexProps) {
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembersContext();
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
-  const { assistantType } = useAIAssistant();
+  const { hasCompletedSetup } = useAIAssistant();
   const [showAssistantSelector, setShowAssistantSelector] = useState(false);
   
   const authToken = localStorage.getItem('authToken');
@@ -135,13 +135,13 @@ export default function Index({ onLogout }: IndexProps) {
   }, []);
 
   useEffect(() => {
-    if (!assistantType) {
+    if (!hasCompletedSetup) {
       const timer = setTimeout(() => {
         setShowAssistantSelector(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [assistantType]);
+  }, [hasCompletedSetup]);
   
   const [reminders, setReminders] = useState<Reminder[]>([]);
   

@@ -44,8 +44,12 @@ export default function AssistantTypeSelectorDialog({
   const isValid = selectedType && (selectedType === 'domovoy' || customName.trim().length > 0);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (isOpen || isValid) {
+        onOpenChange(isOpen);
+      }
+    }}>
+      <DialogContent className="max-w-2xl" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             🏠 Выберите вашего помощника

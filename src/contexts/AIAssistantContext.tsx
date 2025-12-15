@@ -15,6 +15,7 @@ interface AIAssistantContextType {
   assistantName: string;
   assistantLevel: number;
   selectedRole: AIAssistantRole | null;
+  hasCompletedSetup: boolean;
   setAssistantType: (type: AssistantType) => void;
   setAssistantName: (name: string) => void;
   setAssistantLevel: (level: number) => void;
@@ -38,6 +39,10 @@ const defaultRoles: AIAssistantRole[] = [
 ];
 
 export function AIAssistantProvider({ children }: { children: React.ReactNode }) {
+  const [hasCompletedSetup, setHasCompletedSetup] = useState<boolean>(() => {
+    return localStorage.getItem('assistantSetupCompleted') === 'true';
+  });
+
   const [assistantType, setAssistantTypeState] = useState<AssistantType | null>(() => {
     const saved = localStorage.getItem('assistantType');
     return saved as AssistantType | null;
@@ -63,6 +68,8 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
   const setAssistantType = (type: AssistantType) => {
     setAssistantTypeState(type);
     localStorage.setItem('assistantType', type);
+    localStorage.setItem('assistantSetupCompleted', 'true');
+    setHasCompletedSetup(true);
     if (type === 'domovoy') {
       setAssistantNameState('Домовой');
       localStorage.setItem('assistantName', 'Домовой');
@@ -93,10 +100,12 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     setAssistantNameState('');
     setAssistantLevelState(1);
     setSelectedRoleState(null);
+    setHasCompletedSetup(false);
     localStorage.removeItem('assistantType');
     localStorage.removeItem('assistantName');
     localStorage.removeItem('assistantLevel');
     localStorage.removeItem('assistantRole');
+    localStorage.removeItem('assistantSetupCompleted');
   };
 
   return (
@@ -106,6 +115,7 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
         assistantName,
         assistantLevel,
         selectedRole,
+        hasCompletedSetup,
         setAssistantType,
         setAssistantName,
         setAssistantLevel,
