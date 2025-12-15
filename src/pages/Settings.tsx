@@ -32,6 +32,13 @@ export default function Settings() {
   
   useEffect(() => {
     localStorage.setItem('familyOrganizerTheme', currentTheme);
+    
+    // Применяем тему мгновенно без перезагрузки
+    if (currentTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [currentTheme]);
 
   return (
@@ -134,7 +141,6 @@ export default function Settings() {
                       title: 'Светлая тема',
                       description: 'Применён светлый режим'
                     });
-                    setTimeout(() => window.location.reload(), 500);
                   }}
                   className={`
                     relative p-4 rounded-lg border-2 transition-all text-left
@@ -167,7 +173,6 @@ export default function Settings() {
                       title: 'Тёмная тема',
                       description: 'Применён ночной режим'
                     });
-                    setTimeout(() => window.location.reload(), 500);
                   }}
                   className={`
                     relative p-4 rounded-lg border-2 transition-all text-left
