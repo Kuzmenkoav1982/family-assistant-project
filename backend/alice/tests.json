@@ -1,0 +1,63 @@
+{
+  "tests": [
+    {
+      "name": "Приветствие новой сессии без авторизации",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "session": {
+          "new": true,
+          "user": {
+            "user_id": "test_user_123"
+          }
+        },
+        "request": {
+          "command": "",
+          "nlu": {}
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "version": "1.0",
+        "response": {
+          "text": "string",
+          "end_session": false
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Команда помощи",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "session": {
+          "new": false,
+          "user": {
+            "user_id": "test_user_123"
+          }
+        },
+        "request": {
+          "command": "помощь",
+          "nlu": {}
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "version": "1.0",
+        "response": {
+          "text": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS для CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    }
+  ]
+}
