@@ -149,6 +149,10 @@ export default function AdminDashboard() {
             <p className="text-slate-600 mt-2">Управление и мониторинг приложения простым языком</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/admin/alice'}>
+              <Icon name="Mic" size={16} className="mr-2" />
+              Алиса
+            </Button>
             <Button variant="outline" onClick={() => window.location.href = '/admin/subscriptions'}>
               <Icon name="CreditCard" size={16} className="mr-2" />
               Подписки

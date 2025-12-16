@@ -67,6 +67,8 @@ import InvestorDeck from "./pages/InvestorDeck";
 import AdminSubscriptions from "./pages/AdminSubscriptions";
 import AdminDomovoy from "./pages/AdminDomovoy";
 import DomovoyPage from "./pages/DomovoyPage";
+import AliceIntegration from "./pages/AliceIntegration";
+import AdminAlice from "./pages/AdminAlice";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -160,6 +162,8 @@ const App = () => {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/support" element={<AdminSupport />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/alice" element={<AdminAlice />} />
+              <Route path="/alice" element={<AliceIntegration />} />
               <Route path="/nationalities" element={<NationalitiesPage />} />
               <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
               <Route path="/children" element={<Children />} />

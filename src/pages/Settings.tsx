@@ -144,6 +144,28 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Mic" size={24} className="text-purple-600" />
+              Яндекс.Алиса
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Управляйте своими делами голосом через Яндекс.Алису
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2 border-purple-300 hover:bg-purple-50"
+              onClick={() => navigate('/alice')}
+            >
+              <Icon name="Mic" size={18} className="text-purple-600" />
+              Настроить интеграцию с Алисой
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
