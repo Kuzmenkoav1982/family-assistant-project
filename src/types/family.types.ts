@@ -35,6 +35,7 @@ export interface MemberProfile {
   weight?: number;
   lifestyle?: string;
   habits?: string[];
+  goodHabits?: string[];
   badHabits?: string[];
   hobbies?: string[];
   triggers?: string[];

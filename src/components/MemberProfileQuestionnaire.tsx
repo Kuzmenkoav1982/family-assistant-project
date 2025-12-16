@@ -64,7 +64,10 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
   const handleSave = async () => {
     setSaving(true);
     try {
-      console.log('[MemberProfileQuestionnaire] Saving profile:', profile);
+      console.log('[MemberProfileQuestionnaire] Current profile state:', profile);
+      console.log('[MemberProfileQuestionnaire] goodHabits:', profile.goodHabits);
+      console.log('[MemberProfileQuestionnaire] hobbies:', profile.hobbies);
+      console.log('[MemberProfileQuestionnaire] triggers:', profile.triggers);
       await onSave(profile);
     } finally {
       setSaving(false);
@@ -189,17 +192,17 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 placeholder="Например: утренняя зарядка"
                 value={newHabit}
                 onChange={(e) => setNewHabit(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addToArray('habits', newHabit, setNewHabit)}
+                onKeyPress={(e) => e.key === 'Enter' && addToArray('goodHabits', newHabit, setNewHabit)}
               />
-              <Button size="sm" onClick={() => addToArray('habits', newHabit, setNewHabit)}>
+              <Button size="sm" onClick={() => addToArray('goodHabits', newHabit, setNewHabit)}>
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {(profile.habits || []).map((habit, i) => (
+              {(profile.goodHabits || []).map((habit, i) => (
                 <Badge key={i} variant="outline" className="bg-green-50">
                   {habit}
-                  <button onClick={() => removeFromArray('habits', i)} className="ml-2">×</button>
+                  <button onClick={() => removeFromArray('goodHabits', i)} className="ml-2">×</button>
                 </Badge>
               ))}
             </div>

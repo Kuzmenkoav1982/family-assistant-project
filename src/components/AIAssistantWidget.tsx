@@ -387,6 +387,13 @@ const AIAssistantWidget = () => {
                     <div className="text-xs text-gray-500">Организация поездок</div>
                   </div>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
+                  <span className="mr-2">🌙</span>
+                  <div>
+                    <div className="font-medium">Астролог</div>
+                    <div className="text-xs text-gray-500">Гороскопы и прогнозы</div>
+                  </div>
+                </DropdownMenuItem>
                 {assistantType === 'domovoy' && (
                   <>
                     <DropdownMenuSeparator />
