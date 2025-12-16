@@ -5,20 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import Footer from '@/components/Footer';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { ParentDashboard } from '@/components/children/ParentDashboard';
 import { ChildProfile as ChildProfileComponent } from '@/components/children/ChildProfile';
+import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import type { FamilyMember } from '@/types/family.types';
 
 export default function Children() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { members, loading } = useFamilyMembersContext();
+  const { members, loading, addMember } = useFamilyMembersContext();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [showAddChildDialog, setShowAddChildDialog] = useState(false);
 
   // Safe data processing with Array.isArray check - use useMemo to prevent infinite loops
   // Фильтруем всех детей по нескольким критериям
@@ -256,7 +259,7 @@ export default function Children() {
                           
                           <div className="flex justify-center pt-2">
                             <Button
-                              onClick={() => navigate('/?tab=members')}
+                              onClick={() => setShowAddChildDialog(true)}
                               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-lg"
                             >
                               <Icon name="Baby" className="mr-2" size={18} />
@@ -398,6 +401,39 @@ export default function Children() {
           </>
         )}
       </div>
+
+      {/* Диалог добавления ребёнка */}
+      <Dialog open={showAddChildDialog} onOpenChange={setShowAddChildDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Добавить ребёнка</DialogTitle>
+          </DialogHeader>
+          <AddFamilyMemberForm
+            isChild={true}
+            onSubmit={async (newChild) => {
+              const result = await addMember({
+                name: newChild.name,
+                role: newChild.role,
+                age: newChild.age,
+                avatar: newChild.avatar,
+                avatar_type: newChild.avatarType,
+                photo_url: newChild.photoUrl,
+                relationship: 'Ребёнок',
+                points: 0,
+                level: 1,
+                workload: 0
+              });
+              
+              if (result.success) {
+                setShowAddChildDialog(false);
+              } else {
+                alert('Ошибка добавления ребёнка: ' + result.error);
+              }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
