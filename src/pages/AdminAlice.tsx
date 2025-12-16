@@ -332,41 +332,42 @@ export default function AdminAlice() {
               </Card>
             </div>
 
-                {/* Производительность */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Icon name="Zap" size={20} className="text-yellow-600" />
-                          Среднее время ответа
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center">
-                          <div className="text-5xl font-bold text-purple-600 mb-2">{stats.avgResponseTime}ms</div>
-                          <p className="text-sm text-gray-600">
-                            {stats.avgResponseTime < 500 ? '✅ Отлично' : stats.avgResponseTime < 1000 ? '⚠️ Приемлемо' : '🔴 Медленно'}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Icon name="AlertCircle" size={20} className="text-red-600" />
-                          Уровень ошибок
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center">
-                          <div className="text-5xl font-bold text-red-600 mb-2">{stats.errorRate}%</div>
-                          <p className="text-sm text-gray-600">
-                            {stats.errorRate < 3 ? '✅ Отлично' : stats.errorRate < 5 ? '⚠️ Норма' : '🔴 Требует внимания'}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+            {/* Производительность */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Zap" size={20} className="text-yellow-600" />
+                    Среднее время ответа
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-purple-600 mb-2">{stats.avgResponseTime}ms</div>
+                    <p className="text-sm text-gray-600">
+                      {stats.avgResponseTime < 500 ? '✅ Отлично' : stats.avgResponseTime < 1000 ? '⚠️ Приемлемо' : '🔴 Медленно'}
+                    </p>
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="AlertCircle" size={20} className="text-red-600" />
+                    Уровень ошибок
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-red-600 mb-2">{stats.errorRate}%</div>
+                    <p className="text-sm text-gray-600">
+                      {stats.errorRate < 3 ? '✅ Отлично' : stats.errorRate < 5 ? '⚠️ Норма' : '🔴 Требует внимания'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
                 </>
               )}
             </TabsContent>
