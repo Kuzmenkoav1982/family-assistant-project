@@ -97,6 +97,9 @@ export function ChildProfile({ child }: ChildProfileProps) {
   const [newGameDialog, setNewGameDialog] = useState(false);
   const [newBookDialog, setNewBookDialog] = useState(false);
   const [newDreamDialog, setNewDreamDialog] = useState(false);
+  const [moodDialog, setMoodDialog] = useState(false);
+  const [selectedMood, setSelectedMood] = useState('😊');
+  const [challengeCompleted, setChallengeCompleted] = useState(false);
 
   const gameTypeNames: Record<string, string> = {
     video: 'Видеоигра',
@@ -129,8 +132,118 @@ export function ChildProfile({ child }: ChildProfileProps) {
     low: 'Низкий',
   };
 
+  const currentStreak = 5;
+  const todayChallenge = 'Прочитай 10 страниц любимой книги 📖';
+  const factOfDay = 'Знаешь ли ты? Слоны — единственные животные, которые не умеют прыгать! 🐘';
+  
+  const moodOptions = ['😊', '😄', '🥳', '😎', '🤔', '😔', '😢', '😡'];
+
   return (
     <div className="space-y-6">
+      {/* Приветственная карточка с настроением и стриком */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Настроение дня */}
+        <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-6xl mb-3">{selectedMood}</div>
+              <h3 className="font-bold text-lg mb-2">Моё настроение</h3>
+              <p className="text-sm text-gray-600">Сегодня</p>
+              <Dialog open={moodDialog} onOpenChange={setMoodDialog}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="mt-3" variant="outline">
+                    Изменить
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Как твоё настроение?</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-4 gap-4 p-4">
+                    {moodOptions.map((mood) => (
+                      <button
+                        key={mood}
+                        onClick={() => {
+                          setSelectedMood(mood);
+                          setMoodDialog(false);
+                        }}
+                        className="text-6xl hover:scale-125 transition-transform p-4 rounded-lg hover:bg-gray-100"
+                      >
+                        {mood}
+                      </button>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Стрик */}
+        <Card className="bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-6xl mb-3">🔥</div>
+              <h3 className="font-bold text-lg mb-2">Серия</h3>
+              <div className="text-4xl font-bold text-orange-600 mb-1">{currentStreak}</div>
+              <p className="text-sm text-gray-600">дней подряд</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Копилка-превью */}
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-6xl mb-3">🪙</div>
+              <h3 className="font-bold text-lg mb-2">Копилка</h3>
+              <div className="text-4xl font-bold text-green-600 mb-1">{piggyBank}</div>
+              <p className="text-sm text-gray-600">монет</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Задание дня */}
+      <Card className="bg-gradient-to-r from-purple-100 via-pink-100 to-red-100 border-2 border-purple-300">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="text-5xl">🎯</div>
+            <div className="flex-1">
+              <h3 className="font-bold text-xl mb-2">Задание дня</h3>
+              <p className="text-lg mb-4">{todayChallenge}</p>
+              {challengeCompleted ? (
+                <div className="flex items-center gap-2 text-green-600 font-bold">
+                  <Icon name="CheckCircle2" size={24} />
+                  Отлично! Задание выполнено! 🎉
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setChallengeCompleted(true)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Icon name="Check" className="mr-2" size={16} />
+                  Выполнено!
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Интересный факт */}
+      <Card className="bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="text-5xl">💡</div>
+            <div className="flex-1">
+              <h3 className="font-bold text-xl mb-2">Интересный факт дня</h3>
+              <p className="text-lg">{factOfDay}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
