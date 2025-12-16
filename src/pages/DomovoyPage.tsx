@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useAIAssistant, defaultRoles } from '@/contexts/AIAssistantContext';
 import type { AIAssistantRole } from '@/contexts/AIAssistantContext';
 import DomovoyDonationDialog from '@/components/DomovoyDonationDialog';
+import { AstrologyService } from '@/components/astrology/AstrologyService';
 
 const DOMOVOY_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fc02be5d-2267-4bed-abdc-ec04bc7ec037.jpg';
 
@@ -16,8 +18,16 @@ export default function DomovoyPage() {
   const navigate = useNavigate();
   const { assistantLevel, selectedRole, setSelectedRole } = useAIAssistant();
   const [showDonationDialog, setShowDonationDialog] = useState(false);
+  const [showAstrologyDialog, setShowAstrologyDialog] = useState(false);
 
   const levelProgress = ((assistantLevel - 1) / 9) * 100;
+
+  const handleRoleClick = (role: AIAssistantRole) => {
+    setSelectedRole(role);
+    if (role.id === 'astrologer') {
+      setShowAstrologyDialog(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 pb-20">
@@ -94,7 +104,7 @@ export default function DomovoyPage() {
               {defaultRoles.map((role: AIAssistantRole) => (
                 <Button
                   key={role.id}
-                  onClick={() => setSelectedRole(role)}
+                  onClick={() => handleRoleClick(role)}
                   variant={selectedRole?.id === role.id ? 'default' : 'outline'}
                   className="h-auto py-3 px-4 flex flex-col items-start gap-1"
                 >
@@ -342,6 +352,18 @@ export default function DomovoyPage() {
         open={showDonationDialog}
         onOpenChange={setShowDonationDialog}
       />
+
+      <Dialog open={showAstrologyDialog} onOpenChange={setShowAstrologyDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <span className="text-3xl">🌙</span>
+              Астрологические прогнозы Домового
+            </DialogTitle>
+          </DialogHeader>
+          <AstrologyService />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
