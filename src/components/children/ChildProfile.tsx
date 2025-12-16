@@ -8,7 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 
 interface ChildProfileProps {
-  childId: string;
+  child: {
+    id: string;
+    name: string;
+    avatar: string;
+    piggyBank?: number;
+    [key: string]: any;
+  };
 }
 
 interface Game {
@@ -34,7 +40,8 @@ interface Dream {
   notes?: string;
 }
 
-export function ChildProfile({ childId }: ChildProfileProps) {
+export function ChildProfile({ child }: ChildProfileProps) {
+  const piggyBank = child.piggyBank || 0;
   const [games, setGames] = useState<Game[]>([
     { id: '1', name: 'Minecraft', type: 'video', favorite: true },
     { id: '2', name: 'Монополия', type: 'board', favorite: true },
@@ -344,6 +351,55 @@ export function ChildProfile({ childId }: ChildProfileProps) {
               </Button>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Копилка */}
+      <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-4xl">🪙</span>
+            <div>
+              <div className="text-2xl font-bold">Моя копилка</div>
+              <div className="text-sm font-normal text-gray-600">Накоплено монет</div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-2xl mb-4 animate-bounce-slow">
+              <span className="text-6xl">🏦</span>
+            </div>
+            <div className="text-6xl font-bold text-orange-600 mb-2">
+              {piggyBank}
+            </div>
+            <p className="text-lg text-gray-700 mb-6">
+              {piggyBank === 0 && 'Пока пусто, но скоро здесь будут твои заслуженные монетки! 🌟'}
+              {piggyBank > 0 && piggyBank < 50 && 'Отличное начало! Продолжай в том же духе! 💪'}
+              {piggyBank >= 50 && piggyBank < 100 && 'Ого! Копилка растёт! Ты молодец! 🎉'}
+              {piggyBank >= 100 && 'Вау! Настоящее богатство! Ты супер! 🏆'}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+              <div className="bg-white rounded-lg p-4 shadow-md">
+                <div className="text-3xl mb-2">🎯</div>
+                <div className="text-sm text-gray-600">Цель</div>
+                <div className="text-xl font-bold text-blue-600">100</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-md">
+                <div className="text-3xl mb-2">📈</div>
+                <div className="text-sm text-gray-600">Прогресс</div>
+                <div className="text-xl font-bold text-green-600">{Math.min(100, Math.round((piggyBank / 100) * 100))}%</div>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-white rounded-lg border-2 border-dashed border-yellow-300">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                <Icon name="Info" size={16} className="text-blue-500" />
+                <p>Монетки можно заработать за выполнение заданий и хорошее поведение! Спроси у родителей 😊</p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
