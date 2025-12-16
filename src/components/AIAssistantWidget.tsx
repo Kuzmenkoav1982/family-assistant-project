@@ -394,18 +394,14 @@ const AIAssistantWidget = () => {
                     <div className="text-xs text-gray-500">Гороскопы и прогнозы</div>
                   </div>
                 </DropdownMenuItem>
-                {assistantType === 'domovoy' && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => window.location.href = '/domovoy'}>
-                      <Icon name="Sparkles" size={16} className="mr-2 text-amber-600" />
-                      <div>
-                        <div className="font-medium text-amber-700">О Домовом</div>
-                        <div className="text-xs text-gray-500">Узнать больше</div>
-                      </div>
-                    </DropdownMenuItem>
-                  </>
-                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/domovoy'}>
+                  <Icon name="Sparkles" size={16} className="mr-2 text-amber-600" />
+                  <div>
+                    <div className="font-medium text-amber-700">О Домовом</div>
+                    <div className="text-xs text-gray-500">Узнать больше</div>
+                  </div>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

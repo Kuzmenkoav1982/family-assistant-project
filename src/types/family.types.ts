@@ -13,6 +13,8 @@ export interface FamilyMember {
   level: number;
   workload: number;
   age?: number;
+  birth_date?: string;
+  birth_time?: string;
   birthDate?: string;
   birthTime?: string;
   created_at: string;
