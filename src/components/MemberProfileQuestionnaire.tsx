@@ -44,7 +44,18 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
   const addToArray = (field: keyof MemberProfile, value: string, setter: (v: string) => void) => {
     if (!value.trim()) return;
     const currentArray = (profile[field] as string[]) || [];
-    setProfile({ ...profile, [field]: [...currentArray, value.trim()] });
+    
+    // Проверяем наличие запятых - если есть, разбиваем на массив
+    const hasComma = value.includes(',');
+    if (hasComma) {
+      const newItems = value.split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+      setProfile({ ...profile, [field]: [...currentArray, ...newItems] });
+    } else {
+      setProfile({ ...profile, [field]: [...currentArray, value.trim()] });
+    }
+    
     setter('');
   };
 
@@ -198,7 +209,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.goodHabits || []).map((habit, i) => (
                 <Badge key={i} variant="outline" className="bg-green-50">
@@ -222,7 +233,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.badHabits || []).map((habit, i) => (
                 <Badge key={i} variant="outline" className="bg-red-50">
@@ -246,7 +257,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.hobbies || []).map((hobby, i) => (
                 <Badge key={i} variant="outline" className="bg-blue-50">
@@ -308,7 +319,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.triggers || []).map((trigger, i) => (
                 <Badge key={i} variant="outline" className="bg-orange-50">
@@ -332,7 +343,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.boundaries || []).map((boundary, i) => (
                 <Badge key={i} variant="outline" className="bg-red-50">
@@ -367,7 +378,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.favoriteThings || []).map((thing, i) => (
                 <Badge key={i} variant="outline" className="bg-green-50">
@@ -391,7 +402,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.dislikedThings || []).map((thing, i) => (
                 <Badge key={i} variant="outline" className="bg-red-50">
@@ -415,7 +426,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter. Можно через запятую добавить сразу несколько</p>
             <div className="flex flex-wrap gap-2">
               {(profile.stressRelief || []).map((method, i) => (
                 <Badge key={i} variant="outline" className="bg-purple-50">
