@@ -299,10 +299,6 @@ export default function Index({ onLogout }: IndexProps) {
     return localStorage.getItem('soundEnabled') === 'true';
   });
   const [showProfileOnboarding, setShowProfileOnboarding] = useState(false);
-  const [showHints, setShowHints] = useState(() => {
-    return !localStorage.getItem('hasSeenHints');
-  });
-  const [currentHintStep, setCurrentHintStep] = useState(0);
   const [showFamilyInvite, setShowFamilyInvite] = useState(false);
   const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
   
@@ -366,65 +362,7 @@ export default function Index({ onLogout }: IndexProps) {
   //   }
   // }, [currentUser, membersLoading]);
 
-  const hints = [
-    {
-      id: 'settings',
-      title: 'Настройки',
-      description: 'Здесь вы можете настроить приложение, пригласить родственников и управлять семьёй',
-      icon: 'Settings',
-      position: 'top-left',
-      action: () => document.querySelector('[title="Настройки"]')?.scrollIntoView({ behavior: 'smooth' })
-    },
-    {
-      id: 'profile',
-      title: 'Мой профиль',
-      description: 'Нажмите сюда чтобы отредактировать свой профиль, аватар и предпочтения',
-      icon: 'UserCircle',
-      position: 'top-left',
-      action: () => document.querySelector('[title="Мой профиль"]')?.scrollIntoView({ behavior: 'smooth' })
-    },
-    {
-      id: 'instructions',
-      title: 'Инструкции',
-      description: 'Подробные инструкции по всем разделам приложения',
-      icon: 'BookOpen',
-      position: 'top-left',
-      action: () => document.querySelector('[title="Инструкции"]')?.scrollIntoView({ behavior: 'smooth' })
-    },
-    {
-      id: 'sections',
-      title: 'Разделы',
-      description: 'Переключайтесь между разделами: Задачи, Семья, Календарь, Дети и другие',
-      icon: 'Menu',
-      position: 'left',
-      action: () => setIsLeftMenuVisible(true)
-    },
 
-    {
-      id: 'panels',
-      title: 'Боковые панели',
-      description: 'Панели слева и справа можно раздвигать и сдвигать с помощью кнопок со стрелками',
-      icon: 'PanelLeftOpen',
-      position: 'both',
-      action: () => {}
-    }
-  ];
-
-  const handleDismissHints = () => {
-    setShowHints(false);
-    localStorage.setItem('hasSeenHints', 'true');
-  };
-
-  useEffect(() => {
-    if (showHints && !showProfileOnboarding && !membersLoading) {
-      const timer = setTimeout(() => {
-        if (currentHintStep < hints.length - 1) {
-          setCurrentHintStep(currentHintStep + 1);
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [showHints, currentHintStep, showProfileOnboarding, membersLoading, hints]);
 
   useEffect(() => {
     localStorage.setItem('appearanceMode', appearanceMode);
@@ -450,20 +388,6 @@ export default function Index({ onLogout }: IndexProps) {
       applyTheme(isDark);
     }
   }, [appearanceMode]);
-
-  const handleNextHint = () => {
-    if (currentHintStep < hints.length - 1) {
-      setCurrentHintStep(currentHintStep + 1);
-    } else {
-      handleDismissHints();
-    }
-  };
-
-  const handlePrevHint = () => {
-    if (currentHintStep > 0) {
-      setCurrentHintStep(currentHintStep - 1);
-    }
-  };
 
   const handleLogoutLocal = () => {
     if (confirm('Сбросить все демо-данные и начать заново? Это действие нельзя отменить.')) {
@@ -1276,126 +1200,21 @@ export default function Index({ onLogout }: IndexProps) {
         </DialogContent>
       </Dialog>
 
-      {showHints && !showProfileOnboarding && !membersLoading && hints && hints[currentHintStep] && (
-        <>
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] animate-fade-in" onClick={handleDismissHints} />
-          
-          <Card className="fixed z-[70] max-w-md w-[90%] shadow-2xl border-4 border-purple-400 animate-fade-in" 
-            style={{
-              top: hints[currentHintStep].position.includes('top') ? '100px' : 'auto',
-              bottom: hints[currentHintStep].position.includes('bottom') ? '20px' : 'auto',
-              left: hints[currentHintStep].position.includes('left') ? '20px' : 'auto',
-              right: hints[currentHintStep].position.includes('right') ? '20px' : 'auto',
-              ...(hints[currentHintStep].position === 'center' && {
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              })
-            }}
-          >
-            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 pb-3">
-              <div className="flex items-center justify-between mb-2">
-                <Badge className="bg-purple-600">
-                  Подсказка {currentHintStep + 1} из {hints.length}
-                </Badge>
-                <Button variant="ghost" size="sm" onClick={handleDismissHints} className="h-6 w-6 p-0">
-                  <Icon name="X" size={14} />
-                </Button>
-              </div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
-                  <Icon name={hints[currentHintStep].icon} size={20} className="text-white" />
-                </div>
-                {hints[currentHintStep].title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-700 mb-4">
-                {hints[currentHintStep].description}
-              </p>
-              
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevHint}
-                  disabled={currentHintStep === 0}
-                  className="flex-1"
-                >
-                  <Icon name="ArrowLeft" size={14} className="mr-1" />
-                  Назад
-                </Button>
-                
-                {hints[currentHintStep].action && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      hints[currentHintStep].action?.();
-                      setTimeout(handleNextHint, 500);
-                    }}
-                    className="flex-1 border-purple-300 text-purple-700"
-                  >
-                    <Icon name="Eye" size={14} className="mr-1" />
-                    Показать
-                  </Button>
-                )}
-                
-                <Button
-                  size="sm"
-                  onClick={handleNextHint}
-                  className="flex-1 bg-purple-600"
-                >
-                  {currentHintStep === hints.length - 1 ? (
-                    <>
-                      <Icon name="Check" size={14} className="mr-1" />
-                      Понятно
-                    </>
-                  ) : (
-                    <>
-                      Далее
-                      <Icon name="ArrowRight" size={14} className="ml-1" />
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="flex justify-center gap-1 mt-4">
-                {hints.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-1.5 rounded-full transition-all ${
-                      index === currentHintStep
-                        ? 'w-8 bg-purple-600'
-                        : 'w-1.5 bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={handleDismissHints}
-                className="w-full mt-3 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Пропустить все подсказки
-              </button>
-            </CardContent>
-          </Card>
-        </>
-      )}
-
-
       {showWelcome && (
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in cursor-pointer"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in cursor-pointer select-none"
           onClick={() => {
             setShowWelcome(false);
             localStorage.setItem('hasSeenWelcome', 'true');
           }}
+          onTouchEnd={() => {
+            setShowWelcome(false);
+            localStorage.setItem('hasSeenWelcome', 'true');
+          }}
         >
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none"></div>
           
-          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pointer-events-none">
             <div className="mb-8 animate-bounce-slow">
               <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
                 <img 
