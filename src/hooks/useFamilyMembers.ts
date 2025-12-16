@@ -14,6 +14,8 @@ interface FamilyMember {
   level: number;
   workload: number;
   age?: number;
+  birthDate?: string;
+  birthTime?: string;
   created_at: string;
   updated_at: string;
   dreams?: any[];
@@ -80,7 +82,9 @@ export function useFamilyMembers() {
         const convertedMembers = data.members.map((m: any) => ({
           ...m,
           avatarType: m.avatar_type,
-          photoUrl: m.photo_url
+          photoUrl: m.photo_url,
+          birthDate: m.birth_date,
+          birthTime: m.birth_time
         }));
         console.log('[DEBUG useFamilyMembers] Converted members:', convertedMembers);
         setMembers(convertedMembers);
@@ -158,6 +162,12 @@ export function useFamilyMembers() {
       if (memberData.avatarType) {
         backendData.avatar_type = memberData.avatarType;
         delete backendData.avatarType;
+      }
+      if (memberData.birthDate) {
+        backendData.birthDate = memberData.birthDate;
+      }
+      if (memberData.birthTime) {
+        backendData.birthTime = memberData.birthTime;
       }
       
       // Удаляем id из backendData, чтобы избежать дублирования

@@ -70,7 +70,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     
     query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
-               photo_url, points, level, workload, age, permissions, profile_data, created_at, updated_at
+               photo_url, points, level, workload, age, birth_date, birth_time, permissions, profile_data, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
         ORDER BY created_at ASC
@@ -156,6 +156,12 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             if field in data:
                 fields.append(f"{field} = {escape_string(data[field])}")
         
+        # Обрабатываем birthDate и birthTime
+        if 'birthDate' in data:
+            fields.append(f"birth_date = {escape_string(data['birthDate'])}")
+        if 'birthTime' in data:
+            fields.append(f"birth_time = {escape_string(data['birthTime'])}")
+        
         if 'permissions' in data:
             permissions_json = json.dumps(data['permissions'])
             fields.append(f"permissions = '{permissions_json}'::jsonb")
@@ -188,7 +194,7 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             UPDATE {SCHEMA}.family_members 
             SET {', '.join(fields)}
             WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}
-            RETURNING id, name, role, relationship, avatar, points, level, workload, profile_data
+            RETURNING id, name, role, relationship, avatar, points, level, workload, birth_date, birth_time, profile_data
         """
         
         cur.execute(query)

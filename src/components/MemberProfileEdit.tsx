@@ -23,6 +23,8 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
     name: member.name || '',
     role: member.role || '',
     age: member.age || '',
+    birthDate: member.birthDate || '',
+    birthTime: member.birthTime || '',
     avatar: member.avatar || '👤',
     bio: (member as any).bio || '',
     phone: (member as any).phone || '',
@@ -96,6 +98,8 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
         name: formData.name,
         role: formData.role,
         age: formData.age ? parseInt(formData.age) : undefined,
+        birthDate: formData.birthDate || undefined,
+        birthTime: formData.birthTime || undefined,
         avatar: formData.avatar,
         avatarType: avatarType,
         photoUrl: avatarType === 'photo' ? photoUrl : undefined,
@@ -163,6 +167,28 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
                 min="0"
                 max="120"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthDate">Дата рождения 🌟</Label>
+              <Input
+                id="birthDate"
+                type="date"
+                value={formData.birthDate}
+                onChange={(e) => handleChange('birthDate', e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Для астрологических прогнозов Домового</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthTime">Время рождения 🕐</Label>
+              <Input
+                id="birthTime"
+                type="time"
+                value={formData.birthTime}
+                onChange={(e) => handleChange('birthTime', e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Опционально, для точной карты Бацзы</p>
             </div>
 
             <div className="md:col-span-2 space-y-4">

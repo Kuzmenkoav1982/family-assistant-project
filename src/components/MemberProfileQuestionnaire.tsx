@@ -76,6 +76,59 @@ export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQues
           <CardDescription>Физические параметры и время рождения</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Дата рождения 🌟</Label>
+              <Input
+                type="date"
+                value={member.birthDate || ''}
+                onChange={(e) => {
+                  // Обновляем дату рождения напрямую в member
+                  const token = localStorage.getItem('authToken');
+                  if (token) {
+                    fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-Auth-Token': token
+                      },
+                      body: JSON.stringify({
+                        id: member.id,
+                        birthDate: e.target.value
+                      })
+                    }).catch(err => console.error('Error updating birthDate:', err));
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500 mt-1">Используется для астрологических прогнозов</p>
+            </div>
+            <div>
+              <Label>Время рождения 🕐</Label>
+              <Input
+                type="time"
+                value={member.birthTime || ''}
+                onChange={(e) => {
+                  // Обновляем время рождения напрямую в member
+                  const token = localStorage.getItem('authToken');
+                  if (token) {
+                    fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-Auth-Token': token
+                      },
+                      body: JSON.stringify({
+                        id: member.id,
+                        birthTime: e.target.value
+                      })
+                    }).catch(err => console.error('Error updating birthTime:', err));
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500 mt-1">Опционально, для точной карты Бацзы</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Рост (см)</Label>

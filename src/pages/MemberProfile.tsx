@@ -304,6 +304,12 @@ export default function MemberProfile() {
                       {member.age} лет
                     </Badge>
                   )}
+                  {member.birthDate && (
+                    <Badge variant="outline" className="text-sm bg-blue-50">
+                      🌟 {new Date(member.birthDate).toLocaleDateString('ru-RU')}
+                      {member.birthTime && ` в ${member.birthTime}`}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-sm bg-orange-50">
                     <Icon name="Star" size={14} className="mr-1" />
                     {member.points} баллов
