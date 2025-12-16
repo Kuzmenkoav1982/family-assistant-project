@@ -219,11 +219,7 @@ def upsert_profile(member_uuid: str, family_id: str, profile_data: Dict[str, Any
                 if snake_key == 'updated_at':
                     has_updated_at = True
                 if snake_key not in ['id', 'member_id', 'family_id', 'created_at', 'updated_at']:
-                    # Пропускаем пустые массивы и null значения - не перезаписываем существующие данные
-                    if value is None:
-                        continue
-                    if isinstance(value, list) and len(value) == 0:
-                        continue
+                    # Сохраняем все значения, включая пустые массивы (очистка данных)
                     updates.append(f"{snake_key} = {escape_string(value)}")
             
             if updates:
