@@ -5,7 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import { MoodDiary } from './MoodDiary';
+import { AchievementsBadges } from './AchievementsBadges';
+import { RewardsShop } from './RewardsShop';
+import { getDailyFact } from '@/data/interestingFacts';
 
 interface ChildProfileProps {
   child: {
@@ -134,12 +139,36 @@ export function ChildProfile({ child }: ChildProfileProps) {
 
   const currentStreak = 5;
   const todayChallenge = 'Прочитай 10 страниц любимой книги 📖';
-  const factOfDay = 'Знаешь ли ты? Слоны — единственные животные, которые не умеют прыгать! 🐘';
+  const dailyFact = getDailyFact();
   
   const moodOptions = ['😊', '😄', '🥳', '😎', '🤔', '😔', '😢', '😡'];
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="home" className="space-y-6">
+      <TabsList className="grid grid-cols-5 w-full">
+        <TabsTrigger value="home" className="gap-2">
+          <Icon name="Home" size={16} />
+          Главная
+        </TabsTrigger>
+        <TabsTrigger value="diary" className="gap-2">
+          <Icon name="Heart" size={16} />
+          Дневник
+        </TabsTrigger>
+        <TabsTrigger value="achievements" className="gap-2">
+          <Icon name="Award" size={16} />
+          Достижения
+        </TabsTrigger>
+        <TabsTrigger value="shop" className="gap-2">
+          <Icon name="ShoppingCart" size={16} />
+          Магазин
+        </TabsTrigger>
+        <TabsTrigger value="games" className="gap-2">
+          <Icon name="Gamepad2" size={16} />
+          Хобби
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="home" className="space-y-6">
       {/* Приветственная карточка с настроением и стриком */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Настроение дня */}
