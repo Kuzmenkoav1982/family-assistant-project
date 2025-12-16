@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import { MoodDiary } from './MoodDiary';
 import { AchievementsBadges } from './AchievementsBadges';
 import { RewardsShop } from './RewardsShop';
+import { RealMoneyPiggyBank } from './RealMoneyPiggyBank';
 import { getDailyFact } from '@/data/interestingFacts';
 
 interface ChildProfileProps {
@@ -100,8 +101,20 @@ export function ChildProfile({ child }: ChildProfileProps) {
   ]);
 
   const [newGameDialog, setNewGameDialog] = useState(false);
+  const [editGameDialog, setEditGameDialog] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [newGameData, setNewGameData] = useState({ name: '', type: 'video' as const, favorite: false });
+  
   const [newBookDialog, setNewBookDialog] = useState(false);
+  const [editBookDialog, setEditBookDialog] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [newBookData, setNewBookData] = useState({ title: '', author: '', status: 'planned' as const, rating: undefined as number | undefined });
+  
   const [newDreamDialog, setNewDreamDialog] = useState(false);
+  const [editDreamDialog, setEditDreamDialog] = useState(false);
+  const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
+  const [newDreamData, setNewDreamData] = useState({ dream: '', category: 'other' as const, priority: 'medium' as const, notes: '' });
+  
   const [moodDialog, setMoodDialog] = useState(false);
   const [selectedMood, setSelectedMood] = useState('😊');
   const [challengeCompleted, setChallengeCompleted] = useState(false);
@@ -143,6 +156,102 @@ export function ChildProfile({ child }: ChildProfileProps) {
   
   const moodOptions = ['😊', '😄', '🥳', '😎', '🤔', '😔', '😢', '😡'];
 
+  // Функции для работы с играми
+  const handleAddGame = () => {
+    if (!newGameData.name) return;
+    const newGame: Game = {
+      id: Date.now().toString(),
+      ...newGameData,
+    };
+    setGames([...games, newGame]);
+    setNewGameData({ name: '', type: 'video', favorite: false });
+    setNewGameDialog(false);
+  };
+
+  const handleEditGame = (game: Game) => {
+    setSelectedGame(game);
+    setNewGameData({ name: game.name, type: game.type, favorite: game.favorite });
+    setEditGameDialog(true);
+  };
+
+  const handleUpdateGame = () => {
+    if (!selectedGame || !newGameData.name) return;
+    setGames(games.map(g => g.id === selectedGame.id ? { ...selectedGame, ...newGameData } : g));
+    setSelectedGame(null);
+    setNewGameData({ name: '', type: 'video', favorite: false });
+    setEditGameDialog(false);
+  };
+
+  const handleDeleteGame = (id: string) => {
+    if (confirm('Удалить эту игру?')) {
+      setGames(games.filter(g => g.id !== id));
+    }
+  };
+
+  // Функции для работы с книгами
+  const handleAddBook = () => {
+    if (!newBookData.title) return;
+    const newBook: Book = {
+      id: Date.now().toString(),
+      ...newBookData,
+    };
+    setBooks([...books, newBook]);
+    setNewBookData({ title: '', author: '', status: 'planned', rating: undefined });
+    setNewBookDialog(false);
+  };
+
+  const handleEditBook = (book: Book) => {
+    setSelectedBook(book);
+    setNewBookData({ title: book.title, author: book.author, status: book.status, rating: book.rating });
+    setEditBookDialog(true);
+  };
+
+  const handleUpdateBook = () => {
+    if (!selectedBook || !newBookData.title) return;
+    setBooks(books.map(b => b.id === selectedBook.id ? { ...selectedBook, ...newBookData } : b));
+    setSelectedBook(null);
+    setNewBookData({ title: '', author: '', status: 'planned', rating: undefined });
+    setEditBookDialog(false);
+  };
+
+  const handleDeleteBook = (id: string) => {
+    if (confirm('Удалить эту книгу?')) {
+      setBooks(books.filter(b => b.id !== id));
+    }
+  };
+
+  // Функции для работы с мечтами
+  const handleAddDream = () => {
+    if (!newDreamData.dream) return;
+    const newDream: Dream = {
+      id: Date.now().toString(),
+      ...newDreamData,
+    };
+    setDreams([...dreams, newDream]);
+    setNewDreamData({ dream: '', category: 'other', priority: 'medium', notes: '' });
+    setNewDreamDialog(false);
+  };
+
+  const handleEditDream = (dream: Dream) => {
+    setSelectedDream(dream);
+    setNewDreamData({ dream: dream.dream, category: dream.category, priority: dream.priority, notes: dream.notes || '' });
+    setEditDreamDialog(true);
+  };
+
+  const handleUpdateDream = () => {
+    if (!selectedDream || !newDreamData.dream) return;
+    setDreams(dreams.map(d => d.id === selectedDream.id ? { ...selectedDream, ...newDreamData } : d));
+    setSelectedDream(null);
+    setNewDreamData({ dream: '', category: 'other', priority: 'medium', notes: '' });
+    setEditDreamDialog(false);
+  };
+
+  const handleDeleteDream = (id: string) => {
+    if (confirm('Удалить эту мечту?')) {
+      setDreams(dreams.filter(d => d.id !== id));
+    }
+  };
+
   return (
     <Tabs defaultValue="home" className="space-y-6">
       <TabsList className="grid grid-cols-5 w-full">
@@ -162,9 +271,9 @@ export function ChildProfile({ child }: ChildProfileProps) {
           <Icon name="ShoppingCart" size={16} />
           Магазин
         </TabsTrigger>
-        <TabsTrigger value="games" className="gap-2">
-          <Icon name="Gamepad2" size={16} />
-          Хобби
+        <TabsTrigger value="money" className="gap-2">
+          <Icon name="Wallet" size={16} />
+          Копилка
         </TabsTrigger>
       </TabsList>
 
@@ -294,21 +403,35 @@ export function ChildProfile({ child }: ChildProfileProps) {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Название игры</label>
-                    <Input placeholder="Например: Minecraft" />
+                    <Input 
+                      value={newGameData.name}
+                      onChange={(e) => setNewGameData({...newGameData, name: e.target.value})}
+                      placeholder="Например: Minecraft" 
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Тип игры</label>
-                    <select className="w-full border rounded-md p-2">
+                    <select 
+                      value={newGameData.type}
+                      onChange={(e) => setNewGameData({...newGameData, type: e.target.value as any})}
+                      className="w-full border rounded-md p-2"
+                    >
                       <option value="video">Видеоигра</option>
                       <option value="board">Настольная игра</option>
                       <option value="outdoor">Игра на улице</option>
                     </select>
                   </div>
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" id="favorite" className="w-4 h-4" />
+                    <input 
+                      type="checkbox" 
+                      id="favorite" 
+                      checked={newGameData.favorite}
+                      onChange={(e) => setNewGameData({...newGameData, favorite: e.target.checked})}
+                      className="w-4 h-4" 
+                    />
                     <label htmlFor="favorite" className="text-sm">Любимая игра</label>
                   </div>
-                  <Button className="w-full">Сохранить</Button>
+                  <Button onClick={handleAddGame} className="w-full">Сохранить</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -326,14 +449,61 @@ export function ChildProfile({ child }: ChildProfileProps) {
                   </div>
                   <p className="text-xs text-gray-500">{gameTypeNames[game.type]}</p>
                 </div>
-                <Button size="sm" variant="ghost">
-                  <Icon name="Edit" size={16} />
-                </Button>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => handleEditGame(game)}>
+                    <Icon name="Edit" size={16} />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteGame(game.id)}>
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Диалог редактирования игры */}
+      <Dialog open={editGameDialog} onOpenChange={setEditGameDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать игру</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Название игры</label>
+              <Input 
+                value={newGameData.name}
+                onChange={(e) => setNewGameData({...newGameData, name: e.target.value})}
+                placeholder="Например: Minecraft" 
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Тип игры</label>
+              <select 
+                value={newGameData.type}
+                onChange={(e) => setNewGameData({...newGameData, type: e.target.value as any})}
+                className="w-full border rounded-md p-2"
+              >
+                <option value="video">Видеоигра</option>
+                <option value="board">Настольная игра</option>
+                <option value="outdoor">Игра на улице</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                id="edit-favorite" 
+                checked={newGameData.favorite}
+                onChange={(e) => setNewGameData({...newGameData, favorite: e.target.checked})}
+                className="w-4 h-4" 
+              />
+              <label htmlFor="edit-favorite" className="text-sm">Любимая игра</label>
+            </div>
+            <Button onClick={handleUpdateGame} className="w-full">Сохранить изменения</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
@@ -356,15 +526,27 @@ export function ChildProfile({ child }: ChildProfileProps) {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Название книги</label>
-                    <Input placeholder="Например: Гарри Поттер" />
+                    <Input 
+                      placeholder="Например: Гарри Поттер"
+                      value={newBookData.title}
+                      onChange={(e) => setNewBookData({ ...newBookData, title: e.target.value })}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Автор</label>
-                    <Input placeholder="Например: Дж.К. Роулинг" />
+                    <Input 
+                      placeholder="Например: Дж.К. Роулинг"
+                      value={newBookData.author}
+                      onChange={(e) => setNewBookData({ ...newBookData, author: e.target.value })}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Статус</label>
-                    <select className="w-full border rounded-md p-2">
+                    <select 
+                      className="w-full border rounded-md p-2"
+                      value={newBookData.status}
+                      onChange={(e) => setNewBookData({ ...newBookData, status: e.target.value as 'planned' | 'reading' | 'completed' })}
+                    >
                       <option value="planned">Запланировано</option>
                       <option value="reading">Читает сейчас</option>
                       <option value="completed">Прочитано</option>
@@ -372,9 +554,16 @@ export function ChildProfile({ child }: ChildProfileProps) {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Оценка (1-5)</label>
-                    <Input type="number" min="1" max="5" placeholder="5" />
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="5" 
+                      placeholder="5"
+                      value={newBookData.rating || ''}
+                      onChange={(e) => setNewBookData({ ...newBookData, rating: parseInt(e.target.value) || undefined })}
+                    />
                   </div>
-                  <Button className="w-full">Сохранить</Button>
+                  <Button onClick={handleAddBook} className="w-full">Сохранить</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -412,13 +601,73 @@ export function ChildProfile({ child }: ChildProfileProps) {
                   </div>
                 )}
               </div>
-              <Button size="sm" variant="ghost">
-                <Icon name="Edit" size={16} />
-              </Button>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => handleEditBook(book)}>
+                  <Icon name="Edit" size={16} />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => handleDeleteBook(book.id)}>
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              </div>
             </div>
           ))}
         </CardContent>
       </Card>
+
+      {/* Edit Book Dialog */}
+      <Dialog open={editBookDialog} onOpenChange={setEditBookDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать книгу</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Input
+                id="edit-book-title"
+                value={selectedBook?.title || ''}
+                onChange={(e) => setSelectedBook(selectedBook ? { ...selectedBook, title: e.target.value } : null)}
+                className="w-full"
+              />
+              <label htmlFor="edit-book-title" className="text-sm">Название книги</label>
+            </div>
+            <div>
+              <Input
+                id="edit-book-author"
+                value={selectedBook?.author || ''}
+                onChange={(e) => setSelectedBook(selectedBook ? { ...selectedBook, author: e.target.value } : null)}
+                className="w-full"
+              />
+              <label htmlFor="edit-book-author" className="text-sm">Автор</label>
+            </div>
+            <div>
+              <select
+                id="edit-book-status"
+                value={selectedBook?.status || 'planned'}
+                onChange={(e) => setSelectedBook(selectedBook ? { ...selectedBook, status: e.target.value as 'planned' | 'reading' | 'completed' } : null)}
+                className="w-full border rounded-md p-2"
+              >
+                <option value="planned">Запланировано</option>
+                <option value="reading">Читает сейчас</option>
+                <option value="completed">Прочитано</option>
+              </select>
+              <label htmlFor="edit-book-status" className="text-sm">Статус</label>
+            </div>
+            <div>
+              <Input
+                id="edit-book-rating"
+                type="number"
+                min="1"
+                max="5"
+                value={selectedBook?.rating || ''}
+                onChange={(e) => setSelectedBook(selectedBook ? { ...selectedBook, rating: parseInt(e.target.value) || undefined } : null)}
+                className="w-full"
+              />
+              <label htmlFor="edit-book-rating" className="text-sm">Оценка (1-5)</label>
+            </div>
+            <Button onClick={handleUpdateBook} className="w-full">Сохранить изменения</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
@@ -441,11 +690,19 @@ export function ChildProfile({ child }: ChildProfileProps) {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Мечта</label>
-                    <Input placeholder="Например: Стать космонавтом" />
+                    <Input 
+                      placeholder="Например: Стать космонавтом"
+                      value={newDreamData.dream}
+                      onChange={(e) => setNewDreamData({ ...newDreamData, dream: e.target.value })}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Категория</label>
-                    <select className="w-full border rounded-md p-2">
+                    <select 
+                      className="w-full border rounded-md p-2"
+                      value={newDreamData.category}
+                      onChange={(e) => setNewDreamData({ ...newDreamData, category: e.target.value as 'career' | 'travel' | 'achievement' | 'other' })}
+                    >
                       <option value="career">Карьера</option>
                       <option value="travel">Путешествия</option>
                       <option value="achievement">Достижение</option>
@@ -454,7 +711,11 @@ export function ChildProfile({ child }: ChildProfileProps) {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Приоритет</label>
-                    <select className="w-full border rounded-md p-2">
+                    <select 
+                      className="w-full border rounded-md p-2"
+                      value={newDreamData.priority}
+                      onChange={(e) => setNewDreamData({ ...newDreamData, priority: e.target.value as 'high' | 'medium' | 'low' })}
+                    >
                       <option value="high">Высокий</option>
                       <option value="medium">Средний</option>
                       <option value="low">Низкий</option>
@@ -462,9 +723,13 @@ export function ChildProfile({ child }: ChildProfileProps) {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Заметки</label>
-                    <Textarea placeholder="Дополнительная информация" />
+                    <Textarea 
+                      placeholder="Дополнительная информация"
+                      value={newDreamData.notes}
+                      onChange={(e) => setNewDreamData({ ...newDreamData, notes: e.target.value })}
+                    />
                   </div>
-                  <Button className="w-full">Сохранить</Button>
+                  <Button onClick={handleAddDream} className="w-full">Сохранить</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -488,13 +753,75 @@ export function ChildProfile({ child }: ChildProfileProps) {
                   <p className="text-sm text-gray-600 mt-2">{dream.notes}</p>
                 )}
               </div>
-              <Button size="sm" variant="ghost">
-                <Icon name="Edit" size={16} />
-              </Button>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => handleEditDream(dream)}>
+                  <Icon name="Edit" size={16} />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => handleDeleteDream(dream.id)}>
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              </div>
             </div>
           ))}
         </CardContent>
       </Card>
+
+      {/* Edit Dream Dialog */}
+      <Dialog open={editDreamDialog} onOpenChange={setEditDreamDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать мечту</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Input
+                id="edit-dream-text"
+                value={selectedDream?.dream || ''}
+                onChange={(e) => setSelectedDream(selectedDream ? { ...selectedDream, dream: e.target.value } : null)}
+                className="w-full"
+              />
+              <label htmlFor="edit-dream-text" className="text-sm">Мечта</label>
+            </div>
+            <div>
+              <select
+                id="edit-dream-category"
+                value={selectedDream?.category || 'other'}
+                onChange={(e) => setSelectedDream(selectedDream ? { ...selectedDream, category: e.target.value as 'career' | 'travel' | 'achievement' | 'other' } : null)}
+                className="w-full border rounded-md p-2"
+              >
+                <option value="career">Карьера</option>
+                <option value="travel">Путешествия</option>
+                <option value="achievement">Достижение</option>
+                <option value="other">Другое</option>
+              </select>
+              <label htmlFor="edit-dream-category" className="text-sm">Категория</label>
+            </div>
+            <div>
+              <select
+                id="edit-dream-priority"
+                value={selectedDream?.priority || 'medium'}
+                onChange={(e) => setSelectedDream(selectedDream ? { ...selectedDream, priority: e.target.value as 'high' | 'medium' | 'low' } : null)}
+                className="w-full border rounded-md p-2"
+              >
+                <option value="high">Высокий</option>
+                <option value="medium">Средний</option>
+                <option value="low">Низкий</option>
+              </select>
+              <label htmlFor="edit-dream-priority" className="text-sm">Приоритет</label>
+            </div>
+            <div>
+              <Textarea
+                id="edit-dream-notes"
+                value={selectedDream?.notes || ''}
+                onChange={(e) => setSelectedDream(selectedDream ? { ...selectedDream, notes: e.target.value } : null)}
+                className="w-full"
+              />
+              <label htmlFor="edit-dream-notes" className="text-sm">Заметки</label>
+            </div>
+            <Button onClick={handleUpdateDream} className="w-full">Сохранить изменения</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Копилка */}
       <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
@@ -558,18 +885,8 @@ export function ChildProfile({ child }: ChildProfileProps) {
         <RewardsShop childId={child.id} balance={piggyBank} />
       </TabsContent>
 
-      <TabsContent value="games" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Info" size={20} />
-              Хобби и интересы
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">Раздел с играми, книгами и мечтами перемещён на главную вкладку</p>
-          </CardContent>
-        </Card>
+      <TabsContent value="money" className="space-y-6">
+        <RealMoneyPiggyBank childId={child.id} />
       </TabsContent>
     </Tabs>
   );
