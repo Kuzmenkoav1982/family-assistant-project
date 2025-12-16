@@ -11,6 +11,7 @@ import type { FamilyMember, MemberProfile, LoveLanguage } from '@/types/family.t
 
 interface MemberProfileQuestionnaireProps {
   member: FamilyMember;
+  memberProfile: MemberProfile | null;
   onSave: (profile: MemberProfile) => Promise<void>;
 }
 
@@ -22,8 +23,8 @@ const LOVE_LANGUAGES = [
   { id: 'physical_touch', label: 'Прикосновения', icon: 'Heart' }
 ];
 
-export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQuestionnaireProps) {
-  const [profile, setProfile] = useState<MemberProfile>(member.profile || {});
+export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: MemberProfileQuestionnaireProps) {
+  const [profile, setProfile] = useState<MemberProfile>(memberProfile || {});
   const [saving, setSaving] = useState(false);
   const [newHabit, setNewHabit] = useState('');
   const [newBadHabit, setNewBadHabit] = useState('');
@@ -33,6 +34,12 @@ export function MemberProfileQuestionnaire({ member, onSave }: MemberProfileQues
   const [newStressRelief, setNewStressRelief] = useState('');
   const [newFavoriteThing, setNewFavoriteThing] = useState('');
   const [newDislikedThing, setNewDislikedThing] = useState('');
+
+  useEffect(() => {
+    if (memberProfile) {
+      setProfile(memberProfile);
+    }
+  }, [memberProfile]);
 
   const addToArray = (field: keyof MemberProfile, value: string, setter: (v: string) => void) => {
     if (!value.trim()) return;

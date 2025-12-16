@@ -104,8 +104,14 @@ export default function MemberProfile() {
   };
 
   useEffect(() => {
+    if (!memberId) {
+      loadedMemberRef.current = null;
+      setMemberProfile(null);
+      return;
+    }
+    
     // Загружаем профиль только если это новый член семьи
-    if (!memberId || loadedMemberRef.current === memberId) return;
+    if (loadedMemberRef.current === memberId) return;
     
     loadedMemberRef.current = memberId;
     
@@ -396,8 +402,9 @@ export default function MemberProfile() {
 
           <TabsContent value="questionnaire">
             <MemberProfileQuestionnaire
-              key={`questionnaire-${memberId}-${memberProfile ? 'loaded' : 'empty'}`}
-              member={{...member, profile: memberProfile || undefined}}
+              key={memberId}
+              member={member}
+              memberProfile={memberProfile}
               onSave={async (profile: MemberProfile) => {
                 console.log('[MemberProfile] Saving questionnaire:', profile);
                 const success = await saveProfile(member.id, profile);
