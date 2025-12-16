@@ -165,15 +165,45 @@ export function AstrologyService() {
 
   if (!selectedMember || !selectedMember.birthDate) {
     return (
-      <Card className="bg-gradient-to-br from-purple-50 to-blue-50">
-        <CardContent className="p-8 text-center">
-          <div className="text-6xl mb-4">🌙</div>
-          <h3 className="text-xl font-bold mb-2">Астрологический сервис</h3>
-          <p className="text-gray-600 mb-4">
-            Для получения персональных прогнозов необходимо заполнить дату рождения в профиле
-          </p>
-          <Button onClick={() => window.location.href = '/family'}>
-            Перейти в профиль
+      <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-300">
+        <CardContent className="p-8 text-center space-y-4">
+          <div className="text-6xl mb-4 animate-bounce">🌙</div>
+          <h3 className="text-2xl font-bold text-purple-900">Астрологический сервис Домового</h3>
+          <div className="bg-white/70 rounded-lg p-6 space-y-4">
+            <p className="text-gray-800 text-lg font-medium">
+              👋 Приветствую! Я Домовой-астролог.
+            </p>
+            <p className="text-gray-700">
+              Чтобы составить персональный астрологический прогноз, мне нужно знать вашу дату рождения.
+            </p>
+            <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+              <p className="text-sm font-semibold text-blue-900 mb-2">📝 Как заполнить:</p>
+              <ol className="text-sm text-left text-blue-800 space-y-2">
+                <li>1️⃣ Перейдите в <strong>профиль члена семьи</strong></li>
+                <li>2️⃣ Откройте вкладку <strong>"Редактировать"</strong></li>
+                <li>3️⃣ Заполните <strong>"Дата рождения 🌟"</strong></li>
+                <li>4️⃣ По желанию укажите <strong>"Время рождения 🕐"</strong> (для точной карты Бацзы)</li>
+                <li>5️⃣ Сохраните изменения</li>
+              </ol>
+            </div>
+            <p className="text-xs text-gray-500 italic">
+              ⭐ С датой и временем рождения я смогу рассчитать знак зодиака, китайское животное года,<br />
+              карту Бацзы и дать точные персональные рекомендации для вашей семьи!
+            </p>
+          </div>
+          <Button 
+            onClick={() => {
+              const memberId = selectedMember?.id;
+              if (memberId) {
+                window.location.href = `/member/${memberId}`;
+              } else {
+                window.location.href = '/?section=family';
+              }
+            }}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          >
+            <Icon name="UserCircle" className="mr-2" size={20} />
+            Заполнить дату рождения
           </Button>
         </CardContent>
       </Card>
@@ -204,6 +234,35 @@ export function AstrologyService() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Подсказка об отсутствии времени рождения */}
+      {!selectedMember.birthTime && (
+        <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">💡</div>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-900 mb-1">
+                  Совет от Домового
+                </p>
+                <p className="text-sm text-amber-800">
+                  Вы не указали время рождения. Для составления более точной карты Бацзы (Четыре Столпа Судьбы) 
+                  рекомендую добавить время рождения в профиле. Это поможет мне дать более точные рекомендации!
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 border-amber-400 text-amber-900 hover:bg-amber-100"
+                  onClick={() => window.location.href = `/member/${selectedMember.id}`}
+                >
+                  <Icon name="Clock" size={16} className="mr-2" />
+                  Добавить время рождения
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Знак зодиака */}
       {zodiac && (
