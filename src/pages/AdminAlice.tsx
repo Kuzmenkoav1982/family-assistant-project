@@ -33,50 +33,132 @@ interface AliceStats {
   avgResponseTime: number;
 }
 
+interface AliceUser {
+  name: string;
+  family: string;
+  commands: number;
+  lastActive: string;
+}
+
+interface LogEntry {
+  type: 'error' | 'warning' | 'info';
+  message: string;
+  user: string;
+  time: string;
+  command: string;
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  tasks: '#8b5cf6',
+  calendar: '#3b82f6',
+  shopping: '#10b981',
+  stats: '#f59e0b',
+  help: '#6366f1',
+  other: '#9ca3af',
+};
+
+const CATEGORY_NAMES: Record<string, string> = {
+  tasks: 'Задачи',
+  calendar: 'Календарь',
+  shopping: 'Покупки',
+  stats: 'Статистика',
+  help: 'Помощь',
+  other: 'Другое',
+};
+
 export default function AdminAlice() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<AliceStats>({
-    totalUsers: 12,
-    activeUsers: 8,
-    totalCommands: 347,
-    todayCommands: 23,
-    popularCommands: [
-      { command: 'Задачи на сегодня', count: 89 },
-      { command: 'Список покупок', count: 67 },
-      { command: 'Что в календаре', count: 54 },
-      { command: 'Добавь задачу', count: 41 },
-      { command: 'Статистика семьи', count: 28 },
-    ],
-    dailyUsage: [
-      { date: '10.12', commands: 45, users: 6 },
-      { date: '11.12', commands: 52, users: 7 },
-      { date: '12.12', commands: 61, users: 8 },
-      { date: '13.12', commands: 48, users: 7 },
-      { date: '14.12', commands: 58, users: 8 },
-      { date: '15.12', commands: 60, users: 8 },
-      { date: '16.12', commands: 23, users: 5 },
-    ],
-    commandsByCategory: [
-      { category: 'Задачи', count: 178, color: '#8b5cf6' },
-      { category: 'Календарь', count: 89, color: '#3b82f6' },
-      { category: 'Покупки', count: 67, color: '#10b981' },
-      { category: 'Статистика', count: 13, color: '#f59e0b' },
-    ],
-    errorRate: 2.3,
-    avgResponseTime: 420,
-  });
+  const [stats, setStats] = useState<AliceStats | null>(null);
+  const [users, setUsers] = useState<AliceUser[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isDeployed, setIsDeployed] = useState(true);
   const [webhookUrl] = useState('https://functions.poehali.dev/3654f595-6c6d-4ebf-9213-f12b4d75efaf');
 
   useEffect(() => {
-    // Здесь можно загружать реальную статистику из БД
     loadStats();
+    loadUsers();
+    loadLogs();
   }, []);
 
   const loadStats = async () => {
-    // TODO: Запрос к backend для получения статистики
-    console.log('Loading Alice stats...');
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('https://functions.poehali.dev/00864888-e26d-45f7-8e6e-5e02202aee4b?action=stats', {
+        headers: {
+          'X-Auth-Token': token || '',
+        },
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to load stats:', response.status);
+        setIsLoading(false);
+        return;
+      }
+      
+      const data = await response.json();
+      
+      // Преобразуем данные для графиков
+      const commandsByCategory = data.popular_commands?.map((cmd: any) => ({
+        category: CATEGORY_NAMES[cmd.command_category] || cmd.command_category,
+        count: cmd.count,
+        color: CATEGORY_COLORS[cmd.command_category] || CATEGORY_COLORS.other,
+      })) || [];
+      
+      setStats({
+        totalUsers: data.total_users || 0,
+        activeUsers: data.active_today || 0,
+        totalCommands: data.total_commands || 0,
+        todayCommands: data.today_commands || 0,
+        popularCommands: [], // Будем загружать отдельно
+        dailyUsage: [], // Будем загружать отдельно
+        commandsByCategory,
+        errorRate: data.error_rate || 0,
+        avgResponseTime: data.avg_response_time || 0,
+      });
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('https://functions.poehali.dev/5cab3ca7-6fa8-4ffb-b9d1-999d93d29d2e?action=alice-users', {
+        headers: {
+          'X-Auth-Token': token || '',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const loadLogs = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('https://functions.poehali.dev/5cab3ca7-6fa8-4ffb-b9d1-999d93d29d2e?action=alice-logs', {
+        headers: {
+          'X-Auth-Token': token || '',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error('Error loading logs:', error);
+    }
   };
 
   const copyWebhookUrl = () => {
@@ -136,25 +218,42 @@ export default function AdminAlice() {
           </CardContent>
         </Card>
 
-        {/* Метрики */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
-            title="Всего пользователей"
-            value={stats.totalUsers}
-            icon="Users"
-            color="purple"
-            trend="+3 за неделю"
-          />
-          <MetricCard
-            title="Активные сегодня"
-            value={stats.activeUsers}
-            icon="Activity"
-            color="blue"
-            trend={`${((stats.activeUsers / stats.totalUsers) * 100).toFixed(0)}% от всех`}
-          />
-          <MetricCard
-            title="Команд за день"
-            value={stats.todayCommands}
+        {/* Лоадер или контент */}
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Icon name="Loader" size={32} className="animate-spin mx-auto mb-4 text-purple-600" />
+              <p className="text-gray-600">Загрузка статистики...</p>
+            </CardContent>
+          </Card>
+        ) : !stats ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Icon name="AlertCircle" size={32} className="mx-auto mb-4 text-red-600" />
+              <p className="text-gray-600">Не удалось загрузить статистику</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Метрики */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricCard
+                title="Всего пользователей"
+                value={stats.totalUsers}
+                icon="Users"
+                color="purple"
+                trend={stats.totalUsers === 0 ? 'Пока нет пользователей' : `${stats.activeUsers} активных`}
+              />
+              <MetricCard
+                title="Активные сегодня"
+                value={stats.activeUsers}
+                icon="Activity"
+                color="blue"
+                trend={stats.totalUsers > 0 ? `${((stats.activeUsers / stats.totalUsers) * 100).toFixed(0)}% от всех` : 'Нет данных'}
+              />
+              <MetricCard
+                title="Команд за день"
+                value={stats.todayCommands}
             icon="MessageSquare"
             color="green"
             trend={`${stats.totalCommands} всего`}
@@ -190,54 +289,42 @@ export default function AdminAlice() {
 
           {/* Вкладка: Статистика */}
           <TabsContent value="stats" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* График активности */}
+            {stats.commandsByCategory.length === 0 ? (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="TrendingUp" size={20} className="text-blue-600" />
-                    Активность по дням
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={stats.dailyUsage}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="commands" stroke="#8b5cf6" strokeWidth={2} name="Команды" />
-                      <Line type="monotone" dataKey="users" stroke="#3b82f6" strokeWidth={2} name="Пользователи" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <CardContent className="py-12 text-center">
+                  <Icon name="BarChart3" size={48} className="mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-semibold mb-2">Пока нет данных</h3>
+                  <p className="text-gray-600">Статистика появится после первых использований навыка</p>
                 </CardContent>
               </Card>
-
-              {/* Распределение команд */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="PieChart" size={20} className="text-purple-600" />
-                    Команды по категориям
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={stats.commandsByCategory}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                      >
-                        {stats.commandsByCategory.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Распределение команд */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Icon name="PieChart" size={20} className="text-purple-600" />
+                        Команды по категориям
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={stats.commandsByCategory}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="count"
+                          >
+                            {stats.commandsByCategory.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
                       <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
@@ -245,64 +332,44 @@ export default function AdminAlice() {
               </Card>
             </div>
 
-            {/* Популярные команды */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Star" size={20} className="text-yellow-600" />
-                  Топ-5 команд
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={stats.popularCommands}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="command" angle={-15} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+                {/* Производительность */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Icon name="Zap" size={20} className="text-yellow-600" />
+                          Среднее время ответа
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center">
+                          <div className="text-5xl font-bold text-purple-600 mb-2">{stats.avgResponseTime}ms</div>
+                          <p className="text-sm text-gray-600">
+                            {stats.avgResponseTime < 500 ? '✅ Отлично' : stats.avgResponseTime < 1000 ? '⚠️ Приемлемо' : '🔴 Медленно'}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-            {/* Производительность */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="Zap" size={20} className="text-yellow-600" />
-                    Среднее время ответа
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-5xl font-bold text-purple-600 mb-2">{stats.avgResponseTime}ms</div>
-                    <p className="text-sm text-gray-600">
-                      {stats.avgResponseTime < 500 ? '✅ Отлично' : stats.avgResponseTime < 1000 ? '⚠️ Приемлемо' : '🔴 Медленно'}
-                    </p>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Icon name="AlertCircle" size={20} className="text-red-600" />
+                          Уровень ошибок
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center">
+                          <div className="text-5xl font-bold text-red-600 mb-2">{stats.errorRate}%</div>
+                          <p className="text-sm text-gray-600">
+                            {stats.errorRate < 3 ? '✅ Отлично' : stats.errorRate < 5 ? '⚠️ Норма' : '🔴 Требует внимания'}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="AlertCircle" size={20} className="text-red-600" />
-                    Уровень ошибок
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-5xl font-bold text-red-600 mb-2">{stats.errorRate}%</div>
-                    <p className="text-sm text-gray-600">
-                      {stats.errorRate < 3 ? '✅ Отлично' : stats.errorRate < 5 ? '⚠️ Норма' : '🔴 Требует внимания'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                </>
+              )}
+            </TabsContent>
 
           {/* Вкладка: Пользователи */}
           <TabsContent value="users" className="space-y-6">
@@ -310,35 +377,36 @@ export default function AdminAlice() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Users" size={20} className="text-blue-600" />
-                  Подключенные пользователи
+                  Подключенные пользователи ({users.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { name: 'Иван Петров', family: 'Семья Петровых', commands: 89, lastActive: '10 минут назад' },
-                    { name: 'Мария Сидорова', family: 'Семья Сидоровых', commands: 67, lastActive: '1 час назад' },
-                    { name: 'Алексей Иванов', family: 'Семья Ивановых', commands: 54, lastActive: '2 часа назад' },
-                    { name: 'Елена Ковалева', family: 'Семья Ковалевых', commands: 41, lastActive: 'Сегодня' },
-                    { name: 'Дмитрий Смирнов', family: 'Семья Смирновых', commands: 28, lastActive: 'Вчера' },
-                  ].map((user, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold">
-                          {user.name[0]}
+                {users.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Icon name="Users" size={48} className="mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-600">Пока нет подключенных пользователей</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {users.map((user, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold">
+                            {user.name[0]}
+                          </div>
+                          <div>
+                            <p className="font-semibold">{user.name}</p>
+                            <p className="text-sm text-gray-600">{user.family}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold">{user.name}</p>
-                          <p className="text-sm text-gray-600">{user.family}</p>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-purple-600">{user.commands} команд</p>
+                          <p className="text-xs text-gray-500">{user.lastActive}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-purple-600">{user.commands} команд</p>
-                        <p className="text-xs text-gray-500">{user.lastActive}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -349,53 +417,38 @@ export default function AdminAlice() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Shield" size={20} className="text-red-600" />
-                  Журнал ошибок
+                  Журнал событий ({logs.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { 
-                      type: 'error', 
-                      message: 'Ошибка подключения к БД', 
-                      user: 'Иван П.', 
-                      time: '10:23', 
-                      command: 'Задачи на сегодня' 
-                    },
-                    { 
-                      type: 'warning', 
-                      message: 'Медленный ответ (1.2s)', 
-                      user: 'Мария С.', 
-                      time: '09:15', 
-                      command: 'Список покупок' 
-                    },
-                    { 
-                      type: 'info', 
-                      message: 'Неизвестная команда', 
-                      user: 'Алексей И.', 
-                      time: '08:45', 
-                      command: 'Расскажи анекдот' 
-                    },
-                  ].map((log, i) => (
-                    <Alert key={i} className={
-                      log.type === 'error' ? 'border-red-300 bg-red-50' :
-                      log.type === 'warning' ? 'border-yellow-300 bg-yellow-50' :
-                      'border-blue-300 bg-blue-50'
-                    }>
-                      <Icon name={
-                        log.type === 'error' ? 'XCircle' : 
-                        log.type === 'warning' ? 'AlertTriangle' : 
-                        'Info'
-                      } size={16} />
-                      <AlertTitle className="font-semibold">
-                        {log.message}
-                      </AlertTitle>
-                      <AlertDescription className="text-sm">
-                        Пользователь: {log.user} • Команда: "{log.command}" • Время: {log.time}
-                      </AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
+                {logs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Icon name="CheckCircle" size={48} className="mx-auto mb-4 text-green-300" />
+                    <p className="text-gray-600">Нет событий для отображения</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {logs.map((log, i) => (
+                      <Alert key={i} className={
+                        log.type === 'error' ? 'border-red-300 bg-red-50' :
+                        log.type === 'warning' ? 'border-yellow-300 bg-yellow-50' :
+                        'border-blue-300 bg-blue-50'
+                      }>
+                        <Icon name={
+                          log.type === 'error' ? 'XCircle' : 
+                          log.type === 'warning' ? 'AlertTriangle' : 
+                          'Info'
+                        } size={16} />
+                        <AlertTitle className="font-semibold">
+                          {log.message}
+                        </AlertTitle>
+                        <AlertDescription className="text-sm">
+                          Пользователь: {log.user} • Команда: "{log.command}" • Время: {log.time}
+                        </AlertDescription>
+                      </Alert>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -403,27 +456,20 @@ export default function AdminAlice() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="MessageSquare" size={20} className="text-purple-600" />
-                  Непонятые команды
+                  Информация
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
-                  Команды, которые пользователи пытались использовать, но навык не распознал
+                <p className="text-sm text-gray-600">
+                  Подробные логи ошибок и непонятых команд будут добавлены в следующем обновлении
                 </p>
-                <div className="space-y-2">
-                  {[
-                    'Расскажи анекдот',
-                    'Сколько времени',
-                    'Включи музыку',
-                    'Что приготовить',
-                  ].map((cmd, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <code className="text-sm">{cmd}</code>
-                      <Badge variant="outline" className="text-xs">
-                        Не реализовано
-                      </Badge>
-                    </div>
-                  ))}
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-gray-700 flex items-start gap-2">
+                    <Icon name="Info" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>
+                      Сейчас все команды логируются в БД. Статистика по ошибкам доступна на вкладке "Статистика"
+                    </span>
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -515,6 +561,8 @@ export default function AdminAlice() {
             </Card>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </div>
     </div>
   );

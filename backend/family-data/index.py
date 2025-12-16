@@ -270,6 +270,68 @@ def save_test_result(family_id: int, child_member_id: int, test_data: Dict[str, 
         cur.close()
         conn.close()
 
+def get_alice_users() -> List[Dict[str, Any]]:
+    """Получить список пользователей Алисы для админки"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        cur.execute(f"""
+            SELECT 
+                fm.name,
+                f.name as family,
+                COUNT(acl.id) as commands,
+                TO_CHAR(au.last_interaction, 'DD.MM в HH24:MI') as last_active
+            FROM {SCHEMA}.alice_users au
+            JOIN {SCHEMA}.family_members fm ON au.member_id = fm.id
+            JOIN {SCHEMA}.families f ON au.family_id = f.id
+            LEFT JOIN {SCHEMA}.alice_commands_log acl ON acl.yandex_user_id = au.yandex_user_id
+            WHERE au.yandex_user_id NOT LIKE 'pending_%'
+            GROUP BY fm.name, f.name, au.last_interaction
+            ORDER BY au.last_interaction DESC
+        """)
+        
+        return [dict(row) for row in cur.fetchall()]
+    except Exception as e:
+        print(f"Error getting alice users: {e}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+
+def get_alice_logs() -> List[Dict[str, Any]]:
+    """Получить последние логи Алисы для админки"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        cur.execute(f"""
+            SELECT 
+                CASE 
+                    WHEN acl.success = false THEN 'error'
+                    WHEN acl.response_time_ms > 1000 THEN 'warning'
+                    ELSE 'info'
+                END as type,
+                COALESCE(acl.error_message, 'Команда выполнена') as message,
+                fm.name as user,
+                TO_CHAR(acl.created_at, 'HH24:MI') as time,
+                acl.command_text as command
+            FROM {SCHEMA}.alice_commands_log acl
+            LEFT JOIN {SCHEMA}.alice_users au ON acl.yandex_user_id = au.yandex_user_id
+            LEFT JOIN {SCHEMA}.family_members fm ON au.member_id = fm.id
+            WHERE acl.created_at >= CURRENT_DATE - INTERVAL '7 days'
+            ORDER BY acl.created_at DESC
+            LIMIT 20
+        """)
+        
+        return [dict(row) for row in cur.fetchall()]
+    except Exception as e:
+        print(f"Error getting alice logs: {e}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     
@@ -314,14 +376,40 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         family_id = user_data['family_id']
         
+        # Получаем action из query параметров
+        query_params = event.get('queryStringParameters') or {}
+        action = query_params.get('action', 'get_data')
+        
         if method == 'GET':
-            data = get_family_data(family_id)
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps({'success': True, 'data': data}),
-                'isBase64Encoded': False
-            }
+            # Алиса: список пользователей
+            if action == 'alice-users':
+                data = get_alice_users()
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'users': data}),
+                    'isBase64Encoded': False
+                }
+            
+            # Алиса: логи
+            elif action == 'alice-logs':
+                data = get_alice_logs()
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'logs': data}),
+                    'isBase64Encoded': False
+                }
+            
+            # По умолчанию - данные семьи
+            else:
+                data = get_family_data(family_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'data': data}),
+                    'isBase64Encoded': False
+                }
         
         elif method == 'POST':
             raw_body = event.get('body') or '{}'
