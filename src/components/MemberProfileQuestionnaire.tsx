@@ -187,7 +187,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
         <CardContent className="space-y-4">
           <div>
             <Label>Хорошие привычки</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: утренняя зарядка"
                 value={newHabit}
@@ -198,6 +198,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.goodHabits || []).map((habit, i) => (
                 <Badge key={i} variant="outline" className="bg-green-50">
@@ -210,7 +211,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
 
           <div>
             <Label>Вредные привычки</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: поздно ложиться спать"
                 value={newBadHabit}
@@ -221,6 +222,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.badHabits || []).map((habit, i) => (
                 <Badge key={i} variant="outline" className="bg-red-50">
@@ -233,7 +235,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
 
           <div>
             <Label>Хобби</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: чтение книг"
                 value={newHobby}
@@ -244,6 +246,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.hobbies || []).map((hobby, i) => (
                 <Badge key={i} variant="outline" className="bg-blue-50">
@@ -294,7 +297,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
         <CardContent className="space-y-4">
           <div>
             <Label>Триггеры (что раздражает)</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: громкие звуки утром"
                 value={newTrigger}
@@ -305,6 +308,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.triggers || []).map((trigger, i) => (
                 <Badge key={i} variant="outline" className="bg-orange-50">
@@ -317,7 +321,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
 
           <div>
             <Label>Границы (красные линии)</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: не трогать личные вещи"
                 value={newBoundary}
@@ -328,6 +332,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.boundaries || []).map((boundary, i) => (
                 <Badge key={i} variant="outline" className="bg-red-50">
@@ -351,7 +356,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
         <CardContent className="space-y-4">
           <div>
             <Label>Что любит</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: сладкое, прогулки"
                 value={newFavoriteThing}
@@ -362,6 +367,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.favoriteThings || []).map((thing, i) => (
                 <Badge key={i} variant="outline" className="bg-green-50">
@@ -374,7 +380,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
 
           <div>
             <Label>Что не любит</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: острое, толпы людей"
                 value={newDislikedThing}
@@ -385,6 +391,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.dislikedThings || []).map((thing, i) => (
                 <Badge key={i} variant="outline" className="bg-red-50">
@@ -397,7 +404,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
 
           <div>
             <Label>Способы снятия стресса</Label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-1">
               <Input
                 placeholder="Например: музыка, спорт"
                 value={newStressRelief}
@@ -408,6 +415,7 @@ export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: Me
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">💡 Введите текст и нажмите + или Enter</p>
             <div className="flex flex-wrap gap-2">
               {(profile.stressRelief || []).map((method, i) => (
                 <Badge key={i} variant="outline" className="bg-purple-50">
