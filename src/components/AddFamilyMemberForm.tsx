@@ -7,7 +7,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import type { FamilyMember } from '@/types/family.types';
 
 interface AddFamilyMemberFormProps {
-  onSubmit: (member: FamilyMember) => void;
+  onSubmit: (member: FamilyMember) => void | Promise<void>;
   editingMember?: FamilyMember;
   isChild?: boolean;
 }
@@ -26,11 +26,12 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState(editingMember?.avatar || '👤');
+  const [submitting, setSubmitting] = useState(false);
   const { upload, uploading } = useFileUpload();
 
   const avatarOptions = ['👨', '👩', '👴', '👵', '👦', '👧', '🧑', '👶', '🧔', '👨‍🦱', '👩‍🦰', '🧑‍🦳', '👱', '🧓', '👤'];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const newMember: FamilyMember = {
@@ -52,7 +53,12 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
       responsibilities: formData.responsibilities.split(',').map(s => s.trim()).filter(Boolean),
     };
 
-    onSubmit(newMember);
+    setSubmitting(true);
+    try {
+      await onSubmit(newMember);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -205,9 +211,22 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
       </div>
 
       <div className="flex gap-3 justify-end pt-4 border-t">
-        <Button type="submit" className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600">
-          <Icon name="Check" className="mr-2" size={16} />
-          {editingMember ? 'Сохранить изменения' : 'Добавить члена семьи'}
+        <Button 
+          type="submit" 
+          disabled={submitting || uploading}
+          className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
+        >
+          {submitting ? (
+            <>
+              <Icon name="Loader2" className="mr-2 animate-spin" size={16} />
+              Сохранение...
+            </>
+          ) : (
+            <>
+              <Icon name="Check" className="mr-2" size={16} />
+              {editingMember ? 'Сохранить изменения' : isChild ? 'Добавить ребёнка' : 'Добавить члена семьи'}
+            </>
+          )}
         </Button>
       </div>
     </form>
