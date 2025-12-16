@@ -212,12 +212,18 @@ def upsert_profile(member_uuid: str, family_id: str, profile_data: Dict[str, Any
             # UPDATE
             print(f"[DEBUG upsert_profile] Updating existing profile id={existing['id']}")
             updates = []
+            has_updated_at = False
+            
             for key, value in profile_data.items():
                 snake_key = camel_to_snake(key)
-                updates.append(f"{snake_key} = {escape_string(value)}")
+                if snake_key == 'updated_at':
+                    has_updated_at = True
+                if snake_key not in ['id', 'member_id', 'family_id', 'created_at']:
+                    updates.append(f"{snake_key} = {escape_string(value)}")
             
             if updates:
-                updates.append("updated_at = NOW()")
+                if not has_updated_at:
+                    updates.append("updated_at = NOW()")
                 query = f"""
                     UPDATE {SCHEMA}.member_profiles
                     SET {', '.join(updates)}
