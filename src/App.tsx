@@ -188,6 +188,7 @@ const App = () => {
               <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
               <Route path="/admin/domovoy" element={<AdminDomovoy />} />
               <Route path="/domovoy" element={<DomovoyPage />} />
+              <Route path="/family" element={<Navigate to="/?section=family" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
