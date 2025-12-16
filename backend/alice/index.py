@@ -98,8 +98,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Обновляем время последнего взаимодействия
         update_last_interaction(conn, yandex_user_id)
         
+        # Логируем команду (начало)
+        start_time = datetime.now()
+        
         # Роутинг команд
         response = route_command(conn, command, nlu, family_id, member_id, yandex_user_id)
+        
+        # Логируем команду (конец)
+        response_time = int((datetime.now() - start_time).total_seconds() * 1000)
+        category = detect_command_category(command)
+        log_command(conn, yandex_user_id, family_id, command, category, True, None, response_time)
         
         conn.close()
         return response
@@ -152,12 +160,50 @@ def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
     
     code = code_match.group(1) + code_match.group(2)  # Объединяем две части
     
-    # TODO: Проверка кода в БД и создание связи
-    # Пока возвращаем заглушку
-    return build_alice_response(
-        f'Код {code[:4]}-{code[4:]} принят! Функция привязки будет доступна после добавления в приложение.',
-        buttons=['Задачи', 'Календарь', 'Покупки']
-    )
+    # Проверяем код в БД
+    db_url = os.environ.get('DATABASE_URL', '')
+    if not db_url:
+        return build_alice_response('Ошибка конфигурации сервиса', end_session=True)
+    
+    try:
+        conn = psycopg2.connect(db_url)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Ищем код
+        cursor.execute("""
+            SELECT id, family_id, member_id, code_expires_at
+            FROM t_p5815085_family_assistant_pro.alice_users
+            WHERE linking_code = %s AND code_expires_at > NOW()
+        """, (code,))
+        
+        code_record = cursor.fetchone()
+        
+        if not code_record:
+            cursor.close()
+            conn.close()
+            return build_alice_response(
+                f'Код {code[:4]}-{code[4:]} не найден или истёк. Создайте новый код в приложении.',
+                buttons=['Отмена']
+            )
+        
+        # Привязываем yandex_user_id к аккаунту
+        cursor.execute("""
+            UPDATE t_p5815085_family_assistant_pro.alice_users
+            SET yandex_user_id = %s, linked_at = NOW()
+            WHERE id = %s
+        """, (yandex_user_id, code_record['id']))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return build_alice_response(
+            f'Отлично! Аккаунт успешно привязан. Теперь вы можете управлять своими делами голосом.',
+            buttons=['Задачи на сегодня', 'Календарь', 'Покупки']
+        )
+        
+    except Exception as e:
+        return build_alice_response(f'Ошибка привязки: {str(e)}', buttons=['Повторить', 'Отмена'])
 
 
 def handle_tasks_command(conn, command: str, nlu: Dict, family_id: str, member_id: str) -> Dict:
@@ -578,6 +624,39 @@ def update_last_interaction(conn, yandex_user_id: str):
     """, (yandex_user_id,))
     conn.commit()
     cursor.close()
+
+
+def log_command(conn, yandex_user_id: str, family_id: str, command: str, 
+                category: Optional[str], success: bool, error: Optional[str], response_time: int):
+    """Логирует команду Алисы для статистики"""
+    
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        INSERT INTO t_p5815085_family_assistant_pro.alice_commands_log
+        (yandex_user_id, family_id, command_text, command_category, success, error_message, response_time_ms)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (yandex_user_id, family_id, command, category, success, error, response_time))
+    
+    conn.commit()
+    cursor.close()
+
+
+def detect_command_category(command: str) -> Optional[str]:
+    """Определяет категорию команды для статистики"""
+    
+    if any(word in command for word in ['задач', 'дел', 'todo']):
+        return 'tasks'
+    elif any(word in command for word in ['календар', 'событи', 'встреч']):
+        return 'calendar'
+    elif any(word in command for word in ['покупк', 'купить', 'магазин']):
+        return 'shopping'
+    elif any(word in command for word in ['статистик', 'балл', 'рейтинг', 'лидер']):
+        return 'stats'
+    elif any(word in command for word in ['помощ', 'команд']):
+        return 'help'
+    else:
+        return 'other'
 
 
 # === Вспомогательные функции для Алисы ===

@@ -24,7 +24,7 @@ export default function AliceIntegration() {
   const checkLinkingStatus = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('https://functions.poehali.dev/3654f595-6c6d-4ebf-9213-f12b4d75efaf/check-status', {
+      const response = await fetch('https://functions.poehali.dev/00864888-e26d-45f7-8e6e-5e02202aee4b?action=status', {
         headers: {
           'X-Auth-Token': token || '',
         },
@@ -39,22 +39,27 @@ export default function AliceIntegration() {
   const generateCode = async () => {
     setIsGenerating(true);
     try {
-      // Генерируем код формата XXXX-XXXX
-      const part1 = Math.floor(1000 + Math.random() * 9000).toString();
-      const part2 = Math.floor(1000 + Math.random() * 9000).toString();
-      const code = `${part1}-${part2}`;
-      
-      setLinkingCode(code);
-      
-      // Код действителен 15 минут
-      const expires = new Date();
-      expires.setMinutes(expires.getMinutes() + 15);
-      setExpiresAt(expires);
-
-      toast({
-        title: 'Код создан!',
-        description: 'Назовите этот код Алисе для привязки аккаунта',
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('https://functions.poehali.dev/00864888-e26d-45f7-8e6e-5e02202aee4b?action=generate-code', {
+        method: 'POST',
+        headers: {
+          'X-Auth-Token': token || '',
+        },
       });
+      
+      const data = await response.json();
+      
+      if (data.code) {
+        setLinkingCode(data.code);
+        setExpiresAt(new Date(data.expires_at));
+
+        toast({
+          title: 'Код создан!',
+          description: 'Назовите этот код Алисе для привязки аккаунта',
+        });
+      } else {
+        throw new Error('Код не получен');
+      }
     } catch (error) {
       toast({
         title: 'Ошибка',
@@ -74,14 +79,34 @@ export default function AliceIntegration() {
     });
   };
 
-  const unlinkAlice = () => {
-    setIsLinked(false);
-    setLinkingCode('');
-    setExpiresAt(null);
-    toast({
-      title: 'Отвязано',
-      description: 'Яндекс.Алиса отключена от аккаунта',
-    });
+  const unlinkAlice = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('https://functions.poehali.dev/00864888-e26d-45f7-8e6e-5e02202aee4b?action=unlink', {
+        method: 'POST',
+        headers: {
+          'X-Auth-Token': token || '',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setIsLinked(false);
+        setLinkingCode('');
+        setExpiresAt(null);
+        toast({
+          title: 'Отвязано',
+          description: 'Яндекс.Алиса отключена от аккаунта',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отвязать Алису',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
