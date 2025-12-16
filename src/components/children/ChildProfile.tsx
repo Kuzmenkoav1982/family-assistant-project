@@ -544,6 +544,33 @@ export function ChildProfile({ child }: ChildProfileProps) {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="diary">
+        <MoodDiary childId={child.id} />
+      </TabsContent>
+
+      <TabsContent value="achievements">
+        <AchievementsBadges childId={child.id} />
+      </TabsContent>
+
+      <TabsContent value="shop">
+        <RewardsShop childId={child.id} balance={piggyBank} />
+      </TabsContent>
+
+      <TabsContent value="games" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Info" size={20} />
+              Хобби и интересы
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600">Раздел с играми, книгами и мечтами перемещён на главную вкладку</p>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
