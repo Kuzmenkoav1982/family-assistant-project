@@ -337,9 +337,10 @@ def get_user_by_token(conn, token: str) -> Optional[Dict]:
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     
     cursor.execute("""
-        SELECT fm.id, fm.family_id, fm.name, fm.role
-        FROM t_p5815085_family_assistant_pro.family_members fm
-        WHERE fm.auth_token = %s
+        SELECT fm.id, fm.family_id, fm.name, fm.role, fm.user_id
+        FROM t_p5815085_family_assistant_pro.sessions s
+        JOIN t_p5815085_family_assistant_pro.family_members fm ON s.user_id = fm.user_id
+        WHERE s.token = %s AND s.expires_at > NOW()
         LIMIT 1
     """, (token,))
     
