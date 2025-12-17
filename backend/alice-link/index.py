@@ -95,6 +95,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return error_response(f'Неизвестное действие: {action}', 404)
             
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f'ERROR: {error_details}')
         return error_response(f'Ошибка сервера: {str(e)}', 500)
 
 
