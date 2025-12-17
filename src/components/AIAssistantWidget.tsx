@@ -13,7 +13,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
+import AstrologyService from '@/components/astrology/AstrologyService';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -30,6 +37,7 @@ const AIAssistantWidget = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showAstrologyDialog, setShowAstrologyDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const location = useLocation();
@@ -411,7 +419,7 @@ const AIAssistantWidget = () => {
               </button>
               
               <button
-                onClick={() => handleRoleChange('astrologer')}
+                onClick={() => setShowAstrologyDialog(true)}
                 className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
               >
                 <span className="text-lg">🌙</span>
@@ -575,6 +583,19 @@ const AIAssistantWidget = () => {
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
         </button>
       )}
+
+      {/* Astrology Dialog */}
+      <Dialog open={showAstrologyDialog} onOpenChange={setShowAstrologyDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-2xl">🌙</span>
+              Астрологические прогнозы Домового
+            </DialogTitle>
+          </DialogHeader>
+          <AstrologyService />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
