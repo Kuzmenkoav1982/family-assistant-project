@@ -14,9 +14,9 @@ export function WelcomeScreen({ showWelcome, welcomeText, onDismiss }: WelcomeSc
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 animate-fade-in cursor-pointer"
       onClick={onDismiss}
     >
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" onClick={onDismiss}></div>
       
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center" onClick={onDismiss}>
         <div className="mb-8">
           <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
             <img 
