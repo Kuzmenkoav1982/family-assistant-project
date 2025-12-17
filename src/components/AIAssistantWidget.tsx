@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
-import AstrologyService from '@/components/astrology/AstrologyService';
+import { AstrologyService } from '@/components/astrology/AstrologyService';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
