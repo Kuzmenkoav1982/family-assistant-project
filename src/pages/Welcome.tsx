@@ -16,7 +16,7 @@ const screenshots = [
     color: 'from-blue-500 to-cyan-500'
   },
   {
-    title: 'AI-ассистент Кузя',
+    title: 'AI-ассистент Домовой',
     description: 'Умный помощник с 8 ролями: повар, психолог, финансист, педагог и другие',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
     icon: 'Bot',
@@ -68,7 +68,7 @@ const screenshots = [
 
 const features = [
   { icon: 'Users', title: 'Профили семьи', description: 'Индивидуальные профили с фото и достижениями' },
-  { icon: 'Bot', title: 'AI-ассистент Кузя', description: '8 ролей: повар, психолог, финансист, педагог' },
+  { icon: 'Bot', title: 'AI-ассистент Домовой', description: '8 ролей: повар, психолог, финансист, педагог' },
   { icon: 'CheckSquare', title: 'Задачи', description: 'Система задач с баллами и уровнями' },
   { icon: 'Brain', title: 'ИИ-оценка развития', description: 'Персональные планы для детей 0-7 лет' },
   { icon: 'Calendar', title: 'Календарь + Экспорт', description: 'События с экспортом в iCal формат' },

@@ -401,7 +401,7 @@ export default function Presentation() {
               </div>
             </div>
 
-            {/* Блок 5: AI-Ассистент Кузя */}
+            {/* Блок 5: AI-Ассистент Домовой */}
             <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-8 shadow-xl border-4 border-violet-300">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-violet-200 text-violet-900 px-4 py-1 rounded-full text-sm font-bold">
@@ -410,7 +410,7 @@ export default function Presentation() {
               </div>
               <h3 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
                 <Icon name="Bot" size={36} className="text-violet-200" />
-                AI-Ассистент
+                AI-Ассистент Домовой
               </h3>
               <div className="space-y-4 ml-2">
                 <div className="bg-white/95 rounded-xl p-4">
