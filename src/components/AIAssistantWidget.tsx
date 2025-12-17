@@ -338,6 +338,22 @@ const AIAssistantWidget = () => {
                     <div className="text-xs text-gray-500">Универсальный помощник</div>
                   </div>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = 'https://family-assistant-project--preview.poehali.dev/domovoy'}>
+                  <span className="mr-2">📖</span>
+                  <div>
+                    <div className="font-medium">Узнать больше о Домовом</div>
+                    <div className="text-xs text-gray-500">Подробная информация</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-xl">🌙</span>
+                    <span className="font-semibold text-sm">Астролог</span>
+                  </div>
+                  <div className="text-xs text-gray-500 ml-7">Астрологические прогнозы Домового</div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleRoleChange('cook')}>
                   <span className="mr-2">🍳</span>
                   <div>
@@ -385,21 +401,6 @@ const AIAssistantWidget = () => {
                   <div>
                     <div className="font-medium">Тревел-планер</div>
                     <div className="text-xs text-gray-500">Организация поездок</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
-                  <span className="mr-2">🌙</span>
-                  <div>
-                    <div className="font-medium">Астролог</div>
-                    <div className="text-xs text-gray-500">Гороскопы и прогнозы</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/domovoy'}>
-                  <Icon name="Sparkles" size={16} className="mr-2 text-amber-600" />
-                  <div>
-                    <div className="font-medium text-amber-700">О Домовом</div>
-                    <div className="text-xs text-gray-500">Узнать больше</div>
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
