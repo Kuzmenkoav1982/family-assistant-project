@@ -122,14 +122,37 @@ export function AliceSetupTab({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-            <p className="text-lg font-semibold text-blue-900 mb-3">
-              💬 Запустите навык "Семейный помощник" и скажите:
-            </p>
-            <div className="bg-white p-4 rounded-lg border-2 border-blue-300 text-center">
-              <p className="text-xl font-bold text-blue-600">
-                "Алиса, привяжи аккаунт с кодом <span className="text-purple-600">{linkingCode || 'XXXX-XX'}</span>"
-              </p>
+          <div className="space-y-4">
+            <Alert className="bg-blue-50 border-blue-200">
+              <Icon name="Info" className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                Запустите приложение Яндекс или Алиса на телефоне и произнесите команду голосом
+              </AlertDescription>
+            </Alert>
+            
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl border-2 border-blue-200 shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-blue-500 rounded-full">
+                  <Icon name="Mic" size={24} className="text-white" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Скажите вслух:</p>
+              </div>
+              
+              <div className="bg-white p-5 rounded-lg shadow-sm border border-blue-200">
+                <p className="text-2xl font-bold text-center">
+                  <span className="text-blue-600">"Алиса, привяжи аккаунт с кодом </span>
+                  <span className="text-purple-600">{linkingCode || 'XXXX-XXXX'}</span>
+                  <span className="text-blue-600">"</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+              <Icon name="CheckCircle" size={20} className="text-green-600 mt-0.5" />
+              <div className="text-sm text-green-800">
+                <p className="font-semibold mb-1">Готово! Всё так просто</p>
+                <p>Алиса автоматически привяжет ваш аккаунт и вы сможете управлять семьёй голосом</p>
+              </div>
             </div>
           </div>
         </CardContent>

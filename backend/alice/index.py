@@ -75,9 +75,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if user_info:
                 text = f"Привет! Я помогу управлять делами вашей семьи. Что вы хотите узнать?"
             else:
-                text = "Привет! Для работы со мной нужно привязать аккаунт. Скажите 'привяжи аккаунт'."
+                text = "Привет! Чтобы начать работу, привяжите аккаунт. Скажите: 'Алиса, привяжи аккаунт' и я расскажу как это сделать."
             conn.close()
-            return build_alice_response(text, buttons=['Задачи на сегодня', 'Календарь', 'Покупки'])
+            return build_alice_response(text, buttons=['Привяжи аккаунт', 'Помощь'])
         
         # Команда привязки аккаунта
         if 'привяжи' in command or 'привязать' in command or 'код' in command:
@@ -149,12 +149,15 @@ def route_command(conn, command: str, nlu: Dict, family_id: str, member_id: str,
 def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
     """Обработка команды привязки аккаунта"""
     
-    # Извлекаем код из команды (формат: XXXX-XXXX или просто 8 цифр)
+    # Извлекаем код из команды (формат: XXXX-XXXX или XXXXXXXX)
     code_match = re.search(r'\b(\d{4})[- ]?(\d{4})\b', command)
     
     if not code_match:
         return build_alice_response(
-            'Чтобы привязать аккаунт, зайдите в приложение "Наша Семья", откройте настройки и скажите мне код привязки из 8 цифр.',
+            'Чтобы привязать аккаунт:\n\n'
+            '1. Откройте семейный органайзер на сайте\n'
+            '2. Нажмите "Интеграция с Алисой" → "Создать код"\n'
+            '3. Скажите мне: "Алиса, привяжи аккаунт с кодом" и назовите 8 цифр',
             buttons=['Отмена']
         )
     
