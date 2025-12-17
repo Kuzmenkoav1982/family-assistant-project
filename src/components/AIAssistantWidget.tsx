@@ -396,10 +396,10 @@ const AIAssistantWidget = () => {
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
-                  <span className="mr-2">🌙</span>
+                  <span className="mr-2">🔮</span>
                   <div>
                     <div className="font-medium">Астролог</div>
-                    <div className="text-xs text-gray-500">Гороскопы и прогнозы</div>
+                    <div className="text-xs text-gray-500">Консультации по астрологии</div>
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
