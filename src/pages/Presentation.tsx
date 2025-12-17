@@ -633,40 +633,7 @@ export default function Presentation() {
                   </p>
                 </div>
 
-                <div className="bg-white/95 rounded-xl p-6">
-                  <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Icon name="Target" className="text-orange-600" size={24} />
-                    Целевые действия для развития детей
-                  </h4>
-                  <div className="space-y-3 text-gray-700">
-                    <div className="flex items-start gap-3">
-                      <span className="text-orange-600 font-bold">📞</span>
-                      <div>
-                        <p className="font-semibold">Клик по номеру телефона</p>
-                        <p className="text-sm">Стоимость: 100 ₽ за целевое действие</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="text-orange-600 font-bold">📞</span>
-                      <div>
-                        <p className="font-semibold">Заказать обратный звонок</p>
-                        <p className="text-sm">Стоимость: 250 ₽ за заявку</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="text-orange-600 font-bold">📝</span>
-                      <div>
-                        <p className="font-semibold">Заявка на оценку развития ребенка</p>
-                        <p className="text-sm">Стоимость: 700 ₽ за заявку</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <p className="text-sm text-gray-600">
-                      💰 <strong>Недельный бюджет:</strong> 18 000 ₽
-                    </p>
-                  </div>
-                </div>
+
               </div>
             </div>
 
