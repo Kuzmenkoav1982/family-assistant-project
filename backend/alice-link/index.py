@@ -8,7 +8,7 @@ import json
 import os
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -123,7 +123,7 @@ def generate_linking_code(conn, family_id: str, member_id: str) -> Dict:
         code = f"{part1}{part2}"  # Храним без дефиса
         
         # Код действует 15 минут
-        expires_at = datetime.now() + timedelta(minutes=15)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
         
         # Удаляем старые коды этого пользователя
         cursor.execute("""
@@ -145,7 +145,7 @@ def generate_linking_code(conn, family_id: str, member_id: str) -> Dict:
     return {
         'code': f"{code[:4]}-{code[4:]}",  # Возвращаем с дефисом для отображения
         'expires_at': expires_at.isoformat(),
-        'expires_in_seconds': int((expires_at - datetime.now()).total_seconds())
+        'expires_in_seconds': int((expires_at - datetime.now(timezone.utc)).total_seconds())
     }
 
 
