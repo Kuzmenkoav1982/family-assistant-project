@@ -338,22 +338,6 @@ const AIAssistantWidget = () => {
                     <div className="text-xs text-gray-500">Универсальный помощник</div>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = 'https://family-assistant-project--preview.poehali.dev/domovoy'}>
-                  <span className="mr-2">📖</span>
-                  <div>
-                    <div className="font-medium">Узнать больше о Домовом</div>
-                    <div className="text-xs text-gray-500">Подробная информация</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
-                  <div className="flex items-center gap-2 w-full">
-                    <span className="text-xl">🌙</span>
-                    <span className="font-semibold text-sm">Астролог</span>
-                  </div>
-                  <div className="text-xs text-gray-500 ml-7">Астрологические прогнозы Домового</div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleRoleChange('cook')}>
                   <span className="mr-2">🍳</span>
                   <div>
@@ -403,8 +387,40 @@ const AIAssistantWidget = () => {
                     <div className="text-xs text-gray-500">Организация поездок</div>
                   </div>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
+                  <span className="mr-2">🌙</span>
+                  <div>
+                    <div className="font-medium">Астролог</div>
+                    <div className="text-xs text-gray-500">Гороскопы и прогнозы</div>
+                  </div>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Дополнительные кнопки */}
+            <div className="mt-3 space-y-2">
+              <button
+                onClick={() => window.location.href = 'https://family-assistant-project--preview.poehali.dev/domovoy'}
+                className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
+              >
+                <span className="text-lg">📖</span>
+                <div>
+                  <div className="text-sm font-semibold">Узнать больше о Домовом</div>
+                  <div className="text-xs opacity-80">Подробная информация</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleRoleChange('astrologer')}
+                className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
+              >
+                <span className="text-lg">🌙</span>
+                <div>
+                  <div className="text-sm font-semibold">Астрологические прогнозы Домового</div>
+                  <div className="text-xs opacity-80">Гороскопы и прогнозы</div>
+                </div>
+              </button>
+            </div>
           </div>
 
           {!isMinimized && (
