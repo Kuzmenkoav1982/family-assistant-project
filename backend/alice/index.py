@@ -153,8 +153,8 @@ def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
     print(f"[AUTH] Получена команда: {command}")
     print(f"[AUTH] Yandex User ID: {yandex_user_id}")
     
-    # Извлекаем код из команды (формат: XXXX-XXXX или XXXXXXXX)
-    code_match = re.search(r'\b(\d{4})[- ]?(\d{4})\b', command)
+    # Извлекаем код из команды (формат: XXXX-XXXX, XXXX - XXXX или XXXXXXXX)
+    code_match = re.search(r'\b(\d{4})\s*[-\s]\s*(\d{4})\b|\b(\d{8})\b', command)
     
     if not code_match:
         print("[AUTH] Код не найден в команде")
@@ -166,7 +166,12 @@ def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
             buttons=['Отмена']
         )
     
-    code = code_match.group(1) + code_match.group(2)  # Объединяем две части
+    # Определяем формат кода (с дефисом или без)
+    if code_match.group(1):
+        code = code_match.group(1) + code_match.group(2)  # Формат: XXXX-XXXX
+    else:
+        code = code_match.group(3)  # Формат: XXXXXXXX
+    
     print(f"[AUTH] Извлечённый код: {code}")
     
     # Проверяем код в БД
