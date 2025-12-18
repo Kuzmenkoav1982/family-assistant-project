@@ -19,7 +19,16 @@ export default function AliceIntegration() {
 
   useEffect(() => {
     checkLinkingStatus();
-  }, []);
+    
+    // Автообновление статуса каждые 5 секунд (если есть активный код)
+    const interval = setInterval(() => {
+      if (linkingCode && !isLinked) {
+        checkLinkingStatus();
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [linkingCode, isLinked]);
 
   const checkLinkingStatus = async () => {
     try {
@@ -30,6 +39,18 @@ export default function AliceIntegration() {
         },
       });
       const data = await response.json();
+      
+      // Если статус изменился на "подключено"
+      if (data.linked && !isLinked) {
+        toast({
+          title: '🎉 Алиса подключена!',
+          description: 'Теперь вы можете управлять делами голосом',
+          duration: 5000,
+        });
+        setLinkingCode(''); // Очищаем код после успешной привязки
+        setExpiresAt(null);
+      }
+      
       setIsLinked(data.linked || false);
     } catch (error) {
       console.error('Failed to check status:', error);
