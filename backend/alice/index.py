@@ -150,10 +150,14 @@ def route_command(conn, command: str, nlu: Dict, family_id: str, member_id: str,
 def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
     """Обработка команды привязки аккаунта"""
     
+    print(f"[AUTH] Получена команда: {command}")
+    print(f"[AUTH] Yandex User ID: {yandex_user_id}")
+    
     # Извлекаем код из команды (формат: XXXX-XXXX или XXXXXXXX)
     code_match = re.search(r'\b(\d{4})[- ]?(\d{4})\b', command)
     
     if not code_match:
+        print("[AUTH] Код не найден в команде")
         return build_alice_response(
             'Чтобы привязать аккаунт:\n\n'
             '1. Откройте семейный органайзер на сайте\n'
@@ -163,43 +167,53 @@ def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
         )
     
     code = code_match.group(1) + code_match.group(2)  # Объединяем две части
+    print(f"[AUTH] Извлечённый код: {code}")
     
     # Проверяем код в БД
     db_url = os.environ.get('DATABASE_URL', '')
     if not db_url:
+        print("[AUTH] DATABASE_URL не найден")
         return build_alice_response('Ошибка конфигурации сервиса', end_session=True)
     
     try:
         conn = psycopg2.connect(db_url)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Ищем код
-        cursor.execute("""
+        # Ищем код (SIMPLE QUERY - без плейсхолдеров)
+        query = f"""
             SELECT id, family_id, member_id, code_expires_at
             FROM t_p5815085_family_assistant_pro.alice_users
-            WHERE linking_code = %s AND code_expires_at > NOW()
-        """, (code,))
+            WHERE linking_code = '{code}' AND code_expires_at > NOW()
+        """
+        print(f"[AUTH] SQL запрос: {query}")
+        cursor.execute(query)
         
         code_record = cursor.fetchone()
+        print(f"[AUTH] Результат поиска кода: {code_record}")
         
         if not code_record:
             cursor.close()
             conn.close()
+            print(f"[AUTH] Код {code} не найден или истёк")
             return build_alice_response(
                 f'Код {code[:4]}-{code[4:]} не найден или истёк. Создайте новый код в приложении.',
                 buttons=['Отмена']
             )
         
-        # Привязываем yandex_user_id к аккаунту
-        cursor.execute("""
+        # Привязываем yandex_user_id к аккаунту (SIMPLE QUERY)
+        update_query = f"""
             UPDATE t_p5815085_family_assistant_pro.alice_users
-            SET yandex_user_id = %s, linked_at = NOW()
-            WHERE id = %s
-        """, (yandex_user_id, code_record['id']))
+            SET yandex_user_id = '{yandex_user_id}', linked_at = NOW()
+            WHERE id = '{code_record['id']}'
+        """
+        print(f"[AUTH] UPDATE запрос: {update_query}")
+        cursor.execute(update_query)
         
         conn.commit()
         cursor.close()
         conn.close()
+        
+        print(f"[AUTH] ✅ Успешно привязан аккаунт для user_id={yandex_user_id}")
         
         return build_alice_response(
             f'Отлично! Аккаунт успешно привязан. Теперь вы можете управлять своими делами голосом.',
@@ -207,6 +221,7 @@ def handle_auth_command(yandex_user_id: str, command: str, nlu: Dict) -> Dict:
         )
         
     except Exception as e:
+        print(f"[AUTH] ❌ Ошибка: {str(e)}")
         return build_alice_response(f'Ошибка привязки: {str(e)}', buttons=['Повторить', 'Отмена'])
 
 
