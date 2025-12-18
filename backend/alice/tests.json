@@ -1,14 +1,22 @@
 {
   "tests": [
     {
-      "name": "Приветствие новой сессии без авторизации",
+      "name": "OPTIONS для CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Приветствие новой сессии (неавторизованный)",
       "method": "POST",
       "path": "/",
       "body": {
         "session": {
           "new": true,
           "user": {
-            "user_id": "test_user_123"
+            "user_id": "test_new_user_999"
           }
         },
         "request": {
@@ -27,18 +35,44 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Команда помощи",
+      "name": "Команда Помощь",
       "method": "POST",
       "path": "/",
       "body": {
         "session": {
           "new": false,
           "user": {
-            "user_id": "test_user_123"
+            "user_id": "test_user_authorized"
           }
         },
         "request": {
           "command": "помощь",
+          "nlu": {}
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "version": "1.0",
+        "response": {
+          "text": "string",
+          "end_session": false
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Команда Что ты умеешь",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "session": {
+          "new": false,
+          "user": {
+            "user_id": "test_user_authorized_2"
+          }
+        },
+        "request": {
+          "command": "что ты умеешь",
           "nlu": {}
         }
       },
@@ -52,12 +86,56 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "OPTIONS для CORS",
-      "method": "OPTIONS",
+      "name": "Неизвестная команда без авторизации",
+      "method": "POST",
       "path": "/",
+      "body": {
+        "session": {
+          "new": false,
+          "user": {
+            "user_id": "test_unknown_user"
+          }
+        },
+        "request": {
+          "command": "абракадабра",
+          "nlu": {}
+        }
+      },
       "expectedStatus": 200,
-      "expectedBody": "",
-      "bodyMatcher": "exact"
+      "expectedBody": {
+        "version": "1.0",
+        "response": {
+          "text": "string",
+          "end_session": false
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Команда выхода",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "session": {
+          "new": false,
+          "user": {
+            "user_id": "test_user_exit"
+          }
+        },
+        "request": {
+          "command": "выход",
+          "nlu": {}
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "version": "1.0",
+        "response": {
+          "text": "string",
+          "end_session": false
+        }
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

@@ -79,6 +79,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             conn.close()
             return build_alice_response(text, buttons=['Привяжи аккаунт', 'Помощь'])
         
+        # Команда помощи доступна всегда (без авторизации)
+        if any(word in command for word in ['помощ', 'что ты умеешь', 'команд']):
+            conn.close()
+            return handle_help_command()
+        
         # Команда привязки аккаунта
         if 'привяжи' in command or 'привязать' in command or 'код' in command:
             conn.close()
@@ -134,10 +139,6 @@ def route_command(conn, command: str, nlu: Dict, family_id: str, member_id: str,
     # Статистика семьи
     elif any(word in command for word in ['статистик', 'балл', 'рейтинг', 'лидер']):
         return handle_stats_command(conn, family_id)
-    
-    # Помощь
-    elif any(word in command for word in ['помощ', 'что ты умеешь', 'команд']):
-        return handle_help_command()
     
     else:
         return build_alice_response(
