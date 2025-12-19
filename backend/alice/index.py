@@ -553,7 +553,7 @@ def get_shopping_list(conn, family_id: str) -> Dict:
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("""
         SELECT name, quantity FROM t_p5815085_family_assistant_pro.shopping_items_v2
-        WHERE family_id = %s AND purchased = false
+        WHERE family_id = %s AND bought = false
         ORDER BY created_at DESC
         LIMIT 15
     """, (family_id,))
@@ -606,7 +606,7 @@ def add_shopping_item(conn, command: str, family_id: str) -> Dict:
     try:
         cursor.execute("""
             INSERT INTO t_p5815085_family_assistant_pro.shopping_items_v2 
-            (id, family_id, name, purchased, created_at)
+            (id, family_id, name, bought, created_at)
             VALUES (gen_random_uuid(), %s, %s, false, NOW())
         """, (family_id, item_name))
         conn.commit()
