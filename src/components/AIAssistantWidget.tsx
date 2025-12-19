@@ -234,8 +234,11 @@ const AIAssistantWidget = () => {
             <div className="flex items-start gap-3">
               {assistantType === 'domovoy' ? (
                 <img 
-                  src="https://cdn.poehali.dev/files/Кузя.png"
-                  alt="Домовой"
+                  src={kuzyaRole === 'cook' 
+                    ? "https://cdn.poehali.dev/files/Повар.png"
+                    : "https://cdn.poehali.dev/files/Кузя.png"
+                  }
+                  alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
                   className="w-16 h-16 rounded-full object-cover border-4 border-orange-400 flex-shrink-0"
                 />
               ) : (
@@ -281,8 +284,11 @@ const AIAssistantWidget = () => {
               <div className="flex items-center gap-3">
                 {assistantType === 'domovoy' ? (
                   <img 
-                    src="https://cdn.poehali.dev/files/Кузя.png"
-                    alt="Домовой"
+                    src={kuzyaRole === 'cook' 
+                      ? "https://cdn.poehali.dev/files/Повар.png"
+                      : "https://cdn.poehali.dev/files/Кузя.png"
+                    }
+                    alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
                     className="w-12 h-12 rounded-full object-cover border-2 border-white/50"
                   />
                 ) : (
@@ -439,8 +445,11 @@ const AIAssistantWidget = () => {
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
                       <img 
-                        src="https://cdn.poehali.dev/files/Кузя.png"
-                        alt="Домовой"
+                        src={kuzyaRole === 'cook' 
+                          ? "https://cdn.poehali.dev/files/Повар.png"
+                          : "https://cdn.poehali.dev/files/Кузя.png"
+                        }
+                        alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
                         className="w-20 h-20 rounded-full object-cover border-4 border-orange-400 mx-auto mb-4"
                       />
                     ) : (
@@ -481,8 +490,11 @@ const AIAssistantWidget = () => {
                             </div>
                           ) : assistantType === 'domovoy' ? (
                             <img 
-                              src="https://cdn.poehali.dev/files/Кузя.png"
-                              alt="Домовой"
+                              src={kuzyaRole === 'cook' 
+                                ? "https://cdn.poehali.dev/files/Повар.png"
+                                : "https://cdn.poehali.dev/files/Кузя.png"
+                              }
+                              alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
                               className="w-8 h-8 rounded-full object-cover border-2 border-orange-400"
                             />
                           ) : (
@@ -512,8 +524,11 @@ const AIAssistantWidget = () => {
                       <div className="flex gap-2">
                         {assistantType === 'domovoy' ? (
                           <img 
-                            src="https://cdn.poehali.dev/files/Кузя.png"
-                            alt="Домовой"
+                            src={kuzyaRole === 'cook' 
+                              ? "https://cdn.poehali.dev/files/Повар.png"
+                              : "https://cdn.poehali.dev/files/Кузя.png"
+                            }
+                            alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
                             className="w-8 h-8 rounded-full object-cover border-2 border-orange-400"
                           />
                         ) : (
@@ -573,8 +588,11 @@ const AIAssistantWidget = () => {
         >
           {assistantType === 'domovoy' ? (
             <img 
-              src="https://cdn.poehali.dev/files/Кузя.png"
-              alt="Домовой"
+              src={kuzyaRole === 'cook' 
+                ? "https://cdn.poehali.dev/files/Повар.png"
+                : "https://cdn.poehali.dev/files/Кузя.png"
+              }
+              alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
               className="w-full h-full object-cover"
             />
           ) : (
