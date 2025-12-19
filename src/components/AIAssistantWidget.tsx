@@ -239,7 +239,9 @@ const AIAssistantWidget = () => {
                     : "https://cdn.poehali.dev/files/Кузя.png"
                   }
                   alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                  className="w-16 h-16 rounded-full object-cover border-4 border-orange-400 flex-shrink-0"
+                  className={`w-16 h-16 rounded-full border-4 border-orange-400 flex-shrink-0 ${
+                    kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
+                  }`}
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl border-4 border-blue-400 flex-shrink-0">
@@ -289,7 +291,9 @@ const AIAssistantWidget = () => {
                       : "https://cdn.poehali.dev/files/Кузя.png"
                     }
                     alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white/50"
+                    className={`w-12 h-12 rounded-full border-2 border-white/50 ${
+                      kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
+                    }`}
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl border-2 border-white/50">
@@ -450,7 +454,9 @@ const AIAssistantWidget = () => {
                           : "https://cdn.poehali.dev/files/Кузя.png"
                         }
                         alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                        className="w-20 h-20 rounded-full object-cover border-4 border-orange-400 mx-auto mb-4"
+                        className={`w-20 h-20 rounded-full border-4 border-orange-400 mx-auto mb-4 ${
+                          kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
+                        }`}
                       />
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-4xl border-4 border-blue-400 mx-auto mb-4">
@@ -495,7 +501,9 @@ const AIAssistantWidget = () => {
                                 : "https://cdn.poehali.dev/files/Кузя.png"
                               }
                               alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                              className="w-8 h-8 rounded-full object-cover border-2 border-orange-400"
+                              className={`w-8 h-8 rounded-full border-2 border-orange-400 ${
+                                kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
+                              }`}
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg border-2 border-blue-400">
@@ -529,7 +537,9 @@ const AIAssistantWidget = () => {
                               : "https://cdn.poehali.dev/files/Кузя.png"
                             }
                             alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                            className="w-8 h-8 rounded-full object-cover border-2 border-orange-400"
+                            className={`w-8 h-8 rounded-full border-2 border-orange-400 ${
+                              kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
+                            }`}
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg border-2 border-blue-400">
@@ -593,7 +603,9 @@ const AIAssistantWidget = () => {
                 : "https://cdn.poehali.dev/files/Кузя.png"
               }
               alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-              className="w-full h-full object-cover"
+              className={`w-full h-full ${
+                kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
+              }`}
             />
           ) : (
             '🤖'
