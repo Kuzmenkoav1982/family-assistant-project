@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Yandex Disk Video</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>Download Yandex Disk Video</h1>
+    <p>This page will download the video from Yandex Disk and save it to your downloads folder.</p>
+    
+    <button id="downloadBtn" onclick="downloadVideo()">Download Video</button>
+    
+    <div class="log" id="log"></div>
+    
+    <script>
+        const publicUrl = 'https://disk.yandex.ru/i/HZKMkpsT6mc66A';
+        const logEl = document.getElementById('log');
+        const btnEl = document.getElementById('downloadBtn');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            logEl.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            console.log(message);
+        }
+        
+        async function downloadVideo() {
+            btnEl.disabled = true;
+            logEl.innerHTML = '';
+            
+            try {
+                log('Step 1: Requesting download URL from Yandex API...');
+                
+                const apiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(publicUrl)}`;
+                const apiResponse = await fetch(apiUrl);
+                
+                if (!apiResponse.ok) {
+                    throw new Error(`API request failed: ${apiResponse.status} ${apiResponse.statusText}`);
+                }
+                
+                const apiData = await apiResponse.json();
+                const downloadUrl = apiData.href;
+                
+                if (!downloadUrl) {
+                    throw new Error('No download URL in API response');
+                }
+                
+                log('Step 2: Download URL obtained successfully', 'success');
+                log(`Step 3: Downloading file...`);
+                
+                const fileResponse = await fetch(downloadUrl);
+                
+                if (!fileResponse.ok) {
+                    throw new Error(`Download failed: ${fileResponse.status} ${fileResponse.statusText}`);
+                }
+                
+                const blob = await fileResponse.blob();
+                const fileSize = blob.size;
+                
+                log(`Step 4: File downloaded (${fileSize} bytes, ${(fileSize / 1024 / 1024).toFixed(2)} MB)`, 'success');
+                log('Step 5: Saving file...');
+                
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'domovoiCookTransform.mp4';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                log('✓ Download complete!', 'success');
+                log(`✓ File name: domovoiCookTransform.mp4`, 'success');
+                log(`✓ File size: ${fileSize} bytes (${(fileSize / 1024 / 1024).toFixed(2)} MB)`, 'success');
+                log('✓ Check your Downloads folder for the file', 'success');
+                
+                const expectedSize = 2205824;
+                if (Math.abs(fileSize - expectedSize) < 1000) {
+                    log('✓ File size matches expected size (~2.1 MB)', 'success');
+                }
+                
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                btnEl.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
