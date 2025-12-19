@@ -11,7 +11,6 @@ import { useAIAssistant, defaultRoles } from '@/contexts/AIAssistantContext';
 import type { AIAssistantRole } from '@/contexts/AIAssistantContext';
 import DomovoyDonationDialog from '@/components/DomovoyDonationDialog';
 import { AstrologyService } from '@/components/astrology/AstrologyService';
-import { DomovoiTransform } from '@/components/DomovoiTransform';
 
 const DOMOVOY_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fc02be5d-2267-4bed-abdc-ec04bc7ec037.jpg';
 
@@ -20,36 +19,14 @@ export default function DomovoyPage() {
   const { assistantLevel, selectedRole, setSelectedRole } = useAIAssistant();
   const [showDonationDialog, setShowDonationDialog] = useState(false);
   const [showAstrologyDialog, setShowAstrologyDialog] = useState(false);
-  const [showTransformAnimation, setShowTransformAnimation] = useState(false);
-  const [pendingRole, setPendingRole] = useState<AIAssistantRole | null>(null);
 
   const levelProgress = ((assistantLevel - 1) / 9) * 100;
 
   const handleRoleClick = (role: AIAssistantRole) => {
-    if (role.id === 'cook' && selectedRole?.id !== 'cook') {
-      setPendingRole(role);
-      setShowTransformAnimation(true);
-    } else {
-      setSelectedRole(role);
-      if (role.id === 'astrologer') {
-        setShowAstrologyDialog(true);
-      }
+    setSelectedRole(role);
+    if (role.id === 'astrologer') {
+      setShowAstrologyDialog(true);
     }
-  };
-
-  const handleTransformComplete = () => {
-    setShowTransformAnimation(false);
-    if (pendingRole) {
-      setSelectedRole(pendingRole);
-      if (pendingRole.id === 'astrologer') {
-        setShowAstrologyDialog(true);
-      }
-      setPendingRole(null);
-    }
-  };
-
-  const handleTransformSkip = () => {
-    handleTransformComplete();
   };
 
   return (
@@ -387,14 +364,6 @@ export default function DomovoyPage() {
           <AstrologyService />
         </DialogContent>
       </Dialog>
-
-      {showTransformAnimation && pendingRole && (
-        <DomovoiTransform
-          role={pendingRole.id}
-          onComplete={handleTransformComplete}
-          onSkip={handleTransformSkip}
-        />
-      )}
     </div>
   );
 }
