@@ -9,14 +9,14 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e018b4ac-d7f2-4f95-bc92-004fe761ea81.jpg",
-      "sizes": "512x512",
+      "src": "https://cdn.poehali.dev/files/IMG_2430.jpeg",
+      "sizes": "1024x1024",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e018b4ac-d7f2-4f95-bc92-004fe761ea81.jpg",
-      "sizes": "192x192",
+      "src": "https://cdn.poehali.dev/files/IMG_2430.jpeg",
+      "sizes": "1024x1024",
       "type": "image/jpeg",
       "purpose": "maskable"
     }
@@ -35,21 +35,21 @@
       "short_name": "Задача",
       "description": "Быстро добавить новую задачу",
       "url": "/?action=add-task",
-      "icons": [{ "src": "https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e018b4ac-d7f2-4f95-bc92-004fe761ea81.jpg", "sizes": "96x96" }]
+      "icons": [{ "src": "https://cdn.poehali.dev/files/IMG_2430.jpeg", "sizes": "96x96" }]
     },
     {
       "name": "Календарь событий",
       "short_name": "Календарь",
       "description": "Открыть семейный календарь",
       "url": "/?action=calendar",
-      "icons": [{ "src": "https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e018b4ac-d7f2-4f95-bc92-004fe761ea81.jpg", "sizes": "96x96" }]
+      "icons": [{ "src": "https://cdn.poehali.dev/files/IMG_2430.jpeg", "sizes": "96x96" }]
     },
     {
       "name": "Аналитика",
       "short_name": "Аналитика",
       "description": "Посмотреть статистику семьи",
       "url": "/analytics",
-      "icons": [{ "src": "https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e018b4ac-d7f2-4f95-bc92-004fe761ea81.jpg", "sizes": "96x96" }]
+      "icons": [{ "src": "https://cdn.poehali.dev/files/IMG_2430.jpeg", "sizes": "96x96" }]
     }
   ]
 }
