@@ -62,7 +62,6 @@ import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { GoalsSection } from '@/components/GoalsSection';
 import { getTranslation, languageOptions, type LanguageCode } from '@/translations';
-import { DEMO_FAMILY } from '@/data/demoFamily';
 import SettingsDropdown from '@/components/SettingsDropdown';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
@@ -70,8 +69,6 @@ import BottomBar from '@/components/BottomBar';
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import TopBar from '@/components/layout/TopBar';
 import Sidebar from '@/components/layout/Sidebar';
-
-import { getCurrentMember } from '@/data/demoFamily';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import AIAssistantDialog from '@/components/AIAssistantDialog';
 import AssistantTypeSelectorDialog from '@/components/AssistantTypeSelectorDialog';
