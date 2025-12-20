@@ -105,7 +105,15 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
       <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
         <CardContent className="pt-6">
           <div className="flex items-center gap-6">
-            <div className="text-6xl">{child.avatar}</div>
+            {child.avatarType === 'photo' && child.photoUrl ? (
+              <img 
+                src={child.photoUrl} 
+                alt={child.name}
+                className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+              />
+            ) : (
+              <div className="text-6xl">{child.avatar}</div>
+            )}
             <div className="flex-1">
               <h2 className="text-3xl font-bold mb-2">{child.name}</h2>
               <div className="flex gap-4 text-sm">

@@ -384,9 +384,8 @@ export default function Children() {
                       setSelectedChildId(child.id);
                       setSearchParams({ childId: child.id, mode: viewMode });
                     }}
-                    className="gap-2 whitespace-nowrap"
+                    className="whitespace-nowrap font-semibold text-base"
                   >
-                    <span className="text-2xl">{child.avatar}</span>
                     {child.name}
                   </Button>
                 ))}
