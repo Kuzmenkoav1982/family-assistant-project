@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface LifeEvent {
   id: string;
@@ -37,6 +38,15 @@ export function LifeRoadEventsList({
   getEventAge
 }: LifeRoadEventsListProps) {
   const { members } = useFamilyMembersContext();
+  const { canDo } = usePermissions();
+
+  const handleDelete = (eventId: string) => {
+    if (!canDo('events', 'delete')) {
+      alert('❌ У вас недостаточно прав для удаления событий');
+      return;
+    }
+    handleDeleteEvent(eventId);
+  };
 
   if (filteredEvents.length === 0) {
     return (
@@ -97,18 +107,20 @@ export function LifeRoadEventsList({
                     )}
                   </CardDescription>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm('Удалить это событие?')) {
-                      handleDeleteEvent(event.id);
-                    }
-                  }}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Icon name="Trash2" size={16} />
-                </Button>
+                {canDo('events', 'delete') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm('Удалить это событие?')) {
+                        handleDelete(event.id);
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                )}
               </div>
             </CardHeader>
 

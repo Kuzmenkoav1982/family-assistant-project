@@ -1,7 +1,7 @@
 export type Role = 'admin' | 'parent' | 'guardian' | 'viewer' | 'child';
 
 export type Permission = {
-  module: 'profile' | 'health' | 'dreams' | 'finance' | 'education' | 'diary' | 'family';
+  module: 'profile' | 'health' | 'dreams' | 'finance' | 'education' | 'diary' | 'family' | 'tasks' | 'events';
   action: string;
 };
 
@@ -13,7 +13,9 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     finance: ['view', 'budget', 'piggybank', 'export'],
     education: ['view', 'add', 'tests', 'export'],
     diary: ['view', 'add', 'edit', 'delete'],
-    family: ['invite', 'remove', 'roles', 'delete']
+    family: ['invite', 'remove', 'roles', 'delete'],
+    tasks: ['view', 'add', 'edit', 'delete', 'assign', 'complete'],
+    events: ['view', 'add', 'edit', 'delete']
   },
   parent: {
     profile: ['view', 'edit'],
@@ -22,7 +24,9 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     finance: ['view', 'budget', 'piggybank', 'export'],
     education: ['view', 'add', 'tests', 'export'],
     diary: ['view', 'add', 'edit', 'delete'],
-    family: []
+    family: [],
+    tasks: ['view', 'add', 'edit', 'assign', 'complete'],
+    events: ['view', 'add', 'edit']
   },
   guardian: {
     profile: ['view'],
@@ -31,7 +35,9 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     finance: ['view'],
     education: ['view'],
     diary: ['view', 'add'],
-    family: []
+    family: [],
+    tasks: ['view', 'add', 'complete'],
+    events: ['view', 'add']
   },
   viewer: {
     profile: ['view'],
@@ -40,7 +46,9 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     finance: ['view'],
     education: ['view'],
     diary: ['view'],
-    family: []
+    family: [],
+    tasks: ['view'],
+    events: ['view']
   },
   child: {
     profile: ['view_own', 'edit_own'],
@@ -49,7 +57,9 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     finance: ['view_own', 'piggybank_own'],
     education: ['view_own', 'tests_own'],
     diary: ['view_own', 'add_own', 'edit_own'],
-    family: []
+    family: [],
+    tasks: ['view_own', 'complete_own'],
+    events: ['view']
   }
 };
 
@@ -128,7 +138,9 @@ export function getAllModulePermissions(): Record<string, string[]> {
     finance: ['view', 'budget', 'piggybank', 'export'],
     education: ['view', 'add', 'tests', 'export'],
     diary: ['view', 'add', 'edit', 'delete'],
-    family: ['invite', 'remove', 'roles', 'delete']
+    family: ['invite', 'remove', 'roles', 'delete'],
+    tasks: ['view', 'add', 'edit', 'delete', 'assign', 'complete'],
+    events: ['view', 'add', 'edit', 'delete']
   };
 }
 

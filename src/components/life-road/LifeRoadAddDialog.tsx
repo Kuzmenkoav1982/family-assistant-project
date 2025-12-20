@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface LifeEvent {
   id: string;
@@ -52,6 +53,19 @@ export function LifeRoadAddDialog({
   importanceConfig
 }: LifeRoadAddDialogProps) {
   const { members } = useFamilyMembersContext();
+  const { canDo } = usePermissions();
+
+  const handleSubmit = () => {
+    if (!canDo('events', 'add')) {
+      alert('❌ У вас недостаточно прав для создания событий');
+      return;
+    }
+    handleAddEvent();
+  };
+
+  if (!canDo('events', 'add')) {
+    return null;
+  }
 
   return (
     <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -191,7 +205,7 @@ export function LifeRoadAddDialog({
               Отмена
             </Button>
             <Button
-              onClick={handleAddEvent}
+              onClick={handleSubmit}
               disabled={!newEvent.date || !newEvent.title}
             >
               <Icon name="Check" size={16} className="mr-2" />

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import type { Task, FamilyMember } from '@/types/family.types';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface TasksTabContentProps {
   tasks: Task[];
@@ -73,6 +74,7 @@ export function TasksTabContent({
   const [taskFilter, setTaskFilter] = useState<string>('all');
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const { canDo } = usePermissions();
 
   const filteredTasks = tasks.filter(task => {
     if (taskFilter === 'all') return true;
@@ -84,6 +86,11 @@ export function TasksTabContent({
   const handleCreateTask = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!createTask) return;
+
+    if (!canDo('tasks', 'add')) {
+      alert('❌ У вас недостаточно прав для создания задач');
+      return;
+    }
 
     setIsCreatingTask(true);
 
@@ -110,6 +117,11 @@ export function TasksTabContent({
 
   const handleDeleteTask = async (taskId: string) => {
     if (!deleteTask) return;
+    
+    if (!canDo('tasks', 'delete')) {
+      alert('❌ У вас недостаточно прав для удаления задач');
+      return;
+    }
     
     const result = await deleteTask(taskId);
     if (result.success) {
@@ -140,7 +152,7 @@ export function TasksTabContent({
             </select>
           </div>
 
-          {createTask && (
+          {createTask && canDo('tasks', 'add') && (
             <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto">
@@ -215,7 +227,7 @@ export function TasksTabContent({
                       <h4 className={`font-medium ${task.completed ? 'line-through text-gray-500' : ''}`}>
                         {task.title}
                       </h4>
-                      {deleteTask && (
+                      {deleteTask && canDo('tasks', 'delete') && (
                         <Button
                           variant="ghost"
                           size="sm"

@@ -31,7 +31,7 @@ export function usePermissions(options: UsePermissionsOptions = {}): Permissions
         setRole(userRole);
         
         const allPermissions: Record<string, boolean> = {};
-        const modules = ['profile', 'health', 'dreams', 'finance', 'education', 'diary', 'family'];
+        const modules = ['profile', 'health', 'dreams', 'finance', 'education', 'diary', 'family', 'tasks', 'events'];
         
         modules.forEach(module => {
           const actions = getModuleActions(module);
@@ -72,6 +72,8 @@ function getModuleActions(module: string): string[] {
     education: ['view', 'add', 'tests', 'export'],
     diary: ['view', 'add', 'edit', 'delete'],
     family: ['invite', 'remove', 'roles', 'delete'],
+    tasks: ['view', 'add', 'edit', 'delete', 'assign', 'complete'],
+    events: ['view', 'add', 'edit', 'delete'],
   };
   return actionsMap[module] || [];
 }
@@ -99,4 +101,24 @@ export function useCanManageDreams(): boolean {
 export function useCanManageFinance(): boolean {
   const { canDo } = usePermissions();
   return canDo('finance', 'budget');
+}
+
+export function useCanManageTasks(): boolean {
+  const { canDo } = usePermissions();
+  return canDo('tasks', 'add') && canDo('tasks', 'edit');
+}
+
+export function useCanDeleteTasks(): boolean {
+  const { canDo } = usePermissions();
+  return canDo('tasks', 'delete');
+}
+
+export function useCanManageEvents(): boolean {
+  const { canDo } = usePermissions();
+  return canDo('events', 'add') && canDo('events', 'edit');
+}
+
+export function useCanDeleteEvents(): boolean {
+  const { canDo } = usePermissions();
+  return canDo('events', 'delete');
 }
