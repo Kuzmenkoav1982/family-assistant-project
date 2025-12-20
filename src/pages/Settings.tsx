@@ -111,69 +111,6 @@ export default function Settings() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Icon name="Users" size={24} className="text-blue-600" />
-                      Настройки семьи
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Название и логотип вашей семьи
-                    </p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Название семьи</Label>
-                      <Input 
-                        placeholder="Наша Семья" 
-                        value={familyName}
-                        onChange={(e) => setFamilyName(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Логотип семьи</Label>
-                      <p className="text-xs text-orange-600 flex items-center gap-2">
-                        <Icon name="AlertCircle" size={14} />
-                        Используйте прямую ссылку на изображение (файлы заканчиваются на .jpg, .png, .gif) или загрузите файл ниже
-                      </p>
-                      <Input 
-                        placeholder="https://cdn.poehali.dev/projects/..." 
-                        value={familyLogo}
-                        onChange={(e) => setFamilyLogo(e.target.value)}
-                      />
-                      <div className="flex items-center gap-4">
-                        {familyLogo && (
-                          <img 
-                            src={familyLogo}
-                            alt="Логотип"
-                            className="h-20 w-20 object-cover rounded-lg border"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        )}
-                        <div className="text-center flex-1">
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Icon name="Upload" size={16} />
-                            Перетащите изображение сюда
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            или нажмите для выбора файла
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            PNG, JPG, GIF (макс. 5 МБ)
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button onClick={handleSaveChanges} className="w-full">
-                      Сохранить изменения
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
                       <Icon name="Users" size={24} className="text-purple-600" />
                       Приглашения в семью
                     </CardTitle>
