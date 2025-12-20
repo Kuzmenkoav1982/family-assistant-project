@@ -5,12 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
-interface FamilyMember {
+interface FamilyMemberPermissions {
   id: string;
   name: string;
   relationship: string;
   avatarUrl?: string;
+  avatar?: string;
   role: 'admin' | 'editor' | 'viewer';
   permissions: {
     canEditTasks: boolean;
@@ -83,29 +85,28 @@ const DEFAULT_PERMISSIONS = {
 };
 
 export default function AccessControlManager() {
-  const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
+  const { members: familyMembers, loading } = useFamilyMembersContext();
+  const [membersWithPermissions, setMembersWithPermissions] = useState<FamilyMemberPermissions[]>([]);
+  const [selectedMember, setSelectedMember] = useState<FamilyMemberPermissions | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    loadFamilyMembers();
-  }, []);
-
-  const loadFamilyMembers = () => {
-    const storedMembers = localStorage.getItem('familyMembers');
-    if (storedMembers) {
-      const parsedMembers = JSON.parse(storedMembers);
-      const membersWithPermissions = parsedMembers.map((member: any) => ({
-        ...member,
-        role: member.role || 'viewer',
+    if (familyMembers.length > 0) {
+      const enriched = familyMembers.map((member: any) => ({
+        id: member.id,
+        name: member.name,
+        relationship: member.relationship || member.role || 'Член семьи',
+        avatarUrl: member.photo_url || member.avatar,
+        avatar: member.avatar,
+        role: (member.permissions?.role || 'viewer') as 'admin' | 'editor' | 'viewer',
         permissions: member.permissions || DEFAULT_PERMISSIONS.viewer
       }));
-      setMembers(membersWithPermissions);
+      setMembersWithPermissions(enriched);
     }
-  };
+  }, [familyMembers]);
 
   const updateMemberRole = (memberId: string, newRole: 'admin' | 'editor' | 'viewer') => {
-    const updatedMembers = members.map(member => {
+    const updatedMembers = membersWithPermissions.map(member => {
       if (member.id === memberId) {
         return {
           ...member,
@@ -115,12 +116,19 @@ export default function AccessControlManager() {
       }
       return member;
     });
-    setMembers(updatedMembers);
-    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
+    setMembersWithPermissions(updatedMembers);
+    
+    const memberData = updatedMembers.find(m => m.id === memberId);
+    if (memberData) {
+      localStorage.setItem(`member_permissions_${memberId}`, JSON.stringify({
+        role: newRole,
+        permissions: memberData.permissions
+      }));
+    }
   };
 
-  const updateMemberPermission = (memberId: string, permission: keyof FamilyMember['permissions'], value: boolean) => {
-    const updatedMembers = members.map(member => {
+  const updateMemberPermission = (memberId: string, permission: keyof FamilyMemberPermissions['permissions'], value: boolean) => {
+    const updatedMembers = membersWithPermissions.map(member => {
       if (member.id === memberId) {
         return {
           ...member,
@@ -132,16 +140,32 @@ export default function AccessControlManager() {
       }
       return member;
     });
-    setMembers(updatedMembers);
-    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers));
+    setMembersWithPermissions(updatedMembers);
+    
+    const memberData = updatedMembers.find(m => m.id === memberId);
+    if (memberData) {
+      localStorage.setItem(`member_permissions_${memberId}`, JSON.stringify({
+        role: memberData.role,
+        permissions: memberData.permissions
+      }));
+    }
   };
 
-  const openPermissionsDialog = (member: FamilyMember) => {
+  const openPermissionsDialog = (member: FamilyMemberPermissions) => {
     setSelectedMember(member);
     setIsDialogOpen(true);
   };
 
-  if (members.length === 0) {
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <Icon name="Loader2" size={48} className="text-blue-500 mx-auto mb-3 animate-spin" />
+        <p className="text-gray-500">Загрузка членов семьи...</p>
+      </div>
+    );
+  }
+
+  if (membersWithPermissions.length === 0) {
     return (
       <div className="text-center py-8">
         <Icon name="Users" size={48} className="text-gray-300 mx-auto mb-3" />
@@ -154,14 +178,14 @@ export default function AccessControlManager() {
   return (
     <div className="space-y-4">
       <div className="grid gap-4">
-        {members.map((member) => (
+        {membersWithPermissions.map((member) => (
           <Card key={member.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
-                  {member.avatarUrl ? (
+                  {(member.avatarUrl || member.avatar) ? (
                     <img 
-                      src={member.avatarUrl} 
+                      src={member.avatarUrl || member.avatar} 
                       alt={member.name}
                       className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                     />
