@@ -1,9 +1,14 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
+import { calculateMemberWorkload, getWorkloadDescription } from '@/utils/memberWorkload';
+import { loadWidgetSettings } from '@/types/widgetSettings';
 import type { FamilyMember } from '@/types/family.types';
+import { useState } from 'react';
 
 interface Task {
   id: string;
@@ -11,15 +16,38 @@ interface Task {
   completed: boolean;
 }
 
+interface CalendarEvent {
+  id: string;
+  date: string;
+  participants?: string[];
+}
+
 interface FamilyMembersGridProps {
   members: FamilyMember[];
   onMemberClick: (member: FamilyMember) => void;
   tasks?: Task[];
+  events?: CalendarEvent[];
+  onAssignTask?: (memberId: string) => void;
 }
 
-const MemberCard = ({ member, index, onClick, tasks = [] }: { member: FamilyMember; index: number; onClick: () => void; tasks?: Task[] }) => {
-  const activeTasks = tasks.filter(t => t.assignee_id === member.id && !t.completed);
-  const activeTasksCount = activeTasks.length;
+const MemberCard = ({ 
+  member, 
+  index, 
+  onClick, 
+  tasks = [], 
+  events = [],
+  onAssignTask 
+}: { 
+  member: FamilyMember; 
+  index: number; 
+  onClick: () => void; 
+  tasks?: Task[];
+  events?: CalendarEvent[];
+  onAssignTask?: (memberId: string) => void;
+}) => {
+  const [widgetSettings] = useState(() => loadWidgetSettings());
+  const metrics = calculateMemberWorkload(member, tasks, events);
+  const workloadDesc = getWorkloadDescription(metrics);
   
   return (
   <Card
@@ -51,14 +79,16 @@ const MemberCard = ({ member, index, onClick, tasks = [] }: { member: FamilyMemb
                 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-lg mb-1 truncate group-hover:text-purple-600 transition-colors">{member.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{member.role}</p>
+                  
+                  {(widgetSettings.showAge && member.age) || (widgetSettings.showRole && member.role) ? (
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {widgetSettings.showAge && member.age && `${member.age} лет`}
+                      {widgetSettings.showAge && member.age && widgetSettings.showRole && member.role && ' • '}
+                      {widgetSettings.showRole && member.role}
+                    </p>
+                  ) : null}
                   
                   <div className="flex flex-wrap gap-1.5">
-                    {member.age && (
-                      <Badge variant="outline" className="text-xs">
-                        {member.age} лет
-                      </Badge>
-                    )}
                     <Badge variant="outline" className="text-xs bg-purple-50">
                       <Icon name="Award" size={10} className="mr-1" />
                       Ур. {member.level}
@@ -68,35 +98,92 @@ const MemberCard = ({ member, index, onClick, tasks = [] }: { member: FamilyMemb
                       {member.points}
                     </Badge>
                   </div>
-                  
-                  {member.tasksCompleted > 0 && (
-                    <div className="mt-2 text-xs text-gray-600">
-                      <Icon name="CheckCircle" size={12} className="inline mr-1 text-green-500" />
-                      {member.tasksCompleted} задач выполнено
-                    </div>
-                  )}
                 </div>
               </div>
               
-              <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-                <div className="text-xs text-gray-500">
-                  {activeTasksCount > 0 ? (
-                    <>
-                      <Icon name="ListTodo" size={12} className="inline mr-1 text-blue-500" />
-                      {activeTasksCount} {activeTasksCount === 1 ? 'активная задача' : activeTasksCount < 5 ? 'активные задачи' : 'активных задач'}
-                    </>
-                  ) : (
-                    'Нет активных задач'
-                  )}
+              {widgetSettings.showWorkload && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-700">Загруженность</span>
+                    <Badge className={`${metrics.workloadColor} text-white text-xs px-2`}>
+                      {metrics.workloadLabel}
+                    </Badge>
+                  </div>
+                  <Progress value={metrics.workloadPercentage} className="h-2 mb-1" />
+                  <p className="text-xs text-gray-500" title={workloadDesc}>
+                    {workloadDesc}
+                  </p>
                 </div>
-                <Icon name="ChevronRight" size={16} className="text-purple-400 group-hover:text-purple-600 transition-colors" />
+              )}
+              
+              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
+                {widgetSettings.showActiveTasks && (
+                  <div className="text-center" title="Активных задач">
+                    <div className="flex items-center justify-center gap-1">
+                      <Icon name="ListTodo" size={14} className="text-blue-500" />
+                      <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
+                    </div>
+                  </div>
+                )}
+                {widgetSettings.showCompletedToday && (
+                  <div className="text-center" title="Завершено сегодня">
+                    <div className="flex items-center justify-center gap-1">
+                      <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                      <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
+                    </div>
+                  </div>
+                )}
+                {widgetSettings.showTodayEvents && (
+                  <div className="text-center" title="События на сегодня">
+                    <div className="flex items-center justify-center gap-1">
+                      <Icon name="Calendar" size={14} className="text-purple-500" />
+                      <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
+                    </div>
+                  </div>
+                )}
+                {widgetSettings.showWeekAchievements && (
+                  <div className="text-center" title="Достижений за неделю">
+                    <div className="flex items-center justify-center gap-1">
+                      <Icon name="Trophy" size={14} className="text-yellow-500" />
+                      <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
+                    </div>
+                  </div>
+                )}
               </div>
+              
+              {widgetSettings.showQuickActions && onAssignTask && (
+                <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAssignTask(member.id);
+                    }}
+                  >
+                    <Icon name="Plus" size={12} className="mr-1" />
+                    Задача
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClick();
+                    }}
+                  >
+                    <Icon name="ChevronRight" size={14} />
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
   );
 };
 
-export function FamilyMembersGrid({ members, onMemberClick, tasks = [] }: FamilyMembersGridProps) {
+export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events = [], onAssignTask }: FamilyMembersGridProps) {
   if (members.length > 50) {
     return (
       <div className="space-y-4">
@@ -118,6 +205,8 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [] }: Family
                 index={index} 
                 onClick={() => onMemberClick(member)}
                 tasks={tasks}
+                events={events}
+                onAssignTask={onAssignTask}
               />
             </div>
           )}
@@ -128,11 +217,20 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [] }: Family
 
   return (
     <div className="space-y-4">
-      <div className="text-center p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-        <p className="text-sm font-medium text-blue-900">
-          <Icon name="Info" className="inline mr-2" size={16} />
-          Нажмите на карточку участника, чтобы открыть его полный профиль с возможностью редактирования
-        </p>
+      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+        <div className="flex items-start gap-3">
+          <Icon name="Info" className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+          <div className="flex-1 text-sm">
+            <p className="font-semibold text-blue-900 mb-2">💡 Как пользоваться умными виджетами</p>
+            <ul className="space-y-1 text-blue-800">
+              <li>• <strong>Прогресс-бар загруженности</strong> показывает, насколько занят член семьи</li>
+              <li>• <strong>Метрики</strong>: 📋 активные задачи, ✅ завершено сегодня, 📅 события, 🏆 достижения</li>
+              <li>• <strong>Кнопка "+ Задача"</strong> позволяет быстро назначить задание</li>
+              <li>• <strong>Настроить виджеты</strong> — выберите, что отображать на карточках</li>
+              <li>• Нажмите на карточку для открытия полного профиля</li>
+            </ul>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -143,6 +241,8 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [] }: Family
             index={index} 
             onClick={() => onMemberClick(member)}
             tasks={tasks}
+            events={events}
+            onAssignTask={onAssignTask}
           />
         ))}
       </div>

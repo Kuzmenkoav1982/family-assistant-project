@@ -7,7 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { getDailyMotto } from '@/utils/dailyMottos';
 import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
+import { FamilyProfilesInstructions } from '@/components/FamilyProfilesInstructions';
 import { GoalsSection } from '@/components/GoalsSection';
+import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
 import StatsCounter from '@/components/StatsCounter';
 import type { FamilyMember, Task, FamilyGoal } from '@/types/family.types';
 import { useState, useEffect } from 'react';
@@ -116,10 +118,26 @@ export function MainContent({
       </div>
 
       {activeSection === 'family' && (
-        <FamilyMembersGrid
-          members={familyMembers}
-          onMemberClick={(memberId) => navigate(`/member/${memberId}`)}
-        />
+        <>
+          <FamilyProfilesInstructions />
+          
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm text-gray-600">
+              <Icon name="Users" size={16} className="inline mr-1" />
+              {familyMembers.length} {familyMembers.length === 1 ? 'член семьи' : familyMembers.length < 5 ? 'члена семьи' : 'членов семьи'}
+            </div>
+            <WidgetSettingsDialog />
+          </div>
+          <FamilyMembersGrid
+            members={familyMembers}
+            onMemberClick={(member) => navigate(`/member/${member.id}`)}
+            tasks={tasks}
+            onAssignTask={(memberId) => {
+              // TODO: Открыть диалог создания задачи с предвыбранным assignee
+              navigate(`/tasks?assignee=${memberId}`);
+            }}
+          />
+        </>
       )}
 
       {activeSection === 'goals' && (

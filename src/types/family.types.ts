@@ -30,6 +30,10 @@ export interface FamilyMember {
   school?: School;
   diary?: DiaryEntry[];
   profile?: MemberProfile;
+  moodStatus?: {
+    emoji: string;
+    label: string;
+  };
 }
 
 export interface MemberProfile {
