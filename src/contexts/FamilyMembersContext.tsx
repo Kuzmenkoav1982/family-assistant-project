@@ -50,13 +50,11 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
 
   const fetchMembers = useCallback(async (silent = false) => {
     if (isFetchingRef.current) {
-      console.log('[FamilyMembersContext] Fetch already in progress, skipping');
       return;
     }
 
     isFetchingRef.current = true;
     const token = getAuthToken();
-    console.log('[DEBUG FamilyMembersContext] Starting fetch, token:', token ? 'EXISTS' : 'MISSING');
     
     try {
       if (!silent) {
@@ -69,19 +67,15 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         }
       });
 
-      console.log('[DEBUG FamilyMembersContext] Response status:', response.status);
-
       if (!response.ok) {
         throw new Error('Ошибка загрузки членов семьи');
       }
 
       const data = await response.json();
-      console.log('[DEBUG FamilyMembersContext] Response data:', data);
       
       if (data.success && data.members) {
         if (data.family_id) {
           localStorage.setItem('familyId', data.family_id);
-          console.log('[DEBUG FamilyMembersContext] Saved familyId:', data.family_id);
         }
         
         const convertedMembers = data.members.map((m: any) => ({
@@ -96,7 +90,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           piggyBank: m.piggyBank || 0,
           moodStatus: m.moodStatus || null
         }));
-        console.log('[DEBUG FamilyMembersContext] Converted members:', convertedMembers);
         setMembers(convertedMembers);
         setError(null);
       } else {
@@ -181,12 +174,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       delete backendData.id;
       delete backendData.member_id;
 
-      console.log('[DEBUG FamilyMembersContext] updateMember sending:', {
-        action: 'update',
-        member_id: memberId,
-        ...backendData
-      });
-
       const response = await fetch(FAMILY_MEMBERS_API, {
         method: 'POST',
         headers: {
@@ -201,7 +188,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       });
 
       const data = await response.json();
-      console.log('[DEBUG FamilyMembersContext] updateMember response:', data);
       
       if (data.success) {
         await fetchMembers();
@@ -210,7 +196,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         return { success: false, error: data.error };
       }
     } catch (err) {
-      console.error('[DEBUG FamilyMembersContext] updateMember error:', err);
       return { success: false, error: 'Ошибка обновления члена семьи' };
     }
   };
@@ -250,7 +235,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     const token = getAuthToken();
     
     if (token && !hasInitialFetchRef.current) {
-      console.log('[FamilyMembersContext] Initial fetch on mount');
       hasInitialFetchRef.current = true;
       fetchMembers();
     } else if (!token) {
@@ -261,7 +245,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     const interval = setInterval(() => {
       if (dialogLockRef.current?.isDialogOpen) {
-        console.log('[FamilyMembersContext] Skipping interval fetch - dialog is open');
         return;
       }
       
