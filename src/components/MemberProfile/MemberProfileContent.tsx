@@ -234,8 +234,8 @@ export function MemberProfileContent({
 
           <TabsContent value="questionnaire" className="mt-6">
             <MemberProfileQuestionnaire
-              memberId={member.id}
-              initialProfile={memberProfile}
+              member={member}
+              memberProfile={memberProfile}
               onSave={(profile) => saveProfile(member.id, profile)}
             />
           </TabsContent>

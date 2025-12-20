@@ -24,6 +24,8 @@ const LOVE_LANGUAGES = [
 ];
 
 export function MemberProfileQuestionnaire({ member, memberProfile, onSave }: MemberProfileQuestionnaireProps) {
+  if (!member) return null;
+  
   const [profile, setProfile] = useState<MemberProfile>(memberProfile || {});
   const [saving, setSaving] = useState(false);
   const [newHabit, setNewHabit] = useState('');

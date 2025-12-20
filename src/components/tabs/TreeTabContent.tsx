@@ -61,12 +61,12 @@ export function TreeTabContent({
                       return Math.floor((end.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
                     };
 
-                    const years = member.deathDate 
+                    const years = !member.birthDate ? 'Не указано' : member.deathDate 
                       ? `${member.birthDate.split('-')[0]} - ${member.deathDate.split('-')[0]}`
                       : `${member.birthDate.split('-')[0]} - н.в.`;
 
-                    const age = member.age || calculateAge(member.birthDate, member.deathDate);
-                    const ageText = member.deathDate 
+                    const age = member.age || (member.birthDate ? calculateAge(member.birthDate, member.deathDate) : 0);
+                    const ageText = !member.birthDate ? 'Возраст не указан' : member.deathDate 
                       ? `${age} лет` 
                       : `${age} ${age % 10 === 1 && age !== 11 ? 'год' : age % 10 >= 2 && age % 10 <= 4 && (age < 10 || age > 20) ? 'года' : 'лет'}`;
 
