@@ -95,52 +95,52 @@ export default function TopBar({
             
             <DropdownMenuItem onClick={() => navigate('/instructions')}>
               <Icon name="BookOpen" size={16} className="mr-2" />
-              <span>📖 Инструкции</span>
+              <span>Инструкции</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/presentation')}>
               <Icon name="Play" size={16} className="mr-2" />
-              <span>🎬 Презентация</span>
+              <span>Презентация</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={openJivoChat}>
               <Icon name="MessageCircle" size={16} className="mr-2" />
-              <span>💬 Онлайн поддержка</span>
+              <span>Онлайн поддержка</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/support')}>
               <Icon name="HelpCircle" size={16} className="mr-2" />
-              <span>🛠️ Техническая поддержка</span>
+              <span>Тех. поддержка</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/feedback')}>
               <Icon name="MessageSquareText" size={16} className="mr-2" />
-              <span>💜 Отзывы</span>
+              <span>Отзывы</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/suggestions')}>
               <Icon name="Lightbulb" size={16} className="mr-2" />
-              <span>💡 Предложения</span>
+              <span>Предложения</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={onResetDemo}>
               <Icon name="RotateCcw" size={16} className="mr-2" />
-              <span>🔄 Сбросить демо</span>
+              <span>Сбросить демо</span>
             </DropdownMenuItem>
 
             {isAuthenticated ? (
               <DropdownMenuItem onClick={onLogout}>
                 <Icon name="LogOut" size={16} className="mr-2" />
-                <span>🚪 Выход</span>
+                <span>Выход</span>
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={() => navigate('/welcome')}>
                 <Icon name="LogIn" size={16} className="mr-2" />
-                <span>🚪 Вход</span>
+                <span>Вход</span>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
