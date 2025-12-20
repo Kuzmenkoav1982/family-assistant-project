@@ -2,6 +2,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
@@ -184,15 +186,41 @@ const MemberCard = ({
 };
 
 export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events = [], onAssignTask }: FamilyMembersGridProps) {
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+
   if (members.length > 50) {
     return (
       <div className="space-y-4">
-        <div className="text-center p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-          <p className="text-sm font-medium text-blue-900">
-            <Icon name="Info" className="inline mr-2" size={16} />
-            Нажмите на карточку участника, чтобы открыть его полный профиль с возможностью редактирования
-          </p>
-        </div>
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-blue-900 text-base">
+                    💡 Как пользоваться умными виджетами
+                  </h3>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-3">
+                  <AlertDescription className="text-blue-800">
+                    <ul className="space-y-1 text-sm">
+                      <li>• <strong>Прогресс-бар загруженности</strong> показывает, насколько занят член семьи</li>
+                      <li>• <strong>Метрики</strong>: 📋 активные задачи, ✅ завершено сегодня, 📅 события, 🏆 достижения</li>
+                      <li>• <strong>Кнопка "+ Задача"</strong> позволяет быстро назначить задание</li>
+                      <li>• <strong>Настроить виджеты</strong> — выберите, что отображать на карточках</li>
+                      <li>• Нажмите на карточку для открытия полного профиля</li>
+                    </ul>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
         
         <VirtualizedList
           items={members}
@@ -217,21 +245,36 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events =
 
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-        <div className="flex items-start gap-3">
-          <Icon name="Info" className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
-          <div className="flex-1 text-sm">
-            <p className="font-semibold text-blue-900 mb-2">💡 Как пользоваться умными виджетами</p>
-            <ul className="space-y-1 text-blue-800">
-              <li>• <strong>Прогресс-бар загруженности</strong> показывает, насколько занят член семьи</li>
-              <li>• <strong>Метрики</strong>: 📋 активные задачи, ✅ завершено сегодня, 📅 события, 🏆 достижения</li>
-              <li>• <strong>Кнопка "+ Задача"</strong> позволяет быстро назначить задание</li>
-              <li>• <strong>Настроить виджеты</strong> — выберите, что отображать на карточках</li>
-              <li>• Нажмите на карточку для открытия полного профиля</li>
-            </ul>
+      <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+        <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <Icon name="Info" className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                <h3 className="font-semibold text-blue-900 text-base">
+                  💡 Как пользоваться умными виджетами
+                </h3>
+                <Icon 
+                  name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                  className="h-5 w-5 text-blue-600 transition-transform group-hover:scale-110" 
+                />
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="mt-3">
+                <AlertDescription className="text-blue-800">
+                  <ul className="space-y-1 text-sm">
+                    <li>• <strong>Прогресс-бар загруженности</strong> показывает, насколько занят член семьи</li>
+                    <li>• <strong>Метрики</strong>: 📋 активные задачи, ✅ завершено сегодня, 📅 события, 🏆 достижения</li>
+                    <li>• <strong>Кнопка "+ Задача"</strong> позволяет быстро назначить задание</li>
+                    <li>• <strong>Настроить виджеты</strong> — выберите, что отображать на карточках</li>
+                    <li>• Нажмите на карточку для открытия полного профиля</li>
+                  </ul>
+                </AlertDescription>
+              </CollapsibleContent>
+            </div>
           </div>
-        </div>
-      </div>
+        </Alert>
+      </Collapsible>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {members.map((member, index) => (
