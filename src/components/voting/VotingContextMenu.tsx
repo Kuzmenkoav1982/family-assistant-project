@@ -53,11 +53,12 @@ export function VotingContextMenu({
       return;
     }
     
-    const isOwner = currentUser.role === 'owner' || currentUser.role === 'Папа' || currentUser.role.toLowerCase().includes('владелец');
+    const userRole = currentUser.role || '';
+    const isOwner = userRole === 'owner' || userRole === 'Папа' || userRole.toLowerCase().includes('владелец');
     const isAuthor = voting.created_by === currentUserId;
     
     if (!isOwner && !isAuthor) {
-      alert(`❌ У вас нет прав на удаление.\n\nВаша роль: ${currentUser.role}\nВаш ID: ${currentUserId}\nАвтор голосования: ${voting.created_by}\n\nУдалять могут только Владелец семьи и автор вопроса.`);
+      alert(`❌ У вас нет прав на удаление.\n\nВаша роль: ${userRole}\nВаш ID: ${currentUserId}\nАвтор голосования: ${voting.created_by}\n\nУдалять могут только Владелец семьи и автор вопроса.`);
       return;
     }
     
