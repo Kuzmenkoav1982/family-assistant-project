@@ -69,12 +69,8 @@ export default function Children() {
       // Если в URL указан childId - выбираем его
       setSelectedChildId(childId);
     } else {
-      // Если childId НЕТ в URL
-      if (isParent) {
-        // Для родителей - очищаем выбор (показываем экран выбора)
-        setSelectedChildId(null);
-      } else if (children.length > 0) {
-        // Для детей - автоматически выбираем первого ребёнка
+      // Если childId НЕТ в URL - всегда выбираем первого ребёнка
+      if (children.length > 0) {
         setSelectedChildId(children[0].id);
       }
     }
@@ -327,52 +323,7 @@ export default function Children() {
           </Alert>
         </Collapsible>
 
-        {/* Если родитель и не выбран ребёнок - показываем экран выбора */}
-        {isParent && !selectedChildId ? (
-          <Card className="max-w-4xl mx-auto text-center py-16">
-            <CardContent className="space-y-8">
-              <div className="text-8xl mb-6">👨‍👩‍👧‍👦</div>
-              <h2 className="text-3xl font-bold text-gray-900">
-                Выберите ребёнка
-              </h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Нажмите на имя ребёнка, чтобы просмотреть его профиль, достижения и прогресс в развитии
-              </p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto mt-8">
-                {children.map((child) => (
-                  <Card 
-                    key={child.id}
-                    className="hover:shadow-xl transition-all cursor-pointer hover:scale-105"
-                    onClick={() => {
-                      setSelectedChildId(child.id);
-                      setSearchParams({ childId: child.id, mode: viewMode });
-                    }}
-                  >
-                    <CardContent className="pt-6 space-y-4">
-                      {child.avatarType === 'photo' && child.photoUrl ? (
-                        <img 
-                          src={child.photoUrl} 
-                          alt={child.name}
-                          className="w-24 h-24 rounded-full object-cover border-4 border-purple-300 mx-auto"
-                        />
-                      ) : (
-                        <div className="text-6xl">{child.avatar}</div>
-                      )}
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900">{child.name}</h3>
-                        <p className="text-sm text-gray-600">{child.age} {child.age === 1 ? 'год' : child.age < 5 ? 'года' : 'лет'}</p>
-                      </div>
-                      <Button className="w-full">
-                        Открыть профиль
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
+        {selectedChild && (
           <>
             <div className="mb-6">
               <div className="flex gap-3 overflow-x-auto pb-4">
