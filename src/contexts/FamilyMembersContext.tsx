@@ -20,6 +20,7 @@ interface FamilyMember {
   piggyBank?: number;
   achievements?: string[];
   responsibilities?: string[];
+  permissions?: Record<string, boolean>;
 }
 
 interface FamilyMembersContextType {

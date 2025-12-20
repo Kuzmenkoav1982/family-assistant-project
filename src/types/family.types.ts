@@ -23,6 +23,7 @@ export interface FamilyMember {
   piggyBank?: number;
   achievements?: string[];
   responsibilities?: string[];
+  permissions?: Record<string, boolean>;
   health?: ChildHealth;
   purchasePlans?: PurchasePlan[];
   gifts?: Gift[];
