@@ -46,6 +46,8 @@ const PERMISSIONS: Permission[] = [
 ];
 
 export default function MemberPermissions({ member, onUpdate }: MemberPermissionsProps) {
+  if (!member) return null;
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [permissions, setPermissions] = useState(

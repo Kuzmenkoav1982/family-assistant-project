@@ -23,6 +23,8 @@ const PERMISSION_CONFIG = [
 ];
 
 export function PermissionsManager({ member }: PermissionsManagerProps) {
+  if (!member) return null;
+  
   const { updateMember } = useFamilyMembersContext();
   const [permissions, setPermissions] = useState(
     member.permissions || {
