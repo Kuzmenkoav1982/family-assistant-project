@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
-import SubscriptionTab from '@/components/SubscriptionTab';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -56,10 +55,10 @@ export default function Settings() {
   };
 
   const sections = [
-    { id: 'family', icon: 'Users', label: 'Семья' },
-    { id: 'notifications', icon: 'Bell', label: 'Уведомления' },
-    { id: 'subscription', icon: 'CreditCard', label: 'Подписка' },
-    { id: 'account', icon: 'UserCog', label: 'Аккаунт' },
+    { id: 'family', icon: 'Users', label: 'Семья', path: '' },
+    { id: 'notifications', icon: 'Bell', label: 'Уведомления', path: '' },
+    { id: 'subscription', icon: 'CreditCard', label: 'Подписка', path: '/pricing' },
+    { id: 'account', icon: 'UserCog', label: 'Аккаунт', path: '' },
   ];
 
   return (
@@ -90,7 +89,13 @@ export default function Settings() {
                   key={section.id}
                   variant={activeSection === section.id ? 'default' : 'ghost'}
                   className="w-full justify-start gap-2"
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => {
+                    if (section.path) {
+                      navigate(section.path);
+                    } else {
+                      setActiveSection(section.id);
+                    }
+                  }}
                 >
                   <Icon name={section.icon as any} size={18} />
                   {section.label}
@@ -192,20 +197,6 @@ export default function Settings() {
                 </CardHeader>
                 <CardContent>
                   <NotificationsSettings />
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'subscription' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon name="CreditCard" size={24} className="text-green-600" />
-                    Подписка
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SubscriptionTab />
                 </CardContent>
               </Card>
             )}
