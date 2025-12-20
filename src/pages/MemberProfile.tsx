@@ -8,7 +8,6 @@ import { MemberProfileHeader } from '@/components/MemberProfile/MemberProfileHea
 import { MemberProfileInstruction } from '@/components/MemberProfile/MemberProfileInstruction';
 import { MemberProfileContent } from '@/components/MemberProfile/MemberProfileContent';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType } from '@/types/family.types';
-import { DEMO_FAMILY } from '@/data/demoFamily';
 
 export default function MemberProfile() {
   const { memberId } = useParams();
@@ -19,31 +18,7 @@ export default function MemberProfile() {
   const [memberProfile, setMemberProfile] = useState<MemberProfileType | null>(null);
   const loadedMemberRef = useRef<string | null>(null);
   
-  let member = members.find(m => m.id === memberId);
-  
-  if (!member) {
-    const demoMember = DEMO_FAMILY.members.find(dm => dm.id === memberId);
-    if (demoMember) {
-      member = {
-        id: demoMember.id,
-        name: demoMember.name,
-        role: demoMember.role === 'owner' ? 'Папа' : demoMember.role === 'admin' ? 'Мама' : demoMember.role === 'child' ? 'Ребёнок' : 'Участник',
-        avatar: '👤',
-        avatarType: 'photo' as const,
-        photoUrl: demoMember.avatar,
-        age: demoMember.age,
-        relationship: demoMember.role === 'owner' || demoMember.role === 'admin' ? 'Родитель' : 'Ребёнок',
-        points: 0,
-        level: 1,
-        workload: 0,
-        mood: 'Хорошо',
-        tasksCompleted: 0,
-        achievements: [],
-        dreams: [],
-        piggyBank: 0
-      } as FamilyMember;
-    }
-  }
+  const member = members.find(m => m.id === memberId);
 
   if (!member) {
     return (
