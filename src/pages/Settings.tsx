@@ -184,6 +184,24 @@ export default function Settings() {
                     <FamilyInviteManager />
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Shield" size={24} className="text-green-600" />
+                      Управление правами доступа
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Здесь будут настройки прав доступа для членов семьи
+                    </p>
+                    <div className="p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+                      <Icon name="Lock" size={32} className="text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 text-sm">Раздел в разработке</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </>
             )}
 
