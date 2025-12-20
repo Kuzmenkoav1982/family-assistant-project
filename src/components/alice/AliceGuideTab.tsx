@@ -33,6 +33,70 @@ export function AliceGuideTab() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <Icon name="ShoppingCart" size={24} className="text-orange-600" />
+            Как добавлять покупки через Алису
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="bg-orange-50 border-orange-200">
+            <Icon name="Info" className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              <strong>Важно!</strong> Алиса автоматически разбивает перечисленные товары на отдельные позиции, 
+              чтобы вы могли отмечать каждый купленный товар в магазине.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Шаг 1: Активируйте навык</h4>
+              <div className="bg-gray-50 p-3 rounded-lg border-2 border-gray-200">
+                <p className="text-sm font-mono text-gray-700">
+                  "Алиса, активируй навык Семейный помощник"
+                </p>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Алиса расскажет краткое руководство по использованию.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Шаг 2: Добавьте товары</h4>
+              <div className="space-y-2">
+                <div className="bg-green-50 p-3 rounded-lg border-2 border-green-200">
+                  <p className="text-sm font-mono text-gray-700 mb-1">
+                    "Добавь в список покупок: хлеб, молоко и яйца"
+                  </p>
+                  <p className="text-xs text-green-700">
+                    ✅ Будет создано 3 отдельных товара: хлеб, молоко, яйца
+                  </p>
+                </div>
+                <div className="bg-green-50 p-3 rounded-lg border-2 border-green-200">
+                  <p className="text-sm font-mono text-gray-700 mb-1">
+                    "Добавь в список покупок масло"
+                  </p>
+                  <p className="text-xs text-green-700">
+                    ✅ Будет создан 1 товар: масло
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Поддерживаемые разделители</h4>
+              <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                <li>• Запятая: "хлеб, молоко, яйца"</li>
+                <li>• Союз "и": "хлеб и молоко и яйца"</li>
+                <li>• Точка с запятой: "хлеб; молоко; яйца"</li>
+                <li>• Комбинация: "хлеб, молоко и яйца"</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Icon name="Settings" size={24} className="text-blue-600" />
             Настройка голосового управления
           </CardTitle>

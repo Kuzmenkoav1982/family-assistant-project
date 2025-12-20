@@ -602,31 +602,71 @@ def add_shopping_item(conn, command: str, family_id: str) -> Dict:
     
     if not item_name:
         return build_alice_response(
-            'Не поняла, что добавить. Скажите: "добавь покупку хлеб и молоко"',
+            'Не поняла, что добавить. Скажите: "добавь в список покупок хлеб, молоко и яйца"',
             buttons=['Список покупок', 'Отмена']
         )
     
-    # Добавляем в БД
+    # Разбиваем перечисленные товары на отдельные позиции
+    # Поддерживаемые разделители: "и", ",", ";"
+    separators = [' и ', ', ', ' , ', '; ', ' ; ']
+    items = [item_name]
+    
+    for sep in separators:
+        new_items = []
+        for item in items:
+            new_items.extend(item.split(sep))
+        items = new_items
+    
+    # Убираем пустые строки и лишние пробелы
+    items = [item.strip() for item in items if item.strip()]
+    
+    print(f"[SHOPPING] Разбитые товары: {items}")
+    
+    # Добавляем каждый товар отдельно в БД
     cursor = conn.cursor()
+    added_items = []
+    failed_items = []
+    
     try:
-        print(f"[SHOPPING] Попытка вставки: family_id={family_id}, name={item_name}")
-        cursor.execute("""
-            INSERT INTO t_p5815085_family_assistant_pro.shopping_items_v2 
-            (id, family_id, name, bought, created_at)
-            VALUES (gen_random_uuid(), %s, %s, false, NOW())
-        """, (family_id, item_name))
+        for item in items:
+            try:
+                print(f"[SHOPPING] Добавление: {item}")
+                cursor.execute("""
+                    INSERT INTO t_p5815085_family_assistant_pro.shopping_items_v2 
+                    (id, family_id, name, bought, created_at)
+                    VALUES (gen_random_uuid(), %s, %s, false, NOW())
+                """, (family_id, item))
+                added_items.append(item)
+            except Exception as item_error:
+                print(f"[SHOPPING] ❌ Ошибка добавления '{item}': {str(item_error)}")
+                failed_items.append(item)
+        
         conn.commit()
         cursor.close()
         
-        print(f"[SHOPPING] ✅ Успешно добавлено: {item_name}")
+        # Формируем ответ
+        if added_items and not failed_items:
+            if len(added_items) == 1:
+                response_text = f'Добавлено в список покупок: {added_items[0]}'
+            else:
+                items_list = ', '.join(added_items[:-1]) + f' и {added_items[-1]}'
+                response_text = f'Добавлено {len(added_items)} товаров: {items_list}'
+            print(f"[SHOPPING] ✅ Успешно добавлено {len(added_items)} товаров")
+        elif added_items and failed_items:
+            response_text = f'Добавлено {len(added_items)} товаров. Не удалось добавить: {", ".join(failed_items)}'
+            print(f"[SHOPPING] ⚠️ Частично успешно: {len(added_items)} добавлено, {len(failed_items)} ошибок")
+        else:
+            response_text = 'Не удалось добавить товары. Попробуйте ещё раз.'
+            print(f"[SHOPPING] ❌ Все товары не добавлены")
+        
         return build_alice_response(
-            f'Добавлено в список покупок: {item_name}',
+            response_text,
             buttons=['Список покупок', 'Добавить ещё', 'Отмена']
         )
     except Exception as e:
         conn.rollback()
         cursor.close()
-        print(f"[SHOPPING] ❌ Ошибка вставки: {str(e)}")
+        print(f"[SHOPPING] ❌ Общая ошибка: {str(e)}")
         return build_alice_response(f'Ошибка: {str(e)}', buttons=['Повторить', 'Отмена'])
 
 
