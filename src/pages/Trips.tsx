@@ -371,7 +371,7 @@ export default function Trips() {
                         <h3 className="text-lg font-bold text-gray-900 mb-1">{trip.title}</h3>
                         <div className="flex items-center gap-2 text-gray-600 text-sm">
                           <Icon name="MapPin" size={16} />
-                          <span>{trip.destination}, {trip.country}</span>
+                          <span>{trip.destination}, {typeof trip.country === 'object' ? trip.country.name : trip.country}</span>
                         </div>
                       </div>
                       {getStatusBadge(trip.status)}

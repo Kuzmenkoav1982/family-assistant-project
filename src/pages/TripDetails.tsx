@@ -190,7 +190,7 @@ export default function TripDetails() {
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">{trip.title}</h1>
-              <p className="text-sm text-gray-500">{trip.destination}, {trip.country}</p>
+              <p className="text-sm text-gray-500">{trip.destination}, {typeof trip.country === 'object' ? trip.country.name : trip.country}</p>
             </div>
             {getStatusBadge(trip.status)}
           </div>
