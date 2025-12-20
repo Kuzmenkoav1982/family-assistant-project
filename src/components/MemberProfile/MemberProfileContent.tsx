@@ -81,7 +81,7 @@ export function MemberProfileContent({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 gap-4 ${isChild ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="CheckCircle2" className="text-blue-600" size={20} />
@@ -98,13 +98,15 @@ export function MemberProfileContent({
             <p className="text-2xl font-bold text-purple-600">{member.achievements?.length || 0}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Icon name="Smile" className="text-pink-600" size={20} />
-              <span className="text-sm font-medium text-pink-900">Настроение</span>
+          {isChild && (
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon name="Smile" className="text-pink-600" size={20} />
+                <span className="text-sm font-medium text-pink-900">Настроение</span>
+              </div>
+              <p className="text-lg font-semibold text-pink-600">{member.mood || 'Отлично'}</p>
             </div>
-            <p className="text-lg font-semibold text-pink-600">{member.mood || 'Отлично'}</p>
-          </div>
+          )}
         </div>
       </CardHeader>
 
