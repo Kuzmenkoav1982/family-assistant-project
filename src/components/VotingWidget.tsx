@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useVotings } from '@/hooks/useVotings';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
-import { getCurrentMember } from '@/data/demoFamily';
 import { VotingCard } from '@/components/voting/VotingCard';
 import { VotingCreateDialog } from '@/components/voting/VotingCreateDialog';
 import { VotingDetailsDialog } from '@/components/voting/VotingDetailsDialog';
@@ -14,7 +13,20 @@ import { VotingContextMenu } from '@/components/voting/VotingContextMenu';
 export function VotingWidget() {
   const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
   const { members } = useFamilyMembersContext();
-  const currentUser = getCurrentMember();
+  
+  const getCurrentUser = () => {
+    try {
+      const authUserStr = localStorage.getItem('authUser');
+      if (authUserStr) {
+        const authUser = JSON.parse(authUserStr);
+        const memberId = authUser.member_id || authUser.id;
+        return members.find(m => m.id === memberId) || null;
+      }
+    } catch (e) {
+      console.error('[ERROR getCurrentUser] Error parsing auth user:', e);
+    }
+    return null;
+  };
   
   const getCurrentUserId = () => {
     try {
@@ -208,7 +220,7 @@ export function VotingWidget() {
         }}
         onDelete={() => contextMenuVoting ? handleDelete(contextMenuVoting) : Promise.resolve()}
         deleting={deletingId === contextMenuVoting}
-        currentUser={currentUser}
+        currentUser={getCurrentUser()}
         getCurrentUserId={getCurrentUserId}
       />
 
