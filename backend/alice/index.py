@@ -581,6 +581,9 @@ def get_shopping_list(conn, family_id: str) -> Dict:
 def add_shopping_item(conn, command: str, family_id: str) -> Dict:
     """Добавить покупку в список"""
     
+    print(f"[SHOPPING] Команда: {command}")
+    print(f"[SHOPPING] Family ID: {family_id}")
+    
     # Извлекаем название покупки
     patterns = [
         r'добав(?:ь|ить)?\s+(?:в\s+список\s+)?покупк[уи]\s+(.+)',
@@ -595,6 +598,8 @@ def add_shopping_item(conn, command: str, family_id: str) -> Dict:
             item_name = match.group(1).strip()
             break
     
+    print(f"[SHOPPING] Извлечённое название: {item_name}")
+    
     if not item_name:
         return build_alice_response(
             'Не поняла, что добавить. Скажите: "добавь покупку хлеб и молоко"',
@@ -604,6 +609,7 @@ def add_shopping_item(conn, command: str, family_id: str) -> Dict:
     # Добавляем в БД
     cursor = conn.cursor()
     try:
+        print(f"[SHOPPING] Попытка вставки: family_id={family_id}, name={item_name}")
         cursor.execute("""
             INSERT INTO t_p5815085_family_assistant_pro.shopping_items_v2 
             (id, family_id, name, bought, created_at)
@@ -612,6 +618,7 @@ def add_shopping_item(conn, command: str, family_id: str) -> Dict:
         conn.commit()
         cursor.close()
         
+        print(f"[SHOPPING] ✅ Успешно добавлено: {item_name}")
         return build_alice_response(
             f'Добавлено в список покупок: {item_name}',
             buttons=['Список покупок', 'Добавить ещё', 'Отмена']
@@ -619,6 +626,7 @@ def add_shopping_item(conn, command: str, family_id: str) -> Dict:
     except Exception as e:
         conn.rollback()
         cursor.close()
+        print(f"[SHOPPING] ❌ Ошибка вставки: {str(e)}")
         return build_alice_response(f'Ошибка: {str(e)}', buttons=['Повторить', 'Отмена'])
 
 
