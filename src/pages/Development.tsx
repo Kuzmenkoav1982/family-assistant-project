@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
 import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
 import TestHistory from '@/components/TestHistory';
+import DevelopmentInsights from '@/components/DevelopmentInsights';
 import {
   emotionalIntelligenceQuestions,
   getEmotionalIntelligenceResults,
@@ -26,6 +27,14 @@ import {
   stressManagementQuestions,
   getStressManagementResults
 } from '@/data/additionalTests';
+import {
+  financialLiteracyQuestions,
+  getFinancialLiteracyResults,
+  parentingStyleQuestions,
+  getParentingStyleResults,
+  timeManagementQuestions,
+  getTimeManagementResults
+} from '@/data/financialTests';
 
 const DEVELOPMENT_TESTS = [
   {
@@ -109,6 +118,20 @@ const DEVELOPMENT_TESTS = [
     color: 'bg-emerald-100 text-emerald-700 border-emerald-300'
   }
 ];
+
+function getMaxScoreForTest(testId: string): number {
+  const scoreMap: Record<string, number> = {
+    'emotional-intelligence': 25,
+    'communication-style': 25,
+    'conflict-resolution': 25,
+    'stress-management': 25,
+    'love-languages': 30,
+    'parenting-style': 50,
+    'time-management': 25,
+    'financial-literacy': 50
+  };
+  return scoreMap[testId] || 100;
+}
 
 export default function Development() {
   const navigate = useNavigate();
@@ -248,6 +271,12 @@ export default function Development() {
         return conflictResolutionQuestions;
       case 'stress-management':
         return stressManagementQuestions;
+      case 'financial-literacy':
+        return financialLiteracyQuestions;
+      case 'parenting-style':
+        return parentingStyleQuestions;
+      case 'time-management':
+        return timeManagementQuestions;
       default:
         return [];
     }
@@ -265,6 +294,12 @@ export default function Development() {
         return getConflictResolutionResults;
       case 'stress-management':
         return getStressManagementResults;
+      case 'financial-literacy':
+        return getFinancialLiteracyResults;
+      case 'parenting-style':
+        return getParentingStyleResults;
+      case 'time-management':
+        return getTimeManagementResults;
       default:
         return () => ({
           score: 0,
@@ -443,7 +478,21 @@ export default function Development() {
                   <Icon name="TrendingUp" size={24} className="text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">0%</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {(() => {
+                      const allTests = familyMembers?.flatMap(m => 
+                        m.development?.flatMap(d => d.tests.filter(t => t.score !== undefined)) || []
+                      ) || [];
+                      if (allTests.length === 0) return '0%';
+                      
+                      const totalPercentage = allTests.reduce((sum, test) => {
+                        const maxScore = getMaxScoreForTest(test.id);
+                        return sum + ((test.score || 0) / maxScore) * 100;
+                      }, 0);
+                      
+                      return Math.round(totalPercentage / allTests.length) + '%';
+                    })()}
+                  </p>
                   <p className="text-sm text-gray-600">Средний прогресс</p>
                 </div>
               </div>
@@ -515,6 +564,20 @@ export default function Development() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Development Insights (Analytics) */}
+        {!activeTest && selectedMember !== 'all' && (
+          <div className="mb-8">
+            <DevelopmentInsights 
+              tests={
+                familyMembers
+                  ?.find(m => m.id === selectedMember)
+                  ?.development?.flatMap(d => d.tests) || []
+              }
+              memberName={familyMembers?.find(m => m.id === selectedMember)?.name}
+            />
+          </div>
         )}
 
         {/* Tests Grid */}
