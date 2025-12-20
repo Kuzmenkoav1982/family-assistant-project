@@ -25,20 +25,20 @@ export default function SettingsDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onClick={() => navigate('/settings')}>
-          <Icon name="Home" size={16} className="mr-2" />
-          Настройки аккаунта
+          <Icon name="Settings" size={16} className="mr-2" />
+          ⚙️ Настройки
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/family-management')}>
           <Icon name="Users" size={16} className="mr-2" />
-          Управление семьёй
+          👥 Управление семьёй
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/family-invite')}>
           <Icon name="Key" size={16} className="mr-2" />
-          Инвайт-коды семьи
+          🔑 Инвайт-коды семьи
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/permissions')}>
           <Icon name="Shield" size={16} className="mr-2" />
-          Права доступа
+          🛡️ Права доступа
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

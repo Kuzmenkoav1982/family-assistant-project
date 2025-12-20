@@ -1,27 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { NotificationsSettings } from '@/components/NotificationsSettings';
-import { CalendarExport } from '@/components/CalendarExport';
-import SubscriptionTab from '@/components/SubscriptionTab';
-import AssistantSettings from '@/components/settings/AssistantSettings';
 import { useState, useEffect } from 'react';
 import { themes } from '@/config/themes';
 import type { ThemeType } from '@/types/family.types';
 import { languageOptions, type LanguageCode } from '@/translations';
 import { useToast } from '@/hooks/use-toast';
+import { NotificationsSettings } from '@/components/NotificationsSettings';
+import { CalendarExport } from '@/components/CalendarExport';
+import SubscriptionTab from '@/components/SubscriptionTab';
+import AssistantSettings from '@/components/settings/AssistantSettings';
 
 export default function Settings() {
-  console.log('[Settings] Component mounted, themes:', themes);
-  console.log('[Settings] Theme keys:', Object.keys(themes));
-  console.log('[Settings] First theme:', themes.middle);
-  
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const [activeSection, setActiveSection] = useState('family');
   const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
     const saved = localStorage.getItem('familyOrganizerTheme');
     return (saved as ThemeType) || 'middle';
@@ -31,25 +29,40 @@ export default function Settings() {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
   });
   
-  const [showLanguageDialog, setShowLanguageDialog] = useState(false);
-  
   useEffect(() => {
     localStorage.setItem('familyOrganizerTheme', currentTheme);
     
-    // Применяем тему мгновенно без перезагрузки
     if (currentTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
     
-    // Отправляем кастомное событие для синхронизации с другими компонентами
     window.dispatchEvent(new CustomEvent('themeChange', { detail: currentTheme }));
   }, [currentTheme]);
 
+  const handleLanguageChange = (lang: LanguageCode) => {
+    setCurrentLanguage(lang);
+    localStorage.setItem('familyOrganizerLanguage', lang);
+    toast({
+      title: 'Язык изменён',
+      description: `Язык интерфейса: ${languageOptions[lang]}`
+    });
+    setTimeout(() => window.location.reload(), 500);
+  };
+
+  const sections = [
+    { id: 'family', icon: 'Users', label: 'Семья' },
+    { id: 'notifications', icon: 'Bell', label: 'Уведомления' },
+    { id: 'subscription', icon: 'CreditCard', label: 'Подписка' },
+    { id: 'appearance', icon: 'Palette', label: 'Внешний вид' },
+    { id: 'assistants', icon: 'Bot', label: 'Ассистенты' },
+    { id: 'account', icon: 'User', label: 'Аккаунт' },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-20">
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -63,274 +76,409 @@ export default function Settings() {
           </Button>
         </div>
 
-        <Tabs defaultValue="family" className="w-full">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="family" className="flex items-center gap-2">
-              <Icon name="Users" size={14} />
-              <span className="hidden sm:inline">Информация о семье</span>
-              <span className="sm:hidden">Семья</span>
-            </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center gap-2">
-              <Icon name="CreditCard" size={14} />
-              <span className="hidden sm:inline">Подписка</span>
-              <span className="sm:hidden">Подписка</span>
-            </TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <Card className="lg:col-span-1 h-fit">
+            <CardHeader>
+              <CardTitle className="text-lg">Разделы</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {sections.map((section) => (
+                <Button
+                  key={section.id}
+                  variant={activeSection === section.id ? 'default' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveSection(section.id)}
+                >
+                  <Icon name={section.icon as any} size={18} />
+                  {section.label}
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
 
-          <TabsContent value="family" className="space-y-6 mt-6">
-            <AssistantSettings />
-            <NotificationsSettings />
-            <CalendarExport />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="User" size={24} className="text-purple-600" />
-              Профиль и безопасность
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2"
-              onClick={() => {
-                toast({
-                  title: 'В разработке',
-                  description: 'Функция смены пароля скоро будет доступна'
-                });
-              }}
-            >
-              <Icon name="Lock" size={18} />
-              Изменить пароль
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2"
-              onClick={() => {
-                toast({
-                  title: 'В разработке',
-                  description: '2FA будет доступна в следующем обновлении'
-                });
-              }}
-            >
-              <Icon name="Shield" size={18} />
-              Двухфакторная аутентификация
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2"
-              onClick={() => {
-                const data = {
-                  exportDate: new Date().toISOString(),
-                  familyData: localStorage.getItem('userData'),
-                  members: localStorage.getItem('familyMembers'),
-                  tasks: localStorage.getItem('tasks')
-                };
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `family-data-${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                toast({
-                  title: 'Экспорт завершен',
-                  description: 'Данные сохранены в файл'
-                });
-              }}
-            >
-              <Icon name="Download" size={18} />
-              Экспорт данных
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Mic" size={24} className="text-purple-600" />
-              Яндекс.Алиса
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              Управляйте своими делами голосом через Яндекс.Алису
-            </p>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2 border-purple-300 hover:bg-purple-50"
-              onClick={() => navigate('/alice')}
-            >
-              <Icon name="Mic" size={18} className="text-purple-600" />
-              Настроить интеграцию с Алисой
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Palette" size={24} className="text-pink-600" />
-              Внешний вид
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-base font-semibold">Выберите стиль оформления</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(themes).filter(([key]) => key !== 'dark').map(([key, theme]) => {
-                  console.log(`[Settings] Rendering theme ${key}:`, theme);
-                  
-                  if (!theme || !theme.colors) {
-                    console.error(`[Settings] Theme ${key} is invalid:`, theme);
-                    return null;
-                  }
-                  
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        setCurrentTheme(key as ThemeType);
-                        toast({
-                          title: 'Стиль изменён',
-                          description: `Применён стиль "${theme.name}"`
-                        });
-                        setTimeout(() => window.location.reload(), 500);
-                      }}
-                      className={`
-                        relative p-4 rounded-lg border-2 transition-all text-left
-                        ${currentTheme === key 
-                          ? 'border-purple-500 bg-purple-50 shadow-lg' 
-                          : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`
-                          w-12 h-12 rounded-lg bg-gradient-to-r ${theme.colors.primary} 
-                          flex items-center justify-center flex-shrink-0
-                        `}>
-                          <Icon name={key === 'dark' ? 'Moon' : 'Palette'} size={24} className="text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-gray-900 mb-1">{theme.name}</h4>
-                          <p className="text-xs text-gray-600 mb-1">{theme.description}</p>
-                          <p className="text-xs text-gray-500">{theme.ageRange}</p>
-                        </div>
-                        {currentTheme === key && (
-                          <div className="absolute top-2 right-2">
-                            <Icon name="Check" size={20} className="text-purple-600" />
-                          </div>
-                        )}
+          <div className="lg:col-span-3 space-y-6">
+            {activeSection === 'family' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Users" size={24} className="text-blue-600" />
+                      👥 Семья
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Название семьи</Label>
+                      <Input placeholder="Наша Семья" defaultValue="Наша Семья" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Логотип семьи</Label>
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
+                          alt="Логотип"
+                          className="h-16 w-16 object-cover rounded-lg border"
+                        />
+                        <Button variant="outline" size="sm">
+                          <Icon name="Upload" size={16} className="mr-2" />
+                          Изменить логотип
+                        </Button>
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigate('/family-invite')}
+                    >
+                      <Icon name="UserPlus" size={18} />
+                      Приглашения и инвайт-коды
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigate('/permissions')}
+                    >
+                      <Icon name="Shield" size={18} />
+                      Управление правами доступа
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            )}
 
-            <div className="pt-3 border-t">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start gap-2"
-                onClick={() => setShowLanguageDialog(true)}
-              >
-                <Icon name="Languages" size={18} />
-                Язык интерфейса
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            {activeSection === 'notifications' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Bell" size={24} className="text-orange-600" />
+                      🔔 Уведомления
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <NotificationsSettings />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Mail" size={24} className="text-blue-600" />
+                      Email-рассылка
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Еженедельный дайджест</Label>
+                        <p className="text-sm text-gray-500">Получайте сводку по делам семьи раз в неделю</p>
+                      </div>
+                      <Switch />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Важные уведомления</Label>
+                        <p className="text-sm text-gray-500">События, требующие внимания</p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Info" size={24} className="text-blue-600" />
-                  О приложении
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Версия</span>
-                  <span className="text-sm font-medium">1.0.0</span>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start gap-2"
-                  onClick={() => navigate('/instructions')}
-                >
-                  <Icon name="BookOpen" size={18} />
-                  📖 Инструкции
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start gap-2"
-                  onClick={() => navigate('/privacy-policy')}
-                >
-                  <Icon name="FileText" size={18} />
-                  Политика конфиденциальности
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start gap-2"
-                  onClick={() => navigate('/terms-of-service')}
-                >
-                  <Icon name="HelpCircle" size={18} />
-                  Справка и поддержка
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Send" size={24} className="text-blue-600" />
+                      Telegram-бот
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Получайте уведомления в Telegram
+                    </p>
+                    <Button variant="outline" className="w-full">
+                      <Icon name="Send" size={16} className="mr-2" />
+                      Подключить Telegram
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            )}
 
-          <TabsContent value="subscription" className="mt-6">
-            <SubscriptionTab />
-          </TabsContent>
-        </Tabs>
-      </div>
+            {activeSection === 'subscription' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="CreditCard" size={24} className="text-green-600" />
+                    💳 Подписка
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SubscriptionTab />
+                </CardContent>
+              </Card>
+            )}
 
-      <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Icon name="Languages" size={24} />
-              Выберите язык
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-            {languageOptions.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => {
-                  setCurrentLanguage(lang.code);
-                  localStorage.setItem('familyOrganizerLanguage', lang.code);
-                  toast({
-                    title: 'Язык изменён',
-                    description: `Выбран язык: ${lang.name}`
-                  });
-                  setShowLanguageDialog(false);
-                  setTimeout(() => window.location.reload(), 500);
-                }}
-                className={`
-                  w-full text-left p-3 rounded-lg border-2 transition-all hover:shadow-lg
-                  ${currentLanguage === lang.code 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-blue-300'
-                  }
-                `}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{lang.flag}</span>
-                    <span className="font-medium">{lang.name}</span>
-                  </div>
-                  {currentLanguage === lang.code && (
-                    <Icon name="Check" className="text-blue-600" size={20} />
-                  )}
-                </div>
-              </button>
-            ))}
+            {activeSection === 'appearance' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Moon" size={24} className="text-purple-600" />
+                      🌙 Тёмная тема
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Тёмная тема</Label>
+                        <p className="text-sm text-gray-500">Комфортный режим для глаз</p>
+                      </div>
+                      <Switch 
+                        checked={currentTheme === 'dark'}
+                        onCheckedChange={(checked) => {
+                          const newTheme = checked ? 'dark' : 'middle';
+                          setCurrentTheme(newTheme);
+                          toast({
+                            title: checked ? 'Тёмная тема включена' : 'Светлая тема включена'
+                          });
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Palette" size={24} className="text-pink-600" />
+                      🎨 Тема оформления
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Label className="text-base font-semibold">Выберите стиль оформления</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {Object.entries(themes).filter(([key]) => key !== 'dark').map(([key, theme]) => {
+                        if (!theme || !theme.colors) return null;
+                        
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => {
+                              setCurrentTheme(key as ThemeType);
+                              toast({
+                                title: 'Стиль изменён',
+                                description: `Применён стиль "${theme.name}"`
+                              });
+                              setTimeout(() => window.location.reload(), 500);
+                            }}
+                            className={`
+                              relative p-4 rounded-lg border-2 transition-all text-left
+                              ${currentTheme === key 
+                                ? 'border-purple-500 bg-purple-50 shadow-lg' 
+                                : 'border-gray-200 hover:border-purple-300'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-12 h-12 rounded-lg shadow-md"
+                                style={{ 
+                                  background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`
+                                }}
+                              />
+                              <div className="flex-1">
+                                <div className="font-semibold">{theme.name}</div>
+                                <div className="text-sm text-gray-500">{theme.description}</div>
+                              </div>
+                              {currentTheme === key && (
+                                <Icon name="Check" className="text-purple-600" size={20} />
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Globe" size={24} className="text-blue-600" />
+                      🌍 Язык интерфейса
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Выберите язык</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(languageOptions).map(([code, name]) => (
+                          <Button
+                            key={code}
+                            variant={currentLanguage === code ? 'default' : 'outline'}
+                            onClick={() => handleLanguageChange(code as LanguageCode)}
+                            className="justify-start"
+                          >
+                            {name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {activeSection === 'assistants' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Home" size={24} className="text-orange-600" />
+                      🏠 Мой AI-ассистент
+                    </CardTitle>
+                    <p className="text-sm text-gray-500">Управление настройками вашего помощника</p>
+                  </CardHeader>
+                  <CardContent>
+                    <AssistantSettings />
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Mic" size={24} className="text-purple-600" />
+                      🎤 Яндекс.Алиса
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Управляйте своими делами голосом через Яндекс.Алису
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2 border-purple-300 hover:bg-purple-50"
+                      onClick={() => navigate('/alice')}
+                    >
+                      <Icon name="Mic" size={18} className="text-purple-600" />
+                      Настроить интеграцию с Алисой
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {activeSection === 'account' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="User" size={24} className="text-purple-600" />
+                      👤 Аккаунт
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
+                        toast({
+                          title: 'В разработке',
+                          description: 'Функция смены пароля скоро будет доступна'
+                        });
+                      }}
+                    >
+                      <Icon name="Lock" size={18} />
+                      🔐 Изменить пароль
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
+                        toast({
+                          title: 'В разработке',
+                          description: '2FA будет доступна в следующем обновлении'
+                        });
+                      }}
+                    >
+                      <Icon name="Shield" size={18} />
+                      🛡️ Двухфакторная аутентификация
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
+                        const data = {
+                          exportDate: new Date().toISOString(),
+                          familyData: localStorage.getItem('userData'),
+                          members: localStorage.getItem('familyMembers'),
+                          tasks: localStorage.getItem('tasks')
+                        };
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `family-data-${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        toast({
+                          title: 'Экспорт завершен',
+                          description: 'Данные сохранены в файл'
+                        });
+                      }}
+                    >
+                      <Icon name="Download" size={18} />
+                      📥 Экспорт данных
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Calendar" size={24} className="text-blue-600" />
+                      📅 Экспорт календаря
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CalendarExport />
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-red-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-red-600">
+                      <Icon name="Trash2" size={24} />
+                      🗑️ Удаление аккаунта
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Это действие необратимо. Все данные будут удалены.
+                    </p>
+                    <Button 
+                      variant="destructive" 
+                      className="w-full"
+                      onClick={() => {
+                        if (confirm('Вы уверены? Это действие необратимо!')) {
+                          toast({
+                            title: 'В разработке',
+                            description: 'Функция удаления аккаунта скоро будет доступна',
+                            variant: 'destructive'
+                          });
+                        }
+                      }}
+                    >
+                      <Icon name="Trash2" size={18} className="mr-2" />
+                      Удалить аккаунт
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
