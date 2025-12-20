@@ -146,7 +146,7 @@ export default function TripWishlist() {
                         <h3 className="text-xl font-bold text-gray-900 mb-1">{item.destination}</h3>
                         <div className="flex items-center gap-2 text-gray-600 text-sm">
                           <Icon name="MapPin" size={16} />
-                          <span>{item.country}</span>
+                          <span>{typeof item.country === 'object' ? item.country.name : item.country}</span>
                         </div>
                       </div>
                       {getPriorityBadge(item.priority)}

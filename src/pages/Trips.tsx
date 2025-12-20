@@ -572,7 +572,7 @@ export default function Trips() {
               <div>
                 <Label>Страна</Label>
                 <Input
-                  value={editingTrip.country}
+                  value={typeof editingTrip.country === 'object' ? editingTrip.country.name : editingTrip.country}
                   onChange={(e) => setEditingTrip({ ...editingTrip, country: e.target.value })}
                 />
               </div>
