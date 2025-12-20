@@ -201,13 +201,13 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
                   <Button 
                     onClick={() => {
                       setIsOpen(false);
-                      setTimeout(() => navigate('/family-settings'), 100);
+                      setTimeout(() => navigate('/settings'), 100);
                     }}
                     variant="outline"
                     className="w-full"
                   >
                     <Icon name="ArrowRight" size={16} className="mr-2" />
-                    Перейти к настройкам семьи
+                    Перейти к настройкам
                   </Button>
                 </div>
                 <FamilyInviteManager />
