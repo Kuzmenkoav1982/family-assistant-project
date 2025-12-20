@@ -1,63 +1,65 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { themes } from '@/config/themes';
-import type { ThemeType } from '@/types/family.types';
-import { languageOptions, type LanguageCode } from '@/translations';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
-import { CalendarExport } from '@/components/CalendarExport';
 import SubscriptionTab from '@/components/SubscriptionTab';
-import AssistantSettings from '@/components/settings/AssistantSettings';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
   const [activeSection, setActiveSection] = useState('family');
-  const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
-    const saved = localStorage.getItem('familyOrganizerTheme');
-    return (saved as ThemeType) || 'middle';
-  });
-  
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
-    return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
-  });
-  
-  useEffect(() => {
-    localStorage.setItem('familyOrganizerTheme', currentTheme);
-    
-    if (currentTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  const [familyName, setFamilyName] = useState('Наша Семья "Кузьменко"');
+  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/family-logos/2025-12-21_00-39-51.png');
+
+  const handleSaveChanges = () => {
+    localStorage.setItem('familyName', familyName);
+    localStorage.setItem('familyLogo', familyLogo);
+    alert('✅ Изменения сохранены');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('⚠️ Вы уверены? Это действие удалит все данные без возможности восстановления!')) {
+      return;
     }
     
-    window.dispatchEvent(new CustomEvent('themeChange', { detail: currentTheme }));
-  }, [currentTheme]);
-
-  const handleLanguageChange = (lang: LanguageCode) => {
-    setCurrentLanguage(lang);
-    localStorage.setItem('familyOrganizerLanguage', lang);
-    toast({
-      title: 'Язык изменён',
-      description: `Язык интерфейса: ${languageOptions[lang]}`
-    });
-    setTimeout(() => window.location.reload(), 500);
+    const confirmed = confirm('Все члены семьи будут удалены\nВсе задачи и достижения будут потеряны\nИстория и статистика будут стёрты\nВосстановление будет невозможно\n\nПродолжить?');
+    
+    if (confirmed) {
+      try {
+        const authToken = localStorage.getItem('authToken') || '';
+        const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
+        
+        const response = await fetch(`${AUTH_API}?action=delete_account`, {
+          method: 'POST',
+          headers: {
+            'X-Auth-Token': authToken
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('✅ Аккаунт успешно удалён');
+          localStorage.clear();
+          window.location.href = '/auth';
+        } else {
+          alert(`❌ ${data.error}`);
+        }
+      } catch (error) {
+        alert('❌ Ошибка удаления аккаунта');
+      }
+    }
   };
 
   const sections = [
     { id: 'family', icon: 'Users', label: 'Семья' },
     { id: 'notifications', icon: 'Bell', label: 'Уведомления' },
     { id: 'subscription', icon: 'CreditCard', label: 'Подписка' },
-    { id: 'appearance', icon: 'Palette', label: 'Внешний вид' },
-    { id: 'assistants', icon: 'Bot', label: 'Ассистенты' },
-    { id: 'account', icon: 'User', label: 'Аккаунт' },
+    { id: 'account', icon: 'UserCog', label: 'Аккаунт' },
   ];
 
   return (
@@ -65,8 +67,9 @@ export default function Settings() {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ⚙️ Настройки
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+              <Icon name="Settings" size={36} />
+              Настройки
             </h1>
             <p className="text-gray-600 mt-2">Управление приложением и уведомлениями</p>
           </div>
@@ -103,106 +106,94 @@ export default function Settings() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Icon name="Users" size={24} className="text-blue-600" />
-                      👥 Семья
+                      Настройки семьи
                     </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Название и логотип вашей семьи
+                    </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label>Название семьи</Label>
-                      <Input placeholder="Наша Семья" defaultValue="Наша Семья" />
+                      <Input 
+                        placeholder="Наша Семья" 
+                        value={familyName}
+                        onChange={(e) => setFamilyName(e.target.value)}
+                      />
                     </div>
+                    
                     <div className="space-y-2">
                       <Label>Логотип семьи</Label>
+                      <p className="text-xs text-orange-600 flex items-center gap-2">
+                        <Icon name="AlertCircle" size={14} />
+                        Используйте прямую ссылку на изображение (файлы заканчиваются на .jpg, .png, .gif) или загрузите файл ниже
+                      </p>
+                      <Input 
+                        placeholder="https://cdn.poehali.dev/projects/..." 
+                        value={familyLogo}
+                        onChange={(e) => setFamilyLogo(e.target.value)}
+                      />
                       <div className="flex items-center gap-4">
-                        <img 
-                          src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                          alt="Логотип"
-                          className="h-16 w-16 object-cover rounded-lg border"
-                        />
-                        <Button variant="outline" size="sm">
-                          <Icon name="Upload" size={16} className="mr-2" />
-                          Изменить логотип
-                        </Button>
+                        {familyLogo && (
+                          <img 
+                            src={familyLogo}
+                            alt="Логотип"
+                            className="h-20 w-20 object-cover rounded-lg border"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <div className="text-center flex-1">
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <Icon name="Upload" size={16} />
+                            Перетащите изображение сюда
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            или нажмите для выбора файла
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            PNG, JPG, GIF (макс. 5 МБ)
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2"
-                      onClick={() => navigate('/family-invite')}
-                    >
-                      <Icon name="UserPlus" size={18} />
-                      Приглашения и инвайт-коды
+
+                    <Button onClick={handleSaveChanges} className="w-full">
+                      Сохранить изменения
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2"
-                      onClick={() => navigate('/permissions')}
-                    >
-                      <Icon name="Shield" size={18} />
-                      Управление правами доступа
-                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Users" size={24} className="text-purple-600" />
+                      Приглашения в семью
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Создавайте коды для приглашения родственников
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <FamilyInviteManager />
                   </CardContent>
                 </Card>
               </>
             )}
 
             {activeSection === 'notifications' && (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Bell" size={24} className="text-orange-600" />
-                      🔔 Уведомления
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <NotificationsSettings />
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Mail" size={24} className="text-blue-600" />
-                      Email-рассылка
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Еженедельный дайджест</Label>
-                        <p className="text-sm text-gray-500">Получайте сводку по делам семьи раз в неделю</p>
-                      </div>
-                      <Switch />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Важные уведомления</Label>
-                        <p className="text-sm text-gray-500">События, требующие внимания</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Send" size={24} className="text-blue-600" />
-                      Telegram-бот
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      Получайте уведомления в Telegram
-                    </p>
-                    <Button variant="outline" className="w-full">
-                      <Icon name="Send" size={16} className="mr-2" />
-                      Подключить Telegram
-                    </Button>
-                  </CardContent>
-                </Card>
-              </>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Bell" size={24} className="text-orange-600" />
+                    Уведомления
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <NotificationsSettings />
+                </CardContent>
+              </Card>
             )}
 
             {activeSection === 'subscription' && (
@@ -210,7 +201,7 @@ export default function Settings() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Icon name="CreditCard" size={24} className="text-green-600" />
-                    💳 Подписка
+                    Подписка
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -219,262 +210,61 @@ export default function Settings() {
               </Card>
             )}
 
-            {activeSection === 'appearance' && (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Moon" size={24} className="text-purple-600" />
-                      🌙 Тёмная тема
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Тёмная тема</Label>
-                        <p className="text-sm text-gray-500">Комфортный режим для глаз</p>
-                      </div>
-                      <Switch 
-                        checked={currentTheme === 'dark'}
-                        onCheckedChange={(checked) => {
-                          const newTheme = checked ? 'dark' : 'middle';
-                          setCurrentTheme(newTheme);
-                          toast({
-                            title: checked ? 'Тёмная тема включена' : 'Светлая тема включена'
-                          });
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Palette" size={24} className="text-pink-600" />
-                      🎨 Тема оформления
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Label className="text-base font-semibold">Выберите стиль оформления</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {Object.entries(themes).filter(([key]) => key !== 'dark').map(([key, theme]) => {
-                        if (!theme || !theme.colors) return null;
-                        
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => {
-                              setCurrentTheme(key as ThemeType);
-                              toast({
-                                title: 'Стиль изменён',
-                                description: `Применён стиль "${theme.name}"`
-                              });
-                              setTimeout(() => window.location.reload(), 500);
-                            }}
-                            className={`
-                              relative p-4 rounded-lg border-2 transition-all text-left
-                              ${currentTheme === key 
-                                ? 'border-purple-500 bg-purple-50 shadow-lg' 
-                                : 'border-gray-200 hover:border-purple-300'
-                              }
-                            `}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="w-12 h-12 rounded-lg shadow-md"
-                                style={{ 
-                                  background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`
-                                }}
-                              />
-                              <div className="flex-1">
-                                <div className="font-semibold">{theme.name}</div>
-                                <div className="text-sm text-gray-500">{theme.description}</div>
-                              </div>
-                              {currentTheme === key && (
-                                <Icon name="Check" className="text-purple-600" size={20} />
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Globe" size={24} className="text-blue-600" />
-                      🌍 Язык интерфейса
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Label>Выберите язык</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(languageOptions).map(([code, name]) => (
-                          <Button
-                            key={code}
-                            variant={currentLanguage === code ? 'default' : 'outline'}
-                            onClick={() => handleLanguageChange(code as LanguageCode)}
-                            className="justify-start"
-                          >
-                            {name}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-
-            {activeSection === 'assistants' && (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Home" size={24} className="text-orange-600" />
-                      🏠 Мой AI-ассистент
-                    </CardTitle>
-                    <p className="text-sm text-gray-500">Управление настройками вашего помощника</p>
-                  </CardHeader>
-                  <CardContent>
-                    <AssistantSettings />
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Mic" size={24} className="text-purple-600" />
-                      🎤 Яндекс.Алиса
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      Управляйте своими делами голосом через Яндекс.Алису
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2 border-purple-300 hover:bg-purple-50"
-                      onClick={() => navigate('/alice')}
-                    >
-                      <Icon name="Mic" size={18} className="text-purple-600" />
-                      Настроить интеграцию с Алисой
-                    </Button>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-
             {activeSection === 'account' && (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="User" size={24} className="text-purple-600" />
-                      👤 Аккаунт
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        toast({
-                          title: 'В разработке',
-                          description: 'Функция смены пароля скоро будет доступна'
-                        });
-                      }}
-                    >
-                      <Icon name="Lock" size={18} />
-                      🔐 Изменить пароль
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        toast({
-                          title: 'В разработке',
-                          description: '2FA будет доступна в следующем обновлении'
-                        });
-                      }}
-                    >
-                      <Icon name="Shield" size={18} />
-                      🛡️ Двухфакторная аутентификация
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        const data = {
-                          exportDate: new Date().toISOString(),
-                          familyData: localStorage.getItem('userData'),
-                          members: localStorage.getItem('familyMembers'),
-                          tasks: localStorage.getItem('tasks')
-                        };
-                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `family-data-${new Date().toISOString().split('T')[0]}.json`;
-                        a.click();
-                        toast({
-                          title: 'Экспорт завершен',
-                          description: 'Данные сохранены в файл'
-                        });
-                      }}
-                    >
-                      <Icon name="Download" size={18} />
-                      📥 Экспорт данных
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Calendar" size={24} className="text-blue-600" />
-                      📅 Экспорт календаря
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CalendarExport />
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 border-red-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-red-600">
-                      <Icon name="Trash2" size={24} />
-                      🗑️ Удаление аккаунта
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      Это действие необратимо. Все данные будут удалены.
-                    </p>
-                    <Button 
-                      variant="destructive" 
-                      className="w-full"
-                      onClick={() => {
-                        if (confirm('Вы уверены? Это действие необратимо!')) {
-                          toast({
-                            title: 'В разработке',
-                            description: 'Функция удаления аккаунта скоро будет доступна',
-                            variant: 'destructive'
-                          });
-                        }
-                      }}
-                    >
-                      <Icon name="Trash2" size={18} className="mr-2" />
-                      Удалить аккаунт
-                    </Button>
-                  </CardContent>
-                </Card>
-              </>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="AlertTriangle" size={24} className="text-red-600" />
+                    Опасная зона
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Необратимые действия с вашим аккаунтом
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-6 border border-red-200 dark:border-red-900">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-red-100 dark:bg-red-900 rounded-full p-3">
+                        <Icon name="Trash2" size={24} className="text-red-600 dark:text-red-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                          Удалить аккаунт
+                        </h3>
+                        <p className="text-sm text-red-800 dark:text-red-200 mb-4">
+                          Это действие удалит ваш аккаунт и все связанные данные без возможности восстановления:
+                        </p>
+                        <ul className="text-sm text-red-700 dark:text-red-300 space-y-1 mb-4">
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} />
+                            Все члены семьи будут удалены
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} />
+                            Все задачи и достижения будут потеряны
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} />
+                            История и статистика будут стёрты
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} />
+                            Восстановление будет невозможно
+                          </li>
+                        </ul>
+                        <Button 
+                          onClick={handleDeleteAccount}
+                          variant="destructive" 
+                          className="w-full gap-2"
+                        >
+                          <Icon name="Trash2" size={16} />
+                          Удалить аккаунт навсегда
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>

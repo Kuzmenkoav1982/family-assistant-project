@@ -34,7 +34,6 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   
   const [openSections, setOpenSections] = useState<string[]>([
@@ -178,7 +177,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsSettingsOpen(true)}
+              onClick={() => {
+                navigate('/settings');
+                onVisibilityChange(false);
+              }}
               className="flex-1 justify-start gap-2 h-9 px-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 hover:from-blue-100 hover:to-purple-100"
               title="Настройки"
             >
@@ -252,8 +254,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
           ))}
         </div>
       </div>
-
-      <SettingsMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
       <button
         onClick={() => onVisibilityChange(!isVisible)}
