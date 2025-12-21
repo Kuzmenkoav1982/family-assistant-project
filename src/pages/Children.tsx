@@ -50,11 +50,16 @@ export default function Children() {
       ) 
     : undefined;
   
+  // Проверяем и роль члена семьи, и права доступа
   const isParent = currentMember?.role === 'Папа' || 
                    currentMember?.role === 'Мама' || 
                    currentMember?.role === 'Владелец' || 
                    currentMember?.role === 'Родитель' ||
-                   currentUser?.role === 'Родитель';
+                   currentMember?.role === 'Жена' ||
+                   currentMember?.role === 'Муж' ||
+                   currentUser?.role === 'Родитель' ||
+                   currentMember?.accessRole === 'admin' ||
+                   currentMember?.accessRole === 'editor';
   
   // Debug logs - uncomment if needed
   // console.log('[Children] members:', members?.length, 'children:', children.length, 'isParent:', isParent);

@@ -105,7 +105,7 @@ export default function AccessControlManager() {
     }
   }, [familyMembers]);
 
-  const updateMemberRole = (memberId: string, newRole: 'admin' | 'editor' | 'viewer') => {
+  const updateMemberRole = async (memberId: string, newRole: 'admin' | 'editor' | 'viewer') => {
     const updatedMembers = membersWithPermissions.map(member => {
       if (member.id === memberId) {
         return {
@@ -118,12 +118,31 @@ export default function AccessControlManager() {
     });
     setMembersWithPermissions(updatedMembers);
     
-    const memberData = updatedMembers.find(m => m.id === memberId);
-    if (memberData) {
-      localStorage.setItem(`member_permissions_${memberId}`, JSON.stringify({
-        role: newRole,
-        permissions: memberData.permissions
-      }));
+    // Сохраняем в базу через API
+    try {
+      const familyId = JSON.parse(localStorage.getItem('userData') || '{}').family_id;
+      const response = await fetch('https://functions.poehali.dev/9c2279f4-7f87-4d3f-8f06-60f151f18962', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'update_role',
+          familyId: familyId,
+          memberId: memberId,
+          newRole: newRole
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update role');
+      }
+      
+      console.log('✅ Роль успешно сохранена в базу');
+    } catch (error) {
+      console.error('❌ Ошибка сохранения роли:', error);
+      // Откатываем изменения в UI при ошибке
+      fetchMembers();
     }
   };
 
@@ -187,10 +206,10 @@ export default function AccessControlManager() {
                     <img 
                       src={member.avatarUrl || member.avatar} 
                       alt={member.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                      className="w-12 h-12 aspect-square rounded-full object-cover border-2 border-gray-200"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 aspect-square rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                   )}

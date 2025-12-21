@@ -304,39 +304,42 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon name="Calendar" size={20} />
-                Ближайшие события
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icon name="Calendar" size={20} />
+                  Календарь событий
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => navigate('/calendar')}
+                  className="gap-2"
+                >
+                  <Icon name="Plus" size={16} />
+                  Добавить событие
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center gap-4 p-3 bg-blue-50 rounded-lg">
-                <div className="text-center">
-                  <div className="text-sm text-gray-600">ДЕК</div>
-                  <div className="text-2xl font-bold">15</div>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">Прием у окулиста</p>
-                  <p className="text-sm text-gray-500">10:00, Клиника "Здоровье"</p>
-                </div>
-                <Button size="sm" variant="ghost">
-                  <Icon name="Calendar" size={16} />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-4 p-3 bg-purple-50 rounded-lg">
-                <div className="text-center">
-                  <div className="text-sm text-gray-600">ДЕК</div>
-                  <div className="text-2xl font-bold">20</div>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">Контрольная по математике</p>
-                  <p className="text-sm text-gray-500">Школа № 25</p>
-                </div>
-                <Button size="sm" variant="ghost">
-                  <Icon name="Calendar" size={16} />
-                </Button>
-              </div>
+              <Alert className="bg-blue-50 border-blue-200">
+                <Icon name="Info" className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-sm text-blue-800">
+                  <p className="mb-2">Используйте <strong>семейный календарь</strong> для планирования:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>Визиты к врачу и прививки</li>
+                    <li>Контрольные и экзамены</li>
+                    <li>Секции и кружки</li>
+                    <li>Дни рождения и праздники</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => navigate('/calendar')}
+              >
+                <Icon name="Calendar" size={16} />
+                Открыть семейный календарь
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
