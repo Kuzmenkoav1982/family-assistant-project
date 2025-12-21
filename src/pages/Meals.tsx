@@ -238,42 +238,33 @@ export default function Meals() {
           />
         )}
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
-              size="lg"
-              onClick={() => {
-                setEditingMeal(null);
-                setNewMeal({
-                  day: 'monday',
-                  mealType: 'breakfast',
-                  dishName: '',
-                  description: '',
-                  emoji: '🍳'
-                });
-              }}
-            >
-              <Icon name="Plus" className="mr-2" size={20} />
-              Добавить блюдо
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingMeal ? 'Редактировать блюдо' : 'Добавить новое блюдо'}
-              </DialogTitle>
-            </DialogHeader>
-            <MealDialog
-              newMeal={newMeal}
-              setNewMeal={setNewMeal}
-              onSubmit={handleAddMeal}
-              daysOfWeek={DAYS_OF_WEEK}
-              mealTypes={MEAL_TYPES}
-              isEditing={!!editingMeal}
-            />
-          </DialogContent>
-        </Dialog>
+        <MealDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingMeal={editingMeal}
+          newMeal={newMeal}
+          setNewMeal={setNewMeal}
+          handleAddMeal={handleAddMeal}
+        />
+
+        <Button 
+          className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
+          size="lg"
+          onClick={() => {
+            setEditingMeal(null);
+            setNewMeal({
+              day: 'monday',
+              mealType: 'breakfast',
+              dishName: '',
+              description: '',
+              emoji: '🍳'
+            });
+            setIsDialogOpen(true);
+          }}
+        >
+          <Icon name="Plus" className="mr-2" size={20} />
+          Добавить блюдо
+        </Button>
       </div>
     </div>
   );
