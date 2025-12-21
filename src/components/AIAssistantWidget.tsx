@@ -32,7 +32,6 @@ interface Message {
 const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,15 +42,23 @@ const AIAssistantWidget = () => {
   const location = useLocation();
   const { assistantType, assistantName, selectedRole } = useAIAssistant();
 
+  // Перетаскивание виджета
+  const [position, setPosition] = useState(() => {
+    const saved = localStorage.getItem('widgetPosition');
+    return saved ? JSON.parse(saved) : { x: window.innerWidth - 420, y: 100 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   // Скрываем виджет на странице /welcome
   const isWelcomePage = location.pathname === '/welcome';
 
-  // Скрываем виджет автоматически при переходе, если включен ручной режим
+  // Скрываем виджет автоматически при переходе
   useEffect(() => {
-    if (!isManualMode && !isWelcomePage) {
+    if (!isWelcomePage) {
       setIsOpen(false);
     }
-  }, [location.pathname, isManualMode, isWelcomePage]);
+  }, [location.pathname, isWelcomePage]);
 
   // Состояние для роли Кузи
   const [kuzyaRole, setKuzyaRole] = useState(() => localStorage.getItem('kuzyaRole') || 'family-assistant');
@@ -216,6 +223,50 @@ const AIAssistantWidget = () => {
     }
   };
 
+  // Обработчики перетаскивания
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+
+    const maxX = window.innerWidth - 400;
+    const maxY = window.innerHeight - 100;
+
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      localStorage.setItem('widgetPosition', JSON.stringify(position));
+    }
+  };
+
+  // Эффект для перетаскивания
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, position, dragStart]);
+
   // Не показываем ничего на странице /welcome
   if (isWelcomePage) return null;
 
@@ -276,12 +327,16 @@ const AIAssistantWidget = () => {
       {/* Chat Widget */}
       {isOpen && (
         <div 
-          className={`fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-orange-300 transition-all duration-300 ${
-            isMinimized ? 'w-80 h-16 bottom-6 right-6' : 'w-[95vw] md:w-96 h-[70vh] md:h-[600px] bottom-20 md:bottom-6 right-[2.5vw] md:right-6 max-h-[calc(100vh-180px)]'
-          }`}
+          style={{ left: `${position.x}px`, top: `${position.y}px` }}
+          className={`fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-orange-300 ${
+            isMinimized ? 'w-80 h-16' : 'w-[95vw] md:w-96 h-[70vh] md:h-[600px] max-h-[calc(100vh-180px)]'
+          } ${isDragging ? 'cursor-grabbing' : ''}`}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-t-2xl">
+          <div 
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-t-2xl cursor-grab active:cursor-grabbing select-none"
+            onMouseDown={handleMouseDown}
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
                 {assistantType === 'domovoy' ? (
@@ -313,13 +368,6 @@ const AIAssistantWidget = () => {
                   className="hover:bg-white/20 p-1 rounded"
                 >
                   {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => setIsManualMode(!isManualMode)}
-                  className={`hover:bg-white/20 p-1 rounded ${isManualMode ? 'bg-white/30' : ''}`}
-                  title={isManualMode ? 'Ручной режим: виджет всегда виден' : 'Авто-режим: виджет скрывается'}
-                >
-                  {isManualMode ? <Icon name="Lock" className="w-4 h-4" /> : <Icon name="Unlock" className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
