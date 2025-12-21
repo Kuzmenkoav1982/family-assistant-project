@@ -250,11 +250,8 @@ def handle_calendar_command(conn, command: str, nlu: Dict, family_id: str) -> Di
     """Обработка команд по календарю"""
     
     # Добавить событие
-    if 'добав' in command or 'созда' in command or 'запланир' in command:
-        return build_alice_response(
-            'Добавление событий через Алису будет доступно в следующей версии. Пока используйте приложение.',
-            buttons=['Что в календаре', 'Задачи', 'Отмена']
-        )
+    if 'добав' in command or 'созда' in command or 'запланир' in command or 'запис' in command:
+        return add_calendar_event(conn, command, nlu, family_id)
     
     # Показать события
     else:
@@ -311,6 +308,7 @@ def handle_help_command() -> Dict:
 • Добавлять задачи: "добавь задачу купить молоко"
 • Отмечать задачи: "отметь задачу про молоко"
 • Показывать календарь: "что в календаре на неделю"
+• Добавлять в календарь: "добавь в календарь встречу завтра в 15:00"
 • Список покупок: "что нужно купить"
 • Статистику семьи: "кто лидер по задачам"
 
@@ -545,6 +543,101 @@ def get_calendar_events(conn, family_id: str, command: str) -> Dict:
         text += f"\nИ ещё {len(events) - 5} событий."
     
     return build_alice_response(text.strip(), buttons=['Задачи', 'Покупки', 'Отмена'])
+
+
+def add_calendar_event(conn, command: str, nlu: Dict, family_id: str) -> Dict:
+    """Добавить событие в календарь"""
+    
+    # Паттерны для извлечения названия события
+    patterns = [
+        r'добав[ьи]?\s+в\s+календар[ьея]?\s+(.+)',
+        r'запланир[уой][йи]?\s+(.+)',
+        r'созда[йть]+\s+событие\s+(.+)',
+        r'запис[ьаи]+\s+в\s+календар[ьея]?\s+(.+)',
+        r'добав[ьи]?\s+событие\s+(.+)',
+    ]
+    
+    event_title = None
+    for pattern in patterns:
+        match = re.search(pattern, command, re.IGNORECASE)
+        if match:
+            event_title = match.group(1).strip()
+            break
+    
+    # Если не нашли по паттернам, берём всё после ключевых слов
+    if not event_title:
+        for keyword in ['добавь в календарь', 'запланируй', 'создай событие', 'запиши в календарь', 'добавь событие']:
+            if keyword in command:
+                event_title = command.split(keyword, 1)[1].strip()
+                break
+    
+    if not event_title:
+        return build_alice_response(
+            'Не поняла, какое событие добавить. Скажите, например: "добавь в календарь встречу с врачом"',
+            buttons=['Что в календаре', 'Задачи', 'Отмена']
+        )
+    
+    # Определяем дату события
+    event_date = datetime.now().date()
+    event_time = None
+    
+    # Проверяем ключевые слова для даты
+    if 'завтра' in command:
+        event_date = event_date + timedelta(days=1)
+    elif 'послезавтра' in command:
+        event_date = event_date + timedelta(days=2)
+    elif re.search(r'через\s+(\d+)\s+дн', command):
+        days = int(re.search(r'через\s+(\d+)\s+дн', command).group(1))
+        event_date = event_date + timedelta(days=days)
+    # Иначе событие на сегодня
+    
+    # Пытаемся извлечь время из NLU
+    entities = nlu.get('entities', [])
+    for entity in entities:
+        if entity.get('type') == 'YANDEX.DATETIME':
+            value = entity.get('value', {})
+            if 'hour' in value:
+                hour = value['hour']
+                minute = value.get('minute', 0)
+                event_time = f"{hour:02d}:{minute:02d}"
+    
+    # Если времени нет в NLU, пробуем regex
+    if not event_time:
+        time_match = re.search(r'в\s+(\d{1,2})[:\s]?(\d{2})?', command)
+        if time_match:
+            hour = int(time_match.group(1))
+            minute = int(time_match.group(2)) if time_match.group(2) else 0
+            event_time = f"{hour:02d}:{minute:02d}"
+    
+    # Очищаем название от временных меток
+    for phrase in ['сегодня', 'завтра', 'послезавтра']:
+        event_title = event_title.replace(phrase, '').strip()
+    event_title = re.sub(r'в\s+\d{1,2}[:\s]?\d{0,2}', '', event_title).strip()
+    event_title = re.sub(r'через\s+\d+\s+дн[ея]+', '', event_title).strip()
+    
+    # Добавляем событие в БД
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("""
+            INSERT INTO t_p5815085_family_assistant_pro.calendar_events 
+            (family_id, title, date, time, visibility, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, 'family', NOW(), NOW())
+        """, (family_id, event_title, event_date, event_time))
+        conn.commit()
+        cursor.close()
+        
+        # Формируем ответ
+        date_text = 'сегодня' if event_date == datetime.now().date() else event_date.strftime('%d.%m')
+        time_text = f" в {event_time}" if event_time else ""
+        
+        return build_alice_response(
+            f'Событие "{event_title}" добавлено в календарь на {date_text}{time_text}! 📅',
+            buttons=['Что в календаре', 'Задачи', 'Отмена']
+        )
+    except Exception as e:
+        conn.rollback()
+        cursor.close()
+        return build_alice_response(f'Ошибка добавления: {str(e)}', buttons=['Повторить', 'Отмена'])
 
 
 def get_shopping_list(conn, family_id: str) -> Dict:
