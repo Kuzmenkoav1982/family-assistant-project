@@ -53,6 +53,19 @@ export default function TopBar({
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
+  
+  const getUserName = () => {
+    try {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        return user.name || user.email || 'Пользователь';
+      }
+    } catch (e) {
+      console.error('Error parsing userData:', e);
+    }
+    return 'Пользователь';
+  };
 
   return (
     <div 
@@ -61,7 +74,7 @@ export default function TopBar({
       }`}
     >
       <div className="px-4 py-1.5 flex items-center justify-between max-w-screen-2xl mx-auto">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {onMenuClick && (
             <Button
               variant="ghost"
@@ -73,12 +86,12 @@ export default function TopBar({
               <Icon name="Menu" size={18} />
             </Button>
           )}
-          <img 
-            src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-            alt="Наша семья"
-            className="h-6 w-6 object-contain cursor-pointer"
-            onClick={() => navigate('/')}
-          />
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+            <Icon name="User" size={18} className="text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {getUserName()}
+            </span>
+          </div>
         </div>
 
         <DropdownMenu>

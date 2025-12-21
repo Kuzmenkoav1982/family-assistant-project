@@ -187,48 +187,6 @@ export default function Settings() {
           <div className="lg:col-span-3 space-y-6">
             {activeSection === 'family' && (
               <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Users" size={24} className="text-blue-600" />
-                      Название и логотип семьи
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="family-name">Название семьи</Label>
-                      <Input
-                        id="family-name"
-                        value={familyName}
-                        onChange={(e) => setFamilyName(e.target.value)}
-                        placeholder="Наша семья"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="family-logo">URL логотипа</Label>
-                      <Input
-                        id="family-logo"
-                        value={familyLogo}
-                        onChange={(e) => setFamilyLogo(e.target.value)}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    {familyLogo && (
-                      <div className="flex justify-center">
-                        <img 
-                          src={familyLogo} 
-                          alt="Логотип семьи" 
-                          className="w-32 h-32 object-contain rounded-lg border-2 border-purple-200"
-                        />
-                      </div>
-                    )}
-                    <Button onClick={handleSaveChanges} className="w-full gap-2">
-                      <Icon name="Save" size={16} />
-                      Сохранить изменения
-                    </Button>
-                  </CardContent>
-                </Card>
-
                 <FamilyInviteManager />
                 <AccessControlManager />
               </>
