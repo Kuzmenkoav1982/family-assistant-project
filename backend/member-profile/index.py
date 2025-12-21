@@ -320,20 +320,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 profile = get_profile(member_uuid)
                 print(f"[DEBUG GET] profile result: {profile is not None}")
                 
-                if profile:
-                    return {
-                        'statusCode': 200,
-                        'headers': headers,
-                        'body': json.dumps({'success': True, 'profile': profile}),
-                        'isBase64Encoded': False
-                    }
-                else:
-                    return {
-                        'statusCode': 404,
-                        'headers': headers,
-                        'body': json.dumps({'success': False, 'error': 'Профиль не найден'}),
-                        'isBase64Encoded': False
-                    }
+                # Если профиля нет - возвращаем пустой объект (профиль создастся при первом сохранении)
+                if not profile:
+                    profile = {}
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'profile': profile}),
+                    'isBase64Encoded': False
+                }
             else:
                 # Получить все профили семьи
                 profiles = get_family_profiles(str(family_id))
