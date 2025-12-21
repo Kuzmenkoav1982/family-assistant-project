@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
+import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
 import { calculateMemberWorkload, getWorkloadDescription } from '@/utils/memberWorkload';
 import { loadWidgetSettings } from '@/types/widgetSettings';
 import type { FamilyMember } from '@/types/family.types';
@@ -276,6 +277,11 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events =
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex-1" />
+        <WidgetSettingsDialog />
+      </div>
+      
       <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
         <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
           <div className="flex items-start gap-3">
