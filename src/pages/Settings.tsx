@@ -279,17 +279,25 @@ export default function Settings() {
                       <Icon name="Paintbrush" size={18} />
                       Тема оформления
                     </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {themes.map((theme) => (
-                        <Button
+                        <button
                           key={theme.id}
-                          variant={currentTheme === theme.id ? 'default' : 'outline'}
-                          className="h-auto flex-col gap-2 p-4"
                           onClick={() => handleThemeChange(theme.id)}
+                          className={`p-4 rounded-xl border-2 transition-all text-left ${
+                            currentTheme === theme.id
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                          }`}
                         >
-                          <div className={`w-full h-12 rounded bg-gradient-to-r ${theme.gradient}`}></div>
-                          <span>{theme.name}</span>
-                        </Button>
+                          <div className={`w-full h-20 rounded-lg bg-gradient-to-r ${theme.gradient} mb-3 shadow-sm`} />
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{theme.name}</span>
+                            {currentTheme === theme.id && (
+                              <Icon name="Check" className="text-blue-600" size={20} />
+                            )}
+                          </div>
+                        </button>
                       ))}
                     </div>
                   </div>

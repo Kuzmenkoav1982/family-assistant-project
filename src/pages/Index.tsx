@@ -275,7 +275,7 @@ export default function Index({ onLogout }: IndexProps) {
     return false;
   });
 
-  const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(true);
+  const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(false);
   const [autoHideLeftMenu, setAutoHideLeftMenu] = useState(() => {
     return localStorage.getItem('autoHideLeftMenu') === 'true';
   });
