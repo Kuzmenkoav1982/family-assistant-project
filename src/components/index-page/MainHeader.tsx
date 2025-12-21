@@ -1,13 +1,38 @@
 interface MainHeaderProps {
   activeSection: string;
-  getSectionTitle: (section: string) => string;
-  themeClasses: {
+  getSectionTitle?: (section: string) => string;
+  themeClasses?: {
     headingFont: string;
     primaryGradient: string;
   };
 }
 
-export const MainHeader = ({ activeSection, getSectionTitle, themeClasses }: MainHeaderProps) => {
+const defaultGetSectionTitle = (section: string) => {
+  const titles: Record<string, string> = {
+    tasks: 'Задачи',
+    family: 'Семья',
+    goals: 'Цели',
+    cohesion: 'Сплочённость',
+    children: 'Дети',
+    values: 'Ценности',
+    traditions: 'Традиции',
+    blog: 'Блог',
+    album: 'Альбом',
+    tree: 'Древо',
+    chat: 'Чат',
+    rules: 'Правила',
+    complaints: 'Конфликты',
+    about: 'О проекте',
+    shopping: 'Покупки',
+  };
+  return titles[section] || 'Главная';
+};
+
+export const MainHeader = ({ 
+  activeSection, 
+  getSectionTitle = defaultGetSectionTitle, 
+  themeClasses = { headingFont: 'font-sans', primaryGradient: 'bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600' }
+}: MainHeaderProps) => {
   return (
     <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
         backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
