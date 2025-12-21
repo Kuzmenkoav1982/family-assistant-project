@@ -1,0 +1,72 @@
+{
+  "tests": [
+    {
+      "name": "Get child events - empty list",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "get_child_events",
+        "familyId": "test-family-id",
+        "childId": "test-child-id"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "events": []
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Add child event - success",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "add_child_event",
+        "familyId": "test-family-id",
+        "childId": "test-child-id",
+        "event": {
+          "title": "Визит к врачу",
+          "description": "Плановый осмотр",
+          "date": "2025-01-15",
+          "time": "14:00",
+          "category": "health",
+          "reminder_enabled": true
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Add event - missing title",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "add_child_event",
+        "familyId": "test-family-id",
+        "childId": "test-child-id",
+        "event": {
+          "date": "2025-01-15"
+        }
+      },
+      "expectedStatus": 500,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Invalid action",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "invalid_action"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Unknown action: invalid_action"
+      }
+    }
+  ]
+}
