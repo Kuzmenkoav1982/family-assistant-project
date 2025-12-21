@@ -62,7 +62,7 @@ export default function AssistantTypeSelectorDialog({ open, onOpenChange }: Prop
             }`}
           >
             <div className="flex items-start gap-4">
-              <div className="text-5xl">🤖</div>
+              <img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-16 h-16 rounded-full" />
               <div className="flex-1">
                 <h3 className="text-xl font-bold mb-2">Нейтральный AI-ассистент</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
@@ -92,7 +92,7 @@ export default function AssistantTypeSelectorDialog({ open, onOpenChange }: Prop
             }`}
           >
             <div className="flex items-start gap-4">
-              <div className="text-5xl">🏠</div>
+              <img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-16 h-16 rounded-full" />
               <div className="flex-1">
                 <h3 className="text-xl font-bold mb-2">Домовой - хранитель очага</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-3">
