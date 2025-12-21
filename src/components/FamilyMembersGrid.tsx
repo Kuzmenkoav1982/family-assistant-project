@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
@@ -118,40 +119,70 @@ const MemberCard = ({
                 </div>
               )}
               
-              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
-                {widgetSettings.showActiveTasks && (
-                  <div className="text-center" title="Активных задач">
-                    <div className="flex items-center justify-center gap-1">
-                      <Icon name="ListTodo" size={14} className="text-blue-500" />
-                      <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
-                    </div>
-                  </div>
-                )}
-                {widgetSettings.showCompletedToday && (
-                  <div className="text-center" title="Завершено сегодня">
-                    <div className="flex items-center justify-center gap-1">
-                      <Icon name="CheckCircle2" size={14} className="text-green-500" />
-                      <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
-                    </div>
-                  </div>
-                )}
-                {widgetSettings.showTodayEvents && (
-                  <div className="text-center" title="События на сегодня">
-                    <div className="flex items-center justify-center gap-1">
-                      <Icon name="Calendar" size={14} className="text-purple-500" />
-                      <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
-                    </div>
-                  </div>
-                )}
-                {widgetSettings.showWeekAchievements && (
-                  <div className="text-center" title="Достижений за неделю">
-                    <div className="flex items-center justify-center gap-1">
-                      <Icon name="Trophy" size={14} className="text-yellow-500" />
-                      <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <TooltipProvider>
+                <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
+                  {widgetSettings.showActiveTasks && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center cursor-help">
+                          <div className="flex items-center justify-center gap-1">
+                            <Icon name="ListTodo" size={14} className="text-blue-500" />
+                            <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>📝 Активных задач</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {widgetSettings.showCompletedToday && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center cursor-help">
+                          <div className="flex items-center justify-center gap-1">
+                            <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                            <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>✅ Завершено сегодня</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {widgetSettings.showTodayEvents && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center cursor-help">
+                          <div className="flex items-center justify-center gap-1">
+                            <Icon name="Calendar" size={14} className="text-purple-500" />
+                            <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>📅 События на сегодня</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {widgetSettings.showWeekAchievements && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="text-center cursor-help">
+                          <div className="flex items-center justify-center gap-1">
+                            <Icon name="Trophy" size={14} className="text-yellow-500" />
+                            <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>🏆 Достижений за неделю</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </TooltipProvider>
               
               {widgetSettings.showQuickActions && onAssignTask && (
                 <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2">

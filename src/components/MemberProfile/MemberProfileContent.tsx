@@ -184,24 +184,7 @@ export function MemberProfileContent({
               )}
             </div>
 
-            {member.achievements && member.achievements.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Icon name="Award" className="text-purple-600" />
-                  Достижения
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {member.achievements.map((achievement, index) => (
-                    <Card key={index} className="bg-gradient-to-br from-yellow-50 to-orange-50">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-3xl mb-2">🏆</div>
-                        <p className="font-medium text-sm">{achievement}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {isOwner && (
               <>
