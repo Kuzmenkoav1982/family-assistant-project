@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
+
 import Icon from '@/components/ui/icon';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import type { AssistantType } from '@/contexts/AIAssistantContext';
@@ -65,11 +65,11 @@ export default function AssistantTypeSelectorDialog({
 
         <div className="space-y-4 py-4">
           {/* Нейтральный AI */}
-          <Card
-            className={`p-6 cursor-pointer transition-all ${
+          <div
+            className={`p-6 cursor-pointer transition-all rounded-lg border-2 ${
               selectedType === 'neutral'
                 ? 'border-blue-500 border-2 bg-blue-50'
-                : 'hover:border-gray-300 hover:shadow-md'
+                : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
             }`}
             onClick={() => setSelectedType('neutral')}
           >
@@ -105,14 +105,14 @@ export default function AssistantTypeSelectorDialog({
                 )}
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Домовой */}
-          <Card
-            className={`p-6 cursor-pointer transition-all ${
+          <div
+            className={`p-6 cursor-pointer transition-all rounded-lg border-2 ${
               selectedType === 'domovoy'
                 ? 'border-amber-500 border-2 bg-amber-50'
-                : 'hover:border-gray-300 hover:shadow-md'
+                : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
             }`}
             onClick={() => setSelectedType('domovoy')}
           >
@@ -152,7 +152,7 @@ export default function AssistantTypeSelectorDialog({
                 )}
               </div>
             </div>
-          </Card>
+          </div>
 
           <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
             <Icon name="Info" size={14} />
