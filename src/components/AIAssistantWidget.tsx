@@ -76,6 +76,13 @@ const AIAssistantWidget = () => {
 
   // Сброс позиции виджета
   const handleResetPosition = () => {
+    if (window.innerWidth < 768) {
+      toast({
+        title: 'ℹ️ Недоступно на мобильных',
+        description: 'Перетаскивание работает только на компьютере'
+      });
+      return;
+    }
     const defaultPosition = { x: window.innerWidth - 420, y: 100 };
     setPosition(defaultPosition);
     localStorage.setItem('widgetPosition', JSON.stringify(defaultPosition));
@@ -338,15 +345,22 @@ const AIAssistantWidget = () => {
       {/* Chat Widget */}
       {isOpen && (
         <div 
-          style={{ left: `${position.x}px`, top: `${position.y}px` }}
-          className={`fixed z-50 bg-white rounded-2xl shadow-2xl border-2 border-orange-300 ${
-            isMinimized ? 'w-80 h-16' : 'w-[95vw] md:w-96 h-[70vh] md:h-[600px] max-h-[calc(100vh-180px)]'
-          } ${isDragging ? 'cursor-grabbing' : ''}`}
+          style={window.innerWidth >= 768 ? { left: `${position.x}px`, top: `${position.y}px` } : {}}
+          className={`fixed z-50 bg-white shadow-2xl border-2 border-orange-300 flex flex-col ${
+            isMinimized 
+              ? 'w-80 h-16 bottom-6 right-6 rounded-2xl' 
+              : 'w-full h-full md:w-96 md:h-[600px] md:rounded-2xl ' +
+                'top-0 left-0 md:top-auto md:left-auto md:max-h-[calc(100vh-100px)]'
+          }`}
         >
           {/* Header */}
           <div 
-            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-t-2xl cursor-grab active:cursor-grabbing select-none"
-            onMouseDown={handleMouseDown}
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 md:rounded-t-2xl md:cursor-grab md:active:cursor-grabbing select-none"
+            onMouseDown={(e) => {
+              if (window.innerWidth >= 768) {
+                handleMouseDown(e);
+              }
+            }}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
@@ -514,7 +528,7 @@ const AIAssistantWidget = () => {
           {!isMinimized && (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50/30 to-white" style={{ maxHeight: 'calc(100% - 200px)' }}>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50/30 to-white">
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
@@ -627,7 +641,7 @@ const AIAssistantWidget = () => {
               </div>
 
               {/* Input */}
-              <div className="p-3 bg-white border-t-2 border-orange-200 rounded-b-2xl flex-shrink-0">
+              <div className="p-3 bg-white border-t-2 border-orange-200 md:rounded-b-2xl flex-shrink-0">
                 <div className="flex gap-2">
                   <Textarea
                     value={input}
