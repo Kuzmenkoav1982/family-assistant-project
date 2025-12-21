@@ -63,7 +63,11 @@ export default function AssistantSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {assistantType === 'domovoy' ? '🏠' : '🤖'}
+            {assistantType === 'domovoy' ? (
+              <img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-8 h-8 rounded-full" />
+            ) : (
+              <img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-8 h-8 rounded-full" />
+            )}
             Мой AI-ассистент
           </CardTitle>
           <CardDescription>
@@ -76,7 +80,11 @@ export default function AssistantSettings() {
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="font-semibold text-lg flex items-center gap-2">
-                  {assistantType === 'domovoy' ? '🏠 Домовой' : '🤖 Нейтральный AI'}
+                  {assistantType === 'domovoy' ? (
+                    <><img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-6 h-6 rounded-full" /> Домовой</>
+                  ) : (
+                    <><img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-6 h-6 rounded-full" /> Нейтральный AI</>
+                  )}
                   {assistantType === 'domovoy' && assistantLevel > 1 && (
                     <Badge className="bg-amber-500">
                       Уровень {assistantLevel}

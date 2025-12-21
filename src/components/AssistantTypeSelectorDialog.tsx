@@ -74,9 +74,7 @@ export default function AssistantTypeSelectorDialog({
             onClick={() => setSelectedType('neutral')}
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
-                🤖
-              </div>
+              <img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-12 h-12 rounded-full flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
                   Нейтральный AI-ассистент
@@ -117,9 +115,7 @@ export default function AssistantTypeSelectorDialog({
             onClick={() => setSelectedType('domovoy')}
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-600 to-orange-500 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
-                🏠
-              </div>
+              <img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-12 h-12 rounded-full flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
                   Домовой - хранитель очага
