@@ -100,9 +100,9 @@ export default function Index({ onLogout }: IndexProps) {
   const [showAssistantSelector, setShowAssistantSelector] = useState(false);
   
   const authToken = localStorage.getItem('authToken');
-  const authUser = localStorage.getItem('user');
+  const userData = localStorage.getItem('userData');
   console.log('Index: authToken =', authToken ? 'EXISTS' : 'NULL');
-  console.log('Index: authUser =', authUser);
+  console.log('Index: userData =', userData ? 'EXISTS' : 'NULL');
   console.log('Index: familyMembersRaw =', familyMembersRaw);
   console.log('Index: membersLoading =', membersLoading);
 
@@ -485,7 +485,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const activeSection = searchParams.get('section') || 'overview';
 
-  const shouldShowWelcome = !authToken || !authUser;
+  const shouldShowWelcome = !authToken;
 
   if (shouldShowWelcome) {
     return (
