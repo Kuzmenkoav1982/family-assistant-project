@@ -32,6 +32,7 @@ import { ShoppingWidget } from '@/components/widgets/ShoppingWidget';
 import { VotingWidget } from '@/components/widgets/VotingWidget';
 import { NutritionWidget } from '@/components/widgets/NutritionWidget';
 import { WeeklyMenuWidget } from '@/components/widgets/WeeklyMenuWidget';
+import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
 import { getWeekDays } from '@/data/mockData';
 
 interface MainContentGridProps {

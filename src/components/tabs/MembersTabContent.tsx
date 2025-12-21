@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icon';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { ChildDreamsDialog } from '@/components/ChildDreamsDialog';
 import MemberPermissions from '@/components/MemberPermissions';
+import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyMember } from '@/types/family.types';
@@ -153,6 +154,7 @@ export function MembersTabContent({
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <h3 className="text-xl font-semibold">Все члены семьи</h3>
         <div className="flex gap-2">
+          <WidgetSettingsDialog />
           <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
             <DialogTrigger asChild>
               <Button 
