@@ -71,6 +71,8 @@ import { WelcomeScreen } from '@/components/index-page/WelcomeScreen';
 import { IndexLayout } from '@/components/index-page/IndexLayout';
 import { IndexDialogs } from '@/components/index-page/IndexDialogs';
 import { FamilyHeaderBanner } from '@/components/index-page/FamilyHeaderBanner';
+import { MainHeader } from '@/components/index-page/MainHeader';
+import { MainContentGrid } from '@/components/index-page/MainContentGrid';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import AIAssistantDialog from '@/components/AIAssistantDialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
@@ -1407,116 +1409,148 @@ export default function Index({ onLogout }: IndexProps) {
           </DialogContent>
         </Dialog>
 
-        <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
-            backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/85 to-white/80 backdrop-blur-[1px]"></div>
-          <div className="relative">
-          <div className="flex items-center justify-center gap-4 mb-3">
-            <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mt-2 animate-fade-in`}>
-              {getSectionTitle(activeSection)}
-            </h1>
-          </div>
-          
-          <p className="text-lg lg:text-xl text-gray-700 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            {activeSection === 'tasks' && 'Управление задачами семьи'}
-            {activeSection === 'family' && 'Просмотр и редактирование профилей всех членов семьи'}
-            {activeSection === 'goals' && 'Долгосрочное планирование и контроль целей'}
-            {activeSection === 'cohesion' && 'Анализ сплочённости и рейтинг семьи'}
-            {activeSection === 'children' && 'Развитие и достижения детей'}
-            {activeSection === 'values' && 'Семейные ценности и принципы'}
-            {activeSection === 'traditions' && 'Традиции и ритуалы'}
-            {activeSection === 'blog' && 'Семейный блог и истории'}
-            {activeSection === 'album' && 'Фотоальбом семьи'}
-            {activeSection === 'tree' && 'Генеалогическое древо'}
-            {activeSection === 'chat' && 'Семейный чат'}
-            {activeSection === 'rules' && 'Правила и договоренности'}
-            {activeSection === 'complaints' && 'Разрешение семейных конфликтов'}
-            {activeSection === 'about' && 'Миссия проекта'}
-            {activeSection === 'shopping' && 'Список покупок семьи'}
-          </p>
-          </div>
-        </header>
+        <MainHeader 
+          activeSection={activeSection}
+          getSectionTitle={getSectionTitle}
+          themeClasses={themeClasses}
+        />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
+        <MainContentGrid
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          totalPoints={totalPoints}
+          avgWorkload={avgWorkload}
+          completionRate={completionRate}
+          familyMembers={familyMembers}
+          setFamilyMembers={setFamilyMembers}
+          tasks={tasks}
+          setTasks={() => console.warn('setTasks deprecated, tasks managed by useTasks hook')}
+          createTask={createTask}
+          updateTask={updateTask}
+          deleteTask={deleteTask}
+          traditions={traditions}
+          familyValues={familyValues}
+          blogPosts={blogPosts}
+          importantDates={importantDates}
+          childrenProfiles={childrenProfiles}
+          developmentPlans={developmentPlans}
+          chatMessages={chatMessages}
+          setChatMessages={setChatMessages}
+          familyAlbum={familyAlbum}
+          setFamilyAlbum={setFamilyAlbum}
+          familyNeeds={familyNeeds}
+          setFamilyNeeds={setFamilyNeeds}
+          familyTree={familyTree}
+          setFamilyTree={setFamilyTree}
+          selectedTreeMember={selectedTreeMember}
+          setSelectedTreeMember={setSelectedTreeMember}
+          currentUserId={currentUserId}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          toggleTask={toggleTask}
+          addPoints={addPoints}
+          getWorkloadColor={getWorkloadColor}
+          getMemberById={getMemberById}
+          getAISuggestedMeals={getAISuggestedMeals}
+          exportStatsToCSV={exportStatsToCSV}
+          updateMember={updateMember}
+          deleteMember={deleteMember}
+          familyGoals={familyGoals}
+          calendarEvents={calendarEvents}
+          calendarFilter={calendarFilter}
+          setCalendarFilter={setCalendarFilter}
+          setShowWidgetSettings={setShowWidgetSettings}
+          isWidgetEnabled={isWidgetEnabled}
+        />
 
-              <TabsContent value="cohesion">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-[5px]">
-                    <Card key="stat-points" className="animate-fade-in hover:shadow-lg transition-all border-l-4 border-l-orange-500" style={{ animationDelay: '0.1s' }}>
-                      <CardHeader>
-                        <div className="flex flex-row items-center justify-between pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Всего баллов</CardTitle>
-                          <Icon name="Award" className="text-orange-500" size={20} />
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-orange-600">{totalPoints}</div>
-                      </CardContent>
-                    </Card>
+      <Dialog open={educationChild !== null} onOpenChange={(open) => !open && setEducationChild(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Образовательный центр</DialogTitle>
+          </DialogHeader>
+          {educationChild && (
+            <ChildEducation 
+              child={educationChild} 
+              onComplete={() => setEducationChild(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
-                    <Card key="stat-workload" className="animate-fade-in hover:shadow-lg transition-all border-l-4 border-l-pink-500" style={{ animationDelay: '0.2s' }}>
-                      <CardHeader>
-                        <div className="flex flex-row items-center justify-between pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Средняя загрузка</CardTitle>
-                          <Icon name="TrendingUp" className="text-pink-500" size={20} />
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-pink-600">{avgWorkload}%</div>
-                      </CardContent>
-                    </Card>
+      <BottomBar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        autoHide={autoHideBottomBar}
+        onAutoHideChange={handleAutoHideBottomBarChange}
+        isVisible={isBottomBarVisible}
+        onVisibilityChange={setIsBottomBarVisible}
+        availableSections={availableSections}
+        selectedSections={bottomBarSections}
+        onSectionsChange={handleBottomBarSectionsChange}
+        onKuzyaClick={() => setShowKuzyaDialog(true)}
+      />
 
-                    <Card key="stat-tasks" className="animate-fade-in hover:shadow-lg transition-all border-l-4 border-l-purple-500" style={{ animationDelay: '0.3s' }}>
-                      <CardHeader>
-                        <div className="flex flex-row items-center justify-between pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Задачи выполнены</CardTitle>
-                          <Icon name="CheckCircle2" className="text-purple-500" size={20} />
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-purple-600">{completedTasks}/{totalTasks}</div>
-                      </CardContent>
-                    </Card>
+      <PanelSettings
+        title="Настройки верхней панели"
+        open={showTopPanelSettings}
+        onOpenChange={setShowTopPanelSettings}
+        autoHide={autoHideTopBar}
+        onAutoHideChange={(value) => {
+          setAutoHideTopBar(value);
+          localStorage.setItem('autoHideTopBar', String(value));
+        }}
+        availableSections={availableTopPanelSections}
+        selectedSections={topPanelSections}
+        onSectionsChange={handleTopPanelSectionsChange}
+        showLanguageSettings={true}
+        currentLanguage={currentLanguage}
+        languageOptions={languageOptions}
+        onLanguageChange={(code) => {
+          setCurrentLanguage(code as LanguageCode);
+          localStorage.setItem('familyOrganizerLanguage', code);
+          setShowLanguageSelector(false);
+        }}
+        showAppearanceSettings={true}
+        appearanceMode={appearanceMode}
+        onAppearanceModeChange={(mode) => {
+          setAppearanceMode(mode);
+          localStorage.setItem('appearanceMode', mode);
+        }}
+      />
 
-                    <Card key="stat-members" className="animate-fade-in hover:shadow-lg transition-all border-l-4 border-l-blue-500" style={{ animationDelay: '0.4s' }}>
-                      <CardHeader>
-                        <div className="flex flex-row items-center justify-between pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Членов семьи</CardTitle>
-                          <Icon name="Users" className="text-blue-500" size={20} />
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-blue-600">{familyMembers.length}</div>
-                      </CardContent>
-                    </Card>
-                  </div>
+      <PanelSettings
+        title="Настройки левой панели"
+        open={showLeftPanelSettings}
+        onOpenChange={setShowLeftPanelSettings}
+        autoHide={autoHideLeftMenu}
+        onAutoHideChange={(value) => {
+          setAutoHideLeftMenu(value);
+          localStorage.setItem('autoHideLeftMenu', String(value));
+        }}
+        availableSections={availableSections}
+        selectedSections={leftPanelSections}
+        onSectionsChange={handleLeftPanelSectionsChange}
+      />
 
-                  <FamilyCohesionChart 
-                    familyMembers={familyMembers}
-                    tasks={tasks}
-                    chatMessagesCount={chatMessages.length}
-                    albumPhotosCount={familyAlbum.length}
-                    lastActivityDays={0}
-                    totalFamilies={1250}
-                  />
-                </div>
-              </TabsContent>
 
-              <TabsContent value="tasks">
-                <Card className="border-2 border-blue-200 bg-blue-50/50 mb-4">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                        <Icon name="CheckSquare" size={24} className="text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-2">Как работают задачи?</h3>
-                        <div className="space-y-2 text-sm text-muted-foreground">
+      {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
+      
+      <AIAssistantDialog 
+        open={showKuzyaDialog}
+        onOpenChange={setShowKuzyaDialog}
+      />
+      
+      <WidgetSettings
+        isOpen={showWidgetSettings}
+        onClose={() => setShowWidgetSettings(false)}
+        onSave={handleWidgetSettingsSave}
+      />
+      
+      <Footer />
+      </IndexLayout>
+    </>
+  );
+}
                           <p><strong>Создавайте задачи</strong> для любых дел: уборка, покупки, домашние задания.</p>
                           <p><strong>Назначайте исполнителей</strong> из членов семьи и следите за прогрессом.</p>
                           <p><strong>Зарабатывайте баллы</strong> за выполнение — мотивация для всей семьи!</p>
