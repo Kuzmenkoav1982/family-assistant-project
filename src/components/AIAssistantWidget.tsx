@@ -290,6 +290,7 @@ const AIAssistantWidget = () => {
   const [hasMoved, setHasMoved] = useState(false);
 
   const handleButtonTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     const touch = e.touches[0];
     setIsButtonDragging(true);
     setHasMoved(false);
@@ -297,6 +298,9 @@ const AIAssistantWidget = () => {
       x: touch.clientX - buttonPosition.x,
       y: touch.clientY - buttonPosition.y
     });
+    // Блокируем выделение текста во всём body
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
   };
 
   const handleButtonTouchMove = (e: React.TouchEvent) => {
@@ -321,6 +325,9 @@ const AIAssistantWidget = () => {
     if (isButtonDragging) {
       setIsButtonDragging(false);
       localStorage.setItem('buttonPosition', JSON.stringify(buttonPosition));
+      // Возвращаем возможность выделения текста
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
     }
   };
 
