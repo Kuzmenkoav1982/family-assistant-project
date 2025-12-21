@@ -74,6 +74,17 @@ const AIAssistantWidget = () => {
     });
   };
 
+  // Сброс позиции виджета
+  const handleResetPosition = () => {
+    const defaultPosition = { x: window.innerWidth - 420, y: 100 };
+    setPosition(defaultPosition);
+    localStorage.setItem('widgetPosition', JSON.stringify(defaultPosition));
+    toast({
+      title: '📍 Позиция сброшена',
+      description: 'Виджет вернулся на место по умолчанию'
+    });
+  };
+
   // Информация о ролях
   const getRoleInfo = (role: string) => {
     const roles: Record<string, { name: string; icon: string; description: string }> = {
@@ -484,6 +495,17 @@ const AIAssistantWidget = () => {
                 <div>
                   <div className="text-sm font-semibold">Астрологические прогнозы Домового</div>
                   <div className="text-xs opacity-80">Гороскопы и прогнозы</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={handleResetPosition}
+                className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
+              >
+                <span className="text-lg">📍</span>
+                <div>
+                  <div className="text-sm font-semibold">Сбросить позицию</div>
+                  <div className="text-xs opacity-80">Вернуть в угол экрана</div>
                 </div>
               </button>
             </div>
