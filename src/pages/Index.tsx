@@ -3132,7 +3132,6 @@ export default function Index({ onLogout }: IndexProps) {
 
 
       {chamomileEnabled && <ClickChamomile enabled={chamomileEnabled} soundEnabled={soundEnabled} />}
-      </IndexLayout>
       
       <AIAssistantDialog 
         open={showKuzyaDialog}
@@ -3146,6 +3145,7 @@ export default function Index({ onLogout }: IndexProps) {
       />
       
       <Footer />
+      </IndexLayout>
     </>
   );
 }
