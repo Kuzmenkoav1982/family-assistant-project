@@ -2484,3 +2484,20 @@ export const initialShoppingList: ShoppingItem[] = [
     addedAt: '2024-11-22T11:00:00Z'
   }
 ];
+
+export function getWeekDays() {
+  const days = [];
+  const today = new Date();
+  const currentDay = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday.getTime() + i * 24 * 60 * 60 * 1000);
+    days.push({
+      day: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'][i],
+      date: date,
+    });
+  }
+  return days;
+}
