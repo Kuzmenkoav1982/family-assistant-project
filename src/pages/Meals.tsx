@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { MealDialog } from '@/components/meals/MealDialog';
-import { DayColumn } from '@/components/meals/DayColumn';
+import { MealsHeader } from '@/components/meals/MealsHeader';
+import { MealsDayView } from '@/components/meals/MealsDayView';
+import { MealsWeekView } from '@/components/meals/MealsWeekView';
 
 const STORAGE_KEY = 'family_meal_plan';
 
@@ -51,6 +49,7 @@ export default function Meals() {
   const [editingMeal, setEditingMeal] = useState<MealPlan | null>(null);
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
 
   const [newMeal, setNewMeal] = useState({
     day: 'monday',
@@ -180,321 +179,102 @@ export default function Meals() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <Button onClick={() => navigate('/')} variant="outline">
-            <Icon name="ArrowLeft" className="mr-2" size={16} />
-            Назад
-          </Button>
-          <div className="flex gap-2">
-            <Badge variant="outline" className="bg-white">
-              <Icon name="UtensilsCrossed" size={14} className="mr-1" />
-              {selectedAuthor === 'all' 
-                ? `Блюд на неделю: ${mealPlans.length}`
-                : `Блюд автора: ${getFilteredMealsCount()}`
-              }
-            </Badge>
-          </div>
-        </div>
+        <MealsHeader
+          onNavigateBack={() => navigate('/')}
+          selectedAuthor={selectedAuthor}
+          onAuthorChange={setSelectedAuthor}
+          totalMeals={mealPlans.length}
+          filteredMealsCount={getFilteredMealsCount()}
+          uniqueAuthors={getUniqueAuthors()}
+          isInstructionOpen={isInstructionOpen}
+          onInstructionToggle={setIsInstructionOpen}
+        />
 
-        {/* Инструкция */}
-        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-          <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
-            <div className="flex items-start gap-3">
-              <Icon name="Info" className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
-                  <h3 className="font-semibold text-orange-900 text-lg">
-                    Как планировать питание семьи
-                  </h3>
-                  <Icon 
-                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    className="h-5 w-5 text-orange-600 transition-transform group-hover:scale-110" 
-                  />
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="mt-3 space-y-3">
-                  <AlertDescription className="text-orange-800">
-                    <div className="space-y-4">
-                      <div>
-                        <p className="font-medium mb-2">🍽️ Для чего нужен раздел Питание?</p>
-                        <p className="text-sm">
-                          Раздел помогает планировать меню на неделю для всей семьи. Это экономит время на решение "что приготовить", 
-                          упрощает покупки продуктов и помогает питаться разнообразно и сбалансированно.
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium mb-2">✨ Возможности раздела</p>
-                        <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li><strong>Недельное меню:</strong> Планируйте завтрак, обед и ужин на каждый день</li>
-                          <li><strong>Эмодзи блюд:</strong> Визуально отмечайте тип блюда для быстрого узнавания</li>
-                          <li><strong>Описание:</strong> Добавляйте заметки об ингредиентах или способе приготовления</li>
-                          <li><strong>Фильтры:</strong> Просматривайте меню по дням недели или по авторам</li>
-                          <li><strong>Совместное планирование:</strong> Все члены семьи могут добавлять блюда</li>
-                          <li><strong>История авторов:</strong> Видите кто что предложил приготовить</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <p className="font-medium mb-2">📝 Как добавить блюдо?</p>
-                        <ol className="text-sm space-y-1 list-decimal list-inside">
-                          <li>Нажмите кнопку <strong>"+ Добавить блюдо"</strong></li>
-                          <li>Выберите день недели и прием пищи (завтрак/обед/ужин)</li>
-                          <li>Введите название блюда</li>
-                          <li>Опционально добавьте описание и эмодзи</li>
-                          <li>Нажмите "Добавить" — блюдо появится в расписании</li>
-                        </ol>
-                      </div>
-
-                      <div>
-                        <p className="font-medium mb-2">🎯 Как эффективно использовать?</p>
-                        <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li><strong>Планируйте заранее:</strong> Составьте меню в выходные на всю неделю</li>
-                          <li><strong>Чередуйте блюда:</strong> Избегайте повторов — используйте разнообразные рецепты</li>
-                          <li><strong>Учитывайте предпочтения:</strong> Спросите у семьи что они хотели бы съесть</li>
-                          <li><strong>Связка с покупками:</strong> На основе меню составляйте список в разделе "Покупки"</li>
-                          <li><strong>Сохраняйте идеи:</strong> Записывайте понравившиеся блюда для будущих недель</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <p className="font-medium mb-2">🔄 Управление меню</p>
-                        <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li>Кликните на блюдо чтобы отредактировать детали</li>
-                          <li>Используйте фильтр по автору чтобы увидеть чьи предложения</li>
-                          <li>Удаляйте блюда кнопкой корзины если планы изменились</li>
-                          <li>Меню сохраняется автоматически в браузере</li>
-                        </ul>
-                      </div>
-
-                      <div className="pt-2 border-t border-orange-200">
-                        <p className="text-sm italic">
-                          💡 <strong>Совет:</strong> Вовлекайте детей в планирование меню — пусть каждый выберет одно любимое блюдо на неделю. 
-                          Это мотивирует их есть с аппетитом и учит планированию!
-                        </p>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </CollapsibleContent>
-              </div>
-            </div>
-          </Alert>
-        </Collapsible>
-
-        {mealPlans.length > 0 && (
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex gap-3 items-center">
-                <Icon name="Info" size={20} className="text-blue-600 flex-shrink-0" />
-                <div className="text-sm text-blue-900">
-                  <p><strong>Как пользоваться:</strong> Нажмите оранжевую кнопку "Добавить блюдо" справа вверху, или используйте кнопку "+ Добавить" внутри нужного приёма пищи для быстрого добавления.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Icon name="UtensilsCrossed" size={28} />
-                Меню на неделю
-              </CardTitle>
-              <Button 
-                className="bg-orange-600 hover:bg-orange-700 w-full md:w-auto text-lg py-6 md:py-2" 
-                onClick={() => {
-                  setEditingMeal(null);
-                  setNewMeal({
-                    day: 'monday',
-                    mealType: 'breakfast',
-                    dishName: '',
-                    description: '',
-                    emoji: '🍳'
-                  });
-                  setIsDialogOpen(true);
-                }}
+        <Card className="bg-white/80 backdrop-blur">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Calendar" size={24} />
+              Режим просмотра
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'week' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('week')}
               >
-                <Icon name="Plus" size={20} className="mr-2" />
-                Добавить блюдо
+                <Icon name="CalendarDays" size={16} className="mr-2" />
+                Неделя
+              </Button>
+              <Button
+                variant={viewMode === 'day' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('day')}
+              >
+                <Icon name="Calendar" size={16} className="mr-2" />
+                День
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {mealPlans.length > 0 && (
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="text-sm font-medium mb-2 block">Фильтр по автору</label>
-                  <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Все авторы</SelectItem>
-                      {getUniqueAuthors().map(author => (
-                        <SelectItem key={author.id} value={author.id}>
-                          {author.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                  <label className="text-sm font-medium mb-2 block">Выбрать день</label>
-                  <Select value={selectedDay} onValueChange={setSelectedDay}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DAYS_OF_WEEK.map(day => (
-                        <SelectItem key={day.value} value={day.value}>
-                          {day.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {mealPlans.length === 0 ? (
-              <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-dashed border-orange-300">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="text-6xl">🍽️</div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Меню пусто</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Начните планировать меню для вашей семьи! Добавьте первое блюдо.
-                    </p>
-                    <Button 
-                      className="bg-orange-600 hover:bg-orange-700"
-                      onClick={() => {
-                        setEditingMeal(null);
-                        setNewMeal({
-                          day: 'monday',
-                          mealType: 'breakfast',
-                          dishName: '',
-                          description: '',
-                          emoji: '🍳'
-                        });
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      <Icon name="Plus" size={20} className="mr-2" />
-                      Добавить первое блюдо
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="hidden md:grid md:grid-cols-7 gap-3 auto-rows-fr">
-                {DAYS_OF_WEEK.map(day => (
-                  <DayColumn
-                    key={day.value}
-                    dayValue={day.value}
-                    dayLabel={day.label}
-                    getMealsByType={getMealsByType}
-                    onQuickAdd={handleQuickAddMeal}
-                    onEdit={handleEditMeal}
-                    onDelete={deleteMeal}
-                  />
-                ))}
-              </div>
-            )}
-
-            {mealPlans.length > 0 && (
-              <Card className="md:hidden bg-gradient-to-br from-orange-50 to-amber-50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-center">{selectedDayLabel}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {MEAL_TYPES.map(mealType => {
-                    const meals = getMealsByType(selectedDay, mealType.value as MealPlan['mealType']);
-                    return (
-                      <div key={mealType.value} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold flex items-center gap-1">
-                            <span>{mealType.emoji}</span>
-                            <span>{mealType.label.replace(mealType.emoji, '').trim()}</span>
-                          </h3>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-xs"
-                            onClick={() => handleQuickAddMeal(selectedDay, mealType.value as MealPlan['mealType'])}
-                          >
-                            <Icon name="Plus" size={12} className="mr-1" />
-                            Добавить
-                          </Button>
-                        </div>
-
-                        {meals.length === 0 ? (
-                          <Card className="bg-white/50 border-dashed">
-                            <CardContent className="p-3 text-center text-xs text-muted-foreground">
-                              Нет блюд
-                            </CardContent>
-                          </Card>
-                        ) : (
-                          <div className="space-y-2">
-                            {meals.map(meal => (
-                              <Card key={meal.id} className="bg-white hover:shadow-md transition-shadow">
-                                <CardContent className="p-3">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2 flex-1 min-w-0">
-                                      <span className="text-2xl flex-shrink-0">{meal.emoji}</span>
-                                      <div className="flex-1 min-w-0">
-                                        <h4 className="font-semibold text-sm break-words">{meal.dishName}</h4>
-                                        {meal.description && (
-                                          <p className="text-xs text-muted-foreground mt-1 break-words">{meal.description}</p>
-                                        )}
-                                        <Badge variant="outline" className="mt-2 text-[10px] px-1 py-0">
-                                          <Icon name="User" size={10} className="mr-1" />
-                                          {meal.addedByName}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                    <div className="flex gap-1 flex-shrink-0">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0"
-                                        onClick={() => handleEditMeal(meal)}
-                                      >
-                                        <Icon name="Edit2" size={14} />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        onClick={() => deleteMeal(meal.id)}
-                                      >
-                                        <Icon name="Trash2" size={14} />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-          </CardContent>
         </Card>
-      </div>
 
-      <MealDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        editingMeal={editingMeal}
-        newMeal={newMeal}
-        setNewMeal={setNewMeal}
-        handleAddMeal={handleAddMeal}
-      />
+        {viewMode === 'day' ? (
+          <MealsDayView
+            selectedDay={selectedDay}
+            onDayChange={setSelectedDay}
+            selectedDayLabel={selectedDayLabel}
+            mealsForSelectedDay={mealsForSelectedDay}
+            onEditMeal={handleEditMeal}
+            onDeleteMeal={deleteMeal}
+            daysOfWeek={DAYS_OF_WEEK}
+            mealTypes={MEAL_TYPES}
+          />
+        ) : (
+          <MealsWeekView
+            daysOfWeek={DAYS_OF_WEEK}
+            getMealsByType={getMealsByType}
+            onQuickAddMeal={handleQuickAddMeal}
+            onEditMeal={handleEditMeal}
+            onDeleteMeal={deleteMeal}
+          />
+        )}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
+              size="lg"
+              onClick={() => {
+                setEditingMeal(null);
+                setNewMeal({
+                  day: 'monday',
+                  mealType: 'breakfast',
+                  dishName: '',
+                  description: '',
+                  emoji: '🍳'
+                });
+              }}
+            >
+              <Icon name="Plus" className="mr-2" size={20} />
+              Добавить блюдо
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingMeal ? 'Редактировать блюдо' : 'Добавить новое блюдо'}
+              </DialogTitle>
+            </DialogHeader>
+            <MealDialog
+              newMeal={newMeal}
+              setNewMeal={setNewMeal}
+              onSubmit={handleAddMeal}
+              daysOfWeek={DAYS_OF_WEEK}
+              mealTypes={MEAL_TYPES}
+              isEditing={!!editingMeal}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
