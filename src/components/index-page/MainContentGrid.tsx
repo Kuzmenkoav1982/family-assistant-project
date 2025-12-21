@@ -77,9 +77,9 @@ interface MainContentGridProps {
   familyGoals: FamilyGoal[];
   calendarEvents: CalendarEvent[];
   calendarFilter: string;
-  setCalendarFilter: (filter: string) => void;
-  setShowWidgetSettings: (show: boolean) => void;
-  isWidgetEnabled: (widgetId: string) => boolean;
+  setCalendarFilter?: (filter: string) => void;
+  setShowWidgetSettings?: (show: boolean) => void;
+  isWidgetEnabled?: (widgetId: string) => boolean;
 }
 
 export function MainContentGrid({
@@ -125,9 +125,9 @@ export function MainContentGrid({
   familyGoals,
   calendarEvents,
   calendarFilter,
-  setCalendarFilter,
-  setShowWidgetSettings,
-  isWidgetEnabled,
+  setCalendarFilter = () => {},
+  setShowWidgetSettings = () => {},
+  isWidgetEnabled = () => true,
 }: MainContentGridProps) {
   const navigate = useNavigate();
   
