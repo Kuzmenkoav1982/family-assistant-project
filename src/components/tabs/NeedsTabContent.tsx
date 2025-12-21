@@ -71,7 +71,7 @@ export function NeedsTabContent({
                         
                         <Badge variant="outline">
                           <Icon name="DollarSign" size={14} className="mr-1" />
-                          {need.estimatedCost.toLocaleString('ru-RU')} ₽
+                          {need.estimatedCost?.toLocaleString('ru-RU') || '0'} ₽
                         </Badge>
                       </div>
                     </div>
