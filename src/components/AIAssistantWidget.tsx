@@ -42,13 +42,21 @@ const AIAssistantWidget = () => {
   const location = useLocation();
   const { assistantType, assistantName, selectedRole } = useAIAssistant();
 
-  // Перетаскивание виджета
+  // Перетаскивание виджета (десктоп - для окна чата)
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem('widgetPosition');
     return saved ? JSON.parse(saved) : { x: window.innerWidth - 420, y: 100 };
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Перетаскивание круглой кнопки (мобильные)
+  const [buttonPosition, setButtonPosition] = useState(() => {
+    const saved = localStorage.getItem('buttonPosition');
+    return saved ? JSON.parse(saved) : { x: window.innerWidth - 80, y: window.innerHeight - 180 };
+  });
+  const [isButtonDragging, setIsButtonDragging] = useState(false);
+  const [buttonDragStart, setButtonDragStart] = useState({ x: 0, y: 0 });
 
   // Скрываем виджет на странице /welcome
   const isWelcomePage = location.pathname === '/welcome';
@@ -77,12 +85,17 @@ const AIAssistantWidget = () => {
   // Сброс позиции виджета
   const handleResetPosition = () => {
     if (window.innerWidth < 768) {
+      // На мобильных сбрасываем позицию круглой кнопки
+      const defaultButtonPosition = { x: window.innerWidth - 80, y: window.innerHeight - 180 };
+      setButtonPosition(defaultButtonPosition);
+      localStorage.setItem('buttonPosition', JSON.stringify(defaultButtonPosition));
       toast({
-        title: 'ℹ️ Недоступно на мобильных',
-        description: 'Перетаскивание работает только на компьютере'
+        title: '📍 Позиция сброшена',
+        description: 'Кнопка вернулась на место по умолчанию'
       });
       return;
     }
+    // На десктопе сбрасываем позицию окна чата
     const defaultPosition = { x: window.innerWidth - 420, y: 100 };
     setPosition(defaultPosition);
     localStorage.setItem('widgetPosition', JSON.stringify(defaultPosition));
@@ -270,6 +283,44 @@ const AIAssistantWidget = () => {
     if (isDragging) {
       setIsDragging(false);
       localStorage.setItem('widgetPosition', JSON.stringify(position));
+    }
+  };
+
+  // Обработчики перетаскивания круглой кнопки
+  const [hasMoved, setHasMoved] = useState(false);
+
+  const handleButtonTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setIsButtonDragging(true);
+    setHasMoved(false);
+    setButtonDragStart({
+      x: touch.clientX - buttonPosition.x,
+      y: touch.clientY - buttonPosition.y
+    });
+  };
+
+  const handleButtonTouchMove = (e: React.TouchEvent) => {
+    if (!isButtonDragging) return;
+    e.preventDefault();
+    setHasMoved(true);
+
+    const touch = e.touches[0];
+    const newX = touch.clientX - buttonDragStart.x;
+    const newY = touch.clientY - buttonDragStart.y;
+
+    const maxX = window.innerWidth - 80;
+    const maxY = window.innerHeight - 160; // 80px кнопка + 80px меню снизу
+
+    setButtonPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleButtonTouchEnd = () => {
+    if (isButtonDragging) {
+      setIsButtonDragging(false);
+      localStorage.setItem('buttonPosition', JSON.stringify(buttonPosition));
     }
   };
 
@@ -683,12 +734,20 @@ const AIAssistantWidget = () => {
       {/* Floating Button */}
       {!isOpen && !showWelcome && (
         <button
-          onClick={() => setIsOpen(true)}
-          className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl border-4 flex items-center justify-center transition-all hover:scale-110 animate-bounce-subtle overflow-hidden ${
+          onClick={(e) => {
+            if (!hasMoved) {
+              setIsOpen(true);
+            }
+          }}
+          onTouchStart={handleButtonTouchStart}
+          onTouchMove={handleButtonTouchMove}
+          onTouchEnd={handleButtonTouchEnd}
+          style={{ left: `${buttonPosition.x}px`, top: `${buttonPosition.y}px` }}
+          className={`fixed z-50 w-16 h-16 rounded-full shadow-2xl border-4 flex items-center justify-center transition-none overflow-hidden ${
             assistantType === 'domovoy' 
               ? 'bg-white hover:bg-amber-50 border-orange-400' 
               : 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-blue-400 text-3xl'
-          }`}
+          } ${isButtonDragging ? 'scale-110' : 'hover:scale-110 animate-bounce-subtle'}`}
         >
           {assistantType === 'domovoy' ? (
             <img 
