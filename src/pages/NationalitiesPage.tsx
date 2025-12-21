@@ -53,7 +53,7 @@ const NationalitiesPage = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
             <Icon name="ArrowLeft" size={20} />
