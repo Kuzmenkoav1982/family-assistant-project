@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { AddRecipeDialog } from '@/components/recipes/AddRecipeDialog';
 import { RecipeViewDialog } from '@/components/recipes/RecipeViewDialog';
 
 export default function Recipes() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<RecipeCategory | 'all'>('all');
@@ -180,12 +182,18 @@ export default function Recipes() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Icon name="ChefHat" className="text-orange-600" size={32} />
-              Рецепты
-            </h1>
-            <p className="text-gray-600 mt-1">Ваша семейная кулинарная книга</p>
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate('/')} variant="outline" size="sm">
+              <Icon name="ArrowLeft" size={16} className="mr-2" />
+              Назад
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <Icon name="ChefHat" className="text-orange-600" size={32} />
+                Рецепты
+              </h1>
+              <p className="text-gray-600 mt-1">Ваша семейная кулинарная книга</p>
+            </div>
           </div>
           <Button onClick={() => setIsAddDialogOpen(true)} className="bg-orange-600 hover:bg-orange-700">
             <Plus className="mr-2" size={20} />
