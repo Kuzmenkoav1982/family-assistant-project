@@ -24,6 +24,7 @@ interface MemberProfileContentProps {
   handleUpdateDream: (dreamId: string, updates: Partial<Dream>) => Promise<void>;
   handleUpdateBalance: (newBalance: number) => Promise<void>;
   saveProfile: (memberId: string, profile: MemberProfileType) => Promise<void>;
+  updateMember: (updates: Partial<FamilyMember> & { id: string }) => Promise<void>;
 }
 
 export function MemberProfileContent({
@@ -37,7 +38,8 @@ export function MemberProfileContent({
   handleAddDream,
   handleUpdateDream,
   handleUpdateBalance,
-  saveProfile
+  saveProfile,
+  updateMember
 }: MemberProfileContentProps) {
   return (
     <Card className="border-2 shadow-xl bg-white/80 backdrop-blur">
@@ -231,7 +233,12 @@ export function MemberProfileContent({
           </TabsContent>
 
           <TabsContent value="edit" className="mt-6">
-            <MemberProfileEdit member={member} />
+            <MemberProfileEdit 
+              member={member}
+              onSave={async (updates) => {
+                await updateMember({ ...updates, id: member.id });
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="questionnaire" className="mt-6">

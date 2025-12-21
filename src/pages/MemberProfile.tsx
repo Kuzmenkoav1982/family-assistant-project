@@ -124,6 +124,7 @@ export default function MemberProfile() {
           handleUpdateDream={handleUpdateDream}
           handleUpdateBalance={handleUpdateBalance}
           saveProfile={saveProfile}
+          updateMember={updateMember}
         />
       </div>
     </div>
