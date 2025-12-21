@@ -36,98 +36,98 @@ import { getWeekDays } from '@/data/mockData';
 
 interface MainContentGridProps {
   activeSection: string;
-  setActiveSection?: (section: string) => void;
-  totalPoints?: number;
-  avgWorkload?: number;
-  completionRate?: number;
-  familyMembers?: FamilyMember[];
-  setFamilyMembers?: (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => void;
-  tasks?: Task[];
-  setTasks?: () => void;
-  createTask?: any;
-  updateTask?: any;
-  deleteTask?: any;
-  traditions?: Tradition[];
-  familyValues?: FamilyValue[];
-  blogPosts?: BlogPost[];
-  importantDates?: ImportantDate[];
-  childrenProfiles?: ChildProfile[];
-  developmentPlans?: DevelopmentPlan[];
-  chatMessages?: ChatMessage[];
-  setChatMessages?: (messages: ChatMessage[]) => void;
-  familyAlbum?: FamilyAlbum[];
-  setFamilyAlbum?: (album: FamilyAlbum[]) => void;
-  familyNeeds?: FamilyNeed[];
-  setFamilyNeeds?: (needs: FamilyNeed[]) => void;
-  familyTree?: FamilyTreeMember[];
-  setFamilyTree?: (tree: FamilyTreeMember[]) => void;
-  selectedTreeMember?: FamilyTreeMember | null;
-  setSelectedTreeMember?: (member: FamilyTreeMember | null) => void;
-  currentUserId?: string;
-  newMessage?: string;
-  setNewMessage?: (message: string) => void;
-  toggleTask?: (id: string) => void;
-  addPoints?: (userId: string, amount: number) => void;
-  getWorkloadColor?: (workload: number) => string;
-  getMemberById?: (id: string) => FamilyMember | undefined;
-  getAISuggestedMeals?: any;
-  exportStatsToCSV?: () => void;
-  updateMember?: any;
-  deleteMember?: any;
-  familyGoals?: FamilyGoal[];
-  calendarEvents?: CalendarEvent[];
-  calendarFilter?: string;
-  setCalendarFilter?: (filter: string) => void;
-  setShowWidgetSettings?: (show: boolean) => void;
-  isWidgetEnabled?: (widgetId: string) => boolean;
+  setActiveSection: (section: string) => void;
+  totalPoints: number;
+  avgWorkload: number;
+  completionRate: number;
+  familyMembers: FamilyMember[];
+  setFamilyMembers: (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => void;
+  tasks: Task[];
+  setTasks: () => void;
+  createTask: any;
+  updateTask: any;
+  deleteTask: any;
+  traditions: Tradition[];
+  familyValues: FamilyValue[];
+  blogPosts: BlogPost[];
+  importantDates: ImportantDate[];
+  childrenProfiles: ChildProfile[];
+  developmentPlans: DevelopmentPlan[];
+  chatMessages: ChatMessage[];
+  setChatMessages: (messages: ChatMessage[]) => void;
+  familyAlbum: FamilyAlbum[];
+  setFamilyAlbum: (album: FamilyAlbum[]) => void;
+  familyNeeds: FamilyNeed[];
+  setFamilyNeeds: (needs: FamilyNeed[]) => void;
+  familyTree: FamilyTreeMember[];
+  setFamilyTree: (tree: FamilyTreeMember[]) => void;
+  selectedTreeMember: FamilyTreeMember | null;
+  setSelectedTreeMember: (member: FamilyTreeMember | null) => void;
+  currentUserId: string;
+  newMessage: string;
+  setNewMessage: (message: string) => void;
+  toggleTask: (id: string) => void;
+  addPoints: (userId: string, amount: number) => void;
+  getWorkloadColor: (workload: number) => string;
+  getMemberById: (id: string) => FamilyMember | undefined;
+  getAISuggestedMeals: any;
+  exportStatsToCSV: () => void;
+  updateMember: any;
+  deleteMember: any;
+  familyGoals: FamilyGoal[];
+  calendarEvents: CalendarEvent[];
+  calendarFilter: string;
+  setCalendarFilter: (filter: string) => void;
+  setShowWidgetSettings: (show: boolean) => void;
+  isWidgetEnabled: (widgetId: string) => boolean;
 }
 
 export function MainContentGrid({
   activeSection,
-  setActiveSection = () => {},
-  totalPoints = 0,
-  avgWorkload = 0,
-  completionRate = 0,
-  familyMembers = [],
-  setFamilyMembers = () => {},
-  tasks = [],
-  setTasks = () => {},
-  createTask = () => {},
-  updateTask = () => {},
-  deleteTask = () => {},
-  traditions = [],
-  familyValues = [],
-  blogPosts = [],
-  importantDates = [],
-  childrenProfiles = [],
-  developmentPlans = [],
-  chatMessages = [],
-  setChatMessages = () => {},
-  familyAlbum = [],
-  setFamilyAlbum = () => {},
-  familyNeeds = [],
-  setFamilyNeeds = () => {},
-  familyTree = [],
-  setFamilyTree = () => {},
-  selectedTreeMember = null,
-  setSelectedTreeMember = () => {},
-  currentUserId = 'user-1',
-  newMessage = '',
-  setNewMessage = () => {},
-  toggleTask = () => {},
-  addPoints = () => {},
-  getWorkloadColor = () => 'text-gray-500',
-  getMemberById = () => undefined,
-  getAISuggestedMeals = () => {},
-  exportStatsToCSV = () => {},
-  updateMember = () => {},
-  deleteMember = () => {},
-  familyGoals = [],
-  calendarEvents = [],
-  calendarFilter = 'all',
-  setCalendarFilter = () => {},
-  setShowWidgetSettings = () => {},
-  isWidgetEnabled = () => true,
+  setActiveSection,
+  totalPoints,
+  avgWorkload,
+  completionRate,
+  familyMembers,
+  setFamilyMembers,
+  tasks,
+  setTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  traditions,
+  familyValues,
+  blogPosts,
+  importantDates,
+  childrenProfiles,
+  developmentPlans,
+  chatMessages,
+  setChatMessages,
+  familyAlbum,
+  setFamilyAlbum,
+  familyNeeds,
+  setFamilyNeeds,
+  familyTree,
+  setFamilyTree,
+  selectedTreeMember,
+  setSelectedTreeMember,
+  currentUserId,
+  newMessage,
+  setNewMessage,
+  toggleTask,
+  addPoints,
+  getWorkloadColor,
+  getMemberById,
+  getAISuggestedMeals,
+  exportStatsToCSV,
+  updateMember,
+  deleteMember,
+  familyGoals,
+  calendarEvents,
+  calendarFilter,
+  setCalendarFilter,
+  setShowWidgetSettings,
+  isWidgetEnabled,
 }: MainContentGridProps) {
   const navigate = useNavigate();
   

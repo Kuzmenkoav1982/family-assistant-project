@@ -5,35 +5,35 @@ import type { LanguageCode } from '@/translations';
 import type { ThemeType } from '@/types/family.types';
 
 interface IndexLayoutProps {
-  isTopBarVisible?: boolean;
-  isLeftMenuVisible?: boolean;
-  currentLanguage?: LanguageCode;
-  currentTheme?: ThemeType;
-  themeClasses?: {
+  isTopBarVisible: boolean;
+  isLeftMenuVisible: boolean;
+  currentLanguage: LanguageCode;
+  currentTheme: ThemeType;
+  themeClasses: {
     background: string;
     baseFont: string;
   };
-  onTopBarVisibilityChange?: (visible: boolean) => void;
-  onLeftMenuVisibilityChange?: (visible: boolean) => void;
-  onLogout?: () => void;
-  onLanguageChange?: (lang: LanguageCode) => void;
-  onThemeChange?: (theme: ThemeType) => void;
-  onResetDemo?: () => void;
+  onTopBarVisibilityChange: (visible: boolean) => void;
+  onLeftMenuVisibilityChange: (visible: boolean) => void;
+  onLogout: () => void;
+  onLanguageChange: (lang: LanguageCode) => void;
+  onThemeChange: (theme: ThemeType) => void;
+  onResetDemo: () => void;
   children: React.ReactNode;
 }
 
 export function IndexLayout({
-  isTopBarVisible = true,
-  isLeftMenuVisible = true,
-  currentLanguage = 'ru',
-  currentTheme = 'default',
-  themeClasses = { background: 'bg-background', baseFont: 'font-sans' },
-  onTopBarVisibilityChange = () => {},
-  onLeftMenuVisibilityChange = () => {},
-  onLogout = () => {},
-  onLanguageChange = () => {},
-  onThemeChange = () => {},
-  onResetDemo = () => {},
+  isTopBarVisible,
+  isLeftMenuVisible,
+  currentLanguage,
+  currentTheme,
+  themeClasses,
+  onTopBarVisibilityChange,
+  onLeftMenuVisibilityChange,
+  onLogout,
+  onLanguageChange,
+  onThemeChange,
+  onResetDemo,
   children,
 }: IndexLayoutProps) {
   return (
