@@ -3027,6 +3027,7 @@ export default function Index({ onLogout }: IndexProps) {
                 getAISuggestedMeals={getAISuggestedMeals}
                 exportStatsToCSV={exportStatsToCSV}
                 updateMember={updateMember}
+                deleteMember={deleteMember}
               />
             </Tabs>
           </div>
