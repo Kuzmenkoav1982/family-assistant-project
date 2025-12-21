@@ -485,6 +485,17 @@ export default function Index({ onLogout }: IndexProps) {
 
   const activeSection = searchParams.get('section') || 'overview';
 
+  const shouldShowWelcome = !authToken || !authUser;
+
+  if (shouldShowWelcome) {
+    return (
+      <WelcomeScreen
+        onLogin={() => navigate('/login')}
+        onRegister={() => navigate('/register')}
+      />
+    );
+  }
+
   if (membersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -493,17 +504,6 @@ export default function Index({ onLogout }: IndexProps) {
           <p className="text-muted-foreground">Загрузка...</p>
         </div>
       </div>
-    );
-  }
-
-  const shouldShowWelcome = !authToken || !authUser || !familyMembers || familyMembers.length === 0;
-
-  if (shouldShowWelcome) {
-    return (
-      <WelcomeScreen
-        onLogin={() => navigate('/login')}
-        onRegister={() => navigate('/register')}
-      />
     );
   }
 
