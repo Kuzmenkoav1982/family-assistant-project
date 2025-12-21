@@ -5,6 +5,7 @@ import { MoodDiary } from './MoodDiary';
 import { AchievementsBadges } from './AchievementsBadges';
 import { RewardsShop } from './RewardsShop';
 import { RealMoneyPiggyBank } from './RealMoneyPiggyBank';
+import { ChildCalendar } from './ChildCalendar';
 import { HomeTabContent } from './profile-tabs/HomeTabContent';
 import { Game } from './profile-tabs/GamesSection';
 import { Book } from './profile-tabs/BooksSection';
@@ -216,6 +217,10 @@ export function ChildProfile({ child }: ChildProfileProps) {
           <Icon name="Wallet" size={16} />
           Копилка
         </TabsTrigger>
+        <TabsTrigger value="calendar" className="gap-2">
+          <Icon name="Calendar" size={16} />
+          Календарь
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="home">
@@ -285,6 +290,10 @@ export function ChildProfile({ child }: ChildProfileProps) {
 
       <TabsContent value="money" className="space-y-6">
         <RealMoneyPiggyBank childId={child.id} />
+      </TabsContent>
+
+      <TabsContent value="calendar" className="space-y-6">
+        <ChildCalendar child={child} />
       </TabsContent>
     </Tabs>
   );

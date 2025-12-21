@@ -5,226 +5,157 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { useToast } from '@/hooks/use-toast';
 import type { FamilyMember } from '@/types/family.types';
 
 interface ChildEvent {
   id: string;
-  child_id: string;
   title: string;
-  description?: string;
+  description: string;
   date: string;
-  time?: string;
-  category: 'health' | 'school' | 'hobby' | 'sport' | 'friend' | 'other';
-  color?: string;
-  reminder_enabled?: boolean;
-  completed?: boolean;
+  time: string;
+  category: 'health' | 'school' | 'hobby' | 'sport' | 'other';
+  color: string;
+  reminderEnabled: boolean;
 }
 
 interface ChildCalendarProps {
   child: FamilyMember;
 }
 
-const CATEGORIES = {
-  health: { label: 'Здоровье', icon: 'Heart', color: 'bg-red-100 text-red-700' },
-  school: { label: 'Школа', icon: 'GraduationCap', color: 'bg-blue-100 text-blue-700' },
-  hobby: { label: 'Хобби', icon: 'Palette', color: 'bg-purple-100 text-purple-700' },
-  sport: { label: 'Спорт', icon: 'Dumbbell', color: 'bg-green-100 text-green-700' },
-  friend: { label: 'Друзья', icon: 'Users', color: 'bg-yellow-100 text-yellow-700' },
-  other: { label: 'Другое', icon: 'Star', color: 'bg-gray-100 text-gray-700' }
+const CATEGORY_CONFIG = {
+  health: { label: 'Здоровье', icon: 'Heart', color: '#ef4444' },
+  school: { label: 'Школа', icon: 'GraduationCap', color: '#8b5cf6' },
+  hobby: { label: 'Кружки', icon: 'Palette', color: '#f59e0b' },
+  sport: { label: 'Спорт', icon: 'Trophy', color: '#10b981' },
+  other: { label: 'Другое', icon: 'Calendar', color: '#3b82f6' }
 };
 
 export function ChildCalendar({ child }: ChildCalendarProps) {
-  const { toast } = useToast();
   const [events, setEvents] = useState<ChildEvent[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<ChildEvent | null>(null);
-  const [viewMode, setViewMode] = useState<'upcoming' | 'all'>('upcoming');
-  const [newEvent, setNewEvent] = useState<Partial<ChildEvent>>({
+  const [selectedEvent, setSelectedEvent] = useState<ChildEvent | null>(null);
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'upcoming' | 'month'>('upcoming');
+
+  const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
     date: '',
     time: '',
-    category: 'other',
-    reminder_enabled: true
+    category: 'other' as ChildEvent['category'],
+    reminderEnabled: true
   });
 
+  // Загрузка событий из localStorage
   useEffect(() => {
-    loadEvents();
+    const storageKey = `child_calendar_${child.id}`;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      setEvents(JSON.parse(saved));
+    }
   }, [child.id]);
 
-  const loadEvents = async () => {
-    try {
-      setLoading(true);
-      const familyId = JSON.parse(localStorage.getItem('userData') || '{}').family_id;
-      
-      const response = await fetch('https://functions.poehali.dev/bc0c3710-e24a-4171-aa84-0311d97d14d9', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'get_child_events',
-          familyId,
-          childId: child.id
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to load events');
-      
-      const data = await response.json();
-      setEvents(data.events || []);
-    } catch (error) {
-      console.error('Error loading events:', error);
-      toast({
-        title: 'Ошибка загрузки',
-        description: 'Не удалось загрузить события',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
+  // Сохранение событий в localStorage
+  const saveEvents = (updatedEvents: ChildEvent[]) => {
+    const storageKey = `child_calendar_${child.id}`;
+    localStorage.setItem(storageKey, JSON.stringify(updatedEvents));
+    setEvents(updatedEvents);
   };
 
-  const saveEvent = async () => {
-    if (!newEvent.title || !newEvent.date) {
-      toast({
-        title: 'Заполните поля',
-        description: 'Укажите название и дату события',
-        variant: 'destructive'
-      });
-      return;
-    }
+  const addEvent = () => {
+    if (!newEvent.title || !newEvent.date) return;
 
-    try {
-      const familyId = JSON.parse(localStorage.getItem('userData') || '{}').family_id;
-      
-      const response = await fetch('https://functions.poehali.dev/bc0c3710-e24a-4171-aa84-0311d97d14d9', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: editingEvent ? 'update_child_event' : 'add_child_event',
-          familyId,
-          childId: child.id,
-          eventId: editingEvent?.id,
-          event: {
-            ...newEvent,
-            child_id: child.id
-          }
-        })
-      });
+    const event: ChildEvent = {
+      id: Date.now().toString(),
+      title: newEvent.title,
+      description: newEvent.description,
+      date: newEvent.date,
+      time: newEvent.time,
+      category: newEvent.category,
+      color: CATEGORY_CONFIG[newEvent.category].color,
+      reminderEnabled: newEvent.reminderEnabled
+    };
 
-      if (!response.ok) throw new Error('Failed to save event');
-
-      toast({
-        title: editingEvent ? 'Событие обновлено' : 'Событие добавлено',
-        description: `"${newEvent.title}" успешно сохранено`
-      });
-
-      setShowAddDialog(false);
-      setEditingEvent(null);
-      setNewEvent({
-        title: '',
-        description: '',
-        date: '',
-        time: '',
-        category: 'other',
-        reminder_enabled: true
-      });
-      loadEvents();
-    } catch (error) {
-      console.error('Error saving event:', error);
-      toast({
-        title: 'Ошибка сохранения',
-        description: 'Не удалось сохранить событие',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const deleteEvent = async (eventId: string) => {
-    if (!confirm('Удалить это событие?')) return;
-
-    try {
-      const familyId = JSON.parse(localStorage.getItem('userData') || '{}').family_id;
-      
-      const response = await fetch('https://functions.poehali.dev/bc0c3710-e24a-4171-aa84-0311d97d14d9', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'delete_child_event',
-          familyId,
-          eventId
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to delete event');
-
-      toast({ title: 'Событие удалено' });
-      loadEvents();
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      toast({
-        title: 'Ошибка удаления',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const toggleComplete = async (event: ChildEvent) => {
-    try {
-      const familyId = JSON.parse(localStorage.getItem('userData') || '{}').family_id;
-      
-      const response = await fetch('https://functions.poehali.dev/bc0c3710-e24a-4171-aa84-0311d97d14d9', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update_child_event',
-          familyId,
-          childId: child.id,
-          eventId: event.id,
-          event: { ...event, completed: !event.completed }
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to update event');
-      loadEvents();
-    } catch (error) {
-      console.error('Error updating event:', error);
-    }
-  };
-
-  const filteredEvents = viewMode === 'upcoming' 
-    ? events.filter(e => new Date(e.date) >= new Date() && !e.completed)
-    : events;
-
-  const sortedEvents = [...filteredEvents].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-
-  const groupEventsByMonth = (events: ChildEvent[]) => {
-    const grouped: Record<string, ChildEvent[]> = {};
-    events.forEach(event => {
-      const date = new Date(event.date);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(event);
+    saveEvents([...events, event]);
+    setShowAddDialog(false);
+    setNewEvent({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      category: 'other',
+      reminderEnabled: true
     });
-    return grouped;
   };
 
-  const groupedEvents = groupEventsByMonth(sortedEvents);
+  const deleteEvent = (eventId: string) => {
+    if (confirm('Удалить событие?')) {
+      saveEvents(events.filter(e => e.id !== eventId));
+      setSelectedEvent(null);
+    }
+  };
+
+  const getUpcomingEvents = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return events
+      .filter(e => {
+        const eventDate = new Date(e.date);
+        eventDate.setHours(0, 0, 0, 0);
+        return eventDate >= today;
+      })
+      .filter(e => filterCategory === 'all' || e.category === filterCategory)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 10);
+  };
+
+  const getEventsForMonth = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    return events
+      .filter(e => {
+        const eventDate = new Date(e.date);
+        return eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear;
+      })
+      .filter(e => filterCategory === 'all' || e.category === filterCategory)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Сегодня';
+    if (date.toDateString() === tomorrow.toDateString()) return 'Завтра';
+
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+
+  const displayedEvents = viewMode === 'upcoming' ? getUpcomingEvents() : getEventsForMonth();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon name="Calendar" size={24} className="text-purple-600" />
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="Calendar" size={20} />
             Личный календарь {child.name}
-          </div>
+          </CardTitle>
+          <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+            <Icon name="Plus" size={16} />
+            Добавить событие
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Фильтры */}
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="flex gap-2">
             <Button
               variant={viewMode === 'upcoming' ? 'default' : 'outline'}
@@ -234,150 +165,93 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
               Предстоящие
             </Button>
             <Button
-              variant={viewMode === 'all' ? 'default' : 'outline'}
+              variant={viewMode === 'month' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setViewMode('all')}
+              onClick={() => setViewMode('month')}
             >
-              Все
-            </Button>
-            <Button 
-              onClick={() => {
-                setEditingEvent(null);
-                setNewEvent({
-                  title: '',
-                  description: '',
-                  date: new Date().toISOString().split('T')[0],
-                  time: '',
-                  category: 'other',
-                  reminder_enabled: true
-                });
-                setShowAddDialog(true);
-              }}
-              className="gap-2"
-            >
-              <Icon name="Plus" size={18} />
-              Добавить
+              Этот месяц
             </Button>
           </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-center py-8">
-            <Icon name="Loader2" className="animate-spin mx-auto mb-2" size={32} />
-            <p className="text-gray-500">Загрузка событий...</p>
-          </div>
-        ) : sortedEvents.length === 0 ? (
-          <div className="text-center py-12">
-            <Icon name="CalendarOff" size={48} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 mb-2">
-              {viewMode === 'upcoming' ? 'Нет предстоящих событий' : 'Календарь пуст'}
-            </p>
-            <Button onClick={() => setShowAddDialog(true)} variant="outline" className="mt-2">
-              Добавить первое событие
-            </Button>
+
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Категория" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все категории</SelectItem>
+              {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+                <SelectItem key={key} value={key}>
+                  {config.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Статистика */}
+        <div className="grid grid-cols-5 gap-2">
+          {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
+            const count = events.filter(e => e.category === key).length;
+            return (
+              <div
+                key={key}
+                className="text-center p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => setFilterCategory(filterCategory === key ? 'all' : key)}
+              >
+                <Icon name={config.icon as any} size={20} className="mx-auto mb-1" style={{ color: config.color }} />
+                <div className="text-xs font-medium text-gray-600">{config.label}</div>
+                <div className="text-lg font-bold" style={{ color: config.color }}>{count}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Список событий */}
+        {displayedEvents.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <Icon name="Calendar" size={48} className="mx-auto mb-3 opacity-30" />
+            <p>Нет событий</p>
+            <p className="text-sm mt-1">Добавьте первое событие для {child.name}</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedEvents).map(([monthKey, monthEvents]) => {
-              const [year, month] = monthKey.split('-');
-              const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('ru-RU', { 
-                month: 'long', 
-                year: 'numeric' 
-              });
-
+          <div className="space-y-2">
+            {displayedEvents.map(event => {
+              const config = CATEGORY_CONFIG[event.category];
               return (
-                <div key={monthKey}>
-                  <h3 className="font-semibold text-lg text-gray-700 mb-3 capitalize">
-                    {monthName}
-                  </h3>
-                  <div className="space-y-2">
-                    {monthEvents.map(event => {
-                      const category = CATEGORIES[event.category];
-                      const eventDate = new Date(event.date);
-                      const isPast = eventDate < new Date() && !event.completed;
-
-                      return (
-                        <div
-                          key={event.id}
-                          className={`p-4 rounded-lg border-2 transition-all ${
-                            event.completed 
-                              ? 'bg-gray-50 border-gray-200 opacity-60' 
-                              : isPast
-                              ? 'bg-orange-50 border-orange-200'
-                              : 'bg-white border-gray-200 hover:border-purple-300 hover:shadow-md'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <input
-                              type="checkbox"
-                              checked={event.completed || false}
-                              onChange={() => toggleComplete(event)}
-                              className="mt-1 w-5 h-5 cursor-pointer"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <h4 className={`font-semibold ${event.completed ? 'line-through text-gray-500' : ''}`}>
-                                    {event.title}
-                                  </h4>
-                                  {event.description && (
-                                    <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-                                  )}
-                                </div>
-                                <Badge className={category.color}>
-                                  <Icon name={category.icon as any} size={14} className="mr-1" />
-                                  {category.label}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <span className="flex items-center gap-1">
-                                  <Icon name="Calendar" size={14} />
-                                  {eventDate.toLocaleDateString('ru-RU')}
-                                </span>
-                                {event.time && (
-                                  <span className="flex items-center gap-1">
-                                    <Icon name="Clock" size={14} />
-                                    {event.time}
-                                  </span>
-                                )}
-                                {event.reminder_enabled && (
-                                  <span className="flex items-center gap-1 text-blue-600">
-                                    <Icon name="Bell" size={14} />
-                                    Напоминание
-                                  </span>
-                                )}
-                                {isPast && !event.completed && (
-                                  <Badge variant="outline" className="bg-orange-100 text-orange-700">
-                                    Просрочено
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setEditingEvent(event);
-                                  setNewEvent(event);
-                                  setShowAddDialog(true);
-                                }}
-                              >
-                                <Icon name="Edit" size={16} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteEvent(event.id)}
-                              >
-                                <Icon name="Trash2" size={16} className="text-red-600" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                <div
+                  key={event.id}
+                  className="p-4 border-l-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  style={{ borderLeftColor: event.color }}
+                  onClick={() => setSelectedEvent(event)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                        <Badge variant="outline" className="text-xs">
+                          <Icon name={config.icon as any} size={12} className="mr-1" />
+                          {config.label}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <Icon name="Calendar" size={14} />
+                          {formatDate(event.date)}
+                        </span>
+                        {event.time && (
+                          <span className="flex items-center gap-1">
+                            <Icon name="Clock" size={14} />
+                            {event.time}
+                          </span>
+                        )}
+                      </div>
+                      {event.description && (
+                        <p className="text-sm text-gray-500 mt-1">{event.description}</p>
+                      )}
+                    </div>
+                    {event.reminderEnabled && (
+                      <Icon name="Bell" size={16} className="text-blue-500 flex-shrink-0" />
+                    )}
                   </div>
                 </div>
               );
@@ -386,36 +260,44 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
         )}
       </CardContent>
 
+      {/* Диалог добавления события */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingEvent ? 'Редактировать событие' : 'Новое событие'}
-            </DialogTitle>
+            <DialogTitle>Добавить событие для {child.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Название *</Label>
+              <label className="text-sm font-medium mb-2 block">Название события</label>
               <Input
+                placeholder="Визит к врачу, Занятие в секции..."
                 value={newEvent.title}
                 onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                placeholder="Например: Визит к стоматологу"
               />
             </div>
 
             <div>
-              <Label>Описание</Label>
-              <Textarea
-                value={newEvent.description}
-                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                placeholder="Дополнительная информация"
-                rows={3}
-              />
+              <label className="text-sm font-medium mb-2 block">Категория</label>
+              <Select value={newEvent.category} onValueChange={(v) => setNewEvent({ ...newEvent, category: v as any })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <Icon name={config.icon as any} size={16} />
+                        {config.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Дата *</Label>
+                <label className="text-sm font-medium mb-2 block">Дата</label>
                 <Input
                   type="date"
                   value={newEvent.date}
@@ -423,7 +305,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
                 />
               </div>
               <div>
-                <Label>Время</Label>
+                <label className="text-sm font-medium mb-2 block">Время</label>
                 <Input
                   type="time"
                   value={newEvent.time}
@@ -433,51 +315,95 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
             </div>
 
             <div>
-              <Label>Категория</Label>
-              <Select
-                value={newEvent.category}
-                onValueChange={(value: any) => setNewEvent({ ...newEvent, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(CATEGORIES).map(([key, cat]) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <Icon name={cat.icon as any} size={16} />
-                        {cat.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium mb-2 block">Описание (необязательно)</label>
+              <Textarea
+                placeholder="Дополнительная информация..."
+                value={newEvent.description}
+                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                rows={3}
+              />
             </div>
 
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="reminder"
-                checked={newEvent.reminder_enabled}
-                onChange={(e) => setNewEvent({ ...newEvent, reminder_enabled: e.target.checked })}
-                className="w-4 h-4"
+                checked={newEvent.reminderEnabled}
+                onChange={(e) => setNewEvent({ ...newEvent, reminderEnabled: e.target.checked })}
+                className="rounded"
               />
-              <Label htmlFor="reminder" className="cursor-pointer">
-                Включить напоминание за день до события
-              </Label>
+              <label htmlFor="reminder" className="text-sm">
+                Напомнить за день до события
+              </label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               Отмена
             </Button>
-            <Button onClick={saveEvent}>
-              {editingEvent ? 'Сохранить' : 'Добавить'}
+            <Button onClick={addEvent} disabled={!newEvent.title || !newEvent.date}>
+              Добавить
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Диалог просмотра события */}
+      {selectedEvent && (
+        <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Icon name={CATEGORY_CONFIG[selectedEvent.category].icon as any} size={20} />
+                {selectedEvent.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-2">
+                <Badge style={{ backgroundColor: selectedEvent.color, color: 'white' }}>
+                  {CATEGORY_CONFIG[selectedEvent.category].label}
+                </Badge>
+                {selectedEvent.reminderEnabled && (
+                  <Badge variant="outline" className="gap-1">
+                    <Icon name="Bell" size={12} />
+                    Напоминание включено
+                  </Badge>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Icon name="Calendar" size={16} />
+                  <span>{formatDate(selectedEvent.date)}</span>
+                </div>
+                {selectedEvent.time && (
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Icon name="Clock" size={16} />
+                    <span>{selectedEvent.time}</span>
+                  </div>
+                )}
+              </div>
+
+              {selectedEvent.description && (
+                <div>
+                  <h4 className="font-semibold mb-2">Описание</h4>
+                  <p className="text-gray-600">{selectedEvent.description}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 justify-end border-t pt-4">
+              <Button variant="outline" onClick={() => setSelectedEvent(null)}>
+                Закрыть
+              </Button>
+              <Button variant="destructive" onClick={() => deleteEvent(selectedEvent.id)}>
+                Удалить
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }
