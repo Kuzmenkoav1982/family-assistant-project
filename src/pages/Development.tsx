@@ -1,18 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import Icon from '@/components/ui/icon';
+import { Card } from '@/components/ui/card';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { toast } from 'sonner';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
 import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
 import TestHistory from '@/components/TestHistory';
 import DevelopmentInsights from '@/components/DevelopmentInsights';
+import { DevelopmentHeader } from '@/components/development/DevelopmentHeader';
+import { DevelopmentFilters } from '@/components/development/DevelopmentFilters';
+import { DevelopmentTestsList } from '@/components/development/DevelopmentTestsList';
 import {
   emotionalIntelligenceQuestions,
   getEmotionalIntelligenceResults,
@@ -200,11 +197,9 @@ export default function Development() {
 
       const currentDevelopment = member.development || [];
       
-      // Находим область "psychology" или создаём новую
       let psychologyDev = currentDevelopment.find(d => d.area === 'education');
       
       if (psychologyDev) {
-        // Обновляем существующий тест или добавляем новый
         const existingTestIndex = psychologyDev.tests.findIndex(t => t.id === testId);
         if (existingTestIndex >= 0) {
           psychologyDev.tests[existingTestIndex] = testData;
@@ -212,7 +207,6 @@ export default function Development() {
           psychologyDev.tests.push(testData);
         }
       } else {
-        // Создаём новую область развития
         psychologyDev = {
           id: 'psychology-' + Date.now(),
           area: 'education',
@@ -224,7 +218,6 @@ export default function Development() {
         currentDevelopment.push(psychologyDev);
       }
 
-      // Сохраняем обновлённые данные
       const updateResult = await updateMember({
         id: selectedMember,
         development: currentDevelopment
@@ -255,416 +248,116 @@ export default function Development() {
     }
   };
 
-  const handleTestCancel = () => {
-    setActiveTest(null);
+  const getTestConfig = (testId: string) => {
+    const configs: Record<string, { questions: any[]; getResults: (answers: any[]) => TestResult }> = {
+      'emotional-intelligence': {
+        questions: emotionalIntelligenceQuestions,
+        getResults: getEmotionalIntelligenceResults
+      },
+      'communication-style': {
+        questions: communicationStyleQuestions,
+        getResults: getCommunicationStyleResults
+      },
+      'conflict-resolution': {
+        questions: conflictResolutionQuestions,
+        getResults: getConflictResolutionResults
+      },
+      'stress-management': {
+        questions: stressManagementQuestions,
+        getResults: getStressManagementResults
+      },
+      'love-languages': {
+        questions: loveLanguagesQuestions,
+        getResults: getLoveLanguagesResults
+      },
+      'parenting-style': {
+        questions: parentingStyleQuestions,
+        getResults: getParentingStyleResults
+      },
+      'time-management': {
+        questions: timeManagementQuestions,
+        getResults: getTimeManagementResults
+      },
+      'financial-literacy': {
+        questions: financialLiteracyQuestions,
+        getResults: getFinancialLiteracyResults
+      }
+    };
+    
+    return configs[testId];
   };
 
-  const getTestQuestions = (testId: string) => {
-    switch (testId) {
-      case 'emotional-intelligence':
-        return emotionalIntelligenceQuestions;
-      case 'communication-style':
-        return communicationStyleQuestions;
-      case 'love-languages':
-        return loveLanguagesQuestions;
-      case 'conflict-resolution':
-        return conflictResolutionQuestions;
-      case 'stress-management':
-        return stressManagementQuestions;
-      case 'financial-literacy':
-        return financialLiteracyQuestions;
-      case 'parenting-style':
-        return parentingStyleQuestions;
-      case 'time-management':
-        return timeManagementQuestions;
-      default:
-        return [];
-    }
-  };
+  const activeTestInfo = DEVELOPMENT_TESTS.find(t => t.id === activeTest);
+  const testConfig = activeTest ? getTestConfig(activeTest) : null;
 
-  const getTestResultsCalculator = (testId: string) => {
-    switch (testId) {
-      case 'emotional-intelligence':
-        return getEmotionalIntelligenceResults;
-      case 'communication-style':
-        return getCommunicationStyleResults;
-      case 'love-languages':
-        return getLoveLanguagesResults;
-      case 'conflict-resolution':
-        return getConflictResolutionResults;
-      case 'stress-management':
-        return getStressManagementResults;
-      case 'financial-literacy':
-        return getFinancialLiteracyResults;
-      case 'parenting-style':
-        return getParentingStyleResults;
-      case 'time-management':
-        return getTimeManagementResults;
-      default:
-        return () => ({
-          score: 0,
-          maxScore: 0,
-          category: '',
-          interpretation: '',
-          recommendations: []
-        });
-    }
-  };
-
-  if (isLoading || !familyMembers) {
+  if (activeTest && testConfig && activeTestInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Загрузка...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="p-6">
+            <InteractiveTest
+              testId={activeTest}
+              testName={activeTestInfo.name}
+              questions={testConfig.questions}
+              getResults={testConfig.getResults}
+              onComplete={(result) => handleTestComplete(activeTest, result)}
+              onCancel={() => setActiveTest(null)}
+              isSaving={savingResult}
+            />
+          </Card>
         </div>
       </div>
     );
   }
 
+  const selectedMemberData = familyMembers?.find(m => m.id === selectedMember);
+  const allTests = selectedMemberData?.development?.flatMap(d => d.tests) || [];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="mb-4"
-          >
-            <Icon name="ArrowLeft" size={20} className="mr-2" />
-            Назад
-          </Button>
-          
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl">
-              <Icon name="Brain" size={32} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Развитие</h1>
-              <p className="text-gray-600">Психологические тесты для всей семьи</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <DevelopmentHeader
+          onNavigateBack={() => navigate('/')}
+          testsCount={DEVELOPMENT_TESTS.length}
+          isInstructionOpen={isInstructionOpen}
+          onInstructionToggle={setIsInstructionOpen}
+        />
 
-          {/* Инструкция */}
-          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mt-6">
-            <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-              <div className="flex items-start gap-3">
-                <Icon name="Info" className="h-5 w-5 text-purple-600 mt-0.5" />
-                <div className="flex-1">
-                  <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
-                    <h3 className="font-semibold text-purple-900 text-lg">
-                      Как пользоваться разделом "Развитие"
-                    </h3>
-                    <Icon 
-                      name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                      className="h-5 w-5 text-purple-600 transition-transform group-hover:scale-110" 
-                    />
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="mt-3 space-y-3">
-                    <AlertDescription className="text-purple-800">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="font-medium mb-2">🎯 Для чего нужен этот раздел?</p>
-                          <p className="text-sm">
-                            Раздел "Развитие" помогает каждому члену семьи лучше понять себя и друг друга через научно обоснованные психологические тесты. 
-                            Это инструмент для личностного роста, улучшения коммуникации и укрепления семейных отношений.
-                          </p>
-                        </div>
+        <DevelopmentFilters
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          familyMembers={familyMembers || []}
+          selectedMember={selectedMember}
+          onMemberChange={setSelectedMember}
+          isLoading={isLoading}
+        />
 
-                        <div>
-                          <p className="font-medium mb-2">✨ Какая польза от тестов?</p>
-                          <ul className="text-sm space-y-1 list-disc list-inside">
-                            <li>Определите свой эмоциональный интеллект и стиль общения</li>
-                            <li>Узнайте, как каждый член семьи воспринимает любовь и заботу</li>
-                            <li>Научитесь эффективно разрешать конфликты и управлять стрессом</li>
-                            <li>Поймите свой стиль воспитания и финансовую грамотность</li>
-                            <li>Улучшите управление временем и семейную продуктивность</li>
-                          </ul>
-                        </div>
-
-                        <div>
-                          <p className="font-medium mb-2">📋 Как пройти тест?</p>
-                          <ol className="text-sm space-y-1 list-decimal list-inside">
-                            <li>Выберите интересующий тест из списка ниже</li>
-                            <li>Укажите, для кого вы проходите тест (себя или члена семьи)</li>
-                            <li>Отвечайте честно — здесь нет правильных или неправильных ответов</li>
-                            <li>Получите персональную интерпретацию результатов с рекомендациями</li>
-                            <li>Результаты сохраняются в профиле и доступны в истории</li>
-                          </ol>
-                        </div>
-
-                        <div>
-                          <p className="font-medium mb-2">🔐 Как используются результаты?</p>
-                          <p className="text-sm">
-                            Все результаты тестов хранятся конфиденциально в профиле члена семьи. Они помогают:
-                          </p>
-                          <ul className="text-sm space-y-1 list-disc list-inside mt-2">
-                            <li>Видеть динамику личностного развития со временем</li>
-                            <li>Получать персонализированные рекомендации для семьи</li>
-                            <li>Анализировать совместимость и сильные стороны каждого</li>
-                            <li>Планировать семейные активности с учётом особенностей всех</li>
-                          </ul>
-                        </div>
-
-                        <div className="pt-2 border-t border-purple-200">
-                          <p className="text-sm italic">
-                            💡 <strong>Совет:</strong> Проходите тесты регулярно (раз в 3-6 месяцев), чтобы отслеживать свой прогресс и изменения в семейной динамике.
-                          </p>
-                        </div>
-                      </div>
-                    </AlertDescription>
-                  </CollapsibleContent>
-                </div>
-              </div>
-            </Alert>
-          </Collapsible>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Icon name="FileText" size={24} className="text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{DEVELOPMENT_TESTS.length}</p>
-                  <p className="text-sm text-gray-600">Доступно тестов</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Icon name="CheckCircle2" size={24} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {familyMembers?.reduce((total, member) => {
-                      const tests = member.development?.flatMap(d => d.tests.filter(t => t.status === 'completed')) || [];
-                      return total + tests.length;
-                    }, 0) || 0}
-                  </p>
-                  <p className="text-sm text-gray-600">Пройдено тестов</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Icon name="Users" size={24} className="text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{familyMembers?.length || 0}</p>
-                  <p className="text-sm text-gray-600">Участников</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Icon name="TrendingUp" size={24} className="text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {(() => {
-                      const allTests = familyMembers?.flatMap(m => 
-                        m.development?.flatMap(d => d.tests.filter(t => t.score !== undefined)) || []
-                      ) || [];
-                      if (allTests.length === 0) return '0%';
-                      
-                      const totalPercentage = allTests.reduce((sum, test) => {
-                        const maxScore = getMaxScoreForTest(test.id);
-                        return sum + ((test.score || 0) / maxScore) * 100;
-                      }, 0);
-                      
-                      return Math.round(totalPercentage / allTests.length) + '%';
-                    })()}
-                  </p>
-                  <p className="text-sm text-gray-600">Средний прогресс</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Active Test */}
-        {activeTest && (
-          <InteractiveTest
-            testId={activeTest}
-            testName={DEVELOPMENT_TESTS.find(t => t.id === activeTest)?.name || ''}
-            description={DEVELOPMENT_TESTS.find(t => t.id === activeTest)?.description || ''}
-            questions={getTestQuestions(activeTest)}
-            onComplete={(result) => handleTestComplete(activeTest, result)}
-            onCancel={handleTestCancel}
-            getResults={getTestResultsCalculator(activeTest)}
-          />
+        {selectedMember !== 'all' && selectedMemberData && (
+          <>
+            {allTests.length > 0 && (
+              <TestHistory 
+                tests={allTests}
+                getMaxScore={getMaxScoreForTest}
+              />
+            )}
+            
+            {selectedMemberData.development && selectedMemberData.development.length > 0 && (
+              <DevelopmentInsights 
+                development={selectedMemberData.development}
+                memberName={selectedMemberData.name}
+              />
+            )}
+          </>
         )}
 
-        {/* Filters */}
-        {!activeTest && (
-          <div className="mb-6 space-y-4">
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Категория</p>
-            <div className="flex flex-wrap gap-2">
-              {categories.map(cat => (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className="gap-2"
-                >
-                  <Icon name={cat.icon as any} size={16} />
-                  {cat.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              Член семьи
-              {selectedMember === 'all' && (
-                <span className="ml-2 text-xs text-orange-600 font-normal">
-                  (выберите конкретного человека для прохождения теста)
-                </span>
-              )}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedMember === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedMember('all')}
-              >
-                Все члены
-              </Button>
-              {familyMembers?.map(member => (
-                <Button
-                  key={member.id}
-                  variant={selectedMember === member.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedMember(member.id)}
-                >
-                  {member.name}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-        )}
-
-        {/* Development Insights (Analytics) */}
-        {!activeTest && selectedMember !== 'all' && (
-          <div className="mb-8">
-            <DevelopmentInsights 
-              tests={
-                familyMembers
-                  ?.find(m => m.id === selectedMember)
-                  ?.development?.flatMap(d => d.tests) || []
-              }
-              memberName={familyMembers?.find(m => m.id === selectedMember)?.name}
-            />
-          </div>
-        )}
-
-        {/* Tests Grid */}
-        {!activeTest && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTests.map(test => {
-            const completedCount = familyMembers?.filter(member => 
-              getMemberProgress(member.id, test.id)?.status === 'completed'
-            ).length || 0;
-            const totalMembers = selectedMember === 'all' ? (familyMembers?.length || 0) : 1;
-            const progress = totalMembers > 0 ? (completedCount / totalMembers) * 100 : 0;
-
-            // Получаем историю тестов для выбранного пользователя
-            const memberTestHistory = selectedMember !== 'all' 
-              ? familyMembers?.find(m => m.id === selectedMember)?.development
-                  ?.flatMap(d => d.tests.filter(t => t.id === test.id)) || []
-              : [];
-
-            return (
-              <div key={test.id}>
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`p-3 rounded-lg ${test.color} border`}>
-                        <Icon name={test.icon as any} size={24} />
-                      </div>
-                      {progress > 0 && (
-                        <Badge variant="outline" className="bg-green-50">
-                          <Icon name="CheckCircle2" size={14} className="mr-1" />
-                          {completedCount}/{totalMembers}
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="text-lg">{test.name}</CardTitle>
-                    <CardDescription>{test.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Icon name="Clock" size={16} />
-                        {test.duration}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Icon name="FileText" size={16} />
-                        {test.questions} вопросов
-                      </div>
-                    </div>
-
-                    {progress > 0 && (
-                      <div>
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-gray-600">Прогресс</span>
-                          <span className="font-medium">{Math.round(progress)}%</span>
-                        </div>
-                        <Progress value={progress} className="h-2" />
-                      </div>
-                    )}
-
-                    <Button 
-                      className="w-full"
-                      onClick={() => handleStartTest(test.id)}
-                      disabled={savingResult || selectedMember === 'all'}
-                    >
-                      {savingResult ? 'Сохранение...' : (progress > 0 ? 'Пройти ещё раз' : 'Начать тест')}
-                      <Icon name="ArrowRight" size={16} className="ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                {selectedMember !== 'all' && memberTestHistory.length > 0 && (
-                  <TestHistory tests={memberTestHistory} testName={test.name} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-        )}
-
-        {!activeTest && filteredTests.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Icon name="Search" size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-lg text-gray-600">Тесты не найдены</p>
-              <p className="text-sm text-gray-500 mt-2">Попробуйте изменить фильтры</p>
-            </CardContent>
-          </Card>
-        )}
+        <DevelopmentTestsList
+          tests={filteredTests}
+          selectedMember={selectedMember}
+          onStartTest={handleStartTest}
+          getMemberProgress={getMemberProgress}
+          getMaxScoreForTest={getMaxScoreForTest}
+        />
       </div>
     </div>
   );
