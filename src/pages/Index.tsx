@@ -530,9 +530,7 @@ export default function Index({ onLogout }: IndexProps) {
       setShowWidgetSettings={setShowWidgetSettings}
     >
       <MainHeader 
-        currentTheme={currentTheme}
         activeSection={activeSection}
-        t={t}
       />
       
       <MainContentGrid
