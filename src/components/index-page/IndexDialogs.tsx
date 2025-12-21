@@ -33,8 +33,8 @@ export function IndexDialogs({
       </Dialog>
 
       <AssistantTypeSelectorDialog
-        isOpen={showAssistantSelector}
-        onClose={() => onAssistantSelectorChange(false)}
+        open={showAssistantSelector}
+        onOpenChange={onAssistantSelectorChange}
       />
     </>
   );
