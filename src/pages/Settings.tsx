@@ -31,9 +31,10 @@ export default function Settings() {
     return saved || 'ru';
   });
   const [currentTheme, setCurrentTheme] = useState(() => {
-    const saved = localStorage.getItem('familyTheme');
-    return saved || 'warm';
+    const saved = localStorage.getItem('familyOrganizerTheme');
+    return saved || 'middle';
   });
+  const [themeChanging, setThemeChanging] = useState(false);
 
   const { members: familyMembers } = useFamilyMembersContext();
   const { tasks } = useTasks();
@@ -105,8 +106,14 @@ export default function Settings() {
   };
 
   const handleThemeChange = (theme: string) => {
+    setThemeChanging(true);
     setCurrentTheme(theme);
-    localStorage.setItem('familyTheme', theme);
+    localStorage.setItem('familyOrganizerTheme', theme);
+    
+    setTimeout(() => {
+      setThemeChanging(false);
+      window.location.reload();
+    }, 600);
   };
 
   const handleDarkModeToggle = () => {
@@ -135,10 +142,22 @@ export default function Settings() {
   ];
 
   const themes = [
-    { id: 'warm', name: 'Тёплая', gradient: 'from-orange-400 to-pink-500' },
-    { id: 'cold', name: 'Холодная', gradient: 'from-blue-400 to-cyan-500' },
-    { id: 'vibrant', name: 'Яркая', gradient: 'from-purple-400 to-pink-500' },
-    { id: 'nature', name: 'Природная', gradient: 'from-green-400 to-emerald-500' },
+    { 
+      id: 'middle', 
+      name: 'Деловой', 
+      description: 'Сдержанные тона и бизнес-стиль',
+      ageRange: '21-45 лет',
+      gradient: 'from-slate-600 to-slate-800',
+      icon: '💼'
+    },
+    { 
+      id: 'mono', 
+      name: 'Монохром', 
+      description: 'Элегантный стиль с геометрией и серыми тонами',
+      ageRange: 'Премиум',
+      gradient: 'from-gray-900 to-gray-800',
+      icon: '🎨'
+    },
   ];
 
   return (
@@ -235,26 +254,44 @@ export default function Settings() {
                   <div className="border-t pt-6">
                     <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
                       <Icon name="Paintbrush" size={18} />
-                      Тема оформления
+                      Стиль оформления
                     </h3>
+                    
+                    {themeChanging && (
+                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center gap-2">
+                        <div className="animate-spin">
+                          <Icon name="Loader2" size={18} className="text-blue-600" />
+                        </div>
+                        <span className="text-sm text-blue-700 dark:text-blue-300">Применяем новую тему...</span>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {themes.map((theme) => (
                         <button
                           key={theme.id}
                           onClick={() => handleThemeChange(theme.id)}
-                          className={`p-4 rounded-xl border-2 transition-all text-left ${
+                          disabled={themeChanging}
+                          className={`p-5 rounded-xl border-2 transition-all text-left relative overflow-hidden ${
                             currentTheme === theme.id
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
-                          }`}
+                              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg scale-[1.02]'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md'
+                          } ${themeChanging ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          <div className={`w-full h-20 rounded-lg bg-gradient-to-r ${theme.gradient} mb-3 shadow-sm`} />
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{theme.name}</span>
-                            {currentTheme === theme.id && (
-                              <Icon name="Check" className="text-blue-600" size={20} />
-                            )}
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="text-3xl">{theme.icon}</div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{theme.name}</span>
+                                {currentTheme === theme.id && (
+                                  <Icon name="Check" className="text-purple-600" size={24} />
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{theme.description}</p>
+                              <span className="text-xs text-gray-500 dark:text-gray-500">{theme.ageRange}</span>
+                            </div>
                           </div>
+                          <div className={`w-full h-16 rounded-lg bg-gradient-to-r ${theme.gradient} shadow-sm`} />
                         </button>
                       ))}
                     </div>
