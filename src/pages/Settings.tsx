@@ -14,7 +14,7 @@ import AccountSettings from '@/components/settings/AccountSettings';
 import AssistantSettings from '@/components/settings/AssistantSettings';
 import { CalendarExport } from '@/components/CalendarExport';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
-import { useTasks } from '@/contexts/TasksContext';
+import { useTasks } from '@/hooks/useTasks';
 
 export default function Settings() {
   const navigate = useNavigate();
