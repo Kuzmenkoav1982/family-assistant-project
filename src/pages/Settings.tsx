@@ -59,7 +59,9 @@ export default function Settings() {
     { id: 'family', icon: 'Users', label: 'Семья', path: '' },
     { id: 'notifications', icon: 'Bell', label: 'Уведомления', path: '' },
     { id: 'subscription', icon: 'CreditCard', label: 'Подписка', path: '/pricing' },
+    { id: 'appearance', icon: 'Palette', label: 'Внешний вид', path: '' },
     { id: 'account', icon: 'UserCog', label: 'Аккаунт', path: '' },
+    { id: 'assistants', icon: 'Bot', label: 'Ассистенты', path: '' },
   ];
 
   return (
@@ -154,19 +156,221 @@ export default function Settings() {
               </Card>
             )}
 
-            {activeSection === 'account' && (
+            {activeSection === 'appearance' && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Icon name="AlertTriangle" size={24} className="text-red-600" />
-                    Опасная зона
+                    <Icon name="Palette" size={24} />
+                    Внешний вид
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Необратимые действия с вашим аккаунтом
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Настройте оформление приложения под свой вкус
                   </p>
                 </CardHeader>
-                <CardContent>
-                  <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-6 border border-red-200 dark:border-red-900">
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                      <Icon name="Moon" size={18} />
+                      Тёмная тема
+                    </h3>
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                      <div>
+                        <p className="font-medium">Тёмный режим</p>
+                        <p className="text-sm text-muted-foreground">Снижает нагрузку на глаза в тёмное время</p>
+                      </div>
+                      <Button variant="outline">
+                        Переключить
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                      <Icon name="Paintbrush" size={18} />
+                      Тема оформления
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                        <div className="w-full h-12 rounded bg-gradient-to-r from-orange-400 to-pink-500"></div>
+                        <span>Тёплая</span>
+                      </Button>
+                      <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                        <div className="w-full h-12 rounded bg-gradient-to-r from-blue-400 to-cyan-500"></div>
+                        <span>Холодная</span>
+                      </Button>
+                      <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                        <div className="w-full h-12 rounded bg-gradient-to-r from-purple-400 to-pink-500"></div>
+                        <span>Яркая</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                      <Icon name="Languages" size={18} />
+                      Язык интерфейса
+                    </h3>
+                    <div className="flex gap-2">
+                      <Button variant="default">Русский</Button>
+                      <Button variant="outline">English</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'assistants' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="Bot" size={24} />
+                    Ассистенты
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Управление AI-помощниками и интеграциями
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-purple-100 dark:bg-purple-900 rounded-full p-3">
+                        <Icon name="Sparkles" size={24} className="text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold mb-1">Мой AI-ассистент</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Управление настройками вашего персонального помощника
+                        </p>
+                        <Button variant="outline" className="gap-2">
+                          <Icon name="Settings" size={16} />
+                          Настроить ассистента
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-3">
+                        <Icon name="Mic" size={24} className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold mb-1">Яндекс.Алиса</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Управляйте своими делами голосом через Яндекс.Алису
+                        </p>
+                        <Button variant="outline" className="gap-2">
+                          <Icon name="Link" size={16} />
+                          Подключить Алису
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'account' && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Key" size={24} />
+                      Безопасность
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Управление паролем и доступом к аккаунту
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                        <Icon name="Lock" size={18} />
+                        Изменить пароль
+                      </h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="current-password">Текущий пароль</Label>
+                          <Input id="current-password" type="password" placeholder="••••••••" />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-password">Новый пароль</Label>
+                          <Input id="new-password" type="password" placeholder="••••••••" />
+                        </div>
+                        <div>
+                          <Label htmlFor="confirm-password">Подтвердите новый пароль</Label>
+                          <Input id="confirm-password" type="password" placeholder="••••••••" />
+                        </div>
+                        <Button className="gap-2">
+                          <Icon name="Check" size={16} />
+                          Сохранить новый пароль
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-6">
+                      <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                        <Icon name="Shield" size={18} />
+                        Двухфакторная аутентификация
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Добавьте дополнительный уровень защиты вашего аккаунта
+                      </p>
+                      <Button variant="outline" className="gap-2">
+                        <Icon name="ShieldCheck" size={16} />
+                        Настроить 2FA
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Download" size={24} />
+                      Экспорт данных
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Скачайте копию ваших данных
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h3 className="text-base font-semibold mb-2">Экспорт всех данных</h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Получите архив со всеми данными семьи, задачами, фотографиями и статистикой
+                      </p>
+                      <Button variant="outline" className="gap-2">
+                        <Icon name="FileArchive" size={16} />
+                        Скачать архив данных
+                      </Button>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h3 className="text-base font-semibold mb-2">Экспорт календаря</h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Экспортируйте события в формате .ics для импорта в Google Calendar, Apple Calendar и другие
+                      </p>
+                      <Button variant="outline" className="gap-2">
+                        <Icon name="Calendar" size={16} />
+                        Скачать .ics файл
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="AlertTriangle" size={24} className="text-red-600" />
+                      Опасная зона
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Необратимые действия с вашим аккаунтом
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-6 border border-red-200 dark:border-red-900">
                     <div className="flex items-start gap-4">
                       <div className="bg-red-100 dark:bg-red-900 rounded-full p-3">
                         <Icon name="Trash2" size={24} className="text-red-600 dark:text-red-400" />
@@ -209,6 +413,7 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
+              </>
             )}
           </div>
         </div>
