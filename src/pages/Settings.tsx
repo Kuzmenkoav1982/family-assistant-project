@@ -278,7 +278,7 @@ export default function Settings() {
                               : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md'
                           } ${themeChanging ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          <div className="flex items-start gap-3 mb-3">
+                          <div className="flex items-start gap-3">
                             <div className="text-3xl">{theme.icon}</div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-1">
@@ -291,7 +291,6 @@ export default function Settings() {
                               <span className="text-xs text-gray-500 dark:text-gray-500">{theme.ageRange}</span>
                             </div>
                           </div>
-                          <div className={`w-full h-16 rounded-lg bg-gradient-to-r ${theme.gradient} shadow-sm`} />
                         </button>
                       ))}
                     </div>
