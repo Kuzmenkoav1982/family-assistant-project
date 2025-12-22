@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,8 @@ interface CalendarDay {
 export default function Calendar() {
   const navigate = useNavigate();
   const { tasks } = useTasks();
+  const [searchParams] = useSearchParams();
+  const memberFilterFromUrl = searchParams.get('member');
   
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -31,6 +33,7 @@ export default function Calendar() {
   const [showDayEventsDialog, setShowDayEventsDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | Task | FamilyGoal | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [memberFilter, setMemberFilter] = useState<string>(memberFilterFromUrl || 'all');
   const [showReminders, setShowReminders] = useState(false);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -53,6 +56,7 @@ export default function Calendar() {
     category: 'personal',
     color: '#3b82f6',
     visibility: 'family' as 'family' | 'private',
+    assignedTo: 'all',
     attendees: [] as string[],
     reminderEnabled: true,
     reminderDays: 1,
@@ -160,6 +164,14 @@ export default function Calendar() {
     if (categoryFilter !== 'all') {
       matchingEvents = matchingEvents.filter(e => e.category === categoryFilter);
     }
+
+    if (memberFilter !== 'all') {
+      matchingEvents = matchingEvents.filter(e => {
+        if (!e.assignedTo || e.assignedTo === 'all') return true;
+        return e.assignedTo === memberFilter;
+      });
+    }
+
     allEvents.push(...matchingEvents);
 
     const tasksForDate = tasks.filter(t => t.dueDate === dateStr);
@@ -274,6 +286,7 @@ export default function Calendar() {
       category: 'personal',
       color: '#3b82f6',
       visibility: 'family',
+      assignedTo: memberFilter !== 'all' ? memberFilter : 'all',
       attendees: [],
       reminderEnabled: true,
       reminderDays: 1,
@@ -300,6 +313,7 @@ export default function Calendar() {
       category: newEvent.category,
       color: newEvent.color,
       visibility: newEvent.visibility,
+      assignedTo: newEvent.assignedTo,
       attendees: newEvent.attendees,
       reminderEnabled: newEvent.reminderEnabled,
       reminderDays: newEvent.reminderDays,
@@ -332,6 +346,7 @@ export default function Calendar() {
       category: event.category,
       color: event.color,
       visibility: event.visibility,
+      assignedTo: event.assignedTo || 'all',
       attendees: event.attendees || [],
       reminderEnabled: event.reminderEnabled || false,
       reminderDays: event.reminderDays || 1,
@@ -369,6 +384,7 @@ export default function Calendar() {
           currentDate={currentDate}
           viewMode={viewMode}
           categoryFilter={categoryFilter}
+          memberFilter={memberFilter}
           isInstructionOpen={isInstructionOpen}
           onNavigateBack={() => navigate('/')}
           onViewModeChange={setViewMode}
@@ -376,6 +392,7 @@ export default function Calendar() {
           onNextPeriod={handleNextPeriod}
           onToday={handleToday}
           onCategoryFilterChange={setCategoryFilter}
+          onMemberFilterChange={setMemberFilter}
           onInstructionToggle={setIsInstructionOpen}
           onAddEvent={handleAddEvent}
         />

@@ -46,7 +46,7 @@ export function MemberProfileContent({
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleCalendarClick = () => {
-    navigate('/calendar');
+    navigate(`/calendar?member=${member.id}`);
   };
 
   return (

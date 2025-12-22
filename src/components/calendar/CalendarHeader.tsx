@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
 type ViewMode = 'month' | 'week';
 
@@ -10,6 +11,7 @@ interface CalendarHeaderProps {
   currentDate: Date;
   viewMode: ViewMode;
   categoryFilter: string;
+  memberFilter: string;
   isInstructionOpen: boolean;
   onNavigateBack: () => void;
   onViewModeChange: (mode: ViewMode) => void;
@@ -17,6 +19,7 @@ interface CalendarHeaderProps {
   onNextPeriod: () => void;
   onToday: () => void;
   onCategoryFilterChange: (category: string) => void;
+  onMemberFilterChange: (memberId: string) => void;
   onInstructionToggle: (open: boolean) => void;
   onAddEvent: () => void;
 }
@@ -35,6 +38,7 @@ export function CalendarHeader({
   currentDate,
   viewMode,
   categoryFilter,
+  memberFilter,
   isInstructionOpen,
   onNavigateBack,
   onViewModeChange,
@@ -42,9 +46,11 @@ export function CalendarHeader({
   onNextPeriod,
   onToday,
   onCategoryFilterChange,
+  onMemberFilterChange,
   onInstructionToggle,
   onAddEvent
 }: CalendarHeaderProps) {
+  const { members } = useFamilyMembersContext();
   const monthNames = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
@@ -134,18 +140,48 @@ export function CalendarHeader({
         </Button>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {categories.map(cat => (
-          <Badge
-            key={cat.id}
-            className={`cursor-pointer transition-all ${
-              categoryFilter === cat.id ? cat.color + ' border-2 border-current' : 'bg-gray-100 text-gray-600'
-            }`}
-            onClick={() => onCategoryFilterChange(cat.id)}
-          >
-            {cat.label}
-          </Badge>
-        ))}
+      <div className="space-y-2">
+        <div>
+          <p className="text-sm font-medium text-gray-700 mb-2">Категории:</p>
+          <div className="flex gap-2 flex-wrap">
+            {categories.map(cat => (
+              <Badge
+                key={cat.id}
+                className={`cursor-pointer transition-all ${
+                  categoryFilter === cat.id ? cat.color + ' border-2 border-current' : 'bg-gray-100 text-gray-600'
+                }`}
+                onClick={() => onCategoryFilterChange(cat.id)}
+              >
+                {cat.label}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-gray-700 mb-2">Для кого:</p>
+          <div className="flex gap-2 flex-wrap">
+            <Badge
+              className={`cursor-pointer transition-all ${
+                memberFilter === 'all' ? 'bg-indigo-100 text-indigo-700 border-2 border-current' : 'bg-gray-100 text-gray-600'
+              }`}
+              onClick={() => onMemberFilterChange('all')}
+            >
+              Вся семья
+            </Badge>
+            {members.map(member => (
+              <Badge
+                key={member.id}
+                className={`cursor-pointer transition-all ${
+                  memberFilter === member.id ? 'bg-indigo-100 text-indigo-700 border-2 border-current' : 'bg-gray-100 text-gray-600'
+                }`}
+                onClick={() => onMemberFilterChange(member.id)}
+              >
+                {member.avatar} {member.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
 interface EventDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface EventDialogProps {
     category: string;
     color: string;
     visibility: 'family' | 'private';
+    assignedTo: string;
     attendees: string[];
     reminderEnabled: boolean;
     reminderDays: number;
@@ -52,6 +54,8 @@ export function EventDialog({
   onSaveEvent,
   editingEventId
 }: EventDialogProps) {
+  const { members } = useFamilyMembersContext();
+
   const handleSave = () => {
     if (!newEvent.title || !newEvent.date) {
       alert('Пожалуйста, заполните название и дату события');
@@ -144,6 +148,23 @@ export function EventDialog({
                 />
               ))}
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="assignedTo">Для кого событие</Label>
+            <Select value={newEvent.assignedTo} onValueChange={(val) => onEventChange('assignedTo', val)}>
+              <SelectTrigger id="assignedTo">
+                <SelectValue placeholder="Выберите члена семьи" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Вся семья</SelectItem>
+                {members.map(member => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.avatar} {member.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

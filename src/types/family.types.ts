@@ -244,6 +244,7 @@ export interface CalendarEvent {
   color: string;
   visibility: 'family' | 'private';
   createdBy?: string;
+  assignedTo?: string;
   attendees?: string[];
   reminderEnabled?: boolean;
   reminderDays?: number;
