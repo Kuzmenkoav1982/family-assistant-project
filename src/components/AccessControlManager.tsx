@@ -89,23 +89,35 @@ export default function AccessControlManager() {
   const [membersWithPermissions, setMembersWithPermissions] = useState<FamilyMemberPermissions[]>([]);
   const [selectedMember, setSelectedMember] = useState<FamilyMemberPermissions | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [savingMemberId, setSavingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     if (familyMembers.length > 0) {
-      const enriched = familyMembers.map((member: any) => ({
-        id: member.id,
-        name: member.name,
-        relationship: member.relationship || member.role || 'Член семьи',
-        avatarUrl: member.photo_url || member.avatar,
-        avatar: member.avatar,
-        role: (member.permissions?.role || 'viewer') as 'admin' | 'editor' | 'viewer',
-        permissions: member.permissions || DEFAULT_PERMISSIONS.viewer
-      }));
+      const enriched = familyMembers.map((member: any) => {
+        const accessRole = (member.access_role || 'viewer') as 'admin' | 'editor' | 'viewer';
+        return {
+          id: member.id,
+          name: member.name,
+          relationship: member.relationship || member.role || 'Член семьи',
+          avatarUrl: member.photo_url || member.avatar,
+          avatar: member.avatar,
+          role: accessRole,
+          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole]
+        };
+      });
       setMembersWithPermissions(enriched);
     }
   }, [familyMembers]);
 
   const updateMemberRole = async (memberId: string, newRole: 'admin' | 'editor' | 'viewer') => {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('⚠️ Ошибка авторизации. Войдите в систему заново.');
+      return;
+    }
+
+    setSavingMemberId(memberId);
+
     const updatedMembers = membersWithPermissions.map(member => {
       if (member.id === memberId) {
         return {
@@ -118,35 +130,57 @@ export default function AccessControlManager() {
     });
     setMembersWithPermissions(updatedMembers);
     
-    // Сохраняем в базу через API
     try {
-      const familyId = JSON.parse(localStorage.getItem('userData') || '{}').family_id;
-      const response = await fetch('https://functions.poehali.dev/9c2279f4-7f87-4d3f-8f06-60f151f18962', {
+      const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Auth-Token': authToken
         },
         body: JSON.stringify({
-          action: 'update_role',
-          familyId: familyId,
-          memberId: memberId,
-          newRole: newRole
+          action: 'update',
+          member_id: memberId,
+          access_role: newRole,
+          permissions: DEFAULT_PERMISSIONS[newRole]
         })
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to update role');
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Не удалось сохранить роль');
       }
       
-      console.log('✅ Роль успешно сохранена в базу');
-    } catch (error) {
+      console.log('✅ Роль успешно сохранена');
+    } catch (error: any) {
       console.error('❌ Ошибка сохранения роли:', error);
-      // Откатываем изменения в UI при ошибке
-      fetchMembers();
+      alert(`⚠️ Не удалось сохранить роль: ${error.message || 'Неизвестная ошибка'}`);
+      
+      const originalMembers = familyMembers.map((member: any) => {
+        const accessRole = (member.access_role || 'viewer') as 'admin' | 'editor' | 'viewer';
+        return {
+          id: member.id,
+          name: member.name,
+          relationship: member.relationship || member.role || 'Член семьи',
+          avatarUrl: member.photo_url || member.avatar,
+          avatar: member.avatar,
+          role: accessRole,
+          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole]
+        };
+      });
+      setMembersWithPermissions(originalMembers);
+    } finally {
+      setSavingMemberId(null);
     }
   };
 
-  const updateMemberPermission = (memberId: string, permission: keyof FamilyMemberPermissions['permissions'], value: boolean) => {
+  const updateMemberPermission = async (memberId: string, permission: keyof FamilyMemberPermissions['permissions'], value: boolean) => {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('⚠️ Ошибка авторизации. Войдите в систему заново.');
+      return;
+    }
+
     const updatedMembers = membersWithPermissions.map(member => {
       if (member.id === memberId) {
         return {
@@ -162,11 +196,46 @@ export default function AccessControlManager() {
     setMembersWithPermissions(updatedMembers);
     
     const memberData = updatedMembers.find(m => m.id === memberId);
-    if (memberData) {
-      localStorage.setItem(`member_permissions_${memberId}`, JSON.stringify({
-        role: memberData.role,
-        permissions: memberData.permissions
-      }));
+    if (!memberData) return;
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': authToken
+        },
+        body: JSON.stringify({
+          action: 'update',
+          member_id: memberId,
+          permissions: memberData.permissions
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Не удалось сохранить права');
+      }
+      
+      console.log('✅ Права успешно сохранены');
+    } catch (error: any) {
+      console.error('❌ Ошибка сохранения прав:', error);
+      alert(`⚠️ Не удалось сохранить права: ${error.message || 'Неизвестная ошибка'}`);
+      
+      const originalMembers = familyMembers.map((member: any) => {
+        const accessRole = (member.access_role || 'viewer') as 'admin' | 'editor' | 'viewer';
+        return {
+          id: member.id,
+          name: member.name,
+          relationship: member.relationship || member.role || 'Член семьи',
+          avatarUrl: member.photo_url || member.avatar,
+          avatar: member.avatar,
+          role: accessRole,
+          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole]
+        };
+      });
+      setMembersWithPermissions(originalMembers);
     }
   };
 
@@ -227,6 +296,12 @@ export default function AccessControlManager() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {savingMemberId === member.id && (
+                    <div className="flex items-center gap-2 text-sm text-blue-600">
+                      <Icon name="Loader2" size={16} className="animate-spin" />
+                      Сохранение...
+                    </div>
+                  )}
                   <Dialog open={isDialogOpen && selectedMember?.id === member.id} onOpenChange={(open) => {
                     setIsDialogOpen(open);
                     if (!open) setSelectedMember(null);
@@ -237,6 +312,7 @@ export default function AccessControlManager() {
                         size="sm"
                         onClick={() => openPermissionsDialog(member)}
                         className="gap-2"
+                        disabled={savingMemberId === member.id}
                       >
                         <Icon name="Settings" size={16} />
                         Настроить
@@ -261,10 +337,13 @@ export default function AccessControlManager() {
                               <button
                                 key={roleKey}
                                 onClick={() => updateMemberRole(member.id, roleKey as any)}
+                                disabled={savingMemberId === member.id}
                                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                                   member.role === roleKey 
                                     ? 'border-blue-500 bg-blue-50' 
                                     : 'border-gray-200 hover:border-gray-300'
+                                } ${
+                                  savingMemberId === member.id ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                               >
                                 <div className="flex items-center justify-between mb-2">
