@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,26 +42,7 @@ export function MemberProfileContent({
   saveProfile,
   updateMember
 }: MemberProfileContentProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
-
-  // Синхронизируем вкладку с URL параметром
-  useEffect(() => {
-    const section = searchParams.get('section');
-    if (section === 'tasks') {
-      setActiveTab('overview');
-    }
-  }, [searchParams]);
-
-  // Обработчик изменения вкладки с обновлением URL
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    if (value === 'overview') {
-      setSearchParams({ section: 'tasks' });
-    } else {
-      setSearchParams({});
-    }
-  };
 
   return (
     <Card className="border-2 shadow-xl bg-white/80 backdrop-blur">
@@ -108,7 +88,7 @@ export function MemberProfileContent({
 
         <div className={`grid grid-cols-1 gap-4 ${isChild ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           <button
-            onClick={() => handleTabChange('overview')}
+            onClick={() => setActiveTab('overview')}
             className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all cursor-pointer text-left"
           >
             <div className="flex items-center gap-2 mb-2">
@@ -139,7 +119,7 @@ export function MemberProfileContent({
       </CardHeader>
 
       <CardContent>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="overview">Общее</TabsTrigger>
             <TabsTrigger value="dreams">Мечты</TabsTrigger>

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 
 type CalendarView = 'week' | 'month';
@@ -27,11 +29,22 @@ export function MemberCalendar({ memberId, memberName }: MemberCalendarProps) {
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const [events] = useState<CalendarEvent[]>([
-    { id: '1', title: 'Убрать комнату', date: '2025-11-26', type: 'task', completed: false },
-    { id: '2', title: 'Семейный ужин', date: '2025-11-27', type: 'event' },
-    { id: '3', title: 'День рождения', date: '2025-11-30', type: 'birthday' },
-  ]);
+  const [events, setEvents] = useState<CalendarEvent[]>(() => {
+    const saved = localStorage.getItem(`calendarEvents_${memberId}`);
+    return saved ? JSON.parse(saved) : [
+      { id: '1', title: 'Убрать комнату', date: '2025-11-26', type: 'task', completed: false },
+      { id: '2', title: 'Семейный ужин', date: '2025-11-27', type: 'event' },
+      { id: '3', title: 'День рождения', date: '2025-11-30', type: 'birthday' },
+    ];
+  });
+
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [newEventTitle, setNewEventTitle] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem(`calendarEvents_${memberId}`, JSON.stringify(events));
+  }, [events, memberId]);
 
   useEffect(() => {
     localStorage.setItem(`calendarView_${memberId}`, view);
@@ -114,6 +127,27 @@ export function MemberCalendar({ memberId, memberName }: MemberCalendarProps) {
     }
   };
 
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date);
+    setShowAddDialog(true);
+  };
+
+  const handleAddEvent = () => {
+    if (!selectedDate || !newEventTitle.trim()) return;
+    
+    const newEvent: CalendarEvent = {
+      id: Date.now().toString(),
+      title: newEventTitle.trim(),
+      date: selectedDate.toISOString().split('T')[0],
+      type: 'event',
+    };
+    
+    setEvents([...events, newEvent]);
+    setShowAddDialog(false);
+    setNewEventTitle('');
+    setSelectedDate(null);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -167,10 +201,11 @@ export function MemberCalendar({ memberId, memberName }: MemberCalendarProps) {
               return (
                 <div
                   key={idx}
-                  className={`p-3 rounded-lg border-2 ${
+                  onClick={() => handleDayClick(day)}
+                  className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isToday 
-                      ? 'border-purple-400 bg-purple-50' 
-                      : 'border-gray-200 bg-white'
+                      ? 'border-purple-400 bg-purple-50 hover:bg-purple-100' 
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -226,12 +261,13 @@ export function MemberCalendar({ memberId, memberName }: MemberCalendarProps) {
                 return (
                   <div
                     key={idx}
+                    onClick={() => dayObj.currentMonth && handleDayClick(dayObj.date)}
                     className={`aspect-square p-1 rounded border ${
                       !dayObj.currentMonth
                         ? 'bg-gray-50 border-gray-100'
                         : isToday
-                        ? 'border-2 border-purple-400 bg-purple-50'
-                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                        ? 'border-2 border-purple-400 bg-purple-50 cursor-pointer hover:bg-purple-100'
+                        : 'border-gray-200 bg-white cursor-pointer hover:bg-gray-50'
                     }`}
                   >
                     <div className={`text-xs font-semibold ${
@@ -271,10 +307,46 @@ export function MemberCalendar({ memberId, memberName }: MemberCalendarProps) {
         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-600 flex items-center gap-2">
             <Icon name="Info" size={14} />
-            Настройки вида календаря сохраняются автоматически
+            Нажмите на любой день, чтобы добавить событие
           </p>
         </div>
       </CardContent>
+
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Добавить событие</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Дата: {selectedDate?.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </label>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Название события</label>
+              <Input
+                value={newEventTitle}
+                onChange={(e) => setNewEventTitle(e.target.value)}
+                placeholder="Например: Встреча с друзьями"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddEvent();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleAddEvent} disabled={!newEventTitle.trim()}>
+              Добавить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
