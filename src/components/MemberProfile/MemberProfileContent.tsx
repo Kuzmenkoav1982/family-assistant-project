@@ -202,13 +202,14 @@ export function MemberProfileContent({
                               size="sm"
                               onClick={async () => {
                                 console.log('[MemberProfile] Delete button clicked for task:', task.id, task.title);
+                                console.log('[MemberProfile] deleteTask function:', typeof deleteTask, deleteTask);
                                 console.log('[MemberProfile] Can delete tasks:', canDo('tasks', 'delete'));
                                 if (confirm('Удалить эту задачу?')) {
                                   console.log('[MemberProfile] User confirmed deletion');
                                   try {
-                                    console.log('[MemberProfile] Calling deleteTask...');
+                                    console.log('[MemberProfile] About to call deleteTask with:', task.id);
                                     const result = await deleteTask(task.id);
-                                    console.log('[MemberProfile] Delete result:', result);
+                                    console.log('[MemberProfile] Delete result type:', typeof result, result);
                                     
                                     if (result?.success) {
                                       alert('✅ Задача успешно удалена!');
