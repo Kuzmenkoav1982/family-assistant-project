@@ -140,7 +140,6 @@ export function LifeRoadEventsList({
                       const member = members?.find(m => m.id === participantId);
                       return (
                         <Badge key={participantId} variant="outline">
-                          {member?.avatar && <span className="mr-1">{member.avatar}</span>}
                           {member?.name || participantId}
                         </Badge>
                       );

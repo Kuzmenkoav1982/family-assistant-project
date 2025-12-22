@@ -132,7 +132,6 @@ export function NutritionHeader({
                   onClick={() => onMemberSelect(parseInt(member.id))}
                   className="flex items-center gap-2 whitespace-nowrap"
                 >
-                  <span className="text-xl">{member.avatar}</span>
                   {member.name}
                 </Button>
               ))}

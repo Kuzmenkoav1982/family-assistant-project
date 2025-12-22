@@ -77,7 +77,6 @@ export function DevelopmentFilters({
                   onClick={() => onMemberChange(member.id)}
                   className="gap-2"
                 >
-                  <span>{member.avatar}</span>
                   {member.name}
                   {selectedMember === member.id && member.development && (
                     <Badge variant="secondary" className="ml-1">

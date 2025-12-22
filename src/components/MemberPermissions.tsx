@@ -97,7 +97,6 @@ export default function MemberPermissions({ member, onUpdate }: MemberPermission
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <span className="text-3xl">{member.avatar}</span>
             <div>
               <div>Управление доступами</div>
               <div className="text-sm font-normal text-gray-500">{member.name}</div>

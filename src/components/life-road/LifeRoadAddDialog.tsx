@@ -186,7 +186,6 @@ export function LifeRoadAddDialog({
                       htmlFor={`participant-${member.id}`}
                       className="text-sm font-normal cursor-pointer flex items-center gap-2"
                     >
-                      {member.avatar && <span>{member.avatar}</span>}
                       {member.name}
                     </Label>
                   </div>
