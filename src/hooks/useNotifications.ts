@@ -1,7 +1,7 @@
 import { useAuth } from './useAuth';
 
 const FUNC2URL = {
-  'push-notifications': 'https://functions.poehali.dev/a9e33a2c-ed7d-4e73-b4a4-4e5d49d7e8f0'
+  'push-notifications': 'https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94'
 };
 
 export interface NotificationPayload {

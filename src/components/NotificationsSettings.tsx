@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useState } from 'react';
 import func2url from '../../backend/func2url.json';
+import { NotificationTypeSettings } from './NotificationTypeSettings';
 
 export function NotificationsSettings() {
   const {
@@ -181,7 +182,9 @@ export function NotificationsSettings() {
         </div>
 
         {isSubscribed && (
-          <div className="space-y-3">
+          <>
+            <NotificationTypeSettings />
+            <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Button
                 onClick={handleTestNotification}
@@ -292,6 +295,7 @@ export function NotificationsSettings() {
               </div>
             </div>
           </div>
+          </>
         )}
 
         {permission === 'denied' && (

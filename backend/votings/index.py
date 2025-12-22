@@ -29,8 +29,8 @@ def escape_string(value: Any) -> str:
         return 'TRUE' if value else 'FALSE'
     return "'" + str(value).replace("'", "''") + "'"
 
-def send_push_notification(family_id: str, title: str, message: str):
-    """Отправка push-уведомлений всем подписчикам семьи"""
+def send_push_notification(family_id: str, title: str, message: str, notification_type: str = 'votings'):
+    """Отправка push-уведомлений всем подписчикам семьи с проверкой настроек"""
     try:
         vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
         if not vapid_key:
@@ -41,13 +41,18 @@ def send_push_notification(family_id: str, title: str, message: str):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         query = f"""
-            SELECT subscription_data FROM {SCHEMA}.push_subscriptions 
+            SELECT subscription_data, notification_settings FROM {SCHEMA}.push_subscriptions 
             WHERE family_id = {escape_string(family_id)}
         """
         cur.execute(query)
         subscriptions = cur.fetchall()
         
         for sub_row in subscriptions:
+            settings = sub_row.get('notification_settings') or {}
+            if settings.get(notification_type, True) is False:
+                print(f"[INFO] Skipping notification type '{notification_type}' - disabled in settings")
+                continue
+            
             try:
                 webpush(
                     subscription_info=sub_row['subscription_data'],

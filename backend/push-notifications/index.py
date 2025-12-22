@@ -141,6 +141,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            elif action == 'update_settings':
+                settings = body.get('settings', {})
+                settings_json = json.dumps(settings).replace("'", "''")
+                
+                cur.execute(f"""
+                    UPDATE {schema}.push_subscriptions 
+                    SET notification_settings = '{settings_json}'
+                    WHERE family_id = '{family_id_safe}'
+                """)
+                conn.commit()
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'success': True, 'message': 'Settings updated'}),
+                    'isBase64Encoded': False
+                }
+            
             elif action == 'send':
                 title = body.get('title', 'Семейный Ассистент')
                 message = body.get('message', '')
@@ -260,21 +280,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         elif method == 'GET':
-            cur.execute(f"SELECT id, created_at FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")
-            subscription_row = cur.fetchone()
-            cur.close()
-            conn.close()
+            query_params = event.get('queryStringParameters') or {}
+            action_param = query_params.get('action', '')
             
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'success': True,
-                    'subscribed': subscription_row is not None,
-                    'subscription': dict(subscription_row) if subscription_row else None
-                }),
-                'isBase64Encoded': False
-            }
+            if action_param == 'get_settings':
+                cur.execute(f"SELECT notification_settings FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")
+                subscription_row = cur.fetchone()
+                cur.close()
+                conn.close()
+                
+                settings = subscription_row['notification_settings'] if subscription_row and subscription_row.get('notification_settings') else None
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'settings': settings
+                    }),
+                    'isBase64Encoded': False
+                }
+            else:
+                cur.execute(f"SELECT id, created_at FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")
+                subscription_row = cur.fetchone()
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'subscribed': subscription_row is not None,
+                        'subscription': dict(subscription_row) if subscription_row else None
+                    }),
+                    'isBase64Encoded': False
+                }
         
         return {
             'statusCode': 405,
