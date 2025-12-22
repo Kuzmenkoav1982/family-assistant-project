@@ -46,22 +46,27 @@ export default function Cohesion() {
 
         {/* Инструкция */}
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-          <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+          <Alert className="bg-gradient-to-r from-pink-50 to-pink-100 border-2 border-pink-300 shadow-lg hover:shadow-xl transition-shadow">
             <div className="flex items-start gap-3">
-              <Icon name="Info" className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div className="bg-pink-500 rounded-full p-2 shadow-md">
+                <Icon name="Info" className="h-5 w-5 text-white" />
+              </div>
               <div className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
-                  <h3 className="font-semibold text-purple-900 text-lg">
-                    Что такое сплочённость семьи?
-                  </h3>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group hover:opacity-80 transition-opacity">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-pink-900 text-lg">
+                      Что такое сплочённость семьи?
+                    </h3>
+                    <span className="text-xs bg-pink-200 text-pink-800 px-2 py-1 rounded-full font-medium">Инструкция</span>
+                  </div>
                   <Icon 
                     name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    className="h-5 w-5 text-purple-600 transition-transform group-hover:scale-110" 
+                    className="h-6 w-6 text-pink-600 transition-transform group-hover:scale-110" 
                   />
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="mt-3 space-y-3">
-                  <AlertDescription className="text-purple-800">
+                  <AlertDescription className="text-pink-800">
                     <div className="space-y-4">
                       <div>
                         <p className="font-medium mb-2">❤️ Для чего нужен этот раздел?</p>
@@ -113,10 +118,16 @@ export default function Cohesion() {
                         </ul>
                       </div>
 
-                      <div className="pt-2 border-t border-purple-200">
+                      <div className="pt-2 border-t border-pink-200">
                         <p className="text-sm italic">
                           💡 <strong>Совет:</strong> Сплочённость — это не цифра, а результат любви и заботы. 
                           Используйте этот показатель как подсказку для улучшения семейных отношений!
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-pink-200">
+                        <p className="text-sm">
+                          📖 <strong>Подробнее:</strong> <a href="https://docs.poehali.dev" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline">Полная инструкция в документации</a>
                         </p>
                       </div>
                     </div>

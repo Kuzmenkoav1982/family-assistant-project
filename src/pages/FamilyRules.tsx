@@ -142,22 +142,27 @@ export default function FamilyRules() {
 
         {/* Инструкция */}
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-          <Alert className="bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
+          <Alert className="bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-300 shadow-lg hover:shadow-xl transition-shadow">
             <div className="flex items-start gap-3">
-              <Icon name="Info" className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div className="bg-purple-500 rounded-full p-2 shadow-md">
+                <Icon name="Info" className="h-5 w-5 text-white" />
+              </div>
               <div className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
-                  <h3 className="font-semibold text-yellow-900 text-lg">
-                    Как работают семейные правила
-                  </h3>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group hover:opacity-80 transition-opacity">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-purple-900 text-lg">
+                      Как работают семейные правила
+                    </h3>
+                    <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full font-medium">Инструкция</span>
+                  </div>
                   <Icon 
                     name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    className="h-5 w-5 text-yellow-600 transition-transform group-hover:scale-110" 
+                    className="h-6 w-6 text-purple-600 transition-transform group-hover:scale-110" 
                   />
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="mt-3 space-y-3">
-                  <AlertDescription className="text-yellow-800">
+                  <AlertDescription className="text-purple-800">
                     <div className="space-y-4">
                       <div>
                         <p className="font-medium mb-2">⚖️ Для чего нужны семейные правила?</p>
@@ -197,6 +202,12 @@ export default function FamilyRules() {
                           <li>Периодически пересматривайте правила — удаляйте неактуальные</li>
                           <li>Правила должны быть справедливыми и выполнимыми для всех</li>
                         </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-purple-200">
+                        <p className="text-sm">
+                          📖 <strong>Подробнее:</strong> <a href="https://docs.poehali.dev" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">Полная инструкция в документации</a>
+                        </p>
                       </div>
                     </div>
                   </AlertDescription>

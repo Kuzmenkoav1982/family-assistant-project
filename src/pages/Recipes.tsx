@@ -203,17 +203,24 @@ export default function Recipes() {
 
         {/* Инструкция */}
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen} className="mb-6">
-          <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+          <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 shadow-lg hover:shadow-xl transition-shadow">
             <div className="flex items-start gap-3">
-              <Icon name="Info" className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="bg-orange-500 rounded-full p-2 shadow-md">
+                <Icon name="Info" className="h-5 w-5 text-white" />
+              </div>
               <div className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
-                  <h3 className="font-semibold text-orange-900 text-lg">
-                    Как работать с рецептами
-                  </h3>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group hover:opacity-80 transition-opacity">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-orange-900 text-lg">
+                      👩‍🍳 Как работать с рецептами
+                    </h3>
+                    <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded-full font-medium">
+                      Инструкция
+                    </span>
+                  </div>
                   <Icon 
                     name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    className="h-5 w-5 text-orange-600 transition-transform group-hover:scale-110" 
+                    className="h-6 w-6 text-orange-600 transition-transform group-hover:scale-110" 
                   />
                 </CollapsibleTrigger>
                 
@@ -305,6 +312,12 @@ export default function Recipes() {
                           <li>Добавляйте ингредиенты в "Покупки"</li>
                           <li>Сохраняйте рецепты из семейных традиций</li>
                         </ul>
+                      </div>
+
+                      <div className="pt-2 border-t border-orange-200">
+                        <p className="text-sm">
+                          📖 <strong>Подробнее:</strong> <a href="https://docs.poehali.dev" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">Полная инструкция в документации</a>
+                        </p>
                       </div>
 
                       <div className="pt-2 border-t border-orange-200">

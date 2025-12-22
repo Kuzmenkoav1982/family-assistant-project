@@ -23,22 +23,27 @@ export default function VotingPage() {
 
         {/* Инструкция */}
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-          <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+          <Alert className="bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 shadow-lg hover:shadow-xl transition-shadow">
             <div className="flex items-start gap-3">
-              <Icon name="Info" className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div className="bg-indigo-500 rounded-full p-2 shadow-md">
+                <Icon name="Info" className="h-5 w-5 text-white" />
+              </div>
               <div className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
-                  <h3 className="font-semibold text-purple-900 text-lg">
-                    Как работает семейное голосование
-                  </h3>
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group hover:opacity-80 transition-opacity">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-indigo-900 text-lg">
+                      Как работает семейное голосование
+                    </h3>
+                    <span className="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full font-medium">Инструкция</span>
+                  </div>
                   <Icon 
                     name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    className="h-5 w-5 text-purple-600 transition-transform group-hover:scale-110" 
+                    className="h-6 w-6 text-indigo-600 transition-transform group-hover:scale-110" 
                   />
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="mt-3 space-y-3">
-                  <AlertDescription className="text-purple-800">
+                  <AlertDescription className="text-indigo-800">
                     <div className="space-y-4">
                       <div>
                         <p className="font-medium mb-2">🗳️ Для чего нужны голосования?</p>
@@ -188,11 +193,17 @@ export default function VotingPage() {
                         </ul>
                       </div>
 
-                      <div className="pt-2 border-t border-purple-200">
+                      <div className="pt-2 border-t border-indigo-200">
                         <p className="text-sm italic">
                           💡 <strong>Совет:</strong> Начните с простых вопросов (что на ужин, какой фильм посмотреть). 
                           Когда семья привыкнет к голосованиям, переходите к более серьёзным темам. 
                           Помните: голосование — это инструмент для принятия решений, но главное — это уважение и любовь в семье!
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-indigo-200">
+                        <p className="text-sm">
+                          📖 <strong>Подробнее:</strong> <a href="https://docs.poehali.dev" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Полная инструкция в документации</a>
                         </p>
                       </div>
                     </div>
