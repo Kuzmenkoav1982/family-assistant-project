@@ -203,7 +203,17 @@ def delete_voting(voting_id: str, member_id: str) -> Dict[str, Any]:
             conn.close()
             return {'success': False, 'error': 'Голосование не найдено'}
         
-        if str(voting['created_by']) != str(member_id):
+        role_query = f"""
+            SELECT access_role FROM {SCHEMA}.family_members 
+            WHERE id::text = {escape_string(member_id)}
+        """
+        cur.execute(role_query)
+        member = cur.fetchone()
+        
+        is_admin = member and member['access_role'] == 'admin'
+        is_creator = str(voting['created_by']) == str(member_id)
+        
+        if not is_admin and not is_creator:
             cur.close()
             conn.close()
             return {'success': False, 'error': 'Нет прав на удаление'}
