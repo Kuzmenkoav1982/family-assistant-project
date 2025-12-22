@@ -70,15 +70,11 @@ export function VotingWidget() {
   };
 
   const handleDelete = async (votingId: string) => {
-    if (!confirm('Вы уверены, что хотите удалить это голосование?')) {
-      return;
-    }
-
     setDeletingId(votingId);
     const result = await deleteVoting(votingId);
     
     if (result.success) {
-      alert('✅ Голосование удалено');
+      // Успешное удаление, голосование исчезнет из списка автоматически
       setContextMenuVoting(null);
     } else {
       alert('❌ Ошибка удаления: ' + result.error);
@@ -202,6 +198,8 @@ export function VotingWidget() {
                 onClick={() => handleCardClick(voting.id)}
                 onLongPressStart={() => handleLongPressStart(voting.id)}
                 onLongPressEnd={handleLongPressEnd}
+                onDelete={() => handleDelete(voting.id)}
+                deleting={deletingId === voting.id}
               />
             ))}
           </div>

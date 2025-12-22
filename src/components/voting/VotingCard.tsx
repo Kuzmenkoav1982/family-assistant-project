@@ -1,6 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface VotingCardProps {
   voting: any;
@@ -13,6 +15,8 @@ interface VotingCardProps {
   onClick: () => void;
   onLongPressStart: () => void;
   onLongPressEnd: () => void;
+  onDelete?: () => void;
+  deleting?: boolean;
 }
 
 export function VotingCard({
@@ -22,7 +26,11 @@ export function VotingCard({
   onClick,
   onLongPressStart,
   onLongPressEnd,
+  onDelete,
+  deleting = false,
 }: VotingCardProps) {
+  const { canDo, loading: permissionsLoading } = usePermissions();
+
   const getVotingIcon = (type: string) => {
     switch (type) {
       case 'meal': return 'Utensils';
@@ -81,7 +89,29 @@ export function VotingCard({
               </div>
             </div>
           </div>
-          <Icon name="ChevronRight" size={20} className="text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!permissionsLoading && canDo('family', 'delete') && onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={deleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm('Удалить это голосование? Это действие нельзя отменить.')) {
+                    onDelete();
+                  }
+                }}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                {deleting ? (
+                  <Icon name="Loader" size={16} className="animate-spin" />
+                ) : (
+                  <Icon name="Trash2" size={16} />
+                )}
+              </Button>
+            )}
+            <Icon name="ChevronRight" size={20} className="text-gray-400" />
+          </div>
         </div>
       </CardContent>
     </Card>
