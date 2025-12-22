@@ -94,15 +94,21 @@ export default function AccessControlManager() {
   useEffect(() => {
     if (familyMembers.length > 0) {
       const enriched = familyMembers.map((member: any) => {
-        const accessRole = (member.access_role || 'viewer') as 'admin' | 'editor' | 'viewer';
+        let accessRole = member.access_role;
+        
+        // Проверяем, что роль валидна
+        if (!accessRole || !['admin', 'editor', 'viewer'].includes(accessRole)) {
+          accessRole = 'viewer';
+        }
+        
         return {
           id: member.id,
           name: member.name,
           relationship: member.relationship || member.role || 'Член семьи',
           avatarUrl: member.photo_url || member.avatar,
           avatar: member.avatar,
-          role: accessRole,
-          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole]
+          role: accessRole as 'admin' | 'editor' | 'viewer',
+          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole as 'admin' | 'editor' | 'viewer']
         };
       });
       setMembersWithPermissions(enriched);
@@ -286,10 +292,12 @@ export default function AccessControlManager() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-gray-900">{member.name}</h4>
-                      <Badge variant="outline" className={ROLES[member.role].color}>
-                        <Icon name={ROLES[member.role].icon as any} size={12} className="mr-1" />
-                        {ROLES[member.role].label}
-                      </Badge>
+                      {member.role && ROLES[member.role] && (
+                        <Badge variant="outline" className={ROLES[member.role].color}>
+                          <Icon name={ROLES[member.role].icon as any} size={12} className="mr-1" />
+                          {ROLES[member.role].label}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-gray-500">{member.relationship}</p>
                   </div>
