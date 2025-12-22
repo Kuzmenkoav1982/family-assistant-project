@@ -152,9 +152,13 @@ export default function Nutrition() {
     }
 
     try {
+      // ВАЖНО: используем ID авторизованного пользователя (кто добавляет),
+      // а НЕ selectedMemberId (чьи данные просматриваем)
+      const currentUserId = getCurrentUserId();
+      
       const requestBody: any = {
         action: 'add_diary',
-        user_id: selectedMemberId,
+        user_id: currentUserId,
         meal_type: entry.meal_type,
         product_name: entry.product_name,
         portion_grams: parseFloat(entry.amount)
