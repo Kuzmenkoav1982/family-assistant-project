@@ -117,6 +117,14 @@ export function NutritionHeader({
         <Card>
           <CardContent className="pt-6">
             <div className="flex gap-3 overflow-x-auto pb-2">
+              <Button
+                variant={selectedMemberId === 0 ? 'default' : 'outline'}
+                onClick={() => onMemberSelect(0)}
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                <Icon name="Users" size={20} />
+                Все авторы
+              </Button>
               {members.map((member) => (
                 <Button
                   key={member.id}

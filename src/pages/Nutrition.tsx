@@ -54,7 +54,8 @@ export default function Nutrition() {
     return 1;
   };
   
-  const [selectedMemberId, setSelectedMemberId] = useState<number>(getCurrentUserId());
+  // По умолчанию показываем "Все авторы" (0)
+  const [selectedMemberId, setSelectedMemberId] = useState<number>(0);
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
   const [foodDiary, setFoodDiary] = useState<FoodDiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,8 +85,10 @@ export default function Nutrition() {
 
   const loadNutritionData = async () => {
     try {
+      // Если selectedMemberId === 0, значит выбран "Все авторы"
+      const userIdParam = selectedMemberId === 0 ? 'all' : selectedMemberId;
       const response = await fetch(
-        `${NUTRITION_API_URL}/?action=analytics&user_id=${selectedMemberId}&date=${today}`
+        `${NUTRITION_API_URL}/?action=analytics&user_id=${userIdParam}&date=${today}`
       );
       if (!response.ok) {
         console.error('Error loading nutrition data:', response.status, response.statusText);
@@ -116,8 +119,10 @@ export default function Nutrition() {
 
   const loadFoodDiary = async () => {
     try {
+      // Если selectedMemberId === 0, значит выбран "Все авторы"
+      const userIdParam = selectedMemberId === 0 ? 'all' : selectedMemberId;
       const response = await fetch(
-        `${NUTRITION_API_URL}/?action=diary&user_id=${selectedMemberId}&date=${today}`
+        `${NUTRITION_API_URL}/?action=diary&user_id=${userIdParam}&date=${today}`
       );
       const data = await response.json();
       setFoodDiary(data.diary || []);

@@ -83,7 +83,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Дневник питания
         if method == 'GET' and action == 'diary':
-            user_id = int(params.get('user_id', 1))
+            user_id_param = params.get('user_id', '1')
+            # Поддержка "all" для всех пользователей
+            user_id = None if user_id_param == 'all' else int(user_id_param)
             diary_date = params.get('date', str(date.today()))
             diary = get_food_diary(conn, user_id, diary_date)
             return {
@@ -128,7 +130,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Аналитика питания
         if method == 'GET' and action == 'analytics':
-            user_id = int(params.get('user_id', 1))
+            user_id_param = params.get('user_id', '1')
+            # Поддержка "all" для всех пользователей
+            user_id = None if user_id_param == 'all' else int(user_id_param)
             analytics_date = params.get('date', str(date.today()))
             analytics = get_nutrition_analytics(conn, user_id, analytics_date)
             return {
@@ -239,19 +243,36 @@ def get_products(conn, category: Optional[str] = None) -> List[Dict]:
         return results
 
 
-def get_food_diary(conn, user_id: int, diary_date: str) -> List[Dict]:
-    """Получить дневник питания за день"""
+def get_food_diary(conn, user_id: Optional[int], diary_date: str) -> List[Dict]:
+    """
+    Получить дневник питания за день
+    user_id: ID пользователя или None для всех пользователей
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute(
-            """
-            SELECT fd.*, np.name as product_full_name, np.unit
-            FROM food_diary fd
-            LEFT JOIN nutrition_products np ON fd.product_id = np.id
-            WHERE fd.user_id = %s AND fd.date = %s
-            ORDER BY fd.created_at
-            """,
-            (user_id, diary_date)
-        )
+        if user_id is None:
+            # Все пользователи
+            cur.execute(
+                """
+                SELECT fd.*, np.name as product_full_name, np.unit
+                FROM food_diary fd
+                LEFT JOIN nutrition_products np ON fd.product_id = np.id
+                WHERE fd.date = %s
+                ORDER BY fd.created_at
+                """,
+                (diary_date,)
+            )
+        else:
+            # Конкретный пользователь
+            cur.execute(
+                """
+                SELECT fd.*, np.name as product_full_name, np.unit
+                FROM food_diary fd
+                LEFT JOIN nutrition_products np ON fd.product_id = np.id
+                WHERE fd.user_id = %s AND fd.date = %s
+                ORDER BY fd.created_at
+                """,
+                (user_id, diary_date)
+            )
         results = []
         for row in cur.fetchall():
             result = dict(row)
@@ -372,23 +393,43 @@ def delete_diary_entry(conn, entry_id: int) -> None:
         conn.commit()
 
 
-def get_nutrition_analytics(conn, user_id: int, analytics_date: str) -> Dict:
-    """Получить аналитику питания за день"""
+def get_nutrition_analytics(conn, user_id: Optional[int], analytics_date: str) -> Dict:
+    """
+    Получить аналитику питания за день
+    user_id: ID пользователя или None для всех пользователей
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         # Суммарные показатели за день
-        cur.execute(
-            """
-            SELECT 
-                COALESCE(SUM(calories), 0) as total_calories,
-                COALESCE(SUM(protein), 0) as total_protein,
-                COALESCE(SUM(fats), 0) as total_fats,
-                COALESCE(SUM(carbs), 0) as total_carbs,
-                COUNT(*) as entries_count
-            FROM food_diary
-            WHERE user_id = %s AND date = %s
-            """,
-            (user_id, analytics_date)
-        )
+        if user_id is None:
+            # Все пользователи
+            cur.execute(
+                """
+                SELECT 
+                    COALESCE(SUM(calories), 0) as total_calories,
+                    COALESCE(SUM(protein), 0) as total_protein,
+                    COALESCE(SUM(fats), 0) as total_fats,
+                    COALESCE(SUM(carbs), 0) as total_carbs,
+                    COUNT(*) as entries_count
+                FROM food_diary
+                WHERE date = %s
+                """,
+                (analytics_date,)
+            )
+        else:
+            # Конкретный пользователь
+            cur.execute(
+                """
+                SELECT 
+                    COALESCE(SUM(calories), 0) as total_calories,
+                    COALESCE(SUM(protein), 0) as total_protein,
+                    COALESCE(SUM(fats), 0) as total_fats,
+                    COALESCE(SUM(carbs), 0) as total_carbs,
+                    COUNT(*) as entries_count
+                FROM food_diary
+                WHERE user_id = %s AND date = %s
+                """,
+                (user_id, analytics_date)
+            )
         totals_row = dict(cur.fetchone())
         # Конвертируем Decimal в float
         totals = {}
@@ -396,20 +437,38 @@ def get_nutrition_analytics(conn, user_id: int, analytics_date: str) -> Dict:
             totals[key] = float(value) if isinstance(value, Decimal) else value
         
         # По типам приёма пищи
-        cur.execute(
-            """
-            SELECT 
-                meal_type,
-                COALESCE(SUM(calories), 0) as calories,
-                COALESCE(SUM(protein), 0) as protein,
-                COALESCE(SUM(fats), 0) as fats,
-                COALESCE(SUM(carbs), 0) as carbs
-            FROM food_diary
-            WHERE user_id = %s AND date = %s
-            GROUP BY meal_type
-            """,
-            (user_id, analytics_date)
-        )
+        if user_id is None:
+            # Все пользователи
+            cur.execute(
+                """
+                SELECT 
+                    meal_type,
+                    COALESCE(SUM(calories), 0) as calories,
+                    COALESCE(SUM(protein), 0) as protein,
+                    COALESCE(SUM(fats), 0) as fats,
+                    COALESCE(SUM(carbs), 0) as carbs
+                FROM food_diary
+                WHERE date = %s
+                GROUP BY meal_type
+                """,
+                (analytics_date,)
+            )
+        else:
+            # Конкретный пользователь
+            cur.execute(
+                """
+                SELECT 
+                    meal_type,
+                    COALESCE(SUM(calories), 0) as calories,
+                    COALESCE(SUM(protein), 0) as protein,
+                    COALESCE(SUM(fats), 0) as fats,
+                    COALESCE(SUM(carbs), 0) as carbs
+                FROM food_diary
+                WHERE user_id = %s AND date = %s
+                GROUP BY meal_type
+                """,
+                (user_id, analytics_date)
+            )
         by_meal = []
         for row in cur.fetchall():
             meal = dict(row)
@@ -418,9 +477,12 @@ def get_nutrition_analytics(conn, user_id: int, analytics_date: str) -> Dict:
                     meal[key] = float(value)
             by_meal.append(meal)
         
-        # Получаем цели пользователя
-        cur.execute("SELECT * FROM user_nutrition_goals WHERE user_id = %s", (user_id,))
-        goals_row = cur.fetchone()
+        # Получаем цели пользователя (для "все авторы" используем дефолтные)
+        if user_id is not None:
+            cur.execute("SELECT * FROM user_nutrition_goals WHERE user_id = %s", (user_id,))
+            goals_row = cur.fetchone()
+        else:
+            goals_row = None
         if goals_row:
             goals = dict(goals_row)
             for key, value in goals.items():
