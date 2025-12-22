@@ -233,3 +233,46 @@ export interface ThemeConfig {
   spacing: string;
   borderRadius: string;
 }
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  time?: string;
+  category: 'personal' | 'family' | 'work' | 'health' | 'education' | 'leisure';
+  color: string;
+  visibility: 'family' | 'private';
+  createdBy?: string;
+  attendees?: string[];
+  reminderEnabled?: boolean;
+  reminderDays?: number;
+  isRecurring?: boolean;
+  recurringPattern?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: number;
+    endDate?: string;
+    daysOfWeek?: number[];
+  };
+}
+
+export interface FamilyGoal {
+  id: string;
+  title: string;
+  description?: string;
+  deadline: string;
+  progress: number;
+  category?: string;
+  createdBy?: string;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate?: string;
+  completed: boolean;
+  assignee_id?: string;
+  priority?: 'high' | 'medium' | 'low';
+  points?: number;
+}

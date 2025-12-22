@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +8,6 @@ import Icon from '@/components/ui/icon';
 import { ChildDreamsManager } from '@/components/ChildDreamsManager';
 import { PiggyBankManager } from '@/components/PiggyBankManager';
 import { MemberProfileEdit } from '@/components/MemberProfileEdit';
-import { MemberCalendar } from '@/components/MemberCalendar';
 import { VotingWidget } from '@/components/VotingWidget';
 import { PermissionsManager } from '@/components/PermissionsManager';
 import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionnaire';
@@ -42,7 +42,12 @@ export function MemberProfileContent({
   saveProfile,
   updateMember
 }: MemberProfileContentProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleCalendarClick = () => {
+    navigate('/calendar');
+  };
 
   return (
     <Card className="border-2 shadow-xl bg-white/80 backdrop-blur">
@@ -120,14 +125,22 @@ export function MemberProfileContent({
 
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
             <TabsTrigger value="overview">Общее</TabsTrigger>
             <TabsTrigger value="dreams">Мечты</TabsTrigger>
             <TabsTrigger value="piggybank">Копилка</TabsTrigger>
-            <TabsTrigger value="calendar">Календарь</TabsTrigger>
             <TabsTrigger value="edit">Редактировать</TabsTrigger>
             <TabsTrigger value="questionnaire">Анкета</TabsTrigger>
           </TabsList>
+
+          <Button 
+            onClick={handleCalendarClick}
+            variant="outline" 
+            className="mt-4 w-full"
+          >
+            <Icon name="Calendar" className="mr-2" size={18} />
+            Открыть календарь
+          </Button>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div>
@@ -215,10 +228,6 @@ export function MemberProfileContent({
               onUpdateBalance={handleUpdateBalance}
               dreams={member.dreams || []}
             />
-          </TabsContent>
-
-          <TabsContent value="calendar" className="mt-6">
-            <MemberCalendar memberId={member.id} />
           </TabsContent>
 
           <TabsContent value="edit" className="mt-6">
