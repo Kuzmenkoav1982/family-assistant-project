@@ -51,7 +51,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   const menuSections: MenuSection[] = [
     {
       id: 'family',
-      title: 'СЕМЬЯ И ЛЮДИ',
+      title: '🏠 СЕМЬЯ И ЛЮДИ',
       icon: 'Users',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
@@ -60,7 +60,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'values',
-      title: 'ЦЕННОСТИ И КУЛЬТУРА',
+      title: '💖 ЦЕННОСТИ И КУЛЬТУРА',
       icon: 'Heart',
       items: [
         { id: 'values', label: 'Ценности', icon: 'Heart', path: '/?section=values' },
@@ -70,7 +70,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'planning',
-      title: 'ПЛАНИРОВАНИЕ',
+      title: '🎯 ПЛАНИРОВАНИЕ',
       icon: 'Target',
       items: [
         { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
@@ -81,7 +81,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'household',
-      title: 'БЫТ И ХОЗЯЙСТВО',
+      title: '🏠 БЫТ И ХОЗЯЙСТВО',
       icon: 'Home',
       items: [
         { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', path: '/shopping' },
@@ -93,7 +93,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'leisure',
-      title: 'ПУТЕШЕСТВИЯ И ДОСУГ',
+      title: '🌍 ПУТЕШЕСТВИЯ И ДОСУГ',
       icon: 'Plane',
       items: [
         { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' }
@@ -101,7 +101,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'development',
-      title: 'РАЗВИТИЕ',
+      title: '💬 РАЗВИТИЕ',
       icon: 'Brain',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
@@ -109,7 +109,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'family-state',
-      title: 'СЕМЬЯ И ГОСУДАРСТВО',
+      title: '🏛️ СЕМЬЯ И ГОСУДАРСТВО',
       icon: 'Landmark',
       items: [
         { id: 'family-code', label: 'Семейный кодекс РФ', icon: 'Scale', path: '/family-code' },
@@ -120,7 +120,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'in-dev',
-      title: 'В РАЗРАБОТКЕ',
+      title: '🔧 В РАЗРАБОТКЕ',
       icon: 'Wrench',
       items: [
         { id: 'in-development-list', label: 'В разработке', icon: 'Construction', path: '/in-development' },
