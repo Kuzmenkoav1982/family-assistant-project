@@ -88,27 +88,26 @@ def check_calendar_events(cur, family_id: str) -> List[Dict[str, str]]:
     family_id_safe = escape_sql_string(family_id)
     
     try:
-        # События на сегодня
+        # События за час до начала
         query = f"""
             SELECT title, start_date, end_date, description 
             FROM t_p5815085_family_assistant_pro.calendar_events 
             WHERE family_id = '{family_id_safe}' 
-            AND start_date::date = CURRENT_DATE
-            AND start_date > NOW()
+            AND start_date BETWEEN NOW() AND NOW() + INTERVAL '1 hour'
             ORDER BY start_date 
             LIMIT 3
         """
         cur.execute(query)
-        today_events = cur.fetchall()
+        upcoming_events = cur.fetchall()
         
-        for event in today_events:
+        for event in upcoming_events:
             time_str = event['start_date'].strftime('%H:%M')
             notifications.append({
-                'title': f"Событие сегодня в {time_str}",
+                'title': f"📅 Скоро событие в {time_str}",
                 'message': f"{event['title']}"
             })
     except Exception as e:
-        print(f"[ERROR] Today events check failed: {str(e)}")
+        print(f"[ERROR] Upcoming events check failed: {str(e)}")
     
     try:
         # События на завтра
@@ -171,6 +170,95 @@ def check_medication_schedule(cur, family_id: str) -> List[Dict[str, str]]:
     
     return notifications
 
+def check_urgent_tasks(cur, family_id: str) -> List[Dict[str, str]]:
+    """Проверка просроченных и срочных задач"""
+    notifications = []
+    family_id_safe = escape_sql_string(family_id)
+    
+    try:
+        query = f"""
+            SELECT title, deadline, priority FROM t_p5815085_family_assistant_pro.tasks_v2 
+            WHERE family_id = '{family_id_safe}' 
+            AND completed = FALSE
+            AND (deadline < NOW() OR priority = 'high')
+            LIMIT 3
+        """
+        cur.execute(query)
+        urgent_tasks = cur.fetchall()
+        
+        for task in urgent_tasks:
+            if task['deadline'] and task['deadline'] < datetime.now():
+                notifications.append({
+                    'title': f"⚠️ Просрочена задача",
+                    'message': f"{task['title']}"
+                })
+            elif task['priority'] == 'high':
+                notifications.append({
+                    'title': f"⚡ Срочная задача",
+                    'message': f"{task['title']}"
+                })
+    except Exception as e:
+        print(f"[ERROR] Tasks check failed: {str(e)}")
+    
+    return notifications
+
+def check_urgent_shopping(cur, family_id: str) -> List[Dict[str, str]]:
+    """Проверка срочных покупок"""
+    notifications = []
+    family_id_safe = escape_sql_string(family_id)
+    
+    try:
+        query = f"""
+            SELECT name FROM t_p5815085_family_assistant_pro.shopping_items_v2 
+            WHERE family_id = '{family_id_safe}' 
+            AND priority = 'urgent'
+            AND bought = FALSE
+            LIMIT 3
+        """
+        cur.execute(query)
+        urgent_items = cur.fetchall()
+        
+        if urgent_items:
+            items_list = ', '.join([item['name'] for item in urgent_items])
+            notifications.append({
+                'title': f"🚨 Срочные покупки",
+                'message': f"Нужно купить: {items_list}"
+            })
+    except Exception as e:
+        print(f"[ERROR] Shopping check failed: {str(e)}")
+    
+    return notifications
+
+def check_new_votings(cur, family_id: str) -> List[Dict[str, str]]:
+    """Проверка активных голосований"""
+    notifications = []
+    family_id_safe = escape_sql_string(family_id)
+    
+    try:
+        query = f"""
+            SELECT v.title, COUNT(vt.id) as total_votes 
+            FROM t_p5815085_family_assistant_pro.votings v
+            LEFT JOIN t_p5815085_family_assistant_pro.votes vt ON v.id = vt.voting_id
+            WHERE v.family_id = '{family_id_safe}' 
+            AND v.end_date > NOW()
+            AND v.created_at > NOW() - INTERVAL '24 hours'
+            GROUP BY v.id, v.title
+            HAVING COUNT(vt.id) < 3
+            LIMIT 2
+        """
+        cur.execute(query)
+        new_votings = cur.fetchall()
+        
+        for voting in new_votings:
+            notifications.append({
+                'title': f"🗳️ Проголосуйте",
+                'message': f"{voting['title']}"
+            })
+    except Exception as e:
+        print(f"[ERROR] Votings check failed: {str(e)}")
+    
+    return notifications
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Функция для автоматической отправки напоминаний по расписанию
@@ -227,6 +315,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             all_notifications.extend(check_important_dates(cur, family_id))
             all_notifications.extend(check_calendar_events(cur, family_id))
             all_notifications.extend(check_medication_schedule(cur, family_id))
+            all_notifications.extend(check_urgent_tasks(cur, family_id))
+            all_notifications.extend(check_urgent_shopping(cur, family_id))
+            all_notifications.extend(check_new_votings(cur, family_id))
             
             print(f"[INFO] Found {len(all_notifications)} notifications for family {family_id}")
             

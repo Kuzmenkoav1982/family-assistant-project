@@ -19,7 +19,7 @@ NOTIFICATIONS_API = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de9
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-def get_expiring_subscriptions(days_threshold: int = 3) -> List[Dict[str, Any]]:
+def get_expiring_subscriptions(days_threshold: int = 7) -> List[Dict[str, Any]]:
     """Получить подписки, истекающие в ближайшие N дней"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -41,12 +41,6 @@ def get_expiring_subscriptions(days_threshold: int = 3) -> List[Dict[str, Any]]:
         WHERE s.status = 'active'
         AND s.end_date > CURRENT_TIMESTAMP
         AND s.end_date <= CURRENT_TIMESTAMP + INTERVAL '{days_threshold} days'
-        AND NOT EXISTS (
-            SELECT 1 FROM {SCHEMA}.notification_history nh
-            WHERE nh.user_id = u.id
-            AND nh.notification_type = 'subscription_expiring'
-            AND nh.created_at > CURRENT_TIMESTAMP - INTERVAL '24 hours'
-        )
     """)
     
     subscriptions = cur.fetchall()
@@ -113,36 +107,15 @@ def send_push_notification(user_id: str, plan_name: str, days_left: int):
         return {'error': str(e)}
 
 def log_notification(user_id: str, notification_type: str, channel: str, details: Dict[str, Any]):
-    """Записать в историю уведомлений"""
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    try:
-        safe_user_id = user_id.replace("'", "''")
-        safe_type = notification_type.replace("'", "''")
-        safe_channel = channel.replace("'", "''")
-        details_json = json.dumps(details).replace("'", "''")
-        
-        cur.execute(f"""
-            INSERT INTO {SCHEMA}.notification_history 
-            (user_id, notification_type, channel, details, created_at)
-            VALUES ('{safe_user_id}', '{safe_type}', '{safe_channel}', '{details_json}', CURRENT_TIMESTAMP)
-        """)
-        
-        conn.commit()
-    except Exception as e:
-        print(f"Log error: {str(e)}")
-        conn.rollback()
-    finally:
-        cur.close()
-        conn.close()
+    """Записать в лог (временно только print)"""
+    print(f"[NOTIFICATION LOG] user={user_id}, type={notification_type}, channel={channel}, details={details}")
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Основной обработчик - запускается по расписанию (cron) или вручную"""
     
     try:
         # Получаем истекающие подписки
-        expiring = get_expiring_subscriptions(days_threshold=3)
+        expiring = get_expiring_subscriptions(days_threshold=7)
         
         if not expiring:
             return {

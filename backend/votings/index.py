@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from pywebpush import webpush, WebPushException
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = '"t_p5815085_family_assistant_pro"'
@@ -27,6 +28,42 @@ def escape_string(value: Any) -> str:
     if isinstance(value, bool):
         return 'TRUE' if value else 'FALSE'
     return "'" + str(value).replace("'", "''") + "'"
+
+def send_push_notification(family_id: str, title: str, message: str):
+    """Отправка push-уведомлений всем подписчикам семьи"""
+    try:
+        vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
+        if not vapid_key:
+            print(f"[WARN] VAPID key not configured, skipping notification")
+            return
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        query = f"""
+            SELECT subscription_data FROM {SCHEMA}.push_subscriptions 
+            WHERE family_id = {escape_string(family_id)}
+        """
+        cur.execute(query)
+        subscriptions = cur.fetchall()
+        
+        for sub_row in subscriptions:
+            try:
+                webpush(
+                    subscription_info=sub_row['subscription_data'],
+                    data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png'}),
+                    vapid_private_key=vapid_key,
+                    vapid_claims={'sub': 'mailto:support@family-assistant.app'}
+                )
+            except WebPushException as e:
+                print(f"[ERROR] Push failed: {e}")
+            except Exception as e:
+                print(f"[ERROR] Unexpected push error: {e}")
+        
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"[ERROR] Notification error: {e}")
 
 def verify_token(token: str) -> Optional[str]:
     conn = get_db_connection()
@@ -172,6 +209,8 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any]) -> Dict[
                     )
                 """
                 cur.execute(option_query)
+        
+        send_push_notification(family_id, f"🗳️ Новое голосование", f"{data.get('title', 'Без названия')} — проголосуйте!")
         
         cur.close()
         conn.close()

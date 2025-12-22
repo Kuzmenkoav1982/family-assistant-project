@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from pywebpush import webpush, WebPushException
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = '"t_p5815085_family_assistant_pro"'
@@ -32,6 +33,39 @@ def escape_string(value: Any, is_uuid: bool = False) -> str:
     if is_uuid:
         return f"{escaped}::uuid"
     return escaped
+
+def send_push_notification(family_id: str, title: str, message: str):
+    """Отправка push-уведомлений всем подписчикам семьи"""
+    try:
+        vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
+        if not vapid_key:
+            print(f"[WARN] VAPID key not configured, skipping notification")
+            return
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        query = f"SELECT subscription_data FROM {SCHEMA}.push_subscriptions WHERE family_id::text = {escape_string(family_id)}"
+        cur.execute(query)
+        subscriptions = cur.fetchall()
+        
+        for sub_row in subscriptions:
+            try:
+                webpush(
+                    subscription_info=sub_row['subscription_data'],
+                    data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png'}),
+                    vapid_private_key=vapid_key,
+                    vapid_claims={'sub': 'mailto:support@family-assistant.app'}
+                )
+            except WebPushException as e:
+                print(f"[ERROR] Push failed: {e}")
+            except Exception as e:
+                print(f"[ERROR] Unexpected push error: {e}")
+        
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"[ERROR] Notification error: {e}")
 
 def verify_token(token: str) -> Optional[str]:
     if not token or token == '':
@@ -119,9 +153,13 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         cur.execute(insert_query)
         print(f"[create_task] Task inserted, fetching...")
         
-        select_query = f"SELECT * FROM {SCHEMA}.tasks_v2 WHERE id = {task_id}::uuid"
+        select_query = f"SELECT t.*, fm.name as assignee_name FROM {SCHEMA}.tasks_v2 t LEFT JOIN {SCHEMA}.family_members fm ON t.assignee_id::text = fm.id::text WHERE t.id = {task_id}::uuid"
         cur.execute(select_query)
         task = cur.fetchone()
+        
+        if task and data.get('assignee_id'):
+            assignee_name = task.get('assignee_name', 'Участник')
+            send_push_notification(family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
         
         print(f"[create_task] Task created successfully: {task}")
         cur.close()
