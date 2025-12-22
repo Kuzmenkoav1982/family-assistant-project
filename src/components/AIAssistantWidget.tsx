@@ -63,9 +63,13 @@ const AIAssistantWidget = () => {
 
   // Скрываем виджет автоматически при переходе
   useEffect(() => {
-    if (!isWelcomePage) {
+    let isMounted = true;
+    if (!isWelcomePage && isMounted) {
       setIsOpen(false);
     }
+    return () => {
+      isMounted = false;
+    };
   }, [location.pathname, isWelcomePage]);
 
   // Состояние для роли Кузи
@@ -160,13 +164,17 @@ const AIAssistantWidget = () => {
     // Показываем приветствие через 3 секунды после загрузки (только не на /welcome)
     if (isWelcomePage) return;
     
+    let isMounted = true;
     const timer = setTimeout(() => {
-      if (!isOpen && messages.length === 0) {
+      if (!isOpen && messages.length === 0 && isMounted) {
         setShowWelcome(true);
       }
     }, 3000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [isWelcomePage, isOpen, messages.length]);
 
   const quickActions = [
