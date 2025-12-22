@@ -44,8 +44,14 @@ export function MemberProfileContent({
   updateMember
 }: MemberProfileContentProps) {
   const navigate = useNavigate();
-  const { canDo } = usePermissions();
+  const { canDo, loading: permissionsLoading, role } = usePermissions();
   const [activeTab, setActiveTab] = useState('overview');
+
+  console.log('[MemberProfile] Permissions state:', { 
+    loading: permissionsLoading, 
+    role, 
+    canDeleteTasks: canDo('tasks', 'delete') 
+  });
 
   const handleCalendarClick = () => {
     navigate(`/calendar?member=${member.id}`);
@@ -190,7 +196,7 @@ export function MemberProfileContent({
                               )}
                             </div>
                           </div>
-                          {canDo('tasks', 'delete') && (
+                          {!permissionsLoading && canDo('tasks', 'delete') && (
                             <Button 
                               variant="ghost" 
                               size="sm"
