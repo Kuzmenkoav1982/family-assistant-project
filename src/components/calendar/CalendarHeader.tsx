@@ -177,7 +177,7 @@ export function CalendarHeader({
                 }`}
                 onClick={() => onMemberFilterChange(member.id)}
               >
-                {member.avatar} {member.name}
+                {member.name}
               </Badge>
             ))}
           </div>

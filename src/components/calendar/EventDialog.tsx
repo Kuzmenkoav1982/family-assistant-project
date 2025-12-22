@@ -160,7 +160,7 @@ export function EventDialog({
                 <SelectItem value="all">Вся семья</SelectItem>
                 {members.map(member => (
                   <SelectItem key={member.id} value={member.id}>
-                    {member.avatar} {member.name}
+                    {member.name}
                   </SelectItem>
                 ))}
               </SelectContent>
