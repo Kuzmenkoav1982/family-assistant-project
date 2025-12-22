@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,8 @@ export function MemberProfileContent({
   saveProfile,
   updateMember
 }: MemberProfileContentProps) {
+  const [activeTab, setActiveTab] = useState('overview');
+
   return (
     <Card className="border-2 shadow-xl bg-white/80 backdrop-blur">
       <CardHeader className="space-y-4">
@@ -84,36 +87,45 @@ export function MemberProfileContent({
         </div>
 
         <div className={`grid grid-cols-1 gap-4 ${isChild ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-2">
               <Icon name="CheckCircle2" className="text-blue-600" size={20} />
               <span className="text-sm font-medium text-blue-900">Выполнено задач</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600">{member.tasksCompleted}</p>
-          </div>
+            <p className="text-2xl font-bold text-blue-600">{member.tasksCompleted || 0}</p>
+          </button>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+          <button
+            onClick={() => setActiveTab('questionnaire')}
+            className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg hover:from-purple-100 hover:to-purple-200 transition-all cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-2">
               <Icon name="Award" className="text-purple-600" size={20} />
               <span className="text-sm font-medium text-purple-900">Достижения</span>
             </div>
             <p className="text-2xl font-bold text-purple-600">{member.achievements?.length || 0}</p>
-          </div>
+          </button>
 
           {isChild && (
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg">
+            <button
+              onClick={() => setActiveTab('questionnaire')}
+              className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg hover:from-pink-100 hover:to-pink-200 transition-all cursor-pointer text-left"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <Icon name="Smile" className="text-pink-600" size={20} />
                 <span className="text-sm font-medium text-pink-900">Настроение</span>
               </div>
               <p className="text-lg font-semibold text-pink-600">{member.mood || 'Отлично'}</p>
-            </div>
+            </button>
           )}
         </div>
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="overview">Общее</TabsTrigger>
             <TabsTrigger value="dreams">Мечты</TabsTrigger>
