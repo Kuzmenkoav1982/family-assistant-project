@@ -201,16 +201,26 @@ export function MemberProfileContent({
                               variant="ghost" 
                               size="sm"
                               onClick={async () => {
-                                console.log('[MemberProfile] Delete button clicked');
+                                console.log('[MemberProfile] Delete button clicked for task:', task.id, task.title);
                                 console.log('[MemberProfile] Can delete tasks:', canDo('tasks', 'delete'));
                                 if (confirm('Удалить эту задачу?')) {
+                                  console.log('[MemberProfile] User confirmed deletion');
                                   try {
+                                    console.log('[MemberProfile] Calling deleteTask...');
                                     const result = await deleteTask(task.id);
                                     console.log('[MemberProfile] Delete result:', result);
+                                    
+                                    if (result?.success) {
+                                      alert('✅ Задача успешно удалена!');
+                                    } else {
+                                      alert('❌ Ошибка: ' + (result?.error || 'Неизвестная ошибка'));
+                                    }
                                   } catch (error) {
                                     console.error('[MemberProfile] Error deleting task:', error);
-                                    alert('Ошибка при удалении задачи');
+                                    alert('❌ Ошибка при удалении задачи: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
                                   }
+                                } else {
+                                  console.log('[MemberProfile] User cancelled deletion');
                                 }
                               }}
                             >

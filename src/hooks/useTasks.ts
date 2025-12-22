@@ -120,24 +120,34 @@ export function useTasks() {
   };
 
   const deleteTask = async (taskId: string) => {
+    console.log('[useTasks] deleteTask called with ID:', taskId);
     try {
-      const response = await fetch(`${API_URL}?id=${taskId}`, {
+      const url = `${API_URL}?id=${taskId}`;
+      console.log('[useTasks] DELETE request URL:', url);
+      console.log('[useTasks] Auth token:', getAuthToken() ? 'EXISTS' : 'MISSING');
+      
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: {
           'X-Auth-Token': getAuthToken()
         }
       });
       
+      console.log('[useTasks] DELETE response status:', response.status);
       const data = await response.json();
+      console.log('[useTasks] DELETE response data:', data);
       
       if (response.ok) {
+        console.log('[useTasks] Removing task from local state:', taskId);
         setTasks(prev => prev.filter(t => t.id !== taskId));
         return { success: true };
       } else {
+        console.error('[useTasks] DELETE failed:', data.error);
         return { success: false, error: data.error };
       }
     } catch (err) {
-      return { success: false, error: 'Ошибка удаления задачи' };
+      console.error('[useTasks] DELETE exception:', err);
+      return { success: false, error: err instanceof Error ? err.message : 'Ошибка удаления задачи' };
     }
   };
 
