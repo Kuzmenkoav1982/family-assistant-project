@@ -36,14 +36,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   const location = useLocation();
 
   
-  const [openSections, setOpenSections] = useState<string[]>([
-    'family', 
-    'values', 
-    'planning', 
-    'household',
-    'family-state',
-    'in-dev'
-  ]);
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (sectionId: string) => {
     setOpenSections(prev =>
