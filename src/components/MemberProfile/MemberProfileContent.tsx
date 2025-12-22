@@ -118,28 +118,22 @@ export function MemberProfileContent({
             <p className="text-2xl font-bold text-blue-600">{member.tasksCompleted || 0}</p>
           </button>
 
-          <button
-            onClick={() => handleTabChange('overview')}
-            className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg hover:from-purple-100 hover:to-purple-200 transition-all cursor-pointer text-left"
-          >
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="Award" className="text-purple-600" size={20} />
               <span className="text-sm font-medium text-purple-900">Достижения</span>
             </div>
             <p className="text-2xl font-bold text-purple-600">{member.achievements?.length || 0}</p>
-          </button>
+          </div>
 
           {isChild && (
-            <button
-              onClick={() => handleTabChange('overview')}
-              className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg hover:from-pink-100 hover:to-pink-200 transition-all cursor-pointer text-left"
-            >
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Icon name="Smile" className="text-pink-600" size={20} />
                 <span className="text-sm font-medium text-pink-900">Настроение</span>
               </div>
               <p className="text-lg font-semibold text-pink-600">{member.mood || 'Отлично'}</p>
-            </button>
+            </div>
           )}
         </div>
       </CardHeader>
