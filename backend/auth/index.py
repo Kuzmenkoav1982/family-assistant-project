@@ -674,7 +674,8 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
         cur.execute(insert_session)
         
         member_query = f"""
-            SELECT fm.id, fm.family_id, f.name as family_name, f.logo_url
+            SELECT fm.id, fm.family_id, fm.access_role, 
+                   f.name as family_name, f.logo_url
             FROM {SCHEMA}.family_members fm
             JOIN {SCHEMA}.families f ON f.id = fm.family_id
             WHERE fm.user_id = {escape_string(user_id)}
@@ -696,6 +697,7 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
             user_data['family_name'] = member['family_name']
             user_data['logo_url'] = member.get('logo_url')
             user_data['member_id'] = str(member['id'])
+            user_data['access_role'] = member.get('access_role', 'viewer')
         
         cur.close()
         conn.close()

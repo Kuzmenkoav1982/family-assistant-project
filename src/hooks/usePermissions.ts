@@ -27,7 +27,35 @@ export function usePermissions(options: UsePermissionsOptions = {}): Permissions
       const userData = localStorage.getItem('userData');
       if (userData) {
         const user = JSON.parse(userData);
-        const userRole = user.access_role || 'viewer';
+        let userRole = user.access_role;
+
+        if (!userRole && user.member_id) {
+          try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
+              method: 'GET',
+              headers: {
+                'X-Auth-Token': token || ''
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.members) {
+                const currentMember = data.members.find((m: any) => m.id === user.member_id);
+                if (currentMember?.access_role) {
+                  userRole = currentMember.access_role;
+                  user.access_role = userRole;
+                  localStorage.setItem('userData', JSON.stringify(user));
+                }
+              }
+            }
+          } catch (fetchError) {
+            console.error('Error fetching member role:', fetchError);
+          }
+        }
+
+        userRole = userRole || 'viewer';
         setRole(userRole);
         
         const allPermissions: Record<string, boolean> = {};
