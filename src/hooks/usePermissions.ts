@@ -25,11 +25,15 @@ export function usePermissions(options: UsePermissionsOptions = {}): Permissions
   const loadPermissions = async () => {
     try {
       const userData = localStorage.getItem('userData');
+      console.log('[usePermissions] userData from localStorage:', userData);
+      
       if (userData) {
         const user = JSON.parse(userData);
         let userRole = user.access_role;
+        console.log('[usePermissions] Initial role from userData:', userRole);
 
         if (!userRole && user.member_id) {
+          console.log('[usePermissions] No role found, fetching from API for member:', user.member_id);
           try {
             const token = localStorage.getItem('authToken');
             const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
@@ -41,21 +45,25 @@ export function usePermissions(options: UsePermissionsOptions = {}): Permissions
             
             if (response.ok) {
               const data = await response.json();
+              console.log('[usePermissions] API response:', data);
               if (data.success && data.members) {
                 const currentMember = data.members.find((m: any) => m.id === user.member_id);
+                console.log('[usePermissions] Found member:', currentMember);
                 if (currentMember?.access_role) {
                   userRole = currentMember.access_role;
                   user.access_role = userRole;
                   localStorage.setItem('userData', JSON.stringify(user));
+                  console.log('[usePermissions] Updated role in localStorage:', userRole);
                 }
               }
             }
           } catch (fetchError) {
-            console.error('Error fetching member role:', fetchError);
+            console.error('[usePermissions] Error fetching member role:', fetchError);
           }
         }
 
         userRole = userRole || 'viewer';
+        console.log('[usePermissions] Final role:', userRole);
         setRole(userRole);
         
         const allPermissions: Record<string, boolean> = {};

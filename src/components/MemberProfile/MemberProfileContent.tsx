@@ -11,6 +11,7 @@ import { MemberProfileEdit } from '@/components/MemberProfileEdit';
 import { VotingWidget } from '@/components/VotingWidget';
 import { PermissionsManager } from '@/components/PermissionsManager';
 import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionnaire';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task } from '@/types/family.types';
 
 interface MemberProfileContentProps {
@@ -43,6 +44,7 @@ export function MemberProfileContent({
   updateMember
 }: MemberProfileContentProps) {
   const navigate = useNavigate();
+  const { canDo } = usePermissions();
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleCalendarClick = () => {
@@ -188,13 +190,27 @@ export function MemberProfileContent({
                               )}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => deleteTask(task.id)}
-                          >
-                            <Icon name="Trash2" size={16} className="text-red-500" />
-                          </Button>
+                          {canDo('tasks', 'delete') && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={async () => {
+                                console.log('[MemberProfile] Delete button clicked');
+                                console.log('[MemberProfile] Can delete tasks:', canDo('tasks', 'delete'));
+                                if (confirm('Удалить эту задачу?')) {
+                                  try {
+                                    const result = await deleteTask(task.id);
+                                    console.log('[MemberProfile] Delete result:', result);
+                                  } catch (error) {
+                                    console.error('[MemberProfile] Error deleting task:', error);
+                                    alert('Ошибка при удалении задачи');
+                                  }
+                                }
+                              }}
+                            >
+                              <Icon name="Trash2" size={16} className="text-red-500" />
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
