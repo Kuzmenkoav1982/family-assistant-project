@@ -38,7 +38,11 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
           payload.invite_code = inviteCode;
           payload.member_name = memberName || undefined;
         } else {
-          payload.family_name = familyName || undefined;
+          // Всегда добавляем "Наша семья" в начало
+          const fullFamilyName = familyName 
+            ? `Наша семья "${familyName}"`
+            : 'Наша семья';
+          payload.family_name = fullFamilyName;
           payload.member_name = memberName || undefined;
         }
       }
@@ -140,14 +144,21 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
 
                 {!inviteCode && (
                   <div className="space-y-2">
-                    <Label htmlFor="familyName">Название семьи (опционально)</Label>
-                    <Input
-                      id="familyName"
-                      type="text"
-                      placeholder="Например: Семья Ивановых"
-                      value={familyName}
-                      onChange={(e) => setFamilyName(e.target.value)}
-                    />
+                    <Label htmlFor="familyName">Название вашей семьи (опционально)</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500 whitespace-nowrap">Наша семья</span>
+                      <Input
+                        id="familyName"
+                        type="text"
+                        placeholder='"Ивановы"'
+                        value={familyName}
+                        onChange={(e) => setFamilyName(e.target.value)}
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Отображается: <strong>Наша семья{familyName ? ` "${familyName}"` : ''}</strong>
+                    </p>
                   </div>
                 )}
 

@@ -58,13 +58,20 @@ export default function FamilySettings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="familyName">Название семьи</Label>
-              <Input
-                id="familyName"
-                value={familyName}
-                onChange={(e) => setFamilyName(e.target.value)}
-                placeholder="Например: Семья Ивановых"
-              />
+              <Label htmlFor="familyName">Название вашей семьи (опционально)</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground whitespace-nowrap">Наша семья</span>
+                <Input
+                  id="familyName"
+                  value={familyName}
+                  onChange={(e) => setFamilyName(e.target.value)}
+                  placeholder='"Ивановы"'
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Будет отображаться: <strong>Наша семья{familyName ? ` "${familyName}"` : ''}</strong>
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="familyLogo">URL эмблемы семьи</Label>
@@ -81,17 +88,16 @@ export default function FamilySettings() {
               )}
             </div>
             <Button onClick={async () => {
-              if (!familyName && !familyLogo) {
-                toast({
-                  title: 'Ошибка',
-                  description: 'Заполните хотя бы одно поле',
-                  variant: 'destructive'
-                });
-                return;
-              }
+              // Название семьи опционально, но если не заполнено — сохраняем просто "Наша семья"
+              // Логотип тоже опционален
 
               setIsLoading(true);
               try {
+                // Всегда добавляем "Наша семья" в начало
+                const fullFamilyName = familyName 
+                  ? `Наша семья "${familyName}"`
+                  : 'Наша семья';
+                
                 const response = await fetch(func2url['family-data'], {
                   method: 'PUT',
                   headers: {
@@ -99,7 +105,7 @@ export default function FamilySettings() {
                     'X-Auth-Token': token || ''
                   },
                   body: JSON.stringify({
-                    name: familyName || undefined,
+                    name: fullFamilyName,
                     logoUrl: familyLogo || undefined
                   })
                 });

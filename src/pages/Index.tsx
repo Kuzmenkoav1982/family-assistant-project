@@ -118,7 +118,14 @@ export default function Index({ onLogout }: IndexProps) {
         console.log('[DEBUG Index] userData from localStorage:', user);
         if (user.family_name) {
           console.log('[DEBUG Index] Setting family name:', user.family_name);
-          setFamilyName(user.family_name);
+          // Если family_name не содержит "Наша семья", добавляем его
+          if (user.family_name.includes('Наша семья')) {
+            setFamilyName(user.family_name);
+          } else {
+            // Если пользователь указал только свою фамилию (например, "Кузьменко")
+            // добавляем "Наша семья" в начало
+            setFamilyName(`Наша семья "${user.family_name}"`);
+          }
         }
         if (user.logo_url) {
           console.log('[DEBUG Index] Setting logo URL:', user.logo_url);

@@ -136,15 +136,21 @@ export default function RegisterForm({
 
       {registerStep === 'create' && (
         <div className="space-y-2">
-          <Label htmlFor="family-name">Название семьи (необязательно)</Label>
-          <Input
-            id="family-name"
-            type="text"
-            placeholder="Например: Семья Ивановых"
-            value={registerData.familyName}
-            onChange={(e) => setRegisterData({ ...registerData, familyName: e.target.value })}
-          />
-          <p className="text-xs text-gray-500">Можно оставить пустым и заполнить позже</p>
+          <Label htmlFor="family-name">Название вашей семьи (необязательно)</Label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 whitespace-nowrap">Наша семья</span>
+            <Input
+              id="family-name"
+              type="text"
+              placeholder='"Ивановы"'
+              value={registerData.familyName}
+              onChange={(e) => setRegisterData({ ...registerData, familyName: e.target.value })}
+              className="flex-1"
+            />
+          </div>
+          <p className="text-xs text-gray-500">
+            Будет отображаться: <strong>Наша семья{registerData.familyName ? ` "${registerData.familyName}"` : ''}</strong>
+          </p>
         </div>
       )}
 
