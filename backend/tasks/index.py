@@ -202,8 +202,11 @@ def delete_task(task_id: str, family_id: str) -> Dict[str, Any]:
         conn.close()
         return {'error': 'Задача не найдена'}
     
-    update_query = f"UPDATE {SCHEMA}.tasks_v2 SET completed = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
-    cur.execute(update_query)
+    # НАСТОЯЩЕЕ удаление из базы данных
+    delete_query = f"DELETE FROM {SCHEMA}.tasks_v2 WHERE id::text = {escape_string(task_id)} AND family_id::text = {escape_string(family_id)}"
+    print(f"[delete_task] Executing DELETE query for task_id: {task_id}")
+    cur.execute(delete_query)
+    print(f"[delete_task] Task deleted successfully")
     cur.close()
     conn.close()
     
