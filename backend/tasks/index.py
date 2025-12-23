@@ -36,19 +36,23 @@ def escape_string(value: Any, is_uuid: bool = False) -> str:
 
 def send_push_notification_to_user(user_id: str, family_id: str, title: str, message: str, notification_type: str = 'tasks'):
     """Отправка push-уведомления конкретному пользователю с проверкой настроек"""
+    print(f"[PUSH] send_push_notification_to_user called: user_id={user_id}, family_id={family_id}, title={title}")
     try:
         vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
         if not vapid_key:
             print(f"[WARN] VAPID key not configured, skipping notification")
             return
+        print(f"[PUSH] VAPID key found")
         
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         # Получаем user_id по member_id (assignee_id это member_id, нужен user_id)
         member_query = f"SELECT user_id FROM {SCHEMA}.family_members WHERE id::text = {escape_string(user_id)}"
+        print(f"[PUSH] Query: {member_query}")
         cur.execute(member_query)
         member_row = cur.fetchone()
+        print(f"[PUSH] Member row: {member_row}")
         
         if not member_row:
             print(f"[WARN] Member not found for id {user_id}")
@@ -190,9 +194,12 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         task = cur.fetchone()
         
         if task and data.get('assignee_id'):
+            print(f"[create_task] Task created with assignee, sending notification...")
             assignee_name = task.get('assignee_name', 'Участник')
             assignee_id = data.get('assignee_id')
+            print(f"[create_task] assignee_id={assignee_id}, assignee_name={assignee_name}, family_id={family_id}")
             send_push_notification_to_user(assignee_id, family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
+            print(f"[create_task] Notification sent")
         
         print(f"[create_task] Task created successfully: {task}")
         cur.close()

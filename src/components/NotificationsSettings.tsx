@@ -200,7 +200,7 @@ export function NotificationsSettings() {
                 ) : (
                   <>
                     <Icon name="Send" size={18} />
-                    Отправить тестовое Push-уведомление
+                    Тестовое уведомление
                   </>
                 )}
               </Button>
@@ -226,7 +226,7 @@ export function NotificationsSettings() {
                 ) : (
                   <>
                     <Icon name="BellOff" size={18} />
-                    Отключить Push-уведомления
+                    Отключить уведомления
                   </>
                 )}
               </Button>
