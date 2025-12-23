@@ -34,8 +34,8 @@ def escape_string(value: Any, is_uuid: bool = False) -> str:
         return f"{escaped}::uuid"
     return escaped
 
-def send_push_notification(family_id: str, title: str, message: str, notification_type: str = 'tasks'):
-    """Отправка push-уведомлений всем подписчикам семьи с проверкой настроек"""
+def send_push_notification_to_user(user_id: str, family_id: str, title: str, message: str, notification_type: str = 'tasks'):
+    """Отправка push-уведомления конкретному пользователю с проверкой настроек"""
     try:
         vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
         if not vapid_key:
@@ -45,27 +45,54 @@ def send_push_notification(family_id: str, title: str, message: str, notificatio
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
-        query = f"SELECT subscription_data, notification_settings FROM {SCHEMA}.push_subscriptions WHERE family_id::text = {escape_string(family_id)}"
-        cur.execute(query)
-        subscriptions = cur.fetchall()
+        # Получаем user_id по member_id (assignee_id это member_id, нужен user_id)
+        member_query = f"SELECT user_id FROM {SCHEMA}.family_members WHERE id::text = {escape_string(user_id)}"
+        cur.execute(member_query)
+        member_row = cur.fetchone()
         
-        for sub_row in subscriptions:
-            settings = sub_row.get('notification_settings') or {}
-            if settings.get(notification_type, True) is False:
-                print(f"[INFO] Skipping notification type '{notification_type}' - disabled in settings")
-                continue
-            
-            try:
-                webpush(
-                    subscription_info=sub_row['subscription_data'],
-                    data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png'}),
-                    vapid_private_key=vapid_key,
-                    vapid_claims={'sub': 'mailto:support@family-assistant.app'}
-                )
-            except WebPushException as e:
-                print(f"[ERROR] Push failed: {e}")
-            except Exception as e:
-                print(f"[ERROR] Unexpected push error: {e}")
+        if not member_row:
+            print(f"[WARN] Member not found for id {user_id}")
+            cur.close()
+            conn.close()
+            return
+        
+        actual_user_id = str(member_row['user_id'])
+        
+        # Получаем подписку конкретного пользователя
+        query = f"""
+            SELECT subscription_data, notification_settings 
+            FROM {SCHEMA}.push_subscriptions 
+            WHERE user_id::text = {escape_string(actual_user_id)} 
+            AND family_id::text = {escape_string(family_id)}
+        """
+        cur.execute(query)
+        subscription = cur.fetchone()
+        
+        if not subscription:
+            print(f"[INFO] No push subscription for user {actual_user_id}")
+            cur.close()
+            conn.close()
+            return
+        
+        settings = subscription.get('notification_settings') or {}
+        if settings.get(notification_type, True) is False:
+            print(f"[INFO] Notification type '{notification_type}' disabled for user {actual_user_id}")
+            cur.close()
+            conn.close()
+            return
+        
+        try:
+            webpush(
+                subscription_info=subscription['subscription_data'],
+                data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png'}),
+                vapid_private_key=vapid_key,
+                vapid_claims={'sub': 'mailto:support@family-assistant.app'}
+            )
+            print(f"[SUCCESS] Notification sent to user {actual_user_id}")
+        except WebPushException as e:
+            print(f"[ERROR] Push failed for user {actual_user_id}: {e}")
+        except Exception as e:
+            print(f"[ERROR] Unexpected push error for user {actual_user_id}: {e}")
         
         cur.close()
         conn.close()
@@ -164,7 +191,8 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         
         if task and data.get('assignee_id'):
             assignee_name = task.get('assignee_name', 'Участник')
-            send_push_notification(family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
+            assignee_id = data.get('assignee_id')
+            send_push_notification_to_user(assignee_id, family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
         
         print(f"[create_task] Task created successfully: {task}")
         cur.close()
