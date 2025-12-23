@@ -85,6 +85,28 @@ export function useTasks() {
       
       if (response.ok) {
         setTasks(prev => [data.task, ...prev]);
+        
+        // Отправляем уведомление исполнителю
+        if (data.task.assignee_id) {
+          try {
+            await fetch('https://functions.poehali.dev/07b9c48b-eba2-458b-bb51-e9763d08504e', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Auth-Token': getAuthToken()
+              },
+              body: JSON.stringify({
+                user_id: data.task.assignee_id,
+                title: '✅ Новая задача',
+                body: `${data.task.assignee_name || 'Вам'} назначена задача: ${data.task.title}`
+              })
+            });
+            console.log('[useTasks] Notification sent to assignee:', data.task.assignee_id);
+          } catch (err) {
+            console.error('[useTasks] Failed to send notification:', err);
+          }
+        }
+        
         return { success: true, task: data.task };
       } else {
         return { success: false, error: data.error || `HTTP ${response.status}` };
