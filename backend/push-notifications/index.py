@@ -119,12 +119,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 subscription_json = json.dumps(subscription).replace("'", "''")
                 
-                print(f"[DEBUG Push] Saving subscription to DB...")
+                print(f"[DEBUG Push] Saving subscription to DB for user_id={user_id}, family_id={family_id}")
                 
                 cur.execute(f"""
-                    INSERT INTO {schema}.push_subscriptions (family_id, subscription_data, created_at)
-                    VALUES ('{family_id_safe}', '{subscription_json}', NOW())
-                    ON CONFLICT (family_id) 
+                    INSERT INTO {schema}.push_subscriptions (user_id, family_id, subscription_data, created_at)
+                    VALUES ('{user_id}'::uuid, '{family_id_safe}', '{subscription_json}', NOW())
+                    ON CONFLICT (user_id, family_id) 
                     DO UPDATE SET subscription_data = '{subscription_json}', updated_at = NOW()
                 """)
                 conn.commit()

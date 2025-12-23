@@ -154,8 +154,8 @@ export function NotificationsSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h4 className="font-semibold text-gray-900">Push-уведомления</h4>
               {permission === 'granted' && (
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -178,6 +178,7 @@ export function NotificationsSettings() {
             checked={isSubscribed}
             onCheckedChange={handleToggle}
             disabled={isLoading || permission === 'denied'}
+            className="flex-shrink-0 ml-4"
           />
         </div>
 
