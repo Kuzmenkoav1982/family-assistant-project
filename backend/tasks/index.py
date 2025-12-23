@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from pywebpush import webpush, WebPushException
+
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = '"t_p5815085_family_assistant_pro"'
@@ -34,74 +34,7 @@ def escape_string(value: Any, is_uuid: bool = False) -> str:
         return f"{escaped}::uuid"
     return escaped
 
-def send_push_notification_to_user(user_id: str, family_id: str, title: str, message: str, notification_type: str = 'tasks'):
-    """Отправка push-уведомления конкретному пользователю с проверкой настроек"""
-    print(f"[PUSH] send_push_notification_to_user called: user_id={user_id}, family_id={family_id}, title={title}")
-    try:
-        vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
-        if not vapid_key:
-            print(f"[WARN] VAPID key not configured, skipping notification")
-            return
-        print(f"[PUSH] VAPID key found")
-        
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Получаем user_id по member_id (assignee_id это member_id, нужен user_id)
-        member_query = f"SELECT user_id FROM {SCHEMA}.family_members WHERE id::text = {escape_string(user_id)}"
-        print(f"[PUSH] Query: {member_query}")
-        cur.execute(member_query)
-        member_row = cur.fetchone()
-        print(f"[PUSH] Member row: {member_row}")
-        
-        if not member_row:
-            print(f"[WARN] Member not found for id {user_id}")
-            cur.close()
-            conn.close()
-            return
-        
-        actual_user_id = str(member_row['user_id'])
-        
-        # Получаем подписку конкретного пользователя
-        query = f"""
-            SELECT subscription_data, notification_settings 
-            FROM {SCHEMA}.push_subscriptions 
-            WHERE user_id::text = {escape_string(actual_user_id)} 
-            AND family_id::text = {escape_string(family_id)}
-        """
-        cur.execute(query)
-        subscription = cur.fetchone()
-        
-        if not subscription:
-            print(f"[INFO] No push subscription for user {actual_user_id}")
-            cur.close()
-            conn.close()
-            return
-        
-        settings = subscription.get('notification_settings') or {}
-        if settings.get(notification_type, True) is False:
-            print(f"[INFO] Notification type '{notification_type}' disabled for user {actual_user_id}")
-            cur.close()
-            conn.close()
-            return
-        
-        try:
-            webpush(
-                subscription_info=subscription['subscription_data'],
-                data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png'}),
-                vapid_private_key=vapid_key,
-                vapid_claims={'sub': 'mailto:support@family-assistant.app'}
-            )
-            print(f"[SUCCESS] Notification sent to user {actual_user_id}")
-        except WebPushException as e:
-            print(f"[ERROR] Push failed for user {actual_user_id}: {e}")
-        except Exception as e:
-            print(f"[ERROR] Unexpected push error for user {actual_user_id}: {e}")
-        
-        cur.close()
-        conn.close()
-    except Exception as e:
-        print(f"[ERROR] Notification error: {e}")
+
 
 def verify_token(token: str) -> Optional[str]:
     if not token or token == '':
@@ -196,14 +129,8 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         cur.execute(select_query)
         task = cur.fetchone()
         
-        # Check if task has assignee (frontend sends 'assignee' but we also check 'assignee_id')
-        task_assignee_id = data.get('assignee_id') or data.get('assignee')
-        if task and task_assignee_id:
-            print(f"[create_task] Task created with assignee, sending notification...")
-            assignee_name = task.get('assignee_name', 'Участник')
-            print(f"[create_task] assignee_id={task_assignee_id}, assignee_name={assignee_name}, family_id={family_id}")
-            send_push_notification_to_user(task_assignee_id, family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
-            print(f"[create_task] Notification sent")
+        # Уведомления теперь отправляются отдельным сервисом push-notifications
+        # или через подписки на события
         
         print(f"[create_task] Task created successfully: {task}")
         cur.close()
