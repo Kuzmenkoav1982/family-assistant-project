@@ -1,4 +1,4 @@
-import { useAuth } from './useAuth';
+import { useAuth } from '@/lib/auth-context';
 
 const FUNC2URL = {
   'push-notifications': 'https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94'
