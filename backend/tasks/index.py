@@ -165,6 +165,9 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     
     task_id = f"'{str(uuid.uuid4())}'"
     
+    # Frontend sends 'assignee' but DB expects 'assignee_id'
+    assignee_id = data.get('assignee_id') or data.get('assignee')
+    
     insert_query = f"""
         INSERT INTO {SCHEMA}.tasks_v2 (
             id, family_id, title, description, assignee_id, completed, 
@@ -174,7 +177,7 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             {escape_string(family_id)}::uuid,
             {escape_string(data.get('title'))},
             {escape_string(data.get('description') or '')},
-            {escape_string(data.get('assignee_id'))}::uuid,
+            {escape_string(assignee_id)}::uuid,
             {escape_string(data.get('completed', False))},
             {escape_string(data.get('points', 10))},
             {escape_string(data.get('priority', 'medium'))},
@@ -193,12 +196,13 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         cur.execute(select_query)
         task = cur.fetchone()
         
-        if task and data.get('assignee_id'):
+        # Check if task has assignee (frontend sends 'assignee' but we also check 'assignee_id')
+        task_assignee_id = data.get('assignee_id') or data.get('assignee')
+        if task and task_assignee_id:
             print(f"[create_task] Task created with assignee, sending notification...")
             assignee_name = task.get('assignee_name', 'Участник')
-            assignee_id = data.get('assignee_id')
-            print(f"[create_task] assignee_id={assignee_id}, assignee_name={assignee_name}, family_id={family_id}")
-            send_push_notification_to_user(assignee_id, family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
+            print(f"[create_task] assignee_id={task_assignee_id}, assignee_name={assignee_name}, family_id={family_id}")
+            send_push_notification_to_user(task_assignee_id, family_id, "✅ Новая задача", f"{assignee_name}, вам назначена задача: {data.get('title', 'Задача')}")
             print(f"[create_task] Notification sent")
         
         print(f"[create_task] Task created successfully: {task}")
