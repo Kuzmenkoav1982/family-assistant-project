@@ -29,8 +29,8 @@ def escape_string(value: Any) -> str:
         return 'TRUE' if value else 'FALSE'
     return "'" + str(value).replace("'", "''") + "'"
 
-def send_push_notification(family_id: str, title: str, message: str, notification_type: str = 'votings'):
-    """Отправка push-уведомлений всем подписчикам семьи с проверкой настроек"""
+def send_push_notification(family_id: str, title: str, message: str, notification_type: str = 'votings', exclude_user_id: Optional[str] = None):
+    """Отправка push-уведомлений всем подписчикам семьи с проверкой настроек (кроме исключённого пользователя)"""
     try:
         vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
         if not vapid_key:
@@ -40,9 +40,10 @@ def send_push_notification(family_id: str, title: str, message: str, notificatio
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
+        exclude_clause = f"AND user_id::text != {escape_string(exclude_user_id)}" if exclude_user_id else ""
         query = f"""
             SELECT subscription_data, notification_settings FROM {SCHEMA}.push_subscriptions 
-            WHERE family_id = {escape_string(family_id)}
+            WHERE family_id = {escape_string(family_id)} {exclude_clause}
         """
         cur.execute(query)
         subscriptions = cur.fetchall()
@@ -180,7 +181,7 @@ def get_votings(family_id: str, status: Optional[str] = None) -> List[Dict[str, 
     conn.close()
     return result
 
-def create_voting(family_id: str, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def create_voting(family_id: str, member_id: str, data: Dict[str, Any], creator_user_id: Optional[str] = None) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -215,7 +216,7 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any]) -> Dict[
                 """
                 cur.execute(option_query)
         
-        send_push_notification(family_id, f"🗳️ Новое голосование", f"{data.get('title', 'Без названия')} — проголосуйте!")
+        send_push_notification(family_id, f"🗳️ Новое голосование", f"{data.get('title', 'Без названия')} — проголосуйте!", exclude_user_id=creator_user_id)
         
         cur.close()
         conn.close()
@@ -587,7 +588,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             action = body.get('action', 'create')
             
             if action == 'create':
-                result = create_voting(family_id, member_id, body)
+                result = create_voting(family_id, member_id, body, creator_user_id=user_id)
             elif action == 'vote':
                 result = cast_vote(member_id, body)
             elif action == 'delete':

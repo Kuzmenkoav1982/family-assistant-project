@@ -86,9 +86,12 @@ export function useTasks() {
       if (response.ok) {
         setTasks(prev => [data.task, ...prev]);
         
-        // Отправляем push-уведомление исполнителю
+        // Отправляем push-уведомление исполнителю (исключая создателя)
         if (data.task.assignee_id) {
           try {
+            const userDataStr = localStorage.getItem('userData');
+            const currentUserId = userDataStr ? JSON.parse(userDataStr).id : null;
+            
             const notifResponse = await fetch('https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94', {
               method: 'POST',
               headers: {
@@ -98,7 +101,8 @@ export function useTasks() {
               body: JSON.stringify({
                 action: 'send',
                 title: '✅ Новая задача',
-                message: `${data.task.assignee_name || 'Вам'} назначена задача: ${data.task.title}`
+                message: `${data.task.assignee_name || 'Вам'} назначена задача: ${data.task.title}`,
+                exclude_user_id: currentUserId
               })
             });
             console.log('[useTasks] Notification response:', notifResponse.status, await notifResponse.text());

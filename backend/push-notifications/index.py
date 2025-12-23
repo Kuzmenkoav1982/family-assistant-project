@@ -164,8 +164,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             elif action == 'send':
                 title = body.get('title', 'Семейный Ассистент')
                 message = body.get('message', '')
+                exclude_user_id = body.get('exclude_user_id')
                 
-                print(f"[DEBUG Push] Sending notification: title={title}, message={message}")
+                print(f"[DEBUG Push] Sending notification: title={title}, message={message}, exclude_user_id={exclude_user_id}")
                 
                 if not message:
                     cur.close()
@@ -177,12 +178,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 
-                print(f"[DEBUG Push] Fetching subscription for family_id={family_id}")
-                cur.execute(f"SELECT subscription_data FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")
-                subscription_row = cur.fetchone()
+                print(f"[DEBUG Push] Fetching subscriptions for family_id={family_id}")
+                exclude_clause = f"AND user_id::text != '{escape_sql_string(exclude_user_id)}'" if exclude_user_id else ""
+                cur.execute(f"SELECT subscription_data FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}' {exclude_clause}")
+                subscriptions = cur.fetchall()
                 
-                if not subscription_row:
-                    print(f"[DEBUG Push] No subscription found for family_id={family_id}")
+                if not subscriptions:
+                    print(f"[DEBUG Push] No subscriptions found for family_id={family_id}")
                     cur.close()
                     conn.close()
                     return {
@@ -192,8 +194,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 
-                subscription_info = subscription_row['subscription_data']
-                print(f"[DEBUG Push] Found subscription: {type(subscription_info)}")
+                print(f"[DEBUG Push] Found {len(subscriptions)} subscription(s)")
                 
                 vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
                 print(f"[DEBUG Push] VAPID key present: {bool(vapid_private_key)}")
@@ -212,59 +213,47 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.close()
                 conn.close()
                 
-                try:
-                    print(f"[DEBUG Push] Calling webpush...")
-                    webpush(
-                        subscription_info=subscription_info,
-                        data=json.dumps({
-                            'title': title,
-                            'body': message,
-                            'icon': '/icon-192.png',
-                            'url': '/'
-                        }),
-                        vapid_private_key=vapid_private_key,
-                        vapid_claims={
-                            'sub': 'mailto:support@family-assistant.app'
-                        }
-                    )
-                    
-                    print(f"[DEBUG Push] Notification sent successfully!")
-                    
-                    return {
-                        'statusCode': 200,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({
-                            'success': True, 
-                            'message': 'Notification sent successfully',
-                            'title': title,
-                            'body': message
-                        }),
-                        'isBase64Encoded': False
-                    }
-                except WebPushException as e:
-                    print(f"[ERROR Push] WebPushException: {str(e)}")
-                    return {
-                        'statusCode': 500,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({
-                            'success': False,
-                            'error': f'Failed to send notification: {str(e)}'
-                        }),
-                        'isBase64Encoded': False
-                    }
-                except Exception as e:
-                    print(f"[ERROR Push] Unexpected error in webpush: {str(e)}")
-                    import traceback
-                    print(f"[ERROR Push] Traceback: {traceback.format_exc()}")
-                    return {
-                        'statusCode': 500,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({
-                            'success': False,
-                            'error': f'Internal error: {str(e)}'
-                        }),
-                        'isBase64Encoded': False
-                    }
+                sent_count = 0
+                errors = []
+                
+                for sub_row in subscriptions:
+                    try:
+                        print(f"[DEBUG Push] Calling webpush for subscription...")
+                        webpush(
+                            subscription_info=sub_row['subscription_data'],
+                            data=json.dumps({
+                                'title': title,
+                                'body': message,
+                                'icon': '/icon-192.png',
+                                'url': '/'
+                            }),
+                            vapid_private_key=vapid_private_key,
+                            vapid_claims={
+                                'sub': 'mailto:support@family-assistant.app'
+                            }
+                        )
+                        sent_count += 1
+                        print(f"[DEBUG Push] Notification sent successfully!")
+                    except WebPushException as e:
+                        print(f"[ERROR Push] WebPush failed: {e}")
+                        errors.append(str(e))
+                    except Exception as e:
+                        print(f"[ERROR Push] Unexpected error: {e}")
+                        errors.append(str(e))
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True, 
+                        'message': f'Sent to {sent_count} subscriber(s)',
+                        'sent_count': sent_count,
+                        'errors': errors if errors else None,
+                        'title': title,
+                        'body': message
+                    }),
+                    'isBase64Encoded': False
+                }
         
         elif method == 'DELETE':
             cur.execute(f"DELETE FROM {schema}.push_subscriptions WHERE family_id = '{family_id_safe}'")
