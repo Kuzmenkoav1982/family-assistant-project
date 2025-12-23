@@ -86,22 +86,22 @@ export function useTasks() {
       if (response.ok) {
         setTasks(prev => [data.task, ...prev]);
         
-        // Отправляем уведомление исполнителю
+        // Отправляем push-уведомление исполнителю
         if (data.task.assignee_id) {
           try {
-            await fetch('https://functions.poehali.dev/07b9c48b-eba2-458b-bb51-e9763d08504e', {
+            const notifResponse = await fetch('https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'X-Auth-Token': getAuthToken()
               },
               body: JSON.stringify({
-                user_id: data.task.assignee_id,
+                action: 'send',
                 title: '✅ Новая задача',
-                body: `${data.task.assignee_name || 'Вам'} назначена задача: ${data.task.title}`
+                message: `${data.task.assignee_name || 'Вам'} назначена задача: ${data.task.title}`
               })
             });
-            console.log('[useTasks] Notification sent to assignee:', data.task.assignee_id);
+            console.log('[useTasks] Notification response:', notifResponse.status, await notifResponse.text());
           } catch (err) {
             console.error('[useTasks] Failed to send notification:', err);
           }
