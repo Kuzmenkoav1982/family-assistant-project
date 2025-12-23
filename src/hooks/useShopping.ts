@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNotifications } from './useNotifications';
 
 const SHOPPING_API_URL = 'https://functions.poehali.dev/3f85241b-6c17-4d3d-a5f2-99b3af90af1b';
 
@@ -24,6 +25,7 @@ export function useShopping() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { notifyUrgentShopping } = useNotifications();
 
   const getAuthToken = () => localStorage.getItem('authToken');
 
@@ -78,6 +80,10 @@ export function useShopping() {
       }
 
       await fetchItems();
+      
+      if (itemData.priority === 'urgent') {
+        notifyUrgentShopping(itemData.name || 'товар');
+      }
     } catch (err: any) {
       console.error('[useShopping] Error creating item:', err);
       setError(err.message);

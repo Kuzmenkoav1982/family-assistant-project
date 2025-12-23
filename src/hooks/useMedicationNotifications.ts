@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNotifications } from './useNotifications';
 
 interface MedicationSchedule {
   id: string;
@@ -21,6 +22,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 
 export function useMedicationNotifications(medications: any[] = []) {
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const { notifyMedicationReminder } = useNotifications();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     const saved = localStorage.getItem('medicationNotificationSettings');
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
@@ -98,6 +100,7 @@ export function useMedicationNotifications(medications: any[] = []) {
               `Через ${settings.minutesBefore} минут нужно дать ребёнку ${med.name} (${med.dosage || 'по назначению'})`,
               med.id
             );
+            notifyMedicationReminder(med.name, 'ребёнку', schedule.time_of_day);
             localStorage.setItem(notificationKey, 'true');
           }
 
@@ -107,6 +110,7 @@ export function useMedicationNotifications(medications: any[] = []) {
               `Сейчас нужно дать ребёнку ${med.name} (${med.dosage || 'по назначению'})`,
               med.id
             );
+            notifyMedicationReminder(med.name, 'ребёнку', schedule.time_of_day);
             localStorage.setItem(notificationKey, 'true');
           }
         });

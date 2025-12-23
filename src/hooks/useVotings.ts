@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNotifications } from './useNotifications';
 
 interface Vote {
   member_id: string;
@@ -35,6 +36,7 @@ export function useVotings(status?: 'active' | 'completed') {
   const [votings, setVotings] = useState<Voting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { notifyVotingCreated } = useNotifications();
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -104,6 +106,7 @@ export function useVotings(status?: 'active' | 'completed') {
       
       if (data.success) {
         await fetchVotings();
+        notifyVotingCreated(votingData.title, data.voting_id);
         return { success: true, voting_id: data.voting_id };
       } else {
         return { success: false, error: data.error };

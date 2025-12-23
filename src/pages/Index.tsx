@@ -76,6 +76,7 @@ import AIAssistantDialog from '@/components/AIAssistantDialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
+import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
 import PanelSettings from '@/components/PanelSettings';
@@ -106,6 +107,8 @@ export default function Index({ onLogout }: IndexProps) {
 
   const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];
+  
+  useBirthdayReminders();
   
   const [familyName, setFamilyName] = useState('Наша семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');

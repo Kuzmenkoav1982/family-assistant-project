@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useTasks } from '@/hooks/useTasks';
+import { useNotifications } from '@/hooks/useNotifications';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
@@ -23,6 +24,7 @@ interface CalendarDay {
 export default function Calendar() {
   const navigate = useNavigate();
   const { tasks } = useTasks();
+  const { notifyCalendarEvent } = useNotifications();
   const [searchParams] = useSearchParams();
   const memberFilterFromUrl = searchParams.get('member');
   
@@ -328,8 +330,10 @@ export default function Calendar() {
 
     if (editingEventId) {
       setEvents(prev => prev.map(e => e.id === editingEventId ? eventData : e));
+      notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), true);
     } else {
       setEvents(prev => [...prev, eventData]);
+      notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), false);
     }
 
     setShowEventDialog(false);
