@@ -79,7 +79,7 @@ export default function Footer() {
               <li>
                 <Link 
                   to="/privacy-policy" 
-                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors"
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                 >
                   <Icon name="Shield" size={16} />
                   Политика конфиденциальности
@@ -88,13 +88,27 @@ export default function Footer() {
               <li>
                 <Link 
                   to="/terms-of-service" 
-                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors"
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                 >
                   <Icon name="FileText" size={16} />
                   Пользовательское соглашение
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/refund-policy" 
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="RotateCcw" size={16} />
+                  Возврат средств
+                </Link>
+              </li>
             </ul>
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <p className="text-xs text-gray-400 mb-1">ИП Кузьменко Анастасия Вячеславовна</p>
+              <p className="text-xs text-gray-400">ОГРНИП: 325774600908955</p>
+              <p className="text-xs text-gray-400">ИНН: 231805728780</p>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -102,9 +116,13 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2 text-gray-300">
                 <Icon name="Mail" size={16} />
-                <a href="mailto:ip.kuzmenkoav@yandex.ru" className="hover:text-white transition-colors">
-                  ip.kuzmenkoav@yandex.ru
+                <a href="mailto:IP.KUZMENKO@YANDEX.RU" className="hover:text-white transition-colors">
+                  IP.KUZMENKO@YANDEX.RU
                 </a>
+              </li>
+              <li className="flex items-center gap-2 text-gray-300">
+                <Icon name="HelpCircle" size={16} />
+                <span>Техподдержка</span>
               </li>
             </ul>
           </div>

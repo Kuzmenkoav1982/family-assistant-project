@@ -29,6 +29,11 @@ export default function PrivacyPolicy() {
               персональных данных пользователей сервиса «Наша семья» (далее — «Сервис»).
             </p>
             <p className="mt-3">
+              <strong>Оператор персональных данных:</strong> ИП Кузьменко Анастасия Вячеславовна<br />
+              <strong>ОГРНИП:</strong> 325774600908955<br />
+              <strong>ИНН:</strong> 231805728780
+            </p>
+            <p className="mt-3">
               Используя Сервис, вы соглашаетесь с условиями настоящей Политики. Если вы не согласны с этими 
               условиями, пожалуйста, не используйте Сервис.
             </p>
@@ -114,7 +119,7 @@ export default function PrivacyPolicy() {
               <li>Отозвать согласие на обработку данных в любое время</li>
             </ul>
             <p className="mt-3">
-              Для реализации своих прав обратитесь по адресу: kuzmenkoav1982@yandex.ru
+              Для реализации своих прав обратитесь по адресу: IP.KUZMENKO@YANDEX.RU
             </p>
           </section>
 
@@ -160,9 +165,11 @@ export default function PrivacyPolicy() {
               По вопросам, связанным с обработкой персональных данных, обращайтесь:
             </p>
             <div className="bg-gray-50 rounded-lg p-4">
-              <p><strong>Email:</strong> kuzmenkoav1982@yandex.ru</p>
-              <p><strong>Телефон:</strong> +7 985 080 78 88</p>
-              <p><strong>Ответственное лицо:</strong> Кузьменко Алексей</p>
+              <p><strong>Оператор ПДн:</strong> ИП Кузьменко Анастасия Вячеславовна</p>
+              <p><strong>ОГРНИП:</strong> 325774600908955</p>
+              <p><strong>ИНН:</strong> 231805728780</p>
+              <p><strong>Email:</strong> IP.KUZMENKO@YANDEX.RU</p>
+              <p className="mt-2 text-sm text-gray-600">Юридический адрес указан в ЕГРИП. По вопросам защиты персональных данных обращайтесь на указанный email.</p>
             </div>
           </section>
 

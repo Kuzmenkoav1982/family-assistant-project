@@ -30,6 +30,7 @@ import FamilyRules from "./pages/FamilyRules";
 import LaunchPlan from "./pages/LaunchPlan";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import RefundPolicy from "./pages/RefundPolicy";
 import Login from "./pages/Login";
 import OAuthDebug from "./pages/OAuthDebug";
 import Welcome from "./pages/Welcome";
@@ -183,6 +184,7 @@ const App = () => {
               <Route path="/launch-plan" element={<LaunchPlan />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/investor-deck" element={<InvestorDeck />} />
               <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
