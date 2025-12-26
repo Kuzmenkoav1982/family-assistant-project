@@ -26,7 +26,7 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Общие положения</h2>
             <p>
               Настоящее Пользовательское соглашение (далее — «Соглашение» или «Оферта») регулирует отношения между 
-              <strong>ИП Кузьменко Анастасия Вячеславовна</strong> (ОГРНИП: 325774600908955, ИНН: 231805728780), далее — «Исполнитель», и пользователями 
+              <strong>ИП Кузьменко А.В.</strong> (ОГРНИП: 325774600908955, ИНН: 231805728780), далее — «Исполнитель», и пользователями 
               (далее — «Заказчик» или «Пользователь») сервиса «Наша семья» (далее — «Сервис»).
             </p>
             <p className="mt-3">
@@ -260,12 +260,12 @@ export default function TermsOfService() {
               По всем вопросам, связанным с использованием Сервиса, обращайтесь:
             </p>
             <div className="bg-gray-50 rounded-lg p-4">
-              <p><strong>ИП Кузьменко Анастасия Вячеславовна</strong></p>
+              <p><strong>ИП Кузьменко А.В.</strong></p>
               <p><strong>ОГРНИП:</strong> 325774600908955</p>
               <p><strong>ИНН:</strong> 231805728780</p>
               <p><strong>Дата регистрации:</strong> 24.12.2025</p>
               <p><strong>Регистрирующий орган:</strong> ИФНС России №15 по г.Москве</p>
-              <p className="mt-3"><strong>Email:</strong> IP.KUZMENKO@YANDEX.RU</p>
+              <p className="mt-3"><strong>Email:</strong> ip.kuzmenkoav@yandex.ru</p>
               <p className="mt-2 text-sm text-gray-600">Юридический адрес указан в ЕГРИП и предоставляется по запросу для юридических целей.</p>
             </div>
           </section>
