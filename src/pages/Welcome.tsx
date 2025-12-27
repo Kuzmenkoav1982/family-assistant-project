@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import StatsCounter from '@/components/StatsCounter';
 import { openJivoChat } from '@/lib/jivo';
 
 const screenshots = [
@@ -101,20 +100,15 @@ export default function Welcome() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <img 
-                src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
-                alt="Наша семья"
-                className="w-12 h-12 object-contain"
-              />
-              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
-                Наша семья
-              </h1>
-            </div>
-            <div className="hidden md:block">
-              <StatsCounter />
-            </div>
+          <div className="flex items-center gap-3">
+            <img 
+              src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
+              alt="Наша семья"
+              className="w-12 h-12 object-contain"
+            />
+            <h1 className="text-xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
+              Наша семья
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
