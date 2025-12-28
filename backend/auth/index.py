@@ -22,7 +22,9 @@ YANDEX_CLIENT_SECRET = os.environ.get('YANDEX_CLIENT_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 NOTIFICATIONS_URL = 'https://functions.poehali.dev/6d1ab9ca-e962-4e7e-a78a-ad88cd4d2e07'
 
-# Force redeploy to pick up updated secrets
+# Force redeploy: New Yandex OAuth app credentials (28.12.2025)
+# Client ID: 1b7664da437442acbcef20ef175f8c39
+# Redirect URI: https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
