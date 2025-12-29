@@ -24,7 +24,7 @@ export function TreeTabContent({
           <div 
             className="absolute inset-0 opacity-10 bg-cover bg-center"
             style={{ 
-              backgroundImage: `url('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png')`,
+              backgroundImage: `url('https://cdn.poehali.dev/files/Логотип Наша Семья.JPG')`,
               filter: 'blur(2px)'
             }}
           ></div>

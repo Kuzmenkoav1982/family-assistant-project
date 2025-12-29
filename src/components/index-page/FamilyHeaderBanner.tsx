@@ -29,7 +29,7 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
               className="w-28 h-28 lg:w-36 lg:h-36 object-contain rounded-full"
               style={{ border: 'none', outline: 'none' }}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png';
+                (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/Логотип Наша Семья.JPG';
               }}
             />
             <div className="flex flex-col gap-1">
