@@ -32,6 +32,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import RefundPolicy from "./pages/RefundPolicy";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import OAuthDebug from "./pages/OAuthDebug";
 import Welcome from "./pages/Welcome";
 import VotingPage from "./pages/VotingPage";
@@ -107,7 +108,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   const handleLogout = () => {
-    console.log('Logout - временно отключено');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    window.location.href = '/login';
   };
 
   return (
@@ -125,6 +128,7 @@ const App = () => {
             <Routes>
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/join" element={<JoinFamily />} />
               <Route path="/oauth-debug" element={<OAuthDebug />} />
               <Route path="/" element={

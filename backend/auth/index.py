@@ -713,6 +713,173 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
     except Exception as e:
         return {'error': f'Ошибка OAuth: {str(e)}'}
 
+def register_user_email(email: str, password: str, name: str = '') -> Dict[str, Any]:
+    """Регистрация через email"""
+    if not email or '@' not in email:
+        return {'error': 'Некорректный email'}
+    
+    if len(password) < 6:
+        return {'error': 'Пароль должен быть минимум 6 символов'}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        check_query = f"SELECT id FROM {SCHEMA}.users WHERE email = {escape_string(email.lower())}"
+        cur.execute(check_query)
+        existing_user = cur.fetchone()
+        
+        if existing_user:
+            cur.close()
+            conn.close()
+            return {'error': 'Email уже зарегистрирован'}
+        
+        password_hash = hash_password(password)
+        
+        insert_user = f"""
+            INSERT INTO {SCHEMA}.users (email, password_hash, name, is_verified) 
+            VALUES ({escape_string(email.lower())}, {escape_string(password_hash)}, {escape_string(name)}, TRUE) 
+            RETURNING id, email, name
+        """
+        cur.execute(insert_user)
+        user = cur.fetchone()
+        
+        family_name = f"Семья {name or email.split('@')[0]}"
+        insert_family = f"""
+            INSERT INTO {SCHEMA}.families (name) 
+            VALUES ({escape_string(family_name)}) 
+            RETURNING id
+        """
+        cur.execute(insert_family)
+        family = cur.fetchone()
+        
+        insert_member = f"""
+            INSERT INTO {SCHEMA}.family_members
+            (family_id, user_id, name, role, points, level, workload, avatar, avatar_type)
+            VALUES (
+                {escape_string(family['id'])},
+                {escape_string(user['id'])},
+                {escape_string(name or email.split('@')[0])},
+                'Владелец',
+                0, 1, 0,
+                '👤',
+                'emoji'
+            )
+            RETURNING id
+        """
+        cur.execute(insert_member)
+        member = cur.fetchone()
+        
+        token = generate_token()
+        expires_at = datetime.now() + timedelta(days=30)
+        
+        insert_session = f"""
+            INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at)
+            VALUES (
+                {escape_string(user['id'])},
+                {escape_string(token)},
+                {escape_string(expires_at.isoformat())}
+            )
+        """
+        cur.execute(insert_session)
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'token': token,
+            'user': {
+                'id': str(user['id']),
+                'email': user['email'],
+                'name': user['name'],
+                'family_id': str(family['id']),
+                'family_name': family_name,
+                'member_id': str(member['id'])
+            }
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка регистрации: {str(e)}'}
+
+def login_user_email(email: str, password: str) -> Dict[str, Any]:
+    """Вход через email"""
+    if not email or not password:
+        return {'error': 'Email и пароль обязательны'}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        user_query = f"""
+            SELECT id, email, password_hash, name, avatar_url
+            FROM {SCHEMA}.users
+            WHERE email = {escape_string(email.lower())}
+        """
+        cur.execute(user_query)
+        user = cur.fetchone()
+        
+        if not user:
+            cur.close()
+            conn.close()
+            return {'error': 'Неверный email или пароль'}
+        
+        password_hash = hash_password(password)
+        if user['password_hash'] != password_hash:
+            cur.close()
+            conn.close()
+            return {'error': 'Неверный email или пароль'}
+        
+        token = generate_token()
+        expires_at = datetime.now() + timedelta(days=30)
+        
+        insert_session = f"""
+            INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at)
+            VALUES (
+                {escape_string(user['id'])},
+                {escape_string(token)},
+                {escape_string(expires_at.isoformat())}
+            )
+        """
+        cur.execute(insert_session)
+        
+        member_query = f"""
+            SELECT fm.id, fm.family_id, f.name as family_name, f.logo_url
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = {escape_string(user['id'])}
+            LIMIT 1
+        """
+        cur.execute(member_query)
+        member = cur.fetchone()
+        
+        user_data = {
+            'id': str(user['id']),
+            'email': user['email'],
+            'name': user['name'],
+            'avatar_url': user['avatar_url']
+        }
+        
+        if member:
+            user_data['family_id'] = str(member['family_id'])
+            user_data['family_name'] = member['family_name']
+            user_data['logo_url'] = member.get('logo_url')
+            user_data['member_id'] = str(member['id'])
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'token': token,
+            'user': user_data
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка входа: {str(e)}'}
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}
@@ -846,19 +1013,32 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         action = body.get('action')
         
         if action == 'register':
-            result = register_user(
-                phone=body.get('phone'),
-                password=body.get('password'),
-                family_name=body.get('family_name'),
-                invite_code=body.get('invite_code'),
-                member_name=body.get('member_name'),
-                relationship=body.get('relationship')
-            )
+            if body.get('email'):
+                result = register_user_email(
+                    email=body.get('email'),
+                    password=body.get('password'),
+                    name=body.get('name', '')
+                )
+            else:
+                result = register_user(
+                    phone=body.get('phone'),
+                    password=body.get('password'),
+                    family_name=body.get('family_name'),
+                    invite_code=body.get('invite_code'),
+                    member_name=body.get('member_name'),
+                    relationship=body.get('relationship')
+                )
         elif action == 'login':
-            result = login_user(
-                phone=body.get('phone'),
-                password=body.get('password')
-            )
+            if body.get('email'):
+                result = login_user_email(
+                    email=body.get('email'),
+                    password=body.get('password')
+                )
+            else:
+                result = login_user(
+                    phone=body.get('phone'),
+                    password=body.get('password')
+                )
         elif action == 'request_reset':
             result = request_password_reset(
                 phone=body.get('phone')

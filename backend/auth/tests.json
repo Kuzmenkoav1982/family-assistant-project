@@ -1,18 +1,32 @@
 {
   "tests": [
     {
-      "name": "Login with valid credentials",
+      "name": "Register with email - validation error",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "register",
+        "email": "test@example.com",
+        "password": "123"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login with email - missing credentials",
       "method": "POST",
       "path": "/",
       "body": {
         "action": "login",
-        "phone": "+79991234567",
-        "password": "test123456"
+        "email": "",
+        "password": ""
       },
-      "expectedStatus": 200,
+      "expectedStatus": 400,
       "expectedBody": {
-        "success": true,
-        "token": "string"
+        "error": "string"
       },
       "bodyMatcher": "partial"
     },
