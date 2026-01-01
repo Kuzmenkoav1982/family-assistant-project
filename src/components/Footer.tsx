@@ -105,7 +105,7 @@ export default function Footer() {
               </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-gray-700">
-              <p className="text-xs text-gray-400 mb-1">ИП Кузьменко Анастасия Вячеславовна</p>
+              <p className="text-xs text-gray-400 mb-1">Кузьменко А.В.</p>
               <p className="text-xs text-gray-400">ОГРНИП: 325774600908955</p>
               <p className="text-xs text-gray-400">ИНН: 231805728780</p>
             </div>
@@ -116,8 +116,8 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2 text-gray-300">
                 <Icon name="Mail" size={16} />
-                <a href="mailto:IP.KUZMENKO@YANDEX.RU" className="hover:text-white transition-colors">
-                  IP.KUZMENKO@YANDEX.RU
+                <a href="mailto:ip.kuzmenkoav@yandex.ru" className="hover:text-white transition-colors">
+                  ip.kuzmenkoav@yandex.ru
                 </a>
               </li>
               <li className="flex items-center gap-2 text-gray-300">
