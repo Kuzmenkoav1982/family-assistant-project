@@ -1,4 +1,6 @@
 {
+  "payments-sber": "https://functions.poehali.dev/eb5ffd1e-ee56-4d89-b112-ba5bace6f64a",
+  "payments-tbank": "https://functions.poehali.dev/e25d60ac-d0c8-428d-92bf-18126183f140",
   "child-calendar": "https://functions.poehali.dev/bc0c3710-e24a-4171-aa84-0311d97d14d9",
   "alice-link": "https://functions.poehali.dev/00864888-e26d-45f7-8e6e-5e02202aee4b",
   "alice": "https://functions.poehali.dev/3654f595-6c6d-4ebf-9213-f12b4d75efaf",

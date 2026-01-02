@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Получение списка доступных планов (без авторизации)",
+      "method": "GET",
+      "path": "/?action=plans",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "plans": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Получение подписок без авторизации",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS preflight для CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

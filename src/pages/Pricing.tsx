@@ -4,160 +4,89 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
-const ADMIN_API = 'https://functions.poehali.dev/0785b781-b361-4def-810e-131977a99fbe';
+const TBANK_API = 'https://functions.poehali.dev/e25d60ac-d0c8-428d-92bf-18126183f140';
+const SBER_API = 'https://functions.poehali.dev/eb5ffd1e-ee56-4d89-b112-ba5bace6f64a';
 
-const plans = [
+const subscriptionPlans = [
   {
-    id: 'basic',
-    name: 'Базовый',
-    price: 299,
-    period: '1 месяц',
+    id: 'free',
+    name: 'Бесплатный',
+    price: 0,
+    period: 'навсегда',
     popular: false,
+    color: 'from-gray-500 to-gray-600',
     features: [
-      'До 5 членов семьи',
-      'Основные функции',
-      'Календарь событий',
-      'Списки покупок',
-      'Финансовый учет',
-      'Техподдержка'
-    ]
+      '✅ Профили семьи (до 10 человек)',
+      '✅ Календарь событий (базовый)',
+      '✅ Списки покупок и задач',
+      '✅ Рецепты (до 50 рецептов)',
+      '✅ Семейный чат',
+      '✅ Хранилище 1 ГБ',
+      '🚫 Нет AI-помощника',
+      '🚫 История событий 3 месяца'
+    ],
+    condition: '🤝 Условие: помогайте нам развивать платформу своими идеями и предложениями!'
   },
   {
-    id: 'standard',
-    name: 'Семейный',
-    price: 799,
-    period: '3 месяца',
+    id: 'ai_assistant',
+    name: 'AI-Помощник "Домовой"',
+    price: 200,
+    period: 'месяц',
     popular: true,
+    color: 'from-purple-500 to-indigo-600',
     features: [
-      'До 10 членов семьи',
-      'Все функции Базового',
-      'Рецепты и меню',
-      'Голосования',
-      'Здоровье детей',
-      'Медицинские записи',
-      'Приоритетная поддержка',
-      'Экономия 20%'
+      '🤖 Умный семейный помощник',
+      '📝 Автоматические напоминания',
+      '🍳 Подбор рецептов по продуктам',
+      '📊 Анализ семейного бюджета',
+      '💡 Советы по организации быта',
+      '⚡ Быстрые ответы на вопросы'
     ]
   },
   {
-    id: 'premium',
-    name: 'Премиум',
-    price: 2499,
-    period: '12 месяцев',
-    popular: false,
+    id: 'full_package',
+    name: 'Полный пакет',
+    price: 699,
+    period: 'месяц',
+    popular: true,
+    color: 'from-yellow-500 to-orange-600',
+    savings: 'Экономия 35%!',
     features: [
-      'Неограниченное число членов',
-      'Все функции Семейного',
-      'ИИ-помощник',
-      'Путешествия и поездки',
-      'Аналитика и отчеты',
-      'Экспорт данных',
-      'Семейное древо',
-      'VIP поддержка 24/7',
-      'Экономия 50%'
+      '✅ AI-Помощник "Домовой"',
+      '✅ 20 ГБ хранилища',
+      '✅ Безлимитная история',
+      '✅ Приоритетная поддержка',
+      '✅ Ранний доступ к новинкам',
+      '🏆 Бейджик "Друг платформы"'
     ]
   }
+];
+
+const storageOptions = [
+  { id: 'storage_5gb', name: '5 ГБ', price: 99, storage: '5 ГБ' },
+  { id: 'storage_20gb', name: '20 ГБ', price: 249, storage: '20 ГБ', popular: true },
+  { id: 'storage_50gb', name: '50 ГБ', price: 499, storage: '50 ГБ' },
+  { id: 'storage_100gb', name: '100 ГБ', price: 899, storage: '100 ГБ' }
+];
+
+const donationPresets = [
+  { id: 'espresso', name: '☕ Эспрессо', amount: 50, emoji: '☕' },
+  { id: 'cappuccino', name: '☕ Капучино', amount: 150, emoji: '☕' },
+  { id: 'latte', name: '☕ Большой латте', amount: 300, emoji: '☕' },
+  { id: 'friend', name: '💚 Друг проекта', amount: 500, emoji: '💚' },
+  { id: 'partner', name: '🤝 Партнёр развития', amount: 1000, emoji: '🤝' },
+  { id: 'investor', name: '🏆 Инвестор', amount: 3000, emoji: '🏆' }
 ];
 
 export default function Pricing() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
-  const [promoCode, setPromoCode] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<any>(null);
-  const [checkingPromo, setCheckingPromo] = useState(false);
-
-  const applyPromoCode = async () => {
-    if (!promoCode) return;
-
-    setCheckingPromo(true);
-    try {
-      const response = await fetch(`${ADMIN_API}?action=promo-codes`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
-
-      const data = await response.json();
-      const promo = data.promo_codes?.find(
-        (p: any) => p.code.toUpperCase() === promoCode.toUpperCase() && p.is_active
-      );
-
-      if (!promo) {
-        toast({
-          title: 'Промокод не найден',
-          description: 'Проверьте правильность кода',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      // Проверка лимитов
-      if (promo.max_uses && promo.current_uses >= promo.max_uses) {
-        toast({
-          title: 'Промокод исчерпан',
-          description: 'Этот промокод больше недоступен',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      // Проверка срока действия
-      if (promo.valid_until && new Date(promo.valid_until) < new Date()) {
-        toast({
-          title: 'Промокод истёк',
-          description: 'Срок действия промокода закончился',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      setAppliedPromo(promo);
-      toast({
-        title: '✅ Промокод применён!',
-        description: getPromoDescription(promo)
-      });
-    } catch (error) {
-      toast({
-        title: 'Ошибка проверки',
-        description: 'Не удалось проверить промокод',
-        variant: 'destructive'
-      });
-    } finally {
-      setCheckingPromo(false);
-    }
-  };
-
-  const getPromoDescription = (promo: any) => {
-    if (promo.discount_type === 'percent') return `Скидка ${promo.discount_value}%`;
-    if (promo.discount_type === 'fixed') return `Скидка ₽${promo.discount_value}`;
-    if (promo.discount_type === 'free_days') return `+${promo.discount_value} дней в подарок`;
-    return 'Скидка применена';
-  };
-
-  const calculateFinalPrice = (originalPrice: number, planId: string) => {
-    if (!appliedPromo) return originalPrice;
-
-    // Проверка применимости к тарифу
-    if (appliedPromo.applicable_plans && !appliedPromo.applicable_plans.includes(planId)) {
-      return originalPrice;
-    }
-
-    if (appliedPromo.discount_type === 'percent') {
-      return Math.round(originalPrice * (1 - appliedPromo.discount_value / 100));
-    }
-
-    if (appliedPromo.discount_type === 'fixed') {
-      return Math.max(0, originalPrice - appliedPromo.discount_value);
-    }
-
-    return originalPrice;
-  };
+  const [customDonation, setCustomDonation] = useState('');
 
   const handleSubscribe = async (planId: string) => {
     const token = localStorage.getItem('authToken');
@@ -171,10 +100,18 @@ export default function Pricing() {
       return;
     }
 
+    if (planId === 'free') {
+      toast({
+        title: 'Бесплатный план',
+        description: 'Вы уже используете бесплатный тариф! Помогайте нам развиваться — предлагайте новые идеи в разделе "Предложения".',
+      });
+      return;
+    }
+
     setLoading(planId);
 
     try {
-      const response = await fetch(PAYMENTS_API, {
+      const response = await fetch(TBANK_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,16 +119,36 @@ export default function Pricing() {
         },
         body: JSON.stringify({
           action: 'create',
-          plan_type: planId,
-          promo_code: appliedPromo?.code || null,
-          return_url: window.location.origin + '/settings'
+          plan_type: planId
         })
       });
 
       const data = await response.json();
 
-      if (data.payment_url) {
-        window.location.href = data.payment_url;
+      if (data.success) {
+        toast({
+          title: '✅ Подписка создана!',
+          description: 'Следуйте инструкциям для оплаты',
+        });
+        
+        // Показываем инструкции по оплате
+        alert(`
+Платёж через Т-Банк
+Сумма: ${data.amount}₽
+План: ${data.plan}
+
+Инструкции по оплате:
+${data.next_steps?.join('\n')}
+
+Реквизиты для оплаты:
+Получатель: ${data.payment_instructions?.recipient}
+Счёт: ${data.payment_instructions?.recipient_account}
+Банк: ${data.payment_instructions?.bank_name}
+БИК: ${data.payment_instructions?.bik}
+ИНН: ${data.payment_instructions?.recipient_inn}
+
+Назначение платежа: ${data.payment_instructions?.purpose}
+        `);
       } else if (data.error) {
         toast({
           title: 'Ошибка оформления',
@@ -210,9 +167,78 @@ export default function Pricing() {
     }
   };
 
+  const handleDonation = async (presetId: string, amount: number) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      toast({
+        title: 'Требуется авторизация',
+        description: 'Войдите в аккаунт для поддержки проекта',
+        variant: 'destructive'
+      });
+      navigate('/login');
+      return;
+    }
+
+    setLoading(presetId);
+
+    try {
+      const response = await fetch(SBER_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({
+          preset_id: presetId,
+          amount: amount,
+          message: 'Поддержка развития платформы "Наша семья"'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: data.thank_you_message || '💚 Спасибо за поддержку!',
+          description: 'Инструкции по оплате отправлены',
+        });
+        
+        alert(`
+${data.thank_you_message}
+
+Донат через Сбербанк
+Сумма: ${data.amount}₽
+Тип: ${data.preset_name}
+
+Реквизиты для оплаты:
+Получатель: ${data.payment_instructions?.recipient}
+Счёт: ${data.payment_instructions?.recipient_account}
+Банк: ${data.payment_instructions?.bank_name}
+БИК: ${data.payment_instructions?.bik}
+ИНН: ${data.payment_instructions?.recipient_inn}
+
+Назначение платежа: ${data.payment_instructions?.purpose}
+        `);
+      } else if (data.error) {
+        toast({
+          title: 'Ошибка',
+          description: data.error,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка сети',
+        description: 'Не удалось связаться с сервером',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
-      {/* Header */}
       <div className="container mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <Button 
@@ -233,253 +259,234 @@ export default function Pricing() {
           </Button>
         </div>
 
+        {/* Hero Section */}
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg px-6 py-2">
-            💎 Выберите свой тариф
+            🏠 Наша семья — платформа для вас
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Подписка на "Наша семья"
+            Тарифы и поддержка
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Выберите подходящий тариф и начните организовывать жизнь вашей семьи
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Мы развиваемся благодаря вашей поддержке и обратной связи!
+            <br />
+            <span className="text-sm text-purple-600 font-semibold mt-2 inline-block">
+              Цель — развитие платформы, а не высокие цены 💚
+            </span>
           </p>
         </div>
 
-        {/* Promo Code Input */}
-        <Card className="max-w-md mx-auto mb-12">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Icon name="Tag" size={20} />
-              Есть промокод?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  placeholder="Введите код (например, SUMMER2024)"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                  disabled={!!appliedPromo}
-                  className="font-mono"
-                />
-              </div>
-              {!appliedPromo ? (
-                <Button
-                  onClick={applyPromoCode}
-                  disabled={!promoCode || checkingPromo}
-                  variant="outline"
+        <Tabs defaultValue="subscriptions" className="max-w-7xl mx-auto">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="subscriptions">📦 Подписки</TabsTrigger>
+            <TabsTrigger value="storage">💾 Хранилище</TabsTrigger>
+            <TabsTrigger value="donations">💚 Поддержка</TabsTrigger>
+          </TabsList>
+
+          {/* Подписки */}
+          <TabsContent value="subscriptions">
+            <div className="grid md:grid-cols-3 gap-6">
+              {subscriptionPlans.map((plan) => (
+                <Card 
+                  key={plan.id}
+                  className={`relative ${plan.popular ? 'border-purple-500 border-2 shadow-xl' : ''}`}
                 >
-                  {checkingPromo ? (
-                    <Icon name="Loader2" className="animate-spin" size={16} />
-                  ) : (
-                    <>
-                      <Icon name="Check" size={16} className="mr-1" />
-                      Применить
-                    </>
+                  {plan.popular && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                      🔥 Популярный
+                    </Badge>
                   )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => {
-                    setAppliedPromo(null);
-                    setPromoCode('');
-                  }}
-                  variant="outline"
-                >
-                  <Icon name="X" size={16} />
-                </Button>
-              )}
+                  <CardHeader>
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plan.color} flex items-center justify-center text-white text-2xl mb-4`}>
+                      {plan.id === 'free' && '🆓'}
+                      {plan.id === 'ai_assistant' && '🤖'}
+                      {plan.id === 'full_package' && '🏆'}
+                    </div>
+                    <CardTitle>{plan.name}</CardTitle>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold">{plan.price}₽</span>
+                      <span className="text-gray-500">/{plan.period}</span>
+                    </div>
+                    {plan.savings && (
+                      <Badge variant="outline" className="mt-2 text-green-600 border-green-600">
+                        {plan.savings}
+                      </Badge>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="text-sm flex items-start gap-2">
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {plan.condition && (
+                      <p className="text-xs text-purple-600 mt-4 p-2 bg-purple-50 rounded">
+                        {plan.condition}
+                      </p>
+                    )}
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      className="w-full"
+                      variant={plan.popular ? 'default' : 'outline'}
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={loading === plan.id || plan.id === 'free'}
+                    >
+                      {loading === plan.id ? (
+                        <Icon name="Loader2" className="animate-spin" size={16} />
+                      ) : plan.id === 'free' ? (
+                        'Текущий план'
+                      ) : (
+                        'Подключить'
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-            {appliedPromo && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-                <Icon name="CheckCircle2" className="text-green-600" size={20} />
-                <div>
-                  <p className="text-sm font-semibold text-green-900">
-                    Промокод {appliedPromo.code} применён!
-                  </p>
-                  <p className="text-xs text-green-700">{getPromoDescription(appliedPromo)}</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
-          {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className={`relative ${
-                plan.popular
-                  ? 'border-4 border-purple-500 shadow-2xl scale-105'
-                  : 'border-2 border-gray-200'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-4 py-1">
-                    🔥 Популярный
-                  </Badge>
-                </div>
-              )}
+          {/* Хранилище */}
+          <TabsContent value="storage">
+            <div className="grid md:grid-cols-4 gap-6">
+              {storageOptions.map((option) => (
+                <Card key={option.id} className={option.popular ? 'border-blue-500 border-2' : ''}>
+                  {option.popular && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white">
+                      👍 Выбор пользователей
+                    </Badge>
+                  )}
+                  <CardHeader>
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xl mb-2">
+                      💾
+                    </div>
+                    <CardTitle>{option.storage}</CardTitle>
+                    <div className="mt-2">
+                      <span className="text-3xl font-bold">{option.price}₽</span>
+                      <span className="text-gray-500">/мес</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="text-sm space-y-2 text-gray-600">
+                      <li>📷 Фото и видео</li>
+                      <li>📄 Документы</li>
+                      <li>🔒 Резервное копирование</li>
+                      <li>📱 Синхронизация устройств</li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => handleSubscribe(option.id)}
+                      disabled={loading === option.id}
+                    >
+                      {loading === option.id ? (
+                        <Icon name="Loader2" className="animate-spin" size={16} />
+                      ) : (
+                        'Подключить'
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
 
-              <CardHeader className="text-center pb-8 pt-8">
-                <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
-                <div className="mb-4">
-                  {(() => {
-                    const finalPrice = calculateFinalPrice(plan.price, plan.id);
-                    const hasDiscount = finalPrice !== plan.price;
-                    
-                    return (
-                      <>
-                        {hasDiscount && (
-                          <div className="text-2xl text-gray-400 line-through mb-1">
-                            ₽{plan.price}
-                          </div>
-                        )}
-                        <div className="flex items-center justify-center gap-2">
-                          <span className={`text-5xl font-bold ${hasDiscount ? 'text-green-600' : 'text-gray-900'}`}>
-                            ₽{finalPrice}
-                          </span>
-                          <span className="text-gray-600">/ {plan.period}</span>
-                        </div>
-                        {hasDiscount && appliedPromo.discount_type !== 'free_days' && (
-                          <Badge className="mt-2 bg-green-500">
-                            Экономия ₽{plan.price - finalPrice}
-                          </Badge>
-                        )}
-                        {hasDiscount && appliedPromo.discount_type === 'free_days' && (
-                          <Badge className="mt-2 bg-purple-500">
-                            +{appliedPromo.discount_value} дней в подарок
-                          </Badge>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-                <CardDescription className="text-base">
-                  {plan.period === '3 месяца' && '₽266/мес'}
-                  {plan.period === '12 месяцев' && '₽208/мес'}
-                  {plan.period === '1 месяц' && 'Гибкая оплата'}
+          {/* Поддержка платформы */}
+          <TabsContent value="donations">
+            <Card className="mb-8">
+              <CardHeader className="text-center">
+                <CardTitle className="text-3xl">💚 Поддержи развитие платформы</CardTitle>
+                <CardDescription className="text-lg mt-2">
+                  Все средства идут на добавление новых функций, улучшение скорости и оплату серверов.
+                  <br />
+                  <span className="text-purple-600 font-semibold">Твои идеи делают нашу платформу лучше!</span>
                 </CardDescription>
               </CardHeader>
-
-              <CardContent>
-                <ul className="space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Icon name="CheckCircle2" className="text-green-500 mt-0.5 flex-shrink-0" size={20} />
-                      <span className="text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-
-              <CardFooter>
-                <Button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={loading === plan.id}
-                  className={`w-full ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-                      : ''
-                  }`}
-                  size="lg"
-                >
-                  {loading === plan.id ? (
-                    <>
-                      <Icon name="Loader" className="animate-spin mr-2" size={20} />
-                      Оформление...
-                    </>
-                  ) : (
-                    <>
-                      Выбрать тариф
-                      <Icon name="ArrowRight" className="ml-2" size={20} />
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
             </Card>
-          ))}
-        </div>
 
-        {/* FAQ Section */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8">Часто задаваемые вопросы</h2>
-          
-          <div className="space-y-4">
-            <Card>
+            <div className="grid md:grid-cols-3 gap-6">
+              {donationPresets.map((preset) => (
+                <Card key={preset.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="text-center">
+                    <div className="text-6xl mb-4">{preset.emoji}</div>
+                    <CardTitle>{preset.name}</CardTitle>
+                    <div className="text-3xl font-bold text-purple-600 mt-2">
+                      {preset.amount}₽
+                    </div>
+                  </CardHeader>
+                  <CardFooter>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                      onClick={() => handleDonation(preset.id, preset.amount)}
+                      disabled={loading === preset.id}
+                    >
+                      {loading === preset.id ? (
+                        <Icon name="Loader2" className="animate-spin" size={16} />
+                      ) : (
+                        'Угостить Домового'
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="mt-8">
               <CardHeader>
-                <CardTitle className="text-lg">🔒 Безопасность платежей</CardTitle>
+                <CardTitle>💰 Своя сумма</CardTitle>
+                <CardDescription>Укажите любую сумму от 50₽</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">
-                  Все платежи обрабатываются через ЮKassa — надежный и защищенный сервис онлайн-платежей.
-                  Мы не храним данные ваших банковских карт.
-                </p>
+                <div className="flex gap-4">
+                  <Input 
+                    type="number"
+                    min="50"
+                    placeholder="Сумма (мин. 50₽)"
+                    value={customDonation}
+                    onChange={(e) => setCustomDonation(e.target.value)}
+                  />
+                  <Button 
+                    onClick={() => {
+                      const amount = parseInt(customDonation);
+                      if (amount >= 50) {
+                        handleDonation('custom', amount);
+                      } else {
+                        toast({
+                          title: 'Минимальная сумма — 50₽',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    disabled={!customDonation || parseInt(customDonation) < 50}
+                  >
+                    Отправить
+                  </Button>
+                </div>
               </CardContent>
             </Card>
+          </TabsContent>
+        </Tabs>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">🔄 Можно ли изменить тариф?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Да, вы можете перейти на другой тариф в любое время. При переходе на более дорогой тариф
-                  мы пересчитаем стоимость с учетом неиспользованного периода.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">💳 Какие способы оплаты доступны?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Банковские карты (Visa, Mastercard, МИР), электронные кошельки, СБП, оплата через банк.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">📱 Есть ли пробный период?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Сейчас приложение находится в демо-режиме с доступом ко всем функциям. 
-                  После запуска платной версии новым пользователям будет доступен 7-дневный пробный период.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="mt-16 text-center">
-          <Card className="max-w-2xl mx-auto bg-gradient-to-br from-purple-500 to-pink-500 text-white border-0">
-            <CardHeader>
-              <CardTitle className="text-3xl">Остались вопросы?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg mb-6">
-                Напишите нам в поддержку, и мы поможем выбрать подходящий тариф
-              </p>
-              <Button
-                onClick={() => navigate('/support')}
-                variant="secondary"
-                size="lg"
-                className="bg-white text-purple-600 hover:bg-gray-100"
-              >
-                <Icon name="MessageCircle" className="mr-2" size={20} />
-                Связаться с поддержкой
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Footer Info */}
+        <Card className="mt-16 bg-gradient-to-r from-purple-50 to-blue-50">
+          <CardContent className="p-8 text-center">
+            <h3 className="text-2xl font-bold mb-4">💡 Хочешь предложить идею?</h3>
+            <p className="text-gray-600 mb-6">
+              Твои предложения помогают нам развиваться! Добавь свою идею в "Доску предложений".
+            </p>
+            <Button 
+              onClick={() => navigate('/suggestions')}
+              className="gap-2"
+            >
+              <Icon name="Lightbulb" size={18} />
+              Предложить идею
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
