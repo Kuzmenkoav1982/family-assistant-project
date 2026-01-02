@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Получение списка категорий (публичный endpoint)",
+      "method": "GET",
+      "path": "/?action=categories",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "categories": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Получение списка идей (публичный endpoint)",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ideas": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS preflight для CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
