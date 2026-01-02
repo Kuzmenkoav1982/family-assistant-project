@@ -42,29 +42,35 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
     if not token:
         return None
     
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    safe_token = token.replace("'", "''")
-    cur.execute(
-        f"""
-        SELECT s.user_id, u.email, u.full_name 
-        FROM {SCHEMA}.sessions s
-        JOIN {SCHEMA}.users u ON s.user_id = u.id
-        WHERE s.token = '{safe_token}' AND s.expires_at > CURRENT_TIMESTAMP
-        """
-    )
-    result = cur.fetchone()
-    cur.close()
-    conn.close()
-    
-    if result:
-        return {
-            'user_id': str(result['user_id']),
-            'email': result['email'],
-            'full_name': result['full_name']
-        }
-    return None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        safe_token = token.replace("'", "''")
+        cur.execute(
+            f"""
+            SELECT s.user_id, u.email, u.full_name 
+            FROM {SCHEMA}.sessions s
+            JOIN {SCHEMA}.users u ON s.user_id = u.id
+            WHERE s.token = '{safe_token}' AND s.expires_at > CURRENT_TIMESTAMP
+            """
+        )
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if result:
+            return {
+                'user_id': str(result['user_id']),
+                'email': result['email'],
+                'full_name': result['full_name']
+            }
+        return None
+    except Exception as e:
+        print(f'[verify_token] ERROR: {str(e)}')
+        import traceback
+        print(f'[verify_token] TRACEBACK: {traceback.format_exc()}')
+        return None
 
 def get_user_family_id(user_id: str) -> Optional[str]:
     """Получение ID семьи пользователя"""
