@@ -6,6 +6,9 @@
 import json
 import os
 import uuid
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from typing import Dict, Any, Optional
 import psycopg2
@@ -13,6 +16,13 @@ from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+
+# Email настройки
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@nasha-semiya.ru')
+SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+SMTP_HOST = 'smtp.gmail.com'
+SMTP_PORT = 587
 
 # Варианты донатов
 DONATION_PRESETS = [
@@ -74,6 +84,85 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     return str(member['family_id']) if member else None
 
+def send_donation_notification(donation_id: str, preset_name: str, amount: float, message: str, user_email: str, user_name: str):
+    """Отправка email-уведомления админу о новом донате"""
+    if not SMTP_USER or not SMTP_PASSWORD or not ADMIN_EMAIL:
+        return
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'💚 Новый донат: {preset_name} — {amount}₽'
+        msg['From'] = SMTP_USER
+        msg['To'] = ADMIN_EMAIL
+        
+        html = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #10b981; margin-bottom: 20px;">💚 Новый донат получен!</h2>
+              
+              <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-weight: bold; color: #065f46;">⏳ Ожидает подтверждения оплаты</p>
+              </div>
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Тип:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{preset_name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Сумма:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 18px; color: #10b981; font-weight: bold;">{amount}₽</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">От кого:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{user_name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Email:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{user_email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; font-weight: bold;">Сообщение:</td>
+                  <td style="padding: 10px; font-style: italic;">{message or '—'}</td>
+                </tr>
+              </table>
+              
+              <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px;"><strong>📝 Следующие шаги:</strong></p>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                  <li>Проверь поступление денег на счёт Сбербанка</li>
+                  <li>Перейди в админ-панель → Подписки → Платежи</li>
+                  <li>Подтверди донат для учёта в статистике</li>
+                </ol>
+              </div>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://nasha-semiya.ru/admin/subscriptions" 
+                   style="display: inline-block; padding: 12px 30px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                  Перейти в админ-панель
+                </a>
+              </div>
+              
+              <p style="margin-top: 30px; color: #6b7280; font-size: 12px; text-align: center;">
+                Платформа "Наша семья" • nasha-semiya.ru
+              </p>
+            </div>
+          </body>
+        </html>
+        """
+        
+        part = MIMEText(html, 'html', 'utf-8')
+        msg.attach(part)
+        
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+            
+    except Exception as e:
+        print(f'Ошибка отправки email: {str(e)}')
+
 def create_donation(user_id: str, amount: float, preset_id: Optional[str], message: Optional[str]) -> Dict[str, Any]:
     """
     Создание записи о донате и возврат инструкций по оплате через Сбер
@@ -107,6 +196,22 @@ def create_donation(user_id: str, amount: float, preset_id: Optional[str], messa
         conn.commit()
         cur.close()
         conn.close()
+        
+        # Отправляем уведомление админу
+        try:
+            conn2 = get_db_connection()
+            cur2 = conn2.cursor(cursor_factory=RealDictCursor)
+            safe_user_id_check = user_id.replace("'", "''")
+            cur2.execute(f"SELECT email, full_name FROM {SCHEMA}.users WHERE id = '{safe_user_id_check}'")
+            user_data = cur2.fetchone()
+            user_email = user_data['email'] if user_data else 'unknown'
+            user_name = user_data['full_name'] if user_data else 'Пользователь'
+            cur2.close()
+            conn2.close()
+            
+            send_donation_notification(donation_id, preset_name, amount, message or '', user_email, user_name)
+        except:
+            pass
         
         # Возвращаем инструкции по оплате
         return {

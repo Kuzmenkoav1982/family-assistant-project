@@ -9,6 +9,7 @@ import PromoCodesManager from '@/components/admin/PromoCodesManager';
 import PlansSettings from '@/components/admin/PlansSettings';
 import ReportsExport from '@/components/admin/ReportsExport';
 import CohortAnalysis from '@/components/admin/CohortAnalysis';
+import PaymentsManagement from '@/components/admin/PaymentsManagement';
 
 const API_URL = 'https://functions.poehali.dev/0785b781-b361-4def-810e-131977a99fbe';
 
@@ -55,6 +56,11 @@ export default function AdminSubscriptions() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white shadow-sm p-1">
+            <TabsTrigger value="payments" className="gap-2">
+              <Icon name="CreditCard" size={16} />
+              <Badge className="ml-1 bg-yellow-500">💰</Badge>
+              Платежи
+            </TabsTrigger>
             <TabsTrigger value="dashboard" className="gap-2">
               <Icon name="BarChart3" size={16} />
               Dashboard
@@ -80,6 +86,10 @@ export default function AdminSubscriptions() {
               Аналитика
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="payments" className="space-y-6">
+            <PaymentsManagement />
+          </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-6">
             <SubscriptionsDashboard apiUrl={API_URL} />

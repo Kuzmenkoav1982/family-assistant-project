@@ -6,6 +6,9 @@
 import json
 import os
 import uuid
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
@@ -15,6 +18,13 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
 TBANK_API_KEY = os.environ.get('TBANK_API_KEY', '')
 TBANK_TERMINAL_KEY = os.environ.get('TBANK_TERMINAL_KEY', '')
+
+# Email настройки
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@nasha-semiya.ru')
+SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+SMTP_HOST = 'smtp.gmail.com'
+SMTP_PORT = 587
 
 # Тарифные планы (подписки)
 SUBSCRIPTION_PLANS = {
@@ -117,6 +127,85 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     return str(member['family_id']) if member else None
 
+def send_admin_notification(subscription_id: str, plan_name: str, amount: float, family_id: str, user_email: str):
+    """Отправка email-уведомления админу о новой подписке"""
+    if not SMTP_USER or not SMTP_PASSWORD or not ADMIN_EMAIL:
+        return  # Пропускаем если нет настроек
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'🔔 Новая подписка: {plan_name} — {amount}₽'
+        msg['From'] = SMTP_USER
+        msg['To'] = ADMIN_EMAIL
+        
+        html = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #7c3aed; margin-bottom: 20px;">💳 Новая подписка оформлена!</h2>
+              
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; font-weight: bold; color: #92400e;">⏳ Ожидает подтверждения оплаты</p>
+              </div>
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">План:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{plan_name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Сумма:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 18px; color: #7c3aed; font-weight: bold;">{amount}₽</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">ID Семьи:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-family: monospace;">{family_id}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Email:</td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{user_email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; font-weight: bold;">ID Подписки:</td>
+                  <td style="padding: 10px; font-family: monospace; font-size: 12px;">{subscription_id}</td>
+                </tr>
+              </table>
+              
+              <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px;"><strong>📝 Следующие шаги:</strong></p>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                  <li>Проверь поступление денег на счёт Т-Банка</li>
+                  <li>Перейди в админ-панель → Подписки → Платежи</li>
+                  <li>Подтверди платёж для активации подписки</li>
+                </ol>
+              </div>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://nasha-semiya.ru/admin/subscriptions" 
+                   style="display: inline-block; padding: 12px 30px; background: #7c3aed; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                  Перейти в админ-панель
+                </a>
+              </div>
+              
+              <p style="margin-top: 30px; color: #6b7280; font-size: 12px; text-align: center;">
+                Платформа "Наша семья" • nasha-semiya.ru
+              </p>
+            </div>
+          </body>
+        </html>
+        """
+        
+        part = MIMEText(html, 'html', 'utf-8')
+        msg.attach(part)
+        
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+            
+    except Exception as e:
+        print(f'Ошибка отправки email: {str(e)}')  # Логируем но не падаем
+
 def create_tbank_payment(amount: float, plan_type: str, user_id: str, family_id: str) -> Dict[str, Any]:
     """
     Создание платежа через Т-Банк (заглушка для интеграции)
@@ -193,6 +282,22 @@ def create_subscription(family_id: str, user_id: str, plan_type: str) -> Dict[st
         conn.commit()
         cur.close()
         conn.close()
+        
+        # Отправляем уведомление админу
+        try:
+            # Получаем email пользователя
+            conn2 = get_db_connection()
+            cur2 = conn2.cursor(cursor_factory=RealDictCursor)
+            safe_user_id_check = user_id.replace("'", "''")
+            cur2.execute(f"SELECT email FROM {SCHEMA}.users WHERE id = '{safe_user_id_check}'")
+            user_data = cur2.fetchone()
+            user_email = user_data['email'] if user_data else 'unknown'
+            cur2.close()
+            conn2.close()
+            
+            send_admin_notification(subscription_id, plan['name'], plan['price'], family_id, user_email)
+        except:
+            pass  # Игнорируем ошибки отправки уведомлений
         
         return {
             'success': True,
