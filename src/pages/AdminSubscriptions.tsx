@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SubscriptionsDashboard from '@/components/admin/SubscriptionsDashboard';
 import SubscriptionsTable from '@/components/admin/SubscriptionsTable';
