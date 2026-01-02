@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -87,6 +88,8 @@ export default function Pricing() {
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const [customDonation, setCustomDonation] = useState('');
+  const [paymentDialog, setPaymentDialog] = useState(false);
+  const [paymentData, setPaymentData] = useState<any>(null);
 
   const handleSubscribe = async (planId: string) => {
     const token = localStorage.getItem('authToken');
@@ -126,29 +129,16 @@ export default function Pricing() {
       const data = await response.json();
 
       if (data.success) {
-        toast({
-          title: '✅ Подписка создана!',
-          description: 'Следуйте инструкциям для оплаты',
+        setPaymentData({
+          type: 'subscription',
+          bank: 'tbank',
+          amount: data.amount,
+          plan: data.plan,
+          qr_image: data.payment_instructions?.qr_image,
+          instructions: data.payment_instructions,
+          purpose: data.payment_instructions?.purpose
         });
-        
-        // Показываем инструкции по оплате
-        alert(`
-Платёж через Т-Банк
-Сумма: ${data.amount}₽
-План: ${data.plan}
-
-Инструкции по оплате:
-${data.next_steps?.join('\n')}
-
-Реквизиты для оплаты:
-Получатель: ${data.payment_instructions?.recipient}
-Счёт: ${data.payment_instructions?.recipient_account}
-Банк: ${data.payment_instructions?.bank_name}
-БИК: ${data.payment_instructions?.bik}
-ИНН: ${data.payment_instructions?.recipient_inn}
-
-Назначение платежа: ${data.payment_instructions?.purpose}
-        `);
+        setPaymentDialog(true);
       } else if (data.error) {
         toast({
           title: 'Ошибка оформления',
@@ -198,27 +188,17 @@ ${data.next_steps?.join('\n')}
       const data = await response.json();
 
       if (data.success) {
-        toast({
-          title: data.thank_you_message || '💚 Спасибо за поддержку!',
-          description: 'Инструкции по оплате отправлены',
+        setPaymentData({
+          type: 'donation',
+          bank: 'sber',
+          amount: data.amount,
+          plan: data.preset_name,
+          qr_image: data.payment_instructions?.qr_image,
+          instructions: data.payment_instructions,
+          purpose: data.payment_instructions?.purpose,
+          thank_you: data.thank_you_message
         });
-        
-        alert(`
-${data.thank_you_message}
-
-Донат через Сбербанк
-Сумма: ${data.amount}₽
-Тип: ${data.preset_name}
-
-Реквизиты для оплаты:
-Получатель: ${data.payment_instructions?.recipient}
-Счёт: ${data.payment_instructions?.recipient_account}
-Банк: ${data.payment_instructions?.bank_name}
-БИК: ${data.payment_instructions?.bik}
-ИНН: ${data.payment_instructions?.recipient_inn}
-
-Назначение платежа: ${data.payment_instructions?.purpose}
-        `);
+        setPaymentDialog(true);
       } else if (data.error) {
         toast({
           title: 'Ошибка',
@@ -488,6 +468,94 @@ ${data.thank_you_message}
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Dialog with QR Code */}
+      <Dialog open={paymentDialog} onOpenChange={setPaymentDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center">
+              {paymentData?.type === 'donation' ? '💚 Оплата доната' : '💳 Оплата подписки'}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              {paymentData?.plan} • {paymentData?.amount}₽
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* QR Code - главный элемент */}
+            {paymentData?.qr_image && (
+              <div className="flex flex-col items-center">
+                <div className="bg-white p-4 rounded-xl shadow-lg border-4 border-purple-200">
+                  <img 
+                    src={paymentData.qr_image} 
+                    alt="QR код для оплаты"
+                    className="w-64 h-64 object-contain"
+                  />
+                </div>
+                <p className="text-sm text-gray-600 mt-3 text-center">
+                  📱 Отсканируйте QR-код через приложение {paymentData?.bank === 'tbank' ? 'Т-Банк' : 'СберБанк'}
+                </p>
+              </div>
+            )}
+
+            {/* Простая инструкция */}
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg">
+              <p className="font-semibold mb-2 text-center">✨ Как оплатить:</p>
+              <ol className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-purple-600">1.</span>
+                  <span>Откройте приложение {paymentData?.bank === 'tbank' ? 'Т-Банк' : 'СберБанк'} и отсканируйте QR-код</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-purple-600">2.</span>
+                  <span>Подтвердите платёж — подписка активируется автоматически в течение 1-2 часов</span>
+                </li>
+              </ol>
+            </div>
+
+            {/* Кнопка копирования реквизитов */}
+            <div className="text-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const text = `
+Получатель: ${paymentData?.instructions?.recipient}
+Счёт: ${paymentData?.instructions?.recipient_account}
+Банк: ${paymentData?.instructions?.bank_name}
+БИК: ${paymentData?.instructions?.bik}
+ИНН: ${paymentData?.instructions?.recipient_inn}
+Назначение: ${paymentData?.purpose}
+                  `.trim();
+                  navigator.clipboard.writeText(text);
+                  toast({
+                    title: '✅ Скопировано!',
+                    description: 'Реквизиты скопированы в буфер обмена'
+                  });
+                }}
+              >
+                <Icon name="Copy" size={16} className="mr-2" />
+                Скопировать реквизиты
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                Если не получается отсканировать QR-код
+              </p>
+            </div>
+
+            {paymentData?.thank_you && (
+              <p className="text-center text-green-600 font-medium">
+                {paymentData.thank_you}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-center">
+            <Button onClick={() => setPaymentDialog(false)} className="w-full">
+              Понятно
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
