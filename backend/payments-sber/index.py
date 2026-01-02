@@ -255,10 +255,10 @@ def create_donation(user_id: str, amount: float, preset_id: Optional[str], messa
 
 def get_donation_stats() -> Dict[str, Any]:
     """Получение статистики донатов (публичная информация)"""
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
     try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
         cur.execute(
             f"""
             SELECT 
@@ -305,7 +305,13 @@ def get_donation_stats() -> Dict[str, Any]:
             ]
         }
     except Exception as e:
-        return {'error': str(e)}
+        print(f'[get_donation_stats] ERROR: {str(e)}')
+        return {
+            'total_donations': 0,
+            'total_amount': 0,
+            'unique_donors': 0,
+            'top_donors': []
+        }
 
 def get_user_donations(user_id: str) -> Dict[str, Any]:
     """Получение истории донатов пользователя"""
