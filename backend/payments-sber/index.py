@@ -453,6 +453,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f'ERROR: {str(e)}')
+        print(f'TRACEBACK: {error_trace}')
         return {
             'statusCode': 500,
             'headers': headers,
