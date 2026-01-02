@@ -485,13 +485,18 @@ export default function Pricing() {
             {/* QR Code - главный элемент */}
             {paymentData?.qr_image && (
               <div className="flex flex-col items-center">
-                <div className="bg-white p-4 rounded-xl shadow-lg border-4 border-purple-200">
+                <a 
+                  href={paymentData.qr_image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-white p-4 rounded-xl shadow-lg border-4 border-purple-200 hover:border-purple-300 transition-colors cursor-pointer"
+                >
                   <img 
-                    src={paymentData.qr_image} 
+                    src="https://cdn.poehali.dev/files/Т-Банк код.JPG"
                     alt="QR код для оплаты"
                     className="w-64 h-64 object-contain"
                   />
-                </div>
+                </a>
                 <p className="text-sm text-gray-600 mt-3 text-center">
                   📱 Отсканируйте QR-код через приложение {paymentData?.bank === 'tbank' ? 'Т-Банк' : 'СберБанк'}
                 </p>
