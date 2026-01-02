@@ -158,26 +158,21 @@ export default function Pricing() {
   };
 
   const handleDonation = async (presetId: string, amount: number) => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      toast({
-        title: 'Требуется авторизация',
-        description: 'Войдите в аккаунт для поддержки проекта',
-        variant: 'destructive'
-      });
-      navigate('/login');
-      return;
-    }
-
     setLoading(presetId);
 
     try {
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['X-Auth-Token'] = token;
+      }
+
       const response = await fetch(SBER_API, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token
-        },
+        headers,
         body: JSON.stringify({
           preset_id: presetId,
           amount: amount,

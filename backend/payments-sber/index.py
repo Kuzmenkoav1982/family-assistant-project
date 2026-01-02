@@ -398,31 +398,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # Для остальных методов — авторизация
-        token = event.get('headers', {}).get('X-Auth-Token', '')
-        user_info = verify_token(token)
-        
-        if not user_info:
-            return {
-                'statusCode': 401,
-                'headers': headers,
-                'body': json.dumps({'error': 'Требуется авторизация'}, ensure_ascii=False),
-                'isBase64Encoded': False
-            }
-        
-        user_id = user_info['user_id']
-        
-        # GET ?action=my - история донатов пользователя
-        if method == 'GET' and action == 'my':
-            result = get_user_donations(user_id)
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps(result, ensure_ascii=False),
-                'isBase64Encoded': False
-            }
-        
-        # POST - создание доната
+        # POST - создание доната (ПУБЛИЧНЫЙ endpoint — авторизация необязательна)
         if method == 'POST':
             body = json.loads(event.get('body', '{}'))
             
@@ -440,6 +416,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            token = event.get('headers', {}).get('X-Auth-Token', '')
+            user_info = verify_token(token) if token else None
+            user_id = user_info['user_id'] if user_info else 'anonymous'
+            
             result = create_donation(user_id, amount, preset_id, message)
             
             if 'error' in result:
@@ -450,6 +430,30 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps(result, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        # Для остальных методов — требуется авторизация
+        token = event.get('headers', {}).get('X-Auth-Token', '')
+        user_info = verify_token(token)
+        
+        if not user_info:
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({'error': 'Требуется авторизация'}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        user_id = user_info['user_id']
+        
+        # GET ?action=my - история донатов пользователя
+        if method == 'GET' and action == 'my':
+            result = get_user_donations(user_id)
             return {
                 'statusCode': 200,
                 'headers': headers,
