@@ -296,8 +296,8 @@ def create_subscription(family_id: str, user_id: str, plan_type: str) -> Dict[st
             conn2.close()
             
             send_admin_notification(subscription_id, plan['name'], plan['price'], family_id, user_email)
-        except:
-            pass  # Игнорируем ошибки отправки уведомлений
+        except Exception as e:
+            print(f'Email notification error (ignored): {str(e)}')
         
         return {
             'success': True,

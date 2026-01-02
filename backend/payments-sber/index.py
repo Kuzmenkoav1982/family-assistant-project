@@ -210,8 +210,8 @@ def create_donation(user_id: str, amount: float, preset_id: Optional[str], messa
             conn2.close()
             
             send_donation_notification(donation_id, preset_name, amount, message or '', user_email, user_name)
-        except:
-            pass
+        except Exception as e:
+            print(f'Email notification error (ignored): {str(e)}')
         
         # Возвращаем инструкции по оплате
         return {
