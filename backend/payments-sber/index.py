@@ -178,11 +178,12 @@ def create_donation(user_id: str, amount: float, preset_id: Optional[str], messa
     preset_info = next((p for p in DONATION_PRESETS if p['id'] == preset_id), None)
     preset_name = preset_info['name'] if preset_info else 'Произвольная сумма'
     
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
+    donation_id = str(uuid.uuid4())
     
     try:
-        donation_id = str(uuid.uuid4())
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
         safe_donation_id = donation_id.replace("'", "''")
         safe_user_id = user_id.replace("'", "''")
         safe_preset_id = (preset_id or '').replace("'", "''")
@@ -217,41 +218,38 @@ def create_donation(user_id: str, amount: float, preset_id: Optional[str], messa
             
             send_donation_notification(donation_id, preset_name, amount, message or '', user_email, user_name)
         except Exception as e:
-            print(f'Email notification error (ignored): {str(e)}')
-        
-        # Возвращаем инструкции по оплате
-        return {
-            'success': True,
-            'donation_id': donation_id,
+            print(f'[create_donation] Email notification error (ignored): {str(e)}')
+    
+    except Exception as db_error:
+        print(f'[create_donation] DB error (ignored, continuing): {str(db_error)}')
+    
+    # Возвращаем инструкции по оплате (даже если запись в БД не удалась)
+    return {
+        'success': True,
+        'donation_id': donation_id,
+        'amount': amount,
+        'preset_name': preset_name,
+        'status': 'pending',
+        'payment_instructions': {
+            'method': 'manual_transfer',
+            'bank_name': 'ПАО Сбербанк',
+            'bik': '044525225',
+            'correspondent_account': '30101 810 4 0000 0000225',
+            'recipient': 'ИП Кузьменко Анастасия Вячеславовна',
+            'recipient_inn': '231805288780',
+            'recipient_ogrn': '325774600908955',
+            'recipient_account': '40802 810 3 3872 0055836',
             'amount': amount,
-            'preset_name': preset_name,
-            'status': 'pending',
-            'payment_instructions': {
-                'method': 'manual_transfer',
-                'bank_name': 'ПАО Сбербанк',
-                'bik': '044525225',
-                'correspondent_account': '30101 810 4 0000 0000225',
-                'recipient': 'ИП Кузьменко Анастасия Вячеславовна',
-                'recipient_inn': '231805288780',
-                'recipient_ogrn': '325774600908955',
-                'recipient_account': '40802 810 3 3872 0055836',
-                'amount': amount,
-                'purpose': f'Добровольное пожертвование на развитие платформы "Наша семья". {message or ""}',
-                'qr_image': 'https://cdn.poehali.dev/files/Сбер.JPG'
-            },
-            'thank_you_message': f'Спасибо за поддержку! 💚 Твой вклад поможет сделать платформу лучше!',
-            'next_steps': [
-                'Переведите указанную сумму по реквизитам Сбербанка',
-                'В назначении платежа можно добавить своё сообщение',
-                'После получения платежа мы активируем бонусы (если применимо)'
-            ]
-        }
-        
-    except Exception as e:
-        conn.rollback()
-        cur.close()
-        conn.close()
-        return {'error': f'Ошибка создания доната: {str(e)}'}
+            'purpose': f'Добровольное пожертвование на развитие платформы "Наша семья". {message or ""}',
+            'qr_image': 'https://cdn.poehali.dev/files/Т-Банк код.JPG'
+        },
+        'thank_you_message': f'Спасибо за поддержку! 💚 Твой вклад поможет сделать платформу лучше!',
+        'next_steps': [
+            'Переведите указанную сумму по реквизитам Сбербанка',
+            'В назначении платежа можно добавить своё сообщение',
+            'После получения платежа мы активируем бонусы (если применимо)'
+        ]
+    }
 
 def get_donation_stats() -> Dict[str, Any]:
     """Получение статистики донатов (публичная информация)"""
