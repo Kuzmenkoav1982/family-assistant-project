@@ -48,6 +48,7 @@ import Children from "./pages/Children";
 import AssessmentReport from "./pages/AssessmentReport";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import FamilySettings from "./pages/FamilySettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import Recipes from "./pages/Recipes";
 import AIAssistant from "./pages/AIAssistant";
@@ -176,6 +177,7 @@ const App = () => {
               <Route path="/children/assessment-report" element={<AssessmentReport />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/family-settings" element={<FamilySettings />} />
               <Route path="/recipes" element={<Recipes />} />
               <Route path="/nutrition" element={<Nutrition />} />
               <Route path="/trips" element={<Trips />} />

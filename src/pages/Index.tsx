@@ -113,7 +113,7 @@ export default function Index({ onLogout }: IndexProps) {
   useBirthdayReminders();
   
   const [familyName, setFamilyName] = useState('Наша семья');
-  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png');
+  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/Логотип Наша Семья.JPG');
   
   useEffect(() => {
     const userData = localStorage.getItem('userData');
