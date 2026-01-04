@@ -549,6 +549,15 @@ export default function Welcome() {
                   </li>
                   <li>
                     <a 
+                      href="/terms-of-service" 
+                      className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                    >
+                      <Icon name="FileCheck" size={16} />
+                      Оферта
+                    </a>
+                  </li>
+                  <li>
+                    <a 
                       href="/refund-policy" 
                       className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                     >

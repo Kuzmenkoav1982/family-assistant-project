@@ -96,6 +96,15 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
+                  to="/terms-of-service" 
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="FileCheck" size={16} />
+                  Оферта
+                </Link>
+              </li>
+              <li>
+                <Link 
                   to="/refund-policy" 
                   className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                 >
