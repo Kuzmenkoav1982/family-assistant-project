@@ -19,8 +19,8 @@ export default function FamilySettings() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('user_data');
+    const storedToken = localStorage.getItem('authToken');
+    const storedUser = localStorage.getItem('userData');
 
     if (!storedToken) {
       navigate('/');
