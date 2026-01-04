@@ -74,6 +74,7 @@ import { FamilyHeaderBanner } from '@/components/index-page/FamilyHeaderBanner';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import AIAssistantDialog from '@/components/AIAssistantDialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
+import { FirstLoginWelcome } from '@/components/FirstLoginWelcome';
 
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
@@ -97,6 +98,7 @@ export default function Index({ onLogout }: IndexProps) {
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   const { hasCompletedSetup } = useAIAssistant();
   const [showAssistantSelector, setShowAssistantSelector] = useState(false);
+  const [showFirstLoginWelcome, setShowFirstLoginWelcome] = useState(false);
   
   const authToken = localStorage.getItem('authToken');
   const authUser = localStorage.getItem('user');
@@ -115,10 +117,19 @@ export default function Index({ onLogout }: IndexProps) {
   
   useEffect(() => {
     const userData = localStorage.getItem('userData');
+    const hasSeenWelcome = localStorage.getItem('hasSeenFirstLoginWelcome');
+    
     if (userData) {
       try {
         const user = JSON.parse(userData);
         console.log('[DEBUG Index] userData from localStorage:', user);
+        
+        // Показываем приветствие только при первом входе
+        if (!hasSeenWelcome) {
+          setShowFirstLoginWelcome(true);
+          localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
+        }
+        
         if (user.family_name) {
           console.log('[DEBUG Index] Setting family name:', user.family_name);
           // Если family_name не содержит "Наша семья", добавляем его
@@ -1199,6 +1210,11 @@ export default function Index({ onLogout }: IndexProps) {
           setShowWelcome(false);
           localStorage.setItem('hasSeenWelcome', 'true');
         }}
+      />
+
+      <FirstLoginWelcome 
+        isFirstLogin={showFirstLoginWelcome}
+        onClose={() => setShowFirstLoginWelcome(false)}
       />
 
       <IndexLayout
