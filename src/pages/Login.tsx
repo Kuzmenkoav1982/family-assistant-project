@@ -137,9 +137,11 @@ export default function Login() {
       <Card className="max-w-md w-full shadow-2xl border-2 border-purple-200">
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 via-pink-500 to-purple-500 flex items-center justify-center shadow-2xl">
-              <Icon name="Users" size={64} className="text-white" />
-            </div>
+            <img 
+              src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
+              alt="Наша семья"
+              className="w-32 h-32 object-contain"
+            />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
             Наша семья
