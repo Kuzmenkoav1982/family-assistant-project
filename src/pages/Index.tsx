@@ -101,7 +101,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [showFirstLoginWelcome, setShowFirstLoginWelcome] = useState(false);
   
   const authToken = localStorage.getItem('authToken');
-  const authUser = localStorage.getItem('user');
+  const authUser = localStorage.getItem('userData');
   console.log('Index: authToken =', authToken ? 'EXISTS' : 'NULL');
   console.log('Index: authUser =', authUser);
   console.log('Index: familyMembersRaw =', familyMembersRaw);
