@@ -102,7 +102,7 @@ export default function Welcome() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src="https://cdn.poehali.dev/files/35561da4-c60e-44c0-9bf9-c57eef88996b.png" 
+              src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
               alt="Наша семья"
               className="w-12 h-12 object-contain"
             />
@@ -372,6 +372,21 @@ export default function Welcome() {
           </div>
 
           <div className="mt-12 text-center space-y-4">
+            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 max-w-2xl mx-auto mb-6">
+              <div className="flex items-start gap-4">
+                <Icon name="Info" className="text-blue-500 flex-shrink-0" size={24} />
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">О проекте</h3>
+                  <div className="space-y-1.5 text-gray-700">
+                    <p className="font-semibold">Кузьменко А.В.</p>
+                    <p>ОГРНИП: 325774600908955</p>
+                    <p>ИНН: 231805288780</p>
+                  </div>
+                  <p className="text-gray-600 mt-4">© 2025 Наша семья. Современный органайзер для семейной жизни</p>
+                </div>
+              </div>
+            </div>
+            
             <Button
               onClick={openJivoChat}
               variant="outline"
@@ -381,9 +396,6 @@ export default function Welcome() {
               <Icon name="Headphones" size={20} className="mr-2" />
               Техническая поддержка
             </Button>
-            <p className="text-sm text-gray-600">
-              © 2025 Наша семья. Современный органайзер для семейной жизни
-            </p>
           </div>
         </div>
       </div>

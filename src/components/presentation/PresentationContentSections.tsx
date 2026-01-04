@@ -254,6 +254,23 @@ export function PresentationContentSections() {
           </div>
         </div>
       </section>
+
+      <section className="bg-gradient-to-br from-gray-50 to-slate-100 rounded-3xl shadow-xl p-10">
+        <div className="flex items-center gap-4 mb-6">
+          <Icon name="Building2" className="text-slate-600" size={40} />
+          <h2 className="text-3xl font-bold text-gray-800">
+            Юридическая информация
+          </h2>
+        </div>
+        
+        <div className="bg-white rounded-2xl p-6 border-l-4 border-slate-500">
+          <div className="space-y-2 text-gray-700 text-lg">
+            <p className="font-semibold text-slate-900">Кузьменко А.В.</p>
+            <p><span className="font-medium">ОГРНИП:</span> 325774600908955</p>
+            <p><span className="font-medium">ИНН:</span> 231805288780</p>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

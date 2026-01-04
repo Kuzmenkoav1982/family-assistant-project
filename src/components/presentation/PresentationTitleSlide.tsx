@@ -5,7 +5,7 @@ export function PresentationTitleSlide() {
         <img 
           src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
           alt="Наша семья"
-          className="h-32 w-32 object-contain"
+          className="h-32 w-32 object-contain rounded-2xl"
         />
       </div>
       <h1 className="text-5xl font-bold mb-4 text-slate-800">
