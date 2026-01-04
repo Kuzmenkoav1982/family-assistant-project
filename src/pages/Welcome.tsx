@@ -371,32 +371,222 @@ export default function Welcome() {
             </div>
           </div>
 
-          <div className="mt-12 text-center space-y-4">
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 max-w-2xl mx-auto mb-6">
-              <div className="flex items-start gap-4">
-                <Icon name="Info" className="text-blue-500 flex-shrink-0" size={24} />
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">О проекте</h3>
-                  <div className="space-y-1.5 text-gray-700">
-                    <p className="font-semibold">Кузьменко А.В.</p>
-                    <p>ОГРНИП: 325774600908955</p>
-                    <p>ИНН: 231805288780</p>
+          <div className="mt-16 bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl shadow-2xl p-8 lg:p-12">
+            <div className="text-center mb-10">
+              <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 text-lg">
+                Тарифы и цены
+              </Badge>
+              <h3 className="text-3xl lg:text-4xl font-bold text-gray-800">
+                Выберите подходящий тариф
+              </h3>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <Card className="border-2 border-gray-200 hover:shadow-xl transition-all">
+                <CardContent className="p-6">
+                  <div className="text-center mb-4">
+                    <h4 className="text-2xl font-bold text-gray-800 mb-2">Бесплатный</h4>
+                    <div className="text-4xl font-bold text-gray-600">0 ₽</div>
+                    <p className="text-gray-500">навсегда</p>
                   </div>
-                  <p className="text-gray-600 mt-4">© 2025 Наша семья. Современный органайзер для семейной жизни</p>
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-green-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Профили семьи (до 10 человек)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-green-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Календарь событий</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-green-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Списки покупок и задач</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-green-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Хранилище 1 ГБ</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-4 border-purple-500 hover:shadow-2xl transition-all relative">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1">
+                    Популярно
+                  </Badge>
+                </div>
+                <CardContent className="p-6">
+                  <div className="text-center mb-4">
+                    <h4 className="text-2xl font-bold text-purple-600 mb-2">AI-Помощник</h4>
+                    <div className="text-4xl font-bold text-purple-600">200 ₽</div>
+                    <p className="text-gray-500">в месяц</p>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-purple-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Умный семейный помощник</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-purple-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Автоматические напоминания</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-purple-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Подбор рецептов</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-purple-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Анализ бюджета</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-orange-200 hover:shadow-xl transition-all">
+                <CardContent className="p-6">
+                  <div className="text-center mb-4">
+                    <h4 className="text-2xl font-bold text-orange-600 mb-2">Полный пакет</h4>
+                    <div className="text-4xl font-bold text-orange-600">699 ₽</div>
+                    <p className="text-gray-500">в месяц</p>
+                    <Badge className="mt-2 bg-orange-100 text-orange-700">Экономия 35%</Badge>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>AI-Помощник "Домовой"</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>20 ГБ хранилища</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Приоритетная поддержка</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" className="text-orange-500 flex-shrink-0 mt-0.5" size={16} />
+                      <span>Ранний доступ к новинкам</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center">
+              <Button
+                onClick={() => navigate('/login')}
+                size="lg"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-8"
+              >
+                Начать пользоваться
+              </Button>
+            </div>
+          </div>
+
+          <footer className="mt-16 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-3xl shadow-2xl p-8 lg:p-12">
+            <details className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg mb-8 border border-purple-700/50 group">
+              <summary className="flex items-center gap-3 p-3 cursor-pointer hover:bg-white/5 transition-colors rounded-lg">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                  <Icon name="Info" size={16} className="text-white" />
+                </div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 flex-1">
+                  О проекте "Наша семья"
+                </h3>
+                <Icon name="ChevronDown" size={18} className="text-gray-400 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="px-4 pb-4">
+                <div className="pl-11 space-y-3 text-gray-300">
+                  <p className="text-base leading-relaxed">
+                    <strong className="text-white">Миссия:</strong> Сохранение семейных ценностей и укрепление семейных связей в современном мире.
+                  </p>
+                  <p className="text-base leading-relaxed">
+                    <strong className="text-white">Цель:</strong> Создать единое пространство для организации семейной жизни, где каждый член семьи может внести свой вклад, 
+                    делиться воспоминаниями и вместе планировать будущее.
+                  </p>
                 </div>
               </div>
+            </details>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
+                    alt="Наша семья"
+                    className="h-12 w-12 object-contain rounded-lg"
+                  />
+                  <div>
+                    <h3 className="font-bold text-lg">Наша семья</h3>
+                    <p className="text-sm text-gray-400">Объединяем семьи</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-300">
+                  Сервис для организации семейной жизни, планирования задач и укрепления семейных связей.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg mb-3">Юридическая информация</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <a 
+                      href="/privacy-policy" 
+                      className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                    >
+                      <Icon name="Shield" size={16} />
+                      Политика конфиденциальности
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/terms-of-service" 
+                      className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                    >
+                      <Icon name="FileText" size={16} />
+                      Пользовательское соглашение
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/refund-policy" 
+                      className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                    >
+                      <Icon name="RotateCcw" size={16} />
+                      Возврат средств
+                    </a>
+                  </li>
+                </ul>
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                  <p className="text-xs text-gray-400 mb-1">Кузьменко А.В.</p>
+                  <p className="text-xs text-gray-400">ОГРНИП: 325774600908955</p>
+                  <p className="text-xs text-gray-400">ИНН: 231805288780</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-lg mb-3">Контакты</h4>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <Icon name="Mail" size={16} />
+                    <a href="mailto:ip.kuzmenkoav@yandex.ru" className="hover:text-white transition-colors">
+                      ip.kuzmenkoav@yandex.ru
+                    </a>
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <Icon name="HelpCircle" size={16} />
+                    <button onClick={openJivoChat} className="hover:text-white transition-colors">
+                      Техподдержка
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
-            
-            <Button
-              onClick={openJivoChat}
-              variant="outline"
-              size="lg"
-              className="border-purple-300 hover:bg-purple-50"
-            >
-              <Icon name="Headphones" size={20} className="mr-2" />
-              Техническая поддержка
-            </Button>
-          </div>
+
+            <div className="border-t border-gray-700 mt-8 pt-6 text-center">
+              <p className="text-sm text-gray-400">© 2025 Наша семья. Все права защищены.</p>
+            </div>
+          </footer>
         </div>
       </div>
     </div>
