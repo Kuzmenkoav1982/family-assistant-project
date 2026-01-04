@@ -880,10 +880,47 @@ def login_user_email(email: str, password: str) -> Dict[str, Any]:
         conn.close()
         return {'error': f'Ошибка входа: {str(e)}'}
 
+def delete_user_account(user_id: str) -> Dict[str, Any]:
+    """Удаление аккаунта пользователя и всех связанных данных"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        check_query = f"SELECT id FROM {SCHEMA}.users WHERE id = {escape_string(user_id)}"
+        cur.execute(check_query)
+        user = cur.fetchone()
+        
+        if not user:
+            cur.close()
+            conn.close()
+            return {'error': 'Пользователь не найден'}
+        
+        delete_sessions = f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}"
+        cur.execute(delete_sessions)
+        
+        delete_members = f"DELETE FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}"
+        cur.execute(delete_members)
+        
+        delete_user = f"DELETE FROM {SCHEMA}.users WHERE id = {escape_string(user_id)}"
+        cur.execute(delete_user)
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'message': 'Аккаунт успешно удалён'
+        }
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка удаления аккаунта: {str(e)}'}
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}
     oauth_action = query_params.get('oauth')
+    action_param = query_params.get('action')
     
     if method == 'OPTIONS':
         return {
@@ -971,6 +1008,43 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Origin': '*'
             },
             'body': ''
+        }
+    
+    if action_param == 'delete_account' and method == 'POST':
+        token = event.get('headers', {}).get('X-Auth-Token')
+        
+        if not token:
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Требуется авторизация'})
+            }
+        
+        user_result = get_current_user(token)
+        if not user_result.get('success'):
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Неверный токен'})
+            }
+        
+        user_id = user_result['user']['id']
+        result = delete_user_account(user_id)
+        
+        status_code = 200 if result.get('success') else 400
+        return {
+            'statusCode': status_code,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps(result, ensure_ascii=False)
         }
     
     if method == 'GET':
