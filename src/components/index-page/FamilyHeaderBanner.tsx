@@ -1,6 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { getDailyMotto } from '@/utils/dailyMottos';
+import { Link } from 'react-router-dom';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface FamilyHeaderBannerProps {
   familyName: string;
@@ -22,20 +29,54 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
       <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
       <div className="relative h-full flex flex-col items-center justify-center px-6">
         <div className="flex items-center justify-between w-full mb-2">
-          <div className="flex items-center gap-4">
-            <img 
-              src={familyLogo} 
-              alt={familyName}
-              className="w-28 h-28 lg:w-36 lg:h-36 object-contain rounded-full"
-              style={{ border: 'none', outline: 'none' }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/Логотип Наша Семья.JPG';
-              }}
-            />
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 bg-clip-text text-transparent">
-                {familyName}
-              </h1>
+          <div className="flex items-center gap-4 group">
+            <div className="relative">
+              <img 
+                src={familyLogo} 
+                alt={familyName}
+                className="w-28 h-28 lg:w-36 lg:h-36 object-contain rounded-full transition-all group-hover:brightness-90"
+                style={{ border: 'none', outline: 'none' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/Логотип Наша Семья.JPG';
+                }}
+              />
+              <TooltipProvider>
+                <Tooltip delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      to="/family-settings"
+                      className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg hover:scale-110"
+                    >
+                      <Icon name="Settings" size={16} />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="bg-gray-900 text-white">
+                    <p>Настроить название и логотип семьи</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex flex-col gap-1 relative">
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 bg-clip-text text-transparent">
+                  {familyName}
+                </h1>
+                <TooltipProvider>
+                  <Tooltip delayDuration={200}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to="/family-settings"
+                        className="w-7 h-7 bg-blue-500/20 hover:bg-blue-500 text-blue-600 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+                      >
+                        <Icon name="Info" size={14} />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-gray-900 text-white">
+                      <p>Настроить название и логотип семьи</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           </div>
         </div>

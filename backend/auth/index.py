@@ -637,7 +637,7 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
                 conn.close()
                 return {'error': f'Ошибка создания пользователя: {str(insert_error)}. SQL: {insert_user}'}
             
-            default_family_name = f"Семья {name}"
+            default_family_name = "Моя семья"
             insert_family = f"""
                 INSERT INTO {SCHEMA}.families (name)
                 VALUES ({escape_string(default_family_name)})
@@ -744,7 +744,7 @@ def register_user_email(email: str, password: str, name: str = '') -> Dict[str, 
         cur.execute(insert_user)
         user = cur.fetchone()
         
-        family_name = f"Семья {name or email.split('@')[0]}"
+        family_name = "Моя семья"
         insert_family = f"""
             INSERT INTO {SCHEMA}.families (name) 
             VALUES ({escape_string(family_name)}) 
