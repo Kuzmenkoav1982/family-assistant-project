@@ -413,10 +413,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             action = body.get('action', '')
             
+            print(f'[DEBUG] POST body: {body}')
+            print(f'[DEBUG] Action: {action}')
+            
             # Создать подписку
             if action == 'create':
                 plan_type = body.get('plan_type')
                 return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                
+                print(f'[DEBUG] plan_type: {plan_type}')
+                print(f'[DEBUG] return_url: {return_url}')
                 
                 if not plan_type:
                     return {
