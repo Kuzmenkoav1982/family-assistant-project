@@ -129,14 +129,13 @@ def handler(event: dict, context) -> dict:
 
 def send_email(to_email: str, subject: str, html_body: str):
     """Отправка email через SMTP"""
-    smtp_server = os.environ.get('SMTP_SERVER', 'smtp.yandex.ru')
-    smtp_port = int(os.environ.get('SMTP_PORT', '587'))
-    smtp_user = os.environ.get('SMTP_USER', '')
-    smtp_password = os.environ.get('SMTP_PASSWORD', '')
+    smtp_server = 'smtp.yandex.ru'
+    smtp_port = 587
+    smtp_user = os.environ.get('YANDEX_SMTP_LOGIN', '')
+    smtp_password = os.environ.get('YANDEX_SMTP_PASSWORD', '')
     
     if not smtp_user or not smtp_password:
-        print('[WARNING] SMTP credentials not configured')
-        return
+        raise Exception('SMTP credentials not configured. Please set YANDEX_SMTP_LOGIN and YANDEX_SMTP_PASSWORD')
     
     msg = MIMEMultipart('alternative')
     msg['From'] = smtp_user
@@ -146,7 +145,7 @@ def send_email(to_email: str, subject: str, html_body: str):
     html_part = MIMEText(html_body, 'html', 'utf-8')
     msg.attach(html_part)
     
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
+    with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
         server.starttls()
         server.login(smtp_user, smtp_password)
         server.send_message(msg)
