@@ -103,8 +103,9 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        # Определяем тип аккаунта: если указан user_id - full, иначе child_profile
-        account_type = 'full' if data.get('user_id') else data.get('account_type', 'child_profile')
+        # Определяем тип аккаунта: если user_id непустой - full, иначе child_profile
+        user_id = data.get('user_id')
+        account_type = 'full' if (user_id and user_id != 'null') else data.get('account_type', 'child_profile')
         
         query = f"""
             INSERT INTO {SCHEMA}.family_members
