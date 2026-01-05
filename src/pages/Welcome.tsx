@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { openJivoChat } from '@/lib/jivo';
+
+const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
 const screenshots = [
   {
@@ -83,6 +85,37 @@ const features = [
 export default function Welcome() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const loadSubscription = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setIsLoggedIn(false);
+        return;
+      }
+
+      setIsLoggedIn(true);
+      try {
+        const response = await fetch(PAYMENTS_API, {
+          method: 'GET',
+          headers: {
+            'X-Auth-Token': token
+          }
+        });
+
+        const data = await response.json();
+        if (data.has_subscription) {
+          setSubscription(data);
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки подписки:', error);
+      }
+    };
+
+    loadSubscription();
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % screenshots.length);
@@ -111,6 +144,12 @@ export default function Welcome() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            {isLoggedIn && subscription && (
+              <Badge className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 flex items-center gap-2">
+                <Icon name="Crown" size={16} />
+                {subscription.plan_name}
+              </Badge>
+            )}
             <Button
               onClick={() => navigate('/presentation')}
               variant="outline"
@@ -119,13 +158,23 @@ export default function Welcome() {
               <Icon name="FileText" size={18} className="mr-2" />
               Презентация
             </Button>
-            <Button
-              onClick={() => navigate('/login')}
-              className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-            >
-              <Icon name="LogIn" size={18} className="mr-2" />
-              Войти
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                onClick={() => navigate('/dashboard')}
+                className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+              >
+                <Icon name="Home" size={18} className="mr-2" />
+                Главная
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate('/login')}
+                className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+              >
+                <Icon name="LogIn" size={18} className="mr-2" />
+                Войти
+              </Button>
+            )}
           </div>
         </div>
       </div>
