@@ -101,19 +101,37 @@ const MemberCard = ({
                       <Icon name="Star" size={10} className="mr-1" />
                       {member.points}
                     </Badge>
-                    {member.account_type === 'child_profile' && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200 cursor-help">
-                            <Icon name="Baby" size={10} className="mr-1" />
-                            Профиль ребенка
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Профиль создан без привязки аккаунта</p>
-                          <p className="text-xs text-gray-400">Не участвует в голосованиях</p>
-                        </TooltipContent>
-                      </Tooltip>
+                    {member.account_type === 'child_profile' ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700 border-amber-300 cursor-help">
+                              <Icon name="Baby" size={10} className="mr-1" />
+                              Без доступа
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">Профиль ребенка</p>
+                            <p className="text-xs text-gray-400">Создан для отслеживания</p>
+                            <p className="text-xs text-gray-400">Не участвует в голосованиях</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-300 cursor-help">
+                              <Icon name="UserCheck" size={10} className="mr-1" />
+                              С доступом
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">Полноценный аккаунт</p>
+                            <p className="text-xs text-gray-400">Участвует в голосованиях</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                 </div>
