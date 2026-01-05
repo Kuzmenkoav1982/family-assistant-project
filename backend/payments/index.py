@@ -61,6 +61,23 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     return str(member['family_id']) if member else None
 
+def get_user_email(user_id: str) -> str:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    safe_user_id = user_id.replace("'", "''")
+    cur.execute(
+        f"""
+        SELECT email FROM {SCHEMA}.users 
+        WHERE id = '{safe_user_id}' LIMIT 1
+        """
+    )
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    return user['email'] if user and user['email'] else 'support@nasha-semiya.ru'
+
 def create_yookassa_payment(amount: float, description: str, return_url: str, metadata: dict = None) -> Dict[str, Any]:
     """Создаёт платёж в ЮКассе через REST API"""
     idempotence_key = str(uuid.uuid4())
@@ -75,7 +92,25 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
             'return_url': return_url
         },
         'capture': True,
-        'description': description
+        'description': description,
+        'receipt': {
+            'customer': {
+                'email': metadata.get('user_email', 'support@nasha-semiya.ru') if metadata else 'support@nasha-semiya.ru'
+            },
+            'items': [
+                {
+                    'description': description,
+                    'quantity': '1',
+                    'amount': {
+                        'value': f'{amount:.2f}',
+                        'currency': 'RUB'
+                    },
+                    'vat_code': 1,
+                    'payment_mode': 'full_payment',
+                    'payment_subject': 'service'
+                }
+            ]
+        }
     }
     
     if metadata:
@@ -156,6 +191,10 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
     plan = PLANS[plan_type]
     print(f'[create_subscription] Plan: {plan}')
     
+    # Получаем email пользователя для чека
+    user_email = get_user_email(user_id)
+    print(f'[create_subscription] User email: {user_email}')
+    
     # Создаём платёж в ЮКассе
     print(f'[create_subscription] Creating YooKassa payment...')
     payment_result = create_yookassa_payment(
@@ -165,7 +204,8 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
         metadata={
             'family_id': family_id,
             'user_id': user_id,
-            'plan_type': plan_type
+            'plan_type': plan_type,
+            'user_email': user_email
         }
     )
     
