@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Handle OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Submit support request",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "type": "support",
+        "user_id": "test-user",
+        "user_name": "Тестовый пользователь",
+        "user_email": "test@example.com",
+        "title": "Тестовое обращение",
+        "description": "Это тестовое описание проблемы",
+        "rating": null
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
