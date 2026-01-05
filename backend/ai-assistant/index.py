@@ -6,12 +6,41 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 
+SCHEMA = 't_p5815085_family_assistant_pro'
+
 def get_db_connection():
     """Создает подключение к БД"""
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
         raise Exception('DATABASE_URL не настроен')
     return psycopg2.connect(database_url)
+
+
+def check_subscription(family_id: str) -> bool:
+    """Проверяет, есть ли у семьи активная подписка на AI-помощника"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        safe_family_id = family_id.replace("'", "''")
+        query = f"""
+            SELECT plan_type FROM {SCHEMA}.subscriptions
+            WHERE family_id = '{safe_family_id}'
+            AND status = 'active'
+            AND end_date > CURRENT_TIMESTAMP
+            AND plan_type IN ('ai_assistant', 'full')
+            LIMIT 1
+        """
+        cursor.execute(query)
+        result = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        return result is not None
+    except Exception as e:
+        print(f'[ERROR] Ошибка проверки подписки: {str(e)}')
+        return False
 
 
 def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
@@ -114,6 +143,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Не указаны сообщения'}),
                 'isBase64Encoded': False
             }
+        
+        # Проверяем подписку, если указан family_id
+        if family_id:
+            has_subscription = check_subscription(family_id)
+            if not has_subscription:
+                return {
+                    'statusCode': 403,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'error': 'subscription_required',
+                        'message': 'Для использования AI-помощника требуется подписка'
+                    }),
+                    'isBase64Encoded': False
+                }
         
         # Получаем credentials
         api_key = os.environ.get('YANDEX_GPT_API_KEY')

@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, Minimize2, Maximize2, Loader2 } from 'lucide-react';
+import { X, Send, Minimize2, Maximize2, Loader2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSubscription } from '@/hooks/useSubscription';
 import Icon from '@/components/ui/icon';
 import {
   DropdownMenu,
@@ -40,7 +41,9 @@ const AIAssistantWidget = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const { assistantType, assistantName, selectedRole } = useAIAssistant();
+  const { hasAIAccess, loading: subscriptionLoading } = useSubscription();
 
   // Перетаскивание виджета (десктоп - для окна чата)
   const [position, setPosition] = useState(() => {
@@ -190,6 +193,16 @@ const AIAssistantWidget = () => {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
 
+    // Проверка подписки перед отправкой
+    if (!subscriptionLoading && !hasAIAccess) {
+      toast({
+        title: '🔒 Требуется подписка',
+        description: 'AI-помощник доступен с подпиской "AI-Помощник" или "Полный пакет"',
+      });
+      setTimeout(() => navigate('/pricing'), 2000);
+      return;
+    }
+
     const userMessage: Message = {
       role: 'user',
       content: messageText,
@@ -203,6 +216,7 @@ const AIAssistantWidget = () => {
 
     try {
       const apiUrl = func2url['ai-assistant'];
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -220,9 +234,23 @@ const AIAssistantWidget = () => {
               content: messageText
             }
           ],
-          systemPrompt: getSystemPrompt()
+          systemPrompt: getSystemPrompt(),
+          familyId: userData.family_id,
+          userId: userData.id
         })
       });
+
+      if (response.status === 403) {
+        const error = await response.json();
+        if (error.error === 'subscription_required') {
+          toast({
+            title: '🔒 Требуется подписка',
+            description: 'Подписка неактивна. Подключите AI-помощника',
+          });
+          setTimeout(() => navigate('/pricing'), 2000);
+          return;
+        }
+      }
 
       if (!response.ok) {
         throw new Error(`Ошибка: ${response.status}`);
