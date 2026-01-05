@@ -83,11 +83,14 @@ const donationPresets = [
 ];
 
 export default function Pricing() {
+  console.log('[Pricing] Component rendering...');
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+
+  console.log('[Pricing] State initialized');
 
   // Проверка статуса платежа при возврате
   useEffect(() => {
