@@ -81,6 +81,10 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
     if metadata:
         payment_data['metadata'] = metadata
     
+    print(f'[YooKassa] SHOP_ID: {YOOKASSA_SHOP_ID}')
+    print(f'[YooKassa] SECRET_KEY exists: {bool(YOOKASSA_SECRET_KEY)}')
+    print(f'[YooKassa] Payment data: {payment_data}')
+    
     auth_string = f'{YOOKASSA_SHOP_ID}:{YOOKASSA_SECRET_KEY}'
     auth_bytes = auth_string.encode('utf-8')
     auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
@@ -96,8 +100,10 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
     )
     
     try:
+        print('[YooKassa] Sending request...')
         response = urlopen(req)
         result = json.loads(response.read().decode('utf-8'))
+        print(f'[YooKassa] Success! Result: {result}')
         return {
             'success': True,
             'payment_id': result['id'],
@@ -105,6 +111,12 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
             'status': result['status']
         }
     except Exception as e:
+        print(f'[YooKassa] ERROR: {str(e)}')
+        # Попробуем прочитать тело ошибки
+        if hasattr(e, 'read'):
+            error_body = e.read().decode('utf-8')
+            print(f'[YooKassa] Error body: {error_body}')
+            return {'error': f'Ошибка создания платежа: {str(e)} | Body: {error_body}'}
         return {'error': f'Ошибка создания платежа: {str(e)}'}
 
 def get_payment_status(payment_id: str) -> Dict[str, Any]:
