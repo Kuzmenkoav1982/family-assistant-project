@@ -78,7 +78,7 @@ export default function RefundPolicy() {
             <p className="mb-3">Для возврата средств выполните следующие шаги:</p>
             <ol className="list-decimal pl-6 space-y-3">
               <li>
-                <strong>Отправьте заявку на email:</strong> ip.kuzmenkoav@yandex.ru<br />
+                <strong>Отправьте заявку на email:</strong> payment@nasha-semiya.ru<br />
                 <span className="text-sm text-gray-600">Тема письма: "Возврат средств за Premium-подписку"</span>
               </li>
               <li>
@@ -131,7 +131,7 @@ export default function RefundPolicy() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Технические ошибки при оплате</h2>
             <p className="mb-3">
               Если произошла техническая ошибка (двойное списание, списание средств без активации Premium), 
-              обратитесь на email <strong>ip.kuzmenkoav@yandex.ru</strong> в течение 30 дней:
+              обратитесь на email <strong>support@nasha-semiya.ru</strong> в течение 30 дней:
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Опишите проблему</li>
@@ -151,7 +151,7 @@ export default function RefundPolicy() {
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Обратиться в Роспотребнадзор (ваше право как потребителя)</li>
-              <li>Подать претензию в письменном виде на email ip.kuzmenkoav@yandex.ru</li>
+              <li>Подать претензию в письменном виде на email info@nasha-semiya.ru</li>
               <li>Обратиться в суд в соответствии с законодательством РФ</li>
             </ul>
           </section>
@@ -170,7 +170,7 @@ export default function RefundPolicy() {
               <p><strong>ИП Кузьменко А.В.</strong></p>
               <p><strong>ОГРНИП:</strong> 325774600908955</p>
               <p><strong>ИНН:</strong> 231805728780</p>
-              <p className="mt-3"><strong>Email для вопросов по возврату:</strong> ip.kuzmenkoav@yandex.ru</p>
+              <p className="mt-3"><strong>Email для вопросов по возврату:</strong> payment@nasha-semiya.ru</p>
               <p className="text-sm text-gray-600 mt-2">Среднее время ответа: 1-3 рабочих дня</p>
             </div>
           </section>

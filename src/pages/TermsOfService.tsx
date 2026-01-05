@@ -265,7 +265,7 @@ export default function TermsOfService() {
               <p><strong>ИНН:</strong> 231805728780</p>
               <p><strong>Дата регистрации:</strong> 24.12.2025</p>
               <p><strong>Регистрирующий орган:</strong> ИФНС России №15 по г.Москве</p>
-              <p className="mt-3"><strong>Email:</strong> ip.kuzmenkoav@yandex.ru</p>
+              <p className="mt-3"><strong>Email:</strong> info@nasha-semiya.ru</p>
               <p className="mt-2 text-sm text-gray-600">Юридический адрес указан в ЕГРИП и предоставляется по запросу для юридических целей.</p>
             </div>
           </section>

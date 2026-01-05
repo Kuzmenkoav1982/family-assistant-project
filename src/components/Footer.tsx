@@ -125,13 +125,15 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2 text-gray-300">
                 <Icon name="Mail" size={16} />
-                <a href="mailto:ip.kuzmenkoav@yandex.ru" className="hover:text-white transition-colors">
-                  ip.kuzmenkoav@yandex.ru
+                <a href="mailto:info@nasha-semiya.ru" className="hover:text-white transition-colors">
+                  info@nasha-semiya.ru
                 </a>
               </li>
               <li className="flex items-center gap-2 text-gray-300">
                 <Icon name="HelpCircle" size={16} />
-                <span>Техподдержка</span>
+                <a href="mailto:support@nasha-semiya.ru" className="hover:text-white transition-colors">
+                  support@nasha-semiya.ru
+                </a>
               </li>
             </ul>
           </div>
