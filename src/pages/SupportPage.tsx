@@ -178,6 +178,33 @@ export default function SupportPage() {
               </div>
             </div>
 
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Или напишите нам напрямую:</p>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Icon name="Mail" size={16} className="text-gray-500" />
+                  <span className="font-medium">Техподдержка:</span>
+                  <a href="mailto:support@nasha-semiya.ru" className="text-blue-600 hover:underline">
+                    support@nasha-semiya.ru
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="Mail" size={16} className="text-gray-500" />
+                  <span className="font-medium">Общие вопросы:</span>
+                  <a href="mailto:info@nasha-semiya.ru" className="text-blue-600 hover:underline">
+                    info@nasha-semiya.ru
+                  </a>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="CreditCard" size={16} className="text-gray-500" />
+                  <span className="font-medium">Вопросы по оплате:</span>
+                  <a href="mailto:payment@nasha-semiya.ru" className="text-blue-600 hover:underline">
+                    payment@nasha-semiya.ru
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <Button
               type="submit"
               disabled={submitting}

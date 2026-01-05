@@ -51,6 +51,32 @@ export default function Footer() {
                   </ul>
                 </div>
               </div>
+              <div className="mt-4 pt-4 border-t border-purple-700/30">
+                <p className="text-sm font-medium text-white mb-2">Свяжитесь с нами:</p>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Mail" size={14} className="text-purple-400" />
+                    <a href="mailto:info@nasha-semiya.ru" className="text-gray-300 hover:text-white transition-colors">
+                      info@nasha-semiya.ru
+                    </a>
+                    <span className="text-gray-500 text-xs">— общие вопросы</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Icon name="HelpCircle" size={14} className="text-blue-400" />
+                    <a href="mailto:support@nasha-semiya.ru" className="text-gray-300 hover:text-white transition-colors">
+                      support@nasha-semiya.ru
+                    </a>
+                    <span className="text-gray-500 text-xs">— техподдержка</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Icon name="CreditCard" size={14} className="text-green-400" />
+                    <a href="mailto:payment@nasha-semiya.ru" className="text-gray-300 hover:text-white transition-colors">
+                      payment@nasha-semiya.ru
+                    </a>
+                    <span className="text-gray-500 text-xs">— оплата и возвраты</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </details>
