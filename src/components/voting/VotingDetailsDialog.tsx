@@ -67,10 +67,13 @@ export function VotingDetailsDialog({
               style={{ width: `${progress.percentage}%` }}
             />
           </div>
-          <p className="text-xs text-purple-700">
-            Проголосовало {progress.votedCount} из {progress.totalMembers} членов семьи
-            <span className="text-purple-500 ml-1">(только аккаунты с доступом)</span>
-          </p>
+          <div className="flex items-start gap-2">
+            <Icon name="Users" size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-purple-700">
+              <p className="font-medium">Проголосовало {progress.votedCount} из {progress.totalMembers}</p>
+              <p className="text-purple-500 mt-0.5">Учитываются только полноценные аккаунты. Профили детей без доступа не участвуют в голосовании.</p>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-3">
