@@ -71,7 +71,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
                photo_url, points, level, workload, age, birth_date, birth_time, 
-               permissions, access_role, profile_data, created_at, updated_at
+               account_type, permissions, access_role, profile_data, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
         ORDER BY created_at ASC
@@ -103,10 +103,13 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        # Определяем тип аккаунта: если указан user_id - full, иначе child_profile
+        account_type = 'full' if data.get('user_id') else data.get('account_type', 'child_profile')
+        
         query = f"""
             INSERT INTO {SCHEMA}.family_members
             (family_id, name, role, relationship, avatar, avatar_type, 
-             photo_url, points, level, workload, age)
+             photo_url, points, level, workload, age, account_type)
             VALUES (
                 {escape_string(family_id)},
                 {escape_string(data.get('name', ''))},
@@ -118,9 +121,10 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 {escape_string(data.get('points', 0))},
                 {escape_string(data.get('level', 1))},
                 {escape_string(data.get('workload', 0))},
-                {escape_string(data.get('age'))}
+                {escape_string(data.get('age'))},
+                {escape_string(account_type)}
             )
-            RETURNING id, name, role, relationship, avatar, points, level, workload
+            RETURNING id, name, role, relationship, avatar, points, level, workload, account_type
         """
         cur.execute(query)
         member = cur.fetchone()
@@ -153,7 +157,7 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
         
         fields = []
         for field in ['name', 'role', 'relationship', 'avatar', 'avatar_type', 
-                      'photo_url', 'points', 'level', 'workload', 'age']:
+                      'photo_url', 'points', 'level', 'workload', 'age', 'account_type']:
             if field in data:
                 fields.append(f"{field} = {escape_string(data[field])}")
         
@@ -198,7 +202,7 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             UPDATE {SCHEMA}.family_members 
             SET {', '.join(fields)}
             WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}
-            RETURNING id, name, role, relationship, avatar, points, level, workload, birth_date, birth_time, access_role, permissions, profile_data
+            RETURNING id, name, role, relationship, avatar, points, level, workload, birth_date, birth_time, account_type, access_role, permissions, profile_data
         """
         
         cur.execute(query)

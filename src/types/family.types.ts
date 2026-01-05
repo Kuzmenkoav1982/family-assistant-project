@@ -9,6 +9,7 @@ export interface FamilyMember {
   photo_url?: string;
   photoUrl?: string;
   avatarType?: string;
+  account_type?: 'full' | 'child_profile';
   points: number;
   level: number;
   workload: number;

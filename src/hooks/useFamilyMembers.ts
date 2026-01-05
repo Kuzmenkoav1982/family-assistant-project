@@ -16,6 +16,7 @@ interface FamilyMember {
   age?: number;
   birthDate?: string;
   birthTime?: string;
+  account_type?: 'full' | 'child_profile';
   created_at: string;
   updated_at: string;
   dreams?: any[];
@@ -84,7 +85,8 @@ export function useFamilyMembers() {
           avatarType: m.avatar_type,
           photoUrl: m.photo_url,
           birthDate: m.birth_date,
-          birthTime: m.birth_time
+          birthTime: m.birth_time,
+          account_type: m.account_type || (m.user_id ? 'full' : 'child_profile')
         }));
         console.log('[DEBUG useFamilyMembers] Converted members:', convertedMembers);
         setMembers(convertedMembers);

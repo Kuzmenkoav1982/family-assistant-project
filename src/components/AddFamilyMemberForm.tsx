@@ -20,6 +20,7 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
     avatar: editingMember?.avatar || '👤',
     avatarType: editingMember?.avatarType || 'icon' as const,
     photoUrl: editingMember?.photoUrl || undefined,
+    accountType: editingMember?.account_type || 'child_profile' as 'full' | 'child_profile',
     favorites: editingMember?.foodPreferences?.favorites?.join(', ') || '',
     dislikes: editingMember?.foodPreferences?.dislikes?.join(', ') || '',
     responsibilities: editingMember?.responsibilities?.join(', ') || '',
@@ -42,6 +43,7 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
       avatar: formData.avatarType === 'icon' ? selectedAvatar : formData.avatar,
       avatarType: formData.avatarType,
       photoUrl: formData.photoUrl,
+      account_type: formData.accountType,
       workload: editingMember?.workload || 0,
       points: editingMember?.points || 0,
       level: editingMember?.level || 1,
@@ -94,6 +96,47 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
             min="0"
             max="120"
           />
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+        <label className="block text-sm font-medium mb-3">Тип аккаунта</label>
+        <div className="space-y-2">
+          <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors" style={{ borderColor: formData.accountType === 'full' ? 'rgb(59 130 246)' : 'rgb(229 231 235)' }}>
+            <input 
+              type="radio" 
+              name="accountType" 
+              value="full"
+              checked={formData.accountType === 'full'}
+              onChange={(e) => setFormData({ ...formData, accountType: e.target.value as 'full' | 'child_profile' })}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 font-medium">
+                <Icon name="UserCheck" size={16} className="text-blue-600" />
+                Полноценный аккаунт
+              </div>
+              <p className="text-xs text-gray-600 mt-1">С возможностью входа, участвует в голосованиях и имеет доступ к системе</p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors" style={{ borderColor: formData.accountType === 'child_profile' ? 'rgb(59 130 246)' : 'rgb(229 231 235)' }}>
+            <input 
+              type="radio" 
+              name="accountType" 
+              value="child_profile"
+              checked={formData.accountType === 'child_profile'}
+              onChange={(e) => setFormData({ ...formData, accountType: e.target.value as 'full' | 'child_profile' })}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 font-medium">
+                <Icon name="Baby" size={16} className="text-blue-600" />
+                Профиль ребенка (без входа)
+              </div>
+              <p className="text-xs text-gray-600 mt-1">Только для отслеживания информации, не участвует в голосованиях</p>
+            </div>
+          </label>
         </div>
       </div>
 

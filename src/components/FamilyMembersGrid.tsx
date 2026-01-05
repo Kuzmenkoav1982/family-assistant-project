@@ -101,6 +101,20 @@ const MemberCard = ({
                       <Icon name="Star" size={10} className="mr-1" />
                       {member.points}
                     </Badge>
+                    {member.account_type === 'child_profile' && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200 cursor-help">
+                            <Icon name="Baby" size={10} className="mr-1" />
+                            Профиль ребенка
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Профиль создан без привязки аккаунта</p>
+                          <p className="text-xs text-gray-400">Не участвует в голосованиях</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
                 </div>
               </div>

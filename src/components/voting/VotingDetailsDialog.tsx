@@ -69,6 +69,7 @@ export function VotingDetailsDialog({
           </div>
           <p className="text-xs text-purple-700">
             Проголосовало {progress.votedCount} из {progress.totalMembers} членов семьи
+            <span className="text-purple-500 ml-1">(только аккаунты с доступом)</span>
           </p>
         </div>
 

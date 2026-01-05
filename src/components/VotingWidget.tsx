@@ -9,6 +9,7 @@ import { VotingCard } from '@/components/voting/VotingCard';
 import { VotingCreateDialog } from '@/components/voting/VotingCreateDialog';
 import { VotingDetailsDialog } from '@/components/voting/VotingDetailsDialog';
 import { VotingContextMenu } from '@/components/voting/VotingContextMenu';
+import { getActiveMembersForVoting } from '@/utils/familyMembers';
 
 export function VotingWidget() {
   const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
@@ -114,6 +115,8 @@ export function VotingWidget() {
   const getVotingProgress = (voting: any) => {
     if (!voting.options || voting.options.length === 0) return { votedCount: 0, totalMembers: members.length, percentage: 0 };
     
+    const activeMembers = getActiveMembersForVoting(members);
+    
     const votedMemberIds = new Set<string>();
     voting.options.forEach((option: any) => {
       if (option.votes && Array.isArray(option.votes)) {
@@ -124,7 +127,7 @@ export function VotingWidget() {
     });
     
     const votedCount = votedMemberIds.size;
-    const totalMembers = members.length || 1;
+    const totalMembers = activeMembers.length || 1;
     const percentage = Math.round((votedCount / totalMembers) * 100);
     
     return { votedCount, totalMembers, percentage };
