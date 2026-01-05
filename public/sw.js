@@ -36,8 +36,18 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Just pass through all requests without caching
-  event.respondWith(fetch(event.request));
+  event.respondWith(
+    fetch(event.request).catch((error) => {
+      console.log('[SW] Fetch failed, returning offline page:', error);
+      if (event.request.mode === 'navigate') {
+        return new Response(
+          '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Офлайн</title></head><body><h1>Нет соединения</h1><p>Проверьте интернет-соединение</p></body></html>',
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+      return new Response('Network error', { status: 408, statusText: 'Network error' });
+    })
+  );
 });
 
 self.addEventListener('message', (event) => {
