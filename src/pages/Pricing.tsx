@@ -191,10 +191,53 @@ export default function Pricing() {
   };
 
   const handleDonation = async (presetId: string, amount: number) => {
-    toast({
-      title: 'Скоро доступно',
-      description: 'Функция донатов будет доступна позже. Сейчас доступны только подписки.',
-    });
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      toast({
+        title: 'Требуется авторизация',
+        description: 'Войдите в аккаунт для поддержки проекта',
+        variant: 'destructive'
+      });
+      navigate('/login');
+      return;
+    }
+
+    setLoading(presetId);
+
+    try {
+      const response = await fetch(PAYMENTS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({
+          action: 'create_donation',
+          amount: amount,
+          return_url: window.location.origin + '/pricing?status=success'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.payment_url) {
+        window.location.href = data.payment_url;
+      } else if (data.error) {
+        toast({
+          title: 'Ошибка оформления',
+          description: data.error,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка сети',
+        description: 'Не удалось связаться с сервером',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (

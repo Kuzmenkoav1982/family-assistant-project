@@ -511,6 +511,73 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps(result)
                 }
             
+            # Создать донат
+            elif action == 'create_donation':
+                amount = body.get('amount')
+                return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                
+                if not amount or amount < 50:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'Минимальная сумма доната — 50₽'})
+                    }
+                
+                user_email = get_user_email(user_id)
+                
+                payment_result = create_yookassa_payment(
+                    amount,
+                    f"Поддержка проекта Семейный Органайзер — {amount}₽",
+                    return_url,
+                    metadata={
+                        'family_id': family_id,
+                        'user_id': user_id,
+                        'type': 'donation',
+                        'user_email': user_email
+                    }
+                )
+                
+                if 'error' in payment_result:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps(payment_result)
+                    }
+                
+                # Сохраняем информацию о донате
+                conn = get_db_connection()
+                cur = conn.cursor()
+                
+                try:
+                    safe_user_id = user_id.replace("'", "''")
+                    safe_payment_id = payment_result['payment_id'].replace("'", "''")
+                    
+                    cur.execute(
+                        f"""
+                        INSERT INTO {SCHEMA}.payments
+                        (subscription_id, family_id, user_id, amount, payment_id, status, description)
+                        VALUES (NULL, '{family_id.replace("'", "''")}', '{safe_user_id}', {amount}, '{safe_payment_id}', 'pending', 'Донат {amount}₽')
+                        """
+                    )
+                    conn.commit()
+                    cur.close()
+                    conn.close()
+                except Exception as e:
+                    conn.rollback()
+                    cur.close()
+                    conn.close()
+                    print(f'[ERROR] Failed to save donation: {str(e)}')
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'success': True,
+                        'payment_url': payment_result['confirmation_url'],
+                        'payment_id': payment_result['payment_id']
+                    })
+                }
+            
             # Проверить статус платежа
             elif action == 'check_payment':
                 payment_id = body.get('payment_id')
