@@ -135,12 +135,17 @@ def get_payment_status(payment_id: str) -> Dict[str, Any]:
 
 def create_subscription(family_id: str, user_id: str, plan_type: str, return_url: str) -> Dict[str, Any]:
     """Создаёт подписку и инициирует платёж"""
+    print(f'[create_subscription] family_id={family_id}, user_id={user_id}, plan_type={plan_type}')
+    
     if plan_type not in PLANS:
+        print(f'[create_subscription] ERROR: plan_type not in PLANS')
         return {'error': 'Неверный тип подписки'}
     
     plan = PLANS[plan_type]
+    print(f'[create_subscription] Plan: {plan}')
     
     # Создаём платёж в ЮКассе
+    print(f'[create_subscription] Creating YooKassa payment...')
     payment_result = create_yookassa_payment(
         plan['price'],
         f"Подписка {plan['name']} - Семейный Органайзер",
@@ -152,7 +157,10 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
         }
     )
     
+    print(f'[create_subscription] YooKassa result: {payment_result}')
+    
     if 'error' in payment_result:
+        print(f'[create_subscription] ERROR from YooKassa: {payment_result["error"]}')
         return payment_result
     
     conn = get_db_connection()
@@ -423,6 +431,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 print(f'[DEBUG] plan_type: {plan_type}')
                 print(f'[DEBUG] return_url: {return_url}')
+                print(f'[DEBUG] family_id: {family_id}')
+                print(f'[DEBUG] user_id: {user_id}')
                 
                 if not plan_type:
                     return {
@@ -431,9 +441,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'plan_type обязателен'})
                     }
                 
+                print('[DEBUG] Calling create_subscription...')
                 result = create_subscription(family_id, user_id, plan_type, return_url)
+                print(f'[DEBUG] create_subscription result: {result}')
                 
                 if 'error' in result:
+                    print(f'[DEBUG] Returning 400 with error: {result["error"]}')
                     return {
                         'statusCode': 400,
                         'headers': headers,
