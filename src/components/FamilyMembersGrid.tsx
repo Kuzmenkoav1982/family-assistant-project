@@ -110,10 +110,12 @@ const MemberCard = ({
                               Без доступа
                             </Badge>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-medium">Профиль ребенка</p>
-                            <p className="text-xs text-gray-400">Создан для отслеживания</p>
-                            <p className="text-xs text-gray-400">Не участвует в голосованиях</p>
+                          <TooltipContent className="max-w-xs">
+                            <p className="font-medium text-amber-900">👶 Профиль без доступа</p>
+                            <p className="text-xs text-gray-600 mt-1">Создан для отслеживания развития и активностей ребенка</p>
+                            <p className="text-xs text-gray-500 mt-1">• Не может входить в приложение</p>
+                            <p className="text-xs text-gray-500">• Не участвует в голосованиях семьи</p>
+                            <p className="text-xs text-gray-500">• Данные видны только родителям</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -126,9 +128,12 @@ const MemberCard = ({
                               С доступом
                             </Badge>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-medium">Полноценный аккаунт</p>
-                            <p className="text-xs text-gray-400">Участвует в голосованиях</p>
+                          <TooltipContent className="max-w-xs">
+                            <p className="font-medium text-green-900">✅ Аккаунт с доступом</p>
+                            <p className="text-xs text-gray-600 mt-1">Полноценный участник семьи с авторизацией</p>
+                            <p className="text-xs text-gray-500 mt-1">• Может входить в приложение</p>
+                            <p className="text-xs text-gray-500">• Участвует в семейных голосованиях</p>
+                            <p className="text-xs text-gray-500">• Имеет доступ к функциям семьи</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
