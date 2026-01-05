@@ -320,7 +320,80 @@ export default function Settings() {
               </Card>
             )}
 
-            {activeSection === 'assistants' && <AssistantSettings />}
+            {activeSection === 'assistants' && (
+              <>
+                <AssistantSettings />
+                
+                {/* Яндекс Алиса интеграция */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Mic" size={24} className="text-purple-600" />
+                      Яндекс Алиса
+                    </CardTitle>
+                    <CardDescription>
+                      Управляйте семейными делами голосом через Яндекс Станцию или приложение Алиса
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Icon name="Sparkles" size={18} className="text-purple-600" />
+                        Возможности навыка
+                      </h4>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start gap-2">
+                          <Icon name="Check" size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Добавление задач и напоминаний голосом</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Icon name="Check" size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Просмотр списка дел на сегодня</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Icon name="Check" size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Добавление продуктов в список покупок</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Icon name="Check" size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Просмотр ближайших событий</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <Icon name="Info" size={18} />
+                        Как подключить
+                      </h4>
+                      <ol className="space-y-2 text-sm list-decimal list-inside">
+                        <li>Откройте приложение "Яндекс" или скажите "Алиса" на Яндекс Станции</li>
+                        <li>Скажите: <strong>"Алиса, запусти навык Семейный Ассистент"</strong></li>
+                        <li>Следуйте инструкциям для привязки аккаунта</li>
+                      </ol>
+                    </div>
+
+                    <Button 
+                      onClick={() => window.open('https://dialogs.yandex.ru/store/skills/', '_blank')}
+                      className="w-full"
+                    >
+                      <Icon name="ExternalLink" className="mr-2" size={18} />
+                      Открыть каталог навыков Алисы
+                    </Button>
+
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-xs text-amber-800 flex items-start gap-2">
+                        <Icon name="AlertTriangle" size={16} className="mt-0.5 flex-shrink-0" />
+                        <span>
+                          Для работы навыка нужно авторизоваться через Яндекс ID. 
+                          Ваши данные защищены и не передаются третьим лицам.
+                        </span>
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
 
             {activeSection === 'account' && (
               <>
