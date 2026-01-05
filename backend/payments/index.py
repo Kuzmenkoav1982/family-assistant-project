@@ -20,9 +20,8 @@ YOOKASSA_SHOP_ID = os.environ.get('YOOKASSA_SHOP_ID', '')
 YOOKASSA_SECRET_KEY = os.environ.get('YOOKASSA_SECRET_KEY', '')
 
 PLANS = {
-    'basic': {'name': 'Базовый', 'price': 299, 'months': 1},
-    'standard': {'name': 'Стандарт', 'price': 799, 'months': 3},
-    'premium': {'name': 'Премиум', 'price': 2499, 'months': 12}
+    'ai_assistant': {'name': 'AI-помощник', 'price': 200, 'months': 1},
+    'full': {'name': 'Полный пакет', 'price': 500, 'months': 1}
 }
 
 def get_db_connection():
@@ -62,7 +61,8 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     
     return str(member['family_id']) if member else None
 
-def create_yookassa_payment(amount: float, description: str, return_url: str) -> Dict[str, Any]:
+def create_yookassa_payment(amount: float, description: str, return_url: str, metadata: dict = None) -> Dict[str, Any]:
+    """Создаёт платёж в ЮКассе через REST API"""
     idempotence_key = str(uuid.uuid4())
     
     payment_data = {
@@ -77,6 +77,9 @@ def create_yookassa_payment(amount: float, description: str, return_url: str) ->
         'capture': True,
         'description': description
     }
+    
+    if metadata:
+        payment_data['metadata'] = metadata
     
     auth_string = f'{YOOKASSA_SHOP_ID}:{YOOKASSA_SECRET_KEY}'
     auth_bytes = auth_string.encode('utf-8')
@@ -104,16 +107,49 @@ def create_yookassa_payment(amount: float, description: str, return_url: str) ->
     except Exception as e:
         return {'error': f'Ошибка создания платежа: {str(e)}'}
 
+def get_payment_status(payment_id: str) -> Dict[str, Any]:
+    """Получает статус платежа из ЮКассы"""
+    auth_string = f'{YOOKASSA_SHOP_ID}:{YOOKASSA_SECRET_KEY}'
+    auth_bytes = auth_string.encode('utf-8')
+    auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+    
+    req = Request(
+        f'https://api.yookassa.ru/v3/payments/{payment_id}',
+        headers={
+            'Authorization': f'Basic {auth_b64}',
+            'Content-Type': 'application/json'
+        }
+    )
+    
+    try:
+        response = urlopen(req)
+        result = json.loads(response.read().decode('utf-8'))
+        return {
+            'success': True,
+            'status': result['status'],
+            'paid': result.get('paid', False),
+            'payment_method': result.get('payment_method', {}).get('type')
+        }
+    except Exception as e:
+        return {'error': f'Ошибка проверки платежа: {str(e)}'}
+
 def create_subscription(family_id: str, user_id: str, plan_type: str, return_url: str) -> Dict[str, Any]:
+    """Создаёт подписку и инициирует платёж"""
     if plan_type not in PLANS:
         return {'error': 'Неверный тип подписки'}
     
     plan = PLANS[plan_type]
     
+    # Создаём платёж в ЮКассе
     payment_result = create_yookassa_payment(
         plan['price'],
         f"Подписка {plan['name']} - Семейный Органайзер",
-        return_url
+        return_url,
+        metadata={
+            'family_id': family_id,
+            'user_id': user_id,
+            'plan_type': plan_type
+        }
     )
     
     if 'error' in payment_result:
@@ -123,6 +159,7 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        # Создаём подписку со статусом pending
         end_date = datetime.now() + timedelta(days=30 * plan['months'])
         safe_family_id = family_id.replace("'", "''")
         safe_plan_type = plan_type.replace("'", "''")
@@ -131,13 +168,14 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
         cur.execute(
             f"""
             INSERT INTO {SCHEMA}.subscriptions
-            (family_id, plan_type, status, amount, end_date)
-            VALUES ('{safe_family_id}', '{safe_plan_type}', 'pending', {plan['price']}, '{safe_end_date}')
+            (family_id, plan_type, status, amount, end_date, payment_provider)
+            VALUES ('{safe_family_id}', '{safe_plan_type}', 'pending', {plan['price']}, '{safe_end_date}', 'yookassa')
             RETURNING id
             """
         )
         subscription = cur.fetchone()
         
+        # Сохраняем информацию о платеже
         safe_user_id = user_id.replace("'", "''")
         safe_payment_id = payment_result['payment_id'].replace("'", "''")
         safe_description = f"Подписка {plan['name']}".replace("'", "''")
@@ -158,6 +196,7 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
             'success': True,
             'subscription_id': str(subscription['id']),
             'payment_url': payment_result['confirmation_url'],
+            'payment_id': payment_result['payment_id'],
             'plan': plan['name'],
             'amount': plan['price']
         }
@@ -167,7 +206,114 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
         conn.close()
         return {'error': str(e)}
 
+def check_payment_and_activate(payment_id: str) -> Dict[str, Any]:
+    """Проверяет статус платежа и активирует подписку при успехе"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        # Получаем платёж из БД
+        safe_payment_id = payment_id.replace("'", "''")
+        cur.execute(
+            f"""
+            SELECT * FROM {SCHEMA}.payments 
+            WHERE payment_id = '{safe_payment_id}'
+            """
+        )
+        payment = cur.fetchone()
+        
+        if not payment:
+            return {'error': 'Платёж не найден'}
+        
+        # Проверяем статус в ЮКассе
+        status_result = get_payment_status(payment_id)
+        
+        if 'error' in status_result:
+            return status_result
+        
+        # Обновляем статус платежа
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.payments 
+            SET status = '{status_result["status"]}', payment_method = '{status_result.get("payment_method", "")}'
+            WHERE payment_id = '{safe_payment_id}'
+            """
+        )
+        
+        # Если платёж успешен, активируем подписку
+        if status_result['status'] == 'succeeded' and status_result['paid']:
+            cur.execute(
+                f"""
+                UPDATE {SCHEMA}.subscriptions 
+                SET status = 'active', start_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                WHERE id = '{payment["subscription_id"]}'
+                """
+            )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'status': status_result['status'],
+            'paid': status_result['paid']
+        }
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
+def handle_webhook(body: dict) -> Dict[str, Any]:
+    """Обрабатывает webhook от ЮКассы о статусе платежа"""
+    event_type = body.get('event')
+    payment_obj = body.get('object', {})
+    payment_id = payment_obj.get('id')
+    metadata = payment_obj.get('metadata', {})
+    
+    if event_type != 'payment.succeeded' or not payment_id:
+        return {'received': True}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        # Обновляем статус платежа
+        safe_payment_id = payment_id.replace("'", "''")
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.payments 
+            SET status = 'succeeded', paid_at = CURRENT_TIMESTAMP
+            WHERE payment_id = '{safe_payment_id}'
+            RETURNING subscription_id
+            """
+        )
+        payment = cur.fetchone()
+        
+        if payment and payment['subscription_id']:
+            # Активируем подписку
+            cur.execute(
+                f"""
+                UPDATE {SCHEMA}.subscriptions 
+                SET status = 'active', start_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                WHERE id = '{payment["subscription_id"]}'
+                """
+            )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {'received': True, 'activated': True}
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
 def get_subscription_status(family_id: str) -> Dict[str, Any]:
+    """Получает активную подписку семьи"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -176,7 +322,7 @@ def get_subscription_status(family_id: str) -> Dict[str, Any]:
         f"""
         SELECT id, plan_type, status, amount, start_date, end_date, auto_renew
         FROM {SCHEMA}.subscriptions
-        WHERE family_id = '{safe_family_id}' AND status = 'active'
+        WHERE family_id = '{safe_family_id}' AND status = 'active' AND end_date > CURRENT_TIMESTAMP
         ORDER BY end_date DESC LIMIT 1
         """
     )
@@ -188,19 +334,23 @@ def get_subscription_status(family_id: str) -> Dict[str, Any]:
     if not subscription:
         return {
             'has_subscription': False,
+            'plan': 'free',
             'message': 'Нет активной подписки'
         }
     
     return {
         'has_subscription': True,
-        'plan': PLANS.get(subscription['plan_type'], {}).get('name', 'Неизвестно'),
+        'plan': subscription['plan_type'],
+        'plan_name': PLANS.get(subscription['plan_type'], {}).get('name', 'Неизвестно'),
         'status': subscription['status'],
-        'end_date': subscription['end_date'].isoformat(),
+        'start_date': subscription['start_date'].isoformat() if subscription['start_date'] else None,
+        'end_date': subscription['end_date'].isoformat() if subscription['end_date'] else None,
         'auto_renew': subscription['auto_renew']
     }
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
+    path = event.get('path', '')
     
     if method == 'OPTIONS':
         return {
@@ -220,6 +370,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
     
     try:
+        # Webhook от ЮКассы (без авторизации)
+        if method == 'POST' and 'webhook' in path:
+            body = json.loads(event.get('body', '{}'))
+            result = handle_webhook(body)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps(result)
+            }
+        
+        # Все остальные запросы требуют авторизации
         token = event.get('headers', {}).get('X-Auth-Token', '')
         user_id = verify_token(token)
         
@@ -238,6 +399,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Пользователь не состоит в семье'})
             }
         
+        # GET /status - Получить статус подписки
         if method == 'GET':
             result = get_subscription_status(family_id)
             return {
@@ -246,13 +408,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps(result, default=str)
             }
         
+        # POST - Различные действия
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
             action = body.get('action', '')
             
+            # Создать подписку
             if action == 'create':
-                plan_type = body.get('plan_type', 'basic')
-                return_url = body.get('return_url', 'https://example.com')
+                plan_type = body.get('plan_type')
+                return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                
+                if not plan_type:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'plan_type обязателен'})
+                    }
                 
                 result = create_subscription(family_id, user_id, plan_type, return_url)
                 
@@ -264,16 +435,43 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 return {
-                    'statusCode': 201,
+                    'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps(result)
                 }
+            
+            # Проверить статус платежа
+            elif action == 'check_payment':
+                payment_id = body.get('payment_id')
+                
+                if not payment_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'payment_id обязателен'})
+                    }
+                
+                result = check_payment_and_activate(payment_id)
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result)
+                }
+            
+            else:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Неизвестное действие'})
+                }
         
-        return {
-            'statusCode': 405,
-            'headers': headers,
-            'body': json.dumps({'error': 'Метод не поддерживается'})
-        }
+        else:
+            return {
+                'statusCode': 405,
+                'headers': headers,
+                'body': json.dumps({'error': 'Метод не поддерживается'})
+            }
     
     except Exception as e:
         return {

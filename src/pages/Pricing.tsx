@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-const TBANK_API = 'https://functions.poehali.dev/e25d60ac-d0c8-428d-92bf-18126183f140';
-const SBER_API = 'https://functions.poehali.dev/eb5ffd1e-ee56-4d89-b112-ba5bace6f64a';
+const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
 const subscriptionPlans = [
   {
@@ -49,13 +48,13 @@ const subscriptionPlans = [
     ]
   },
   {
-    id: 'full_package',
+    id: 'full',
     name: 'Полный пакет',
-    price: 699,
+    price: 500,
     period: 'месяц',
     popular: true,
     color: 'from-yellow-500 to-orange-600',
-    savings: 'Экономия 35%!',
+    savings: 'Экономия 60%!',
     features: [
       '✅ AI-Помощник "Домовой"',
       '✅ 20 ГБ хранилища',
@@ -86,10 +85,48 @@ const donationPresets = [
 export default function Pricing() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
-  const [customDonation, setCustomDonation] = useState('');
-  const [paymentDialog, setPaymentDialog] = useState(false);
-  const [paymentData, setPaymentData] = useState<any>(null);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+
+  // Проверка статуса платежа при возврате
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      toast({
+        title: '🎉 Оплата успешна!',
+        description: 'Ваша подписка активирована. Спасибо за поддержку!',
+      });
+      // Очищаем параметры из URL
+      window.history.replaceState({}, '', '/pricing');
+    }
+  }, [searchParams, toast]);
+
+  // Загрузка текущей подписки
+  useEffect(() => {
+    const loadSubscription = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      try {
+        const response = await fetch(PAYMENTS_API, {
+          method: 'GET',
+          headers: {
+            'X-Auth-Token': token
+          }
+        });
+
+        const data = await response.json();
+        if (data.has_subscription) {
+          setCurrentSubscription(data);
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки подписки:', error);
+      }
+    };
+
+    loadSubscription();
+  }, []);
 
   const handleSubscribe = async (planId: string) => {
     const token = localStorage.getItem('authToken');
@@ -114,7 +151,7 @@ export default function Pricing() {
     setLoading(planId);
 
     try {
-      const response = await fetch(TBANK_API, {
+      const response = await fetch(PAYMENTS_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,23 +159,16 @@ export default function Pricing() {
         },
         body: JSON.stringify({
           action: 'create',
-          plan_type: planId
+          plan_type: planId,
+          return_url: window.location.origin + '/pricing?status=success'
         })
       });
 
       const data = await response.json();
 
-      if (data.success) {
-        setPaymentData({
-          type: 'subscription',
-          bank: 'tbank',
-          amount: data.amount,
-          plan: data.plan,
-          qr_image: data.payment_instructions?.qr_image,
-          instructions: data.payment_instructions,
-          purpose: data.payment_instructions?.purpose
-        });
-        setPaymentDialog(true);
+      if (data.success && data.payment_url) {
+        // Перенаправляем пользователя на страницу оплаты ЮКассы
+        window.location.href = data.payment_url;
       } else if (data.error) {
         toast({
           title: 'Ошибка оформления',
@@ -158,58 +188,10 @@ export default function Pricing() {
   };
 
   const handleDonation = async (presetId: string, amount: number) => {
-    setLoading(presetId);
-
-    try {
-      const token = localStorage.getItem('authToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      
-      if (token) {
-        headers['X-Auth-Token'] = token;
-      }
-
-      const response = await fetch(SBER_API, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          preset_id: presetId,
-          amount: amount,
-          message: 'Поддержка развития платформы "Наша семья"'
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setPaymentData({
-          type: 'donation',
-          bank: 'sber',
-          amount: data.amount,
-          plan: data.preset_name,
-          qr_image: data.payment_instructions?.qr_image,
-          instructions: data.payment_instructions,
-          purpose: data.payment_instructions?.purpose,
-          thank_you: data.thank_you_message
-        });
-        setPaymentDialog(true);
-      } else if (data.error) {
-        toast({
-          title: 'Ошибка',
-          description: data.error,
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Ошибка сети',
-        description: 'Не удалось связаться с сервером',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(null);
-    }
+    toast({
+      title: 'Скоро доступно',
+      description: 'Функция донатов будет доступна позже. Сейчас доступны только подписки.',
+    });
   };
 
   return (
