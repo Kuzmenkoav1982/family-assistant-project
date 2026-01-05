@@ -44,7 +44,7 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
                 <Tooltip delayDuration={200}>
                   <TooltipTrigger asChild>
                     <Link
-                      to="/family-settings"
+                      to="/settings"
                       className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg hover:scale-110"
                     >
                       <Icon name="Settings" size={16} />
@@ -65,7 +65,7 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
                   <Tooltip delayDuration={200}>
                     <TooltipTrigger asChild>
                       <Link
-                        to="/family-settings"
+                        to="/settings"
                         className="w-7 h-7 bg-blue-500/20 hover:bg-blue-500 text-blue-600 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                       >
                         <Icon name="Info" size={14} />
