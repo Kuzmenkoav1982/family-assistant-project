@@ -133,7 +133,7 @@ export default function TopBar({
               <span>Отзывы</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => navigate('/suggestions')}>
+            <DropdownMenuItem onClick={() => navigate('/ideas-board')}>
               <Icon name="Lightbulb" size={16} className="mr-2" />
               <span>Предложения</span>
             </DropdownMenuItem>
