@@ -130,10 +130,9 @@ export default function SupportPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="your@email.com"
-                required
               />
               <p className="text-xs text-gray-500 mt-1">
-                Мы отправим ответ на этот адрес
+                Мы отправим ответ на этот адрес (необязательно, если уже авторизованы)
               </p>
             </div>
 

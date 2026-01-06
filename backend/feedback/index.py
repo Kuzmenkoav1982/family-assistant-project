@@ -5,6 +5,16 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+
+def get_db_connection():
+    """Получение подключения к БД"""
+    dsn = os.environ.get('DATABASE_URL', '')
+    if not dsn:
+        raise Exception('DATABASE_URL not configured')
+    return psycopg2.connect(dsn)
 
 
 def handler(event: dict, context) -> dict:
@@ -21,6 +31,49 @@ def handler(event: dict, context) -> dict:
             },
             'body': ''
         }
+    
+    # GET - получение отзывов и предложений (публичный доступ)
+    if method == 'GET':
+        try:
+            params = event.get('queryStringParameters', {})
+            feedback_type = params.get('type', 'review')
+            
+            conn = get_db_connection()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # Получаем только review и suggestion (support - приватный)
+            if feedback_type not in ['review', 'suggestion']:
+                feedback_type = 'review'
+            
+            cursor.execute(
+                "SELECT id, user_name, title, description, rating, created_at FROM feedback WHERE type = %s ORDER BY created_at DESC LIMIT 100",
+                (feedback_type,)
+            )
+            
+            items = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'items': [dict(item) for item in items]
+                }, default=str)
+            }
+        except Exception as e:
+            print(f'[ERROR] GET error: {str(e)}')
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': str(e)})
+            }
     
     if method != 'POST':
         return {
@@ -43,7 +96,7 @@ def handler(event: dict, context) -> dict:
         description = body.get('description', '')
         rating = body.get('rating')
         
-        if not user_email or not title or not description:
+        if not title or not description:
             return {
                 'statusCode': 400,
                 'headers': {
@@ -52,6 +105,25 @@ def handler(event: dict, context) -> dict:
                 },
                 'body': json.dumps({'error': 'Заполните все обязательные поля'})
             }
+        
+        # Сохраняем в БД
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                """INSERT INTO feedback (type, user_id, user_name, user_email, title, description, rating, status) 
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+                (feedback_type, user_id, user_name, user_email or '', title, description, rating, 'new')
+            )
+            
+            feedback_id = cursor.fetchone()[0]
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f'[ERROR] DB save failed: {str(e)}')
+            # Продолжаем выполнение, даже если БД не сработала
         
         # Формируем email
         subject = f"[{feedback_type.upper()}] {title}"
@@ -89,16 +161,17 @@ def handler(event: dict, context) -> dict:
         </html>
         """
         
-        # Отправляем email
-        try:
-            send_email(
-                to_email='support@nasha-semiya.ru',
-                subject=subject,
-                html_body=html_body
-            )
-        except Exception as e:
-            print(f'[ERROR] Email send failed: {str(e)}')
-            # Не блокируем ответ, если email не отправился
+        # Отправляем email только для support (для review/suggestion - не нужно спамить)
+        if feedback_type == 'support':
+            try:
+                send_email(
+                    to_email='support@nasha-semiya.ru',
+                    subject=subject,
+                    html_body=html_body
+                )
+            except Exception as e:
+                print(f'[ERROR] Email send failed: {str(e)}')
+                # Не блокируем ответ, если email не отправился
         
         return {
             'statusCode': 200,
