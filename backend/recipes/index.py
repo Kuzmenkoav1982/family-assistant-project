@@ -301,6 +301,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             images = body_data.get('images', [])
             created_by = user_id
             
+            print(f"DEBUG CREATE: Received images: {images}")
+            
             if not name or not ingredients or not instructions:
                 return {
                     'statusCode': 400,
