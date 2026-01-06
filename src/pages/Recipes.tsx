@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR, useStorageStats } from '@/hooks/useRecipes';
@@ -293,19 +294,43 @@ export default function Recipes() {
               Добавить рецепт
             </Button>
             {storageStats && (
-              <div className="text-sm text-gray-600 bg-white px-3 py-1.5 rounded-lg border shadow-sm">
-                <div className="flex items-center gap-2">
-                  <Icon name="Database" size={14} className="text-orange-600" />
-                  <span>
-                    {storageStats.photo_count} / {storageStats.limits.free_photos} фото
-                  </span>
-                  <span className="text-gray-400">•</span>
-                  <span>
-                    {storageStats.total_size_mb} / {storageStats.limits.free_size_mb} МБ
-                  </span>
+              <div className="bg-white px-4 py-3 rounded-lg border shadow-sm min-w-[280px]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Database" size={16} className="text-orange-600" />
+                  <span className="text-sm font-medium text-gray-700">Хранилище</span>
                   {storageStats.is_limit_reached && (
-                    <span className="ml-2 text-red-600 font-semibold">Лимит!</span>
+                    <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">
+                      Лимит достигнут
+                    </span>
                   )}
+                </div>
+                
+                <div className="space-y-2">
+                  <div>
+                    <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                      <span>Фотографии</span>
+                      <span className="font-medium">
+                        {storageStats.photo_count} / {storageStats.limits.free_photos}
+                      </span>
+                    </div>
+                    <Progress 
+                      value={storageStats.usage_percent.photos} 
+                      className="h-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                      <span>Размер</span>
+                      <span className="font-medium">
+                        {storageStats.total_size_mb} / {storageStats.limits.free_size_mb} МБ
+                      </span>
+                    </div>
+                    <Progress 
+                      value={storageStats.usage_percent.size} 
+                      className="h-2"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -350,8 +375,10 @@ export default function Recipes() {
                         <p className="font-medium mb-2">✨ Возможности раздела</p>
                         <ul className="text-sm space-y-1 list-disc list-inside">
                           <li><strong>3 способа добавления:</strong> текст, фото блюда, сканирование рецепта (OCR)</li>
-                          <li><strong>Галерея фото:</strong> До 5 фотографий на рецепт (готовое блюдо, процесс)</li>
-                          <li><strong>Редактирование:</strong> Изменяйте рецепты, добавляйте заметки и фото</li>
+                          <li><strong>Множественная загрузка:</strong> До 5 фотографий сразу при создании рецепта</li>
+                          <li><strong>Галерея фото:</strong> Просмотр всех фото с навигацией и миниатюрами</li>
+                          <li><strong>Редактирование:</strong> Изменяйте рецепты, добавляйте/удаляйте фото</li>
+                          <li><strong>Лимиты хранилища:</strong> 100 фото или 500 МБ (бесплатно)</li>
                           <li><strong>Категории:</strong> Завтраки, супы, основные блюда, десерты и др.</li>
                           <li><strong>Кухни мира:</strong> Русская, итальянская, азиатская и другие</li>
                           <li><strong>Фильтры:</strong> Поиск, категория, кухня, избранное</li>
@@ -371,7 +398,7 @@ export default function Recipes() {
                           <li>Впишите список ингредиентов (каждый с новой строки)</li>
                           <li>Опишите шаги приготовления</li>
                           <li>Добавьте диетические метки если нужно</li>
-                          <li>Можно добавить фото блюда</li>
+                          <li><strong>Загрузите до 5 фото сразу:</strong> выберите несколько файлов, первое станет обложкой</li>
                         </ol>
                       </div>
 
@@ -379,7 +406,8 @@ export default function Recipes() {
                         <p className="font-medium mb-2">📸 Как добавить рецепт через фото?</p>
                         <ol className="text-sm space-y-1 list-decimal list-inside">
                           <li>Нажмите <strong>"Добавить рецепт"</strong> → выберите <strong>"Фото"</strong></li>
-                          <li>Загрузите фотографию готового блюда</li>
+                          <li><strong>Выберите до 5 фото сразу:</strong> готовое блюдо, процесс приготовления</li>
+                          <li>Миниатюры появятся ниже (можно удалить крестиком при наведении)</li>
                           <li>AI автоматически распознает блюдо</li>
                           <li>Проверьте и дополните данные при необходимости</li>
                           <li>Сохраните рецепт</li>
@@ -419,13 +447,14 @@ export default function Recipes() {
                       </div>
 
                       <div>
-                        <p className="font-medium mb-2">📸 Галерея фото рецепта</p>
+                        <p className="font-medium mb-2">📸 Галерея фото и хранилище</p>
                         <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li>Добавляйте до <strong>5 фотографий</strong> к одному рецепту</li>
+                          <li>Добавляйте до <strong>5 фотографий сразу</strong> при создании рецепта</li>
                           <li>Первое фото — обложка (показывается в списке)</li>
-                          <li>Снимайте процесс приготовления пошагово</li>
-                          <li>Фотографируйте готовое блюдо с разных ракурсов</li>
-                          <li>Просматривайте все фото в режиме просмотра рецепта</li>
+                          <li>Навигация стрелками, миниатюры внизу, счётчик фото (1 / 5)</li>
+                          <li><strong>Лимит бесплатно:</strong> 100 фото или 500 МБ</li>
+                          <li>Прогресс-бар показывает использование хранилища</li>
+                          <li>При достижении лимита появится уведомление о подписке</li>
                         </ul>
                       </div>
 
@@ -457,8 +486,8 @@ export default function Recipes() {
 
                       <div className="pt-2 border-t border-orange-200">
                         <p className="text-sm italic">
-                          💡 <strong>Совет:</strong> Используйте OCR чтобы оцифровать рецепты из старых книг и блокнотов. 
-                          Так вы сохраните семейные рецепты навсегда!
+                          💡 <strong>Совет:</strong> Загружайте несколько фото сразу — так удобнее! OCR поможет оцифровать старые рецепты. 
+                          Следите за лимитом хранилища в правом верхнем углу.
                         </p>
                       </div>
                     </div>
