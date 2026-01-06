@@ -208,6 +208,9 @@ def send_email(to_email: str, subject: str, html_body: str):
     smtp_user = os.environ.get('YANDEX_SMTP_LOGIN', '')
     smtp_password = os.environ.get('YANDEX_SMTP_PASSWORD', '')
     
+    print(f'[DEBUG] SMTP Login: {smtp_user}')
+    print(f'[DEBUG] SMTP Password length: {len(smtp_password)} chars')
+    
     if not smtp_user or not smtp_password:
         raise Exception('SMTP credentials not configured. Please set YANDEX_SMTP_LOGIN and YANDEX_SMTP_PASSWORD')
     
