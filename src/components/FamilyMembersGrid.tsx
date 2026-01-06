@@ -69,8 +69,24 @@ const MemberCard = ({
           description: 'Необходима авторизация',
           variant: 'destructive'
         });
+        setIsGeneratingInvite(false);
         return;
       }
+      
+      console.log('Generate invite for member:', { id: member.id, name: member.name, type: typeof member.id });
+      
+      const childMemberId = typeof member.id === 'number' ? member.id : parseInt(member.id);
+      if (!childMemberId || isNaN(childMemberId)) {
+        toast({
+          title: 'Ошибка',
+          description: `Некорректный ID участника: ${member.id}`,
+          variant: 'destructive'
+        });
+        setIsGeneratingInvite(false);
+        return;
+      }
+      
+      console.log('Sending child_member_id:', childMemberId);
       
       const response = await fetch(func2url['child-invite'], {
         method: 'POST',
@@ -80,7 +96,7 @@ const MemberCard = ({
         },
         body: JSON.stringify({
           action: 'create',
-          child_member_id: parseInt(member.id)
+          child_member_id: childMemberId
         })
       });
       
