@@ -1,5 +1,5 @@
 """Обработка обратной связи от пользователей"""
-# Updated: 2026-01-06 22:06 - trying alternative app password
+# Updated: 2026-01-06 22:21 - new app password wdakkdfhxbcdwhsqr
 import json
 import os
 from datetime import datetime
