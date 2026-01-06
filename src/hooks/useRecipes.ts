@@ -119,3 +119,32 @@ export const useOCR = () => {
     }
   });
 };
+
+export interface StorageStats {
+  total_size_bytes: number;
+  total_size_mb: number;
+  photo_count: number;
+  limits: {
+    free_size_mb: number;
+    free_photos: number;
+  };
+  usage_percent: {
+    size: number;
+    photos: number;
+  };
+  is_limit_reached: boolean;
+}
+
+const STORAGE_STATS_URL = 'https://functions.poehali.dev/0fb2bb45-d1cb-43c5-b526-0baaaa91df3a';
+
+export const useStorageStats = () => {
+  return useQuery({
+    queryKey: ['storage-stats'],
+    queryFn: async () => {
+      const response = await fetch(STORAGE_STATS_URL, {
+        headers: getHeaders()
+      });
+      return response.json() as Promise<StorageStats>;
+    }
+  });
+};

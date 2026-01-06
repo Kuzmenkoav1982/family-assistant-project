@@ -62,6 +62,7 @@ interface NewRecipe {
   instructions: string;
   dietary_tags: string[];
   image_url: string;
+  images: string[];
 }
 
 interface AddRecipeDialogProps {
@@ -73,8 +74,9 @@ interface AddRecipeDialogProps {
   isSaving: boolean;
   addMethod: 'text' | 'photo' | 'ocr';
   onMethodChange: (method: 'text' | 'photo' | 'ocr') => void;
-  uploadedImage: string | null;
+  uploadedImages: string[];
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: (index: number) => void;
   onOCR: () => void;
   isOCRProcessing: boolean;
 }
@@ -88,8 +90,9 @@ export function AddRecipeDialog({
   isSaving,
   addMethod,
   onMethodChange,
-  uploadedImage,
+  uploadedImages,
   onImageUpload,
+  onRemoveImage,
   onOCR,
   isOCRProcessing
 }: AddRecipeDialogProps) {
@@ -239,25 +242,60 @@ export function AddRecipeDialog({
               </div>
             </div>
             <div>
-              <Label>Фото блюда (опционально)</Label>
-              <Input type="file" accept="image/*" onChange={onImageUpload} />
+              <Label>Фото блюда (до 5 штук)</Label>
+              <Input type="file" accept="image/*" multiple onChange={onImageUpload} disabled={uploadedImages.length >= 5} />
+              {uploadedImages.length > 0 && (
+                <div className="grid grid-cols-5 gap-2 mt-3">
+                  {uploadedImages.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img 
+                        src={`data:image/jpeg;base64,${img}`} 
+                        alt={`Фото ${idx + 1}`}
+                        className="w-full h-20 object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onRemoveImage(idx)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">{uploadedImages.length} / 5 фото</p>
             </div>
           </TabsContent>
 
           <TabsContent value="photo" className="space-y-4 mt-4">
             <div>
-              <Label>Загрузить фото</Label>
-              <Input type="file" accept="image/*" onChange={onImageUpload} />
-              {uploadedImage && (
-                <div className="mt-4">
-                  <img 
-                    src={`data:image/jpeg;base64,${uploadedImage}`} 
-                    alt="Preview" 
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">
+              <Label>Загрузить фото (до 5 штук)</Label>
+              <Input type="file" accept="image/*" multiple onChange={onImageUpload} disabled={uploadedImages.length >= 5} />
+              {uploadedImages.length > 0 && (
+                <div className="space-y-3 mt-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {uploadedImages.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img 
+                          src={`data:image/jpeg;base64,${img}`} 
+                          alt={`Фото ${idx + 1}`}
+                          className="w-full h-40 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => onRemoveImage(idx)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500">
                     AI распознает блюдо и предложит название, категорию и описание
                   </p>
+                  <p className="text-xs text-gray-500">{uploadedImages.length} / 5 фото загружено</p>
                 </div>
               )}
             </div>
@@ -266,11 +304,11 @@ export function AddRecipeDialog({
           <TabsContent value="ocr" className="space-y-4 mt-4">
             <div>
               <Label>Сфотографируйте рецепт</Label>
-              <Input type="file" accept="image/*" onChange={onImageUpload} />
-              {uploadedImage && (
+              <Input type="file" accept="image/*" onChange={onImageUpload} disabled={uploadedImages.length >= 1} />
+              {uploadedImages.length > 0 && (
                 <div className="mt-4">
                   <img 
-                    src={`data:image/jpeg;base64,${uploadedImage}`} 
+                    src={`data:image/jpeg;base64,${uploadedImages[0]}`} 
                     alt="Preview" 
                     className="w-full h-64 object-cover rounded-lg"
                   />

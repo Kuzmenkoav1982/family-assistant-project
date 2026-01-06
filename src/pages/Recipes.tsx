@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR } from '@/hooks/useRecipes';
+import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR, useStorageStats } from '@/hooks/useRecipes';
 import type { Recipe, RecipeCategory, CuisineType, DifficultyLevel } from '@/types/recipe.types';
 import { RecipesFilters } from '@/components/recipes/RecipesFilters';
 import { RecipeCard } from '@/components/recipes/RecipeCard';
@@ -26,7 +26,7 @@ export default function Recipes() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [addMethod, setAddMethod] = useState<'text' | 'photo' | 'ocr'>('text');
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const [newRecipe, setNewRecipe] = useState({
@@ -40,7 +40,8 @@ export default function Recipes() {
     ingredients: '',
     instructions: '',
     dietary_tags: [] as string[],
-    image_url: ''
+    image_url: '',
+    images: [] as string[]
   });
 
   const { data: recipes = [], isLoading } = useRecipes({
@@ -54,28 +55,60 @@ export default function Recipes() {
   const updateRecipe = useUpdateRecipe();
   const deleteRecipe = useDeleteRecipe();
   const ocrMutation = useOCR();
+  const { data: storageStats } = useStorageStats();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      setUploadedImage(base64.split(',')[1]);
-    };
-    reader.readAsDataURL(file);
+    if (uploadedImages.length + files.length > 5) {
+      toast({ title: 'Ограничение', description: 'Максимум 5 фотографий на рецепт', variant: 'destructive' });
+      return;
+    }
+
+    if (storageStats?.is_limit_reached) {
+      toast({ 
+        title: 'Лимит исчерпан', 
+        description: `Достигнут лимит хранилища (${storageStats.limits.free_photos} фото / ${storageStats.limits.free_size_mb} МБ). Оформите подписку для увеличения.`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (storageStats && (storageStats.photo_count + uploadedImages.length + files.length > storageStats.limits.free_photos)) {
+      toast({ 
+        title: 'Превышен лимит', 
+        description: `Можно загрузить ещё ${storageStats.limits.free_photos - storageStats.photo_count - uploadedImages.length} фото`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const base64Files: string[] = [];
+    for (const file of files) {
+      const reader = new FileReader();
+      await new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          base64Files.push(base64.split(',')[1]);
+          resolve(null);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    setUploadedImages(prev => [...prev, ...base64Files]);
   };
 
-  const handleUploadToStorage = async (): Promise<string | null> => {
-    if (!uploadedImage) return null;
+  const handleUploadToStorage = async (base64Image: string): Promise<string | null> => {
+    if (!base64Image) return null;
 
     try {
       const response = await fetch('https://functions.poehali.dev/d4f7f67f-fc6d-481f-96ca-6a6b4dd52c80', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          file: uploadedImage,
+          file: base64Image,
           fileName: 'recipe.jpg',
           folder: 'recipes'
         })
@@ -90,9 +123,9 @@ export default function Recipes() {
   };
 
   const handleOCR = async () => {
-    if (!uploadedImage) return;
+    if (uploadedImages.length === 0) return;
 
-    const imageUrl = await handleUploadToStorage();
+    const imageUrl = await handleUploadToStorage(uploadedImages[0]);
     if (!imageUrl) {
       toast({ title: 'Ошибка', description: 'Не удалось загрузить изображение', variant: 'destructive' });
       return;
@@ -119,9 +152,31 @@ export default function Recipes() {
       return;
     }
 
+    if (storageStats?.is_limit_reached && uploadedImages.length > 0) {
+      toast({ 
+        title: 'Лимит исчерпан', 
+        description: 'Достигнут лимит хранилища. Оформите подписку.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     let finalImageUrl = newRecipe.image_url;
-    if (uploadedImage && !finalImageUrl) {
-      finalImageUrl = await handleUploadToStorage() || '';
+    const finalImages: string[] = [];
+
+    if (uploadedImages.length > 0) {
+      toast({ title: 'Загрузка...', description: `Загружаю ${uploadedImages.length} фото` });
+      
+      for (const base64 of uploadedImages) {
+        const url = await handleUploadToStorage(base64);
+        if (url) {
+          finalImages.push(url);
+        }
+      }
+
+      if (finalImages.length > 0 && !finalImageUrl) {
+        finalImageUrl = finalImages[0];
+      }
     }
 
     try {
@@ -131,7 +186,8 @@ export default function Recipes() {
           ...newRecipe,
           cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
           servings: parseInt(newRecipe.servings),
-          image_url: finalImageUrl
+          image_url: finalImageUrl,
+          images: finalImages.length > 0 ? finalImages : newRecipe.images
         });
         toast({ title: 'Готово!', description: 'Рецепт обновлён' });
       } else {
@@ -139,7 +195,8 @@ export default function Recipes() {
           ...newRecipe,
           cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
           servings: parseInt(newRecipe.servings),
-          image_url: finalImageUrl
+          image_url: finalImageUrl,
+          images: finalImages
         });
         toast({ title: 'Готово!', description: 'Рецепт добавлен' });
       }
@@ -184,7 +241,8 @@ export default function Recipes() {
       ingredients: recipe.ingredients,
       instructions: recipe.instructions,
       dietary_tags: recipe.dietary_tags || [],
-      image_url: recipe.image_url || ''
+      image_url: recipe.image_url || '',
+      images: recipe.images || []
     });
     setSelectedRecipe(recipe);
     setIsEditMode(true);
@@ -205,9 +263,10 @@ export default function Recipes() {
       ingredients: '',
       instructions: '',
       dietary_tags: [],
-      image_url: ''
+      image_url: '',
+      images: []
     });
-    setUploadedImage(null);
+    setUploadedImages([]);
     setAddMethod('text');
   };
 
@@ -228,10 +287,29 @@ export default function Recipes() {
               <p className="text-gray-600 mt-1">Ваша семейная кулинарная книга</p>
             </div>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="bg-orange-600 hover:bg-orange-700">
-            <Plus className="mr-2" size={20} />
-            Добавить рецепт
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-orange-600 hover:bg-orange-700">
+              <Plus className="mr-2" size={20} />
+              Добавить рецепт
+            </Button>
+            {storageStats && (
+              <div className="text-sm text-gray-600 bg-white px-3 py-1.5 rounded-lg border shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Icon name="Database" size={14} className="text-orange-600" />
+                  <span>
+                    {storageStats.photo_count} / {storageStats.limits.free_photos} фото
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span>
+                    {storageStats.total_size_mb} / {storageStats.limits.free_size_mb} МБ
+                  </span>
+                  {storageStats.is_limit_reached && (
+                    <span className="ml-2 text-red-600 font-semibold">Лимит!</span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Инструкция */}
@@ -452,8 +530,9 @@ export default function Recipes() {
           isSaving={createRecipe.isPending}
           addMethod={addMethod}
           onMethodChange={setAddMethod}
-          uploadedImage={uploadedImage}
+          uploadedImages={uploadedImages}
           onImageUpload={handleImageUpload}
+          onRemoveImage={(index) => setUploadedImages(prev => prev.filter((_, i) => i !== index))}
           onOCR={handleOCR}
           isOCRProcessing={ocrMutation.isPending}
         />

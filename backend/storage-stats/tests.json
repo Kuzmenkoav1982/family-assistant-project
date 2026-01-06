@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Get storage statistics",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "total_size_mb": 0,
+        "photo_count": 0,
+        "is_limit_reached": false
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
