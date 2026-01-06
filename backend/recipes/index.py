@@ -395,6 +395,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 updates.append('image_url = %s')
                 params.append(body_data['image_url'])
             if 'images' in body_data:
+                print(f"DEBUG UPDATE: Saving images: {body_data['images']}")
                 updates.append('images = %s')
                 params.append(body_data['images'])
             if 'is_favorite' in body_data:
