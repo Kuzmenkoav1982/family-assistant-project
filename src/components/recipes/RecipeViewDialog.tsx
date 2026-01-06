@@ -87,11 +87,11 @@ export function RecipeViewDialog({
             </DialogHeader>
             {images.length > 0 && (
               <div className="w-full relative">
-                <div className="w-full h-64 overflow-hidden rounded-lg">
+                <div className="w-full h-96 flex items-center justify-center rounded-lg bg-gray-50">
                   <img 
                     src={images[currentImageIndex]} 
                     alt={`${recipe.name} - фото ${currentImageIndex + 1}`} 
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-contain" 
                   />
                 </div>
                 
