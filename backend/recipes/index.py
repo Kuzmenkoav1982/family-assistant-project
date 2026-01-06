@@ -127,12 +127,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 
+                recipe_dict = dict(recipe)
+                print(f"DEBUG: Recipe {recipe_id} images field: {recipe_dict.get('images')}")
+                
                 return {
                     'statusCode': 200,
                     'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
                     'body': json.dumps({
                         'success': True,
-                        'recipe': dict(recipe)
+                        'recipe': recipe_dict
                     }, default=str),
                     'isBase64Encoded': False
                 }
@@ -165,13 +168,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cursor.execute(query, tuple(query_params))
             recipes = cursor.fetchall()
+            recipes_list = [dict(r) for r in recipes]
+            
+            if recipes_list:
+                print(f"DEBUG: First recipe images: {recipes_list[0].get('images')}")
             
             return {
                 'statusCode': 200,
                 'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'success': True,
-                    'recipes': [dict(r) for r in recipes]
+                    'recipes': recipes_list
                 }, default=str),
                 'isBase64Encoded': False
             }
