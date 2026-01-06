@@ -102,23 +102,35 @@ export default function Recipes() {
   };
 
   const handleUploadToStorage = async (base64Image: string): Promise<string | null> => {
-    if (!base64Image) return null;
+    if (!base64Image) {
+      console.log('handleUploadToStorage: empty base64Image');
+      return null;
+    }
+
+    console.log('handleUploadToStorage: starting upload, base64 length:', base64Image.length);
 
     try {
+      const payload = {
+        file: base64Image,
+        fileName: 'recipe.jpg',
+        folder: 'recipes'
+      };
+      console.log('handleUploadToStorage: payload prepared');
+
       const response = await fetch('https://functions.poehali.dev/d4f7f67f-fc6d-481f-96ca-6a6b4dd52c80', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          file: base64Image,
-          fileName: 'recipe.jpg',
-          folder: 'recipes'
-        })
+        body: JSON.stringify(payload)
       });
 
+      console.log('handleUploadToStorage: response status:', response.status);
+
       const data = await response.json();
+      console.log('handleUploadToStorage: response data:', data);
+      
       return data.url || null;
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('handleUploadToStorage: ERROR:', error);
       return null;
     }
   };
@@ -165,18 +177,29 @@ export default function Recipes() {
     let finalImageUrl = newRecipe.image_url;
     const finalImages: string[] = [];
 
+    console.log('=== UPLOAD DEBUG ===');
+    console.log('uploadedImages.length:', uploadedImages.length);
+    console.log('uploadedImages[0] length:', uploadedImages[0]?.length);
+
     if (uploadedImages.length > 0) {
       toast({ title: 'Загрузка...', description: `Загружаю ${uploadedImages.length} фото` });
       
-      for (const base64 of uploadedImages) {
+      for (let i = 0; i < uploadedImages.length; i++) {
+        const base64 = uploadedImages[i];
+        console.log(`Uploading image ${i + 1}/${uploadedImages.length}, base64 length:`, base64.length);
+        
         const url = await handleUploadToStorage(base64);
-        console.log('Uploaded URL:', url);
+        console.log(`Image ${i + 1} uploaded, URL:`, url);
+        
         if (url) {
           finalImages.push(url);
+        } else {
+          console.error(`Failed to upload image ${i + 1}`);
         }
       }
 
       console.log('Final images array:', finalImages);
+      console.log('Final images count:', finalImages.length);
       
       if (finalImages.length > 0 && !finalImageUrl) {
         finalImageUrl = finalImages[0];
