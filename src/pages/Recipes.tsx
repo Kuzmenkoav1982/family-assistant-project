@@ -182,13 +182,16 @@ export default function Recipes() {
 
     try {
       if (isEditMode && selectedRecipe) {
+        const existingImages = newRecipe.images || [];
+        const allImages = [...existingImages, ...finalImages];
+        
         await updateRecipe.mutateAsync({
           id: selectedRecipe.id,
           ...newRecipe,
           cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
           servings: parseInt(newRecipe.servings),
-          image_url: finalImageUrl,
-          images: finalImages.length > 0 ? finalImages : newRecipe.images
+          image_url: finalImageUrl || newRecipe.image_url,
+          images: allImages
         });
         toast({ title: 'Готово!', description: 'Рецепт обновлён' });
       } else {
