@@ -12,6 +12,7 @@ export interface Recipe {
   instructions: string;
   dietary_tags: string[];
   image_url?: string;
+  images?: string[]; // Массив URL фотографий (до 5 штук)
   is_favorite: boolean;
   created_by: string;
   created_at: string;

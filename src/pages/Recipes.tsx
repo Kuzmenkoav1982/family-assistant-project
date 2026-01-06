@@ -22,6 +22,7 @@ export default function Recipes() {
   const [selectedCuisine, setSelectedCuisine] = useState<CuisineType | 'all'>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [addMethod, setAddMethod] = useState<'text' | 'photo' | 'ocr'>('text');
@@ -124,18 +125,29 @@ export default function Recipes() {
     }
 
     try {
-      await createRecipe.mutateAsync({
-        ...newRecipe,
-        cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
-        servings: parseInt(newRecipe.servings),
-        image_url: finalImageUrl
-      });
+      if (isEditMode && selectedRecipe) {
+        await updateRecipe.mutateAsync({
+          id: selectedRecipe.id,
+          ...newRecipe,
+          cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
+          servings: parseInt(newRecipe.servings),
+          image_url: finalImageUrl
+        });
+        toast({ title: 'Готово!', description: 'Рецепт обновлён' });
+      } else {
+        await createRecipe.mutateAsync({
+          ...newRecipe,
+          cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
+          servings: parseInt(newRecipe.servings),
+          image_url: finalImageUrl
+        });
+        toast({ title: 'Готово!', description: 'Рецепт добавлен' });
+      }
 
-      toast({ title: 'Готово!', description: 'Рецепт добавлен' });
       setIsAddDialogOpen(false);
       resetForm();
     } catch (error) {
-      toast({ title: 'Ошибка', description: 'Не удалось добавить рецепт', variant: 'destructive' });
+      toast({ title: 'Ошибка', description: isEditMode ? 'Не удалось обновить рецепт' : 'Не удалось добавить рецепт', variant: 'destructive' });
     }
   };
 
@@ -159,8 +171,29 @@ export default function Recipes() {
       toast({ title: 'Ошибка', description: 'Не удалось удалить', variant: 'destructive' });
     }
   };
+  
+  const handleEditRecipe = (recipe: Recipe) => {
+    setNewRecipe({
+      name: recipe.name,
+      description: recipe.description || '',
+      category: recipe.category,
+      cuisine: recipe.cuisine,
+      cooking_time: recipe.cooking_time?.toString() || '',
+      difficulty: recipe.difficulty,
+      servings: recipe.servings.toString(),
+      ingredients: recipe.ingredients,
+      instructions: recipe.instructions,
+      dietary_tags: recipe.dietary_tags || [],
+      image_url: recipe.image_url || ''
+    });
+    setSelectedRecipe(recipe);
+    setIsEditMode(true);
+    setIsViewDialogOpen(false);
+    setIsAddDialogOpen(true);
+  };
 
   const resetForm = () => {
+    setIsEditMode(false);
     setNewRecipe({
       name: '',
       description: '',
@@ -239,6 +272,8 @@ export default function Recipes() {
                         <p className="font-medium mb-2">✨ Возможности раздела</p>
                         <ul className="text-sm space-y-1 list-disc list-inside">
                           <li><strong>3 способа добавления:</strong> текст, фото блюда, сканирование рецепта (OCR)</li>
+                          <li><strong>Галерея фото:</strong> До 5 фотографий на рецепт (готовое блюдо, процесс)</li>
+                          <li><strong>Редактирование:</strong> Изменяйте рецепты, добавляйте заметки и фото</li>
                           <li><strong>Категории:</strong> Завтраки, супы, основные блюда, десерты и др.</li>
                           <li><strong>Кухни мира:</strong> Русская, итальянская, азиатская и другие</li>
                           <li><strong>Фильтры:</strong> Поиск, категория, кухня, избранное</li>
@@ -295,6 +330,28 @@ export default function Recipes() {
                       </div>
 
                       <div>
+                        <p className="font-medium mb-2">✏️ Как изменить рецепт?</p>
+                        <ol className="text-sm space-y-1 list-decimal list-inside">
+                          <li>Откройте рецепт (клик по карточке)</li>
+                          <li>Нажмите кнопку <strong>"Изменить"</strong> внизу</li>
+                          <li>Отредактируйте нужные поля</li>
+                          <li>Добавьте или удалите фото (до 5 штук)</li>
+                          <li>Сохраните изменения</li>
+                        </ol>
+                      </div>
+
+                      <div>
+                        <p className="font-medium mb-2">📸 Галерея фото рецепта</p>
+                        <ul className="text-sm space-y-1 list-disc list-inside">
+                          <li>Добавляйте до <strong>5 фотографий</strong> к одному рецепту</li>
+                          <li>Первое фото — обложка (показывается в списке)</li>
+                          <li>Снимайте процесс приготовления пошагово</li>
+                          <li>Фотографируйте готовое блюдо с разных ракурсов</li>
+                          <li>Просматривайте все фото в режиме просмотра рецепта</li>
+                        </ul>
+                      </div>
+
+                      <div>
                         <p className="font-medium mb-2">🎯 Полезные советы</p>
                         <ul className="text-sm space-y-1 list-disc list-inside">
                           <li><strong>Семейные рецепты:</strong> Оцифруйте рецепты бабушек и мам через OCR</li>
@@ -316,7 +373,7 @@ export default function Recipes() {
 
                       <div className="pt-2 border-t border-orange-200">
                         <p className="text-sm">
-                          📖 <strong>Подробнее:</strong> <a href="https://docs.poehali.dev" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">Полная инструкция в документации</a>
+                          📖 <strong>Подробнее:</strong> <a href="/instructions" className="text-orange-600 hover:underline">Полная инструкция в разделе "Инструкции"</a>
                         </p>
                       </div>
 
@@ -407,6 +464,7 @@ export default function Recipes() {
           recipe={selectedRecipe}
           onToggleFavorite={handleToggleFavorite}
           onDelete={handleDeleteRecipe}
+          onEdit={handleEditRecipe}
           isDeleting={deleteRecipe.isPending}
         />
       </div>
