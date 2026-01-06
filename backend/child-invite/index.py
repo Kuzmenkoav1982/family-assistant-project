@@ -64,7 +64,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         cur.close()
         conn.close()
 
-def create_child_invite(family_id: str, child_member_id: int, created_by: int) -> Dict[str, Any]:
+def create_child_invite(family_id: str, child_member_id: str, created_by: str) -> Dict[str, Any]:
     """Создание инвайт-ссылки для детского профиля"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -74,8 +74,8 @@ def create_child_invite(family_id: str, child_member_id: int, created_by: int) -
         check_query = f"""
             SELECT id, name, account_type
             FROM {SCHEMA}.family_members
-            WHERE id = {child_member_id} 
-            AND family_id = {escape_string(family_id)}
+            WHERE id = {escape_string(child_member_id)}::uuid 
+            AND family_id = {escape_string(family_id)}::uuid
             AND account_type = 'child_profile'
         """
         cur.execute(check_query)
@@ -94,9 +94,9 @@ def create_child_invite(family_id: str, child_member_id: int, created_by: int) -
             (family_id, child_member_id, invite_token, created_by, expires_at)
             VALUES (
                 {escape_string(family_id)}::uuid,
-                {child_member_id},
+                {escape_string(child_member_id)}::uuid,
                 {escape_string(invite_token)},
-                {created_by},
+                {escape_string(created_by)}::uuid,
                 {escape_string(expires_at.isoformat())}
             )
             RETURNING id, invite_token

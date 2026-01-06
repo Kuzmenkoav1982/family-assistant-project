@@ -164,8 +164,11 @@ const AIAssistantWidget = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Показываем приветствие через 3 секунды после загрузки (только не на /welcome)
+    // Показываем приветствие через 3 секунды после загрузки (только не на /welcome и только один раз)
     if (isWelcomePage) return;
+    
+    const hasSeenWelcome = localStorage.getItem('hasSeenDomovoyWelcome') === 'true';
+    if (hasSeenWelcome) return;
     
     let isMounted = true;
     const timer = setTimeout(() => {
@@ -389,7 +392,10 @@ const AIAssistantWidget = () => {
         <div className="fixed bottom-24 right-6 z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-xs border-4 border-orange-300">
             <button
-              onClick={() => setShowWelcome(false)}
+              onClick={() => {
+                setShowWelcome(false);
+                localStorage.setItem('hasSeenDomovoyWelcome', 'true');
+              }}
               className="absolute -top-2 -right-2 bg-gray-200 rounded-full p-1 hover:bg-gray-300"
             >
               <X className="w-4 h-4" />
@@ -426,6 +432,7 @@ const AIAssistantWidget = () => {
                   onClick={() => {
                     setIsOpen(true);
                     setShowWelcome(false);
+                    localStorage.setItem('hasSeenDomovoyWelcome', 'true');
                   }}
                   className="mt-3 w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
                   size="sm"
