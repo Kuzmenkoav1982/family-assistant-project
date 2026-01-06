@@ -117,7 +117,7 @@ export default function Recipes() {
       };
       console.log('handleUploadToStorage: payload prepared');
 
-      const response = await fetch('https://functions.poehali.dev/d4f7f67f-fc6d-481f-96ca-6a6b4dd52c80', {
+      const response = await fetch('https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
