@@ -1,5 +1,5 @@
 """Обработка обратной связи от пользователей"""
-# Updated: 2026-01-06 21:52 - refresh SMTP credentials again
+# Updated: 2026-01-06 22:00 - refresh SMTP credentials (correct password)
 import json
 import os
 from datetime import datetime
