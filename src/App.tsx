@@ -73,6 +73,8 @@ import AdminDomovoy from "./pages/AdminDomovoy";
 import DomovoyPage from "./pages/DomovoyPage";
 import AliceIntegration from "./pages/AliceIntegration";
 import AdminAlice from "./pages/AdminAlice";
+import ActivateChild from "./pages/ActivateChild";
+import ActivateCallback from "./pages/ActivateCallback";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -132,6 +134,8 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/join" element={<JoinFamily />} />
+              <Route path="/activate/:inviteToken" element={<ActivateChild />} />
+              <Route path="/activate-callback" element={<ActivateCallback />} />
               <Route path="/oauth-debug" element={<OAuthDebug />} />
               <Route path="/" element={
                 <ProtectedRoute>

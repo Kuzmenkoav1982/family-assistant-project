@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Create child invite - unauthorized",
+      "method": "POST",
+      "body": {
+        "action": "create",
+        "child_member_id": 1
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "success": false
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get invite info - missing token",
+      "method": "POST",
+      "body": {
+        "action": "info"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "success": false
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

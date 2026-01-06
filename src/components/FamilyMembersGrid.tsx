@@ -13,6 +13,8 @@ import { calculateMemberWorkload, getWorkloadDescription } from '@/utils/memberW
 import { loadWidgetSettings } from '@/types/widgetSettings';
 import type { FamilyMember } from '@/types/family.types';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import func2url from '../../backend/func2url.json';
 
 interface Task {
   id: string;
@@ -50,10 +52,68 @@ const MemberCard = ({
   onAssignTask?: (memberId: string) => void;
 }) => {
   const [widgetSettings] = useState(() => loadWidgetSettings());
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+  const { toast } = useToast();
   const metrics = calculateMemberWorkload(member, tasks, events);
   const workloadDesc = getWorkloadDescription(metrics);
   
+  const handleGenerateInvite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsGeneratingInvite(true);
+    
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        toast({
+          title: 'Ошибка',
+          description: 'Необходима авторизация',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const response = await fetch(func2url['child-invite'], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({
+          action: 'create',
+          child_member_id: parseInt(member.id)
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Копируем ссылку в буфер обмена
+        await navigator.clipboard.writeText(data.invite_url);
+        
+        toast({
+          title: '🎉 Ссылка-приглашение создана!',
+          description: `Ссылка скопирована в буфер обмена. Отправьте её ${data.child_name}, чтобы активировать аккаунт.`
+        });
+      } else {
+        toast({
+          title: 'Ошибка',
+          description: data.error || 'Не удалось создать приглашение',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось подключиться к серверу',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGeneratingInvite(false);
+    }
+  };
+  
   return (
+  <TooltipProvider>
   <Card
     className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-102 animate-fade-in group"
     style={{ animationDelay: `${index * 0.1}s` }}
@@ -102,41 +162,37 @@ const MemberCard = ({
                       {member.points}
                     </Badge>
                     {member.account_type === 'child_profile' ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700 border-amber-300 cursor-help">
-                              <Icon name="Baby" size={10} className="mr-1" />
-                              Без доступа
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p className="font-medium text-amber-900">👶 Профиль без доступа</p>
-                            <p className="text-xs text-gray-600 mt-1">Создан для отслеживания развития и активностей ребенка</p>
-                            <p className="text-xs text-gray-500 mt-1">• Не может входить в приложение</p>
-                            <p className="text-xs text-gray-500">• Не участвует в голосованиях семьи</p>
-                            <p className="text-xs text-gray-500">• Данные видны только родителям</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700 border-amber-300 cursor-help">
+                            <Icon name="Baby" size={10} className="mr-1" />
+                            Без доступа
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-medium text-amber-900">👶 Профиль без доступа</p>
+                          <p className="text-xs text-gray-600 mt-1">Создан для отслеживания развития и активностей ребенка</p>
+                          <p className="text-xs text-gray-500 mt-1">• Не может входить в приложение</p>
+                          <p className="text-xs text-gray-500">• Не участвует в голосованиях семьи</p>
+                          <p className="text-xs text-gray-500">• Данные видны только родителям</p>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-300 cursor-help">
-                              <Icon name="UserCheck" size={10} className="mr-1" />
-                              С доступом
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p className="font-medium text-green-900">✅ Аккаунт с доступом</p>
-                            <p className="text-xs text-gray-600 mt-1">Полноценный участник семьи с авторизацией</p>
-                            <p className="text-xs text-gray-500 mt-1">• Может входить в приложение</p>
-                            <p className="text-xs text-gray-500">• Участвует в семейных голосованиях</p>
-                            <p className="text-xs text-gray-500">• Имеет доступ к функциям семьи</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-300 cursor-help">
+                            <Icon name="UserCheck" size={10} className="mr-1" />
+                            С доступом
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-medium text-green-900">✅ Аккаунт с доступом</p>
+                          <p className="text-xs text-gray-600 mt-1">Полноценный участник семьи с авторизацией</p>
+                          <p className="text-xs text-gray-500 mt-1">• Может входить в приложение</p>
+                          <p className="text-xs text-gray-500">• Участвует в семейных голосованиях</p>
+                          <p className="text-xs text-gray-500">• Имеет доступ к функциям семьи</p>
+                        </TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 </div>
@@ -157,8 +213,7 @@ const MemberCard = ({
                 </div>
               )}
               
-              <TooltipProvider>
-                <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
+              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
                   {widgetSettings.showActiveTasks && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -220,9 +275,36 @@ const MemberCard = ({
                     </Tooltip>
                   )}
                 </div>
-              </TooltipProvider>
               
-              {widgetSettings.showQuickActions && onAssignTask && (
+              {member.account_type === 'child_profile' && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:bg-amber-100"
+                        onClick={handleGenerateInvite}
+                        disabled={isGeneratingInvite}
+                      >
+                        {isGeneratingInvite ? (
+                          <Icon name="Loader2" size={12} className="mr-1 animate-spin" />
+                        ) : (
+                          <Icon name="Link" size={12} className="mr-1" />
+                        )}
+                        Создать ссылку-приглашение
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="font-medium text-amber-900">🔗 Активация аккаунта</p>
+                      <p className="text-xs text-gray-600 mt-1">Создайте персональную ссылку для {member.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">Ребёнок сможет привязать свой аккаунт и получить полный доступ</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
+              
+              {widgetSettings.showQuickActions && onAssignTask && member.account_type !== 'child_profile' && (
                 <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2">
                   <Button
                     size="sm"
@@ -251,6 +333,7 @@ const MemberCard = ({
               )}
             </CardContent>
           </Card>
+  </TooltipProvider>
   );
 };
 
