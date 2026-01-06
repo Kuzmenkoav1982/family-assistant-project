@@ -170,11 +170,14 @@ export default function Recipes() {
       
       for (const base64 of uploadedImages) {
         const url = await handleUploadToStorage(base64);
+        console.log('Uploaded URL:', url);
         if (url) {
           finalImages.push(url);
         }
       }
 
+      console.log('Final images array:', finalImages);
+      
       if (finalImages.length > 0 && !finalImageUrl) {
         finalImageUrl = finalImages[0];
       }
@@ -184,6 +187,10 @@ export default function Recipes() {
       if (isEditMode && selectedRecipe) {
         const existingImages = newRecipe.images || [];
         const allImages = [...existingImages, ...finalImages];
+        
+        console.log('UPDATE - Existing images:', existingImages);
+        console.log('UPDATE - Final images:', finalImages);
+        console.log('UPDATE - All images:', allImages);
         
         await updateRecipe.mutateAsync({
           id: selectedRecipe.id,
@@ -195,6 +202,15 @@ export default function Recipes() {
         });
         toast({ title: 'Готово!', description: 'Рецепт обновлён' });
       } else {
+        console.log('CREATE - Final images:', finalImages);
+        console.log('CREATE - Payload:', {
+          ...newRecipe,
+          cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
+          servings: parseInt(newRecipe.servings),
+          image_url: finalImageUrl,
+          images: finalImages
+        });
+        
         await createRecipe.mutateAsync({
           ...newRecipe,
           cooking_time: newRecipe.cooking_time ? parseInt(newRecipe.cooking_time) : undefined,
