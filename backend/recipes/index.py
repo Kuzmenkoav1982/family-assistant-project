@@ -291,6 +291,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             instructions = body_data.get('instructions', '').strip()
             dietary_tags = body_data.get('dietary_tags', [])
             image_url = body_data.get('image_url')
+            images = body_data.get('images', [])
             created_by = user_id
             
             if not name or not ingredients or not instructions:
@@ -304,11 +305,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cursor.execute(
                 """INSERT INTO recipes 
                    (family_id, name, description, category, cuisine, cooking_time, difficulty, 
-                    servings, ingredients, instructions, dietary_tags, image_url, created_by)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    servings, ingredients, instructions, dietary_tags, image_url, images, created_by)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    RETURNING id""",
                 (family_id, name, description, category, cuisine, cooking_time, difficulty,
-                 servings, ingredients, instructions, dietary_tags, image_url, created_by)
+                 servings, ingredients, instructions, dietary_tags, image_url, images, created_by)
             )
             
             recipe_id = cursor.fetchone()['id']
@@ -386,6 +387,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if 'image_url' in body_data:
                 updates.append('image_url = %s')
                 params.append(body_data['image_url'])
+            if 'images' in body_data:
+                updates.append('images = %s')
+                params.append(body_data['images'])
             if 'is_favorite' in body_data:
                 updates.append('is_favorite = %s')
                 params.append(body_data['is_favorite'])
