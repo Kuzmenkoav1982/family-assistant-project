@@ -53,8 +53,8 @@ export default function IdeasBoard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState('votes');
   
   // Форма создания идеи
@@ -107,8 +107,8 @@ export default function IdeasBoard() {
     try {
       const params = new URLSearchParams({
         sort_by: sortBy,
-        ...(selectedCategory && { category: selectedCategory }),
-        ...(selectedStatus && { status: selectedStatus })
+        ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
+        ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus })
       });
       
       const response = await fetch(`${IDEAS_API}?${params}`);
@@ -484,7 +484,7 @@ export default function IdeasBoard() {
                     <SelectValue placeholder="Все категории" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Все категории</SelectItem>
+                    <SelectItem value="all">Все категории</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.icon} {cat.name}
@@ -501,7 +501,7 @@ export default function IdeasBoard() {
                     <SelectValue placeholder="Все статусы" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Все статусы</SelectItem>
+                    <SelectItem value="all">Все статусы</SelectItem>
                     {statuses.map((status) => (
                       <SelectItem key={status.id} value={status.id}>
                         {status.icon} {status.name}
