@@ -1168,6 +1168,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             """
                             
                             try:
+                                print(f"[DEBUG] Отправка email на {email}, код: {reset_code}")
                                 response = requests.post(
                                     NOTIFICATIONS_URL,
                                     json={
@@ -1179,14 +1180,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                                     headers={'Content-Type': 'application/json'},
                                     timeout=10
                                 )
+                                print(f"[DEBUG] Notifications response: {response.status_code}, {response.text[:200]}")
                                 email_sent = response.status_code == 200
-                            except:
+                            except Exception as email_error:
+                                print(f"[ERROR] Ошибка отправки email: {str(email_error)}")
                                 email_sent = False
                             
                             cur.close()
                             conn.close()
                             
-                            result = {'success': True}
+                            result = {'success': True, 'debug_email_sent': email_sent}
                     except Exception as e:
                         cur.close()
                         conn.close()
