@@ -1155,6 +1155,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             cur.execute(insert_reset)
                             
                             # Send email via NOTIFICATIONS_URL
+                            email_body = f"Ваш код для восстановления пароля: {reset_code}. Код действителен в течение 15 минут."
                             email_html = f"""
                             <html>
                             <body style="font-family: Arial, sans-serif; padding: 20px;">
@@ -1175,6 +1176,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                                         'action': 'send_email',
                                         'to': email,
                                         'subject': 'Код восстановления пароля',
+                                        'body': email_body,
                                         'html': email_html
                                     },
                                     headers={'Content-Type': 'application/json'},
