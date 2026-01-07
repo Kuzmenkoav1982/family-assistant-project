@@ -30,7 +30,9 @@ interface Props {
 const PLAN_NAMES: Record<string, string> = {
   basic: 'Базовый',
   standard: 'Семейный',
-  premium: 'Премиум'
+  premium: 'Премиум',
+  full: 'Полный пакет',
+  ai_assistant: 'AI-помощник'
 };
 
 const STATUS_LABELS: Record<string, string> = {

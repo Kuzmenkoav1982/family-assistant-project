@@ -84,6 +84,8 @@ export default function DomovoyDonationDialog({
         return;
       }
 
+      setIsLoading(true);
+
       const response = await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=donate', {
         method: 'POST',
         headers: {
@@ -99,32 +101,20 @@ export default function DomovoyDonationDialog({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Ошибка оплаты');
+        throw new Error(data.error || 'Ошибка создания платежа');
       }
 
-      const newLevel = data.level_after;
-      setAssistantLevel(newLevel);
-      setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        onOpenChange(false);
-        
-        toast({
-          title: '🏠 Домовой благодарит!',
-          description: `Уровень мудрости повышен до ${newLevel}!`,
-          duration: 5000
-        });
-        
-        // Сброс формы
-        setSelectedAmount(null);
-        setCustomAmount('');
-        setPaymentMethod(null);
-      }, 3000);
+      // Перенаправляем на страницу оплаты ЮКассы
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        throw new Error('Не получен URL оплаты');
+      }
     } catch (error) {
+      setIsLoading(false);
       toast({
         title: 'Ошибка',
-        description: error instanceof Error ? error.message : 'Не удалось обработать донат',
+        description: error instanceof Error ? error.message : 'Не удалось создать платёж',
         variant: 'destructive'
       });
     }
@@ -311,8 +301,8 @@ export default function DomovoyDonationDialog({
             <p className="text-sm text-blue-900 flex items-start gap-2">
               <Icon name="Info" className="mt-0.5 flex-shrink-0" size={16} />
               <span>
-                <strong>Обратите внимание:</strong> Реквизиты для оплаты будут доступны после 
-                регистрации ИП. Сейчас это демо-версия функции донатов.
+                <strong>Безопасная оплата:</strong> После нажатия кнопки вы будете перенаправлены на страницу оплаты ЮКасса. 
+                Уровень Домового повысится автоматически после успешной оплаты.
               </span>
             </p>
           </div>
@@ -321,14 +311,23 @@ export default function DomovoyDonationDialog({
         <div className="flex gap-3">
           <Button
             onClick={handleDonate}
-            disabled={(!selectedAmount && !customAmount) || !paymentMethod}
+            disabled={(!selectedAmount && !customAmount) || !paymentMethod || isLoading}
             className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
             size="lg"
           >
-            <Icon name="Gift" className="mr-2" />
-            {selectedAmount || customAmount 
-              ? `Угостить на ₽${selectedAmount || customAmount}`
-              : 'Угостить Домового'}
+            {isLoading ? (
+              <>
+                <Icon name="Loader2" className="mr-2 animate-spin" />
+                Переход к оплате...
+              </>
+            ) : (
+              <>
+                <Icon name="Gift" className="mr-2" />
+                {selectedAmount || customAmount 
+                  ? `Угостить на ₽${selectedAmount || customAmount}`
+                  : 'Угостить Домового'}
+              </>
+            )}
           </Button>
           <Button
             onClick={() => onOpenChange(false)}

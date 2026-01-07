@@ -21,8 +21,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     GET /domovoy-donations - получить уровень и настройки
     POST /domovoy-donations?action=donate - создать донат
     POST /domovoy-donations?action=update-settings - обновить настройки ассистента
+    POST /domovoy-donations?action=webhook - webhook от ЮКассы
     """
     method = event.get('httpMethod', 'GET')
+    params = event.get('queryStringParameters') or {}
+    action = params.get('action', '')
     
     # CORS preflight
     if method == 'OPTIONS':
@@ -37,7 +40,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': ''
         }
     
-    # Получаем токен пользователя
+    # Webhook от ЮКассы (без авторизации)
+    if method == 'POST' and action == 'webhook':
+        dsn = os.environ.get('DATABASE_URL')
+        try:
+            conn = psycopg2.connect(dsn)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            body = json.loads(event.get('body', '{}'))
+            result = handle_webhook(cursor, conn, body)
+            cursor.close()
+            conn.close()
+            return result
+        except Exception as e:
+            return {
+                'statusCode': 500,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': str(e)})
+            }
+    
+    # Все остальные запросы требуют авторизации
     headers = event.get('headers', {})
     auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
     
@@ -162,8 +183,66 @@ def handle_get(cursor, user_id: str) -> Dict[str, Any]:
     }
 
 
+def create_yookassa_payment(amount: int, user_id: str, user_email: str) -> Dict[str, Any]:
+    """Создаёт платёж доната в ЮКассе"""
+    yookassa_shop_id = os.environ.get('YOOKASSA_SHOP_ID', '')
+    yookassa_secret = os.environ.get('YOOKASSA_SECRET_KEY', '')
+    
+    idempotence_key = str(uuid.uuid4())
+    
+    payment_data = {
+        'amount': {'value': f'{amount:.2f}', 'currency': 'RUB'},
+        'confirmation': {
+            'type': 'redirect',
+            'return_url': 'https://preview--family-assistant-project.poehali.dev/'
+        },
+        'capture': True,
+        'description': f'Угощение Домового - {amount}₽',
+        'metadata': {
+            'user_id': user_id,
+            'donation_type': 'domovoy',
+            'amount': amount
+        },
+        'receipt': {
+            'customer': {'email': user_email},
+            'items': [{
+                'description': f'Угощение Домового - повышение уровня',
+                'quantity': '1',
+                'amount': {'value': f'{amount:.2f}', 'currency': 'RUB'},
+                'vat_code': 1,
+                'payment_mode': 'full_payment',
+                'payment_subject': 'service'
+            }]
+        }
+    }
+    
+    auth_string = f'{yookassa_shop_id}:{yookassa_secret}'
+    auth_b64 = base64.b64encode(auth_string.encode('utf-8')).decode('ascii')
+    
+    req = Request(
+        'https://api.yookassa.ru/v3/payments',
+        data=json.dumps(payment_data).encode('utf-8'),
+        headers={
+            'Authorization': f'Basic {auth_b64}',
+            'Idempotence-Key': idempotence_key,
+            'Content-Type': 'application/json'
+        }
+    )
+    
+    try:
+        response = urlopen(req)
+        result = json.loads(response.read().decode('utf-8'))
+        return {
+            'success': True,
+            'payment_id': result['id'],
+            'confirmation_url': result['confirmation']['confirmation_url']
+        }
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+
 def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
-    """Обработка доната"""
+    """Создание платежа доната через ЮКассу"""
     
     amount = body.get('amount')
     payment_method = body.get('payment_method')
@@ -180,6 +259,78 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
             'statusCode': 400,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
             'body': json.dumps({'error': 'Минимальная сумма - 100₽'})
+        }
+    
+    # Получаем email пользователя
+    cursor.execute(
+        "SELECT email FROM t_p5815085_family_assistant_pro.users WHERE id = %s",
+        (user_id,)
+    )
+    user = cursor.fetchone()
+    user_email = user['email'] if user and user['email'] else 'support@nasha-semiya.ru'
+    
+    # Создаём платёж в ЮКассе
+    payment_result = create_yookassa_payment(amount, user_id, user_email)
+    
+    if not payment_result.get('success'):
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': payment_result.get('error', 'Ошибка создания платежа')})
+        }
+    
+    # Сохраняем информацию о платеже
+    cursor.execute(
+        """INSERT INTO t_p5815085_family_assistant_pro.domovoy_donations 
+           (user_id, amount, payment_method, payment_id, payment_status) 
+           VALUES (%s, %s, %s, %s, 'pending')
+           RETURNING id""",
+        (user_id, amount, payment_method, payment_result['payment_id'])
+    )
+    conn.commit()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+        'isBase64Encoded': False,
+        'body': json.dumps({
+            'success': True,
+            'payment_url': payment_result['confirmation_url'],
+            'payment_id': payment_result['payment_id']
+        })
+    }
+
+
+def handle_webhook(cursor, conn, body: Dict[str, Any]) -> Dict[str, Any]:
+    """Обработка webhook от ЮКассы после оплаты"""
+    event_type = body.get('event')
+    payment_obj = body.get('object', {})
+    payment_id = payment_obj.get('id')
+    metadata = payment_obj.get('metadata', {})
+    
+    if event_type != 'payment.succeeded' or not payment_id:
+        return {
+            'statusCode': 200,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'received': True})
+        }
+    
+    # Проверяем, что это донат Домового
+    if metadata.get('donation_type') != 'domovoy':
+        return {
+            'statusCode': 200,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'received': True})
+        }
+    
+    user_id = metadata.get('user_id')
+    amount = int(metadata.get('amount', 0))
+    
+    if not user_id or amount < 100:
+        return {
+            'statusCode': 400,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Invalid metadata'})
         }
     
     # Получаем текущий уровень
@@ -210,12 +361,12 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
         (new_level, new_total, user_id)
     )
     
-    # Записываем донат
+    # Обновляем статус доната
     cursor.execute(
-        """INSERT INTO t_p5815085_family_assistant_pro.domovoy_donations 
-           (user_id, amount, payment_method, level_before, level_after, payment_status) 
-           VALUES (%s, %s, %s, %s, %s, 'completed')""",
-        (user_id, amount, payment_method, current_level, new_level)
+        """UPDATE t_p5815085_family_assistant_pro.domovoy_donations 
+           SET payment_status = 'completed', level_before = %s, level_after = %s, paid_at = NOW()
+           WHERE payment_id = %s""",
+        (current_level, new_level, payment_id)
     )
     
     # Обновляем assistant_level в настройках
@@ -230,14 +381,12 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
     
     return {
         'statusCode': 200,
-        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+        'headers': {'Access-Control-Allow-Origin': '*'},
         'isBase64Encoded': False,
         'body': json.dumps({
-            'success': True,
-            'level_before': current_level,
-            'level_after': new_level,
-            'amount': amount,
-            'total_donated': new_total
+            'received': True,
+            'activated': True,
+            'new_level': new_level
         })
     }
 
