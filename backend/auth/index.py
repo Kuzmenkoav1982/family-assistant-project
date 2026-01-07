@@ -20,7 +20,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
 YANDEX_CLIENT_SECRET = os.environ.get('YANDEX_CLIENT_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
-NOTIFICATIONS_URL = 'https://functions.poehali.dev/6d1ab9ca-e962-4e7e-a78a-ad88cd4d2e07'
+NOTIFICATIONS_URL = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774'
 
 # Force redeploy: New Yandex OAuth app credentials (28.12.2025)
 # Client ID: 1b7664da437442acbcef20ef175f8c39

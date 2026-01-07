@@ -130,11 +130,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     query_params = event.get('queryStringParameters') or {}
-    action = query_params.get('action', '')
     body_data = json.loads(event.get('body', '{}'))
     
+    # Action может быть в query params или в body
+    action = query_params.get('action', '') or body_data.get('action', '')
+    
+    print(f"[DEBUG] Notifications called: action={action}, body_data={body_data}")
+    
     try:
-        if action == 'email':
+        if action == 'email' or action == 'send_email':
             email_req = EmailRequest(**body_data)
             result = send_email_smtp(
                 to=email_req.to,
