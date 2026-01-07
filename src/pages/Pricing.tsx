@@ -324,6 +324,40 @@ export default function Pricing() {
 
           {/* Подписки */}
           <TabsContent value="subscriptions">
+            {/* Инструкция */}
+            <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Icon name="Info" size={20} className="text-blue-600" />
+                  💡 Как работают подписки?
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="space-y-2">
+                  <p className="flex items-start gap-2">
+                    <Icon name="Users" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span><strong>Подписка на всю семью:</strong> Любой член семьи может купить подписку, и она распространяется на всех участников семьи</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <Icon name="ShieldCheck" size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                    <span><strong>Защита от дублирования:</strong> Если у семьи уже есть активная подписка, вы увидите уведомление с деталями и вариантами продления/апгрейда</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <Icon name="CalendarPlus" size={16} className="text-purple-600 mt-0.5 flex-shrink-0" />
+                    <span><strong>Продление:</strong> Можно продлить подписку на месяц в любой момент — новый срок добавится к текущему</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <Icon name="TrendingUp" size={16} className="text-orange-600 mt-0.5 flex-shrink-0" />
+                    <span><strong>Апгрейд:</strong> При переходе с "AI-помощник" на "Полный пакет" вернём пропорциональную стоимость за оставшиеся дни</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <Icon name="Eye" size={16} className="text-gray-600 mt-0.5 flex-shrink-0" />
+                    <span><strong>Прозрачность:</strong> Видно кто купил подписку и когда она истекает</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Текущая подписка */}
             {currentSubscription && currentSubscription.has_subscription && (
               <Card className="mb-8 border-2 border-green-500 bg-green-50">

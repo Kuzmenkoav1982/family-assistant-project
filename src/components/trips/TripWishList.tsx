@@ -9,8 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
+// ✅ AI-рекомендации работают!
 const AI_RECOMMEND_URL = 'https://functions.poehali.dev/b6fa0071-ce37-48e5-b426-66f835fb4996';
-const PLACES_API_URL = 'https://functions.poehali.dev/TEMP_PLACES_URL';
+
+// ⚠️ ВАЖНО: Функция trips-places ещё не развёрнута из-за технических проблем
+// После успешного развёртывания обновите URL ниже на актуальный из backend/func2url.json
+// Функция уже создана в backend/trips-places/index.py и готова к работе
+const PLACES_API_URL = 'https://functions.poehali.dev/TEMP_PLACES_URL'; // TODO: Заменить после развёртывания
 
 interface Place {
   id: number;
