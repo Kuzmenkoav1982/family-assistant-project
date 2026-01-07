@@ -33,6 +33,8 @@ import TermsOfService from "./pages/TermsOfService";
 import RefundPolicy from "./pages/RefundPolicy";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
+import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
 import OAuthDebug from "./pages/OAuthDebug";
 import Welcome from "./pages/Welcome";
 import VotingPage from "./pages/VotingPage";
@@ -133,6 +135,8 @@ const App = () => {
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
               <Route path="/join" element={<JoinFamily />} />
               <Route path="/activate/:inviteToken" element={<ActivateChild />} />
               <Route path="/activate-callback" element={<ActivateCallback />} />

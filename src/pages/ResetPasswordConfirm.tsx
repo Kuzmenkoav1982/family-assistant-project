@@ -1,31 +1,32 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
+const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 
-export default function Register() {
+export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    code: searchParams.get('code') || '',
+    email: searchParams.get('email') || '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.code || !formData.email || !formData.newPassword) {
       toast({
         title: 'Ошибка',
         description: 'Заполните все поля',
@@ -34,7 +35,7 @@ export default function Register() {
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: 'Ошибка',
         description: 'Пароли не совпадают',
@@ -43,7 +44,7 @@ export default function Register() {
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (formData.newPassword.length < 6) {
       toast({
         title: 'Ошибка',
         description: 'Пароль должен быть не менее 6 символов',
@@ -55,35 +56,32 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch(AUTH_API, {
+      const response = await fetch(AUTH_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          action: 'register',
+          action: 'reset_password',
           email: formData.email,
-          password: formData.password,
-          name: formData.name
+          reset_code: formData.code,
+          new_password: formData.newPassword
         })
       });
 
       const data = await response.json();
 
-      if (data.success && data.token) {
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
-        
+      if (data.success) {
         toast({
-          title: 'Добро пожаловать! 🎉',
-          description: 'Регистрация успешна! Ваша семья создана.'
+          title: 'Пароль изменён! ✅',
+          description: 'Теперь можете войти с новым паролем'
         });
 
-        setTimeout(() => window.location.href = '/', 500);
+        setTimeout(() => navigate('/login'), 1500);
       } else {
         toast({
-          title: 'Ошибка регистрации',
-          description: data.error || 'Не удалось создать аккаунт',
+          title: 'Ошибка',
+          description: data.error || 'Неверный код или email',
           variant: 'destructive'
         });
       }
@@ -99,40 +97,24 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
-              alt="Наша семья"
-              className="h-16 w-16 object-contain"
-            />
-          </div>
-          <CardTitle className="text-2xl">Регистрация</CardTitle>
-          <CardDescription>
-            Создайте аккаунт и начните управлять семейными делами
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Имя</Label>
-              <div className="relative">
-                <Icon name="User" className="absolute left-3 top-3 text-gray-400" size={18} />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Ваше имя"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="pl-10"
-                  disabled={loading}
-                  required
-                />
-              </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <Card className="max-w-md w-full shadow-2xl border-2 border-purple-200">
+        <CardHeader className="text-center space-y-4 pb-6">
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center">
+              <Icon name="Lock" size={40} className="text-purple-600" />
             </div>
-
+          </div>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Новый пароль
+          </CardTitle>
+          <p className="text-gray-600">
+            Введите код из письма и новый пароль
+          </p>
+        </CardHeader>
+        
+        <CardContent className="space-y-4 pb-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -151,15 +133,33 @@ export default function Register() {
             </div>
 
             <div>
-              <Label htmlFor="password">Пароль</Label>
+              <Label htmlFor="code">Код из письма</Label>
+              <div className="relative">
+                <Icon name="Hash" className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Input
+                  id="code"
+                  type="text"
+                  placeholder="123456"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  className="pl-10 text-center text-2xl tracking-widest"
+                  maxLength={6}
+                  disabled={loading}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="newPassword">Новый пароль</Label>
               <div className="relative">
                 <Icon name="Lock" className="absolute left-3 top-3 text-gray-400" size={18} />
                 <Input
-                  id="password"
+                  id="newPassword"
                   type={showPassword ? "text" : "password"}
                   placeholder="Минимум 6 символов"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                   className="pl-10 pr-10"
                   disabled={loading}
                   required
@@ -208,46 +208,25 @@ export default function Register() {
               {loading ? (
                 <>
                   <Icon name="Loader2" className="animate-spin mr-2" size={18} />
-                  Регистрация...
+                  Изменение...
                 </>
               ) : (
                 <>
-                  <Icon name="UserPlus" className="mr-2" size={18} />
-                  Зарегистрироваться
+                  <Icon name="Check" className="mr-2" size={18} />
+                  Изменить пароль
                 </>
               )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center space-y-3">
-            <p className="text-sm text-gray-600">
-              Уже есть аккаунт?{' '}
-              <Link to="/login" className="text-purple-600 hover:text-purple-700 font-semibold">
-                Войти
-              </Link>
-            </p>
-            
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')}
-              className="w-full"
-            >
-              <Icon name="Home" className="mr-2" size={18} />
-              На главную
-            </Button>
-          </div>
-
-          <div className="mt-4 text-xs text-center text-gray-500">
-            <p>
-              Регистрируясь, вы соглашаетесь с{' '}
-              <Link to="/terms-of-service" className="text-purple-600 hover:underline">
-                условиями использования
-              </Link>
-              {' '}и{' '}
-              <Link to="/privacy-policy" className="text-purple-600 hover:underline">
-                политикой конфиденциальности
-              </Link>
-            </p>
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mt-6">
+            <div className="flex items-start gap-3">
+              <Icon name="Info" size={20} className="text-blue-600 mt-0.5" />
+              <div className="space-y-1 text-sm text-blue-800">
+                <p className="font-semibold">Код действителен 15 минут</p>
+                <p>Проверьте правильность email и кода из письма</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

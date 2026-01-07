@@ -19,6 +19,7 @@ export default function Login() {
     email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   // Если уже авторизован, редирект на главную
   useEffect(() => {
@@ -170,18 +171,34 @@ export default function Login() {
             </div>
 
             <div>
-              <Label htmlFor="password">Пароль</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Пароль</Label>
+                <Link 
+                  to="/reset-password" 
+                  className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Забыли пароль?
+                </Link>
+              </div>
               <div className="relative">
                 <Icon name="Lock" className="absolute left-3 top-3 text-gray-400" size={18} />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Введите пароль"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="pl-10"
+                  className="pl-10 pr-10"
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  <Icon name={showPassword ? "EyeOff" : "Eye"} size={18} />
+                </button>
               </div>
             </div>
 

@@ -1118,11 +1118,86 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 phone=body.get('phone')
             )
         elif action == 'reset_password':
-            result = reset_password(
-                phone=body.get('phone'),
-                reset_code=body.get('reset_code'),
-                new_password=body.get('new_password')
-            )
+            if body.get('email') and not body.get('reset_code'):
+                # Email password reset request
+                email = body.get('email')
+                if not email or '@' not in email:
+                    result = {'error': 'Некорректный email'}
+                else:
+                    conn = get_db_connection()
+                    cur = conn.cursor(cursor_factory=RealDictCursor)
+                    
+                    try:
+                        # Check if user exists
+                        check_query = f"SELECT id FROM {SCHEMA}.users WHERE email = {escape_string(email.lower())}"
+                        cur.execute(check_query)
+                        user = cur.fetchone()
+                        
+                        if not user:
+                            cur.close()
+                            conn.close()
+                            result = {'error': 'Пользователь с таким email не найден'}
+                        else:
+                            # Generate reset code
+                            reset_code = generate_reset_code()
+                            expires_at = datetime.now() + timedelta(minutes=15)
+                            
+                            # Insert into password_resets table
+                            insert_reset = f"""
+                                INSERT INTO {SCHEMA}.password_resets (email, reset_code, expires_at, created_at)
+                                VALUES (
+                                    {escape_string(email.lower())},
+                                    {escape_string(reset_code)},
+                                    {escape_string(expires_at.isoformat())},
+                                    {escape_string(datetime.now().isoformat())}
+                                )
+                            """
+                            cur.execute(insert_reset)
+                            
+                            # Send email via NOTIFICATIONS_URL
+                            email_html = f"""
+                            <html>
+                            <body style="font-family: Arial, sans-serif; padding: 20px;">
+                                <h2>Код восстановления пароля</h2>
+                                <p>Ваш код для восстановления пароля:</p>
+                                <h1 style="color: #4F46E5; font-size: 32px; letter-spacing: 5px;">{reset_code}</h1>
+                                <p>Код действителен в течение 15 минут.</p>
+                                <p>Если вы не запрашивали восстановление пароля, проигнорируйте это письмо.</p>
+                            </body>
+                            </html>
+                            """
+                            
+                            try:
+                                response = requests.post(
+                                    NOTIFICATIONS_URL,
+                                    json={
+                                        'action': 'send_email',
+                                        'to': email,
+                                        'subject': 'Код восстановления пароля',
+                                        'html': email_html
+                                    },
+                                    headers={'Content-Type': 'application/json'},
+                                    timeout=10
+                                )
+                                email_sent = response.status_code == 200
+                            except:
+                                email_sent = False
+                            
+                            cur.close()
+                            conn.close()
+                            
+                            result = {'success': True}
+                    except Exception as e:
+                        cur.close()
+                        conn.close()
+                        result = {'error': f'Ошибка запроса восстановления: {str(e)}'}
+            else:
+                # Phone password reset with code
+                result = reset_password(
+                    phone=body.get('phone'),
+                    reset_code=body.get('reset_code'),
+                    new_password=body.get('new_password')
+                )
         else:
             return {
                 'statusCode': 400,
