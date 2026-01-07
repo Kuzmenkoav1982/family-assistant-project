@@ -5,10 +5,13 @@ Backend функция для обработки донатов Домового
 
 import json
 import os
+import uuid
+import base64
 from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
+from urllib.request import urlopen, Request
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
