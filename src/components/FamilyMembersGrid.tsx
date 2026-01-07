@@ -98,13 +98,41 @@ const MemberCard = ({
       const data = await response.json();
       
       if (data.success) {
-        // Копируем ссылку в буфер обмена
-        await navigator.clipboard.writeText(data.invite_url);
+        const inviteUrl = data.invite_url;
+        const shareText = `Привет! Присоединяйся к нашей семье в приложении "Наша Семья". Перейди по ссылке для активации аккаунта:`;
         
-        toast({
-          title: '🎉 Ссылка-приглашение создана!',
-          description: `Ссылка скопирована в буфер обмена. Отправьте её ${data.child_name}, чтобы активировать аккаунт.`
-        });
+        // Проверяем поддержку Web Share API (мобильные устройства)
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Приглашение в семью',
+              text: shareText,
+              url: inviteUrl
+            });
+            
+            toast({
+              title: '✅ Ссылка отправлена!',
+              description: `Приглашение для ${data.child_name} успешно отправлено`
+            });
+          } catch (shareError: any) {
+            // Пользователь отменил Share или ошибка
+            if (shareError.name !== 'AbortError') {
+              // Fallback: копируем в буфер обмена
+              await navigator.clipboard.writeText(inviteUrl);
+              toast({
+                title: '📋 Ссылка скопирована',
+                description: `Отправьте её ${data.child_name} для активации аккаунта`
+              });
+            }
+          }
+        } else {
+          // Desktop: копируем в буфер обмена
+          await navigator.clipboard.writeText(inviteUrl);
+          toast({
+            title: '📋 Ссылка скопирована',
+            description: `Отправьте её ${data.child_name} для активации аккаунта`
+          });
+        }
       } else {
         toast({
           title: 'Ошибка',
@@ -294,22 +322,23 @@ const MemberCard = ({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="w-full text-xs bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:bg-amber-100"
+                        className="w-full text-[11px] sm:text-xs bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:bg-amber-100 px-2"
                         onClick={handleGenerateInvite}
                         disabled={isGeneratingInvite}
                       >
                         {isGeneratingInvite ? (
-                          <Icon name="Loader2" size={12} className="mr-1 animate-spin" />
+                          <Icon name="Loader2" size={12} className="mr-1 flex-shrink-0 animate-spin" />
                         ) : (
-                          <Icon name="Link" size={12} className="mr-1" />
+                          <Icon name="Link" size={12} className="mr-1 flex-shrink-0" />
                         )}
-                        Создать ссылку-приглашение
+                        <span className="truncate">{isGeneratingInvite ? 'Создание...' : 'Отправить приглашение'}</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p className="font-medium text-amber-900">🔗 Активация аккаунта</p>
                       <p className="text-xs text-gray-600 mt-1">Создайте персональную ссылку для {member.name}</p>
                       <p className="text-xs text-gray-500 mt-1">Ребёнок сможет привязать свой аккаунт и получить полный доступ</p>
+                      <p className="text-xs text-amber-600 mt-2 font-medium">📱 На телефоне откроется меню "Поделиться"</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
