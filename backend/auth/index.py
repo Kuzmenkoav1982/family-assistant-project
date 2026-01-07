@@ -1191,13 +1191,75 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         cur.close()
                         conn.close()
                         result = {'error': f'Ошибка запроса восстановления: {str(e)}'}
+            elif body.get('reset_code') and body.get('new_password'):
+                # Email password reset confirmation with code
+                email = body.get('email')
+                reset_code = body.get('reset_code')
+                new_password = body.get('new_password')
+                
+                if not email or not reset_code or not new_password:
+                    result = {'error': 'Email, код и новый пароль обязательны'}
+                elif len(new_password) < 6:
+                    result = {'error': 'Пароль должен быть минимум 6 символов'}
+                else:
+                    conn = get_db_connection()
+                    cur = conn.cursor(cursor_factory=RealDictCursor)
+                    
+                    try:
+                        # Find valid reset code
+                        check_reset = f"""
+                            SELECT id, email, expires_at, used_at
+                            FROM {SCHEMA}.password_resets
+                            WHERE email = {escape_string(email.lower())}
+                            AND reset_code = {escape_string(reset_code)}
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                        """
+                        cur.execute(check_reset)
+                        reset = cur.fetchone()
+                        
+                        if not reset:
+                            result = {'error': 'Неверный код восстановления'}
+                        elif reset['used_at'] is not None:
+                            result = {'error': 'Код уже использован'}
+                        elif reset['expires_at'] < datetime.now():
+                            result = {'error': 'Код восстановления истёк'}
+                        else:
+                            # Update password
+                            password_hash = hash_password(new_password)
+                            update_password = f"""
+                                UPDATE {SCHEMA}.users
+                                SET password_hash = {escape_string(password_hash)}
+                                WHERE email = {escape_string(email.lower())}
+                            """
+                            cur.execute(update_password)
+                            
+                            # Mark code as used
+                            mark_used = f"""
+                                UPDATE {SCHEMA}.password_resets
+                                SET used_at = {escape_string(datetime.now().isoformat())}
+                                WHERE id = {escape_string(reset['id'])}
+                            """
+                            cur.execute(mark_used)
+                            
+                            result = {'success': True, 'message': 'Пароль успешно изменён'}
+                        
+                        cur.close()
+                        conn.close()
+                    except Exception as e:
+                        cur.close()
+                        conn.close()
+                        result = {'error': f'Ошибка сброса пароля: {str(e)}'}
             else:
-                # Phone password reset with code
-                result = reset_password(
-                    phone=body.get('phone'),
-                    reset_code=body.get('reset_code'),
-                    new_password=body.get('new_password')
-                )
+                # Phone password reset with code (legacy)
+                if body.get('phone'):
+                    result = reset_password(
+                        phone=body.get('phone'),
+                        reset_code=body.get('reset_code'),
+                        new_password=body.get('new_password')
+                    )
+                else:
+                    result = {'error': 'Недостаточно данных для восстановления'}
         else:
             return {
                 'statusCode': 400,
