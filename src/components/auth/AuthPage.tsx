@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 
@@ -16,10 +17,12 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [familyName, setFamilyName] = useState('');
   const [memberName, setMemberName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,15 +121,25 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
 
             <div className="space-y-2">
               <Label htmlFor="password">Пароль</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Минимум 6 символов"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Минимум 6 символов"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <Icon name={showPassword ? "EyeOff" : "Eye"} size={20} />
+                </button>
+              </div>
             </div>
 
             {!isLogin && (
@@ -184,6 +197,17 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
               {isLogin ? 'Войти' : 'Зарегистрироваться'}
             </Button>
 
+            {isLogin && (
+              <Button 
+                type="button" 
+                variant="link" 
+                className="w-full text-sm text-blue-600 hover:text-blue-700"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Забыли пароль?
+              </Button>
+            )}
+
             <div className="text-center text-sm">
               <button
                 type="button"
@@ -201,6 +225,11 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
           </form>
         </CardContent>
       </Card>
+      
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
     </div>
   );
 }

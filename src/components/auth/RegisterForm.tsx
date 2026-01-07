@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +44,9 @@ export default function RegisterForm({
   onSubmit,
   relationships
 }: RegisterFormProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   if (registerStep === 'choice') {
     return (
       <div className="space-y-4">
@@ -99,27 +103,47 @@ export default function RegisterForm({
       
       <div className="space-y-2">
         <Label htmlFor="reg-password">Пароль</Label>
-        <Input
-          id="reg-password"
-          type="password"
-          placeholder="Минимум 6 символов"
-          value={registerData.password}
-          onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-          required
-          minLength={6}
-        />
+        <div className="relative">
+          <Input
+            id="reg-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Минимум 6 символов"
+            value={registerData.password}
+            onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+            required
+            minLength={6}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          >
+            <Icon name={showPassword ? "EyeOff" : "Eye"} size={20} />
+          </button>
+        </div>
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="reg-confirm">Подтвердите пароль</Label>
-        <Input
-          id="reg-confirm"
-          type="password"
-          placeholder="Повторите пароль"
-          value={registerData.confirmPassword}
-          onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
-          required
-        />
+        <div className="relative">
+          <Input
+            id="reg-confirm"
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Повторите пароль"
+            value={registerData.confirmPassword}
+            onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+            required
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          >
+            <Icon name={showConfirmPassword ? "EyeOff" : "Eye"} size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2">
