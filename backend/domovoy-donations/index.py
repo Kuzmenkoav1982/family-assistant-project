@@ -1,6 +1,6 @@
 """
-Backend функция для обработки донатов Домового
-Управление уровнями, донатами и настройками пользователя
+Backend функция для обработки донатов Домового.
+Управление уровнями, донатами и настройками пользователя.
 """
 
 import json
@@ -60,7 +60,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Получаем user_id по токену
         cursor.execute(
-            "SELECT user_id FROM user_sessions WHERE session_token = %s AND expires_at > NOW()",
+            "SELECT user_id FROM t_p5815085_family_assistant_pro.sessions WHERE token = %s AND expires_at > NOW()",
             (auth_token,)
         )
         session = cursor.fetchone()
@@ -125,7 +125,7 @@ def handle_get(cursor, user_id: str) -> Dict[str, Any]:
     
     # Получаем уровень Домового
     cursor.execute(
-        "SELECT current_level, total_donated FROM domovoy_levels WHERE user_id = %s",
+        "SELECT current_level, total_donated FROM t_p5815085_family_assistant_pro.domovoy_levels WHERE user_id = %s",
         (user_id,)
     )
     level_data = cursor.fetchone()
@@ -133,7 +133,7 @@ def handle_get(cursor, user_id: str) -> Dict[str, Any]:
     if not level_data:
         # Создаем запись с начальным уровнем
         cursor.execute(
-            "INSERT INTO domovoy_levels (user_id, current_level, total_donated) VALUES (%s, 1, 0) "
+            "INSERT INTO t_p5815085_family_assistant_pro.domovoy_levels (user_id, current_level, total_donated) VALUES (%s, 1, 0) "
             "ON CONFLICT (user_id) DO NOTHING RETURNING current_level, total_donated",
             (user_id,)
         )
@@ -141,7 +141,7 @@ def handle_get(cursor, user_id: str) -> Dict[str, Any]:
     
     # Получаем настройки ассистента
     cursor.execute(
-        "SELECT assistant_type, assistant_name, assistant_role, assistant_level FROM assistant_settings WHERE user_id = %s",
+        "SELECT assistant_type, assistant_name, assistant_role, assistant_level FROM t_p5815085_family_assistant_pro.assistant_settings WHERE user_id = %s",
         (user_id,)
     )
     settings_data = cursor.fetchone()
@@ -181,14 +181,14 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
     
     # Получаем текущий уровень
     cursor.execute(
-        "SELECT current_level, total_donated FROM domovoy_levels WHERE user_id = %s",
+        "SELECT current_level, total_donated FROM t_p5815085_family_assistant_pro.domovoy_levels WHERE user_id = %s",
         (user_id,)
     )
     level_data = cursor.fetchone()
     
     if not level_data:
         cursor.execute(
-            "INSERT INTO domovoy_levels (user_id, current_level, total_donated) VALUES (%s, 1, 0) RETURNING current_level, total_donated",
+            "INSERT INTO t_p5815085_family_assistant_pro.domovoy_levels (user_id, current_level, total_donated) VALUES (%s, 1, 0) RETURNING current_level, total_donated",
             (user_id,)
         )
         level_data = cursor.fetchone()
@@ -203,13 +203,13 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
     
     # Обновляем уровень
     cursor.execute(
-        "UPDATE domovoy_levels SET current_level = %s, total_donated = %s, updated_at = NOW() WHERE user_id = %s",
+        "UPDATE t_p5815085_family_assistant_pro.domovoy_levels SET current_level = %s, total_donated = %s, updated_at = NOW() WHERE user_id = %s",
         (new_level, new_total, user_id)
     )
     
     # Записываем донат
     cursor.execute(
-        """INSERT INTO domovoy_donations 
+        """INSERT INTO t_p5815085_family_assistant_pro.domovoy_donations 
            (user_id, amount, payment_method, level_before, level_after, payment_status) 
            VALUES (%s, %s, %s, %s, %s, 'completed')""",
         (user_id, amount, payment_method, current_level, new_level)
@@ -217,7 +217,7 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
     
     # Обновляем assistant_level в настройках
     cursor.execute(
-        """INSERT INTO assistant_settings (user_id, assistant_type, assistant_level) 
+        """INSERT INTO t_p5815085_family_assistant_pro.assistant_settings (user_id, assistant_type, assistant_level) 
            VALUES (%s, 'domovoy', %s) 
            ON CONFLICT (user_id) DO UPDATE SET assistant_level = %s, updated_at = NOW()""",
         (user_id, new_level, new_level)
@@ -254,13 +254,13 @@ def handle_update_settings(cursor, conn, user_id: str, body: Dict[str, Any]) -> 
         }
     
     # Получаем текущий уровень
-    cursor.execute("SELECT current_level FROM domovoy_levels WHERE user_id = %s", (user_id,))
+    cursor.execute("SELECT current_level FROM t_p5815085_family_assistant_pro.domovoy_levels WHERE user_id = %s", (user_id,))
     level_data = cursor.fetchone()
     level = level_data['current_level'] if level_data else 1
     
     # Обновляем или создаем настройки
     cursor.execute(
-        """INSERT INTO assistant_settings 
+        """INSERT INTO t_p5815085_family_assistant_pro.assistant_settings 
            (user_id, assistant_type, assistant_name, assistant_role, assistant_level) 
            VALUES (%s, %s, %s, %s, %s)
            ON CONFLICT (user_id) DO UPDATE 

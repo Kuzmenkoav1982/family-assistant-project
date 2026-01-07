@@ -65,6 +65,35 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     return null;
   });
 
+  // Загрузка уровня с сервера при авторизации
+  useEffect(() => {
+    const loadAssistantLevel = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      try {
+        const response = await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085', {
+          method: 'GET',
+          headers: {
+            'X-Auth-Token': token
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.level) {
+            setAssistantLevelState(data.level);
+            localStorage.setItem('assistantLevel', data.level.toString());
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки уровня Домового:', error);
+      }
+    };
+
+    loadAssistantLevel();
+  }, []);
+
   const setAssistantType = (type: AssistantType) => {
     setAssistantTypeState(type);
     localStorage.setItem('assistantType', type);

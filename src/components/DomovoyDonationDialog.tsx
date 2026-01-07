@@ -52,7 +52,7 @@ export default function DomovoyDonationDialog({
   const [paymentMethod, setPaymentMethod] = useState<'sbp' | 'card' | 'yumoney' | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleDonate = () => {
+  const handleDonate = async () => {
     const amount = selectedAmount || parseInt(customAmount);
     
     if (!amount || amount < 100) {
@@ -73,27 +73,61 @@ export default function DomovoyDonationDialog({
       return;
     }
 
-    // Симуляция успешной оплаты
-    const levelsToAdd = Math.floor(amount / 500) + 1;
-    const newLevel = Math.min(10, assistantLevel + levelsToAdd);
-    setAssistantLevel(newLevel);
-    setShowSuccess(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        toast({
+          title: 'Ошибка',
+          description: 'Требуется авторизация',
+          variant: 'destructive'
+        });
+        return;
+      }
 
-    setTimeout(() => {
-      setShowSuccess(false);
-      onOpenChange(false);
-      
-      toast({
-        title: '🏠 Домовой благодарит!',
-        description: `Уровень мудрости повышен до ${newLevel}!`,
-        duration: 5000
+      const response = await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=donate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({
+          amount,
+          payment_method: paymentMethod
+        })
       });
-      
-      // Сброс формы
-      setSelectedAmount(null);
-      setCustomAmount('');
-      setPaymentMethod(null);
-    }, 3000);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка оплаты');
+      }
+
+      const newLevel = data.level_after;
+      setAssistantLevel(newLevel);
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        setShowSuccess(false);
+        onOpenChange(false);
+        
+        toast({
+          title: '🏠 Домовой благодарит!',
+          description: `Уровень мудрости повышен до ${newLevel}!`,
+          duration: 5000
+        });
+        
+        // Сброс формы
+        setSelectedAmount(null);
+        setCustomAmount('');
+        setPaymentMethod(null);
+      }, 3000);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: error instanceof Error ? error.message : 'Не удалось обработать донат',
+        variant: 'destructive'
+      });
+    }
   };
 
   const thankYouMessages = [
