@@ -131,7 +131,7 @@ export default function Pricing() {
     loadSubscription();
   }, []);
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (planId: string, action: 'create' | 'extend' | 'upgrade' = 'create') => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       toast({
@@ -161,7 +161,7 @@ export default function Pricing() {
           'X-Auth-Token': token
         },
         body: JSON.stringify({
-          action: 'create',
+          action: action,
           plan_type: planId,
           return_url: window.location.origin + '/pricing?status=success'
         })
@@ -169,8 +169,44 @@ export default function Pricing() {
 
       const data = await response.json();
 
+      // Проверка активной подписки
+      if (response.status === 409 && data.error === 'active_subscription_exists') {
+        const upgradeAvailable = data.upgrade_available;
+        const extendAvailable = data.extend_available;
+        
+        toast({
+          title: '⚠️ У семьи уже есть активная подписка',
+          description: (
+            <div className="space-y-2 mt-2">
+              <p>📦 Тариф: <strong>{data.current_subscription.plan_name}</strong></p>
+              <p>📅 Действует до: <strong>{new Date(data.current_subscription.end_date).toLocaleDateString()}</strong></p>
+              <p>👤 Купил: <strong>{data.current_subscription.buyer_name || 'Член семьи'}</strong></p>
+              {extendAvailable && (
+                <Button 
+                  size="sm" 
+                  onClick={() => handleSubscribe(planId, 'extend')}
+                  className="w-full mt-2"
+                >
+                  Продлить на месяц
+                </Button>
+              )}
+              {upgradeAvailable && (
+                <Button 
+                  size="sm" 
+                  onClick={() => handleSubscribe('full', 'upgrade')}
+                  className="w-full mt-2"
+                >
+                  Перейти на "Полный пакет"
+                </Button>
+              )}
+            </div>
+          ),
+        });
+        setLoading(null);
+        return;
+      }
+
       if (data.success && data.payment_url) {
-        // Перенаправляем пользователя на страницу оплаты ЮКассы
         window.location.href = data.payment_url;
       } else if (data.error) {
         toast({
@@ -288,6 +324,75 @@ export default function Pricing() {
 
           {/* Подписки */}
           <TabsContent value="subscriptions">
+            {/* Текущая подписка */}
+            {currentSubscription && currentSubscription.has_subscription && (
+              <Card className="mb-8 border-2 border-green-500 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Icon name="CheckCircle2" size={24} className="text-green-600" />
+                    Активная подписка
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Тариф</p>
+                      <p className="text-lg font-semibold">{currentSubscription.plan_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Осталось дней</p>
+                      <p className="text-lg font-semibold text-orange-600">{currentSubscription.days_left}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Действует до</p>
+                      <p className="text-base font-medium">
+                        {new Date(currentSubscription.end_date).toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    {currentSubscription.buyer_name && (
+                      <div>
+                        <p className="text-sm text-gray-600">Оплатил</p>
+                        <p className="text-base font-medium">{currentSubscription.buyer_name}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-3 pt-3 border-t">
+                    <Button 
+                      onClick={() => handleSubscribe(currentSubscription.plan, 'extend')}
+                      disabled={loading === currentSubscription.plan}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      {loading === currentSubscription.plan ? (
+                        <Icon name="Loader2" size={16} className="animate-spin mr-2" />
+                      ) : (
+                        <Icon name="CalendarPlus" size={16} className="mr-2" />
+                      )}
+                      Продлить на месяц
+                    </Button>
+                    {currentSubscription.plan === 'ai_assistant' && (
+                      <Button 
+                        onClick={() => handleSubscribe('full', 'upgrade')}
+                        disabled={loading === 'full'}
+                        className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-600"
+                      >
+                        {loading === 'full' ? (
+                          <Icon name="Loader2" size={16} className="animate-spin mr-2" />
+                        ) : (
+                          <Icon name="TrendingUp" size={16} className="mr-2" />
+                        )}
+                        Апгрейд
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid md:grid-cols-3 gap-6">
               {subscriptionPlans.map((plan) => (
                 <Card 

@@ -180,13 +180,25 @@ def get_payment_status(payment_id: str) -> Dict[str, Any]:
     except Exception as e:
         return {'error': f'Ошибка проверки платежа: {str(e)}'}
 
-def create_subscription(family_id: str, user_id: str, plan_type: str, return_url: str) -> Dict[str, Any]:
-    """Создаёт подписку и инициирует платёж"""
-    print(f'[create_subscription] family_id={family_id}, user_id={user_id}, plan_type={plan_type}')
+def create_subscription(family_id: str, user_id: str, plan_type: str, return_url: str, force: bool = False) -> Dict[str, Any]:
+    """Создаёт подписку и инициирует платёж. Проверяет наличие активной подписки."""
+    print(f'[create_subscription] family_id={family_id}, user_id={user_id}, plan_type={plan_type}, force={force}')
     
     if plan_type not in PLANS:
         print(f'[create_subscription] ERROR: plan_type not in PLANS')
         return {'error': 'Неверный тип подписки'}
+    
+    # Проверяем наличие активной подписки
+    current_subscription = get_subscription_status(family_id)
+    if current_subscription['has_subscription'] and not force:
+        print(f'[create_subscription] WARN: Active subscription exists')
+        return {
+            'error': 'active_subscription_exists',
+            'message': 'У семьи уже есть активная подписка',
+            'current_subscription': current_subscription,
+            'upgrade_available': current_subscription['plan'] == 'ai_assistant' and plan_type == 'full',
+            'extend_available': current_subscription['plan'] == plan_type
+        }
     
     plan = PLANS[plan_type]
     print(f'[create_subscription] Plan: {plan}')
@@ -259,6 +271,221 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
             'payment_id': payment_result['payment_id'],
             'plan': plan['name'],
             'amount': plan['price']
+        }
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
+def extend_subscription(family_id: str, user_id: str, return_url: str) -> Dict[str, Any]:
+    """Продлевает текущую подписку на месяц"""
+    current_subscription = get_subscription_status(family_id)
+    
+    if not current_subscription['has_subscription']:
+        return {'error': 'Нет активной подписки для продления'}
+    
+    plan_type = current_subscription['plan']
+    plan = PLANS[plan_type]
+    user_email = get_user_email(user_id)
+    
+    # Создаём платёж
+    payment_result = create_yookassa_payment(
+        plan['price'],
+        f"Продление подписки {plan['name']} - Семейный Органайзер",
+        return_url,
+        metadata={
+            'family_id': family_id,
+            'user_id': user_id,
+            'plan_type': plan_type,
+            'action': 'extend',
+            'user_email': user_email
+        }
+    )
+    
+    if 'error' in payment_result:
+        return payment_result
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        # Новая дата окончания = текущая end_date + 30 дней
+        safe_family_id = family_id.replace("'", "''")
+        safe_plan_type = plan_type.replace("'", "''")
+        
+        cur.execute(
+            f"""
+            SELECT end_date FROM {SCHEMA}.subscriptions
+            WHERE family_id = '{safe_family_id}' AND status = 'active' AND plan_type = '{safe_plan_type}'
+            ORDER BY end_date DESC LIMIT 1
+            """
+        )
+        current = cur.fetchone()
+        
+        if not current:
+            conn.rollback()
+            return {'error': 'Активная подписка не найдена'}
+        
+        new_end_date = current['end_date'] + timedelta(days=30)
+        safe_end_date = new_end_date.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Создаём новую подписку (продление)
+        cur.execute(
+            f"""
+            INSERT INTO {SCHEMA}.subscriptions
+            (family_id, plan_type, status, amount, end_date, payment_provider)
+            VALUES ('{safe_family_id}', '{safe_plan_type}', 'pending', {plan['price']}, '{safe_end_date}', 'yookassa')
+            RETURNING id
+            """
+        )
+        subscription = cur.fetchone()
+        
+        # Сохраняем платёж
+        safe_user_id = user_id.replace("'", "''")
+        safe_payment_id = payment_result['payment_id'].replace("'", "''")
+        safe_description = f"Продление подписки {plan['name']}".replace("'", "''")
+        
+        cur.execute(
+            f"""
+            INSERT INTO {SCHEMA}.payments
+            (subscription_id, family_id, user_id, amount, status, payment_id, description)
+            VALUES ('{subscription['id']}', '{safe_family_id}', '{safe_user_id}', {plan['price']}, 'pending', '{safe_payment_id}', '{safe_description}')
+            """
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'action': 'extend',
+            'subscription_id': str(subscription['id']),
+            'payment_url': payment_result['confirmation_url'],
+            'payment_id': payment_result['payment_id'],
+            'new_end_date': new_end_date.isoformat(),
+            'plan': plan['name'],
+            'amount': plan['price']
+        }
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
+def upgrade_subscription(family_id: str, user_id: str, new_plan_type: str, return_url: str) -> Dict[str, Any]:
+    """Апгрейд подписки с ai_assistant на full"""
+    current_subscription = get_subscription_status(family_id)
+    
+    if not current_subscription['has_subscription']:
+        return {'error': 'Нет активной подписки для апгрейда'}
+    
+    current_plan = current_subscription['plan']
+    
+    if current_plan != 'ai_assistant' or new_plan_type != 'full':
+        return {'error': 'Апгрейд доступен только с AI-помощник на Полный пакет'}
+    
+    # Рассчитываем пропорциональную стоимость
+    days_left = current_subscription.get('days_left', 0)
+    old_price = PLANS['ai_assistant']['price']
+    new_price = PLANS['full']['price']
+    
+    # Возвращаем пропорцию от старой подписки
+    refund = (old_price / 30) * days_left
+    upgrade_cost = new_price - refund
+    
+    plan = PLANS[new_plan_type]
+    user_email = get_user_email(user_id)
+    
+    # Создаём платёж на разницу
+    payment_result = create_yookassa_payment(
+        upgrade_cost,
+        f"Апгрейд подписки до {plan['name']} - Семейный Органайзер",
+        return_url,
+        metadata={
+            'family_id': family_id,
+            'user_id': user_id,
+            'plan_type': new_plan_type,
+            'action': 'upgrade',
+            'old_plan': current_plan,
+            'user_email': user_email
+        }
+    )
+    
+    if 'error' in payment_result:
+        return payment_result
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        safe_family_id = family_id.replace("'", "''")
+        safe_plan_type = new_plan_type.replace("'", "''")
+        
+        # Получаем текущую подписку
+        cur.execute(
+            f"""
+            SELECT id, end_date FROM {SCHEMA}.subscriptions
+            WHERE family_id = '{safe_family_id}' AND status = 'active' AND plan_type = 'ai_assistant'
+            ORDER BY end_date DESC LIMIT 1
+            """
+        )
+        current = cur.fetchone()
+        
+        if not current:
+            conn.rollback()
+            return {'error': 'Активная подписка не найдена'}
+        
+        # Деактивируем старую подписку
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.subscriptions
+            SET status = 'upgraded', updated_at = CURRENT_TIMESTAMP
+            WHERE id = '{current['id']}'
+            """
+        )
+        
+        # Создаём новую подписку с тем же сроком окончания
+        safe_end_date = current['end_date'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        cur.execute(
+            f"""
+            INSERT INTO {SCHEMA}.subscriptions
+            (family_id, plan_type, status, amount, end_date, payment_provider)
+            VALUES ('{safe_family_id}', '{safe_plan_type}', 'pending', {upgrade_cost}, '{safe_end_date}', 'yookassa')
+            RETURNING id
+            """
+        )
+        subscription = cur.fetchone()
+        
+        # Сохраняем платёж
+        safe_user_id = user_id.replace("'", "''")
+        safe_payment_id = payment_result['payment_id'].replace("'", "''")
+        safe_description = f"Апгрейд до {plan['name']}".replace("'", "''")
+        
+        cur.execute(
+            f"""
+            INSERT INTO {SCHEMA}.payments
+            (subscription_id, family_id, user_id, amount, status, payment_id, description)
+            VALUES ('{subscription['id']}', '{safe_family_id}', '{safe_user_id}', {upgrade_cost}, 'pending', '{safe_payment_id}', '{safe_description}')
+            """
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'action': 'upgrade',
+            'subscription_id': str(subscription['id']),
+            'payment_url': payment_result['confirmation_url'],
+            'payment_id': payment_result['payment_id'],
+            'plan': plan['name'],
+            'amount': upgrade_cost,
+            'refund': refund,
+            'original_price': new_price
         }
     except Exception as e:
         conn.rollback()
@@ -373,17 +600,20 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
         return {'error': str(e)}
 
 def get_subscription_status(family_id: str) -> Dict[str, Any]:
-    """Получает активную подписку семьи"""
+    """Получает активную подписку семьи с информацией о покупателе"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     safe_family_id = family_id.replace("'", "''")
     cur.execute(
         f"""
-        SELECT id, plan_type, status, amount, start_date, end_date, auto_renew
-        FROM {SCHEMA}.subscriptions
-        WHERE family_id = '{safe_family_id}' AND status = 'active' AND end_date > CURRENT_TIMESTAMP
-        ORDER BY end_date DESC LIMIT 1
+        SELECT s.id, s.plan_type, s.status, s.amount, s.start_date, s.end_date, s.auto_renew,
+               p.user_id, u.name as buyer_name, u.email as buyer_email, p.paid_at
+        FROM {SCHEMA}.subscriptions s
+        LEFT JOIN {SCHEMA}.payments p ON p.subscription_id = s.id AND p.status = 'succeeded'
+        LEFT JOIN {SCHEMA}.users u ON u.id = p.user_id
+        WHERE s.family_id = '{safe_family_id}' AND s.status = 'active' AND s.end_date > CURRENT_TIMESTAMP
+        ORDER BY s.end_date DESC LIMIT 1
         """
     )
     subscription = cur.fetchone()
@@ -398,14 +628,21 @@ def get_subscription_status(family_id: str) -> Dict[str, Any]:
             'message': 'Нет активной подписки'
         }
     
+    days_left = (subscription['end_date'] - datetime.now()).days if subscription['end_date'] else 0
+    
     return {
         'has_subscription': True,
+        'subscription_id': str(subscription['id']),
         'plan': subscription['plan_type'],
         'plan_name': PLANS.get(subscription['plan_type'], {}).get('name', 'Неизвестно'),
         'status': subscription['status'],
         'start_date': subscription['start_date'].isoformat() if subscription['start_date'] else None,
         'end_date': subscription['end_date'].isoformat() if subscription['end_date'] else None,
-        'auto_renew': subscription['auto_renew']
+        'days_left': days_left,
+        'auto_renew': subscription['auto_renew'],
+        'buyer_name': subscription['buyer_name'],
+        'buyer_email': subscription['buyer_email'],
+        'purchased_at': subscription['paid_at'].isoformat() if subscription['paid_at'] else None
     }
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -480,11 +717,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if action == 'create':
                 plan_type = body.get('plan_type')
                 return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                force = body.get('force', False)
                 
                 print(f'[DEBUG] plan_type: {plan_type}')
                 print(f'[DEBUG] return_url: {return_url}')
                 print(f'[DEBUG] family_id: {family_id}')
                 print(f'[DEBUG] user_id: {user_id}')
+                print(f'[DEBUG] force: {force}')
                 
                 if not plan_type:
                     return {
@@ -494,11 +733,54 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 print('[DEBUG] Calling create_subscription...')
-                result = create_subscription(family_id, user_id, plan_type, return_url)
+                result = create_subscription(family_id, user_id, plan_type, return_url, force)
                 print(f'[DEBUG] create_subscription result: {result}')
                 
                 if 'error' in result:
-                    print(f'[DEBUG] Returning 400 with error: {result["error"]}')
+                    error_code = result.get('error')
+                    status_code = 409 if error_code == 'active_subscription_exists' else 400
+                    print(f'[DEBUG] Returning {status_code} with error: {result["error"]}')
+                    return {
+                        'statusCode': status_code,
+                        'headers': headers,
+                        'body': json.dumps(result)
+                    }
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result)
+                }
+            
+            # Продлить подписку
+            elif action == 'extend':
+                return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                
+                print(f'[DEBUG] Extending subscription for family_id: {family_id}')
+                result = extend_subscription(family_id, user_id, return_url)
+                
+                if 'error' in result:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps(result)
+                    }
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result)
+                }
+            
+            # Апгрейд подписки
+            elif action == 'upgrade':
+                new_plan_type = body.get('plan_type', 'full')
+                return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                
+                print(f'[DEBUG] Upgrading subscription to {new_plan_type} for family_id: {family_id}')
+                result = upgrade_subscription(family_id, user_id, new_plan_type, return_url)
+                
+                if 'error' in result:
                     return {
                         'statusCode': 400,
                         'headers': headers,
