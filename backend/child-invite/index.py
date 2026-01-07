@@ -70,6 +70,8 @@ def create_child_invite(family_id: str, child_member_id: str, created_by: str) -
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        print(f"[DEBUG] Creating invite: family_id={family_id}, child_member_id={child_member_id}, created_by={created_by}")
+        
         # Проверяем, что это детский профиль без активности
         check_query = f"""
             SELECT id, name, account_type
@@ -78,8 +80,10 @@ def create_child_invite(family_id: str, child_member_id: str, created_by: str) -
             AND family_id = {escape_string(family_id)}::uuid
             AND account_type = 'child_profile'
         """
+        print(f"[DEBUG] Check query: {check_query}")
         cur.execute(check_query)
         child = cur.fetchone()
+        print(f"[DEBUG] Child found: {child}")
         
         if not child:
             return {'success': False, 'error': 'Детский профиль не найден'}
@@ -101,8 +105,10 @@ def create_child_invite(family_id: str, child_member_id: str, created_by: str) -
             )
             RETURNING id, invite_token
         """
+        print(f"[DEBUG] Insert query: {insert_query}")
         cur.execute(insert_query)
         result = cur.fetchone()
+        print(f"[DEBUG] Insert result: {result}")
         
         if result:
             invite_url = f"https://family-assistant-project--preview.poehali.dev/activate/{result['invite_token']}"
