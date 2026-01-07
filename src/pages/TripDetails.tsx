@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TripWishList } from '@/components/trips/TripWishList';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -196,8 +197,12 @@ export default function TripDetails() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-5">
+            <TabsList className="w-full grid grid-cols-6 text-xs sm:text-sm">
               <TabsTrigger value="overview">Обзор</TabsTrigger>
+              <TabsTrigger value="wishlist">
+                <Icon name="Star" size={14} className="mr-1 hidden sm:inline" />
+                Wish List
+              </TabsTrigger>
               <TabsTrigger value="bookings">Брони ({bookings.length})</TabsTrigger>
               <TabsTrigger value="itinerary">Маршрут</TabsTrigger>
               <TabsTrigger value="diary">Дневник ({diary.length})</TabsTrigger>
@@ -281,6 +286,10 @@ export default function TripDetails() {
               <div className="text-sm text-gray-600">Фото</div>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="wishlist" className="mt-0">
+          <TripWishList tripId={Number(id)} currency={trip?.currency} />
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-4 mt-0">

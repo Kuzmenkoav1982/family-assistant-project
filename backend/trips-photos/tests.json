@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Get trip photos",
+      "method": "GET",
+      "path": "/trips/1/photos",
+      "headers": {
+        "X-Auth-Token": "test_token_123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "photos": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
