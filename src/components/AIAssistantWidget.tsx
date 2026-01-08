@@ -38,6 +38,9 @@ const AIAssistantWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showAstrologyDialog, setShowAstrologyDialog] = useState(false);
+  const [showDonationDialog, setShowDonationDialog] = useState(false);
+  const [selectedDonationAmount, setSelectedDonationAmount] = useState<number | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const location = useLocation();
@@ -402,14 +405,7 @@ const AIAssistantWidget = () => {
             </button>
             <div className="flex items-start gap-3">
               {assistantType === 'domovoy' ? (
-                <div 
-                  className="relative bg-white rounded-full overflow-hidden border-4 border-orange-400 flex-shrink-0"
-                  style={{
-                    width: '64px',
-                    height: '80px',
-                    borderRadius: '32px'
-                  }}
-                >
+                <div className="relative bg-white overflow-hidden border-4 border-orange-400 flex-shrink-0 rounded-2xl w-16 h-20">
                   <img 
                     src={getRoleInfo(kuzyaRole).image}
                     alt={getRoleInfo(kuzyaRole).name}
@@ -473,14 +469,7 @@ const AIAssistantWidget = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
                 {assistantType === 'domovoy' ? (
-                  <div 
-                    className="relative bg-white rounded-full overflow-hidden border-2 border-white/50"
-                    style={{
-                      width: '56px',
-                      height: '70px',
-                      borderRadius: '28px'
-                    }}
-                  >
+                  <div className="relative bg-white overflow-hidden border-2 border-white/50 rounded-2xl w-14 h-[70px]">
                     <img 
                       src={getRoleInfo(kuzyaRole).image}
                       alt={getRoleInfo(kuzyaRole).name}
@@ -624,6 +613,17 @@ const AIAssistantWidget = () => {
                 <div>
                   <div className="text-sm font-semibold">Астрологические прогнозы Домового</div>
                   <div className="text-xs opacity-80">Гороскопы и прогнозы</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setShowDonationDialog(true)}
+                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left shadow-lg"
+              >
+                <span className="text-lg">🎁</span>
+                <div>
+                  <div className="text-sm font-semibold text-white">Угостить Домового</div>
+                  <div className="text-xs text-white/90">Прокачать мудрость</div>
                 </div>
               </button>
               
@@ -806,12 +806,11 @@ const AIAssistantWidget = () => {
             left: `${buttonPosition.x}px`, 
             top: `${buttonPosition.y}px`,
             width: assistantType === 'domovoy' ? '80px' : '64px',
-            height: assistantType === 'domovoy' ? '100px' : '64px',
-            borderRadius: assistantType === 'domovoy' ? '50%' : '50%'
+            height: assistantType === 'domovoy' ? '100px' : '64px'
           }}
           className={`fixed z-50 shadow-2xl border-4 flex items-center justify-center transition-none overflow-hidden ${
             assistantType === 'domovoy' 
-              ? 'bg-white hover:bg-amber-50 border-orange-400' 
+              ? 'bg-white hover:bg-amber-50 border-orange-400 rounded-2xl' 
               : 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-blue-400 text-3xl rounded-full'
           } ${isButtonDragging ? 'scale-110' : 'hover:scale-105 animate-bounce-subtle'}`}
         >
@@ -841,6 +840,266 @@ const AIAssistantWidget = () => {
             </DialogTitle>
           </DialogHeader>
           <AstrologyService />
+        </DialogContent>
+      </Dialog>
+
+      {/* Donation Dialog */}
+      <Dialog open={showDonationDialog} onOpenChange={setShowDonationDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              🎁 Угостить Домового
+            </DialogTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Помогите Домовому стать мудрее и давать ещё более точные советы
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Benefits */}
+            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <Icon name="Sparkles" className="text-amber-600" />
+                💡 Что даёт прокачка:
+              </h4>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" className="text-green-600 mt-0.5" size={16} />
+                  <span>Более точные советы по воспитанию детей</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" className="text-green-600 mt-0.5" size={16} />
+                  <span>Умные подсказки по планированию</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" className="text-green-600 mt-0.5" size={16} />
+                  <span>Глубокий анализ семейного бюджета</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" className="text-green-600 mt-0.5" size={16} />
+                  <span>Персональные рекомендации</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Donation Options */}
+            <div>
+              <label className="text-base font-semibold mb-3 block">Выберите сумму угощения:</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[
+                  { amount: 100, emoji: '🥛', title: 'Кружка молока', bonus: '+1 уровень мудрости' },
+                  { amount: 500, emoji: '🍯', title: 'Горшочек мёда', bonus: '+2 уровня мудрости' },
+                  { amount: 1000, emoji: '🎁', title: 'Сундук с угощениями', bonus: '+3 уровня мудрости' }
+                ].map((option) => (
+                  <div
+                    key={option.amount}
+                    className={`p-4 cursor-pointer transition-all hover:shadow-lg rounded-xl border-2 ${
+                      selectedDonationAmount === option.amount
+                        ? 'border-amber-500 bg-amber-50'
+                        : 'border-gray-200 hover:border-amber-300 bg-white'
+                    }`}
+                    onClick={() => setSelectedDonationAmount(option.amount)}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">{option.emoji}</div>
+                      <div className="font-bold text-lg mb-1">₽{option.amount}</div>
+                      <div className="text-sm text-gray-600 mb-1">{option.title}</div>
+                      <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full inline-block">
+                        {option.bonus}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Payment Methods */}
+            {selectedDonationAmount && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <label className="text-base font-semibold mb-3 block">💳 Способы оплаты:</label>
+                <div className="space-y-3">
+                  <button
+                    onClick={async () => {
+                      const token = localStorage.getItem('authToken');
+                      if (!token) {
+                        toast({
+                          title: 'Требуется авторизация',
+                          description: 'Войдите в аккаунт для угощения Домового',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+
+                      setPaymentLoading(true);
+                      try {
+                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-Auth-Token': token
+                          },
+                          body: JSON.stringify({
+                            action: 'donate',
+                            amount: selectedDonationAmount,
+                            payment_method: 'sbp',
+                            return_url: window.location.origin + '/?donation=success'
+                          })
+                        });
+
+                        const data = await response.json();
+                        if (data.payment_url) {
+                          window.location.href = data.payment_url;
+                        } else {
+                          throw new Error(data.error || 'Ошибка создания платежа');
+                        }
+                      } catch (error) {
+                        setPaymentLoading(false);
+                        toast({
+                          title: 'Ошибка',
+                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    disabled={paymentLoading}
+                    className="w-full p-4 border-2 border-blue-400 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="QrCode" size={32} className="text-blue-600" />
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">СБП</div>
+                        <div className="text-sm text-gray-600">Быстрый платёж</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      const token = localStorage.getItem('authToken');
+                      if (!token) {
+                        toast({
+                          title: 'Требуется авторизация',
+                          description: 'Войдите в аккаунт для угощения Домового',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+
+                      setPaymentLoading(true);
+                      try {
+                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-Auth-Token': token
+                          },
+                          body: JSON.stringify({
+                            action: 'donate',
+                            amount: selectedDonationAmount,
+                            payment_method: 'card',
+                            return_url: window.location.origin + '/?donation=success'
+                          })
+                        });
+
+                        const data = await response.json();
+                        if (data.payment_url) {
+                          window.location.href = data.payment_url;
+                        } else {
+                          throw new Error(data.error || 'Ошибка создания платежа');
+                        }
+                      } catch (error) {
+                        setPaymentLoading(false);
+                        toast({
+                          title: 'Ошибка',
+                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    disabled={paymentLoading}
+                    className="w-full p-4 border-2 border-purple-400 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="CreditCard" size={32} className="text-purple-600" />
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">Карта</div>
+                        <div className="text-sm text-gray-600">Visa, MC, МИР</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      const token = localStorage.getItem('authToken');
+                      if (!token) {
+                        toast({
+                          title: 'Требуется авторизация',
+                          description: 'Войдите в аккаунт для угощения Домового',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+
+                      setPaymentLoading(true);
+                      try {
+                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-Auth-Token': token
+                          },
+                          body: JSON.stringify({
+                            action: 'donate',
+                            amount: selectedDonationAmount,
+                            payment_method: 'yoomoney',
+                            return_url: window.location.origin + '/?donation=success'
+                          })
+                        });
+
+                        const data = await response.json();
+                        if (data.payment_url) {
+                          window.location.href = data.payment_url;
+                        } else {
+                          throw new Error(data.error || 'Ошибка создания платежа');
+                        }
+                      } catch (error) {
+                        setPaymentLoading(false);
+                        toast({
+                          title: 'Ошибка',
+                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    disabled={paymentLoading}
+                    className="w-full p-4 border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="Wallet" size={32} className="text-amber-600" />
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">ЮMoney</div>
+                        <div className="text-sm text-gray-600">Электронный кошелёк</div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 flex items-start gap-2">
+                    <Icon name="Info" size={16} className="mt-0.5 flex-shrink-0" />
+                    <span>
+                      <strong>Безопасная оплата:</strong> После нажатия кнопки вы будете перенаправлены на страницу оплаты ЮКасса. Уровень Домового повысится автоматически после успешной оплаты.
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="text-center text-red-500 flex items-center justify-center gap-2 pt-2">
+              <span className="text-2xl">❤️</span>
+              <span className="text-sm">Спасибо за поддержку! Домовой не забудет вашу щедрость.</span>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
