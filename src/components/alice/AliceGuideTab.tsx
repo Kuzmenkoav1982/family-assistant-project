@@ -18,7 +18,7 @@ export function AliceGuideTab() {
               Откройте приложение <strong>Яндекс</strong> или <strong>Алиса</strong>
             </li>
             <li className="text-gray-700">
-              Скажите: <strong>"Алиса, включи навык Семейный помощник"</strong>
+              Скажите: <strong>"Алиса, включи навык Наша Семья"</strong>
             </li>
             <li className="text-gray-700">
               Следуйте инструкциям для активации навыка
@@ -51,7 +51,7 @@ export function AliceGuideTab() {
               <h4 className="font-semibold text-gray-900 mb-2">Шаг 1: Активируйте навык</h4>
               <div className="bg-gray-50 p-3 rounded-lg border-2 border-gray-200">
                 <p className="text-sm font-mono text-gray-700">
-                  "Алиса, активируй навык Семейный помощник"
+                  "Алиса, активируй навык Наша Семья"
                 </p>
               </div>
               <p className="text-sm text-gray-600 mt-2">
@@ -180,8 +180,8 @@ export function AliceGuideTab() {
             <div>
               <h4 className="font-semibold text-gray-900">Алиса не понимает команды</h4>
               <p className="text-sm text-gray-600 mt-1">
-                Убедитесь, что навык "Семейный помощник" активирован и аккаунт привязан. 
-                Попробуйте сказать: "Алиса, запусти навык Семейный помощник".
+                Убедитесь, что навык "Наша Семья" активирован и аккаунт привязан. 
+                Попробуйте сказать: "Алиса, запусти навык Наша Семья".
               </p>
             </div>
 
