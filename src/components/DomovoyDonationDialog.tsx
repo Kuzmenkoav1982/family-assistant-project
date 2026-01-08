@@ -51,6 +51,7 @@ export default function DomovoyDonationDialog({
   const [customAmount, setCustomAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'sbp' | 'card' | 'yumoney' | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDonate = async () => {
     const amount = selectedAmount || parseInt(customAmount);
