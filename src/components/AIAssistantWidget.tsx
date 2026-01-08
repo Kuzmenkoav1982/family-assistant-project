@@ -112,19 +112,19 @@ const AIAssistantWidget = () => {
     });
   };
 
-  // Информация о ролях
+  // Информация о ролях с изображениями
   const getRoleInfo = (role: string) => {
-    const roles: Record<string, { name: string; icon: string; description: string }> = {
-      'family-assistant': { name: 'Семейный помощник', icon: '🏡', description: 'Универсальный помощник' },
-      'cook': { name: 'Повар', icon: '🍳', description: 'Рецепты и кулинария' },
-      'organizer': { name: 'Организатор', icon: '📋', description: 'Планирование задач' },
-      'child-educator': { name: 'Воспитатель', icon: '👶', description: 'Советы по детям' },
-      'financial-advisor': { name: 'Финансовый советник', icon: '💰', description: 'Бюджет и экономия' },
-      'psychologist': { name: 'Психолог', icon: '🧠', description: 'Отношения в семье' },
-      'fitness-trainer': { name: 'Фитнес-тренер', icon: '💪', description: 'Здоровье и спорт' },
-      'nutritionist': { name: 'Диетолог', icon: '🍎', description: 'Здоровое питание' },
-      'travel-planner': { name: 'Тревел-планер', icon: '✈️', description: 'Организация поездок' },
-      'astrologer': { name: 'Астролог', icon: '🌙', description: 'Гороскопы и прогнозы' },
+    const roles: Record<string, { name: string; icon: string; description: string; image: string }> = {
+      'family-assistant': { name: 'Семейный помощник', icon: '🏡', description: 'Универсальный помощник', image: 'https://cdn.poehali.dev/files/Семейный помощник.png' },
+      'cook': { name: 'Повар', icon: '🍳', description: 'Рецепты и кулинария', image: 'https://cdn.poehali.dev/files/Повар.png' },
+      'organizer': { name: 'Организатор', icon: '📋', description: 'Планирование задач', image: 'https://cdn.poehali.dev/files/Организатор.png' },
+      'child-educator': { name: 'Воспитатель', icon: '👶', description: 'Советы по детям', image: 'https://cdn.poehali.dev/files/Воспитатель.png' },
+      'financial-advisor': { name: 'Финансовый советник', icon: '💰', description: 'Бюджет и экономия', image: 'https://cdn.poehali.dev/files/Финансовый советник.png' },
+      'psychologist': { name: 'Психолог', icon: '🧠', description: 'Отношения в семье', image: 'https://cdn.poehali.dev/files/Психолог.png' },
+      'fitness-trainer': { name: 'Фитнес-тренер', icon: '💪', description: 'Здоровье и спорт', image: 'https://cdn.poehali.dev/files/Фитнес-тренер.png' },
+      'nutritionist': { name: 'Диетолог', icon: '🍎', description: 'Здоровое питание', image: 'https://cdn.poehali.dev/files/Диетолог.png' },
+      'travel-planner': { name: 'Тревел-планер', icon: '✈️', description: 'Организация поездок', image: 'https://cdn.poehali.dev/files/Тревел-планер.png' },
+      'astrologer': { name: 'Астролог', icon: '🌙', description: 'Гороскопы и прогнозы', image: 'https://cdn.poehali.dev/files/Астролог.png' },
     };
     return roles[role] || roles['family-assistant'];
   };
@@ -402,18 +402,23 @@ const AIAssistantWidget = () => {
             </button>
             <div className="flex items-start gap-3">
               {assistantType === 'domovoy' ? (
-                <img 
-                  src={kuzyaRole === 'cook' 
-                    ? "https://cdn.poehali.dev/files/Повар.png"
-                    : "https://cdn.poehali.dev/files/Кузя.png"
-                  }
-                  alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                  className={`w-16 h-16 rounded-full border-4 border-orange-400 flex-shrink-0 pointer-events-none ${
-                    kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
-                  }`}
-                  draggable={false}
-                  onContextMenu={(e) => e.preventDefault()}
-                />
+                <div 
+                  className="relative bg-white rounded-full overflow-hidden border-4 border-orange-400 flex-shrink-0"
+                  style={{
+                    width: '64px',
+                    height: '80px',
+                    borderRadius: '32px'
+                  }}
+                >
+                  <img 
+                    src={getRoleInfo(kuzyaRole).image}
+                    alt={getRoleInfo(kuzyaRole).name}
+                    className="w-full h-full pointer-events-none object-cover"
+                    style={{ objectPosition: 'center' }}
+                    draggable={false}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
               ) : (
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl border-4 border-blue-400 flex-shrink-0">
                   🤖
@@ -468,18 +473,23 @@ const AIAssistantWidget = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
                 {assistantType === 'domovoy' ? (
-                  <img 
-                    src={kuzyaRole === 'cook' 
-                      ? "https://cdn.poehali.dev/files/Повар.png"
-                      : "https://cdn.poehali.dev/files/Кузя.png"
-                    }
-                    alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                    className={`w-12 h-12 rounded-full border-2 border-white/50 pointer-events-none ${
-                      kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
-                    }`}
-                    draggable={false}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
+                  <div 
+                    className="relative bg-white rounded-full overflow-hidden border-2 border-white/50"
+                    style={{
+                      width: '56px',
+                      height: '70px',
+                      borderRadius: '28px'
+                    }}
+                  >
+                    <img 
+                      src={getRoleInfo(kuzyaRole).image}
+                      alt={getRoleInfo(kuzyaRole).name}
+                      className="w-full h-full pointer-events-none object-cover"
+                      style={{ objectPosition: 'center' }}
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  </div>
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl border-2 border-white/50">
                     🤖
@@ -792,23 +802,25 @@ const AIAssistantWidget = () => {
           onTouchStart={handleButtonTouchStart}
           onTouchMove={handleButtonTouchMove}
           onTouchEnd={handleButtonTouchEnd}
-          style={{ left: `${buttonPosition.x}px`, top: `${buttonPosition.y}px` }}
-          className={`fixed z-50 w-16 h-16 rounded-full shadow-2xl border-4 flex items-center justify-center transition-none overflow-hidden ${
+          style={{ 
+            left: `${buttonPosition.x}px`, 
+            top: `${buttonPosition.y}px`,
+            width: assistantType === 'domovoy' ? '80px' : '64px',
+            height: assistantType === 'domovoy' ? '100px' : '64px',
+            borderRadius: assistantType === 'domovoy' ? '50%' : '50%'
+          }}
+          className={`fixed z-50 shadow-2xl border-4 flex items-center justify-center transition-none overflow-hidden ${
             assistantType === 'domovoy' 
               ? 'bg-white hover:bg-amber-50 border-orange-400' 
-              : 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-blue-400 text-3xl'
-          } ${isButtonDragging ? 'scale-110' : 'hover:scale-110 animate-bounce-subtle'}`}
+              : 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-blue-400 text-3xl rounded-full'
+          } ${isButtonDragging ? 'scale-110' : 'hover:scale-105 animate-bounce-subtle'}`}
         >
           {assistantType === 'domovoy' ? (
             <img 
-              src={kuzyaRole === 'cook' 
-                ? "https://cdn.poehali.dev/files/Повар.png"
-                : "https://cdn.poehali.dev/files/Кузя.png"
-              }
-              alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-              className={`w-full h-full pointer-events-none ${
-                kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
-              }`}
+              src={getRoleInfo(kuzyaRole).image}
+              alt={getRoleInfo(kuzyaRole).name}
+              className="w-full h-full pointer-events-none object-cover"
+              style={{ objectPosition: 'center' }}
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
             />
