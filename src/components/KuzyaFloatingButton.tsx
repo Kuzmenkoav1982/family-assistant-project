@@ -124,7 +124,7 @@ export default function KuzyaFloatingButton() {
         )}
         
         <div
-          className={`relative w-28 h-28 rounded-full shadow-2xl transition-all duration-200 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 overflow-hidden border-4 border-white ${
+          className={`relative w-20 h-24 rounded-2xl shadow-2xl transition-all duration-200 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 overflow-hidden border-4 border-white ${
             isDragging ? 'scale-105' : ''
           }`}
           title="Кузя - ваш помощник (удерживайте чтобы перемещать)"
@@ -139,12 +139,13 @@ export default function KuzyaFloatingButton() {
           <img 
             src="https://cdn.poehali.dev/files/4d510211-47b5-4233-b503-3bd902bba10a.png"
             alt="Кузя"
-            className="w-20 h-20 object-contain relative z-10 pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            className="w-full h-full object-cover relative z-10 pointer-events-none select-none"
             draggable="false"
             style={{
               WebkitTouchCallout: 'none',
               WebkitUserSelect: 'none',
-              userSelect: 'none'
+              userSelect: 'none',
+              objectPosition: 'center'
             }}
           />
           

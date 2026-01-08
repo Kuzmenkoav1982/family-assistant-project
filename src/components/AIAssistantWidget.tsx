@@ -845,7 +845,7 @@ const AIAssistantWidget = () => {
 
       {/* Donation Dialog */}
       <Dialog open={showDonationDialog} onOpenChange={setShowDonationDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               🎁 Угостить Домового
@@ -885,215 +885,86 @@ const AIAssistantWidget = () => {
             {/* Donation Options */}
             <div>
               <label className="text-base font-semibold mb-3 block">Выберите сумму угощения:</label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="space-y-3">
                 {[
                   { amount: 100, emoji: '🥛', title: 'Кружка молока', bonus: '+1 уровень мудрости' },
                   { amount: 500, emoji: '🍯', title: 'Горшочек мёда', bonus: '+2 уровня мудрости' },
                   { amount: 1000, emoji: '🎁', title: 'Сундук с угощениями', bonus: '+3 уровня мудрости' }
                 ].map((option) => (
-                  <div
+                  <button
                     key={option.amount}
-                    className={`p-4 cursor-pointer transition-all hover:shadow-lg rounded-xl border-2 ${
-                      selectedDonationAmount === option.amount
-                        ? 'border-amber-500 bg-amber-50'
-                        : 'border-gray-200 hover:border-amber-300 bg-white'
-                    }`}
-                    onClick={() => setSelectedDonationAmount(option.amount)}
+                    onClick={async () => {
+                      const token = localStorage.getItem('authToken');
+                      if (!token) {
+                        toast({
+                          title: 'Требуется авторизация',
+                          description: 'Войдите в аккаунт для угощения Домового',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+
+                      setPaymentLoading(true);
+                      setSelectedDonationAmount(option.amount);
+                      
+                      try {
+                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-Auth-Token': token
+                          },
+                          body: JSON.stringify({
+                            action: 'create_donation',
+                            amount: option.amount,
+                            return_url: window.location.origin + '/?donation=success'
+                          })
+                        });
+
+                        const data = await response.json();
+                        if (data.success && data.payment_url) {
+                          window.location.href = data.payment_url;
+                        } else {
+                          throw new Error(data.error || 'Ошибка создания платежа');
+                        }
+                      } catch (error) {
+                        setPaymentLoading(false);
+                        toast({
+                          title: 'Ошибка',
+                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    disabled={paymentLoading}
+                    className="w-full p-4 border-2 border-gray-200 hover:border-amber-400 bg-white hover:bg-amber-50 rounded-xl transition-all text-left disabled:opacity-50"
                   >
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{option.emoji}</div>
-                      <div className="font-bold text-lg mb-1">₽{option.amount}</div>
-                      <div className="text-sm text-gray-600 mb-1">{option.title}</div>
-                      <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full inline-block">
-                        {option.bonus}
+                    <div className="flex items-center gap-4">
+                      <div className="text-4xl">{option.emoji}</div>
+                      <div className="flex-1">
+                        <div className="font-bold text-lg">₽{option.amount}</div>
+                        <div className="text-sm text-gray-600">{option.title}</div>
+                        <div className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full inline-block mt-1">
+                          {option.bonus}
+                        </div>
                       </div>
+                      {paymentLoading && selectedDonationAmount === option.amount && (
+                        <Icon name="Loader2" className="animate-spin text-amber-600" size={24} />
+                      )}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
 
-            {/* Payment Methods */}
-            {selectedDonationAmount && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <label className="text-base font-semibold mb-3 block">💳 Способы оплаты:</label>
-                <div className="space-y-3">
-                  <button
-                    onClick={async () => {
-                      const token = localStorage.getItem('authToken');
-                      if (!token) {
-                        toast({
-                          title: 'Требуется авторизация',
-                          description: 'Войдите в аккаунт для угощения Домового',
-                          variant: 'destructive'
-                        });
-                        return;
-                      }
-
-                      setPaymentLoading(true);
-                      try {
-                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'X-Auth-Token': token
-                          },
-                          body: JSON.stringify({
-                            action: 'donate',
-                            amount: selectedDonationAmount,
-                            payment_method: 'sbp',
-                            return_url: window.location.origin + '/?donation=success'
-                          })
-                        });
-
-                        const data = await response.json();
-                        if (data.payment_url) {
-                          window.location.href = data.payment_url;
-                        } else {
-                          throw new Error(data.error || 'Ошибка создания платежа');
-                        }
-                      } catch (error) {
-                        setPaymentLoading(false);
-                        toast({
-                          title: 'Ошибка',
-                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
-                          variant: 'destructive'
-                        });
-                      }
-                    }}
-                    disabled={paymentLoading}
-                    className="w-full p-4 border-2 border-blue-400 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon name="QrCode" size={32} className="text-blue-600" />
-                      <div className="flex-1">
-                        <div className="font-semibold text-lg">СБП</div>
-                        <div className="text-sm text-gray-600">Быстрый платёж</div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={async () => {
-                      const token = localStorage.getItem('authToken');
-                      if (!token) {
-                        toast({
-                          title: 'Требуется авторизация',
-                          description: 'Войдите в аккаунт для угощения Домового',
-                          variant: 'destructive'
-                        });
-                        return;
-                      }
-
-                      setPaymentLoading(true);
-                      try {
-                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'X-Auth-Token': token
-                          },
-                          body: JSON.stringify({
-                            action: 'donate',
-                            amount: selectedDonationAmount,
-                            payment_method: 'card',
-                            return_url: window.location.origin + '/?donation=success'
-                          })
-                        });
-
-                        const data = await response.json();
-                        if (data.payment_url) {
-                          window.location.href = data.payment_url;
-                        } else {
-                          throw new Error(data.error || 'Ошибка создания платежа');
-                        }
-                      } catch (error) {
-                        setPaymentLoading(false);
-                        toast({
-                          title: 'Ошибка',
-                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
-                          variant: 'destructive'
-                        });
-                      }
-                    }}
-                    disabled={paymentLoading}
-                    className="w-full p-4 border-2 border-purple-400 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon name="CreditCard" size={32} className="text-purple-600" />
-                      <div className="flex-1">
-                        <div className="font-semibold text-lg">Карта</div>
-                        <div className="text-sm text-gray-600">Visa, MC, МИР</div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={async () => {
-                      const token = localStorage.getItem('authToken');
-                      if (!token) {
-                        toast({
-                          title: 'Требуется авторизация',
-                          description: 'Войдите в аккаунт для угощения Домового',
-                          variant: 'destructive'
-                        });
-                        return;
-                      }
-
-                      setPaymentLoading(true);
-                      try {
-                        const response = await fetch('https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'X-Auth-Token': token
-                          },
-                          body: JSON.stringify({
-                            action: 'donate',
-                            amount: selectedDonationAmount,
-                            payment_method: 'yoomoney',
-                            return_url: window.location.origin + '/?donation=success'
-                          })
-                        });
-
-                        const data = await response.json();
-                        if (data.payment_url) {
-                          window.location.href = data.payment_url;
-                        } else {
-                          throw new Error(data.error || 'Ошибка создания платежа');
-                        }
-                      } catch (error) {
-                        setPaymentLoading(false);
-                        toast({
-                          title: 'Ошибка',
-                          description: error instanceof Error ? error.message : 'Не удалось создать платёж',
-                          variant: 'destructive'
-                        });
-                      }
-                    }}
-                    disabled={paymentLoading}
-                    className="w-full p-4 border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon name="Wallet" size={32} className="text-amber-600" />
-                      <div className="flex-1">
-                        <div className="font-semibold text-lg">ЮMoney</div>
-                        <div className="text-sm text-gray-600">Электронный кошелёк</div>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800 flex items-start gap-2">
-                    <Icon name="Info" size={16} className="mt-0.5 flex-shrink-0" />
-                    <span>
-                      <strong>Безопасная оплата:</strong> После нажатия кнопки вы будете перенаправлены на страницу оплаты ЮКасса. Уровень Домового повысится автоматически после успешной оплаты.
-                    </span>
-                  </p>
-                </div>
-              </div>
-            )}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 flex items-start gap-2">
+                <Icon name="Info" size={16} className="mt-0.5 flex-shrink-0" />
+                <span>
+                  <strong>Безопасная оплата:</strong> После нажатия на сумму вы будете перенаправлены на страницу оплаты ЮКасса. Уровень Домового повысится автоматически после успешной оплаты.
+                </span>
+              </p>
+            </div>
 
             <div className="text-center text-red-500 flex items-center justify-center gap-2 pt-2">
               <span className="text-2xl">❤️</span>
