@@ -648,14 +648,10 @@ const AIAssistantWidget = () => {
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
                       <img 
-                        src={kuzyaRole === 'cook' 
-                          ? "https://cdn.poehali.dev/files/Повар.png"
-                          : "https://cdn.poehali.dev/files/Кузя.png"
-                        }
-                        alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                        className={`w-20 h-20 rounded-full border-4 border-orange-400 mx-auto mb-4 pointer-events-none ${
-                          kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
-                        }`}
+                        src={getRoleInfo(kuzyaRole).image}
+                        alt={getRoleInfo(kuzyaRole).name}
+                        className="w-20 h-24 rounded-2xl border-4 border-orange-400 mx-auto mb-4 pointer-events-none object-cover"
+                        style={{ objectPosition: 'center' }}
                         draggable={false}
                         onContextMenu={(e) => e.preventDefault()}
                       />
@@ -697,14 +693,10 @@ const AIAssistantWidget = () => {
                             </div>
                           ) : assistantType === 'domovoy' ? (
                             <img 
-                              src={kuzyaRole === 'cook' 
-                                ? "https://cdn.poehali.dev/files/Повар.png"
-                                : "https://cdn.poehali.dev/files/Кузя.png"
-                              }
-                              alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                              className={`w-8 h-8 rounded-full border-2 border-orange-400 pointer-events-none ${
-                                kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
-                              }`}
+                              src={getRoleInfo(kuzyaRole).image}
+                              alt={getRoleInfo(kuzyaRole).name}
+                              className="w-8 h-10 rounded-xl border-2 border-orange-400 pointer-events-none object-cover"
+                              style={{ objectPosition: 'center' }}
                               draggable={false}
                               onContextMenu={(e) => e.preventDefault()}
                             />
@@ -735,14 +727,10 @@ const AIAssistantWidget = () => {
                       <div className="flex gap-2">
                         {assistantType === 'domovoy' ? (
                           <img 
-                            src={kuzyaRole === 'cook' 
-                              ? "https://cdn.poehali.dev/files/Повар.png"
-                              : "https://cdn.poehali.dev/files/Кузя.png"
-                            }
-                            alt={kuzyaRole === 'cook' ? 'Домовой-Повар' : 'Домовой'}
-                            className={`w-8 h-8 rounded-full border-2 border-orange-400 pointer-events-none ${
-                              kuzyaRole === 'cook' ? 'object-contain bg-amber-100' : 'object-cover'
-                            }`}
+                            src={getRoleInfo(kuzyaRole).image}
+                            alt={getRoleInfo(kuzyaRole).name}
+                            className="w-8 h-10 rounded-xl border-2 border-orange-400 pointer-events-none object-cover"
+                            style={{ objectPosition: 'center' }}
                             draggable={false}
                             onContextMenu={(e) => e.preventDefault()}
                           />
