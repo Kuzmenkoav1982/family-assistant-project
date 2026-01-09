@@ -33,7 +33,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
@@ -41,8 +41,32 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    # GET для проверки работоспособности (Яндекс.Диалоги проверяют доступность)
+    if method == 'GET':
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'status': 'ok',
+                'skill': 'Наша семья',
+                'version': '2.0'
+            }),
+            'isBase64Encoded': False
+        }
+    
     if method != 'POST':
-        return alice_response('Метод не поддерживается', 405)
+        return {
+            'statusCode': 405,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Метод не поддерживается'}),
+            'isBase64Encoded': False
+        }
     
     # Парсим запрос от Алисы
     try:
