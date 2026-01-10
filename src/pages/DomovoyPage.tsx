@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,11 +16,16 @@ const DOMOVOY_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-
 
 export default function DomovoyPage() {
   const navigate = useNavigate();
-  const { assistantLevel, selectedRole, setSelectedRole } = useAIAssistant();
+  const { assistantLevel, selectedRole, setSelectedRole, refreshAssistantLevel } = useAIAssistant();
   const [showDonationDialog, setShowDonationDialog] = useState(false);
   const [showAstrologyDialog, setShowAstrologyDialog] = useState(false);
 
   const levelProgress = ((assistantLevel - 1) / 9) * 100;
+
+  // Обновить уровень при открытии страницы (после возврата с оплаты)
+  useEffect(() => {
+    refreshAssistantLevel();
+  }, []);
 
   const handleRoleClick = (role: AIAssistantRole) => {
     setSelectedRole(role);

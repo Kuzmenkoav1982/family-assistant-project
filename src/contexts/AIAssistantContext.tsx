@@ -21,6 +21,7 @@ interface AIAssistantContextType {
   setAssistantLevel: (level: number) => void;
   setSelectedRole: (role: AIAssistantRole | null) => void;
   resetSelection: () => void;
+  refreshAssistantLevel: () => Promise<void>;
 }
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -137,6 +138,30 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     localStorage.removeItem('assistantSetupCompleted');
   };
 
+  const refreshAssistantLevel = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085', {
+        method: 'GET',
+        headers: {
+          'X-Auth-Token': token
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.level) {
+          setAssistantLevelState(data.level);
+          localStorage.setItem('assistantLevel', data.level.toString());
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка обновления уровня Домового:', error);
+    }
+  };
+
   return (
     <AIAssistantContext.Provider
       value={{
@@ -149,7 +174,8 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
         setAssistantName,
         setAssistantLevel,
         setSelectedRole,
-        resetSelection
+        resetSelection,
+        refreshAssistantLevel
       }}
     >
       {children}

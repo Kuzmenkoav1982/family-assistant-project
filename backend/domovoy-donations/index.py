@@ -194,7 +194,7 @@ def create_yookassa_payment(amount: int, user_id: str, user_email: str) -> Dict[
         'amount': {'value': f'{amount:.2f}', 'currency': 'RUB'},
         'confirmation': {
             'type': 'redirect',
-            'return_url': 'https://preview--family-assistant-project.poehali.dev/'
+            'return_url': 'https://preview--family-assistant-project.poehali.dev/domovoy'
         },
         'capture': True,
         'description': f'Угощение Домового - {amount}₽',
@@ -215,6 +215,11 @@ def create_yookassa_payment(amount: int, user_id: str, user_email: str) -> Dict[
             }]
         }
     }
+    
+    # ⚠️ CRITICAL: ЮКасса ДОЛЖНА знать URL для отправки webhook'ов
+    # Иначе уровень не обновится после оплаты!
+    webhook_url = 'https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=webhook'
+    payment_data['notification_url'] = webhook_url
     
     auth_string = f'{yookassa_shop_id}:{yookassa_secret}'
     auth_b64 = base64.b64encode(auth_string.encode('utf-8')).decode('ascii')
