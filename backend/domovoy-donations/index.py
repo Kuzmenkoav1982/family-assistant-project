@@ -253,39 +253,59 @@ def create_yookassa_payment(amount: int, user_id: str, user_email: str) -> Dict[
 def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
     """Создание платежа доната через ЮКассу"""
     
-    amount = body.get('amount')
-    payment_method = body.get('payment_method')
-    
-    if not amount or not payment_method:
-        return {
-            'statusCode': 400,
-            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Укажите amount и payment_method'})
-        }
-    
-    if amount < 100:
-        return {
-            'statusCode': 400,
-            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Минимальная сумма - 100₽'})
-        }
-    
-    # Получаем email пользователя
-    cursor.execute(
-        "SELECT email FROM t_p5815085_family_assistant_pro.users WHERE id = %s",
-        (user_id,)
-    )
-    user = cursor.fetchone()
-    user_email = user['email'] if user and user['email'] else 'support@nasha-semiya.ru'
-    
-    # Создаём платёж в ЮКассе
-    payment_result = create_yookassa_payment(amount, user_id, user_email)
-    
-    if not payment_result.get('success'):
+    try:
+        amount = body.get('amount')
+        payment_method = body.get('payment_method')
+        
+        print(f"[DONATE] user_id={user_id}, amount={amount}, payment_method={payment_method}")
+        
+        if not amount or not payment_method:
+            return {
+                'statusCode': 400,
+                'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': 'Укажите amount и payment_method'})
+            }
+        
+        if amount < 100:
+            return {
+                'statusCode': 400,
+                'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': 'Минимальная сумма - 100₽'})
+            }
+        
+        # Получаем email пользователя
+        cursor.execute(
+            "SELECT email FROM t_p5815085_family_assistant_pro.users WHERE id = %s",
+            (user_id,)
+        )
+        user = cursor.fetchone()
+        user_email = user['email'] if user and user['email'] else 'support@nasha-semiya.ru'
+        
+        print(f"[DONATE] user_email={user_email}")
+        
+        # Создаём платёж в ЮКассе
+        payment_result = create_yookassa_payment(amount, user_id, user_email)
+        
+        print(f"[DONATE] payment_result={payment_result}")
+        
+        if not payment_result.get('success'):
+            return {
+                'statusCode': 500,
+                'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': payment_result.get('error', 'Ошибка создания платежа'), 'details': payment_result})
+            }
+    except Exception as e:
+        import traceback
+        print(f"[DONATE ERROR] {str(e)}")
+        print(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': payment_result.get('error', 'Ошибка создания платежа')})
+            'isBase64Encoded': False,
+            'body': json.dumps({'error': f'Ошибка обработки доната: {str(e)}'})
         }
     
     # Сохраняем информацию о платеже
