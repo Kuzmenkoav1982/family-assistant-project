@@ -49,26 +49,14 @@ export default function DomovoyDonationDialog({
   const { assistantLevel, setAssistantLevel } = useAIAssistant();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'sbp' | 'card' | 'yumoney' | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleDonate = async () => {
-    const amount = selectedAmount || parseInt(customAmount);
-    
+  const handleDonate = async (amount: number) => {
     if (!amount || amount < 100) {
       toast({
         title: 'Ошибка',
         description: 'Минимальная сумма - 100₽',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    if (!paymentMethod) {
-      toast({
-        title: 'Выберите способ оплаты',
-        description: 'Необходимо выбрать способ оплаты',
         variant: 'destructive'
       });
       return;
@@ -95,7 +83,7 @@ export default function DomovoyDonationDialog({
         },
         body: JSON.stringify({
           amount,
-          payment_method: paymentMethod
+          payment_method: 'yookassa'
         })
       });
 
@@ -194,15 +182,8 @@ export default function DomovoyDonationDialog({
               {donationOptions.map((option) => (
                 <Card
                   key={option.amount}
-                  className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
-                    selectedAmount === option.amount
-                      ? 'border-2 border-amber-500 bg-amber-50'
-                      : 'hover:border-amber-300'
-                  }`}
-                  onClick={() => {
-                    setSelectedAmount(option.amount);
-                    setCustomAmount('');
-                  }}
+                  className="p-4 cursor-pointer transition-all hover:shadow-lg hover:border-amber-300"
+                  onClick={() => handleDonate(option.amount)}
                 >
                   <div className="text-center">
                     <div className="text-4xl mb-2">{option.emoji}</div>
@@ -226,74 +207,21 @@ export default function DomovoyDonationDialog({
                   min="100"
                   placeholder="Например: 300"
                   value={customAmount}
-                  onChange={(e) => {
-                    setCustomAmount(e.target.value);
-                    setSelectedAmount(null);
-                  }}
+                  onChange={(e) => setCustomAmount(e.target.value)}
                 />
               </div>
               <Button
                 variant="outline"
                 onClick={() => {
-                  if (customAmount) {
-                    setSelectedAmount(parseInt(customAmount));
+                  const amount = parseInt(customAmount);
+                  if (amount) {
+                    handleDonate(amount);
                   }
                 }}
-                disabled={!customAmount}
+                disabled={!customAmount || isLoading}
               >
                 Применить
               </Button>
-            </div>
-          </div>
-
-          {/* Payment Methods */}
-          <div>
-            <Label className="text-base mb-3 block">💳 Способы оплаты:</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Card
-                className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
-                  paymentMethod === 'sbp'
-                    ? 'border-2 border-blue-500 bg-blue-50'
-                    : 'hover:border-blue-300'
-                }`}
-                onClick={() => setPaymentMethod('sbp')}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Icon name="QrCode" size={32} className="text-blue-600" />
-                  <span className="font-semibold">СБП</span>
-                  <span className="text-xs text-gray-600">Быстрый платёж</span>
-                </div>
-              </Card>
-
-              <Card
-                className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
-                  paymentMethod === 'card'
-                    ? 'border-2 border-purple-500 bg-purple-50'
-                    : 'hover:border-purple-300'
-                }`}
-                onClick={() => setPaymentMethod('card')}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Icon name="CreditCard" size={32} className="text-purple-600" />
-                  <span className="font-semibold">Карта</span>
-                  <span className="text-xs text-gray-600">Visa, MC, МИР</span>
-                </div>
-              </Card>
-
-              <Card
-                className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
-                  paymentMethod === 'yumoney'
-                    ? 'border-2 border-yellow-500 bg-yellow-50'
-                    : 'hover:border-yellow-300'
-                }`}
-                onClick={() => setPaymentMethod('yumoney')}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Icon name="Wallet" size={32} className="text-yellow-600" />
-                  <span className="font-semibold">ЮMoney</span>
-                  <span className="text-xs text-gray-600">Электронный кошелёк</span>
-                </div>
-              </Card>
             </div>
           </div>
 
@@ -302,8 +230,9 @@ export default function DomovoyDonationDialog({
             <p className="text-sm text-blue-900 flex items-start gap-2">
               <Icon name="Info" className="mt-0.5 flex-shrink-0" size={16} />
               <span>
-                <strong>Безопасная оплата:</strong> После нажатия кнопки вы будете перенаправлены на страницу оплаты ЮКасса. 
-                Уровень Домового повысится автоматически после успешной оплаты.
+                <strong>Безопасная оплата через ЮКассу</strong><br/>
+                Выберите сумму угощения выше, и вы будете перенаправлены на безопасную страницу оплаты. 
+                Уровень мудрости Домового повысится автоматически после успешной оплаты.
               </span>
             </p>
           </div>
@@ -311,31 +240,12 @@ export default function DomovoyDonationDialog({
 
         <div className="flex gap-3">
           <Button
-            onClick={handleDonate}
-            disabled={(!selectedAmount && !customAmount) || !paymentMethod || isLoading}
-            className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Icon name="Loader2" className="mr-2 animate-spin" />
-                Переход к оплате...
-              </>
-            ) : (
-              <>
-                <Icon name="Gift" className="mr-2" />
-                {selectedAmount || customAmount 
-                  ? `Угостить на ₽${selectedAmount || customAmount}`
-                  : 'Угостить Домового'}
-              </>
-            )}
-          </Button>
-          <Button
             onClick={() => onOpenChange(false)}
             variant="outline"
             size="lg"
+            className="flex-1"
           >
-            Отмена
+            Закрыть
           </Button>
         </div>
 
