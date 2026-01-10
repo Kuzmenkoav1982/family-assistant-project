@@ -192,7 +192,7 @@ export default function Trips() {
           onTripClick={(id) => navigate(`/trips/${id}`)}
           onEditTrip={handleEditTrip}
           onDeleteTrip={handleDeleteTrip}
-          onNavigateToWishlist={() => navigate('/trips/wishlist')}
+          onAddTrip={() => setIsAddDialogOpen(true)}
         />
       </div>
 

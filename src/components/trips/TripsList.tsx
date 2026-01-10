@@ -25,7 +25,7 @@ interface TripsListProps {
   onTripClick: (tripId: number) => void;
   onEditTrip: (trip: Trip) => void;
   onDeleteTrip: (tripId: number) => void;
-  onNavigateToWishlist: () => void;
+  onAddTrip: () => void;
 }
 
 const getStatusBadge = (status: string) => {
@@ -74,7 +74,7 @@ export function TripsList({
   onTripClick,
   onEditTrip,
   onDeleteTrip,
-  onNavigateToWishlist,
+  onAddTrip,
 }: TripsListProps) {
   if (loading) {
     return (
@@ -91,7 +91,7 @@ export function TripsList({
         <Icon name="Plane" size={48} className="mx-auto text-gray-300 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Нет поездок</h3>
         <p className="text-gray-500 mb-4">Начните планировать свое путешествие</p>
-        <Button onClick={onNavigateToWishlist} className="gap-2">
+        <Button onClick={onAddTrip} className="gap-2">
           <Icon name="Plus" size={18} />
           Добавить поездку
         </Button>
