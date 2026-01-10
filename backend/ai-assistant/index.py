@@ -217,8 +217,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'text': content
                 })
         
+        # Используем правильный folder_id (из сервисного аккаунта)
+        correct_folder_id = 'b1gaglg8i7v2i32nvism'
+        
         payload = {
-            'modelUri': f'gpt://{folder_id}/yandexgpt-lite',
+            'modelUri': f'gpt://{correct_folder_id}/yandexgpt-lite',
             'completionOptions': {
                 'stream': False,
                 'temperature': 0.7,
@@ -228,7 +231,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
         # Отправляем запрос к YandexGPT
-        print(f'[DEBUG] Отправка запроса к YandexGPT. ModelUri: gpt://{folder_id}/yandexgpt-lite')
+        print(f'[DEBUG] Отправка запроса к YandexGPT. ModelUri: gpt://{correct_folder_id}/yandexgpt-lite')
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         
         if response.status_code != 200:
