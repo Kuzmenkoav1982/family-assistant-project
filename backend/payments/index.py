@@ -559,7 +559,12 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
     payment_id = payment_obj.get('id')
     metadata = payment_obj.get('metadata', {})
     
+    print(f'[WEBHOOK] Event type: {event_type}')
+    print(f'[WEBHOOK] Payment ID: {payment_id}')
+    print(f'[WEBHOOK] Metadata: {metadata}')
+    
     if event_type != 'payment.succeeded' or not payment_id:
+        print(f'[WEBHOOK] Skipping event (not payment.succeeded or no payment_id)')
         return {'received': True}
     
     conn = get_db_connection()
@@ -568,17 +573,24 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
     try:
         # Обновляем статус платежа
         safe_payment_id = payment_id.replace("'", "''")
+        
+        print(f'[WEBHOOK] Updating payment status for: {safe_payment_id}')
+        
         cur.execute(
             f"""
             UPDATE {SCHEMA}.payments 
-            SET status = 'succeeded', paid_at = CURRENT_TIMESTAMP
+            SET status = 'paid', paid_at = CURRENT_TIMESTAMP, payment_method = 'yookassa'
             WHERE payment_id = '{safe_payment_id}'
             RETURNING subscription_id
             """
         )
         payment = cur.fetchone()
         
+        print(f'[WEBHOOK] Payment record: {payment}')
+        
         if payment and payment['subscription_id']:
+            print(f'[WEBHOOK] Activating subscription: {payment["subscription_id"]}')
+            
             # Активируем подписку
             cur.execute(
                 f"""
@@ -587,11 +599,16 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
                 WHERE id = '{payment["subscription_id"]}'
                 """
             )
+            
+            print(f'[WEBHOOK] Subscription activated successfully')
+        else:
+            print(f'[WEBHOOK] WARNING: No payment found or no subscription_id')
         
         conn.commit()
         cur.close()
         conn.close()
         
+        print(f'[WEBHOOK] Success! Payment and subscription updated')
         return {'received': True, 'activated': True}
     except Exception as e:
         conn.rollback()
@@ -667,15 +684,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
     
     try:
-        # Webhook от ЮКассы (без авторизации)
-        if method == 'POST' and 'webhook' in path:
+        # Webhook от ЮКассы (без авторизации) - определяем по наличию event и object в body
+        if method == 'POST':
             body = json.loads(event.get('body', '{}'))
-            result = handle_webhook(body)
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps(result)
-            }
+            
+            # Проверяем структуру вебхука ЮКассы
+            if 'event' in body and 'object' in body:
+                print(f'[WEBHOOK] Received YooKassa webhook: {body.get("event")}')
+                result = handle_webhook(body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result)
+                }
         
         # Все остальные запросы требуют авторизации
         token = event.get('headers', {}).get('X-Auth-Token', '')
