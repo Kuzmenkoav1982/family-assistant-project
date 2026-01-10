@@ -437,14 +437,9 @@ def upgrade_subscription(family_id: str, user_id: str, new_plan_type: str, retur
             conn.rollback()
             return {'error': 'Активная подписка не найдена'}
         
-        # Деактивируем старую подписку
-        cur.execute(
-            f"""
-            UPDATE {SCHEMA}.subscriptions
-            SET status = 'upgraded', updated_at = CURRENT_TIMESTAMP
-            WHERE id = '{current['id']}'
-            """
-        )
+        # НЕ деактивируем старую подписку сразу!
+        # Она будет деактивирована только после успешной оплаты апгрейда через webhook
+        # Пока оставляем её active, чтобы пользователь мог продолжать пользоваться сервисом
         
         # Создаём новую подписку с тем же сроком окончания
         safe_end_date = current['end_date'].strftime('%Y-%m-%d %H:%M:%S')
@@ -581,7 +576,7 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
             UPDATE {SCHEMA}.payments 
             SET status = 'paid', paid_at = CURRENT_TIMESTAMP, payment_method = 'yookassa'
             WHERE payment_id = '{safe_payment_id}'
-            RETURNING subscription_id
+            RETURNING subscription_id, family_id
             """
         )
         payment = cur.fetchone()
@@ -589,18 +584,47 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
         print(f'[WEBHOOK] Payment record: {payment}')
         
         if payment and payment['subscription_id']:
-            print(f'[WEBHOOK] Activating subscription: {payment["subscription_id"]}')
+            subscription_id = payment['subscription_id']
+            family_id_from_payment = payment['family_id']
             
-            # Активируем подписку
+            print(f'[WEBHOOK] Activating subscription: {subscription_id}')
+            
+            # Получаем информацию о новой подписке
+            cur.execute(
+                f"""
+                SELECT plan_type FROM {SCHEMA}.subscriptions
+                WHERE id = '{subscription_id}'
+                """
+            )
+            new_sub = cur.fetchone()
+            
+            # Если это апгрейд (metadata содержит action=upgrade), деактивируем старую подписку
+            if metadata.get('action') == 'upgrade' and metadata.get('old_plan'):
+                old_plan = metadata['old_plan']
+                print(f'[WEBHOOK] This is an upgrade from {old_plan} to {new_sub["plan_type"]}')
+                
+                # Деактивируем старую подписку
+                cur.execute(
+                    f"""
+                    UPDATE {SCHEMA}.subscriptions
+                    SET status = 'upgraded', updated_at = CURRENT_TIMESTAMP
+                    WHERE family_id = '{family_id_from_payment}' 
+                    AND plan_type = '{old_plan}' 
+                    AND status = 'active'
+                    """
+                )
+                print(f'[WEBHOOK] Old subscription {old_plan} marked as upgraded')
+            
+            # Активируем новую подписку
             cur.execute(
                 f"""
                 UPDATE {SCHEMA}.subscriptions 
                 SET status = 'active', start_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-                WHERE id = '{payment["subscription_id"]}'
+                WHERE id = '{subscription_id}'
                 """
             )
             
-            print(f'[WEBHOOK] Subscription activated successfully')
+            print(f'[WEBHOOK] Subscription {subscription_id} activated successfully')
         else:
             print(f'[WEBHOOK] WARNING: No payment found or no subscription_id')
         
