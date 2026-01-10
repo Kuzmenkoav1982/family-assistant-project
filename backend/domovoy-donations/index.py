@@ -175,6 +175,13 @@ def handle_get(cursor, user_id: str) -> Dict[str, Any]:
     )
     settings_data = cursor.fetchone()
     
+    # Проверяем pending платежи (на случай если webhook не пришёл)
+    cursor.execute(
+        "SELECT payment_id FROM t_p5815085_family_assistant_pro.domovoy_donations WHERE user_id = %s AND payment_status = 'pending' ORDER BY created_at DESC LIMIT 1",
+        (user_id,)
+    )
+    pending_payment = cursor.fetchone()
+    
     return {
         'statusCode': 200,
         'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
@@ -183,7 +190,8 @@ def handle_get(cursor, user_id: str) -> Dict[str, Any]:
             'success': True,
             'level': level_data['current_level'],
             'total_donated': level_data['total_donated'],
-            'settings': dict(settings_data) if settings_data else None
+            'settings': dict(settings_data) if settings_data else None,
+            'pending_payment_id': pending_payment['payment_id'] if pending_payment else None
         })
     }
 

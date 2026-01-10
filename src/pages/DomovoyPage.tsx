@@ -11,11 +11,13 @@ import { useAIAssistant, defaultRoles } from '@/contexts/AIAssistantContext';
 import type { AIAssistantRole } from '@/contexts/AIAssistantContext';
 import DomovoyDonationDialog from '@/components/DomovoyDonationDialog';
 import { AstrologyService } from '@/components/astrology/AstrologyService';
+import { useToast } from '@/hooks/use-toast';
 
 const DOMOVOY_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fc02be5d-2267-4bed-abdc-ec04bc7ec037.jpg';
 
 export default function DomovoyPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { assistantLevel, selectedRole, setSelectedRole, refreshAssistantLevel } = useAIAssistant();
   const [showDonationDialog, setShowDonationDialog] = useState(false);
   const [showAstrologyDialog, setShowAstrologyDialog] = useState(false);
@@ -25,26 +27,55 @@ export default function DomovoyPage() {
   // Обновить уровень при открытии страницы (после возврата с оплаты)
   useEffect(() => {
     const checkPendingPayment = async () => {
-      const pendingPaymentId = localStorage.getItem('pending_domovoy_payment');
-      if (pendingPaymentId) {
-        try {
-          const token = localStorage.getItem('authToken');
-          const response = await fetch(
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        // Сначала получаем данные уровня + pending_payment_id из БД
+        const levelResponse = await fetch(
+          'https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085',
+          {
+            headers: { 'X-Auth-Token': token || '' }
+          }
+        );
+        const levelData = await levelResponse.json();
+        
+        // Проверяем pending платёж (либо из localStorage, либо из БД)
+        const localPaymentId = localStorage.getItem('pending_domovoy_payment');
+        const pendingPaymentId = localPaymentId || levelData.pending_payment_id;
+        
+        if (pendingPaymentId) {
+          const checkResponse = await fetch(
             `https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=check-payment&payment_id=${pendingPaymentId}`,
             {
               headers: { 'X-Auth-Token': token || '' }
             }
           );
-          const data = await response.json();
+          const checkData = await checkResponse.json();
           
-          if (data.level_updated) {
+          if (checkData.level_updated) {
             localStorage.removeItem('pending_domovoy_payment');
             await refreshAssistantLevel();
+            
+            // Показываем уведомление об успешном повышении уровня
+            const thankYouMessages = [
+              "Благодарю, хозяин! Теперь я стал мудрее! 🏠✨",
+              "Спасибо за угощение! Буду ещё усерднее помогать семье! 🧙‍♂️",
+              "Добрые люди! Домовой не забудет вашу щедрость! 🎁",
+              "Какое вкусное угощение! Буду беречь ваш дом! 💖"
+            ];
+            const randomMessage = thankYouMessages[Math.floor(Math.random() * thankYouMessages.length)];
+            
+            toast({
+              title: `🎉 Домовой вырос до ${checkData.new_level} уровня!`,
+              description: `${randomMessage}\n+${checkData.levels_gained} уровень мудрости`,
+              duration: 6000
+            });
           }
-        } catch (error) {
-          console.error('Ошибка проверки платежа:', error);
+        } else {
+          refreshAssistantLevel();
         }
-      } else {
+      } catch (error) {
+        console.error('Ошибка проверки платежа:', error);
         refreshAssistantLevel();
       }
     };
