@@ -232,13 +232,22 @@ def create_yookassa_payment(amount: int, user_id: str, user_email: str) -> Dict[
     try:
         response = urlopen(req)
         result = json.loads(response.read().decode('utf-8'))
+        
+        # Проверяем наличие всех необходимых полей
+        if 'id' not in result:
+            return {'success': False, 'error': f'ЮКасса не вернула payment_id. Ответ: {result}'}
+        
+        if 'confirmation' not in result or 'confirmation_url' not in result['confirmation']:
+            return {'success': False, 'error': f'ЮКасса не вернула confirmation_url. Ответ: {result}'}
+        
         return {
             'success': True,
             'payment_id': result['id'],
             'confirmation_url': result['confirmation']['confirmation_url']
         }
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        import traceback
+        return {'success': False, 'error': f'Ошибка запроса к ЮКасса: {str(e)}', 'trace': traceback.format_exc()}
 
 
 def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
