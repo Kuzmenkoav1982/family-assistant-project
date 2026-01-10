@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
@@ -95,6 +96,9 @@ export default function Pricing() {
   useEffect(() => {
     const status = searchParams.get('status');
     if (status === 'success') {
+      // Отправка события в Яндекс.Метрику
+      sendMetrikaGoal(METRIKA_GOALS.PAYMENT_SUCCESS);
+      
       toast({
         title: '🎉 Оплата успешна!',
         description: 'Ваша подписка активирована. Спасибо за поддержку!',
@@ -103,6 +107,11 @@ export default function Pricing() {
       window.history.replaceState({}, '', '/pricing');
     }
   }, [searchParams, toast]);
+
+  // Отправка события просмотра страницы тарифов
+  useEffect(() => {
+    sendMetrikaGoal(METRIKA_GOALS.VIEW_PRICING);
+  }, []);
 
   // Загрузка текущей подписки
   useEffect(() => {
@@ -206,6 +215,8 @@ export default function Pricing() {
       }
 
       if (data.success && data.payment_url) {
+        // Отправка события в Яндекс.Метрику
+        sendMetrikaGoal(METRIKA_GOALS.CLICK_PREMIUM, { plan: planId, action: action });
         window.location.href = data.payment_url;
       } else if (data.error) {
         toast({
