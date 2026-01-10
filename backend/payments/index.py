@@ -558,6 +558,27 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
     print(f'[WEBHOOK] Payment ID: {payment_id}')
     print(f'[WEBHOOK] Metadata: {metadata}')
     
+    # ⚠️ CRITICAL: Проксируем донаты Домового на отдельную функцию
+    donation_type = metadata.get('donation_type')
+    if donation_type == 'domovoy':
+        print(f'[WEBHOOK] This is a Domovoy donation, proxying to domovoy-donations function')
+        try:
+            # Отправляем webhook на функцию domovoy-donations
+            proxy_url = 'https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=webhook'
+            proxy_data = json.dumps(body).encode('utf-8')
+            proxy_req = Request(
+                proxy_url,
+                data=proxy_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            proxy_response = urlopen(proxy_req)
+            proxy_result = json.loads(proxy_response.read().decode('utf-8'))
+            print(f'[WEBHOOK] Domovoy webhook proxy result: {proxy_result}')
+            return proxy_result
+        except Exception as e:
+            print(f'[WEBHOOK] Error proxying Domovoy webhook: {str(e)}')
+            return {'error': f'Proxy error: {str(e)}'}
+    
     if event_type != 'payment.succeeded' or not payment_id:
         print(f'[WEBHOOK] Skipping event (not payment.succeeded or no payment_id)')
         return {'received': True}
