@@ -297,6 +297,31 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
                 'isBase64Encoded': False,
                 'body': json.dumps({'error': payment_result.get('error', 'Ошибка создания платежа'), 'details': payment_result})
             }
+        
+        # Получаем текущий уровень для записи в донат
+        cursor.execute(
+            "SELECT current_level FROM t_p5815085_family_assistant_pro.domovoy_levels WHERE user_id = %s",
+            (user_id,)
+        )
+        level_row = cursor.fetchone()
+        current_level = level_row['current_level'] if level_row else 1
+        
+        # Рассчитываем будущий уровень (каждые 500₽ = +1 уровень, максимум 10)
+        levels_to_add = amount // 500 + 1
+        future_level = min(10, current_level + levels_to_add)
+        
+        print(f"[DONATE] current_level={current_level}, future_level={future_level}")
+        
+        # Сохраняем информацию о платеже
+        cursor.execute(
+            """INSERT INTO t_p5815085_family_assistant_pro.domovoy_donations 
+               (user_id, amount, payment_method, payment_id, payment_status, level_before, level_after) 
+               VALUES (%s, %s, %s, %s, 'pending', %s, %s)
+               RETURNING id""",
+            (user_id, amount, payment_method, payment_result['payment_id'], current_level, future_level)
+        )
+        conn.commit()
+        
     except Exception as e:
         import traceback
         print(f"[DONATE ERROR] {str(e)}")
@@ -307,16 +332,6 @@ def handle_donate(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str,
             'isBase64Encoded': False,
             'body': json.dumps({'error': f'Ошибка обработки доната: {str(e)}'})
         }
-    
-    # Сохраняем информацию о платеже
-    cursor.execute(
-        """INSERT INTO t_p5815085_family_assistant_pro.domovoy_donations 
-           (user_id, amount, payment_method, payment_id, payment_status) 
-           VALUES (%s, %s, %s, %s, 'pending')
-           RETURNING id""",
-        (user_id, amount, payment_method, payment_result['payment_id'])
-    )
-    conn.commit()
     
     return {
         'statusCode': 200,
