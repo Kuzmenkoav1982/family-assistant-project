@@ -116,6 +116,10 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
     if metadata:
         payment_data['metadata'] = metadata
     
+    # ⚠️ CRITICAL: ЮКасса ДОЛЖНА знать URL для отправки webhook'ов
+    webhook_url = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d'
+    payment_data['notification_url'] = webhook_url
+    
     print(f'[YooKassa] SHOP_ID: {YOOKASSA_SHOP_ID}')
     print(f'[YooKassa] SECRET_KEY exists: {bool(YOOKASSA_SECRET_KEY)}')
     print(f'[YooKassa] Payment data: {payment_data}')
