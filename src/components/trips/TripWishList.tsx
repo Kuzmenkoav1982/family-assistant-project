@@ -12,10 +12,8 @@ import Icon from '@/components/ui/icon';
 // ✅ AI-рекомендации работают!
 const AI_RECOMMEND_URL = 'https://functions.poehali.dev/b6fa0071-ce37-48e5-b426-66f835fb4996';
 
-// ⚠️ ВАЖНО: Функция trips-places ещё не развёрнута из-за технических проблем
-// После успешного развёртывания обновите URL ниже на актуальный из backend/func2url.json
-// Функция уже создана в backend/trips-places/index.py и готова к работе
-const PLACES_API_URL = 'https://functions.poehali.dev/TEMP_PLACES_URL'; // TODO: Заменить после развёртывания
+// ✅ РАБОТАЕТ: Функция trips интегрирована с поддержкой trip_places!
+const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
 interface Place {
   id: number;
@@ -71,10 +69,8 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
   const loadPlaces = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${PLACES_API_URL}/trips/${tripId}/places`, {
-        headers: { 'X-Auth-Token': token || '' }
-      });
+      const statusFilter = activeTab === 'all' ? '' : `&status=${activeTab}`;
+      const response = await fetch(`${TRIPS_API_URL}?action=places&trip_id=${tripId}${statusFilter}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -113,13 +109,17 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
   const handleAddAIRecommendation = async (recommendation: AIRecommendation) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${PLACES_API_URL}/trips/${tripId}/places`, {
+      const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Auth-Token': token || ''
         },
-        body: JSON.stringify(recommendation)
+        body: JSON.stringify({
+          action: 'add_place',
+          trip_id: tripId,
+          ...recommendation
+        })
       });
       
       if (response.ok) {
@@ -138,13 +138,15 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${PLACES_API_URL}/trips/${tripId}/places`, {
+      const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Auth-Token': token || ''
         },
         body: JSON.stringify({
+          action: 'add_place',
+          trip_id: tripId,
           ...newPlace,
           estimated_cost: newPlace.estimated_cost ? parseFloat(newPlace.estimated_cost) : null
         })
@@ -173,9 +175,18 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
       const token = localStorage.getItem('authToken');
       const visitedDate = status === 'visited' ? new Date().toISOString().split('T')[0] : undefined;
       
-      const response = await fetch(`${PLACES_API_URL}/places/${placeId}/status?status=${status}${visitedDate ? `&visited_date=${visitedDate}` : ''}`, {
-        method: 'PUT',
-        headers: { 'X-Auth-Token': token || '' }
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'mark_visited',
+          place_id: placeId,
+          status: status,
+          visited_date: visitedDate
+        })
       });
       
       if (response.ok) {

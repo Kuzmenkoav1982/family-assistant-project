@@ -56,6 +56,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     GET /?action=photos&trip_id=1 - получить фото
     POST / body: {"action":"add_photo",...} - добавить фото
+    
+    GET /?action=places&trip_id=1 - получить места (Wish List мест в поездке)
+    POST / body: {"action":"add_place",...} - добавить место
+    POST / body: {"action":"update_place",...} - обновить место
+    POST / body: {"action":"delete_place","place_id":1} - удалить место
+    POST / body: {"action":"mark_visited","place_id":1} - отметить посещённым
     """
     
     method: str = event.get('httpMethod', 'GET')
@@ -252,6 +258,59 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 201,
                     'headers': headers,
                     'body': json.dumps({'photo': photo}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+        
+        # Получить места (Wish List мест в поездке)
+        if method == 'GET' and action == 'places':
+            trip_id = int(params.get('trip_id'))
+            status_filter = params.get('status')
+            places = get_trip_places(conn, trip_id, status_filter)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'places': places}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        # Добавить/обновить/удалить место
+        if method == 'POST':
+            body = json.loads(event.get('body', '{}'))
+            post_action = body.get('action')
+            
+            if post_action == 'add_place':
+                place = add_place(conn, body)
+                return {
+                    'statusCode': 201,
+                    'headers': headers,
+                    'body': json.dumps({'place': place}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'update_place':
+                place = update_place(conn, body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'place': place}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'mark_visited':
+                place = mark_place_visited(conn, body['place_id'], body.get('visited_date'))
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'place': place}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'delete_place':
+                delete_place(conn, body['place_id'])
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
         
@@ -517,3 +576,105 @@ def add_photo(conn, data: Dict) -> Dict:
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
+
+
+def get_trip_places(conn, trip_id: int, status_filter: Optional[str] = None) -> List[Dict]:
+    """Получить места для поездки"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        status_condition = "AND status = %s" if status_filter else ""
+        query = f"""
+            SELECT * FROM trip_places 
+            WHERE trip_id = %s {status_condition}
+            ORDER BY 
+                CASE priority 
+                    WHEN 'high' THEN 1 
+                    WHEN 'medium' THEN 2 
+                    WHEN 'low' THEN 3 
+                    ELSE 4 
+                END,
+                created_at DESC
+        """
+        if status_filter:
+            cur.execute(query, (trip_id, status_filter))
+        else:
+            cur.execute(query, (trip_id,))
+        return [convert_for_json(dict(row)) for row in cur.fetchall()]
+
+
+def add_place(conn, data: Dict) -> Dict:
+    """Добавить место в Wish List поездки"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            INSERT INTO trip_places (
+                trip_id, place_name, place_type, address, description,
+                latitude, longitude, rating, estimated_cost, currency,
+                priority, status, ai_recommended, ai_description, image_url, added_by
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (data['trip_id'], data['place_name'], data.get('place_type', 'attraction'),
+             data.get('address'), data.get('description'),
+             data.get('latitude'), data.get('longitude'), data.get('rating'),
+             data.get('estimated_cost'), data.get('currency', 'RUB'),
+             data.get('priority', 'medium'), data.get('status', 'planned'),
+             data.get('ai_recommended', False), data.get('ai_description'),
+             data.get('image_url'), data.get('added_by'))
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def update_place(conn, data: Dict) -> Dict:
+    """Обновить место"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE trip_places SET
+                place_name = %s, place_type = %s, address = %s, description = %s,
+                latitude = %s, longitude = %s, rating = %s, estimated_cost = %s,
+                currency = %s, priority = %s, notes = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data['place_name'], data.get('place_type'), data.get('address'),
+             data.get('description'), data.get('latitude'), data.get('longitude'),
+             data.get('rating'), data.get('estimated_cost'), data.get('currency'),
+             data.get('priority'), data.get('notes'), data['place_id'])
+        )
+        conn.commit()
+        result = cur.fetchone()
+        if not result:
+            raise ValueError(f"Place {data['place_id']} not found")
+        return convert_for_json(dict(result))
+
+
+def mark_place_visited(conn, place_id: int, visited_date: Optional[str] = None) -> Dict:
+    """Отметить место как посещённое"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        visit_date = visited_date or datetime.now().date().isoformat()
+        cur.execute(
+            """
+            UPDATE trip_places SET
+                status = 'visited',
+                visited_date = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING *
+            """,
+            (visit_date, place_id)
+        )
+        conn.commit()
+        result = cur.fetchone()
+        if not result:
+            raise ValueError(f"Place {place_id} not found")
+        return convert_for_json(dict(result))
+
+
+def delete_place(conn, place_id: int):
+    """Удалить место"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute("DELETE FROM trip_places WHERE id = %s", (place_id,))
+        conn.commit()
