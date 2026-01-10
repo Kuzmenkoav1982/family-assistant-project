@@ -19,6 +19,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Обработка запросов для системы донатов Домового
     
     GET /domovoy-donations - получить уровень и настройки
+    GET /domovoy-donations?action=check-payment&payment_id=XXX - проверить статус платежа
     POST /domovoy-donations?action=donate - создать донат
     POST /domovoy-donations?action=update-settings - обновить настройки ассистента
     POST /domovoy-donations?action=webhook - webhook от ЮКассы
@@ -101,7 +102,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         user_id = session['user_id']
         
         if method == 'GET':
-            result = handle_get(cursor, user_id)
+            if action == 'check-payment':
+                payment_id = params.get('payment_id')
+                result = handle_check_payment(cursor, conn, user_id, payment_id)
+            else:
+                result = handle_get(cursor, user_id)
             cursor.close()
             conn.close()
             return result
@@ -438,6 +443,113 @@ def handle_webhook(cursor, conn, body: Dict[str, Any]) -> Dict[str, Any]:
             'new_level': new_level
         })
     }
+
+
+def handle_check_payment(cursor, conn, user_id: str, payment_id: str) -> Dict[str, Any]:
+    """Проверка статуса платежа в ЮКассе и обновление уровня если оплачен"""
+    if not payment_id:
+        return {
+            'statusCode': 400,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'payment_id обязателен'})
+        }
+    
+    yookassa_shop_id = os.environ.get('YOOKASSA_SHOP_ID', '')
+    yookassa_secret = os.environ.get('YOOKASSA_SECRET_KEY', '')
+    
+    auth_string = f'{yookassa_shop_id}:{yookassa_secret}'
+    auth_b64 = base64.b64encode(auth_string.encode('utf-8')).decode('ascii')
+    
+    try:
+        req = Request(
+            f'https://api.yookassa.ru/v3/payments/{payment_id}',
+            headers={'Authorization': f'Basic {auth_b64}'}
+        )
+        response = urlopen(req)
+        payment_data = json.loads(response.read().decode('utf-8'))
+        
+        status = payment_data.get('status')
+        metadata = payment_data.get('metadata', {})
+        
+        # Если платёж успешен, обновляем уровень
+        if status == 'succeeded' and metadata.get('user_id') == user_id:
+            amount = int(metadata.get('amount', 0))
+            
+            # Получаем текущий уровень
+            cursor.execute(
+                "SELECT current_level, total_donated FROM t_p5815085_family_assistant_pro.domovoy_levels WHERE user_id = %s",
+                (user_id,)
+            )
+            level_data = cursor.fetchone()
+            
+            if not level_data:
+                cursor.execute(
+                    "INSERT INTO t_p5815085_family_assistant_pro.domovoy_levels (user_id, current_level, total_donated) VALUES (%s, 1, 0) RETURNING current_level, total_donated",
+                    (user_id,)
+                )
+                level_data = cursor.fetchone()
+            
+            current_level = level_data['current_level']
+            total_donated = level_data['total_donated']
+            
+            # Рассчитываем новый уровень
+            levels_to_add = amount // 500 + 1
+            new_level = min(10, current_level + levels_to_add)
+            new_total = total_donated + amount
+            
+            # Обновляем уровень
+            cursor.execute(
+                "UPDATE t_p5815085_family_assistant_pro.domovoy_levels SET current_level = %s, total_donated = %s, updated_at = NOW() WHERE user_id = %s",
+                (new_level, new_total, user_id)
+            )
+            
+            # Обновляем assistant_level в настройках
+            cursor.execute(
+                """INSERT INTO t_p5815085_family_assistant_pro.assistant_settings (user_id, assistant_type, assistant_level) 
+                   VALUES (%s, 'domovoy', %s) 
+                   ON CONFLICT (user_id) DO UPDATE SET assistant_level = %s, updated_at = NOW()""",
+                (user_id, new_level, new_level)
+            )
+            
+            # Обновляем статус доната
+            cursor.execute(
+                """UPDATE t_p5815085_family_assistant_pro.domovoy_donations 
+                   SET payment_status = 'completed', level_after = %s, paid_at = NOW()
+                   WHERE payment_id = %s""",
+                (new_level, payment_id)
+            )
+            
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': True,
+                    'status': 'succeeded',
+                    'level_updated': True,
+                    'new_level': new_level,
+                    'levels_gained': new_level - current_level
+                })
+            }
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'success': True,
+                'status': status,
+                'level_updated': False
+            })
+        }
+    
+    except Exception as e:
+        print(f"[CHECK_PAYMENT ERROR] {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'Ошибка проверки платежа: {str(e)}'})
+        }
 
 
 def handle_update_settings(cursor, conn, user_id: str, body: Dict[str, Any]) -> Dict[str, Any]:

@@ -24,8 +24,33 @@ export default function DomovoyPage() {
 
   // Обновить уровень при открытии страницы (после возврата с оплаты)
   useEffect(() => {
-    refreshAssistantLevel();
-  }, []);
+    const checkPendingPayment = async () => {
+      const pendingPaymentId = localStorage.getItem('pending_domovoy_payment');
+      if (pendingPaymentId) {
+        try {
+          const token = localStorage.getItem('authToken');
+          const response = await fetch(
+            `https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=check-payment&payment_id=${pendingPaymentId}`,
+            {
+              headers: { 'X-Auth-Token': token || '' }
+            }
+          );
+          const data = await response.json();
+          
+          if (data.level_updated) {
+            localStorage.removeItem('pending_domovoy_payment');
+            await refreshAssistantLevel();
+          }
+        } catch (error) {
+          console.error('Ошибка проверки платежа:', error);
+        }
+      } else {
+        refreshAssistantLevel();
+      }
+    };
+    
+    checkPendingPayment();
+  }, [refreshAssistantLevel]);
 
   const handleRoleClick = (role: AIAssistantRole) => {
     setSelectedRole(role);

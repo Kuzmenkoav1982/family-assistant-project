@@ -93,6 +93,11 @@ export default function DomovoyDonationDialog({
         throw new Error(data.error || 'Ошибка создания платежа');
       }
 
+      // Сохраняем payment_id для проверки после возврата
+      if (data.payment_id) {
+        localStorage.setItem('pending_domovoy_payment', data.payment_id);
+      }
+
       // Перенаправляем на страницу оплаты ЮКассы
       if (data.payment_url) {
         window.location.href = data.payment_url;
