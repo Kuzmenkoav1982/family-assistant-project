@@ -112,6 +112,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🏛️ СЕМЬЯ И ГОСУДАРСТВО',
       icon: 'Landmark',
       items: [
+        { id: 'what-is-family', label: 'Что такое семья', icon: 'Users', path: '/what-is-family' },
         { id: 'family-code', label: 'Семейный кодекс РФ', icon: 'Scale', path: '/family-code' },
         { id: 'state-support', label: 'Господдержка семей', icon: 'HandHeart', path: '/state-support' },
         { id: 'family-policy', label: 'Семейная политика', icon: 'Flag', path: '/family-policy' },
@@ -123,8 +124,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🔧 В РАЗРАБОТКЕ',
       icon: 'Wrench',
       items: [
-        { id: 'in-development-list', label: 'В разработке', icon: 'Construction', path: '/in-development' },
-        { id: 'life-road', label: 'Дорога жизни', icon: 'Route', path: '/life-road', inDev: true }
+        { id: 'in-development-list', label: 'В разработке', icon: 'Construction', path: '/in-development' }
       ]
     }
   ];
@@ -232,9 +232,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                   >
                     <Icon name={item.icon as any} size={16} />
                     <span className="text-sm flex-1 text-left">{item.label}</span>
-                    {item.id === 'in-development-list' && (
-                      <Badge variant="secondary" className="text-xs">9</Badge>
-                    )}
                     {item.inDev && (
                       <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded">
                         DEV

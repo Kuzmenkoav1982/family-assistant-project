@@ -328,9 +328,13 @@ export default function Children() {
                       </div>
 
                       <div className="pt-2 border-t border-blue-200">
-                        <p className="text-sm">
-                          📖 <strong>Подробнее:</strong> <a href="https://docs.poehali.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Полная инструкция в документации</a>
-                        </p>
+                        <Button
+                          variant="link"
+                          onClick={() => navigate('/instructions')}
+                          className="text-blue-600 hover:underline p-0 h-auto text-sm"
+                        >
+                          📖 <strong>Подробнее:</strong> Полная инструкция
+                        </Button>
                       </div>
                     </div>
                   </AlertDescription>
