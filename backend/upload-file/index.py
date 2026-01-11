@@ -37,9 +37,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     body_data = json.loads(event.get('body', '{}'))
-    file_base64 = body_data.get('file')
-    file_name = body_data.get('fileName', 'upload.jpg')
-    folder = body_data.get('folder', 'general')
+    
+    # Поддержка двух форматов API: старый (file) и новый (file_data)
+    file_base64 = body_data.get('file_data') or body_data.get('file')
+    file_name = body_data.get('file_name') or body_data.get('fileName', 'upload.jpg')
+    content_type = body_data.get('content_type')
+    folder = body_data.get('folder', 'trip-photos')
     
     if not file_base64:
         return {
@@ -72,15 +75,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     file_ext = file_name.split('.')[-1] if '.' in file_name else 'jpg'
     unique_name = f"{folder}/{datetime.now().strftime('%Y%m%d')}/{uuid.uuid4().hex}.{file_ext}"
     
-    content_type_map = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'webp': 'image/webp',
-        'pdf': 'application/pdf'
-    }
-    content_type = content_type_map.get(file_ext.lower(), 'application/octet-stream')
+    # Если content_type не передан, определяем по расширению
+    if not content_type:
+        content_type_map = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'webp': 'image/webp',
+            'pdf': 'application/pdf'
+        }
+        content_type = content_type_map.get(file_ext.lower(), 'application/octet-stream')
     
     try:
         s3_client.put_object(

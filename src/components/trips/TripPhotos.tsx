@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
-const UPLOAD_FILE_URL = 'https://functions.poehali.dev/7e04b7ce-4e95-4bd8-bdfa-72e68ebc17bd';
+const UPLOAD_FILE_URL = 'https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0';
 
 interface Photo {
   id: number;
