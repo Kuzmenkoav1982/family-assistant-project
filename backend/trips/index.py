@@ -73,7 +73,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
+        'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Auth-Token'
     }
     
     if method == 'OPTIONS':
