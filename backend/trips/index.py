@@ -214,6 +214,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'trip': trip}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
+            
+            if body.get('action') == 'delete_wishlist':
+                wishlist_id = body.get('id')
+                delete_wishlist_item(conn, wishlist_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
         
         # Получить дневник
         if method == 'GET' and action == 'diary':
@@ -523,6 +533,13 @@ def wishlist_to_trip(conn, data: Dict) -> Dict:
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
+
+
+def delete_wishlist_item(conn, wishlist_id: int):
+    """Удалить элемент из wish list"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM trip_wishlist WHERE id = %s", (wishlist_id,))
+        conn.commit()
 
 
 def get_diary(conn, trip_id: int) -> List[Dict]:

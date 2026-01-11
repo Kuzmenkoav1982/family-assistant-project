@@ -59,9 +59,25 @@ export default function Trips() {
     loadTrips(activeTab);
   }, [activeTab, loadTrips]);
 
+  const [allTrips, setAllTrips] = useState<Trip[]>([]);
+
+  const loadAllTripsForCounting = useCallback(async () => {
+    try {
+      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=all`);
+      const data = await response.json();
+      setAllTrips(data.trips || []);
+    } catch (error) {
+      console.error('Error loading all trips:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAllTripsForCounting();
+  }, [loadAllTripsForCounting]);
+
   const getTabCount = (status: string) => {
-    if (status === 'all') return trips.length;
-    return trips.filter((trip) => trip.status === status).length;
+    if (status === 'all') return allTrips.length;
+    return allTrips.filter((trip) => trip.status === status).length;
   };
 
   const handleCreateTrip = async () => {
@@ -86,6 +102,7 @@ export default function Trips() {
 
       if (response.ok) {
         await loadTrips(activeTab);
+        await loadAllTripsForCounting();
         setIsAddDialogOpen(false);
         setNewTrip({
           title: '',
@@ -118,6 +135,7 @@ export default function Trips() {
 
       if (response.ok) {
         await loadTrips(activeTab);
+        await loadAllTripsForCounting();
       }
     } catch (error) {
       console.error('Error deleting trip:', error);
@@ -164,6 +182,7 @@ export default function Trips() {
 
       if (response.ok) {
         await loadTrips(activeTab);
+        await loadAllTripsForCounting();
         setIsEditDialogOpen(false);
         setEditingTrip(null);
       }
@@ -211,6 +230,15 @@ export default function Trips() {
         onEditingTripChange={setEditingTrip}
         onUpdateTrip={handleUpdateTrip}
       />
+
+      {/* FAB кнопка "Добавить поездку" */}
+      <Button
+        className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg bg-orange-500 hover:bg-orange-600"
+        size="icon"
+        onClick={() => setIsAddDialogOpen(true)}
+      >
+        <Icon name="Plus" size={24} />
+      </Button>
     </div>
   );
 }

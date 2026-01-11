@@ -43,6 +43,30 @@ export default function TripWishlist() {
     }
   };
 
+  const handleDeleteWishlistItem = async (id: number) => {
+    if (!confirm('Удалить эту мечту из списка?')) return;
+    
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_wishlist',
+          id: id,
+        }),
+      });
+
+      if (response.ok) {
+        await loadWishlist();
+      } else {
+        alert('Ошибка при удалении');
+      }
+    } catch (error) {
+      console.error('Error deleting wishlist item:', error);
+      alert('Ошибка при удалении');
+    }
+  };
+
   const getPriorityBadge = (priority: string) => {
     const priorityMap = {
       high: { label: 'Высокий', variant: 'destructive' as const, icon: 'Flame' },
@@ -196,7 +220,6 @@ export default function TripWishlist() {
                         size="sm"
                         className="gap-2"
                         onClick={() => {
-                          // TODO: Open date picker modal to convert to trip
                           alert('Функция в разработке: выбор дат для создания поездки');
                         }}
                       >
@@ -210,6 +233,15 @@ export default function TripWishlist() {
                       >
                         <Icon name="Pencil" size={16} />
                         Изменить
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteWishlistItem(item.id)}
+                      >
+                        <Icon name="Trash2" size={16} />
+                        Удалить
                       </Button>
                     </div>
                   </div>

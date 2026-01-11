@@ -181,22 +181,22 @@ export default function TripDetails() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/trips')}
-            >
-              <Icon name="ArrowLeft" size={24} />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">{trip.title}</h1>
-              <p className="text-sm text-gray-500">{trip.destination}, {typeof trip.country === 'object' ? trip.country.name : trip.country}</p>
-            </div>
-            {getStatusBadge(trip.status)}
-          </div>
-
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/trips')}
+              >
+                <Icon name="ArrowLeft" size={24} />
+              </Button>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-gray-900">{trip.title}</h1>
+                <p className="text-sm text-gray-500">{trip.destination}, {typeof trip.country === 'object' ? trip.country.name : trip.country}</p>
+              </div>
+              {getStatusBadge(trip.status)}
+            </div>
+
             <TabsList className="w-full grid grid-cols-6 text-xs sm:text-sm">
               <TabsTrigger value="overview">Обзор</TabsTrigger>
               <TabsTrigger value="wishlist">
@@ -208,7 +208,6 @@ export default function TripDetails() {
               <TabsTrigger value="diary">Дневник ({diary.length})</TabsTrigger>
               <TabsTrigger value="photos">Фото ({photos.length})</TabsTrigger>
             </TabsList>
-          </Tabs>
         </div>
       </div>
 
@@ -450,6 +449,7 @@ export default function TripDetails() {
             </div>
           )}
         </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
