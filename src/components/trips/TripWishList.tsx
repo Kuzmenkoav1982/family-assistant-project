@@ -49,9 +49,11 @@ interface TripWishListProps {
 export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab] = useState('all');
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [isAILoading, setIsAILoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
   const [newPlace, setNewPlace] = useState({
     place_name: '',
@@ -86,21 +88,30 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
   const handleGetAIRecommendations = async () => {
     setIsAILoading(true);
     setIsAIDialogOpen(true);
+    setAiError(null);
+    setAiRecommendations([]);
     
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(`${AI_RECOMMEND_URL}/trips/${tripId}/ai-recommend`, {
+        method: 'GET',
         headers: { 'X-Auth-Token': token || '' }
       });
       
       if (response.ok) {
         const data = await response.json();
-        if (data.success) {
-          setAiRecommendations(data.recommendations || []);
+        if (data.success && data.recommendations) {
+          setAiRecommendations(data.recommendations);
+        } else {
+          setAiError(data.error || 'Не удалось получить рекомендации');
         }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setAiError(errorData.error || `Ошибка сервера: ${response.status}`);
       }
     } catch (error) {
       console.error('Error getting AI recommendations:', error);
+      setAiError('Ошибка соединения с сервером. Проверьте интернет.');
     } finally {
       setIsAILoading(false);
     }
@@ -386,7 +397,21 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {aiRecommendations.length > 0 ? (
+              {aiError ? (
+                <div className="text-center py-8">
+                  <Icon name="AlertCircle" size={48} className="text-red-500 mx-auto mb-3" />
+                  <p className="text-red-600 font-medium mb-2">Ошибка получения рекомендаций</p>
+                  <p className="text-sm text-gray-600">{aiError}</p>
+                  <Button
+                    onClick={handleGetAIRecommendations}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    <Icon name="RefreshCw" size={16} className="mr-2" />
+                    Попробовать снова
+                  </Button>
+                </div>
+              ) : aiRecommendations.length > 0 ? (
                 aiRecommendations.map((rec, index) => (
                   <Card key={index} className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
                     <CardHeader className="pb-2">
@@ -417,7 +442,8 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                 ))
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  Не удалось получить рекомендации. Попробуйте позже.
+                  <Icon name="Info" size={48} className="mx-auto mb-3 text-gray-400" />
+                  <p>Нет рекомендаций для отображения</p>
                 </div>
               )}
             </div>
