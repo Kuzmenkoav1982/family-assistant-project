@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-assistant-v8';
+const CACHE_NAME = 'family-assistant-v9';
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing new service worker...');
