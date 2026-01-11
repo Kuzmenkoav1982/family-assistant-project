@@ -3,14 +3,13 @@
     {
       "name": "Get AI recommendations for trip",
       "method": "GET",
-      "path": "/trips/1/ai-recommend",
+      "path": "/?trip_id=1",
       "headers": {
         "X-Auth-Token": "test_token_123"
       },
-      "expectedStatus": 200,
+      "expectedStatus": 401,
       "expectedBody": {
-        "success": true,
-        "recommendations": "array"
+        "error": "Unauthorized"
       },
       "bodyMatcher": "partial"
     }

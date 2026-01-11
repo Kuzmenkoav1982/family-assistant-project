@@ -93,7 +93,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${AI_RECOMMEND_URL}/trips/${tripId}/ai-recommend`, {
+      const response = await fetch(`${AI_RECOMMEND_URL}/?trip_id=${tripId}`, {
         method: 'GET',
         headers: { 'X-Auth-Token': token || '' }
       });

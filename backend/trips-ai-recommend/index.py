@@ -250,40 +250,60 @@ def handler(event: dict, context) -> dict:
         return {
             'statusCode': 200,
             'headers': cors_headers,
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     try:
         # Аутентификация
-        token = event.get('headers', {}).get('X-Auth-Token', '')
+        token = event.get('headers', {}).get('x-auth-token', '')
         user_id = verify_token(token)
         
         if not user_id:
             return {
                 'statusCode': 401,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                'body': json.dumps({'error': 'Unauthorized'})
+                'body': json.dumps({'error': 'Unauthorized'}),
+                'isBase64Encoded': False
             }
         
-        path_params = event.get('pathParams', {})
-        query_params = event.get('queryStringParameters', {})
+        query_params = event.get('queryStringParameters') or {}
         
-        # GET /trips/{trip_id}/ai-recommend - получить рекомендации
-        if method == 'GET' and 'trip_id' in path_params:
-            trip_id = int(path_params['trip_id'])
+        # Получаем trip_id из query параметров
+        trip_id_str = query_params.get('trip_id')
+        
+        if not trip_id_str:
+            return {
+                'statusCode': 400,
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'trip_id parameter is required'}),
+                'isBase64Encoded': False
+            }
+        
+        try:
+            trip_id = int(trip_id_str)
+        except ValueError:
+            return {
+                'statusCode': 400,
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'trip_id must be a number'}),
+                'isBase64Encoded': False
+            }
+        
+        # GET ?trip_id=X - получить рекомендации
+        if method == 'GET':
             preferences = query_params.get('preferences')
-            
             result = get_ai_recommendations(trip_id, preferences)
             
             return {
                 'statusCode': 200,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                'body': json.dumps(result)
+                'body': json.dumps(result),
+                'isBase64Encoded': False
             }
         
-        # POST /trips/{trip_id}/ai-recommend/save - сохранить рекомендации
-        if method == 'POST' and 'trip_id' in path_params:
-            trip_id = int(path_params['trip_id'])
+        # POST ?trip_id=X&action=save - сохранить рекомендации
+        if method == 'POST' and query_params.get('action') == 'save':
             body = json.loads(event.get('body', '{}'))
             recommendations = body.get('recommendations', [])
             
@@ -292,13 +312,15 @@ def handler(event: dict, context) -> dict:
             return {
                 'statusCode': 200,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                'body': json.dumps(result)
+                'body': json.dumps(result),
+                'isBase64Encoded': False
             }
         
         return {
             'statusCode': 404,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Endpoint not found'})
+            'body': json.dumps({'error': 'Endpoint not found'}),
+            'isBase64Encoded': False
         }
         
     except Exception as e:
@@ -306,5 +328,6 @@ def handler(event: dict, context) -> dict:
         return {
             'statusCode': 500,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
         }
