@@ -9,6 +9,7 @@ from psycopg2.extras import RealDictCursor
 SCHEMA = os.environ.get('POSTGRES_SCHEMA', 't_p5815085_family_assistant_pro')
 YANDEX_GPT_API_KEY = os.environ.get('YANDEX_GPT_API_KEY', '')
 YANDEX_FOLDER_ID = os.environ.get('YANDEX_FOLDER_ID', '')
+UNSPLASH_ACCESS_KEY = os.environ.get('UNSPLASH_ACCESS_KEY', '')
 
 def get_db_connection():
     """Создаёт подключение к БД"""
@@ -113,6 +114,34 @@ def call_yandex_gpt(prompt: str) -> str:
         print(f'[ERROR] YandexGPT API error: {str(e)}')
         return f"Ошибка при получении рекомендаций: {str(e)}"
 
+def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
+    """Получает изображение места через Unsplash API"""
+    if not UNSPLASH_ACCESS_KEY:
+        return None
+    
+    try:
+        query = f"{place_name} {destination}"
+        url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&orientation=landscape"
+        
+        headers = {
+            "Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get('results', [])
+            
+            if results:
+                return results[0]['urls']['regular']
+        
+        return None
+    
+    except Exception as e:
+        print(f'[ERROR] Unsplash API error for {place_name}: {str(e)}')
+        return None
+
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Парсит ответ AI и формирует структурированные рекомендации"""
     
@@ -143,7 +172,8 @@ def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> Lis
                 'description': '',
                 'place_type': 'attraction',
                 'priority': 'medium',
-                'ai_recommended': True
+                'ai_recommended': True,
+                'image_url': None
             }
         
         # Добавляем описание к текущему месту
@@ -158,7 +188,14 @@ def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> Lis
         recommendations.append(current_place)
     
     # Ограничиваем до 10 рекомендаций
-    return recommendations[:10]
+    recommendations = recommendations[:10]
+    
+    # Получаем изображения для каждого места
+    destination = trip_info.get('destination', '')
+    for rec in recommendations:
+        rec['image_url'] = fetch_place_image(rec['place_name'], destination)
+    
+    return recommendations
 
 def get_ai_recommendations(trip_id: int, preferences: Optional[str] = None) -> Dict[str, Any]:
     """Получает AI-рекомендации мест для посещения"""
