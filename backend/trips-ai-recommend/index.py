@@ -116,91 +116,79 @@ def call_yandex_gpt(prompt: str) -> str:
 def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
     """Получает изображение места через Wikipedia/Wikimedia Commons"""
     
-    try:
-        # Ищем статью в Wikipedia
-        search_query = f"{place_name} {destination}"
-        wiki_search_url = "https://ru.wikipedia.org/w/api.php"
-        
-        search_params = {
-            "action": "query",
-            "format": "json",
-            "list": "search",
-            "srsearch": search_query,
-            "srlimit": 1
-        }
-        
-        search_response = requests.get(wiki_search_url, params=search_params, timeout=10)
-        
-        if search_response.status_code != 200:
-            return None
-        
-        search_data = search_response.json()
-        search_results = search_data.get('query', {}).get('search', [])
-        
-        if not search_results:
-            return None
-        
-        page_title = search_results[0]['title']
-        
-        # Получаем изображения страницы
-        image_params = {
-            "action": "query",
-            "format": "json",
-            "prop": "pageimages|images",
-            "titles": page_title,
-            "piprop": "original",
-            "imlimit": 1
-        }
-        
-        image_response = requests.get(wiki_search_url, params=image_params, timeout=10)
-        
-        if image_response.status_code != 200:
-            return None
-        
-        image_data = image_response.json()
-        pages = image_data.get('query', {}).get('pages', {})
-        
-        if not pages:
-            return None
-        
-        page = list(pages.values())[0]
-        original_image = page.get('original', {}).get('source')
-        
-        if original_image:
-            return original_image
-        
-        # Если нет original, пробуем получить первое изображение
-        images_list = page.get('images', [])
-        if images_list:
-            image_title = images_list[0]['title']
+    wiki_search_url = "https://ru.wikipedia.org/w/api.php"
+    
+    # Пробуем несколько вариантов поиска
+    search_queries = [
+        place_name,  # Только название места
+        f"{place_name} {destination}",  # Место + город
+    ]
+    
+    for search_query in search_queries:
+        try:
+            print(f'[DEBUG] Поиск изображения для: {search_query}')
             
-            # Получаем URL изображения
-            image_url_params = {
+            # Ищем статью в Wikipedia
+            search_params = {
                 "action": "query",
                 "format": "json",
-                "prop": "imageinfo",
-                "titles": image_title,
-                "iiprop": "url"
+                "list": "search",
+                "srsearch": search_query,
+                "srlimit": 3
             }
             
-            url_response = requests.get(wiki_search_url, params=image_url_params, timeout=10)
+            search_response = requests.get(wiki_search_url, params=search_params, timeout=10)
             
-            if url_response.status_code == 200:
-                url_data = url_response.json()
-                url_pages = url_data.get('query', {}).get('pages', {})
+            if search_response.status_code != 200:
+                continue
+            
+            search_data = search_response.json()
+            search_results = search_data.get('query', {}).get('search', [])
+            
+            if not search_results:
+                continue
+            
+            # Проверяем несколько результатов поиска
+            for result in search_results[:2]:
+                page_title = result['title']
+                print(f'[DEBUG] Проверка страницы: {page_title}')
                 
-                if url_pages:
-                    url_page = list(url_pages.values())[0]
-                    image_info = url_page.get('imageinfo', [])
-                    
-                    if image_info:
-                        return image_info[0].get('url')
+                # Получаем изображения страницы
+                image_params = {
+                    "action": "query",
+                    "format": "json",
+                    "prop": "pageimages",
+                    "titles": page_title,
+                    "piprop": "original",
+                    "pilimit": 1
+                }
+                
+                image_response = requests.get(wiki_search_url, params=image_params, timeout=10)
+                
+                if image_response.status_code != 200:
+                    continue
+                
+                image_data = image_response.json()
+                pages = image_data.get('query', {}).get('pages', {})
+                
+                if not pages:
+                    continue
+                
+                page = list(pages.values())[0]
+                
+                # Проверяем original image
+                if 'original' in page:
+                    image_url = page['original'].get('source')
+                    if image_url:
+                        print(f'[DEBUG] Найдено изображение: {image_url[:100]}')
+                        return image_url
         
-        return None
+        except Exception as e:
+            print(f'[ERROR] Wikipedia API error for {search_query}: {str(e)}')
+            continue
     
-    except Exception as e:
-        print(f'[ERROR] Wikipedia API error for {place_name}: {str(e)}')
-        return None
+    print(f'[DEBUG] Изображение не найдено для: {place_name}')
+    return None
 
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Парсит ответ AI и формирует структурированные рекомендации"""
