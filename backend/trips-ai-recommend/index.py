@@ -153,14 +153,13 @@ def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
                 page_title = result['title']
                 print(f'[DEBUG] Проверка страницы: {page_title}')
                 
-                # Получаем изображения страницы
+                # Получаем список всех изображений на странице
                 image_params = {
                     "action": "query",
                     "format": "json",
-                    "prop": "pageimages",
+                    "prop": "images",
                     "titles": page_title,
-                    "piprop": "original",
-                    "pilimit": 1
+                    "imlimit": 10
                 }
                 
                 image_response = requests.get(wiki_search_url, params=image_params, timeout=10)
@@ -175,13 +174,43 @@ def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
                     continue
                 
                 page = list(pages.values())[0]
+                images_list = page.get('images', [])
                 
-                # Проверяем original image
-                if 'original' in page:
-                    image_url = page['original'].get('source')
-                    if image_url:
-                        print(f'[DEBUG] Найдено изображение: {image_url[:100]}')
-                        return image_url
+                if not images_list:
+                    continue
+                
+                # Ищем первое изображение формата jpg, png (не иконки)
+                for img in images_list:
+                    img_title = img.get('title', '')
+                    
+                    # Пропускаем иконки и служебные изображения
+                    if any(skip in img_title.lower() for skip in ['icon', 'logo', 'commons-logo', 'wikidata', 'edit']):
+                        continue
+                    
+                    # Получаем URL изображения
+                    url_params = {
+                        "action": "query",
+                        "format": "json",
+                        "prop": "imageinfo",
+                        "titles": img_title,
+                        "iiprop": "url",
+                        "iiurlwidth": 800
+                    }
+                    
+                    url_response = requests.get(wiki_search_url, params=url_params, timeout=10)
+                    
+                    if url_response.status_code == 200:
+                        url_data = url_response.json()
+                        url_pages = url_data.get('query', {}).get('pages', {})
+                        
+                        if url_pages:
+                            url_page = list(url_pages.values())[0]
+                            image_info = url_page.get('imageinfo', [])
+                            
+                            if image_info and 'url' in image_info[0]:
+                                image_url = image_info[0]['url']
+                                print(f'[DEBUG] Найдено изображение: {image_url[:100]}')
+                                return image_url
         
         except Exception as e:
             print(f'[ERROR] Wikipedia API error for {search_query}: {str(e)}')
