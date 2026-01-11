@@ -71,11 +71,11 @@ def call_yandex_gpt(prompt: str) -> str:
     }
     
     payload = {
-        "modelUri": f"gpt://{YANDEX_FOLDER_ID}/yandexgpt-lite",
+        "modelUri": f"gpt://{YANDEX_FOLDER_ID}/yandexgpt-lite/latest",
         "completionOptions": {
             "stream": False,
             "temperature": 0.7,
-            "maxTokens": 2000
+            "maxTokens": "2000"
         },
         "messages": [
             {
