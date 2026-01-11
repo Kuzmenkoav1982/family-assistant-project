@@ -70,8 +70,10 @@ def call_yandex_gpt(prompt: str) -> str:
         "Authorization": f"Api-Key {YANDEX_GPT_API_KEY}"
     }
     
+    correct_folder_id = 'b1gaglg8i7v2i32nvism'
+    
     payload = {
-        "modelUri": f"gpt://{YANDEX_FOLDER_ID}/yandexgpt-lite/latest",
+        "modelUri": f"gpt://{correct_folder_id}/yandexgpt-lite",
         "completionOptions": {
             "stream": False,
             "temperature": 0.7,
@@ -89,17 +91,23 @@ def call_yandex_gpt(prompt: str) -> str:
         ]
     }
     
-    print(f'[DEBUG] YandexGPT request payload: {payload}')
+    print(f'[DEBUG] Отправка запроса к YandexGPT. ModelUri: gpt://{correct_folder_id}/yandexgpt-lite')
     
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=30)
-        print(f'[DEBUG] YandexGPT response status: {response.status_code}')
-        print(f'[DEBUG] YandexGPT response body: {response.text}')
         
-        response.raise_for_status()
+        if response.status_code != 200:
+            error_text = response.text
+            print(f'[ERROR] YandexGPT вернул {response.status_code}: {error_text}')
+            return f"Ошибка YandexGPT: {error_text}"
         
         result = response.json()
-        return result['result']['alternatives'][0]['message']['text']
+        alternatives = result.get('result', {}).get('alternatives', [])
+        
+        if not alternatives:
+            return "Пустой ответ от YandexGPT"
+        
+        return alternatives[0].get('message', {}).get('text', '')
     
     except Exception as e:
         print(f'[ERROR] YandexGPT API error: {str(e)}')
