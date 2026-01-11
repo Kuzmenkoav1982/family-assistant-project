@@ -270,6 +270,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'photo': photo}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
+            
+            if body.get('action') == 'delete_photo':
+                delete_photo(conn, body['photo_id'])
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
         
         # Получить места (Wish List мест в поездке)
         if method == 'GET' and action == 'places':
@@ -593,6 +602,13 @@ def add_photo(conn, data: Dict) -> Dict:
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
+
+
+def delete_photo(conn, photo_id: int):
+    """Удалить фото"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM trip_photos WHERE id = %s", (photo_id,))
+        conn.commit()
 
 
 def get_trip_places(conn, trip_id: int, status_filter: Optional[str] = None) -> List[Dict]:

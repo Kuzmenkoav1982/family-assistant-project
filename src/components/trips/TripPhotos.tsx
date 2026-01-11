@@ -121,6 +121,33 @@ export function TripPhotos({ tripId, photos, onUpdate }: TripPhotosProps) {
     }
   };
 
+  const handleDeletePhoto = async (photoId: number) => {
+    if (!confirm('Удалить это фото?')) return;
+
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'delete_photo',
+          photo_id: photoId
+        })
+      });
+
+      if (response.ok) {
+        onUpdate();
+        setSelectedImage(null);
+      } else {
+        alert('Ошибка при удалении фото');
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      alert('Ошибка при удалении фото');
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -249,7 +276,17 @@ export function TripPhotos({ tripId, photos, onUpdate }: TripPhotosProps) {
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
-              <DialogTitle>{selectedImage.title || 'Фото'}</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle>{selectedImage.title || 'Фото'}</DialogTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => handleDeletePhoto(selectedImage.id)}
+                >
+                  <Icon name="Trash2" size={20} />
+                </Button>
+              </div>
             </DialogHeader>
             <div className="space-y-4">
               <img
