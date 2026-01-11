@@ -9,7 +9,6 @@ from psycopg2.extras import RealDictCursor
 SCHEMA = os.environ.get('POSTGRES_SCHEMA', 't_p5815085_family_assistant_pro')
 YANDEX_GPT_API_KEY = os.environ.get('YANDEX_GPT_API_KEY', '')
 YANDEX_FOLDER_ID = os.environ.get('YANDEX_FOLDER_ID', '')
-YANDEX_ART_API_KEY = os.environ.get('YANDEX_ART_API_KEY', '')
 
 def get_db_connection():
     """Создаёт подключение к БД"""
@@ -114,69 +113,93 @@ def call_yandex_gpt(prompt: str) -> str:
         print(f'[ERROR] YandexGPT API error: {str(e)}')
         return f"Ошибка при получении рекомендаций: {str(e)}"
 
-def generate_place_image(place_name: str, destination: str) -> Optional[str]:
-    """Генерирует изображение места через YandexART"""
-    if not YANDEX_ART_API_KEY:
-        return None
+def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
+    """Получает изображение места через Wikipedia/Wikimedia Commons"""
     
     try:
-        url = "https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync"
+        # Ищем статью в Wikipedia
+        search_query = f"{place_name} {destination}"
+        wiki_search_url = "https://ru.wikipedia.org/w/api.php"
         
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Api-Key {YANDEX_ART_API_KEY}"
+        search_params = {
+            "action": "query",
+            "format": "json",
+            "list": "search",
+            "srsearch": search_query,
+            "srlimit": 1
         }
         
-        correct_folder_id = 'b1gaglg8i7v2i32nvism'
+        search_response = requests.get(wiki_search_url, params=search_params, timeout=10)
         
-        prompt = f"Фотография достопримечательности {place_name} в городе {destination}, профессиональное фото, высокое качество, реалистичный стиль"
+        if search_response.status_code != 200:
+            return None
         
-        payload = {
-            "modelUri": f"art://{correct_folder_id}/yandex-art/latest",
-            "generationOptions": {
-                "seed": "1863",
-                "aspectRatio": {
-                    "widthRatio": "16",
-                    "heightRatio": "9"
-                }
-            },
-            "messages": [
-                {
-                    "weight": "1",
-                    "text": prompt
-                }
-            ]
+        search_data = search_response.json()
+        search_results = search_data.get('query', {}).get('search', [])
+        
+        if not search_results:
+            return None
+        
+        page_title = search_results[0]['title']
+        
+        # Получаем изображения страницы
+        image_params = {
+            "action": "query",
+            "format": "json",
+            "prop": "pageimages|images",
+            "titles": page_title,
+            "piprop": "original",
+            "imlimit": 1
         }
         
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        image_response = requests.get(wiki_search_url, params=image_params, timeout=10)
         
-        if response.status_code == 200:
-            result = response.json()
-            operation_id = result.get('id')
+        if image_response.status_code != 200:
+            return None
+        
+        image_data = image_response.json()
+        pages = image_data.get('query', {}).get('pages', {})
+        
+        if not pages:
+            return None
+        
+        page = list(pages.values())[0]
+        original_image = page.get('original', {}).get('source')
+        
+        if original_image:
+            return original_image
+        
+        # Если нет original, пробуем получить первое изображение
+        images_list = page.get('images', [])
+        if images_list:
+            image_title = images_list[0]['title']
             
-            if operation_id:
-                check_url = f"https://llm.api.cloud.yandex.net:443/operations/{operation_id}"
+            # Получаем URL изображения
+            image_url_params = {
+                "action": "query",
+                "format": "json",
+                "prop": "imageinfo",
+                "titles": image_title,
+                "iiprop": "url"
+            }
+            
+            url_response = requests.get(wiki_search_url, params=image_url_params, timeout=10)
+            
+            if url_response.status_code == 200:
+                url_data = url_response.json()
+                url_pages = url_data.get('query', {}).get('pages', {})
                 
-                for _ in range(10):
-                    import time
-                    time.sleep(3)
+                if url_pages:
+                    url_page = list(url_pages.values())[0]
+                    image_info = url_page.get('imageinfo', [])
                     
-                    check_response = requests.get(check_url, headers=headers, timeout=10)
-                    
-                    if check_response.status_code == 200:
-                        check_data = check_response.json()
-                        
-                        if check_data.get('done'):
-                            image_base64 = check_data.get('response', {}).get('image')
-                            
-                            if image_base64:
-                                return f"data:image/jpeg;base64,{image_base64}"
-                            break
+                    if image_info:
+                        return image_info[0].get('url')
         
         return None
     
     except Exception as e:
-        print(f'[ERROR] YandexART error for {place_name}: {str(e)}')
+        print(f'[ERROR] Wikipedia API error for {place_name}: {str(e)}')
         return None
 
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -201,11 +224,15 @@ def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> Lis
         # Добавляем обязательные поля
         for rec in recommendations:
             rec['ai_recommended'] = True
-            rec['image_url'] = None
             if 'place_type' not in rec:
                 rec['place_type'] = 'attraction'
             if 'priority' not in rec:
                 rec['priority'] = 'medium'
+        
+        # Получаем изображения для каждого места
+        destination = trip_info.get('destination', '')
+        for rec in recommendations[:10]:
+            rec['image_url'] = fetch_place_image(rec['place_name'], destination)
         
         return recommendations[:10]
     
