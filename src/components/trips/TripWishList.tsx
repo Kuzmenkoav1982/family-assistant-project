@@ -219,6 +219,17 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     return icons[type] || 'MapPin';
   };
 
+  const getPlaceTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      attraction: 'Достопримечательность',
+      restaurant: 'Ресторан',
+      hotel: 'Отель',
+      activity: 'Активность',
+      other: 'Другое'
+    };
+    return labels[type] || 'Место';
+  };
+
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
       high: 'bg-red-100 text-red-800 border-red-200',
@@ -413,31 +424,52 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                 </div>
               ) : aiRecommendations.length > 0 ? (
                 aiRecommendations.map((rec, index) => (
-                  <Card key={index} className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Icon name="Sparkles" size={16} className="text-purple-600" />
-                            {rec.place_name}
-                          </CardTitle>
+                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow border-purple-200">
+                    <div className="flex flex-col sm:flex-row">
+                      <div className="sm:w-1/3 h-48 sm:h-auto bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-blue-400/20" />
+                        <Icon name={getPlaceIcon(rec.place_type)} size={64} className="text-purple-300 relative z-10" />
+                        <div className="absolute top-2 left-2 z-20">
+                          <Badge className="bg-purple-600 text-white">
+                            <Icon name="Sparkles" size={10} className="mr-1" />
+                            AI
+                          </Badge>
                         </div>
-                        <Button
-                          size="sm"
-                          className="bg-purple-600 hover:bg-purple-700"
-                          onClick={() => {
-                            handleAddAIRecommendation(rec);
-                            setAiRecommendations(prev => prev.filter((_, i) => i !== index));
-                          }}
-                        >
-                          <Icon name="Plus" size={14} className="mr-1" />
-                          Добавить
-                        </Button>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-700">{rec.description}</p>
-                    </CardContent>
+                      <div className="flex-1 p-4">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg text-gray-900 mb-1">{rec.place_name}</h3>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Icon name={getPlaceIcon(rec.place_type)} size={12} />
+                              <span>{getPlaceTypeLabel(rec.place_type)}</span>
+                              {rec.priority && (
+                                <>
+                                  <span>•</span>
+                                  <Badge variant="outline" className={`text-xs ${getPriorityColor(rec.priority)}`}>
+                                    {rec.priority === 'high' && '🔥 Обязательно'}
+                                    {rec.priority === 'medium' && '⭐ Рекомендуем'}
+                                    {rec.priority === 'low' && '💤 По желанию'}
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 shrink-0"
+                            onClick={() => {
+                              handleAddAIRecommendation(rec);
+                              setAiRecommendations(prev => prev.filter((_, i) => i !== index));
+                            }}
+                          >
+                            <Icon name="Plus" size={14} className="mr-1" />
+                            Добавить
+                          </Button>
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">{rec.description}</p>
+                      </div>
+                    </div>
                   </Card>
                 ))
               ) : (
