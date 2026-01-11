@@ -75,7 +75,7 @@ def call_yandex_gpt(prompt: str) -> str:
         "completionOptions": {
             "stream": False,
             "temperature": 0.7,
-            "maxTokens": "2000"
+            "maxTokens": 2000
         },
         "messages": [
             {
@@ -89,8 +89,13 @@ def call_yandex_gpt(prompt: str) -> str:
         ]
     }
     
+    print(f'[DEBUG] YandexGPT request payload: {payload}')
+    
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=30)
+        print(f'[DEBUG] YandexGPT response status: {response.status_code}')
+        print(f'[DEBUG] YandexGPT response body: {response.text}')
+        
         response.raise_for_status()
         
         result = response.json()
