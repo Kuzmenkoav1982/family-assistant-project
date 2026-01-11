@@ -9,7 +9,7 @@ from psycopg2.extras import RealDictCursor
 SCHEMA = os.environ.get('POSTGRES_SCHEMA', 't_p5815085_family_assistant_pro')
 YANDEX_GPT_API_KEY = os.environ.get('YANDEX_GPT_API_KEY', '')
 YANDEX_FOLDER_ID = os.environ.get('YANDEX_FOLDER_ID', '')
-UNSPLASH_ACCESS_KEY = os.environ.get('UNSPLASH_ACCESS_KEY', '')
+YANDEX_ART_API_KEY = os.environ.get('YANDEX_ART_API_KEY', '')
 
 def get_db_connection():
     """Создаёт подключение к БД"""
@@ -114,32 +114,69 @@ def call_yandex_gpt(prompt: str) -> str:
         print(f'[ERROR] YandexGPT API error: {str(e)}')
         return f"Ошибка при получении рекомендаций: {str(e)}"
 
-def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
-    """Получает изображение места через Unsplash API"""
-    if not UNSPLASH_ACCESS_KEY:
+def generate_place_image(place_name: str, destination: str) -> Optional[str]:
+    """Генерирует изображение места через YandexART"""
+    if not YANDEX_ART_API_KEY:
         return None
     
     try:
-        query = f"{place_name} {destination}"
-        url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&orientation=landscape"
+        url = "https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync"
         
         headers = {
-            "Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"
+            "Content-Type": "application/json",
+            "Authorization": f"Api-Key {YANDEX_ART_API_KEY}"
         }
         
-        response = requests.get(url, headers=headers, timeout=10)
+        correct_folder_id = 'b1gaglg8i7v2i32nvism'
+        
+        prompt = f"Фотография достопримечательности {place_name} в городе {destination}, профессиональное фото, высокое качество, реалистичный стиль"
+        
+        payload = {
+            "modelUri": f"art://{correct_folder_id}/yandex-art/latest",
+            "generationOptions": {
+                "seed": "1863",
+                "aspectRatio": {
+                    "widthRatio": "16",
+                    "heightRatio": "9"
+                }
+            },
+            "messages": [
+                {
+                    "weight": "1",
+                    "text": prompt
+                }
+            ]
+        }
+        
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
         
         if response.status_code == 200:
-            data = response.json()
-            results = data.get('results', [])
+            result = response.json()
+            operation_id = result.get('id')
             
-            if results:
-                return results[0]['urls']['regular']
+            if operation_id:
+                check_url = f"https://llm.api.cloud.yandex.net:443/operations/{operation_id}"
+                
+                for _ in range(10):
+                    import time
+                    time.sleep(3)
+                    
+                    check_response = requests.get(check_url, headers=headers, timeout=10)
+                    
+                    if check_response.status_code == 200:
+                        check_data = check_response.json()
+                        
+                        if check_data.get('done'):
+                            image_base64 = check_data.get('response', {}).get('image')
+                            
+                            if image_base64:
+                                return f"data:image/jpeg;base64,{image_base64}"
+                            break
         
         return None
     
     except Exception as e:
-        print(f'[ERROR] Unsplash API error for {place_name}: {str(e)}')
+        print(f'[ERROR] YandexART error for {place_name}: {str(e)}')
         return None
 
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -190,10 +227,10 @@ def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> Lis
     # Ограничиваем до 10 рекомендаций
     recommendations = recommendations[:10]
     
-    # Получаем изображения для каждого места
+    # Генерируем изображения для каждого места (только первые 3 для экономии)
     destination = trip_info.get('destination', '')
-    for rec in recommendations:
-        rec['image_url'] = fetch_place_image(rec['place_name'], destination)
+    for i, rec in enumerate(recommendations[:3]):
+        rec['image_url'] = generate_place_image(rec['place_name'], destination)
     
     return recommendations
 
