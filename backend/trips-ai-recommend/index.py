@@ -255,8 +255,14 @@ def handler(event: dict, context) -> dict:
         }
     
     try:
-        # Аутентификация
-        token = event.get('headers', {}).get('x-auth-token', '')
+        # Аутентификация (прокси маппит Authorization → X-Authorization)
+        headers = event.get('headers', {})
+        token = headers.get('x-authorization', headers.get('X-Authorization', '')).replace('Bearer ', '')
+        
+        # Также проверяем X-Auth-Token если используется
+        if not token:
+            token = headers.get('x-auth-token', headers.get('X-Auth-Token', ''))
+        
         user_id = verify_token(token)
         
         if not user_id:
