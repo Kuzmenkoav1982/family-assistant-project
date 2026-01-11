@@ -6,6 +6,10 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripWishList } from '@/components/trips/TripWishList';
+import { TripBookings } from '@/components/trips/TripBookings';
+import { TripItinerary } from '@/components/trips/TripItinerary';
+import { TripDiary } from '@/components/trips/TripDiary';
+import { TripPhotos } from '@/components/trips/TripPhotos';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -131,28 +135,7 @@ export default function TripDetails() {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ' + currency;
   };
 
-  const getBookingIcon = (type: string) => {
-    const iconMap: Record<string, string> = {
-      flight: 'Plane',
-      train: 'Train',
-      bus: 'Bus',
-      hotel: 'Hotel',
-      car: 'Car',
-      other: 'Ticket'
-    };
-    return iconMap[type] || 'Ticket';
-  };
 
-  const getMoodEmoji = (mood?: string) => {
-    const moodMap: Record<string, string> = {
-      amazing: '🤩',
-      great: '😊',
-      good: '🙂',
-      neutral: '😐',
-      bad: '😕'
-    };
-    return mood ? moodMap[mood] : '📝';
-  };
 
   if (loading) {
     return (
@@ -292,162 +275,19 @@ export default function TripDetails() {
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-4 mt-0">
-          {bookings.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Icon name="Ticket" size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">Нет броней</p>
-            </Card>
-          ) : (
-            bookings.map((booking) => (
-              <Card key={booking.id} className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <Icon name={getBookingIcon(booking.booking_type)} size={24} className="text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{booking.title}</h4>
-                        {booking.provider && (
-                          <p className="text-sm text-gray-600">{booking.provider}</p>
-                        )}
-                      </div>
-                      <Badge variant={booking.status === 'confirmed' ? 'default' : 'outline'}>
-                        {booking.status === 'confirmed' ? 'Подтверждено' : 'Ожидание'}
-                      </Badge>
-                    </div>
-                    {booking.booking_number && (
-                      <p className="text-sm text-gray-600 mb-2">№ {booking.booking_number}</p>
-                    )}
-                    {booking.date_from && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Icon name="Calendar" size={16} />
-                        <span>{formatDate(booking.date_from)}</span>
-                        {booking.date_to && <span>- {formatDate(booking.date_to)}</span>}
-                      </div>
-                    )}
-                    {booking.cost && (
-                      <div className="mt-2 text-lg font-bold text-gray-900">
-                        {formatBudget(booking.cost, booking.currency)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
+          <TripBookings tripId={Number(id)} bookings={bookings} onUpdate={loadTripData} />
         </TabsContent>
 
         <TabsContent value="itinerary" className="space-y-4 mt-0">
-          {itinerary.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Icon name="Map" size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">Маршрут не составлен</p>
-            </Card>
-          ) : (
-            itinerary.map((day) => (
-              <Card key={day.id} className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                    {day.day_number}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h4 className="font-semibold text-gray-900">{day.title || `День ${day.day_number}`}</h4>
-                      <span className="text-sm text-gray-500">{formatDate(day.date)}</span>
-                    </div>
-                    {day.description && (
-                      <p className="text-gray-700 mb-3">{day.description}</p>
-                    )}
-                    {day.places && JSON.parse(day.places).length > 0 && (
-                      <div className="space-y-2">
-                        {JSON.parse(day.places).map((place: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
-                            <Icon name="MapPin" size={16} className="text-blue-600" />
-                            <span className="font-medium">{place.name}</span>
-                            {place.time && <span className="text-gray-500">• {place.time}</span>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
+          <TripItinerary tripId={Number(id)} itinerary={itinerary} onUpdate={loadTripData} />
         </TabsContent>
 
         <TabsContent value="diary" className="space-y-4 mt-0">
-          {diary.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Icon name="BookOpen" size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">Дневник пуст</p>
-            </Card>
-          ) : (
-            diary.map((entry) => (
-              <Card key={entry.id} className="p-6">
-                <div className="flex items-start gap-3 mb-3">
-                  <span className="text-3xl">{getMoodEmoji(entry.mood)}</span>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{entry.title || 'Запись из дневника'}</h4>
-                    <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
-                      <span>{formatDate(entry.date)}</span>
-                      {entry.location && (
-                        <>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Icon name="MapPin" size={14} />
-                            {entry.location}
-                          </span>
-                        </>
-                      )}
-                      {entry.weather && (
-                        <>
-                          <span>•</span>
-                          <span>{entry.weather}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-gray-700 whitespace-pre-wrap">{entry.content}</p>
-              </Card>
-            ))
-          )}
+          <TripDiary tripId={Number(id)} diary={diary} onUpdate={loadTripData} />
         </TabsContent>
 
         <TabsContent value="photos" className="mt-0">
-          {photos.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Icon name="Camera" size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">Нет фотографий</p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {photos.map((photo) => (
-                <Card key={photo.id} className="overflow-hidden">
-                  <img
-                    src={photo.photo_url}
-                    alt={photo.title || 'Фото из поездки'}
-                    className="w-full h-48 object-cover"
-                  />
-                  {(photo.title || photo.location) && (
-                    <div className="p-3">
-                      {photo.title && (
-                        <h4 className="font-semibold text-sm text-gray-900 mb-1">{photo.title}</h4>
-                      )}
-                      {photo.location && (
-                        <p className="text-xs text-gray-600 flex items-center gap-1">
-                          <Icon name="MapPin" size={12} />
-                          {photo.location}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
-          )}
+          <TripPhotos tripId={Number(id)} photos={photos} onUpdate={loadTripData} />
         </TabsContent>
         </div>
       </Tabs>
