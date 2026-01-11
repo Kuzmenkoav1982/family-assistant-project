@@ -178,10 +178,10 @@ export default function TripDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-20">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Header */}
+        <div className="bg-white border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
               <Button
                 variant="ghost"
@@ -208,12 +208,12 @@ export default function TripDetails() {
               <TabsTrigger value="diary">Дневник ({diary.length})</TabsTrigger>
               <TabsTrigger value="photos">Фото ({photos.length})</TabsTrigger>
             </TabsList>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <TabsContent value="overview" className="space-y-4 mt-0">
+        {/* Content */}
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <TabsContent value="overview" className="space-y-4 mt-0">
           {/* Trip Info Card */}
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -449,8 +449,8 @@ export default function TripDetails() {
             </div>
           )}
         </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </div>
   );
 }
