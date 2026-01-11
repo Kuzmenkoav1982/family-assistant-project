@@ -182,57 +182,39 @@ def generate_place_image(place_name: str, destination: str) -> Optional[str]:
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Парсит ответ AI и формирует структурированные рекомендации"""
     
-    recommendations = []
-    lines = ai_response.split('\n')
-    
-    current_place = None
-    
-    for line in lines:
-        line = line.strip()
+    try:
+        # Пытаемся распарсить как JSON
+        ai_response = ai_response.strip()
         
-        if not line or line.startswith('#'):
-            continue
+        # Убираем markdown форматирование если есть
+        if ai_response.startswith('```json'):
+            ai_response = ai_response[7:]
+        if ai_response.startswith('```'):
+            ai_response = ai_response[3:]
+        if ai_response.endswith('```'):
+            ai_response = ai_response[:-3]
         
-        # Ищем название места (обычно начинается с цифры и точки или с "**")
-        if line[0].isdigit() or line.startswith('**'):
-            # Сохраняем предыдущее место
-            if current_place:
-                recommendations.append(current_place)
-            
-            # Очищаем название от форматирования
-            place_name = line.replace('**', '').strip()
-            place_name = place_name.split('. ', 1)[-1] if '. ' in place_name else place_name
-            place_name = place_name.split('— ')[0].strip()
-            
-            current_place = {
-                'place_name': place_name,
-                'description': '',
-                'place_type': 'attraction',
-                'priority': 'medium',
-                'ai_recommended': True,
-                'image_url': None
-            }
+        ai_response = ai_response.strip()
         
-        # Добавляем описание к текущему месту
-        elif current_place and line:
-            if current_place['description']:
-                current_place['description'] += ' ' + line
-            else:
-                current_place['description'] = line
+        recommendations = json.loads(ai_response)
+        
+        # Добавляем обязательные поля
+        for rec in recommendations:
+            rec['ai_recommended'] = True
+            rec['image_url'] = None
+            if 'place_type' not in rec:
+                rec['place_type'] = 'attraction'
+            if 'priority' not in rec:
+                rec['priority'] = 'medium'
+        
+        return recommendations[:10]
     
-    # Добавляем последнее место
-    if current_place:
-        recommendations.append(current_place)
-    
-    # Ограничиваем до 10 рекомендаций
-    recommendations = recommendations[:10]
-    
-    # Генерируем изображения для каждого места (только первые 3 для экономии)
-    destination = trip_info.get('destination', '')
-    for i, rec in enumerate(recommendations[:3]):
-        rec['image_url'] = generate_place_image(rec['place_name'], destination)
-    
-    return recommendations
+    except json.JSONDecodeError as e:
+        print(f'[ERROR] Не удалось распарсить JSON: {str(e)}')
+        print(f'[DEBUG] AI response: {ai_response[:500]}')
+        
+        # Fallback: возвращаем пустой список
+        return []
 
 def get_ai_recommendations(trip_id: int, preferences: Optional[str] = None) -> Dict[str, Any]:
     """Получает AI-рекомендации мест для посещения"""
@@ -261,15 +243,20 @@ def get_ai_recommendations(trip_id: int, preferences: Optional[str] = None) -> D
         prompt += f"- Предпочтения: {preferences}\n"
     
     prompt += """
-Порекомендуй 7-10 самых интересных мест для посещения. Для каждого места укажи:
-1. Название места
-2. Краткое описание (2-3 предложения) с указанием почему это место стоит посетить
-3. Примерную стоимость посещения (если применимо)
+Порекомендуй 7-10 самых интересных мест для посещения.
 
-Формат ответа:
-1. **Название места** — краткое описание, особенности, стоимость посещения
+ВАЖНО: Верни ответ ТОЛЬКО в виде JSON массива без дополнительного текста:
+[
+  {
+    "place_name": "Название места",
+    "description": "Подробное описание почему стоит посетить (2-3 предложения), особенности, примерная стоимость",
+    "place_type": "attraction",
+    "priority": "high"
+  }
+]
 
-Сосредоточься на самых популярных достопримечательностях, музеях, парках и уникальных местах города.
+Типы мест: attraction, restaurant, hotel, activity, other
+Приоритеты: high (обязательно), medium (рекомендуем), low (по желанию)
 """
     
     # Получаем ответ от AI
