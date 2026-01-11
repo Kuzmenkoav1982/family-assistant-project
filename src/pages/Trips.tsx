@@ -4,6 +4,8 @@ import { TripsHeader } from '@/components/trips/TripsHeader';
 import { TripsList } from '@/components/trips/TripsList';
 import { CreateTripDialog } from '@/components/trips/CreateTripDialog';
 import { EditTripDialog } from '@/components/trips/EditTripDialog';
+import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/icon';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
