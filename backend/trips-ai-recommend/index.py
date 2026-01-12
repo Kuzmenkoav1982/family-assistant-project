@@ -113,6 +113,19 @@ def call_yandex_gpt(prompt: str) -> str:
         print(f'[ERROR] YandexGPT API error: {str(e)}')
         return f"Ошибка при получении рекомендаций: {str(e)}"
 
+def fetch_place_image_unsplash(place_name: str, destination: str) -> Optional[str]:
+    """Получает изображение через Unsplash API"""
+    try:
+        # Используем Source API - бесплатный CDN случайных изображений
+        query = f"{destination} {place_name}".replace(' ', '%20')
+        # Добавляем landscape для красивых фото
+        image_url = f"https://source.unsplash.com/800x600/?{query},travel,landmark"
+        print(f'[DEBUG] Unsplash image URL: {image_url}')
+        return image_url
+    except Exception as e:
+        print(f'[ERROR] Unsplash API error: {str(e)}')
+        return None
+
 def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
     """Получает изображение места через Wikipedia/Wikimedia Commons"""
     
@@ -216,8 +229,8 @@ def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
             print(f'[ERROR] Wikipedia API error for {search_query}: {str(e)}')
             continue
     
-    print(f'[DEBUG] Изображение не найдено для: {place_name}')
-    return None
+    print(f'[DEBUG] Wikipedia изображение не найдено. Пробуем Unsplash...')
+    return fetch_place_image_unsplash(place_name, destination)
 
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Парсит ответ AI и формирует структурированные рекомендации"""

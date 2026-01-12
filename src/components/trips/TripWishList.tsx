@@ -390,11 +390,11 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
       )}
 
       <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto p-3 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Icon name="Sparkles" size={20} />
-              AI-рекомендации интересных мест
+            <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Icon name="Sparkles" size={18} className="flex-shrink-0" />
+              <span className="truncate">AI-рекомендации интересных мест</span>
             </DialogTitle>
           </DialogHeader>
           
@@ -424,9 +424,9 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                 </div>
               ) : aiRecommendations.length > 0 ? (
                 aiRecommendations.map((rec, index) => (
-                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow border-purple-200">
+                  <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow border-purple-200">
                     <div className="flex flex-col sm:flex-row">
-                      <div className="sm:w-1/3 h-48 sm:h-auto relative overflow-hidden">
+                      <div className="sm:w-1/3 h-40 sm:h-auto relative overflow-hidden flex-shrink-0">
                         {rec.image_url ? (
                           <img 
                             src={rec.image_url} 
@@ -449,10 +449,10 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                           </Badge>
                         </div>
                       </div>
-                      <div className="flex-1 p-4">
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900 mb-1">{rec.place_name}</h3>
+                      <div className="flex-1 p-3 sm:p-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1 truncate">{rec.place_name}</h3>
                             <div className="flex items-center gap-2 text-xs text-gray-500">
                               <Icon name={getPlaceIcon(rec.place_type)} size={12} />
                               <span>{getPlaceTypeLabel(rec.place_type)}</span>
@@ -470,17 +470,18 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                           </div>
                           <Button
                             size="sm"
-                            className="bg-purple-600 hover:bg-purple-700 shrink-0"
+                            className="bg-purple-600 hover:bg-purple-700 shrink-0 text-xs sm:text-sm px-2 sm:px-3"
                             onClick={() => {
                               handleAddAIRecommendation(rec);
                               setAiRecommendations(prev => prev.filter((_, i) => i !== index));
                             }}
                           >
-                            <Icon name="Plus" size={14} className="mr-1" />
-                            Добавить
+                            <Icon name="Plus" size={14} className="mr-0.5 sm:mr-1" />
+                            <span className="hidden sm:inline">Добавить</span>
+                            <span className="sm:hidden">+</span>
                           </Button>
                         </div>
-                        <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">{rec.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed line-clamp-2 sm:line-clamp-3">{rec.description}</p>
                       </div>
                     </div>
                   </Card>

@@ -180,16 +180,17 @@ export default function TripDetails() {
               {getStatusBadge(trip.status)}
             </div>
 
-            <TabsList className="w-full grid grid-cols-6 text-xs sm:text-sm">
-              <TabsTrigger value="overview">Обзор</TabsTrigger>
-              <TabsTrigger value="wishlist">
-                <Icon name="Star" size={14} className="mr-1 hidden sm:inline" />
-                Wish List
+            <TabsList className="w-full grid grid-cols-6 gap-1">
+              <TabsTrigger value="overview" className="text-[10px] sm:text-sm px-1 sm:px-3">Обзор</TabsTrigger>
+              <TabsTrigger value="wishlist" className="text-[10px] sm:text-sm px-1 sm:px-3">
+                <Icon name="Star" size={12} className="mr-0.5 sm:mr-1" />
+                <span className="hidden sm:inline">Wish List</span>
+                <span className="sm:hidden">Места</span>
               </TabsTrigger>
-              <TabsTrigger value="bookings">Брони ({bookings.length})</TabsTrigger>
-              <TabsTrigger value="itinerary">Маршрут</TabsTrigger>
-              <TabsTrigger value="diary">Дневник ({diary.length})</TabsTrigger>
-              <TabsTrigger value="photos">Фото ({photos.length})</TabsTrigger>
+              <TabsTrigger value="bookings" className="text-[10px] sm:text-sm px-1 sm:px-3">Брони<span className="hidden sm:inline"> ({bookings.length})</span></TabsTrigger>
+              <TabsTrigger value="itinerary" className="text-[10px] sm:text-sm px-1 sm:px-3">Маршрут</TabsTrigger>
+              <TabsTrigger value="diary" className="text-[10px] sm:text-sm px-1 sm:px-3">Дневник<span className="hidden sm:inline"> ({diary.length})</span></TabsTrigger>
+              <TabsTrigger value="photos" className="text-[10px] sm:text-sm px-1 sm:px-3">Фото<span className="hidden sm:inline"> ({photos.length})</span></TabsTrigger>
             </TabsList>
           </div>
         </div>
