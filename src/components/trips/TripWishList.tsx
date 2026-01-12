@@ -254,16 +254,18 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 flex-wrap">
-        <Button onClick={() => setIsAddPlaceOpen(true)}>
-          <Icon name="Plus" size={16} className="mr-2" />
-          Добавить место
-        </Button>
-        <Button variant="outline" onClick={handleGetAIRecommendations}>
-          <Icon name="Sparkles" size={16} className="mr-2" />
-          AI-рекомендации
-        </Button>
-      </div>
+      {plannedPlaces.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={() => setIsAddPlaceOpen(true)}>
+            <Icon name="Plus" size={16} className="mr-2" />
+            Добавить место
+          </Button>
+          <Button variant="outline" onClick={handleGetAIRecommendations}>
+            <Icon name="Sparkles" size={16} className="mr-2" />
+            AI-рекомендации
+          </Button>
+        </div>
+      )}
 
       <div>
         <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
