@@ -468,7 +468,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                           className="flex-1"
                           onClick={() => {
                             const searchQuery = encodeURIComponent(`${rec.place_name} ${tripInfo?.destination || ''}`);
-                            window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
+                            window.open(`https://yandex.ru/maps/?text=${searchQuery}`, '_blank');
                           }}
                         >
                           <Icon name="MapPin" size={14} className="mr-1" />
