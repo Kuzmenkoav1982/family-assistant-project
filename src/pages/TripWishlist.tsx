@@ -4,6 +4,8 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import AddWishlistDialog from '@/components/AddWishlistDialog';
+import EditWishlistDialog from '@/components/EditWishlistDialog';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -25,6 +27,9 @@ export default function TripWishlist() {
   const navigate = useNavigate();
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
 
   useEffect(() => {
     loadWishlist();
@@ -135,7 +140,7 @@ export default function TripWishlist() {
             <Icon name="Globe" size={48} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Wish List пуст</h3>
             <p className="text-gray-500 mb-4">Добавьте места, куда мечтаете поехать</p>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => setShowAddDialog(true)}>
               <Icon name="Plus" size={18} />
               Добавить место
             </Button>
@@ -230,6 +235,10 @@ export default function TripWishlist() {
                         variant="outline"
                         size="sm"
                         className="gap-1.5 text-xs sm:text-sm"
+                        onClick={() => {
+                          setEditingItem(item);
+                          setShowEditDialog(true);
+                        }}
                       >
                         <Icon name="Pencil" size={14} />
                       </Button>
@@ -253,9 +262,25 @@ export default function TripWishlist() {
       <Button
         className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg"
         size="icon"
+        onClick={() => setShowAddDialog(true)}
       >
         <Icon name="Plus" size={24} />
       </Button>
+
+      {/* Add Wishlist Dialog */}
+      <AddWishlistDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSuccess={loadWishlist}
+      />
+
+      {/* Edit Wishlist Dialog */}
+      <EditWishlistDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        item={editingItem}
+        onSuccess={loadWishlist}
+      />
     </div>
   );
 }

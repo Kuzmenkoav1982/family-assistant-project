@@ -184,8 +184,7 @@ export default function TripDetails() {
               <TabsTrigger value="overview" className="text-[10px] sm:text-sm px-1 sm:px-3">Обзор</TabsTrigger>
               <TabsTrigger value="wishlist" className="text-[10px] sm:text-sm px-1 sm:px-3">
                 <Icon name="Star" size={12} className="mr-0.5 sm:mr-1" />
-                <span className="hidden sm:inline">Wish List</span>
-                <span className="sm:hidden">Места</span>
+                Места
               </TabsTrigger>
               <TabsTrigger value="bookings" className="text-[10px] sm:text-sm px-1 sm:px-3">Брони<span className="hidden sm:inline"> ({bookings.length})</span></TabsTrigger>
               <TabsTrigger value="itinerary" className="text-[10px] sm:text-sm px-1 sm:px-3">Маршрут</TabsTrigger>
