@@ -53,6 +53,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [isAILoading, setIsAILoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
+  const [tripInfo, setTripInfo] = useState<{destination?: string} | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
   const [newPlace, setNewPlace] = useState({
@@ -102,6 +103,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
         const data = await response.json();
         if (data.success && data.recommendations) {
           setAiRecommendations(data.recommendations);
+          setTripInfo(data.trip_info || null);
         } else {
           setAiError(data.error || 'Не удалось получить рекомендации');
         }
@@ -425,45 +427,21 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
               ) : aiRecommendations.length > 0 ? (
                 aiRecommendations.map((rec, index) => (
                   <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow border-purple-200">
-                    <div className="flex flex-col sm:flex-row">
-                      <div className="sm:w-1/3 h-40 sm:h-auto relative overflow-hidden flex-shrink-0 bg-gradient-to-br from-purple-100 to-blue-100">
-                        {rec.image_url ? (
-                          <>
-                            <img 
-                              src={rec.image_url} 
-                              alt={rec.place_name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const parent = e.currentTarget.parentElement;
-                                if (parent) {
-                                  const fallback = parent.querySelector('.fallback-icon');
-                                  if (fallback) fallback.classList.remove('hidden');
-                                }
-                              }}
-                            />
-                            <div className="fallback-icon hidden absolute inset-0 flex items-center justify-center">
-                              <Icon name={getPlaceIcon(rec.place_type)} size={64} className="text-purple-300" />
-                            </div>
-                          </>
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Icon name={getPlaceIcon(rec.place_type)} size={64} className="text-purple-300" />
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center flex-shrink-0">
+                            <Icon name={getPlaceIcon(rec.place_type)} size={24} className="text-purple-600" />
                           </div>
-                        )}
-                        <div className="absolute top-2 left-2 z-20">
-                          <Badge className="bg-purple-600 text-white shadow-lg">
-                            <Icon name="Sparkles" size={10} className="mr-1" />
-                            AI
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex-1 p-3 sm:p-4">
-                        <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1 truncate">{rec.place_name}</h3>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-base text-gray-900">{rec.place_name}</h3>
+                              <Badge className="bg-purple-600 text-white flex-shrink-0">
+                                <Icon name="Sparkles" size={10} className="mr-1" />
+                                AI
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                               <Icon name={getPlaceIcon(rec.place_type)} size={12} />
                               <span>{getPlaceTypeLabel(rec.place_type)}</span>
                               {rec.priority && (
@@ -478,20 +456,35 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                               )}
                             </div>
                           </div>
-                          <Button
-                            size="sm"
-                            className="bg-purple-600 hover:bg-purple-700 shrink-0 text-xs sm:text-sm px-2 sm:px-3"
-                            onClick={() => {
-                              handleAddAIRecommendation(rec);
-                              setAiRecommendations(prev => prev.filter((_, i) => i !== index));
-                            }}
-                          >
-                            <Icon name="Plus" size={14} className="mr-0.5 sm:mr-1" />
-                            <span className="hidden sm:inline">Добавить</span>
-                            <span className="sm:hidden">+</span>
-                          </Button>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed line-clamp-2 sm:line-clamp-3">{rec.description}</p>
+                      </div>
+                      
+                      <p className="text-sm text-gray-700 leading-relaxed mb-3">{rec.description}</p>
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => {
+                            const searchQuery = encodeURIComponent(`${rec.place_name} ${tripInfo?.destination || ''}`);
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
+                          }}
+                        >
+                          <Icon name="MapPin" size={14} className="mr-1" />
+                          На карте
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-purple-600 hover:bg-purple-700 flex-1"
+                          onClick={() => {
+                            handleAddAIRecommendation(rec);
+                            setAiRecommendations(prev => prev.filter((_, i) => i !== index));
+                          }}
+                        >
+                          <Icon name="Plus" size={14} className="mr-1" />
+                          Добавить
+                        </Button>
                       </div>
                     </div>
                   </Card>
