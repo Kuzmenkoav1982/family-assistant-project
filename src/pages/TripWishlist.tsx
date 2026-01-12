@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AddWishlistDialog from '@/components/AddWishlistDialog';
 import EditWishlistDialog from '@/components/EditWishlistDialog';
+import CreateTripFromWishlistDialog from '@/components/CreateTripFromWishlistDialog';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -30,6 +31,8 @@ export default function TripWishlist() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
+  const [showCreateTripDialog, setShowCreateTripDialog] = useState(false);
+  const [creatingTripItem, setCreatingTripItem] = useState<WishlistItem | null>(null);
 
   useEffect(() => {
     loadWishlist();
@@ -225,7 +228,8 @@ export default function TripWishlist() {
                         size="sm"
                         className="gap-1.5 text-xs sm:text-sm flex-1 sm:flex-initial"
                         onClick={() => {
-                          alert('Функция в разработке: выбор дат для создания поездки');
+                          setCreatingTripItem(item);
+                          setShowCreateTripDialog(true);
                         }}
                       >
                         <Icon name="Calendar" size={14} />
@@ -280,6 +284,13 @@ export default function TripWishlist() {
         onOpenChange={setShowEditDialog}
         item={editingItem}
         onSuccess={loadWishlist}
+      />
+
+      {/* Create Trip from Wishlist Dialog */}
+      <CreateTripFromWishlistDialog
+        open={showCreateTripDialog}
+        onOpenChange={setShowCreateTripDialog}
+        item={creatingTripItem}
       />
     </div>
   );
