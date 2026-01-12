@@ -426,21 +426,31 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                 aiRecommendations.map((rec, index) => (
                   <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow border-purple-200">
                     <div className="flex flex-col sm:flex-row">
-                      <div className="sm:w-1/3 h-40 sm:h-auto relative overflow-hidden flex-shrink-0">
+                      <div className="sm:w-1/3 h-40 sm:h-auto relative overflow-hidden flex-shrink-0 bg-gradient-to-br from-purple-100 to-blue-100">
                         {rec.image_url ? (
-                          <img 
-                            src={rec.image_url} 
-                            alt={rec.place_name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
                           <>
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-blue-100" />
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-blue-400/20" />
-                            <div className="absolute inset-0 flex items-center justify-center">
+                            <img 
+                              src={rec.image_url} 
+                              alt={rec.place_name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  const fallback = parent.querySelector('.fallback-icon');
+                                  if (fallback) fallback.classList.remove('hidden');
+                                }
+                              }}
+                            />
+                            <div className="fallback-icon hidden absolute inset-0 flex items-center justify-center">
                               <Icon name={getPlaceIcon(rec.place_type)} size={64} className="text-purple-300" />
                             </div>
                           </>
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Icon name={getPlaceIcon(rec.place_type)} size={64} className="text-purple-300" />
+                          </div>
                         )}
                         <div className="absolute top-2 left-2 z-20">
                           <Badge className="bg-purple-600 text-white shadow-lg">

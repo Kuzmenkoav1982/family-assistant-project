@@ -199,15 +199,15 @@ export default function TripDetails() {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <TabsContent value="overview" className="space-y-4 mt-0">
           {/* Trip Info Card */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Icon name="Calendar" size={20} />
-              Информация о поездке
+          <Card className="p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+              <Icon name="Calendar" size={18} className="flex-shrink-0" />
+              <span className="truncate">Информация о поездке</span>
             </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Даты</span>
-                <span className="font-semibold">{formatDate(trip.start_date)} - {formatDate(trip.end_date)}</span>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <span className="text-sm text-gray-600">Даты</span>
+                <span className="font-semibold text-sm sm:text-base">{formatDate(trip.start_date)} - {formatDate(trip.end_date)}</span>
               </div>
               {trip.description && (
                 <div className="pt-3 border-t">
@@ -219,19 +219,19 @@ export default function TripDetails() {
 
           {/* Budget Card */}
           {trip.budget > 0 && (
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Icon name="Wallet" size={20} />
+            <Card className="p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                <Icon name="Wallet" size={18} className="flex-shrink-0" />
                 Бюджет
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Запланировано</span>
-                  <span className="text-lg font-bold">{formatBudget(trip.budget, trip.currency)}</span>
+                  <span className="text-sm text-gray-600">Запланировано</span>
+                  <span className="text-base sm:text-lg font-bold">{formatBudget(trip.budget, trip.currency)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Потрачено</span>
-                  <span className={`text-lg font-bold ${trip.spent > trip.budget ? 'text-red-600' : 'text-green-600'}`}>
+                  <span className="text-sm text-gray-600">Потрачено</span>
+                  <span className={`text-base sm:text-lg font-bold ${trip.spent > trip.budget ? 'text-red-600' : 'text-green-600'}`}>
                     {formatBudget(trip.spent, trip.currency)}
                   </span>
                 </div>
@@ -243,7 +243,7 @@ export default function TripDetails() {
                     style={{ width: `${Math.min((trip.spent / trip.budget) * 100, 100)}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Остаток</span>
                   <span className="font-semibold">{formatBudget(trip.budget - trip.spent, trip.currency)}</span>
                 </div>
@@ -252,19 +252,19 @@ export default function TripDetails() {
           )}
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <Card className="p-4 text-center">
-              <Icon name="Ticket" size={24} className="mx-auto mb-2 text-blue-600" />
-              <div className="text-2xl font-bold">{bookings.length}</div>
-              <div className="text-sm text-gray-600">Броней</div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <Card className="p-3 sm:p-4 text-center">
+              <Icon name="Ticket" size={20} className="mx-auto mb-1 sm:mb-2 text-blue-600" />
+              <div className="text-xl sm:text-2xl font-bold">{bookings.length}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Броней</div>
             </Card>
-            <Card className="p-4 text-center">
-              <Icon name="MapPin" size={24} className="mx-auto mb-2 text-green-600" />
-              <div className="text-2xl font-bold">{itinerary.length}</div>
-              <div className="text-sm text-gray-600">Дней</div>
+            <Card className="p-3 sm:p-4 text-center">
+              <Icon name="MapPin" size={20} className="mx-auto mb-1 sm:mb-2 text-green-600" />
+              <div className="text-xl sm:text-2xl font-bold">{itinerary.length}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Дней</div>
             </Card>
-            <Card className="p-4 text-center">
-              <Icon name="Camera" size={24} className="mx-auto mb-2 text-purple-600" />
+            <Card className="p-3 sm:p-4 text-center">
+              <Icon name="Camera" size={20} className="mx-auto mb-1 sm:mb-2 text-purple-600" />
               <div className="text-2xl font-bold">{photos.length}</div>
               <div className="text-sm text-gray-600">Фото</div>
             </Card>

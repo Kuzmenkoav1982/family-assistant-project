@@ -116,12 +116,31 @@ def call_yandex_gpt(prompt: str) -> str:
 def fetch_place_image_unsplash(place_name: str, destination: str) -> Optional[str]:
     """Получает изображение через Unsplash API"""
     try:
-        # Используем Source API - бесплатный CDN случайных изображений
-        query = f"{destination} {place_name}".replace(' ', '%20')
-        # Добавляем landscape для красивых фото
-        image_url = f"https://source.unsplash.com/800x600/?{query},travel,landmark"
-        print(f'[DEBUG] Unsplash image URL: {image_url}')
-        return image_url
+        unsplash_key = os.environ.get('UNSPLASH_ACCESS_KEY', '')
+        
+        if not unsplash_key:
+            print('[DEBUG] UNSPLASH_ACCESS_KEY не настроен, возвращаем None')
+            return None
+        
+        # Используем официальный Unsplash API
+        query = f"{destination} {place_name}"
+        url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&orientation=landscape"
+        
+        headers = {'Authorization': f'Client-ID {unsplash_key}'}
+        response = requests.get(url, headers=headers, timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get('results', [])
+            if results:
+                image_url = results[0]['urls']['regular']
+                print(f'[DEBUG] Unsplash image URL: {image_url[:100]}')
+                return image_url
+        else:
+            print(f'[DEBUG] Unsplash API ошибка {response.status_code}')
+        
+        print(f'[DEBUG] Unsplash API не вернул изображений для: {query}')
+        return None
     except Exception as e:
         print(f'[ERROR] Unsplash API error: {str(e)}')
         return None
