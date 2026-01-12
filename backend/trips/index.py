@@ -31,6 +31,29 @@ def get_db_connection():
     return psycopg2.connect(dsn)
 
 
+def get_user_id_from_token(event: Dict[str, Any]) -> Optional[int]:
+    """Извлекает user_id из токена авторизации"""
+    headers = event.get('headers', {})
+    token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
+    if not token:
+        return None
+    
+    try:
+        # Декодируем токен (предполагается JWT)
+        import base64
+        # Простая проверка: токен = user_id (для демо)
+        # В реальном приложении здесь была бы валидация JWT
+        parts = token.split('.')
+        if len(parts) == 3:
+            payload = json.loads(base64.urlsafe_b64decode(parts[1] + '=='))
+            return payload.get('user_id')
+        else:
+            # Для простых токенов вида "user_123"
+            return int(token.replace('user_', ''))
+    except:
+        return None
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Обрабатывает запросы для работы с путешествиями
@@ -67,6 +90,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
     params = event.get('queryStringParameters') or {}
     action = params.get('action', '')
+    user_id = get_user_id_from_token(event)
     
     # CORS
     headers = {
@@ -198,11 +222,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'POST':
             body = json.loads(event.get('body', '{}'))
             if body.get('action') == 'add_wishlist':
+                body['user_id'] = user_id
                 item = add_to_wishlist(conn, body)
                 return {
                     'statusCode': 201,
                     'headers': headers,
-                    'body': json.dumps({'item': item}, ensure_ascii=False),
+                    'body': json.dumps({'success': True, 'item': item}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
             

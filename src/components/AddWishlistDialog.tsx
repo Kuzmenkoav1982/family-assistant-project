@@ -37,9 +37,13 @@ export default function AddWishlistDialog({ open, onOpenChange, onSuccess }: Add
 
     setLoading(true);
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'add_wishlist',
           destination: formData.destination,
