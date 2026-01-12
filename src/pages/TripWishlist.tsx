@@ -147,9 +147,9 @@ export default function TripWishlist() {
                 key={item.id}
                 className="overflow-hidden hover:shadow-lg transition-all"
               >
-                <div className="flex gap-0">
+                <div className="flex flex-col sm:flex-row gap-0">
                   {/* Image */}
-                  <div className="w-40 flex-shrink-0">
+                  <div className="w-full sm:w-40 h-40 sm:h-auto flex-shrink-0">
                     {item.image_url ? (
                       <img
                         src={item.image_url}
@@ -164,39 +164,39 @@ export default function TripWishlist() {
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">{item.destination}</h3>
-                        <div className="flex items-center gap-2 text-gray-600 text-sm">
-                          <Icon name="MapPin" size={16} />
-                          <span>{typeof item.country === 'object' ? item.country.name : item.country}</span>
+                  <div className="flex-1 p-4 sm:p-6">
+                    <div className="flex items-start justify-between mb-2 sm:mb-3 gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 truncate">{item.destination}</h3>
+                        <div className="flex items-center gap-2 text-gray-600 text-xs sm:text-sm">
+                          <Icon name="MapPin" size={14} className="flex-shrink-0" />
+                          <span className="truncate">{typeof item.country === 'object' ? item.country.name : item.country}</span>
                         </div>
                       </div>
-                      {getPriorityBadge(item.priority)}
+                      <div className="flex-shrink-0">{getPriorityBadge(item.priority)}</div>
                     </div>
 
                     {item.description && (
-                      <p className="text-gray-700 mb-3 line-clamp-2">{item.description}</p>
+                      <p className="text-sm sm:text-base text-gray-700 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
                     )}
 
                     {/* Info Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 mb-3">
                       {item.estimated_budget && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Icon name="Wallet" size={16} className="text-blue-600" />
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                          <Icon name="Wallet" size={14} className="text-blue-600 flex-shrink-0" />
                           <span className="text-gray-600">{formatBudget(item.estimated_budget, item.currency)}</span>
                         </div>
                       )}
                       {item.duration_days && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Icon name="Clock" size={16} className="text-green-600" />
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                          <Icon name="Clock" size={14} className="text-green-600 flex-shrink-0" />
                           <span className="text-gray-600">{item.duration_days} дней</span>
                         </div>
                       )}
                       {item.best_season && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Icon name="Sun" size={16} className="text-yellow-600" />
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                          <Icon name="Sun" size={14} className="text-yellow-600 flex-shrink-0" />
                           <span className="text-gray-600">{item.best_season}</span>
                         </div>
                       )}
@@ -214,34 +214,31 @@ export default function TripWishlist() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="default"
                         size="sm"
-                        className="gap-2"
+                        className="gap-1.5 text-xs sm:text-sm flex-1 sm:flex-initial"
                         onClick={() => {
                           alert('Функция в разработке: выбор дат для создания поездки');
                         }}
                       >
-                        <Icon name="Calendar" size={16} />
+                        <Icon name="Calendar" size={14} />
                         Запланировать
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="gap-2"
+                        className="gap-1.5 text-xs sm:text-sm"
                       >
-                        <Icon name="Pencil" size={16} />
-                        Изменить
+                        <Icon name="Pencil" size={14} />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                         onClick={() => handleDeleteWishlistItem(item.id)}
                       >
-                        <Icon name="Trash2" size={16} />
-                        Удалить
+                        <Icon name="Trash2" size={14} className="text-red-500" />
                       </Button>
                     </div>
                   </div>
