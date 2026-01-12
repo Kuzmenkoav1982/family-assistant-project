@@ -390,7 +390,7 @@ export default function Welcome() {
               </Card>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 mb-8">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white">
                   <Icon name="Sparkles" size={24} />
@@ -417,6 +417,19 @@ export default function Welcome() {
                   </ul>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-12">
+              <div className="text-center mb-8">
+                <Badge className="mb-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 text-lg">
+                  Оставить заявку
+                </Badge>
+                <h3 className="text-3xl font-bold mb-4">Свяжитесь с нами</h3>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Хотите узнать больше о наших услугах? Оставьте заявку, и мы свяжемся с вами в течение часа!
+                </p>
+              </div>
+              {/* Removed TelegramContactForm - needs implementation */}
             </div>
           </div>
 

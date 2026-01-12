@@ -63,6 +63,7 @@ import Nutrition from "./pages/Nutrition";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
+import TelegramServices from "./pages/TelegramServices";
 import StateSupport from "./pages/StateSupport";
 import FamilyPolicy from "./pages/FamilyPolicy";
 import WhatIsFamily from "./pages/WhatIsFamily";
@@ -207,6 +208,7 @@ const App = () => {
               <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
               <Route path="/admin/domovoy" element={<AdminDomovoy />} />
               <Route path="/domovoy" element={<DomovoyPage />} />
+              <Route path="/services" element={<TelegramServices />} />
               <Route path="/family" element={<Navigate to="/?section=family" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

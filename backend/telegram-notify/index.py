@@ -33,13 +33,13 @@ def handler(event: dict, context) -> dict:
         name = body.get('name', 'Не указано')
         phone = body.get('phone', 'Не указано')
         message_text = body.get('message', '')
-        chat_id = body.get('chat_id')
+        chat_id = body.get('chat_id') or os.environ.get('TELEGRAM_ADMIN_CHAT_ID')
         
         if not chat_id:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'chat_id обязателен'})
+                'body': json.dumps({'error': 'chat_id не найден - добавьте TELEGRAM_ADMIN_CHAT_ID в секреты'})
             }
         
         bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
