@@ -104,7 +104,7 @@ export function TripsList({
   return (
     <div className="grid gap-4">
       {trips.map((trip) => (
-        <Card key={trip.id} className="p-6 hover:shadow-lg transition-all group relative">
+        <Card key={trip.id} className="p-6 hover:shadow-lg transition-all group relative overflow-visible">
           <div className="flex gap-4 cursor-pointer" onClick={() => onTripClick(trip.id)}>
             <div className="flex-shrink-0">
               <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white">
@@ -172,13 +172,15 @@ export function TripsList({
             </div>
           </div>
 
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ zIndex: 50 }}>
             <Button
               variant="ghost"
               size="icon"
-              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 h-8 w-8"
+              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50/90 backdrop-blur-sm h-8 w-8 pointer-events-auto"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                console.log('Edit clicked for trip:', trip.id);
                 onEditTrip(trip);
               }}
             >
@@ -188,9 +190,11 @@ export function TripsList({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-orange-500 hover:text-orange-700 hover:bg-orange-50 h-8 w-8"
+                className="text-orange-500 hover:text-orange-700 hover:bg-orange-50/90 backdrop-blur-sm h-8 w-8 pointer-events-auto"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
+                  console.log('Archive clicked for trip:', trip.id);
                   onArchiveTrip(trip.id);
                 }}
               >
@@ -200,9 +204,11 @@ export function TripsList({
             <Button
               variant="ghost"
               size="icon"
-              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8"
+              className="text-red-500 hover:text-red-700 hover:bg-red-50/90 backdrop-blur-sm h-8 w-8 pointer-events-auto"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                console.log('Delete clicked for trip:', trip.id);
                 onDeleteTrip(trip.id);
               }}
             >
