@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Get location history for date",
+      "method": "GET",
+      "path": "/?member_id=1&date=2026-01-14",
+      "expectedStatus": 200
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import json
 import os
 import psycopg2
 from datetime import datetime
+import math
 
 def handler(event: dict, context) -> dict:
     """
@@ -129,6 +130,9 @@ def handler(event: dict, context) -> dict:
                 (user_id, family_id, lat, lng, accuracy)
             )
             
+            # Проверка выхода из геозон
+            check_geofence_violations(cur, user_id, lat, lng)
+            
             conn.commit()
             cur.close()
             conn.close()
@@ -199,3 +203,59 @@ def handler(event: dict, context) -> dict:
             'body': json.dumps({'error': f'Ошибка сервера: {str(e)}'}),
             'isBase64Encoded': False
         }
+
+def check_geofence_violations(cur, user_id: int, lat: float, lng: float):
+    '''Проверка нахождения внутри/вне геозон и создание событий'''
+    
+    # Получаем все геозоны
+    cur.execute('SELECT id, name, center_lat, center_lng, radius FROM geofences')
+    geofences = cur.fetchall()
+    
+    for geofence in geofences:
+        zone_id, name, center_lat, center_lng, radius = geofence
+        
+        # Вычисляем расстояние (формула гаверсинуса)
+        distance = haversine_distance(lat, lng, float(center_lat), float(center_lng))
+        
+        # Проверяем предыдущее состояние
+        cur.execute('''
+            SELECT event_type FROM geofence_events
+            WHERE member_id = %s AND geofence_id = %s
+            ORDER BY timestamp DESC LIMIT 1
+        ''', (str(user_id), zone_id))
+        
+        last_event = cur.fetchone()
+        last_state = last_event[0] if last_event else None
+        
+        # Определяем текущее состояние
+        is_inside = distance <= radius
+        
+        # Логика событий: фиксируем только смену состояния
+        if is_inside and last_state != 'enter':
+            # Вошел в зону
+            cur.execute('''
+                INSERT INTO geofence_events (member_id, geofence_id, event_type, lat, lng)
+                VALUES (%s, %s, 'enter', %s, %s)
+            ''', (str(user_id), zone_id, lat, lng))
+            
+        elif not is_inside and last_state == 'enter':
+            # Вышел из зоны - создаем событие для уведомления!
+            cur.execute('''
+                INSERT INTO geofence_events (member_id, geofence_id, event_type, lat, lng)
+                VALUES (%s, %s, 'exit', %s, %s)
+            ''', (str(user_id), zone_id, lat, lng))
+
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    '''Расстояние между двумя точками на Земле (в метрах)'''
+    R = 6371000  # Радиус Земли в метрах
+    
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    
+    a = math.sin(delta_phi / 2) ** 2 + \
+        math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    return R * c

@@ -79,6 +79,7 @@ import AdminAlice from "./pages/AdminAlice";
 import ActivateChild from "./pages/ActivateChild";
 import ActivateCallback from "./pages/ActivateCallback";
 import FamilyTracker from "./pages/FamilyTracker";
+import LocationHistory from "./pages/LocationHistory";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -194,6 +195,7 @@ const App = () => {
               <Route path="/children" element={<Children />} />
               <Route path="/children/assessment-report" element={<AssessmentReport />} />
               <Route path="/family-tracker" element={<FamilyTracker />} />
+              <Route path="/location-history" element={<LocationHistory />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/family-settings" element={<FamilySettings />} />

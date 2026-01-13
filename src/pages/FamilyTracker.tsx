@@ -20,14 +20,28 @@ interface LocationData {
   accuracy: number;
 }
 
+interface Geofence {
+  id: number;
+  name: string;
+  center_lat: number;
+  center_lng: number;
+  radius: number;
+  color: string;
+}
+
 export default function FamilyTracker() {
   const [map, setMap] = useState<any>(null);
   const [locations, setLocations] = useState<LocationData[]>([]);
   const [isTracking, setIsTracking] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string>('');
+  const [geofences, setGeofences] = useState<Geofence[]>([]);
+  const [isAddingZone, setIsAddingZone] = useState(false);
+  const [newZoneName, setNewZoneName] = useState('');
+  const [newZoneRadius, setNewZoneRadius] = useState(500);
   const mapContainer = useRef<HTMLDivElement>(null);
   const watchId = useRef<number | null>(null);
+  const circleRef = useRef<any>(null);
 
   // Мокап данных членов семьи
   const familyMembers: FamilyMember[] = [
@@ -51,6 +65,14 @@ export default function FamilyTracker() {
           center: [55.751244, 37.618423], // Москва по умолчанию
           zoom: 12,
           controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        // Обработчик клика по карте для добавления зоны
+        mapInstance.events.add('click', (e: any) => {
+          if (isAddingZone && newZoneName) {
+            const coords = e.get('coords');
+            addGeofence(coords[0], coords[1]);
+          }
         });
 
         setMap(mapInstance);
@@ -178,6 +200,113 @@ export default function FamilyTracker() {
     setIsTracking(false);
   };
 
+  // Добавление геозоны
+  const addGeofence = async (lat: number, lng: number) => {
+    if (!newZoneName) {
+      setError('Введите название зоны');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('https://functions.poehali.dev/geofences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          name: newZoneName,
+          center_lat: lat,
+          center_lng: lng,
+          radius: newZoneRadius,
+          color: '#9333EA'
+        })
+      });
+
+      if (response.ok) {
+        const newZone = await response.json();
+        setGeofences([...geofences, newZone]);
+        
+        // Отрисовка круга на карте
+        if (map) {
+          // @ts-ignore
+          const circle = new window.ymaps.Circle(
+            [[lat, lng], newZoneRadius],
+            {},
+            {
+              fillColor: '#9333EA30',
+              strokeColor: '#9333EA',
+              strokeWidth: 2
+            }
+          );
+          map.geoObjects.add(circle);
+
+          // Метка с названием
+          // @ts-ignore
+          const placemark = new window.ymaps.Placemark(
+            [lat, lng],
+            { balloonContent: newZoneName },
+            { preset: 'islands#violetCircleDotIcon' }
+          );
+          map.geoObjects.add(placemark);
+        }
+
+        setNewZoneName('');
+        setIsAddingZone(false);
+        setError('');
+      }
+    } catch (error) {
+      setError('Ошибка добавления зоны');
+      console.error(error);
+    }
+  };
+
+  // Загрузка геозон
+  const loadGeofences = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('https://functions.poehali.dev/geofences', {
+        method: 'GET',
+        headers: {
+          'X-Auth-Token': token || ''
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeofences(data.geofences || []);
+
+        // Отрисовка на карте
+        if (map && data.geofences) {
+          data.geofences.forEach((zone: Geofence) => {
+            // @ts-ignore
+            const circle = new window.ymaps.Circle(
+              [[zone.center_lat, zone.center_lng], zone.radius],
+              {},
+              {
+                fillColor: zone.color + '30',
+                strokeColor: zone.color,
+                strokeWidth: 2
+              }
+            );
+            map.geoObjects.add(circle);
+
+            // @ts-ignore
+            const placemark = new window.ymaps.Placemark(
+              [zone.center_lat, zone.center_lng],
+              { balloonContent: zone.name },
+              { preset: 'islands#violetCircleDotIcon' }
+            );
+            map.geoObjects.add(placemark);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки геозон:', error);
+    }
+  };
+
   // Отправка координат на сервер
   const sendLocationToServer = async (location: LocationData) => {
     try {
@@ -243,6 +372,7 @@ export default function FamilyTracker() {
   useEffect(() => {
     if (map) {
       loadFamilyLocations();
+      loadGeofences();
       // Обновление каждые 30 секунд
       const interval = setInterval(loadFamilyLocations, 30000);
       return () => clearInterval(interval);
@@ -296,7 +426,7 @@ export default function FamilyTracker() {
                   ref={mapContainer}
                   className="w-full h-[500px] rounded-lg bg-gray-100"
                 />
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {!isTracking ? (
                     <Button
                       onClick={startTracking}
@@ -321,7 +451,51 @@ export default function FamilyTracker() {
                     <Icon name="RefreshCw" size={18} className="mr-2" />
                     Обновить
                   </Button>
+                  <Button
+                    onClick={() => setIsAddingZone(!isAddingZone)}
+                    variant="outline"
+                    className="bg-purple-50 hover:bg-purple-100 border-purple-300"
+                  >
+                    <Icon name="MapPinned" size={18} className="mr-2" />
+                    {isAddingZone ? 'Отменить' : 'Добавить зону'}
+                  </Button>
+                  <Button
+                    onClick={() => window.location.href = '/location-history'}
+                    variant="outline"
+                    className="bg-indigo-50 hover:bg-indigo-100 border-indigo-300"
+                  >
+                    <Icon name="History" size={18} className="mr-2" />
+                    История перемещений
+                  </Button>
                 </div>
+                
+                {isAddingZone && (
+                  <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200 space-y-3">
+                    <p className="text-sm font-medium text-purple-900">Кликните на карту, чтобы добавить безопасную зону</p>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Название зоны (например, Школа)"
+                        value={newZoneName}
+                        onChange={(e) => setNewZoneName(e.target.value)}
+                        className="w-full px-3 py-2 rounded border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-gray-700">Радиус:</label>
+                        <input
+                          type="range"
+                          min="100"
+                          max="2000"
+                          step="50"
+                          value={newZoneRadius}
+                          onChange={(e) => setNewZoneRadius(Number(e.target.value))}
+                          className="flex-1"
+                        />
+                        <span className="text-sm font-medium text-gray-700 min-w-[60px]">{newZoneRadius} м</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

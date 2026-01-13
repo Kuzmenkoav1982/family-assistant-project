@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Check and send notifications",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

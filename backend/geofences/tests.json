@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "Get geofences list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create new geofence",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Школа №1",
+        "center_lat": 55.751244,
+        "center_lng": 37.618423,
+        "radius": 500,
+        "color": "#9333EA"
+      },
+      "expectedStatus": 200
+    }
+  ]
+}

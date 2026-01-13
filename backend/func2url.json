@@ -1,4 +1,7 @@
 {
+  "location-history": "https://functions.poehali.dev/e00d057e-5c17-4a43-ab17-f926d7ab3d7c",
+  "geofence-notifications": "https://functions.poehali.dev/2f91acee-399c-4a11-a810-a57bdb69e775",
+  "geofences": "https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459",
   "family-tracker": "https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533",
   "telegram-notify": "https://functions.poehali.dev/15a6a286-e031-47fd-8e26-4c0e04d0ee27",
   "trips-ai-recommend": "https://functions.poehali.dev/b6fa0071-ce37-48e5-b426-66f835fb4996",
