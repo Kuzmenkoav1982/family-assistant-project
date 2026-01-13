@@ -120,6 +120,14 @@ const App = () => {
     window.location.href = '/login';
   };
 
+  // Редирект с poehali.dev на nasha-semiya.ru
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    if (hostname.includes('poehali.dev') && !hostname.includes('cdn')) {
+      window.location.href = `https://nasha-semiya.ru${window.location.pathname}${window.location.search}`;
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

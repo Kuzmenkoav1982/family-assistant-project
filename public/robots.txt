@@ -1,6 +1,33 @@
+# robots.txt для nasha-semiya.ru
+# Правила для всех поисковых роботов
+
+User-agent: *
+# Разрешаем индексацию всего сайта
+Allow: /
+
+# Запрещаем индексацию служебных страниц
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /private/
+
+# Запрещаем индексацию страниц с параметрами авторизации
+Disallow: /*?token=*
+Disallow: /*?session=*
+Disallow: /*?auth=*
+
+# Ссылка на sitemap
+Sitemap: https://nasha-semiya.ru/sitemap.xml
+
+# Дополнительные правила для Яндекса
+User-agent: Yandex
+Allow: /
+
+# Дополнительные правила для Google
 User-agent: Googlebot
 Allow: /
 
+# Дополнительные правила для других ботов
 User-agent: Bingbot
 Allow: /
 
@@ -10,5 +37,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Ускоряем индексацию новых страниц
+Crawl-delay: 0
