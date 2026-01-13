@@ -51,11 +51,12 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   const menuSections: MenuSection[] = [
     {
       id: 'family',
-      title: '🏠 СЕМЬЯ И ЛЮДИ',
+      title: '🏠 СЕМЬЯ',
       icon: 'Users',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
-        { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' }
+        { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
+        { id: 'family-tracker', label: 'Семейный маячок', icon: 'MapPin', path: '/family-tracker' }
       ]
     },
     {

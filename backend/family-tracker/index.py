@@ -1,0 +1,201 @@
+import json
+import os
+import psycopg2
+from datetime import datetime
+
+def handler(event: dict, context) -> dict:
+    """
+    API для семейного маячка - прием и отдача координат членов семьи
+    
+    GET - получить координаты всех членов семьи
+    POST - отправить свои координаты
+    """
+    method = event.get('httpMethod', 'GET')
+    
+    # CORS headers
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
+        'Content-Type': 'application/json'
+    }
+    
+    if method == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': '',
+            'isBase64Encoded': False
+        }
+    
+    # Получение токена авторизации
+    headers = event.get('headers', {})
+    auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
+    
+    if not auth_token:
+        return {
+            'statusCode': 401,
+            'headers': cors_headers,
+            'body': json.dumps({'error': 'Требуется авторизация'}),
+            'isBase64Encoded': False
+        }
+    
+    # Подключение к БД
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        
+        # Получить user_id по токену
+        cur.execute(
+            "SELECT user_id FROM auth_tokens WHERE token = %s AND expires_at > NOW()",
+            (auth_token,)
+        )
+        result = cur.fetchone()
+        
+        if not result:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 401,
+                'headers': cors_headers,
+                'body': json.dumps({'error': 'Недействительный токен'}),
+                'isBase64Encoded': False
+            }
+        
+        user_id = result[0]
+        
+        # Получить family_id пользователя
+        cur.execute(
+            "SELECT family_id FROM family_members WHERE user_id = %s LIMIT 1",
+            (user_id,)
+        )
+        family_result = cur.fetchone()
+        
+        if not family_result:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 404,
+                'headers': cors_headers,
+                'body': json.dumps({'error': 'Семья не найдена'}),
+                'isBase64Encoded': False
+            }
+        
+        family_id = family_result[0]
+        
+        if method == 'POST':
+            # Сохранение координат
+            body = json.loads(event.get('body', '{}'))
+            lat = body.get('lat')
+            lng = body.get('lng')
+            accuracy = body.get('accuracy', 0)
+            
+            if not lat or not lng:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': cors_headers,
+                    'body': json.dumps({'error': 'Отсутствуют координаты'}),
+                    'isBase64Encoded': False
+                }
+            
+            # Создаем таблицу если не существует
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS family_tracker_locations (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    family_id INTEGER NOT NULL,
+                    latitude DOUBLE PRECISION NOT NULL,
+                    longitude DOUBLE PRECISION NOT NULL,
+                    accuracy DOUBLE PRECISION,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # Создаем индекс для быстрого поиска
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_family_tracker_family_created 
+                ON family_tracker_locations(family_id, created_at DESC)
+            """)
+            
+            # Вставка новой локации
+            cur.execute(
+                """
+                INSERT INTO family_tracker_locations 
+                (user_id, family_id, latitude, longitude, accuracy, created_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
+                """,
+                (user_id, family_id, lat, lng, accuracy)
+            )
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'success': True,
+                    'message': 'Координаты сохранены'
+                }),
+                'isBase64Encoded': False
+            }
+        
+        elif method == 'GET':
+            # Получение последних координат всех членов семьи
+            cur.execute("""
+                SELECT DISTINCT ON (user_id)
+                    user_id,
+                    latitude,
+                    longitude,
+                    accuracy,
+                    created_at
+                FROM family_tracker_locations
+                WHERE family_id = %s
+                ORDER BY user_id, created_at DESC
+            """, (family_id,))
+            
+            locations = []
+            for row in cur.fetchall():
+                locations.append({
+                    'memberId': str(row[0]),
+                    'lat': float(row[1]),
+                    'lng': float(row[2]),
+                    'accuracy': float(row[3]) if row[3] else 0,
+                    'timestamp': row[4].isoformat() if row[4] else None
+                })
+            
+            cur.close()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'success': True,
+                    'locations': locations
+                }),
+                'isBase64Encoded': False
+            }
+        
+        else:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 405,
+                'headers': cors_headers,
+                'body': json.dumps({'error': 'Метод не поддерживается'}),
+                'isBase64Encoded': False
+            }
+    
+    except Exception as e:
+        if 'conn' in locals():
+            conn.close()
+        return {
+            'statusCode': 500,
+            'headers': cors_headers,
+            'body': json.dumps({'error': f'Ошибка сервера: {str(e)}'}),
+            'isBase64Encoded': False
+        }

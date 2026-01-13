@@ -1,4 +1,5 @@
-const CACHE_NAME = 'family-assistant-v9';
+const CACHE_NAME = 'family-assistant-v10';
+let geolocationIntervalId = null;
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing new service worker...');
@@ -53,6 +54,50 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  
+  // Управление фоновой геолокацией
+  if (event.data && event.data.type === 'START_GEOLOCATION') {
+    console.log('[SW] Starting background geolocation tracking');
+    const interval = event.data.interval || 600000; // 10 минут по умолчанию
+    const apiUrl = event.data.apiUrl;
+    const authToken = event.data.authToken;
+    
+    if (geolocationIntervalId) {
+      clearInterval(geolocationIntervalId);
+    }
+    
+    // Функция отправки координат
+    const sendLocation = async () => {
+      try {
+        // Запрос координат из всех активных клиентов
+        const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+        
+        for (const client of clients) {
+          client.postMessage({
+            type: 'REQUEST_LOCATION',
+            apiUrl,
+            authToken
+          });
+        }
+      } catch (error) {
+        console.error('[SW] Error requesting location:', error);
+      }
+    };
+    
+    // Отправить координаты сразу
+    sendLocation();
+    
+    // Настроить периодическую отправку
+    geolocationIntervalId = setInterval(sendLocation, interval);
+  }
+  
+  if (event.data && event.data.type === 'STOP_GEOLOCATION') {
+    console.log('[SW] Stopping background geolocation tracking');
+    if (geolocationIntervalId) {
+      clearInterval(geolocationIntervalId);
+      geolocationIntervalId = null;
+    }
   }
 });
 
