@@ -31,41 +31,9 @@ export function PresentationFooter() {
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl shadow-xl p-10 mb-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Icon name="MessageCircle" className="text-green-600" size={40} />
-          <h2 className="text-3xl font-bold text-gray-800">
-            Контакты
-          </h2>
-        </div>
-        
-        <div className="space-y-4 text-lg text-gray-700">
-          <div className="flex items-center gap-3">
-            <Icon name="Mail" className="text-gray-600" size={24} />
-            <a href="mailto:contact@nashaSemya.ru" className="hover:text-purple-600 transition-colors">
-              contact@nashaSemya.ru
-            </a>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Icon name="Phone" className="text-gray-600" size={24} />
-            <a href="tel:+79991234567" className="hover:text-purple-600 transition-colors">
-              +7 (999) 123-45-67
-            </a>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Icon name="Globe" className="text-gray-600" size={24} />
-            <a href="https://nashaSemya.ru" className="hover:text-purple-600 transition-colors">
-              nashaSemya.ru
-            </a>
-          </div>
-        </div>
-      </section>
-
       <div className="text-center text-gray-600 pb-8">
         <p className="text-lg">
-          © 2024 Наша семья. Все права защищены.
+          © 2026 Наша семья. Все права защищены.
         </p>
         <p className="mt-2 text-sm">
           Объединяем семьи. Укрепляем общество.

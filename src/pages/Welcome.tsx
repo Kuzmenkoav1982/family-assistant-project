@@ -481,7 +481,7 @@ export default function Welcome() {
                 <CardContent className="p-6">
                   <div className="text-center mb-4">
                     <h4 className="text-2xl font-bold text-purple-600 mb-2">AI-Помощник</h4>
-                    <div className="text-4xl font-bold text-purple-600">200 ₽</div>
+                    <div className="text-4xl font-bold text-purple-600">500 ₽</div>
                     <p className="text-gray-500">в месяц</p>
                   </div>
                   <ul className="space-y-2 text-sm text-gray-700">
@@ -655,7 +655,7 @@ export default function Welcome() {
             </div>
 
             <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-              <p className="text-sm text-gray-400">© 2025 Наша семья. Все права защищены.</p>
+              <p className="text-sm text-gray-400">© 2026 Наша семья. Все права защищены.</p>
             </div>
           </footer>
         </div>
