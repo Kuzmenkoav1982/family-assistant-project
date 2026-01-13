@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface FamilyMember {
   id: string;
   name: string;
-  avatar: string;
+  avatar_url: string | null;
+  role: string;
   color: string;
 }
 
@@ -39,16 +40,34 @@ export default function FamilyTracker() {
   const [isAddingZone, setIsAddingZone] = useState(false);
   const [newZoneName, setNewZoneName] = useState('');
   const [newZoneRadius, setNewZoneRadius] = useState(500);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const mapContainer = useRef<HTMLDivElement>(null);
   const watchId = useRef<number | null>(null);
   const circleRef = useRef<any>(null);
 
-  // Мокап данных членов семьи
-  const familyMembers: FamilyMember[] = [
-    { id: '1', name: 'Алексей', avatar: '👨', color: '#3B82F6' },
-    { id: '2', name: 'Анастасия', avatar: '👩', color: '#EC4899' },
-    { id: '3', name: 'Илья', avatar: '👦', color: '#10B981' }
-  ];
+  // Загрузка членов семьи
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch('https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d', {
+          method: 'GET',
+          headers: {
+            'X-Auth-Token': token || ''
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFamilyMembers(data.members || []);
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки членов семьи:', error);
+      }
+    };
+
+    loadMembers();
+  }, []);
 
   // Инициализация Яндекс.Карт
   useEffect(() => {
@@ -522,10 +541,28 @@ export default function FamilyTracker() {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-2xl"
-                          style={{ backgroundColor: member.color + '20' }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
+                          style={{ backgroundColor: member.avatar_url ? 'transparent' : member.color + '20' }}
                         >
-                          {member.avatar}
+                          {member.avatar_url ? (
+                            <img 
+                              src={member.avatar_url} 
+                              alt={member.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                if (target.parentElement) {
+                                  target.parentElement.style.backgroundColor = member.color + '20';
+                                  target.parentElement.innerHTML = `<span class="text-lg font-bold" style="color: ${member.color}">${member.name.charAt(0)}</span>`;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="text-lg font-bold" style={{ color: member.color }}>
+                              {member.name.charAt(0)}
+                            </span>
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-800">{member.name}</p>

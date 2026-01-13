@@ -14,23 +14,46 @@ interface LocationPoint {
 interface FamilyMember {
   id: string;
   name: string;
-  avatar: string;
+  avatar_url: string | null;
+  role: string;
   color: string;
 }
 
 export default function LocationHistory() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedMember, setSelectedMember] = useState<string>('1');
+  const [selectedMember, setSelectedMember] = useState<string>('');
   const [history, setHistory] = useState<LocationPoint[]>([]);
   const [map, setMap] = useState<any>(null);
-
-  const familyMembers: FamilyMember[] = [
-    { id: '1', name: 'Алексей', avatar: '👨', color: '#3B82F6' },
-    { id: '2', name: 'Анастасия', avatar: '👩', color: '#EC4899' },
-    { id: '3', name: 'Илья', avatar: '👦', color: '#10B981' }
-  ];
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
 
   const selectedMemberData = familyMembers.find(m => m.id === selectedMember);
+
+  // Загрузка членов семьи
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch('https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d', {
+          method: 'GET',
+          headers: {
+            'X-Auth-Token': token || ''
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFamilyMembers(data.members || []);
+          if (data.members && data.members.length > 0) {
+            setSelectedMember(data.members[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки членов семьи:', error);
+      }
+    };
+
+    loadMembers();
+  }, []);
 
   // Инициализация карты
   useEffect(() => {
@@ -188,7 +211,30 @@ export default function LocationHistory() {
                           : 'border-gray-200 hover:border-purple-300'
                       }`}
                     >
-                      <span className="text-2xl">{member.avatar}</span>
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+                        style={{ backgroundColor: member.avatar_url ? 'transparent' : member.color + '20' }}
+                      >
+                        {member.avatar_url ? (
+                          <img 
+                            src={member.avatar_url} 
+                            alt={member.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              if (target.parentElement) {
+                                target.parentElement.style.backgroundColor = member.color + '20';
+                                target.parentElement.innerHTML = `<span class="text-sm font-bold" style="color: ${member.color}">${member.name.charAt(0)}</span>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="text-sm font-bold" style={{ color: member.color }}>
+                            {member.name.charAt(0)}
+                          </span>
+                        )}
+                      </div>
                       <span className="font-medium">{member.name}</span>
                     </button>
                   ))}
