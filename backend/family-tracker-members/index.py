@@ -85,14 +85,14 @@ def handler(event: dict, context) -> dict:
             cur.execute('''
                 SELECT 
                     u.id,
-                    u.full_name as name,
-                    u.avatar as avatar_url,
+                    u.name,
+                    u.avatar_url,
                     fm.role
                 FROM family_members fm
                 JOIN users u ON fm.user_id = u.id
                 WHERE fm.family_id = %s
-                  AND fm.status = 'active'
-                ORDER BY u.full_name
+                  AND fm.member_status = 'active'
+                ORDER BY u.name
             ''', (family_id,))
             
             members = cur.fetchall()
@@ -104,9 +104,9 @@ def handler(event: dict, context) -> dict:
             for idx, member in enumerate(members):
                 result.append({
                     'id': str(member['id']),
-                    'name': member['name'],
+                    'name': member['name'] or 'Без имени',
                     'avatar_url': member['avatar_url'],
-                    'role': member['role'],
+                    'role': member['role'] or 'Член семьи',
                     'color': colors[idx % len(colors)]
                 })
             

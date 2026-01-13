@@ -41,6 +41,7 @@ export default function FamilyTracker() {
   const [newZoneName, setNewZoneName] = useState('');
   const [newZoneRadius, setNewZoneRadius] = useState(500);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const watchId = useRef<number | null>(null);
   const circleRef = useRef<any>(null);
@@ -414,14 +415,53 @@ export default function FamilyTracker() {
           </div>
         </div>
 
-        {/* Инструкция */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <Icon name="Info" size={18} className="text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <strong>Как это работает:</strong> Каждый член семьи включает отслеживание на своем телефоне через PWA-приложение.
-            Координаты обновляются автоматически каждые 5-10 минут. Данные защищены и доступны только вашей семье.
-          </AlertDescription>
-        </Alert>
+        {/* Сворачиваемая инструкция */}
+        <Card className="shadow-md bg-blue-50 border-blue-200">
+          <div 
+            className="p-4 cursor-pointer flex items-center justify-between hover:bg-blue-100 transition-colors"
+            onClick={() => setIsInstructionOpen(!isInstructionOpen)}
+          >
+            <div className="flex items-center gap-3">
+              <Icon name="Info" size={20} className="text-blue-600" />
+              <span className="font-semibold text-blue-900">Как это работает?</span>
+            </div>
+            <Icon 
+              name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+              size={20} 
+              className="text-blue-600"
+            />
+          </div>
+          
+          {isInstructionOpen && (
+            <div className="px-4 pb-4 text-blue-800 space-y-3">
+              <p>
+                <strong>Каждый член семьи</strong> включает отслеживание на своем телефоне через PWA-приложение.
+                Координаты обновляются автоматически каждые 5-10 минут.
+              </p>
+              <p>
+                <strong>Безопасные зоны:</strong> Создайте зоны (школа, дом, секции) — при выходе из них придет уведомление.
+              </p>
+              <p>
+                <strong>История перемещений:</strong> Смотрите маршруты каждого члена семьи за любой день.
+              </p>
+              <p className="text-sm text-blue-700">
+                Данные защищены и доступны только вашей семье.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="mt-2 border-blue-400 text-blue-700 hover:bg-blue-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = '/instructions#family-tracker';
+                }}
+              >
+                <Icon name="BookOpen" size={16} className="mr-2" />
+                Полная инструкция
+              </Button>
+            </div>
+          )}
+        </Card>
 
         {error && (
           <Alert className="bg-red-50 border-red-200">
