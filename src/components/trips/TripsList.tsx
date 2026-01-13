@@ -25,6 +25,7 @@ interface TripsListProps {
   onTripClick: (tripId: number) => void;
   onEditTrip: (trip: Trip) => void;
   onDeleteTrip: (tripId: number) => void;
+  onArchiveTrip: (tripId: number) => void;
   onAddTrip: () => void;
 }
 
@@ -74,6 +75,7 @@ export function TripsList({
   onTripClick,
   onEditTrip,
   onDeleteTrip,
+  onArchiveTrip,
   onAddTrip,
 }: TripsListProps) {
   if (loading) {
@@ -170,11 +172,11 @@ export function TripsList({
             </div>
           </div>
 
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <Button
               variant="ghost"
               size="icon"
-              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 h-8 w-8"
               onClick={(e) => {
                 e.stopPropagation();
                 onEditTrip(trip);
@@ -182,10 +184,23 @@ export function TripsList({
             >
               <Icon name="Pencil" size={16} />
             </Button>
+            {trip.status !== 'archived' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-orange-500 hover:text-orange-700 hover:bg-orange-50 h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchiveTrip(trip.id);
+                }}
+              >
+                <Icon name="Archive" size={16} />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8"
               onClick={(e) => {
                 e.stopPropagation();
                 onDeleteTrip(trip.id);

@@ -143,14 +143,13 @@ export function TripsHeader({
         </Collapsible>
 
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 lg:grid-cols-5">
+          <TabsList className="w-full grid grid-cols-3 lg:grid-cols-4">
             <TabsTrigger value="all">Все ({getTabCount('all')})</TabsTrigger>
-            <TabsTrigger value="planning">План ({getTabCount('planning')})</TabsTrigger>
-            <TabsTrigger value="booked">Брони ({getTabCount('booked')})</TabsTrigger>
+            <TabsTrigger value="planning">Планы ({getTabCount('planning') + getTabCount('booked')})</TabsTrigger>
             <TabsTrigger value="ongoing" className="hidden lg:block">
               В пути ({getTabCount('ongoing')})
             </TabsTrigger>
-            <TabsTrigger value="completed">Архив ({getTabCount('completed')})</TabsTrigger>
+            <TabsTrigger value="archived">Архив ({getTabCount('archived')})</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

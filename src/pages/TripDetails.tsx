@@ -10,6 +10,8 @@ import { TripBookings } from '@/components/trips/TripBookings';
 import { TripItinerary } from '@/components/trips/TripItinerary';
 import { TripDiary } from '@/components/trips/TripDiary';
 import { TripPhotos } from '@/components/trips/TripPhotos';
+import { TripPlanningServices } from '@/components/trips/TripPlanningServices';
+import { TripWishes } from '@/components/trips/TripWishes';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -180,11 +182,19 @@ export default function TripDetails() {
               {getStatusBadge(trip.status)}
             </div>
 
-            <TabsList className="w-full grid grid-cols-6 gap-1">
+            <TabsList className="w-full grid grid-cols-4 sm:grid-cols-8 gap-1">
               <TabsTrigger value="overview" className="text-[10px] sm:text-sm px-1 sm:px-3">Обзор</TabsTrigger>
               <TabsTrigger value="wishlist" className="text-[10px] sm:text-sm px-1 sm:px-3">
                 <Icon name="Star" size={12} className="mr-0.5 sm:mr-1" />
                 Места
+              </TabsTrigger>
+              <TabsTrigger value="planning" className="text-[10px] sm:text-sm px-1 sm:px-3">
+                <Icon name="CalendarCheck" size={12} className="mr-0.5 sm:mr-1" />
+                План
+              </TabsTrigger>
+              <TabsTrigger value="wishes" className="text-[10px] sm:text-sm px-1 sm:px-3">
+                <Icon name="Heart" size={12} className="mr-0.5 sm:mr-1" />
+                Пожелания
               </TabsTrigger>
               <TabsTrigger value="bookings" className="text-[10px] sm:text-sm px-1 sm:px-3">Брони<span className="hidden sm:inline"> ({bookings.length})</span></TabsTrigger>
               <TabsTrigger value="itinerary" className="text-[10px] sm:text-sm px-1 sm:px-3">Маршрут</TabsTrigger>
@@ -272,6 +282,17 @@ export default function TripDetails() {
 
         <TabsContent value="wishlist" className="mt-0">
           <TripWishList tripId={Number(id)} currency={trip?.currency} />
+        </TabsContent>
+
+        <TabsContent value="planning" className="space-y-4 mt-0">
+          <TripPlanningServices 
+            destination={trip.destination} 
+            country={typeof trip.country === 'object' ? trip.country.name : trip.country}
+          />
+        </TabsContent>
+
+        <TabsContent value="wishes" className="space-y-4 mt-0">
+          <TripWishes tripId={Number(id)} />
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-4 mt-0">

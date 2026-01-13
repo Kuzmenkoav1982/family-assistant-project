@@ -47,7 +47,11 @@ export default function Trips() {
   const loadTrips = useCallback(async (status: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=${status}`);
+      let actualStatus = status;
+      if (status === 'planning') {
+        actualStatus = 'planning,booked';
+      }
+      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=${actualStatus}`);
       const data = await response.json();
       setTrips(data.trips || []);
     } catch (error) {
@@ -145,6 +149,27 @@ export default function Trips() {
     }
   };
 
+  const handleArchiveTrip = async (tripId: number) => {
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'archive_trip',
+          trip_id: tripId,
+        }),
+      });
+
+      if (response.ok) {
+        await loadTrips(activeTab);
+        await loadAllTripsForCounting();
+      }
+    } catch (error) {
+      console.error('Error archiving trip:', error);
+      alert('Ошибка при архивации поездки');
+    }
+  };
+
   const handleEditTrip = (trip: Trip) => {
     setEditingTrip(trip);
     setIsEditDialogOpen(true);
@@ -213,6 +238,7 @@ export default function Trips() {
           onTripClick={(id) => navigate(`/trips/${id}`)}
           onEditTrip={handleEditTrip}
           onDeleteTrip={handleDeleteTrip}
+          onArchiveTrip={handleArchiveTrip}
           onAddTrip={() => setIsAddDialogOpen(true)}
         />
       </div>
