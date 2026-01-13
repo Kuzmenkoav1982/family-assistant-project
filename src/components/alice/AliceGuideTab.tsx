@@ -10,15 +10,15 @@ export function AliceGuideTab() {
         <AlertDescription className="text-red-900">
           <strong className="block mb-2 text-lg">⚠️ ВАЖНО! Правильная активация навыка:</strong>
           <div className="space-y-2">
-            <p className="font-semibold">Говорите ТОЧНО так:</p>
+            <p className="font-semibold">Говорите ТОЧНО так (слово "навык" должно быть 2 раза!):</p>
             <div className="bg-white p-4 rounded-lg border-2 border-red-200 my-2">
               <p className="text-xl font-bold text-center text-red-700">
-                "Алиса, активируй навык Наша семья"
+                "Алиса, активируй навык <span className="underline">Навык Наша семья</span>"
               </p>
             </div>
             <p className="text-sm">
-              ❌ <strong>НЕ говорите просто:</strong> "Алиса, Наша семья" — запустится чужой навык!<br/>
-              ✅ <strong>Обязательно используйте слово "навык"</strong> в команде активации
+              ❌ <strong>НЕ говорите:</strong> "Алиса, Наша семья" или "Алиса, активируй Наша семья" — запустится чужой навык!<br/>
+              ✅ <strong>Обязательно произносите:</strong> "активируй навык" + "Навык Наша семья" (да, слово "навык" дважды)
             </p>
           </div>
         </AlertDescription>
@@ -37,7 +37,7 @@ export function AliceGuideTab() {
               Откройте приложение <strong>Яндекс</strong> или <strong>Алиса</strong>
             </li>
             <li className="text-gray-700">
-              Скажите: <strong>"Алиса, активируй навык Наша семья"</strong>
+              Скажите: <strong>"Алиса, активируй навык Навык Наша семья"</strong> (да, слово "навык" дважды!)
             </li>
             <li className="text-gray-700">
               Следуйте инструкциям для активации навыка
@@ -70,10 +70,10 @@ export function AliceGuideTab() {
               <h4 className="font-semibold text-gray-900 mb-2">Шаг 1: Активируйте навык</h4>
               <div className="bg-red-50 p-3 rounded-lg border-2 border-red-200 mb-2">
                 <p className="text-sm font-bold text-red-700 mb-1">
-                  ⚠️ Говорите ОБЯЗАТЕЛЬНО со словом "навык":
+                  ⚠️ Говорите ОБЯЗАТЕЛЬНО так (слово "навык" 2 раза!):
                 </p>
                 <p className="text-base font-mono text-gray-900">
-                  "Алиса, активируй навык Наша семья"
+                  "Алиса, активируй навык <span className="underline font-bold">Навык Наша семья</span>"
                 </p>
               </div>
               <p className="text-sm text-gray-600">
@@ -202,8 +202,8 @@ export function AliceGuideTab() {
             <div>
               <h4 className="font-semibold text-gray-900">Алиса не понимает команды</h4>
               <p className="text-sm text-gray-600 mt-1">
-                Убедитесь, что навык "Наша Семья" активирован и аккаунт привязан. 
-                Попробуйте сказать: "Алиса, запусти навык Наша Семья".
+                Убедитесь, что навык правильно активирован и аккаунт привязан. 
+                Попробуйте сказать: "Алиса, активируй навык Навык Наша семья" (слово "навык" дважды!).
               </p>
             </div>
 
