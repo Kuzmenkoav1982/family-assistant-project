@@ -5,6 +5,25 @@ import Icon from '@/components/ui/icon';
 export function AliceGuideTab() {
   return (
     <div className="space-y-6">
+      <Alert className="bg-red-50 border-red-300">
+        <Icon name="AlertTriangle" className="h-5 w-5 text-red-600" />
+        <AlertDescription className="text-red-900">
+          <strong className="block mb-2 text-lg">⚠️ ВАЖНО! Правильная активация навыка:</strong>
+          <div className="space-y-2">
+            <p className="font-semibold">Говорите ТОЧНО так:</p>
+            <div className="bg-white p-4 rounded-lg border-2 border-red-200 my-2">
+              <p className="text-xl font-bold text-center text-red-700">
+                "Алиса, активируй навык Наша семья"
+              </p>
+            </div>
+            <p className="text-sm">
+              ❌ <strong>НЕ говорите просто:</strong> "Алиса, Наша семья" — запустится чужой навык!<br/>
+              ✅ <strong>Обязательно используйте слово "навык"</strong> в команде активации
+            </p>
+          </div>
+        </AlertDescription>
+      </Alert>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -18,7 +37,7 @@ export function AliceGuideTab() {
               Откройте приложение <strong>Яндекс</strong> или <strong>Алиса</strong>
             </li>
             <li className="text-gray-700">
-              Скажите: <strong>"Алиса, включи навык Наша Семья"</strong>
+              Скажите: <strong>"Алиса, активируй навык Наша семья"</strong>
             </li>
             <li className="text-gray-700">
               Следуйте инструкциям для активации навыка
@@ -49,12 +68,15 @@ export function AliceGuideTab() {
           <div className="space-y-4">
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Шаг 1: Активируйте навык</h4>
-              <div className="bg-gray-50 p-3 rounded-lg border-2 border-gray-200">
-                <p className="text-sm font-mono text-gray-700">
-                  "Алиса, активируй навык Наша Семья"
+              <div className="bg-red-50 p-3 rounded-lg border-2 border-red-200 mb-2">
+                <p className="text-sm font-bold text-red-700 mb-1">
+                  ⚠️ Говорите ОБЯЗАТЕЛЬНО со словом "навык":
+                </p>
+                <p className="text-base font-mono text-gray-900">
+                  "Алиса, активируй навык Наша семья"
                 </p>
               </div>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-600">
                 Алиса расскажет краткое руководство по использованию.
               </p>
             </div>

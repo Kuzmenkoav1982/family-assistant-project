@@ -123,6 +123,12 @@ export function AliceSetupTab({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            <Alert className="bg-red-50 border-red-300">
+              <Icon name="AlertTriangle" className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-900">
+                <strong>⚠️ ВАЖНО!</strong> Перед привязкой кода убедитесь, что активировали навык правильно: скажите <strong>"Алиса, активируй навык Наша семья"</strong> (не просто "Наша семья" — запустится чужой навык!).
+              </AlertDescription>
+            </Alert>
             <Alert className="bg-blue-50 border-blue-200">
               <Icon name="Info" className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800">
