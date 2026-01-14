@@ -92,7 +92,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('auth_token');
     setIsAuthenticated(!!token);
     setIsChecking(false);
   }, []);
