@@ -209,6 +209,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
+        # Добавить бронь
+        if method == 'POST':
+            body = json.loads(event.get('body', '{}'))
+            if body.get('action') == 'add_booking':
+                booking = add_booking(conn, body)
+                return {
+                    'statusCode': 201,
+                    'headers': headers,
+                    'body': json.dumps({'booking': booking}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+        
         # Получить расходы
         if method == 'GET' and action == 'expenses':
             trip_id = int(params.get('trip_id'))
