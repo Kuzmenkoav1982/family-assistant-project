@@ -103,29 +103,12 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
-            # Создаем таблицу если не существует
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS family_tracker_locations (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    family_id INTEGER NOT NULL,
-                    latitude DOUBLE PRECISION NOT NULL,
-                    longitude DOUBLE PRECISION NOT NULL,
-                    accuracy DOUBLE PRECISION,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            
-            # Создаем индекс для быстрого поиска
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS idx_family_tracker_family_created 
-                ON family_tracker_locations(family_id, created_at DESC)
-            """)
+            # Таблица уже создана через миграцию
             
             # Вставка новой локации
             cur.execute(
                 """
-                INSERT INTO family_tracker_locations 
+                INSERT INTO t_p5815085_family_assistant_pro.family_location_tracking 
                 (user_id, family_id, latitude, longitude, accuracy, created_at)
                 VALUES (%s, %s, %s, %s, %s, NOW())
                 """,
@@ -158,7 +141,7 @@ def handler(event: dict, context) -> dict:
                     longitude,
                     accuracy,
                     created_at
-                FROM family_tracker_locations
+                FROM t_p5815085_family_assistant_pro.family_location_tracking
                 WHERE family_id = %s
                 ORDER BY user_id, created_at DESC
             """, (family_id,))

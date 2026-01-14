@@ -86,14 +86,14 @@ def handler(event: dict, context) -> dict:
             cur.execute('''
                 SELECT 
                     u.id,
-                    u.name,
-                    u.avatar_url,
+                    COALESCE(fm.name, u.name) as name,
+                    COALESCE(fm.photo_url, u.avatar_url) as avatar_url,
                     fm.role
                 FROM t_p5815085_family_assistant_pro.family_members fm
                 JOIN t_p5815085_family_assistant_pro.users u ON fm.user_id = u.id
                 WHERE fm.family_id = %s
                   AND fm.member_status = 'active'
-                ORDER BY u.name
+                ORDER BY fm.name
             ''', (family_id,))
             
             members = cur.fetchall()
