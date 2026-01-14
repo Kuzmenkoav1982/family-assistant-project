@@ -97,6 +97,8 @@ export default function Trips() {
   };
 
   const handleCreateTrip = async () => {
+    console.log('handleCreateTrip called', newTrip);
+    
     if (!newTrip.title || !newTrip.destination || !newTrip.start_date || !newTrip.end_date) {
       alert('Заполните обязательные поля');
       return;
@@ -104,6 +106,8 @@ export default function Trips() {
 
     try {
       const token = localStorage.getItem('auth_token');
+      console.log('Sending request with token:', token ? 'exists' : 'missing');
+      
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: { 
@@ -119,6 +123,10 @@ export default function Trips() {
           created_by: 1,
         }),
       });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
         await loadTrips(activeTab);

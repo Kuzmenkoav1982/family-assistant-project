@@ -117,10 +117,26 @@ export function CreateTripDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button 
+            variant="outline" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenChange(false);
+            }}
+          >
             Отмена
           </Button>
-          <Button onClick={onCreateTrip}>Создать поездку</Button>
+          <Button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Create button clicked');
+              onCreateTrip();
+            }}
+          >
+            Создать поездку
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
