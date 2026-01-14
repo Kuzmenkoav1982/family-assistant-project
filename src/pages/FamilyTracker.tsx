@@ -73,7 +73,9 @@ export default function FamilyTracker() {
   // Инициализация Яндекс.Карт
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=your_api_key&lang=ru_RU';
+    // Временно используем API без ключа (ограниченный функционал)
+    // TODO: Добавить YANDEX_MAPS_API_KEY в секреты проекта
+    script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
     script.async = true;
     script.onload = () => {
       // @ts-ignore
@@ -229,7 +231,7 @@ export default function FamilyTracker() {
 
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/geofences', {
+      const response = await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -286,7 +288,7 @@ export default function FamilyTracker() {
   const loadGeofences = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/geofences', {
+      const response = await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
         method: 'GET',
         headers: {
           'X-Auth-Token': token || ''
@@ -331,7 +333,7 @@ export default function FamilyTracker() {
   const sendLocationToServer = async (location: LocationData) => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/family-tracker', {
+      const response = await fetch('https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -352,7 +354,7 @@ export default function FamilyTracker() {
   const loadFamilyLocations = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/family-tracker', {
+      const response = await fetch('https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533', {
         method: 'GET',
         headers: {
           'X-Auth-Token': token || ''

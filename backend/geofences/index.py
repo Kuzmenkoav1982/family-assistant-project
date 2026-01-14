@@ -14,9 +14,11 @@ def handler(event: dict, context) -> dict:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token'
+                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
+                'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
@@ -24,7 +26,8 @@ def handler(event: dict, context) -> dict:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'DATABASE_URL not configured'})
+            'body': json.dumps({'error': 'DATABASE_URL not configured'}),
+            'isBase64Encoded': False
         }
     
     conn = psycopg2.connect(dsn)
@@ -41,7 +44,8 @@ def handler(event: dict, context) -> dict:
             return {
                 'statusCode': 405,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Method not allowed'})
+                'body': json.dumps({'error': 'Method not allowed'}),
+                'isBase64Encoded': False
             }
     finally:
         conn.close()
@@ -61,7 +65,8 @@ def get_geofences(conn) -> dict:
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
                 'geofences': [dict(g) for g in geofences]
-            }, default=str)
+            }, default=str),
+            'isBase64Encoded': False
         }
 
 def create_geofence(conn, event: dict) -> dict:
@@ -78,7 +83,8 @@ def create_geofence(conn, event: dict) -> dict:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Missing required fields'})
+                'body': json.dumps({'error': 'Missing required fields'}),
+                'isBase64Encoded': False
             }
         
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -93,13 +99,15 @@ def create_geofence(conn, event: dict) -> dict:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps(dict(new_zone), default=str)
+                'body': json.dumps(dict(new_zone), default=str),
+                'isBase64Encoded': False
             }
     except Exception as e:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
         }
 
 def delete_geofence(conn, event: dict) -> dict:
@@ -110,7 +118,8 @@ def delete_geofence(conn, event: dict) -> dict:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Missing zone id'})
+                'body': json.dumps({'error': 'Missing zone id'}),
+                'isBase64Encoded': False
             }
         
         with conn.cursor() as cur:
@@ -119,11 +128,13 @@ def delete_geofence(conn, event: dict) -> dict:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True})
+                'body': json.dumps({'success': True}),
+                'isBase64Encoded': False
             }
     except Exception as e:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
         }
