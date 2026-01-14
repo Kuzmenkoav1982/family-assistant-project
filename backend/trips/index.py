@@ -433,7 +433,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 
 def get_trips(conn, family_id: str, status: str = 'all') -> List[Dict]:
-    """Получить все поездки семьи с автозавершением прошедших"""
+    """Получить все поездки семьи с автозавершением прошедших и пересчетом расходов"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         # Автоматически завершаем поездки, у которых прошла дата окончания
         cur.execute(
@@ -443,6 +443,21 @@ def get_trips(conn, family_id: str, status: str = 'all') -> List[Dict]:
             WHERE family_id = %s 
               AND status IN ('planning', 'active') 
               AND end_date < CURRENT_DATE
+            """,
+            (family_id,)
+        )
+        conn.commit()
+        
+        # Пересчитываем потраченные суммы для всех поездок семьи
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.trips t
+            SET spent = COALESCE((
+                SELECT SUM(amount) 
+                FROM t_p5815085_family_assistant_pro.trip_expenses 
+                WHERE trip_id = t.id
+            ), 0)
+            WHERE t.family_id = %s
             """,
             (family_id,)
         )
@@ -469,9 +484,24 @@ def get_trips(conn, family_id: str, status: str = 'all') -> List[Dict]:
 
 
 def get_trip_details(conn, trip_id: int) -> Dict:
-    """Получить детали поездки"""
+    """Получить детали поездки с автоматическим пересчетом расходов"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute("SELECT * FROM trips WHERE id = %s", (trip_id,))
+        # Пересчитываем потраченную сумму из trip_expenses
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.trips t
+            SET spent = COALESCE((
+                SELECT SUM(amount) 
+                FROM t_p5815085_family_assistant_pro.trip_expenses 
+                WHERE trip_id = t.id
+            ), 0)
+            WHERE t.id = %s
+            """,
+            (trip_id,)
+        )
+        conn.commit()
+        
+        cur.execute("SELECT * FROM t_p5815085_family_assistant_pro.trips WHERE id = %s", (trip_id,))
         trip = convert_for_json(dict(cur.fetchone()))
         return trip
 

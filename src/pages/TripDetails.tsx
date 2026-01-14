@@ -12,6 +12,7 @@ import { TripDiary } from '@/components/trips/TripDiary';
 import { TripPhotos } from '@/components/trips/TripPhotos';
 import { TripPlanningServices } from '@/components/trips/TripPlanningServices';
 import { TripWishes } from '@/components/trips/TripWishes';
+import { TripExpenses } from '@/components/trips/TripExpenses';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -148,6 +149,42 @@ export default function TripDetails() {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ' + currency;
   };
 
+  const handleBudgetUpdate = async (newBudget: number) => {
+    if (!trip) return;
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || '',
+        },
+        body: JSON.stringify({
+          action: 'update_trip',
+          id: trip.id,
+          title: trip.title,
+          destination: trip.destination,
+          country: trip.country,
+          start_date: trip.start_date,
+          end_date: trip.end_date,
+          budget: newBudget,
+          spent: trip.spent,
+          status: trip.status,
+          currency: trip.currency,
+          description: trip.description,
+        }),
+      });
+
+      if (response.ok) {
+        setTrip({ ...trip, budget: newBudget });
+      }
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      alert('Ошибка при обновлении бюджета');
+    }
+  };
+
 
 
   if (loading) {
@@ -237,39 +274,20 @@ export default function TripDetails() {
             </div>
           </Card>
 
-          {/* Budget Card */}
-          {trip.budget > 0 && (
-            <Card className="p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
-                <Icon name="Wallet" size={18} className="flex-shrink-0" />
-                Бюджет
-              </h3>
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Запланировано</span>
-                  <span className="text-base sm:text-lg font-bold">{formatBudget(trip.budget, trip.currency)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Потрачено</span>
-                  <span className={`text-base sm:text-lg font-bold ${trip.spent > trip.budget ? 'text-red-600' : 'text-green-600'}`}>
-                    {formatBudget(trip.spent, trip.currency)}
-                  </span>
-                </div>
-                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      trip.spent > trip.budget ? 'bg-red-500' : 'bg-green-500'
-                    }`}
-                    style={{ width: `${Math.min((trip.spent / trip.budget) * 100, 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs sm:text-sm">
-                  <span className="text-gray-600">Остаток</span>
-                  <span className="font-semibold">{formatBudget(trip.budget - trip.spent, trip.currency)}</span>
-                </div>
-              </div>
-            </Card>
-          )}
+          {/* Budget Card with Expenses */}
+          <Card className="p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+              <Icon name="Wallet" size={18} className="flex-shrink-0" />
+              Бюджет
+            </h3>
+            <TripExpenses
+              tripId={Number(id)}
+              tripCurrency={trip.currency}
+              tripBudget={trip.budget}
+              onBudgetUpdate={handleBudgetUpdate}
+              onExpensesChange={loadTripData}
+            />
+          </Card>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
