@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Get Yandex Maps API key",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "apiKey": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

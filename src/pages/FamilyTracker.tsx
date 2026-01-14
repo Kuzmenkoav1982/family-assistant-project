@@ -72,35 +72,45 @@ export default function FamilyTracker() {
 
   // Инициализация Яндекс.Карт
   useEffect(() => {
-    const script = document.createElement('script');
-    // Временно используем API без ключа (ограниченный функционал)
-    // TODO: Добавить YANDEX_MAPS_API_KEY в секреты проекта
-    script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
-    script.async = true;
-    script.onload = () => {
-      // @ts-ignore
-      window.ymaps.ready(() => {
-        if (!mapContainer.current) return;
+    const initMap = async () => {
+      try {
+        const response = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
+        const data = await response.json();
+        const apiKey = data.apiKey;
 
-        // @ts-ignore
-        const mapInstance = new window.ymaps.Map(mapContainer.current, {
-          center: [55.751244, 37.618423], // Москва по умолчанию
-          zoom: 12,
-          controls: ['zoomControl', 'fullscreenControl']
-        });
+        const script = document.createElement('script');
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`;
+        script.async = true;
+        script.onload = () => {
+          // @ts-ignore
+          window.ymaps.ready(() => {
+            if (!mapContainer.current) return;
 
-        // Обработчик клика по карте для добавления зоны
-        mapInstance.events.add('click', (e: any) => {
-          if (isAddingZone && newZoneName) {
-            const coords = e.get('coords');
-            addGeofence(coords[0], coords[1]);
-          }
-        });
+            // @ts-ignore
+            const mapInstance = new window.ymaps.Map(mapContainer.current, {
+              center: [55.751244, 37.618423], // Москва по умолчанию
+              zoom: 12,
+              controls: ['zoomControl', 'fullscreenControl']
+            });
 
-        setMap(mapInstance);
-      });
+            // Обработчик клика по карте для добавления зоны
+            mapInstance.events.add('click', (e: any) => {
+              if (isAddingZone && newZoneName) {
+                const coords = e.get('coords');
+                addGeofence(coords[0], coords[1]);
+              }
+            });
+
+            setMap(mapInstance);
+          });
+        };
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Ошибка загрузки API ключа Яндекс.Карт:', error);
+      }
     };
-    document.head.appendChild(script);
+
+    initMap();
 
     return () => {
       if (map) {
