@@ -43,10 +43,12 @@ export function TripItinerary({ tripId, itinerary, onUpdate }: TripItineraryProp
     }
 
     try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
         },
         body: JSON.stringify({
           action: 'add_day',

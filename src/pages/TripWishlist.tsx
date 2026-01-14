@@ -41,7 +41,10 @@ export default function TripWishlist() {
   const loadWishlist = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${TRIPS_API_URL}/?action=wishlist`);
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(`${TRIPS_API_URL}/?action=wishlist`, {
+        headers: { 'X-Auth-Token': token || '' }
+      });
       const data = await response.json();
       setWishlist(data.wishlist || []);
     } catch (error) {
@@ -55,9 +58,13 @@ export default function TripWishlist() {
     if (!confirm('Удалить эту мечту из списка?')) return;
     
     try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'delete_wishlist',
           id: id,

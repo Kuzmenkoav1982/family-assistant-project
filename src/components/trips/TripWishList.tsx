@@ -73,7 +73,10 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     try {
       setLoading(true);
       const statusFilter = activeTab === 'all' ? '' : `&status=${activeTab}`;
-      const response = await fetch(`${TRIPS_API_URL}?action=places&trip_id=${tripId}${statusFilter}`);
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(`${TRIPS_API_URL}?action=places&trip_id=${tripId}${statusFilter}`, {
+        headers: { 'X-Auth-Token': token || '' }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -93,7 +96,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     setAiRecommendations([]);
     
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(`${AI_RECOMMEND_URL}/?trip_id=${tripId}`, {
         method: 'GET',
         headers: { 'X-Auth-Token': token || '' }
@@ -121,7 +124,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
 
   const handleAddAIRecommendation = async (recommendation: AIRecommendation) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
@@ -150,7 +153,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     }
     
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
@@ -185,7 +188,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
 
   const handleUpdatePlaceStatus = async (placeId: number, status: string) => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const visitedDate = status === 'visited' ? new Date().toISOString().split('T')[0] : undefined;
       
       const response = await fetch(TRIPS_API_URL, {

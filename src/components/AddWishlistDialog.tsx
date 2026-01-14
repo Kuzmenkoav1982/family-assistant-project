@@ -37,7 +37,7 @@ export default function AddWishlistDialog({ open, onOpenChange, onSuccess }: Add
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: { 

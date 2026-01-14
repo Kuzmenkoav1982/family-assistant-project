@@ -54,10 +54,12 @@ export function TripPhotos({ tripId, photos, onUpdate }: TripPhotosProps) {
         const base64 = reader.result as string;
         const base64Data = base64.split(',')[1];
 
+        const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
         const response = await fetch(UPLOAD_FILE_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-Auth-Token': token || ''
           },
           body: JSON.stringify({
             file_data: base64Data,
@@ -125,10 +127,12 @@ export function TripPhotos({ tripId, photos, onUpdate }: TripPhotosProps) {
     if (!confirm('Удалить это фото?')) return;
 
     try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
         },
         body: JSON.stringify({
           action: 'delete_photo',

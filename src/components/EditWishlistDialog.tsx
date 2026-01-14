@@ -65,9 +65,13 @@ export default function EditWishlistDialog({ open, onOpenChange, item, onSuccess
 
     setLoading(true);
     try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'update_wishlist',
           wishlist_id: item.id,

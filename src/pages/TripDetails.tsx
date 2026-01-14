@@ -89,13 +89,24 @@ export default function TripDetails() {
   const loadTripData = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       
       const [tripRes, bookingsRes, itineraryRes, diaryRes, photosRes] = await Promise.all([
-        fetch(`${TRIPS_API_URL}/?action=trip&id=${id}`),
-        fetch(`${TRIPS_API_URL}/?action=bookings&trip_id=${id}`),
-        fetch(`${TRIPS_API_URL}/?action=itinerary&trip_id=${id}`),
-        fetch(`${TRIPS_API_URL}/?action=diary&trip_id=${id}`),
-        fetch(`${TRIPS_API_URL}/?action=photos&trip_id=${id}`)
+        fetch(`${TRIPS_API_URL}/?action=trip&id=${id}`, {
+          headers: { 'X-Auth-Token': token || '' }
+        }),
+        fetch(`${TRIPS_API_URL}/?action=bookings&trip_id=${id}`, {
+          headers: { 'X-Auth-Token': token || '' }
+        }),
+        fetch(`${TRIPS_API_URL}/?action=itinerary&trip_id=${id}`, {
+          headers: { 'X-Auth-Token': token || '' }
+        }),
+        fetch(`${TRIPS_API_URL}/?action=diary&trip_id=${id}`, {
+          headers: { 'X-Auth-Token': token || '' }
+        }),
+        fetch(`${TRIPS_API_URL}/?action=photos&trip_id=${id}`, {
+          headers: { 'X-Auth-Token': token || '' }
+        })
       ]);
 
       const tripData = await tripRes.json();
