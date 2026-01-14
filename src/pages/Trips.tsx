@@ -47,11 +47,16 @@ export default function Trips() {
   const loadTrips = useCallback(async (status: string) => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('auth_token');
       let actualStatus = status;
       if (status === 'planning') {
         actualStatus = 'planning,booked';
       }
-      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=${actualStatus}`);
+      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=${actualStatus}`, {
+        headers: {
+          'X-Auth-Token': token || ''
+        }
+      });
       const data = await response.json();
       setTrips(data.trips || []);
     } catch (error) {
@@ -69,7 +74,12 @@ export default function Trips() {
 
   const loadAllTripsForCounting = useCallback(async () => {
     try {
-      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=all`);
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=all`, {
+        headers: {
+          'X-Auth-Token': token || ''
+        }
+      });
       const data = await response.json();
       setAllTrips(data.trips || []);
     } catch (error) {
@@ -93,9 +103,13 @@ export default function Trips() {
     }
 
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'create_trip',
           ...newTrip,
@@ -130,9 +144,13 @@ export default function Trips() {
     if (!confirm('Удалить эту поездку? Все связанные данные также будут удалены.')) return;
 
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'delete_trip',
           trip_id: tripId,
@@ -151,9 +169,13 @@ export default function Trips() {
 
   const handleArchiveTrip = async (tripId: number) => {
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'archive_trip',
           trip_id: tripId,
@@ -172,9 +194,13 @@ export default function Trips() {
 
   const handleRestoreTrip = async (tripId: number) => {
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'restore_trip',
           trip_id: tripId,
@@ -209,9 +235,13 @@ export default function Trips() {
     }
 
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
         body: JSON.stringify({
           action: 'update_trip',
           id: editingTrip.id,

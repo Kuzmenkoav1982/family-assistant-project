@@ -7,6 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 
 interface Trip {
@@ -38,17 +40,18 @@ interface TripsListProps {
 
 const getStatusBadge = (status: string) => {
   const statusMap = {
-    wishlist: { label: 'Мечта', variant: 'secondary' as const, icon: 'Star' },
-    planning: { label: 'Планируем', variant: 'outline' as const, icon: 'Calendar' },
-    booked: { label: 'Забронировано', variant: 'default' as const, icon: 'CheckCircle' },
-    ongoing: { label: 'В пути', variant: 'default' as const, icon: 'Plane' },
-    completed: { label: 'Завершено', variant: 'secondary' as const, icon: 'Check' },
+    wishlist: { label: 'Мечта', variant: 'secondary' as const, icon: 'Star', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+    planning: { label: 'Планируем', variant: 'outline' as const, icon: 'Calendar', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+    booked: { label: 'Забронировано', variant: 'default' as const, icon: 'CheckCircle', color: 'bg-green-100 text-green-700 border-green-300' },
+    active: { label: 'В пути', variant: 'default' as const, icon: 'Plane', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+    completed: { label: 'Завершено', variant: 'secondary' as const, icon: 'Check', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+    archived: { label: 'Архив', variant: 'secondary' as const, icon: 'Archive', color: 'bg-gray-100 text-gray-600 border-gray-300' },
   };
 
   const config = statusMap[status as keyof typeof statusMap] || statusMap.planning;
 
   return (
-    <Badge variant={config.variant} className="gap-1">
+    <Badge variant={config.variant} className={`gap-1 ${config.color}`}>
       <Icon name={config.icon} size={14} />
       {config.label}
     </Badge>
@@ -194,7 +197,8 @@ export function TripsList({
                   <Icon name="MoreVertical" size={18} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()} className="w-56">
+                <DropdownMenuLabel className="text-xs text-gray-500">Управление поездкой</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -203,20 +207,31 @@ export function TripsList({
                   className="cursor-pointer"
                 >
                   <Icon name="Pencil" size={16} className="mr-2" />
-                  Изменить
+                  <div className="flex flex-col">
+                    <span>Редактировать</span>
+                    <span className="text-xs text-gray-500">Изменить даты, бюджет</span>
+                  </div>
                 </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-gray-500">Действия</DropdownMenuLabel>
+                
+                {/* Действия в зависимости от статуса */}
                 {trip.status === 'archived' ? (
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
                       onRestoreTrip(trip.id);
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
-                    <Icon name="ArchiveRestore" size={16} className="mr-2" />
-                    Восстановить
+                    <Icon name="RotateCcw" size={16} className="mr-2" />
+                    <div className="flex flex-col">
+                      <span>Вернуть в планы</span>
+                      <span className="text-xs">Восстановить поездку</span>
+                    </div>
                   </DropdownMenuItem>
-                ) : (
+                ) : trip.status === 'completed' ? (
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
@@ -225,18 +240,41 @@ export function TripsList({
                     className="cursor-pointer"
                   >
                     <Icon name="Archive" size={16} className="mr-2" />
-                    В архив
+                    <div className="flex flex-col">
+                      <span>В архив</span>
+                      <span className="text-xs text-gray-500">Убрать из списка</span>
+                    </div>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchiveTrip(trip.id);
+                    }}
+                    className="cursor-pointer text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  >
+                    <Icon name="XCircle" size={16} className="mr-2" />
+                    <div className="flex flex-col">
+                      <span>Отменить / Перенести</span>
+                      <span className="text-xs">В архив (можно вернуть)</span>
+                    </div>
                   </DropdownMenuItem>
                 )}
+                
+                <DropdownMenuSeparator />
+                
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
                     onDeleteTrip(trip.id);
                   }}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 focus:text-red-600"
                 >
                   <Icon name="Trash2" size={16} className="mr-2" />
-                  Удалить
+                  <div className="flex flex-col">
+                    <span>Удалить навсегда</span>
+                    <span className="text-xs">Все данные будут потеряны</span>
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
