@@ -1,15 +1,19 @@
 {
   "tests": [
     {
-      "name": "Get all trips",
+      "name": "Get trips without auth",
       "method": "GET",
       "path": "/?action=trips&status=all",
-      "expectedStatus": 200
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Требуется авторизация"
+      },
+      "bodyMatcher": "partial"
     },
     {
-      "name": "Get trip details",
-      "method": "GET",
-      "path": "/?action=trip&id=9",
+      "name": "OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
       "expectedStatus": 200
     }
   ]

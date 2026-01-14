@@ -48,6 +48,34 @@ export function TripPlanningServices({ destination, country }: TripPlanningServi
       description: 'Экскурсии с гидами',
       color: 'orange',
     },
+    {
+      name: 'OneTwoTrip Tours',
+      url: `https://www.onetwotrip.com/ru/tours/?destination=${encodeURIComponent(destination)}`,
+      icon: 'Map',
+      description: 'Туры и экскурсии',
+      color: 'blue',
+    },
+    {
+      name: 'Booking.com Experiences',
+      url: `https://www.booking.com/experiences/index.ru.html?location=${encodeURIComponent(destination)}`,
+      icon: 'Camera',
+      description: 'Активности и развлечения',
+      color: 'indigo',
+    },
+    {
+      name: 'GetYourGuide',
+      url: `https://www.getyourguide.ru/-l/?q=${encodeURIComponent(destination)}`,
+      icon: 'Users',
+      description: 'Билеты и туры',
+      color: 'green',
+    },
+    {
+      name: 'Viator',
+      url: `https://www.viator.com/searchResults/all?text=${encodeURIComponent(destination)}`,
+      icon: 'Star',
+      description: 'Экскурсии от Tripadvisor',
+      color: 'yellow',
+    },
   ];
 
   const esimProviders = [

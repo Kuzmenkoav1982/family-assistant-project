@@ -31,27 +31,34 @@ def get_db_connection():
     return psycopg2.connect(dsn)
 
 
-def get_user_id_from_token(event: Dict[str, Any]) -> Optional[int]:
-    """Извлекает user_id из токена авторизации"""
+def get_user_and_family(conn, event: Dict[str, Any]) -> tuple:
+    """Извлекает user_id и family_id из токена авторизации"""
     headers = event.get('headers', {})
     token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
     if not token:
-        return None
+        return None, None
     
-    try:
-        # Декодируем токен (предполагается JWT)
-        import base64
-        # Простая проверка: токен = user_id (для демо)
-        # В реальном приложении здесь была бы валидация JWT
-        parts = token.split('.')
-        if len(parts) == 3:
-            payload = json.loads(base64.urlsafe_b64decode(parts[1] + '=='))
-            return payload.get('user_id')
-        else:
-            # Для простых токенов вида "user_123"
-            return int(token.replace('user_', ''))
-    except:
-        return None
+    with conn.cursor() as cur:
+        # Получаем user_id из таблицы sessions
+        cur.execute(
+            "SELECT user_id FROM t_p5815085_family_assistant_pro.sessions WHERE token = %s AND expires_at > NOW()",
+            (token,)
+        )
+        result = cur.fetchone()
+        if not result:
+            return None, None
+        
+        user_id = result[0]
+        
+        # Получаем family_id пользователя
+        cur.execute(
+            "SELECT family_id FROM t_p5815085_family_assistant_pro.family_members WHERE user_id = %s LIMIT 1",
+            (user_id,)
+        )
+        family_result = cur.fetchone()
+        family_id = family_result[0] if family_result else None
+        
+        return user_id, family_id
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -90,7 +97,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
     params = event.get('queryStringParameters') or {}
     action = params.get('action', '')
-    user_id = get_user_id_from_token(event)
     
     # CORS
     headers = {
@@ -106,11 +112,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         conn = get_db_connection()
+        user_id, family_id = get_user_and_family(conn, event)
         
-        # Получить все поездки
+        # Проверка авторизации
+        if not user_id or not family_id:
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({'error': 'Требуется авторизация'}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        # Получить все поездки семьи
         if method == 'GET' and action == 'trips':
             status = params.get('status', 'all')
-            trips = get_trips(conn, status)
+            trips = get_trips(conn, family_id, status)
             return {
                 'statusCode': 200,
                 'headers': headers,
@@ -135,7 +151,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             post_action = body.get('action', '')
             
             if post_action == 'create_trip':
-                trip = create_trip(conn, body)
+                trip = create_trip(conn, body, family_id)
                 return {
                     'statusCode': 201,
                     'headers': headers,
@@ -182,26 +198,44 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
         
-        # Получить брони
-        if method == 'GET' and action == 'bookings':
+        # Получить расходы
+        if method == 'GET' and action == 'expenses':
             trip_id = int(params.get('trip_id'))
-            bookings = get_bookings(conn, trip_id)
+            expenses = get_expenses(conn, trip_id)
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps({'bookings': bookings}, ensure_ascii=False),
+                'body': json.dumps({'expenses': expenses}, ensure_ascii=False),
                 'isBase64Encoded': False
             }
         
-        # Добавить бронь
+        # Добавить расход
         if method == 'POST':
             body = json.loads(event.get('body', '{}'))
-            if body.get('action') == 'add_booking':
-                booking = add_booking(conn, body)
+            if body.get('action') == 'add_expense':
+                expense = add_expense(conn, body)
                 return {
                     'statusCode': 201,
                     'headers': headers,
-                    'body': json.dumps({'booking': booking}, ensure_ascii=False),
+                    'body': json.dumps({'expense': expense}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if body.get('action') == 'update_expense':
+                expense = update_expense(conn, body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'expense': expense}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if body.get('action') == 'delete_expense':
+                delete_expense(conn, body.get('expense_id'))
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
         
@@ -398,13 +432,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             conn.close()
 
 
-def get_trips(conn, status: str = 'all') -> List[Dict]:
-    """Получить все поездки"""
+def get_trips(conn, family_id: str, status: str = 'all') -> List[Dict]:
+    """Получить все поездки семьи с автозавершением прошедших"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        # Автоматически завершаем поездки, у которых прошла дата окончания
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.trips 
+            SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+            WHERE family_id = %s 
+              AND status IN ('planning', 'active') 
+              AND end_date < CURRENT_DATE
+            """,
+            (family_id,)
+        )
+        conn.commit()
+        
+        # Получаем поездки с учётом фильтра
         if status == 'all':
-            cur.execute("SELECT * FROM trips ORDER BY start_date DESC")
+            cur.execute(
+                "SELECT * FROM t_p5815085_family_assistant_pro.trips WHERE family_id = %s ORDER BY start_date DESC",
+                (family_id,)
+            )
         else:
-            cur.execute("SELECT * FROM trips WHERE status = %s ORDER BY start_date DESC", (status,))
+            cur.execute(
+                "SELECT * FROM t_p5815085_family_assistant_pro.trips WHERE family_id = %s AND status = %s ORDER BY start_date DESC",
+                (family_id, status)
+            )
         
         results = []
         for row in cur.fetchall():
@@ -421,20 +475,20 @@ def get_trip_details(conn, trip_id: int) -> Dict:
         return trip
 
 
-def create_trip(conn, data: Dict) -> Dict:
-    """Создать новую поездку"""
+def create_trip(conn, data: Dict, family_id: str) -> Dict:
+    """Создать новую поездку с привязкой к семье"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO trips (title, destination, country, start_date, end_date, 
-                              status, budget, currency, description, participants, created_by)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO t_p5815085_family_assistant_pro.trips (title, destination, country, start_date, end_date, 
+                              status, budget, currency, description, participants, created_by, family_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
             (data['title'], data['destination'], data.get('country'), 
              data['start_date'], data['end_date'], data.get('status', 'planning'),
              data.get('budget'), data.get('currency', 'RUB'), data.get('description'),
-             json.dumps(data.get('participants', [])), data.get('created_by'))
+             json.dumps(data.get('participants', [])), data.get('created_by'), family_id)
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
@@ -485,10 +539,10 @@ def archive_trip(conn, trip_id: int) -> None:
 
 
 def restore_trip(conn, trip_id: int) -> None:
-    """Восстановить поездку из архива"""
+    """Восстановить поездку из архива в планируемые"""
     with conn.cursor() as cur:
         cur.execute(
-            "UPDATE trips SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = %s",
+            "UPDATE t_p5815085_family_assistant_pro.trips SET status = 'planning', updated_at = CURRENT_TIMESTAMP WHERE id = %s",
             (trip_id,)
         )
         conn.commit()
@@ -777,4 +831,63 @@ def delete_place(conn, place_id: int):
     """Удалить место"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute("DELETE FROM trip_places WHERE id = %s", (place_id,))
+        conn.commit()
+
+
+def get_expenses(conn, trip_id: int) -> List[Dict]:
+    """Получить расходы поездки"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            SELECT * FROM t_p5815085_family_assistant_pro.trip_expenses 
+            WHERE trip_id = %s 
+            ORDER BY created_at DESC
+            """,
+            (trip_id,)
+        )
+        return [convert_for_json(dict(row)) for row in cur.fetchall()]
+
+
+def add_expense(conn, data: Dict) -> Dict:
+    """Добавить расход"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            INSERT INTO t_p5815085_family_assistant_pro.trip_expenses 
+            (trip_id, category, title, amount, currency, payment_status, payment_date, booking_number, provider, notes)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (data['trip_id'], data['category'], data['title'], data['amount'],
+             data.get('currency', 'RUB'), data.get('payment_status', 'pending'),
+             data.get('payment_date'), data.get('booking_number'), data.get('provider'), data.get('notes'))
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def update_expense(conn, data: Dict) -> Dict:
+    """Обновить расход"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.trip_expenses 
+            SET category = %s, title = %s, amount = %s, currency = %s, 
+                payment_status = %s, payment_date = %s, booking_number = %s, 
+                provider = %s, notes = %s
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data['category'], data['title'], data['amount'], data['currency'],
+             data['payment_status'], data.get('payment_date'), data.get('booking_number'),
+             data.get('provider'), data.get('notes'), data['id'])
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def delete_expense(conn, expense_id: int):
+    """Удалить расход"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_expenses WHERE id = %s", (expense_id,))
         conn.commit()
