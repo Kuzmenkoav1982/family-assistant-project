@@ -287,8 +287,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Получить wish list
         if method == 'GET' and action == 'wishlist':
-            user_id = params.get('user_id')
-            wishlist = get_wishlist(conn, user_id)
+            wishlist = get_wishlist(conn, family_id)
             return {
                 'statusCode': 200,
                 'headers': headers,
@@ -300,7 +299,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'POST':
             body = json.loads(event.get('body', '{}'))
             if body.get('action') == 'add_wishlist':
-                body['user_id'] = user_id
+                body['family_id'] = family_id
                 item = add_to_wishlist(conn, body)
                 return {
                     'statusCode': 201,
@@ -659,13 +658,13 @@ def add_itinerary_day(conn, data: Dict) -> Dict:
         return convert_for_json(dict(cur.fetchone()))
 
 
-def get_wishlist(conn, user_id: Optional[str] = None) -> List[Dict]:
+def get_wishlist(conn, family_id: Optional[str] = None) -> List[Dict]:
     """Получить wish list"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        if user_id:
+        if family_id:
             cur.execute(
-                "SELECT * FROM trip_wishlist WHERE user_id = %s ORDER BY priority DESC, created_at DESC",
-                (int(user_id),)
+                "SELECT * FROM trip_wishlist WHERE family_id = %s ORDER BY priority DESC, created_at DESC",
+                (family_id,)
             )
         else:
             cur.execute("SELECT * FROM trip_wishlist ORDER BY priority DESC, created_at DESC")
@@ -680,7 +679,7 @@ def add_to_wishlist(conn, data: Dict) -> Dict:
             """
             INSERT INTO trip_wishlist (destination, country, description, priority,
                                        estimated_budget, currency, best_season, 
-                                       duration_days, tags, user_id)
+                                       duration_days, tags, family_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
@@ -688,7 +687,7 @@ def add_to_wishlist(conn, data: Dict) -> Dict:
              data.get('priority', 'medium'), data.get('estimated_budget'),
              data.get('currency', 'RUB'), data.get('best_season'),
              data.get('duration_days'), json.dumps(data.get('tags', [])),
-             data.get('user_id'))
+             data.get('family_id'))
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
