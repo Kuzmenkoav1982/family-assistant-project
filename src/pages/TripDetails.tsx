@@ -20,11 +20,11 @@ interface Trip {
   id: number;
   title: string;
   destination: string;
-  country: string;
+  country: string | null;
   start_date: string;
   end_date: string;
   status: string;
-  budget: number;
+  budget: number | null;
   spent: number;
   currency: string;
   description: string;
@@ -225,7 +225,7 @@ export default function TripDetails() {
               </Button>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">{trip.title}</h1>
-                <p className="text-sm text-gray-500">{trip.destination}, {typeof trip.country === 'object' ? trip.country.name : trip.country}</p>
+                <p className="text-sm text-gray-500">{trip.destination}{trip.country ? `, ${typeof trip.country === 'object' ? trip.country.name : trip.country}` : ''}</p>
               </div>
               {getStatusBadge(trip.status)}
             </div>
@@ -316,7 +316,7 @@ export default function TripDetails() {
         <TabsContent value="planning" className="space-y-4 mt-0">
           <TripPlanningServices 
             destination={trip.destination} 
-            country={typeof trip.country === 'object' ? trip.country.name : trip.country}
+            country={trip.country ? (typeof trip.country === 'object' ? trip.country.name : trip.country) : ''}
           />
         </TabsContent>
 

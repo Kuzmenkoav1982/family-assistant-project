@@ -30,7 +30,7 @@ interface Expense {
 interface TripExpensesProps {
   tripId: number;
   tripCurrency: string;
-  tripBudget: number;
+  tripBudget: number | null;
   onBudgetUpdate: (newBudget: number) => void;
   onExpensesChange?: () => void;
 }
@@ -60,7 +60,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
-  const [budgetInput, setBudgetInput] = useState(tripBudget.toString());
+  const [budgetInput, setBudgetInput] = useState((tripBudget || 0).toString());
   const [savedExchangeRates, setSavedExchangeRates] = useState<{ [key: string]: number }>({});
 
   const [newExpense, setNewExpense] = useState({
