@@ -32,6 +32,7 @@ interface TripsListProps {
   onEditTrip: (trip: Trip) => void;
   onDeleteTrip: (tripId: number) => void;
   onArchiveTrip: (tripId: number) => void;
+  onRestoreTrip: (tripId: number) => void;
   onAddTrip: () => void;
 }
 
@@ -82,6 +83,7 @@ export function TripsList({
   onEditTrip,
   onDeleteTrip,
   onArchiveTrip,
+  onRestoreTrip,
   onAddTrip,
 }: TripsListProps) {
   if (loading) {
@@ -203,7 +205,18 @@ export function TripsList({
                   <Icon name="Pencil" size={16} className="mr-2" />
                   Изменить
                 </DropdownMenuItem>
-                {trip.status !== 'archived' && (
+                {trip.status === 'archived' ? (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRestoreTrip(trip.id);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Icon name="ArchiveRestore" size={16} className="mr-2" />
+                    Восстановить
+                  </DropdownMenuItem>
+                ) : (
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();

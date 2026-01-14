@@ -171,6 +171,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
+            
+            if post_action == 'restore_trip':
+                trip_id = body.get('trip_id')
+                restore_trip(conn, trip_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
         
         # Получить брони
         if method == 'GET' and action == 'bookings':
@@ -469,6 +479,16 @@ def archive_trip(conn, trip_id: int) -> None:
     with conn.cursor() as cur:
         cur.execute(
             "UPDATE trips SET status = 'archived', updated_at = CURRENT_TIMESTAMP WHERE id = %s",
+            (trip_id,)
+        )
+        conn.commit()
+
+
+def restore_trip(conn, trip_id: int) -> None:
+    """Восстановить поездку из архива"""
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE trips SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = %s",
             (trip_id,)
         )
         conn.commit()

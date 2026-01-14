@@ -170,6 +170,27 @@ export default function Trips() {
     }
   };
 
+  const handleRestoreTrip = async (tripId: number) => {
+    try {
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'restore_trip',
+          trip_id: tripId,
+        }),
+      });
+
+      if (response.ok) {
+        await loadTrips(activeTab);
+        await loadAllTripsForCounting();
+      }
+    } catch (error) {
+      console.error('Error restoring trip:', error);
+      alert('Ошибка при восстановлении поездки');
+    }
+  };
+
   const handleEditTrip = (trip: Trip) => {
     setEditingTrip(trip);
     setIsEditDialogOpen(true);
@@ -239,6 +260,7 @@ export default function Trips() {
           onEditTrip={handleEditTrip}
           onDeleteTrip={handleDeleteTrip}
           onArchiveTrip={handleArchiveTrip}
+          onRestoreTrip={handleRestoreTrip}
           onAddTrip={() => setIsAddDialogOpen(true)}
         />
       </div>
