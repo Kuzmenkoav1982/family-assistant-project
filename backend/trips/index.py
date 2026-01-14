@@ -885,13 +885,14 @@ def add_expense(conn, data: Dict) -> Dict:
         cur.execute(
             """
             INSERT INTO t_p5815085_family_assistant_pro.trip_expenses 
-            (trip_id, category, title, amount, currency, payment_status, payment_date, booking_number, provider, notes)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (trip_id, category, title, amount, currency, payment_status, payment_date, booking_number, provider, notes, exchange_rate)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
             (data['trip_id'], data['category'], data['title'], data['amount'],
              data.get('currency', 'RUB'), data.get('payment_status', 'pending'),
-             data.get('payment_date'), data.get('booking_number'), data.get('provider'), data.get('notes'))
+             data.get('payment_date'), data.get('booking_number'), data.get('provider'), data.get('notes'),
+             data.get('exchange_rate', 1.0))
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
@@ -905,13 +906,13 @@ def update_expense(conn, data: Dict) -> Dict:
             UPDATE t_p5815085_family_assistant_pro.trip_expenses 
             SET category = %s, title = %s, amount = %s, currency = %s, 
                 payment_status = %s, payment_date = %s, booking_number = %s, 
-                provider = %s, notes = %s
+                provider = %s, notes = %s, exchange_rate = %s
             WHERE id = %s
             RETURNING *
             """,
             (data['category'], data['title'], data['amount'], data['currency'],
              data['payment_status'], data.get('payment_date'), data.get('booking_number'),
-             data.get('provider'), data.get('notes'), data['id'])
+             data.get('provider'), data.get('notes'), data.get('exchange_rate', 1.0), data['id'])
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))

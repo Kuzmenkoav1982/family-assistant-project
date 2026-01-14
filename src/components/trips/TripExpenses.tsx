@@ -23,6 +23,7 @@ interface Expense {
   booking_number?: string;
   provider?: string;
   notes?: string;
+  exchange_rate?: number;
   created_at: string;
 }
 
@@ -60,6 +61,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [budgetInput, setBudgetInput] = useState(tripBudget.toString());
+  const [savedExchangeRates, setSavedExchangeRates] = useState<{ [key: string]: number }>({});
 
   const [newExpense, setNewExpense] = useState({
     category: 'flights',
@@ -77,6 +79,16 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
   useEffect(() => {
     loadExpenses();
   }, [tripId]);
+
+  useEffect(() => {
+    const rates: { [key: string]: number } = {};
+    expenses.forEach((expense) => {
+      if (expense.currency !== tripCurrency && expense.exchange_rate) {
+        rates[expense.currency] = expense.exchange_rate;
+      }
+    });
+    setSavedExchangeRates(rates);
+  }, [expenses, tripCurrency]);
 
   const loadExpenses = async () => {
     try {
@@ -120,6 +132,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
           booking_number: newExpense.booking_number || null,
           provider: newExpense.provider || null,
           notes: newExpense.notes || null,
+          exchange_rate: parseFloat(newExpense.exchange_rate),
         }),
       });
 
@@ -172,6 +185,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
           booking_number: editingExpense.booking_number || null,
           provider: editingExpense.provider || null,
           notes: editingExpense.notes || null,
+          exchange_rate: editingExpense.exchange_rate || 1.0,
         }),
       });
 
@@ -222,7 +236,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
   };
 
   const totalSpent = expenses.reduce((sum, expense) => {
-    return sum + convertToTripCurrency(expense.amount, expense.currency);
+    return sum + convertToTripCurrency(expense.amount, expense.currency, expense.exchange_rate);
   }, 0);
 
   const groupedExpenses = CATEGORIES.map((cat) => ({
@@ -232,7 +246,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
     total: expenses
       .filter((e) => e.category === cat.value)
-      .reduce((sum, e) => sum + convertToTripCurrency(e.amount, e.currency), 0),
+      .reduce((sum, e) => sum + convertToTripCurrency(e.amount, e.currency, e.exchange_rate), 0),
   })).filter((cat) => cat.expenses.length > 0);
 
   const toggleCategory = (categoryValue: string) => {
@@ -370,7 +384,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
                   <CollapsibleContent>
                     <div className="border-t divide-y">
                       {category.expenses.map((expense) => {
-                        const convertedAmount = convertToTripCurrency(expense.amount, expense.currency);
+                        const convertedAmount = convertToTripCurrency(expense.amount, expense.currency, expense.exchange_rate);
                         const showConversion = expense.currency !== tripCurrency;
 
                         return (
@@ -483,7 +497,8 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
                 <Select
                   value={newExpense.currency}
                   onValueChange={(val) => {
-                    const rate = val === tripCurrency ? '1' : EXCHANGE_RATES[val]?.toString() || '1';
+                    const savedRate = savedExchangeRates[val];
+                    const rate = val === tripCurrency ? '1' : (savedRate?.toString() || EXCHANGE_RATES[val]?.toString() || '1');
                     setNewExpense({ ...newExpense, currency: val, exchange_rate: rate });
                   }}
                 >
