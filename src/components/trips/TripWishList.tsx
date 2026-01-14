@@ -53,7 +53,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [isAILoading, setIsAILoading] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
-  const [tripInfo, setTripInfo] = useState<{destination?: string} | null>(null);
+  const [tripInfo, setTripInfo] = useState<{title?: string; destination?: string} | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
   const [newPlace, setNewPlace] = useState({
@@ -67,6 +67,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
 
   useEffect(() => {
     loadPlaces();
+    loadTripInfo();
   }, [tripId]);
 
   const loadPlaces = async () => {
@@ -86,6 +87,22 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
       console.error('Error loading places:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTripInfo = async () => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(`${TRIPS_API_URL}?action=trip&id=${tripId}`, {
+        headers: { 'X-Auth-Token': token || '' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTripInfo(data.trip || null);
+      }
+    } catch (error) {
+      console.error('Error loading trip info:', error);
     }
   };
 
@@ -244,6 +261,73 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     return colors[priority] || colors.medium;
   };
 
+  const handleShareWishlist = () => {
+    const tripName = (tripInfo as any)?.title || (tripInfo as any)?.destination || 'Наше путешествие';
+    let shareText = `🗺️ Wish List: ${tripName}\n\n`;
+    
+    if (plannedPlaces.length === 0) {
+      shareText += `📍 Список мест пока пуст.\n💡 Давайте вместе добавим места, которые хотим посетить!\n\n`;
+    } else {
+      shareText += `📍 Хотим посетить (${plannedPlaces.length} мест):\n\n`;
+
+    plannedPlaces.forEach((place, index) => {
+      const priorityIcon = place.priority === 'high' ? '🔥' : place.priority === 'medium' ? '⭐' : '💤';
+      shareText += `${index + 1}. ${priorityIcon} ${place.place_name}`;
+      if (place.place_type) {
+        shareText += ` (${getPlaceTypeLabel(place.place_type)})`;
+      }
+      if (place.address) {
+        shareText += `\n   📍 ${place.address}`;
+      }
+      if (place.description) {
+        shareText += `\n   ℹ️ ${place.description}`;
+      }
+      if (place.estimated_cost) {
+        shareText += `\n   💰 ~${place.estimated_cost} ${currency}`;
+      }
+      if (place.ai_recommended) {
+        shareText += ` ✨ AI`;
+      }
+      shareText += '\n\n';
+    });
+    }
+
+    if (visitedPlaces.length > 0) {
+      shareText += `\n✅ Уже посетили (${visitedPlaces.length} мест):\n`;
+      visitedPlaces.forEach((place) => {
+        shareText += `• ${place.place_name}`;
+        if (place.visited_date) {
+          shareText += ` (${new Date(place.visited_date).toLocaleDateString('ru-RU')})`;
+        }
+        shareText += '\n';
+      });
+    }
+
+    shareText += '\n🚀 Создано в приложении "Наша Семья" — https://nasha-semiya.ru';
+
+    if (navigator.share) {
+      navigator.share({
+        title: `Wish List: ${tripName}`,
+        text: shareText,
+      }).catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          fallbackShare(shareText);
+        }
+      });
+    } else {
+      fallbackShare(shareText);
+    }
+  };
+
+  const fallbackShare = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('✅ Wish List скопирован в буфер обмена!\nТеперь можно вставить в любое сообщение.');
+    }).catch(() => {
+      alert('Не удалось скопировать. Попробуйте ещё раз.');
+    });
+  };
+
   const plannedPlaces = places.filter(p => p.status === 'planned');
   const visitedPlaces = places.filter(p => p.status === 'visited');
 
@@ -266,6 +350,10 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
           <Button variant="outline" onClick={handleGetAIRecommendations}>
             <Icon name="Sparkles" size={16} className="mr-2" />
             AI-рекомендации
+          </Button>
+          <Button variant="outline" onClick={handleShareWishlist}>
+            <Icon name="Share2" size={16} className="mr-2" />
+            Поделиться
           </Button>
         </div>
       )}
