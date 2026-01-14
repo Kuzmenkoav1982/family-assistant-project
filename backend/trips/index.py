@@ -455,10 +455,11 @@ def get_trips(conn, family_id: str, status: str = 'all') -> List[Dict]:
                 (family_id,)
             )
         else:
-            cur.execute(
-                "SELECT * FROM t_p5815085_family_assistant_pro.trips WHERE family_id = %s AND status = %s ORDER BY start_date DESC",
-                (family_id, status)
-            )
+            # Поддержка множественных статусов через запятую (например: "planning,booked")
+            statuses = [s.strip() for s in status.split(',')]
+            placeholders = ','.join(['%s'] * len(statuses))
+            query = f"SELECT * FROM t_p5815085_family_assistant_pro.trips WHERE family_id = %s AND status IN ({placeholders}) ORDER BY start_date DESC"
+            cur.execute(query, (family_id, *statuses))
         
         results = []
         for row in cur.fetchall():
