@@ -159,13 +159,28 @@ export default function Welcome() {
               Презентация
             </Button>
             {isLoggedIn ? (
-              <Button
-                onClick={() => navigate('/')}
-                className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-              >
-                <Icon name="Home" size={18} className="mr-2" />
-                Главная
-              </Button>
+              <>
+                <Button
+                  onClick={() => navigate('/')}
+                  className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                >
+                  <Icon name="Home" size={18} className="mr-2" />
+                  Главная
+                </Button>
+                <Button
+                  onClick={() => {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_data');
+                    window.location.reload();
+                  }}
+                  variant="outline"
+                  className="border-red-300 hover:bg-red-50 text-red-600"
+                >
+                  <Icon name="LogOut" size={18} className="mr-2" />
+                  Выход
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={() => navigate('/login')}
