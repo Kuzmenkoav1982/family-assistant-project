@@ -214,7 +214,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
           <DialogHeader>
             <DialogTitle>Добавить бронь / билет</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleAddBooking(); }} className="space-y-4">
             <div>
               <Label htmlFor="booking_type">Тип брони</Label>
               <Select value={newBooking.booking_type} onValueChange={(val) => setNewBooking({ ...newBooking, booking_type: val })}>
@@ -238,6 +238,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
                 value={newBooking.title}
                 onChange={(e) => setNewBooking({ ...newBooking, title: e.target.value })}
                 placeholder="Москва - Сочи"
+                required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -315,13 +316,13 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
                 rows={3}
               />
             </div>
-          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
               Отмена
             </Button>
-            <Button onClick={handleAddBooking}>Добавить</Button>
+            <Button type="submit">Добавить</Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
