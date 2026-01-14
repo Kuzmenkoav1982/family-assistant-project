@@ -7,7 +7,7 @@
       "expectedStatus": 200
     },
     {
-      "name": "POST location without auth token",
+      "name": "POST location in demo mode",
       "method": "POST",
       "path": "/",
       "body": {
@@ -15,19 +15,21 @@
         "lng": 37.618423,
         "accuracy": 10
       },
-      "expectedStatus": 401,
+      "expectedStatus": 200,
       "expectedBody": {
-        "error": "Требуется авторизация"
+        "success": true,
+        "demo": true
       },
       "bodyMatcher": "partial"
     },
     {
-      "name": "GET locations without auth token",
+      "name": "GET demo locations",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 401,
+      "expectedStatus": 200,
       "expectedBody": {
-        "error": "Требуется авторизация"
+        "success": true,
+        "demo": true
       },
       "bodyMatcher": "partial"
     }

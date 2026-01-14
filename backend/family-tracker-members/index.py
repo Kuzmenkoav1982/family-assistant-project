@@ -29,11 +29,46 @@ def handler(event: dict, context) -> dict:
     headers = event.get('headers', {})
     auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
     
+    # Демо-режим без авторизации для тестирования
     if not auth_token:
+        demo_members = [
+            {
+                'id': 'demo-1',
+                'name': 'Папа',
+                'avatar_url': None,
+                'role': 'Отец',
+                'color': '#3B82F6'
+            },
+            {
+                'id': 'demo-2',
+                'name': 'Мама',
+                'avatar_url': None,
+                'role': 'Мать',
+                'color': '#EC4899'
+            },
+            {
+                'id': 'demo-3',
+                'name': 'Сын',
+                'avatar_url': None,
+                'role': 'Ребёнок',
+                'color': '#10B981'
+            },
+            {
+                'id': 'demo-4',
+                'name': 'Дочь',
+                'avatar_url': None,
+                'role': 'Ребёнок',
+                'color': '#F59E0B'
+            }
+        ]
         return {
-            'statusCode': 401,
+            'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Требуется авторизация'})
+            'body': json.dumps({
+                'success': True,
+                'members': demo_members,
+                'demo': True
+            })
         }
     
     dsn = os.environ.get('DATABASE_URL')
