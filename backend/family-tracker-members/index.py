@@ -29,46 +29,12 @@ def handler(event: dict, context) -> dict:
     headers = event.get('headers', {})
     auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
     
-    # Демо-режим без авторизации для тестирования
+    # Проверка авторизации
     if not auth_token:
-        demo_members = [
-            {
-                'id': 'demo-1',
-                'name': 'Папа',
-                'avatar_url': None,
-                'role': 'Отец',
-                'color': '#3B82F6'
-            },
-            {
-                'id': 'demo-2',
-                'name': 'Мама',
-                'avatar_url': None,
-                'role': 'Мать',
-                'color': '#EC4899'
-            },
-            {
-                'id': 'demo-3',
-                'name': 'Сын',
-                'avatar_url': None,
-                'role': 'Ребёнок',
-                'color': '#10B981'
-            },
-            {
-                'id': 'demo-4',
-                'name': 'Дочь',
-                'avatar_url': None,
-                'role': 'Ребёнок',
-                'color': '#F59E0B'
-            }
-        ]
         return {
-            'statusCode': 200,
+            'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'success': True,
-                'members': demo_members,
-                'demo': True
-            })
+            'body': json.dumps({'error': 'Требуется авторизация'})
         }
     
     dsn = os.environ.get('DATABASE_URL')
@@ -84,9 +50,9 @@ def handler(event: dict, context) -> dict:
     
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Получаем user_id по токену
+            # Получаем user_id по токену из таблицы sessions
             cur.execute('''
-                SELECT user_id FROM auth_tokens 
+                SELECT user_id FROM t_p5815085_family_assistant_pro.sessions 
                 WHERE token = %s AND expires_at > NOW()
             ''', (auth_token,))
             
@@ -102,7 +68,7 @@ def handler(event: dict, context) -> dict:
             
             # Получаем family_id
             cur.execute('''
-                SELECT family_id FROM family_members 
+                SELECT family_id FROM t_p5815085_family_assistant_pro.family_members 
                 WHERE user_id = %s LIMIT 1
             ''', (user_id,))
             
@@ -123,8 +89,8 @@ def handler(event: dict, context) -> dict:
                     u.name,
                     u.avatar_url,
                     fm.role
-                FROM family_members fm
-                JOIN users u ON fm.user_id = u.id
+                FROM t_p5815085_family_assistant_pro.family_members fm
+                JOIN t_p5815085_family_assistant_pro.users u ON fm.user_id = u.id
                 WHERE fm.family_id = %s
                   AND fm.member_status = 'active'
                 ORDER BY u.name

@@ -1,13 +1,12 @@
 {
   "tests": [
     {
-      "name": "Get demo family members",
+      "name": "Get family members without auth",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
+      "expectedStatus": 401,
       "expectedBody": {
-        "success": true,
-        "demo": true
+        "error": "Требуется авторизация"
       },
       "bodyMatcher": "partial"
     }

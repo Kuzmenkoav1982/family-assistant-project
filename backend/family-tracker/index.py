@@ -34,71 +34,23 @@ def handler(event: dict, context) -> dict:
     headers = event.get('headers', {})
     auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
     
-    # Демо-режим без авторизации
+    # Проверка авторизации
     if not auth_token:
-        if method == 'GET':
-            # Возвращаем демо-локации для членов семьи
-            demo_locations = [
-                {
-                    'memberId': 'demo-1',
-                    'lat': 55.751244,
-                    'lng': 37.618423,
-                    'accuracy': 10,
-                    'timestamp': datetime.now().isoformat()
-                },
-                {
-                    'memberId': 'demo-2',
-                    'lat': 55.755814,
-                    'lng': 37.617635,
-                    'accuracy': 15,
-                    'timestamp': datetime.now().isoformat()
-                },
-                {
-                    'memberId': 'demo-3',
-                    'lat': 55.748165,
-                    'lng': 37.615829,
-                    'accuracy': 8,
-                    'timestamp': datetime.now().isoformat()
-                },
-                {
-                    'memberId': 'demo-4',
-                    'lat': 55.753215,
-                    'lng': 37.622504,
-                    'accuracy': 12,
-                    'timestamp': datetime.now().isoformat()
-                }
-            ]
-            return {
-                'statusCode': 200,
-                'headers': cors_headers,
-                'body': json.dumps({
-                    'success': True,
-                    'locations': demo_locations,
-                    'demo': True
-                }),
-                'isBase64Encoded': False
-            }
-        elif method == 'POST':
-            # В демо-режиме просто подтверждаем сохранение
-            return {
-                'statusCode': 200,
-                'headers': cors_headers,
-                'body': json.dumps({
-                    'success': True,
-                    'message': 'Координаты сохранены (демо-режим)',
-                    'demo': True
-                }),
-                'isBase64Encoded': False
-            }
+        return {
+            'statusCode': 401,
+            'headers': cors_headers,
+            'body': json.dumps({'error': 'Требуется авторизация'}),
+            'isBase64Encoded': False
+        }
     
     # Подключение к БД
     try:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
         
-        # Получить user_id по токену
+        # Получить user_id по токену из таблицы sessions
         cur.execute(
-            "SELECT user_id FROM auth_tokens WHERE token = %s AND expires_at > NOW()",
+            "SELECT user_id FROM t_p5815085_family_assistant_pro.sessions WHERE token = %s AND expires_at > NOW()",
             (auth_token,)
         )
         result = cur.fetchone()
@@ -117,7 +69,7 @@ def handler(event: dict, context) -> dict:
         
         # Получить family_id пользователя
         cur.execute(
-            "SELECT family_id FROM family_members WHERE user_id = %s LIMIT 1",
+            "SELECT family_id FROM t_p5815085_family_assistant_pro.family_members WHERE user_id = %s LIMIT 1",
             (user_id,)
         )
         family_result = cur.fetchone()
