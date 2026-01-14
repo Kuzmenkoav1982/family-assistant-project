@@ -2,6 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Trip {
   id: number;
@@ -172,48 +178,55 @@ export function TripsList({
             </div>
           </div>
 
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ zIndex: 50 }}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50/90 backdrop-blur-sm h-8 w-8 pointer-events-auto"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Edit clicked for trip:', trip.id);
-                onEditTrip(trip);
-              }}
-            >
-              <Icon name="Pencil" size={16} />
-            </Button>
-            {trip.status !== 'archived' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-orange-500 hover:text-orange-700 hover:bg-orange-50/90 backdrop-blur-sm h-8 w-8 pointer-events-auto"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Archive clicked for trip:', trip.id);
-                  onArchiveTrip(trip.id);
-                }}
-              >
-                <Icon name="Archive" size={16} />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-red-500 hover:text-red-700 hover:bg-red-50/90 backdrop-blur-sm h-8 w-8 pointer-events-auto"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Delete clicked for trip:', trip.id);
-                onDeleteTrip(trip.id);
-              }}
-            >
-              <Icon name="Trash2" size={16} />
-            </Button>
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ zIndex: 50 }}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-gray-100/90 backdrop-blur-sm pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <Icon name="MoreVertical" size={18} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditTrip(trip);
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Icon name="Pencil" size={16} className="mr-2" />
+                  Изменить
+                </DropdownMenuItem>
+                {trip.status !== 'archived' && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchiveTrip(trip.id);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Icon name="Archive" size={16} className="mr-2" />
+                    В архив
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTrip(trip.id);
+                  }}
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  <Icon name="Trash2" size={16} className="mr-2" />
+                  Удалить
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </Card>
       ))}
