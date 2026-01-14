@@ -83,7 +83,12 @@ export function CreateTripDialog({
               <Input
                 type="date"
                 value={newTrip.start_date}
-                onChange={(e) => onNewTripChange({ ...newTrip, start_date: e.target.value })}
+                onChange={(e) => {
+                  onNewTripChange({ ...newTrip, start_date: e.target.value });
+                  // Убираем фокус после выбора даты
+                  setTimeout(() => e.target.blur(), 100);
+                }}
+                onBlur={(e) => e.target.blur()}
               />
             </div>
             <div>
@@ -91,7 +96,12 @@ export function CreateTripDialog({
               <Input
                 type="date"
                 value={newTrip.end_date}
-                onChange={(e) => onNewTripChange({ ...newTrip, end_date: e.target.value })}
+                onChange={(e) => {
+                  onNewTripChange({ ...newTrip, end_date: e.target.value });
+                  // Убираем фокус после выбора даты
+                  setTimeout(() => e.target.blur(), 100);
+                }}
+                onBlur={(e) => e.target.blur()}
               />
             </div>
           </div>
@@ -103,6 +113,7 @@ export function CreateTripDialog({
               value={newTrip.budget}
               onChange={(e) => onNewTripChange({ ...newTrip, budget: e.target.value })}
               placeholder="150000"
+              onBlur={(e) => e.target.blur()}
             />
           </div>
 
@@ -113,6 +124,7 @@ export function CreateTripDialog({
               onChange={(e) => onNewTripChange({ ...newTrip, description: e.target.value })}
               placeholder="Семейный отдых на море..."
               rows={3}
+              onBlur={(e) => e.target.blur()}
             />
           </div>
         </div>
