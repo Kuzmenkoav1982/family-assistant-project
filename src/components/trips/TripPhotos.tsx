@@ -92,10 +92,12 @@ export function TripPhotos({ tripId, photos, onUpdate }: TripPhotosProps) {
     }
 
     try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
         },
         body: JSON.stringify({
           action: 'add_photo',
@@ -116,6 +118,8 @@ export function TripPhotos({ tripId, photos, onUpdate }: TripPhotosProps) {
           date_taken: new Date().toISOString().split('T')[0]
         });
         setPhotoUrl('');
+      } else {
+        alert('Ошибка при добавлении фото');
       }
     } catch (error) {
       console.error('Error adding photo:', error);
