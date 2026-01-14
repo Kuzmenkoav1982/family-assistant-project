@@ -33,6 +33,7 @@ interface TripBookingsProps {
 
 export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [newBooking, setNewBooking] = useState({
     booking_type: 'flight',
     title: '',
@@ -61,7 +62,8 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
           'X-Auth-Token': token || ''
         },
         body: JSON.stringify({
-          action: 'add_booking',
+          action: editingBooking ? 'update_booking' : 'add_booking',
+          ...(editingBooking && { booking_id: editingBooking.id }),
           trip_id: tripId,
           ...newBooking,
           cost: newBooking.cost ? parseFloat(newBooking.cost) : null
@@ -71,6 +73,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
       if (response.ok) {
         onUpdate();
         setIsAddOpen(false);
+        setEditingBooking(null);
         setNewBooking({
           booking_type: 'flight',
           title: '',
@@ -85,8 +88,51 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
         });
       }
     } catch (error) {
-      console.error('Error adding booking:', error);
-      alert('Ошибка при добавлении брони');
+      console.error('Error saving booking:', error);
+      alert('Ошибка при сохранении брони');
+    }
+  };
+
+  const handleEditBooking = (booking: Booking) => {
+    setEditingBooking(booking);
+    setNewBooking({
+      booking_type: booking.booking_type,
+      title: booking.title,
+      booking_number: booking.booking_number || '',
+      provider: booking.provider || '',
+      date_from: booking.date_from || '',
+      date_to: booking.date_to || '',
+      cost: booking.cost?.toString() || '',
+      currency: booking.currency,
+      status: booking.status,
+      notes: booking.notes || ''
+    });
+    setIsAddOpen(true);
+  };
+
+  const handleDeleteBooking = async (bookingId: number) => {
+    if (!confirm('Удалить эту бронь?')) return;
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'delete_booking',
+          booking_id: bookingId
+        })
+      });
+
+      if (response.ok) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      alert('Ошибка при удалении брони');
     }
   };
 
@@ -203,16 +249,52 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
                 {booking.notes && (
                   <p className="text-sm text-gray-500 italic mt-2 pt-2 border-t">{booking.notes}</p>
                 )}
+                <div className="flex gap-2 pt-2 border-t mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditBooking(booking)}
+                    className="flex-1"
+                  >
+                    <Icon name="Pencil" size={14} className="mr-1" />
+                    Изменить
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteBooking(booking.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Icon name="Trash2" size={14} />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Dialog open={isAddOpen} onOpenChange={(open) => {
+        setIsAddOpen(open);
+        if (!open) {
+          setEditingBooking(null);
+          setNewBooking({
+            booking_type: 'flight',
+            title: '',
+            booking_number: '',
+            provider: '',
+            date_from: '',
+            date_to: '',
+            cost: '',
+            currency: 'RUB',
+            status: 'pending',
+            notes: ''
+          });
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Добавить бронь / билет</DialogTitle>
+            <DialogTitle>{editingBooking ? 'Изменить бронь / билет' : 'Добавить бронь / билет'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={(e) => { e.preventDefault(); handleAddBooking(); }} className="space-y-4">
             <div>
@@ -320,7 +402,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
             <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
               Отмена
             </Button>
-            <Button type="submit">Добавить</Button>
+            <Button type="submit">{editingBooking ? 'Сохранить' : 'Добавить'}</Button>
           </DialogFooter>
           </form>
         </DialogContent>

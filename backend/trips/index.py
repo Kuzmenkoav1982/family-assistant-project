@@ -220,6 +220,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'booking': booking}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
+            
+            if body.get('action') == 'update_booking':
+                booking = update_booking(conn, body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'booking': booking}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if body.get('action') == 'delete_booking':
+                delete_booking(conn, body.get('booking_id'))
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
         
         # Получить расходы
         if method == 'GET' and action == 'expenses':
@@ -314,6 +332,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 201,
                     'headers': headers,
                     'body': json.dumps({'trip': trip}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if body.get('action') == 'update_wishlist':
+                item = update_wishlist(conn, body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'item': item}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
             
@@ -631,6 +658,36 @@ def add_booking(conn, data: Dict) -> Dict:
         return convert_for_json(dict(cur.fetchone()))
 
 
+def update_booking(conn, data: Dict) -> Dict:
+    """Обновить бронь"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE trip_bookings 
+            SET booking_type = %s, title = %s, booking_number = %s,
+                provider = %s, date_from = %s, date_to = %s,
+                cost = %s, currency = %s, status = %s, notes = %s
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data['booking_type'], data['title'], 
+             data.get('booking_number'), data.get('provider'),
+             data.get('date_from'), data.get('date_to'),
+             data.get('cost'), data.get('currency', 'RUB'),
+             data.get('status', 'pending'), data.get('notes'),
+             data['booking_id'])
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def delete_booking(conn, booking_id: int):
+    """Удалить бронь"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM trip_bookings WHERE id = %s", (booking_id,))
+        conn.commit()
+
+
 def get_itinerary(conn, trip_id: int) -> List[Dict]:
     """Получить маршрут поездки"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -713,6 +770,26 @@ def wishlist_to_trip(conn, data: Dict) -> Dict:
             (f"Поездка в {wish['destination']}", wish['destination'], wish['country'],
              data['start_date'], data['end_date'], wish.get('estimated_budget'),
              wish['currency'], wish.get('description'), data.get('user_id'))
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def update_wishlist(conn, data: Dict) -> Dict:
+    """Обновить элемент wish list"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE trip_wishlist 
+            SET destination = %s, country = %s, description = %s, priority = %s,
+                estimated_budget = %s, currency = %s, best_season = %s, duration_days = %s
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data['destination'], data.get('country'), data.get('description'),
+             data.get('priority', 'medium'), data.get('estimated_budget'),
+             data.get('currency', 'RUB'), data.get('best_season'),
+             data.get('duration_days'), data['id'])
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
