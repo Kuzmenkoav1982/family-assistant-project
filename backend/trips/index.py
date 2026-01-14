@@ -550,12 +550,12 @@ def update_trip(conn, data: Dict) -> Dict:
 def delete_trip(conn, trip_id: int) -> None:
     """Удалить поездку и все связанные данные"""
     with conn.cursor() as cur:
-        cur.execute("DELETE FROM trip_places WHERE trip_id = %s", (trip_id,))
-        cur.execute("DELETE FROM trip_photos WHERE trip_id = %s", (trip_id,))
-        cur.execute("DELETE FROM trip_diary WHERE trip_id = %s", (trip_id,))
-        cur.execute("DELETE FROM trip_itinerary WHERE trip_id = %s", (trip_id,))
-        cur.execute("DELETE FROM trip_bookings WHERE trip_id = %s", (trip_id,))
-        cur.execute("DELETE FROM trips WHERE id = %s", (trip_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_places WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_photos WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_diary WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_itinerary WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_bookings WHERE trip_id = %s", (trip_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trips WHERE id = %s", (trip_id,))
         conn.commit()
 
 
@@ -768,7 +768,7 @@ def get_trip_places(conn, trip_id: int, status_filter: Optional[str] = None) -> 
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         status_condition = "AND status = %s" if status_filter else ""
         query = f"""
-            SELECT * FROM trip_places 
+            SELECT * FROM t_p5815085_family_assistant_pro.trip_places 
             WHERE trip_id = %s {status_condition}
             ORDER BY 
                 CASE priority 
@@ -791,7 +791,7 @@ def add_place(conn, data: Dict) -> Dict:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO trip_places (
+            INSERT INTO t_p5815085_family_assistant_pro.trip_places (
                 trip_id, place_name, place_type, address, description,
                 latitude, longitude, rating, estimated_cost, currency,
                 priority, status, ai_recommended, ai_description, image_url, added_by
@@ -816,7 +816,7 @@ def update_place(conn, data: Dict) -> Dict:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            UPDATE trip_places SET
+            UPDATE t_p5815085_family_assistant_pro.trip_places SET
                 place_name = %s, place_type = %s, address = %s, description = %s,
                 latitude = %s, longitude = %s, rating = %s, estimated_cost = %s,
                 currency = %s, priority = %s, notes = %s,
@@ -842,7 +842,7 @@ def mark_place_visited(conn, place_id: int, visited_date: Optional[str] = None) 
         visit_date = visited_date or datetime.now().date().isoformat()
         cur.execute(
             """
-            UPDATE trip_places SET
+            UPDATE t_p5815085_family_assistant_pro.trip_places SET
                 status = 'visited',
                 visited_date = %s,
                 updated_at = CURRENT_TIMESTAMP
@@ -861,7 +861,7 @@ def mark_place_visited(conn, place_id: int, visited_date: Optional[str] = None) 
 def delete_place(conn, place_id: int):
     """Удалить место"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute("DELETE FROM trip_places WHERE id = %s", (place_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_places WHERE id = %s", (place_id,))
         conn.commit()
 
 
