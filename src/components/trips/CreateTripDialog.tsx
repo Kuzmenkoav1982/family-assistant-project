@@ -116,10 +116,16 @@ export function CreateTripDialog({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <Button 
+            type="button"
             variant="outline" 
             onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenChange(false);
+            }}
+            onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onOpenChange(false);
@@ -128,10 +134,17 @@ export function CreateTripDialog({
             Отмена
           </Button>
           <Button 
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               console.log('Create button clicked');
+              onCreateTrip();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Create button touched');
               onCreateTrip();
             }}
           >
