@@ -160,7 +160,7 @@ export default function Welcome() {
             </Button>
             {isLoggedIn ? (
               <Button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard')}
                 className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
               >
                 <Icon name="Home" size={18} className="mr-2" />
