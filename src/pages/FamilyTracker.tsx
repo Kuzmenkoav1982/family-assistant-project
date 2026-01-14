@@ -50,7 +50,7 @@ export default function FamilyTracker() {
   useEffect(() => {
     const loadMembers = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
         const response = await fetch('https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d', {
           method: 'GET',
           headers: {
@@ -173,7 +173,7 @@ export default function FamilyTracker() {
 
     // Настроить Service Worker для фоновой отправки
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       navigator.serviceWorker.controller.postMessage({
         type: 'START_GEOLOCATION',
         interval: 600000, // 10 минут
@@ -240,7 +240,7 @@ export default function FamilyTracker() {
     }
 
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
         method: 'POST',
         headers: {
@@ -297,7 +297,7 @@ export default function FamilyTracker() {
   // Загрузка геозон
   const loadGeofences = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
         method: 'GET',
         headers: {
@@ -342,7 +342,7 @@ export default function FamilyTracker() {
   // Отправка координат на сервер
   const sendLocationToServer = async (location: LocationData) => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch('https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533', {
         method: 'POST',
         headers: {
@@ -363,7 +363,7 @@ export default function FamilyTracker() {
   // Загрузка локаций всех членов семьи
   const loadFamilyLocations = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch('https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533', {
         method: 'GET',
         headers: {
