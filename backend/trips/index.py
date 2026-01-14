@@ -198,6 +198,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
         
+        # Получить брони
+        if method == 'GET' and action == 'bookings':
+            trip_id = int(params.get('trip_id'))
+            bookings = get_bookings(conn, trip_id)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'bookings': bookings}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
         # Получить расходы
         if method == 'GET' and action == 'expenses':
             trip_id = int(params.get('trip_id'))
