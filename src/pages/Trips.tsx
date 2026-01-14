@@ -47,7 +47,7 @@ export default function Trips() {
   const loadTrips = useCallback(async (status: string) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       let actualStatus = status;
       if (status === 'planning') {
         actualStatus = 'planning,booked';
@@ -74,7 +74,7 @@ export default function Trips() {
 
   const loadAllTripsForCounting = useCallback(async () => {
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=all`, {
         headers: {
           'X-Auth-Token': token || ''
@@ -105,7 +105,7 @@ export default function Trips() {
     }
 
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       console.log('Sending request with token:', token ? 'exists' : 'missing');
       
       const response = await fetch(TRIPS_API_URL, {
@@ -152,7 +152,7 @@ export default function Trips() {
     if (!confirm('Удалить эту поездку? Все связанные данные также будут удалены.')) return;
 
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: { 
@@ -177,7 +177,7 @@ export default function Trips() {
 
   const handleArchiveTrip = async (tripId: number) => {
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: { 
@@ -202,7 +202,7 @@ export default function Trips() {
 
   const handleRestoreTrip = async (tripId: number) => {
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
         method: 'POST',
         headers: { 
