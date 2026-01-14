@@ -42,25 +42,39 @@ export function TripPlanningServices({ destination, country }: TripPlanningServi
 
   const tourServices = [
     {
+      name: 'OneTwoTrip',
+      url: `https://www.onetwotrip.com/ru/tours/?destination=${encodeURIComponent(destination)}`,
+      icon: 'Plane',
+      description: 'Туры и экскурсии',
+      color: 'blue',
+    },
+    {
+      name: 'Booking.com',
+      url: `https://www.booking.com/experiences/index.ru.html?location=${encodeURIComponent(destination)}`,
+      icon: 'Hotel',
+      description: 'Активности и развлечения',
+      color: 'indigo',
+    },
+    {
+      name: 'Островок',
+      url: `https://ostrovok.ru/experiences/?city=${encodeURIComponent(destination)}`,
+      icon: 'Bed',
+      description: 'Экскурсии и развлечения',
+      color: 'purple',
+    },
+    {
+      name: 'Яндекс Путешествия',
+      url: `https://travel.yandex.ru/excursions/?city=${encodeURIComponent(destination)}`,
+      icon: 'MapPin',
+      description: 'Экскурсии и туры',
+      color: 'red',
+    },
+    {
       name: 'Трипстер',
       url: `https://experience.tripster.ru/search/?city=${encodeURIComponent(destination)}`,
       icon: 'Compass',
       description: 'Экскурсии с гидами',
       color: 'orange',
-    },
-    {
-      name: 'OneTwoTrip Tours',
-      url: `https://www.onetwotrip.com/ru/tours/?destination=${encodeURIComponent(destination)}`,
-      icon: 'Map',
-      description: 'Туры и экскурсии',
-      color: 'blue',
-    },
-    {
-      name: 'Booking.com Experiences',
-      url: `https://www.booking.com/experiences/index.ru.html?location=${encodeURIComponent(destination)}`,
-      icon: 'Camera',
-      description: 'Активности и развлечения',
-      color: 'indigo',
     },
     {
       name: 'GetYourGuide',
