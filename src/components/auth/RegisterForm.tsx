@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 
 interface RegisterFormProps {
@@ -46,6 +48,7 @@ export default function RegisterForm({
 }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   if (registerStep === 'choice') {
     return (
@@ -227,13 +230,33 @@ export default function RegisterForm({
         </>
       )}
       
+      <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <Checkbox 
+          id="privacy-policy"
+          checked={agreedToPolicy}
+          onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
+          className="mt-0.5"
+        />
+        <label htmlFor="privacy-policy" className="text-sm text-gray-700 leading-relaxed cursor-pointer">
+          Я согласен на обработку персональных данных в соответствии с{' '}
+          <Link 
+            to="/privacy-policy" 
+            target="_blank"
+            className="text-blue-600 hover:text-blue-800 underline font-medium"
+          >
+            Политикой конфиденциальности
+          </Link>
+          {' '}и даю согласие на сбор, хранение и обработку моих данных согласно требованиям 152-ФЗ "О персональных данных".
+        </label>
+      </div>
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
           {error}
         </div>
       )}
       
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading || !agreedToPolicy}>
         {isLoading ? (
           <>
             <Icon name="Loader" className="mr-2 animate-spin" size={16} />
