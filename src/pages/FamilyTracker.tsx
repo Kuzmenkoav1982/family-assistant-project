@@ -439,8 +439,10 @@ export default function FamilyTracker() {
                   type: 'member-location'
                 },
                 {
-                  preset: 'islands#circleIcon',
-                  iconColor: member.color
+                  iconLayout: 'default#image',
+                  iconImageHref: member.avatar_url || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='18' fill='${encodeURIComponent(member.color)}'/%3E%3Ctext x='20' y='20' text-anchor='middle' dy='.3em' fill='white' font-size='16' font-weight='bold'%3E${member.name.charAt(0)}%3C/text%3E%3C/svg%3E`,
+                  iconImageSize: [40, 40],
+                  iconImageOffset: [-20, -20]
                 }
               );
               placemark.properties.set('type', 'member-location');
@@ -680,12 +682,16 @@ export default function FamilyTracker() {
                   return (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border-2"
+                      style={{ borderColor: member.color }}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
-                          style={{ backgroundColor: member.avatar_url ? 'transparent' : member.color + '20' }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ring-2"
+                          style={{ 
+                            backgroundColor: member.avatar_url ? 'transparent' : member.color + '20',
+                            borderColor: member.color
+                          }}
                         >
                           {member.avatar_url ? (
                             <img 
@@ -720,7 +726,7 @@ export default function FamilyTracker() {
                         </div>
                       </div>
                       <Badge
-                        className={isOnline ? 'bg-green-500' : 'bg-gray-400'}
+                        className={isOnline ? 'bg-green-500 hover:bg-green-500' : 'bg-gray-400 hover:bg-gray-400'}
                       >
                         {isOnline ? 'Онлайн' : 'Оффлайн'}
                       </Badge>
