@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Encrypt simple text",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "encrypt",
+        "data": "Конфиденциальная медицинская информация"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

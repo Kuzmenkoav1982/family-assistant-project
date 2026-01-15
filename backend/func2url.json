@@ -1,4 +1,7 @@
 {
+  "data-cleanup": "https://functions.poehali.dev/a2fee8d8-6bf7-4e14-982f-314dbd521bcf",
+  "encryption-helper": "https://functions.poehali.dev/3b970e51-7f2a-462f-af32-651897c181ea",
+  "rate-limiter": "https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-4702c42ac121",
   "audit-logger": "https://functions.poehali.dev/4891fda0-83fb-499e-833a-b3b88aeb0c4f",
   "yandex-maps-key": "https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7",
   "family-tracker-members": "https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d",

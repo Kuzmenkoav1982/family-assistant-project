@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Cleanup without admin token",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 401,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

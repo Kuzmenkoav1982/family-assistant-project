@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Check rate limit for auth",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action_type": "auth",
+        "log_attempt": false
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "allowed": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

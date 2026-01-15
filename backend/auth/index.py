@@ -11,6 +11,7 @@ import secrets
 import re
 import urllib.parse
 import requests
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
@@ -28,7 +29,28 @@ NOTIFICATIONS_URL = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de9
 # Redirect URI: https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0
 
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    """
+    Хеширование пароля с использованием bcrypt (более безопасно чем SHA-256)
+    bcrypt автоматически добавляет соль и использует адаптивный алгоритм
+    """
+    salt = bcrypt.gensalt(rounds=12)  # 12 раундов - баланс между безопасностью и скоростью
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    """
+    Проверка пароля против bcrypt хеша
+    """
+    # Для обратной совместимости: если хеш начинается не с $2, это старый SHA-256
+    if not hashed.startswith('$2'):
+        # Старый метод SHA-256 (для миграции существующих пользователей)
+        return hashed == hashlib.sha256(password.encode()).hexdigest()
+    
+    # Новый метод bcrypt
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except:
+        return False
 
 def generate_token() -> str:
     return secrets.token_urlsafe(32)
@@ -286,8 +308,6 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        password_hash = hash_password(password)
-        
         query = f"""
             SELECT id, email, phone, password_hash 
             FROM {SCHEMA}.users 
@@ -296,7 +316,7 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
         cur.execute(query)
         user = cur.fetchone()
         
-        if not user or not user['password_hash'] or user['password_hash'] != password_hash:
+        if not user or not user['password_hash'] or not verify_password(password, user['password_hash']):
             cur.close()
             conn.close()
             # Логирование неудачной попытки входа
