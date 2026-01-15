@@ -431,6 +431,16 @@ export default function FamilyTracker() {
           filteredLocations.forEach((loc: LocationData) => {
             const member = familyMembers.find(m => m.id === loc.memberId);
             if (member) {
+              // Создаём SVG с круглым аватаром и цветным ободком
+              let iconSvg;
+              if (member.avatar_url) {
+                // Если есть фото - круглое фото с ободком
+                iconSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Cdefs%3E%3CclipPath id='circle-clip'%3E%3Ccircle cx='25' cy='25' r='20'/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle cx='25' cy='25' r='23' fill='white'/%3E%3Ccircle cx='25' cy='25' r='22' fill='${encodeURIComponent(member.color)}'/%3E%3Cimage href='${encodeURIComponent(member.avatar_url)}' x='5' y='5' width='40' height='40' clip-path='url(%23circle-clip)' preserveAspectRatio='xMidYMid slice'/%3E%3C/svg%3E`;
+              } else {
+                // Если нет фото - буква в круге с ободком
+                iconSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Ccircle cx='25' cy='25' r='23' fill='white'/%3E%3Ccircle cx='25' cy='25' r='22' fill='${encodeURIComponent(member.color)}'/%3E%3Ccircle cx='25' cy='25' r='20' fill='${encodeURIComponent(member.color)}40'/%3E%3Ctext x='25' y='25' text-anchor='middle' dy='.35em' fill='${encodeURIComponent(member.color)}' font-size='20' font-weight='bold'%3E${member.name.charAt(0)}%3C/text%3E%3C/svg%3E`;
+              }
+              
               // @ts-ignore
               const placemark = new window.ymaps.Placemark(
                 [loc.lat, loc.lng],
@@ -440,9 +450,9 @@ export default function FamilyTracker() {
                 },
                 {
                   iconLayout: 'default#image',
-                  iconImageHref: member.avatar_url || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='18' fill='${encodeURIComponent(member.color)}'/%3E%3Ctext x='20' y='20' text-anchor='middle' dy='.3em' fill='white' font-size='16' font-weight='bold'%3E${member.name.charAt(0)}%3C/text%3E%3C/svg%3E`,
-                  iconImageSize: [40, 40],
-                  iconImageOffset: [-20, -20]
+                  iconImageHref: iconSvg,
+                  iconImageSize: [50, 50],
+                  iconImageOffset: [-25, -25]
                 }
               );
               placemark.properties.set('type', 'member-location');
