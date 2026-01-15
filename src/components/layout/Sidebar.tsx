@@ -97,7 +97,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       title: '🌍 ПУТЕШЕСТВИЯ И ДОСУГ',
       icon: 'Plane',
       items: [
-        { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' }
+        { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' },
+        { id: 'leisure', label: 'Досуг', icon: 'MapPin', path: '/leisure' }
       ]
     },
     {

@@ -63,6 +63,7 @@ import Nutrition from "./pages/Nutrition";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
+import Leisure from "./pages/Leisure";
 import TelegramServices from "./pages/TelegramServices";
 import StateSupport from "./pages/StateSupport";
 import FamilyPolicy from "./pages/FamilyPolicy";
@@ -204,6 +205,7 @@ const App = () => {
               <Route path="/trips" element={<Trips />} />
               <Route path="/trips/:id" element={<TripDetails />} />
               <Route path="/trips/wishlist" element={<TripWishlist />} />
+              <Route path="/leisure" element={<Leisure />} />
               <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/development" element={<Development />} />
               <Route path="/life-road" element={<LifeRoad />} />

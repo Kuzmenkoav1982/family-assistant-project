@@ -111,6 +111,88 @@ def get_user_and_family(conn, event: Dict[str, Any]) -> tuple:
         return user_id, family_id
 
 
+def get_leisure_activities(conn, user_id: int, status_filter: Optional[str] = None) -> List[Dict]:
+    """Получить список досуговых активностей"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        if status_filter and status_filter != 'all':
+            cur.execute(
+                "SELECT * FROM leisure_activities WHERE user_id = %s AND status = %s ORDER BY date DESC NULLS LAST, created_at DESC",
+                (user_id, status_filter)
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM leisure_activities WHERE user_id = %s ORDER BY date DESC NULLS LAST, created_at DESC",
+                (user_id,)
+            )
+        return [convert_for_json(dict(row)) for row in cur.fetchall()]
+
+
+def get_leisure_activity(conn, activity_id: int) -> Dict:
+    """Получить детали активности"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute("SELECT * FROM leisure_activities WHERE id = %s", (activity_id,))
+        result = cur.fetchone()
+        if not result:
+            raise ValueError(f"Activity {activity_id} not found")
+        return convert_for_json(dict(result))
+
+
+def create_leisure_activity(conn, data: Dict, user_id: int) -> Dict:
+    """Создать новую активность"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            INSERT INTO leisure_activities (
+                user_id, title, category, location, date, time, 
+                price, currency, status, notes, website, phone, 
+                booking_required, booking_url
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (user_id, data['title'], data['category'], data.get('location'),
+             data.get('date'), data.get('time'), data.get('price'), 
+             data.get('currency', 'RUB'), data.get('status', 'want_to_go'),
+             data.get('notes'), data.get('website'), data.get('phone'),
+             data.get('booking_required', False), data.get('booking_url'))
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def update_leisure_activity(conn, data: Dict) -> Dict:
+    """Обновить активность"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE leisure_activities SET
+                title = %s, category = %s, location = %s, date = %s, time = %s,
+                price = %s, currency = %s, status = %s, rating = %s, notes = %s,
+                website = %s, phone = %s, booking_required = %s, booking_url = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data['title'], data['category'], data.get('location'), data.get('date'),
+             data.get('time'), data.get('price'), data.get('currency', 'RUB'),
+             data.get('status'), data.get('rating'), data.get('notes'),
+             data.get('website'), data.get('phone'), data.get('booking_required', False),
+             data.get('booking_url'), data['id'])
+        )
+        conn.commit()
+        result = cur.fetchone()
+        if not result:
+            raise ValueError(f"Activity {data['id']} not found")
+        return convert_for_json(dict(result))
+
+
+def delete_leisure_activity(conn, activity_id: int):
+    """Удалить активность"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM leisure_activities WHERE id = %s", (activity_id,))
+        conn.commit()
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Обрабатывает запросы для работы с путешествиями
@@ -505,6 +587,60 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if post_action == 'delete_place':
                 delete_place(conn, body['place_id'])
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+        
+        # Получить досуговые активности
+        if method == 'GET' and action == 'leisure':
+            status = params.get('status', 'all')
+            activities = get_leisure_activities(conn, user_id, status)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'activities': activities}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        # Получить детали активности
+        if method == 'GET' and action == 'leisure_activity':
+            activity_id = int(params.get('id'))
+            activity = get_leisure_activity(conn, activity_id)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'activity': activity}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        # Создать/обновить/удалить досуговую активность
+        if method == 'POST':
+            body = json.loads(event.get('body', '{}'))
+            post_action = body.get('action')
+            
+            if post_action == 'create_leisure':
+                activity = create_leisure_activity(conn, body, user_id)
+                return {
+                    'statusCode': 201,
+                    'headers': headers,
+                    'body': json.dumps({'activity': activity}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'update_leisure':
+                activity = update_leisure_activity(conn, body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'activity': activity}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'delete_leisure':
+                delete_leisure_activity(conn, body['id'])
                 return {
                     'statusCode': 200,
                     'headers': headers,
