@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Combobox } from '@/components/ui/combobox';
+import { CURRENCIES, getCurrencyByCode, getExchangeRate, formatCurrencyOptions } from '@/data/currencies';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -44,24 +46,7 @@ const CATEGORIES = [
   { value: 'other', label: 'Другое', icon: 'Wallet' },
 ];
 
-const EXCHANGE_RATES: { [key: string]: number } = {
-  RUB: 1,
-  USD: 95,
-  EUR: 105,
-  GBP: 120,
-  CNY: 13,
-  JPY: 0.65,
-  TRY: 3.2,
-  AED: 26,
-  THB: 2.8,
-  VND: 0.0038,
-  EGP: 2,
-  INR: 1.15,
-  KZT: 0.21,
-  BYN: 29,
-  UAH: 2.3,
-  GEL: 36,
-};
+
 
 export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate, onExpensesChange }: TripExpensesProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -241,8 +226,10 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
 
   const convertToTripCurrency = (amount: number, currency: string, customRate?: number): number => {
     if (currency === tripCurrency) return amount;
-    const rate = customRate || EXCHANGE_RATES[currency] || 1;
-    const tripRate = EXCHANGE_RATES[tripCurrency] || 1;
+    const fromCurrency = getCurrencyByCode(currency);
+    const toCurrency = getCurrencyByCode(tripCurrency);
+    const rate = customRate || fromCurrency?.rate || 1;
+    const tripRate = toCurrency?.rate || 1;
     return (amount * rate) / tripRate;
   };
 
@@ -505,36 +492,19 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
               </div>
               <div>
                 <Label>Валюта</Label>
-                <Select
+                <Combobox
                   value={newExpense.currency}
                   onValueChange={(val) => {
+                    const currency = getCurrencyByCode(val);
                     const savedRate = savedExchangeRates[val];
-                    const rate = val === tripCurrency ? '1' : (savedRate?.toString() || EXCHANGE_RATES[val]?.toString() || '1');
+                    const rate = val === tripCurrency ? '1' : (savedRate?.toString() || currency?.rate.toString() || '1');
                     setNewExpense({ ...newExpense, currency: val, exchange_rate: rate });
                   }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="RUB">🇷🇺 RUB - Российский рубль</SelectItem>
-                    <SelectItem value="USD">🇺🇸 USD - Доллар США</SelectItem>
-                    <SelectItem value="EUR">🇪🇺 EUR - Евро</SelectItem>
-                    <SelectItem value="GBP">🇬🇧 GBP - Фунт стерлингов</SelectItem>
-                    <SelectItem value="CNY">🇨🇳 CNY - Юань</SelectItem>
-                    <SelectItem value="JPY">🇯🇵 JPY - Японская иена</SelectItem>
-                    <SelectItem value="TRY">🇹🇷 TRY - Турецкая лира</SelectItem>
-                    <SelectItem value="AED">🇦🇪 AED - Дирхам ОАЭ</SelectItem>
-                    <SelectItem value="THB">🇹🇭 THB - Тайский бат</SelectItem>
-                    <SelectItem value="VND">🇻🇳 VND - Вьетнамский донг</SelectItem>
-                    <SelectItem value="EGP">🇪🇬 EGP - Египетский фунт</SelectItem>
-                    <SelectItem value="INR">🇮🇳 INR - Индийская рупия</SelectItem>
-                    <SelectItem value="KZT">🇰🇿 KZT - Казахстанский тенге</SelectItem>
-                    <SelectItem value="BYN">🇧🇾 BYN - Белорусский рубль</SelectItem>
-                    <SelectItem value="UAH">🇺🇦 UAH - Украинская гривна</SelectItem>
-                    <SelectItem value="GEL">🇬🇪 GEL - Грузинский лари</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={formatCurrencyOptions()}
+                  placeholder="Выберите валюту"
+                  searchPlaceholder="Поиск валюты..."
+                  emptyText="Валюта не найдена"
+                />
               </div>
             </div>
 
@@ -675,21 +645,14 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
                 </div>
                 <div>
                   <Label>Валюта</Label>
-                  <Select
+                  <Combobox
                     value={editingExpense.currency}
                     onValueChange={(val) => setEditingExpense({ ...editingExpense, currency: val })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="RUB">RUB</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                      <SelectItem value="CNY">CNY</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    options={formatCurrencyOptions()}
+                    placeholder="Выберите валюту"
+                    searchPlaceholder="Поиск валюты..."
+                    emptyText="Валюта не найдена"
+                  />
                 </div>
               </div>
 

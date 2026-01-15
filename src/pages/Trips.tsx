@@ -6,6 +6,7 @@ import { CreateTripDialog } from '@/components/trips/CreateTripDialog';
 import { EditTripDialog } from '@/components/trips/EditTripDialog';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { detectCurrencyByCountry } from '@/data/currencies';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -119,7 +120,7 @@ export default function Trips() {
           ...newTrip,
           budget: newTrip.budget ? parseFloat(newTrip.budget) : null,
           status: 'planning',
-          currency: 'RUB',
+          currency: detectCurrencyByCountry(newTrip.country),
           created_by: 1,
         }),
       });

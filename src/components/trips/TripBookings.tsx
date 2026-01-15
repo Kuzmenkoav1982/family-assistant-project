@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { Combobox } from '@/components/ui/combobox';
+import { formatCurrencyOptions } from '@/data/currencies';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -384,29 +386,14 @@ export function TripBookings({ tripId, bookings, tripCurrency, onUpdate }: TripB
               </div>
               <div>
                 <Label htmlFor="currency">Валюта</Label>
-                <Select value={newBooking.currency} onValueChange={(val) => setNewBooking({ ...newBooking, currency: val })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="RUB">🇷🇺 RUB - Российский рубль</SelectItem>
-                    <SelectItem value="USD">🇺🇸 USD - Доллар США</SelectItem>
-                    <SelectItem value="EUR">🇪🇺 EUR - Евро</SelectItem>
-                    <SelectItem value="GBP">🇬🇧 GBP - Фунт стерлингов</SelectItem>
-                    <SelectItem value="CNY">🇨🇳 CNY - Юань</SelectItem>
-                    <SelectItem value="JPY">🇯🇵 JPY - Японская иена</SelectItem>
-                    <SelectItem value="TRY">🇹🇷 TRY - Турецкая лира</SelectItem>
-                    <SelectItem value="AED">🇦🇪 AED - Дирхам ОАЭ</SelectItem>
-                    <SelectItem value="THB">🇹🇭 THB - Тайский бат</SelectItem>
-                    <SelectItem value="VND">🇻🇳 VND - Вьетнамский донг</SelectItem>
-                    <SelectItem value="EGP">🇪🇬 EGP - Египетский фунт</SelectItem>
-                    <SelectItem value="INR">🇮🇳 INR - Индийская рупия</SelectItem>
-                    <SelectItem value="KZT">🇰🇿 KZT - Казахстанский тенге</SelectItem>
-                    <SelectItem value="BYN">🇧🇾 BYN - Белорусский рубль</SelectItem>
-                    <SelectItem value="UAH">🇺🇦 UAH - Украинская гривна</SelectItem>
-                    <SelectItem value="GEL">🇬🇪 GEL - Грузинский лари</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  value={newBooking.currency}
+                  onValueChange={(val) => setNewBooking({ ...newBooking, currency: val })}
+                  options={formatCurrencyOptions()}
+                  placeholder="Выберите валюту"
+                  searchPlaceholder="Поиск валюты..."
+                  emptyText="Валюта не найдена"
+                />
               </div>
               <div>
                 <Label htmlFor="status">Статус</Label>
