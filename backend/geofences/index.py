@@ -55,7 +55,7 @@ def get_geofences(conn) -> dict:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute('''
             SELECT id, name, center_lat, center_lng, radius, color, created_at
-            FROM geofences
+            FROM t_p5815085_family_assistant_pro.geofences
             ORDER BY created_at DESC
         ''')
         geofences = cur.fetchall()
@@ -89,7 +89,7 @@ def create_geofence(conn, event: dict) -> dict:
         
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('''
-                INSERT INTO geofences (name, center_lat, center_lng, radius, color)
+                INSERT INTO t_p5815085_family_assistant_pro.geofences (name, center_lat, center_lng, radius, color)
                 VALUES (%s, %s, %s, %s, %s)
                 RETURNING id, name, center_lat, center_lng, radius, color, created_at
             ''', (name, center_lat, center_lng, radius, color))
@@ -123,7 +123,7 @@ def delete_geofence(conn, event: dict) -> dict:
             }
         
         with conn.cursor() as cur:
-            cur.execute('DELETE FROM geofences WHERE id = %s', (zone_id,))
+            cur.execute('DELETE FROM t_p5815085_family_assistant_pro.geofences WHERE id = %s', (zone_id,))
             
             return {
                 'statusCode': 200,

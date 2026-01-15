@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,7 @@ interface Geofence {
 }
 
 export default function FamilyTracker() {
+  const navigate = useNavigate();
   const [map, setMap] = useState<any>(null);
   const [locations, setLocations] = useState<LocationData[]>([]);
   const [isTracking, setIsTracking] = useState(() => {
@@ -298,6 +300,34 @@ export default function FamilyTracker() {
     }
   };
 
+  // Удаление геозоны
+  const deleteGeofence = async (zoneId: number) => {
+    if (!confirm('Удалить эту зону?')) return;
+    
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(`https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459?id=${zoneId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Auth-Token': token || ''
+        }
+      });
+
+      if (response.ok) {
+        // Обновляем список зон
+        setGeofences(geofences.filter(z => z.id !== zoneId));
+        // Перезагружаем карту
+        if (map) {
+          map.geoObjects.removeAll();
+          loadGeofences();
+          loadFamilyLocations();
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка удаления зоны:', error);
+    }
+  };
+
   // Загрузка геозон
   const loadGeofences = async () => {
     try {
@@ -447,6 +477,14 @@ export default function FamilyTracker() {
         {/* Заголовок */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/')}
+              className="rounded-full"
+            >
+              <Icon name="Home" size={24} />
+            </Button>
             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white">
               <Icon name="MapPin" size={24} />
             </div>
@@ -595,6 +633,29 @@ export default function FamilyTracker() {
                         <span className="text-sm font-medium text-gray-700 min-w-[60px]">{newZoneRadius} м</span>
                       </div>
                     </div>
+                  </div>
+                )}
+                
+                {geofences.length > 0 && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Безопасные зоны ({geofences.length}):</p>
+                    {geofences.map((zone) => (
+                      <div key={zone.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <Icon name="MapPin" size={16} className="text-purple-600" />
+                          <span className="text-sm font-medium">{zone.name}</span>
+                          <span className="text-xs text-gray-500">{zone.radius}м</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteGeofence(zone.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
