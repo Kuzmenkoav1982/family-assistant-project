@@ -33,7 +33,9 @@ interface Geofence {
 export default function FamilyTracker() {
   const [map, setMap] = useState<any>(null);
   const [locations, setLocations] = useState<LocationData[]>([]);
-  const [isTracking, setIsTracking] = useState(false);
+  const [isTracking, setIsTracking] = useState(() => {
+    return localStorage.getItem('isTracking') === 'true';
+  });
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string>('');
   const [geofences, setGeofences] = useState<Geofence[]>([]);
@@ -128,6 +130,7 @@ export default function FamilyTracker() {
 
     setError('');
     setIsTracking(true);
+    localStorage.setItem('isTracking', 'true');
 
     // Получение координат и отправка на сервер
     const sendCurrentLocation = () => {
@@ -230,6 +233,7 @@ export default function FamilyTracker() {
     }
     
     setIsTracking(false);
+    localStorage.setItem('isTracking', 'false');
   };
 
   // Добавление геозоны
@@ -373,24 +377,43 @@ export default function FamilyTracker() {
 
       if (response.ok) {
         const data = await response.json();
-        setLocations(data.locations || []);
+        
+        // Показываем только последнюю локацию каждого члена семьи
+        const latestLocations: { [key: string]: LocationData } = {};
+        (data.locations || []).forEach((loc: LocationData) => {
+          if (!latestLocations[loc.memberId] || 
+              new Date(loc.timestamp) > new Date(latestLocations[loc.memberId].timestamp)) {
+            latestLocations[loc.memberId] = loc;
+          }
+        });
+        const filteredLocations = Object.values(latestLocations);
+        setLocations(filteredLocations);
 
         // Отображение меток на карте
-        if (map && data.locations) {
-          data.locations.forEach((loc: LocationData) => {
+        if (map) {
+          // Очищаем старые метки (но не геозоны)
+          map.geoObjects.each((geoObject: any) => {
+            if (geoObject.properties && geoObject.properties.get('type') === 'member-location') {
+              map.geoObjects.remove(geoObject);
+            }
+          });
+
+          filteredLocations.forEach((loc: LocationData) => {
             const member = familyMembers.find(m => m.id === loc.memberId);
             if (member) {
               // @ts-ignore
               const placemark = new window.ymaps.Placemark(
                 [loc.lat, loc.lng],
                 {
-                  balloonContent: `${member.name}<br>${new Date(loc.timestamp).toLocaleString()}`
+                  balloonContent: `${member.name}<br>${new Date(loc.timestamp).toLocaleString()}`,
+                  type: 'member-location'
                 },
                 {
                   preset: 'islands#circleIcon',
                   iconColor: member.color
                 }
               );
+              placemark.properties.set('type', 'member-location');
               map.geoObjects.add(placemark);
             }
           });
@@ -408,6 +431,13 @@ export default function FamilyTracker() {
       // Обновление каждые 30 секунд
       const interval = setInterval(loadFamilyLocations, 30000);
       return () => clearInterval(interval);
+    }
+  }, [map]);
+
+  // Восстановление отслеживания при загрузке страницы
+  useEffect(() => {
+    if (isTracking && map) {
+      startTracking();
     }
   }, [map]);
 

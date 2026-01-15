@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -20,6 +21,7 @@ interface FamilyMember {
 }
 
 export default function LocationHistory() {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMember, setSelectedMember] = useState<string>('');
   const [history, setHistory] = useState<LocationPoint[]>([]);
@@ -184,6 +186,14 @@ export default function LocationHistory() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Заголовок */}
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/family-tracker')}
+            className="rounded-full"
+          >
+            <Icon name="ArrowLeft" size={24} />
+          </Button>
           <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center text-white">
             <Icon name="History" size={24} />
           </div>
