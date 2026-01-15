@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "Логирование входа пользователя",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "action_type": "login",
+        "action_category": "auth",
+        "details": {
+          "method": "phone",
+          "phone": "+79991234567"
+        },
+        "status": "success"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Логирование экспорта данных",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "action_type": "data_export",
+        "action_category": "data_export",
+        "details": {
+          "format": "csv",
+          "records_count": 150
+        },
+        "status": "success"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Просмотр логов пользователя",
+      "method": "GET",
+      "path": "/?user_id=1&limit=10",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "logs": []
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

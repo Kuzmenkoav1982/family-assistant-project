@@ -3,6 +3,7 @@ import os
 import psycopg2
 from datetime import datetime
 import math
+from audit_helper import log_location_update
 
 def handler(event: dict, context) -> dict:
     """
@@ -121,6 +122,9 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             cur.close()
             conn.close()
+            
+            # Логирование обновления геолокации
+            log_location_update(user_id, lat, lng, accuracy)
             
             return {
                 'statusCode': 200,

@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from audit_helper import log_auth_action
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
@@ -259,6 +260,14 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
         cur.close()
         conn.close()
         
+        # Логирование регистрации
+        log_auth_action(
+            user_id=user['id'],
+            action_type='register',
+            details={'phone': phone, 'has_invite': bool(invite_code)},
+            status='success'
+        )
+        
         return {
             'success': True,
             'token': token,
@@ -290,6 +299,15 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
         if not user or not user['password_hash'] or user['password_hash'] != password_hash:
             cur.close()
             conn.close()
+            # Логирование неудачной попытки входа
+            if user:
+                log_auth_action(
+                    user_id=user['id'],
+                    action_type='login',
+                    details={'phone': phone},
+                    status='failure',
+                    error_message='Неверный пароль'
+                )
             return {'error': 'Неверный телефон или пароль'}
         
         token = generate_token()
@@ -329,6 +347,14 @@ def login_user(phone: str, password: str) -> Dict[str, Any]:
         
         cur.close()
         conn.close()
+        
+        # Логирование успешного входа
+        log_auth_action(
+            user_id=user['id'],
+            action_type='login',
+            details={'phone': phone, 'method': 'password'},
+            status='success'
+        )
         
         return {
             'success': True,

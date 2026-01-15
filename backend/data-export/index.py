@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from audit_helper import log_data_export
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
@@ -260,6 +261,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         params = event.get('queryStringParameters', {})
         export_format = params.get('format', 'csv').lower()
+        
+        # Подсчет количества записей
+        total_records = len(data.get('members', [])) + len(data.get('tasks', []))
+        
+        # Логирование экспорта
+        log_data_export(
+            user_id=int(user_id),
+            export_format=export_format,
+            records_count=total_records
+        )
         
         if export_format == 'pdf':
             html_content = generate_html_for_pdf(data)
