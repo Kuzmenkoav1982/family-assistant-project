@@ -593,33 +593,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
-        
-        # Получить досуговые активности
-        if method == 'GET' and action == 'leisure':
-            status = params.get('status', 'all')
-            activities = get_leisure_activities(conn, user_id, status)
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps({'activities': activities}, ensure_ascii=False),
-                'isBase64Encoded': False
-            }
-        
-        # Получить детали активности
-        if method == 'GET' and action == 'leisure_activity':
-            activity_id = int(params.get('id'))
-            activity = get_leisure_activity(conn, activity_id)
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps({'activity': activity}, ensure_ascii=False),
-                'isBase64Encoded': False
-            }
-        
-        # Создать/обновить/удалить досуговую активность
-        if method == 'POST':
-            body = json.loads(event.get('body', '{}'))
-            post_action = body.get('action')
             
             if post_action == 'create_leisure':
                 activity = create_leisure_activity(conn, body, user_id)
@@ -647,6 +620,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
+        
+        # Получить досуговые активности
+        if method == 'GET' and action == 'leisure':
+            status = params.get('status', 'all')
+            activities = get_leisure_activities(conn, user_id, status)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'activities': activities}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        
+        # Получить детали активности
+        if method == 'GET' and action == 'leisure_activity':
+            activity_id = int(params.get('id'))
+            activity = get_leisure_activity(conn, activity_id)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'activity': activity}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
         
         return {
             'statusCode': 404,
