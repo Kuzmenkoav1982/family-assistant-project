@@ -111,7 +111,7 @@ def get_user_and_family(conn, event: Dict[str, Any]) -> tuple:
         return user_id, family_id
 
 
-def get_leisure_activities(conn, user_id: int, status_filter: Optional[str] = None) -> List[Dict]:
+def get_leisure_activities(conn, user_id: str, status_filter: Optional[str] = None) -> List[Dict]:
     """Получить список досуговых активностей"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         if status_filter and status_filter != 'all':
@@ -137,7 +137,7 @@ def get_leisure_activity(conn, activity_id: int) -> Dict:
         return convert_for_json(dict(result))
 
 
-def create_leisure_activity(conn, data: Dict, user_id: int) -> Dict:
+def create_leisure_activity(conn, data: Dict, user_id: str) -> Dict:
     """Создать новую активность"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
