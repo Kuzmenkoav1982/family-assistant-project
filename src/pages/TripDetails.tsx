@@ -325,7 +325,7 @@ export default function TripDetails() {
         </TabsContent>
 
         <TabsContent value="bookings" className="space-y-4 mt-0">
-          <TripBookings tripId={Number(id)} bookings={bookings} onUpdate={loadTripData} />
+          <TripBookings tripId={Number(id)} bookings={bookings} tripCurrency={trip.currency} onUpdate={loadTripData} />
         </TabsContent>
 
         <TabsContent value="itinerary" className="space-y-4 mt-0">

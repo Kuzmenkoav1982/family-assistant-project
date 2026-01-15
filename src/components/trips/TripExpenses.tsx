@@ -45,11 +45,22 @@ const CATEGORIES = [
 ];
 
 const EXCHANGE_RATES: { [key: string]: number } = {
+  RUB: 1,
   USD: 95,
   EUR: 105,
   GBP: 120,
   CNY: 13,
-  RUB: 1,
+  JPY: 0.65,
+  TRY: 3.2,
+  AED: 26,
+  THB: 2.8,
+  VND: 0.0038,
+  EGP: 2,
+  INR: 1.15,
+  KZT: 0.21,
+  BYN: 29,
+  UAH: 2.3,
+  GEL: 36,
 };
 
 export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate, onExpensesChange }: TripExpensesProps) {
@@ -506,11 +517,22 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="RUB">RUB</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="GBP">GBP</SelectItem>
-                    <SelectItem value="CNY">CNY</SelectItem>
+                    <SelectItem value="RUB">🇷🇺 RUB - Российский рубль</SelectItem>
+                    <SelectItem value="USD">🇺🇸 USD - Доллар США</SelectItem>
+                    <SelectItem value="EUR">🇪🇺 EUR - Евро</SelectItem>
+                    <SelectItem value="GBP">🇬🇧 GBP - Фунт стерлингов</SelectItem>
+                    <SelectItem value="CNY">🇨🇳 CNY - Юань</SelectItem>
+                    <SelectItem value="JPY">🇯🇵 JPY - Японская иена</SelectItem>
+                    <SelectItem value="TRY">🇹🇷 TRY - Турецкая лира</SelectItem>
+                    <SelectItem value="AED">🇦🇪 AED - Дирхам ОАЭ</SelectItem>
+                    <SelectItem value="THB">🇹🇭 THB - Тайский бат</SelectItem>
+                    <SelectItem value="VND">🇻🇳 VND - Вьетнамский донг</SelectItem>
+                    <SelectItem value="EGP">🇪🇬 EGP - Египетский фунт</SelectItem>
+                    <SelectItem value="INR">🇮🇳 INR - Индийская рупия</SelectItem>
+                    <SelectItem value="KZT">🇰🇿 KZT - Казахстанский тенге</SelectItem>
+                    <SelectItem value="BYN">🇧🇾 BYN - Белорусский рубль</SelectItem>
+                    <SelectItem value="UAH">🇺🇦 UAH - Украинская гривна</SelectItem>
+                    <SelectItem value="GEL">🇬🇪 GEL - Грузинский лари</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

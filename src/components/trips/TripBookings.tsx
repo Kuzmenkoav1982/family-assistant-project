@@ -28,10 +28,11 @@ interface Booking {
 interface TripBookingsProps {
   tripId: number;
   bookings: Booking[];
+  tripCurrency: string;
   onUpdate: () => void;
 }
 
-export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) {
+export function TripBookings({ tripId, bookings, tripCurrency, onUpdate }: TripBookingsProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [newBooking, setNewBooking] = useState({
@@ -42,7 +43,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
     date_from: '',
     date_to: '',
     cost: '',
-    currency: 'RUB',
+    currency: tripCurrency,
     status: 'pending',
     notes: ''
   });
@@ -87,7 +88,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
           date_from: '',
           date_to: '',
           cost: '',
-          currency: 'RUB',
+          currency: tripCurrency,
           status: 'pending',
           notes: ''
         });
@@ -291,7 +292,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
             date_from: '',
             date_to: '',
             cost: '',
-            currency: 'RUB',
+            currency: tripCurrency,
             status: 'pending',
             notes: ''
           });
@@ -370,7 +371,7 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="cost">Стоимость</Label>
                 <Input
@@ -380,6 +381,32 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
                   onChange={(e) => setNewBooking({ ...newBooking, cost: e.target.value })}
                   placeholder="0"
                 />
+              </div>
+              <div>
+                <Label htmlFor="currency">Валюта</Label>
+                <Select value={newBooking.currency} onValueChange={(val) => setNewBooking({ ...newBooking, currency: val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RUB">🇷🇺 RUB - Российский рубль</SelectItem>
+                    <SelectItem value="USD">🇺🇸 USD - Доллар США</SelectItem>
+                    <SelectItem value="EUR">🇪🇺 EUR - Евро</SelectItem>
+                    <SelectItem value="GBP">🇬🇧 GBP - Фунт стерлингов</SelectItem>
+                    <SelectItem value="CNY">🇨🇳 CNY - Юань</SelectItem>
+                    <SelectItem value="JPY">🇯🇵 JPY - Японская иена</SelectItem>
+                    <SelectItem value="TRY">🇹🇷 TRY - Турецкая лира</SelectItem>
+                    <SelectItem value="AED">🇦🇪 AED - Дирхам ОАЭ</SelectItem>
+                    <SelectItem value="THB">🇹🇭 THB - Тайский бат</SelectItem>
+                    <SelectItem value="VND">🇻🇳 VND - Вьетнамский донг</SelectItem>
+                    <SelectItem value="EGP">🇪🇬 EGP - Египетский фунт</SelectItem>
+                    <SelectItem value="INR">🇮🇳 INR - Индийская рупия</SelectItem>
+                    <SelectItem value="KZT">🇰🇿 KZT - Казахстанский тенге</SelectItem>
+                    <SelectItem value="BYN">🇧🇾 BYN - Белорусский рубль</SelectItem>
+                    <SelectItem value="UAH">🇺🇦 UAH - Украинская гривна</SelectItem>
+                    <SelectItem value="GEL">🇬🇪 GEL - Грузинский лари</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="status">Статус</Label>

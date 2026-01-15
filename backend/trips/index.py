@@ -31,6 +31,56 @@ def get_db_connection():
     return psycopg2.connect(dsn)
 
 
+def get_currency_by_country(country: Optional[str]) -> str:
+    """Определяет валюту по названию страны"""
+    if not country:
+        return 'RUB'
+    
+    country_lower = country.lower()
+    currency_map = {
+        'россия': 'RUB', 'russia': 'RUB',
+        'сша': 'USD', 'usa': 'USD', 'америка': 'USD', 'united states': 'USD',
+        'франция': 'EUR', 'france': 'EUR',
+        'германия': 'EUR', 'germany': 'EUR',
+        'италия': 'EUR', 'italy': 'EUR',
+        'испания': 'EUR', 'spain': 'EUR',
+        'португалия': 'EUR', 'portugal': 'EUR',
+        'греция': 'EUR', 'greece': 'EUR',
+        'нидерланды': 'EUR', 'netherlands': 'EUR',
+        'бельгия': 'EUR', 'belgium': 'EUR',
+        'австрия': 'EUR', 'austria': 'EUR',
+        'финляндия': 'EUR', 'finland': 'EUR',
+        'великобритания': 'GBP', 'united kingdom': 'GBP', 'england': 'GBP', 'англия': 'GBP',
+        'китай': 'CNY', 'china': 'CNY',
+        'япония': 'JPY', 'japan': 'JPY',
+        'турция': 'TRY', 'turkey': 'TRY',
+        'оаэ': 'AED', 'uae': 'AED', 'дубай': 'AED', 'dubai': 'AED',
+        'таиланд': 'THB', 'thailand': 'THB',
+        'вьетнам': 'VND', 'vietnam': 'VND',
+        'египет': 'EGP', 'egypt': 'EGP',
+        'индия': 'INR', 'india': 'INR',
+        'казахстан': 'KZT', 'kazakhstan': 'KZT',
+        'беларусь': 'BYN', 'belarus': 'BYN',
+        'украина': 'UAH', 'ukraine': 'UAH',
+        'грузия': 'GEL', 'georgia': 'GEL',
+        'армения': 'AMD', 'armenia': 'AMD',
+        'узбекистан': 'UZS', 'uzbekistan': 'UZS',
+        'азербайджан': 'AZN', 'azerbaijan': 'AZN',
+        'сербия': 'RSD', 'serbia': 'RSD',
+        'черногория': 'EUR', 'montenegro': 'EUR',
+        'хорватия': 'EUR', 'croatia': 'EUR',
+        'болгария': 'BGN', 'bulgaria': 'BGN',
+        'чехия': 'CZK', 'czech': 'CZK',
+        'польша': 'PLN', 'poland': 'PLN',
+        'швейцария': 'CHF', 'switzerland': 'CHF',
+        'норвегия': 'NOK', 'norway': 'NOK',
+        'швеция': 'SEK', 'sweden': 'SEK',
+        'дания': 'DKK', 'denmark': 'DKK',
+    }
+    
+    return currency_map.get(country_lower, 'RUB')
+
+
 def get_user_and_family(conn, event: Dict[str, Any]) -> tuple:
     """Извлекает user_id и family_id из токена авторизации"""
     headers = event.get('headers', {})
@@ -557,6 +607,10 @@ def get_trip_details(conn, trip_id: int) -> Dict:
 
 def create_trip(conn, data: Dict, family_id: str) -> Dict:
     """Создать новую поездку с привязкой к семье"""
+    country = data.get('country')
+    auto_currency = get_currency_by_country(country)
+    currency = data.get('currency', auto_currency)
+    
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
@@ -565,9 +619,9 @@ def create_trip(conn, data: Dict, family_id: str) -> Dict:
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
-            (data['title'], data['destination'], data.get('country'), 
+            (data['title'], data['destination'], country, 
              data['start_date'], data['end_date'], data.get('status', 'planning'),
-             data.get('budget'), data.get('currency', 'RUB'), data.get('description'),
+             data.get('budget'), currency, data.get('description'),
              json.dumps(data.get('participants', [])), data.get('created_by'), family_id)
         )
         conn.commit()
