@@ -53,6 +53,11 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
       return;
     }
 
+    if (!newBooking.date_from || !newBooking.date_to) {
+      alert('Укажите даты начала и окончания брони');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(TRIPS_API_URL, {
@@ -345,21 +350,23 @@ export function TripBookings({ tripId, bookings, onUpdate }: TripBookingsProps) 
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="date_from">Дата начала</Label>
+                <Label htmlFor="date_from">Дата начала *</Label>
                 <Input
                   id="date_from"
                   type="date"
                   value={newBooking.date_from}
                   onChange={(e) => setNewBooking({ ...newBooking, date_from: e.target.value })}
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="date_to">Дата окончания</Label>
+                <Label htmlFor="date_to">Дата окончания *</Label>
                 <Input
                   id="date_to"
                   type="date"
                   value={newBooking.date_to}
                   onChange={(e) => setNewBooking({ ...newBooking, date_to: e.target.value })}
+                  required
                 />
               </div>
             </div>
