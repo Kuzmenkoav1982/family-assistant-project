@@ -13,6 +13,7 @@ import { formatCurrencyOptions, getCurrencyByCode } from '@/data/currencies';
 import { AIAssistant } from '@/components/leisure/AIAssistant';
 import { PlaceSearch } from '@/components/leisure/PlaceSearch';
 import { LeisureMap } from '@/components/leisure/LeisureMap';
+import { PhotoUpload } from '@/components/leisure/PhotoUpload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
@@ -76,6 +77,8 @@ export default function Leisure() {
     phone: '',
     booking_required: false,
     booking_url: '',
+    latitude: '',
+    longitude: '',
   });
 
   const loadActivities = useCallback(async (status: string) => {
@@ -134,6 +137,8 @@ export default function Leisure() {
           action: 'create_leisure',
           ...newActivity,
           price: newActivity.price ? parseFloat(newActivity.price) : null,
+          latitude: newActivity.latitude ? parseFloat(newActivity.latitude) : null,
+          longitude: newActivity.longitude ? parseFloat(newActivity.longitude) : null,
         }),
       });
 
@@ -223,6 +228,8 @@ export default function Leisure() {
       phone: '',
       booking_required: false,
       booking_url: '',
+      latitude: place.coordinates?.lat?.toString() || '',
+      longitude: place.coordinates?.lon?.toString() || '',
     });
     setIsAddDialogOpen(true);
   };
@@ -242,6 +249,8 @@ export default function Leisure() {
       phone: place.phone || '',
       booking_required: false,
       booking_url: '',
+      latitude: place.coordinates?.lat?.toString() || '',
+      longitude: place.coordinates?.lon?.toString() || '',
     });
     setIsAddDialogOpen(true);
   };
@@ -271,6 +280,8 @@ export default function Leisure() {
       phone: '',
       booking_required: false,
       booking_url: '',
+      latitude: '',
+      longitude: '',
     });
   };
 
@@ -453,6 +464,11 @@ export default function Leisure() {
                   )}
 
                   <div className="flex gap-2 mt-4 pt-4 border-t">
+                    <PhotoUpload
+                      activityId={activity.id}
+                      existingPhotos={[]}
+                      onPhotosUpdate={(photos) => console.log('Photos updated:', photos)}
+                    />
                     <Button
                       variant="outline"
                       size="sm"

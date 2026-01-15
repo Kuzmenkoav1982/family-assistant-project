@@ -83,24 +83,17 @@ def handle_recommend(body: dict, headers: dict) -> dict:
 5. Для какого возраста подходит
 6. Адрес
 
-Формат ответа: JSON массив объектов с полями: title, category, description, price_range, age_suitable, address"""
+ВАЖНО: Верни ТОЛЬКО валидный JSON массив без дополнительного текста и markdown разметки.
+Пример: [{{title: название, category: категория, description: описание, price_range: цена, age_suitable: возраст, address: адрес}}]"""
 
     yandex_api_key = os.environ.get('YANDEX_GPT_API_KEY')
-    yandex_folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    yandex_folder_id = 'b1gaglg8i7v2i32nvism'
     
     if not yandex_api_key:
         return {
             'statusCode': 500,
             'headers': headers,
             'body': json.dumps({'error': 'YANDEX_GPT_API_KEY not configured'}),
-            'isBase64Encoded': False
-        }
-    
-    if not yandex_folder_id:
-        return {
-            'statusCode': 500,
-            'headers': headers,
-            'body': json.dumps({'error': 'YANDEX_FOLDER_ID not configured'}),
             'isBase64Encoded': False
         }
     
@@ -139,10 +132,19 @@ def handle_recommend(body: dict, headers: dict) -> dict:
         result = response.json()
         text_response = result['result']['alternatives'][0]['message']['text']
         
+        text_clean = text_response.strip()
+        if text_clean.startswith('```json'):
+            text_clean = text_clean[7:]
+        elif text_clean.startswith('```'):
+            text_clean = text_clean[3:]
+        if text_clean.endswith('```'):
+            text_clean = text_clean[:-3]
+        text_clean = text_clean.strip()
+        
         try:
-            recommendations = json.loads(text_response)
+            recommendations = json.loads(text_clean)
         except:
-            recommendations = [{'title': 'Ошибка парсинга', 'description': text_response}]
+            recommendations = [{'title': 'Ошибка парсинга', 'description': text_clean[:500]}]
         
         return {
             'statusCode': 200,
