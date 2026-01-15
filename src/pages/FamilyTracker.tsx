@@ -431,16 +431,31 @@ export default function FamilyTracker() {
           filteredLocations.forEach((loc: LocationData) => {
             const member = familyMembers.find(m => m.id === loc.memberId);
             if (member) {
-              // Создаём SVG с круглым аватаром и цветным ободком
-              let iconSvg;
-              if (member.avatar_url) {
-                // Если есть фото - круглое фото с ободком
-                iconSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Cdefs%3E%3CclipPath id='circle-clip'%3E%3Ccircle cx='25' cy='25' r='20'/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle cx='25' cy='25' r='23' fill='white'/%3E%3Ccircle cx='25' cy='25' r='22' fill='${encodeURIComponent(member.color)}'/%3E%3Cimage href='${encodeURIComponent(member.avatar_url)}' x='5' y='5' width='40' height='40' clip-path='url(%23circle-clip)' preserveAspectRatio='xMidYMid slice'/%3E%3C/svg%3E`;
-              } else {
-                // Если нет фото - буква в круге с ободком
-                iconSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Ccircle cx='25' cy='25' r='23' fill='white'/%3E%3Ccircle cx='25' cy='25' r='22' fill='${encodeURIComponent(member.color)}'/%3E%3Ccircle cx='25' cy='25' r='20' fill='${encodeURIComponent(member.color)}40'/%3E%3Ctext x='25' y='25' text-anchor='middle' dy='.35em' fill='${encodeURIComponent(member.color)}' font-size='20' font-weight='bold'%3E${member.name.charAt(0)}%3C/text%3E%3C/svg%3E`;
-              }
-              
+              // @ts-ignore
+              const MyIconContentLayout = window.ymaps.templateLayoutFactory.createClass(
+                `<div style="width: 50px; height: 50px; position: relative;">
+                  <div style="
+                    width: 44px; 
+                    height: 44px; 
+                    border-radius: 50%; 
+                    border: 3px solid ${member.color}; 
+                    overflow: hidden;
+                    background: ${member.color}20;
+                    position: absolute;
+                    top: 3px;
+                    left: 3px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    ${member.avatar_url 
+                      ? `<img src="${member.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" />` 
+                      : `<span style="color: ${member.color}; font-size: 20px; font-weight: bold;">${member.name.charAt(0)}</span>`
+                    }
+                  </div>
+                </div>`
+              );
+
               // @ts-ignore
               const placemark = new window.ymaps.Placemark(
                 [loc.lat, loc.lng],
@@ -449,10 +464,12 @@ export default function FamilyTracker() {
                   type: 'member-location'
                 },
                 {
-                  iconLayout: 'default#image',
-                  iconImageHref: iconSvg,
-                  iconImageSize: [50, 50],
-                  iconImageOffset: [-25, -25]
+                  iconLayout: MyIconContentLayout,
+                  iconShape: {
+                    type: 'Circle',
+                    coordinates: [0, 0],
+                    radius: 25
+                  }
                 }
               );
               placemark.properties.set('type', 'member-location');
