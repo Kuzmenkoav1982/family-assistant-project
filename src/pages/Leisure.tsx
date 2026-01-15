@@ -10,6 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Combobox } from '@/components/ui/combobox';
 import { formatCurrencyOptions, getCurrencyByCode } from '@/data/currencies';
+import { AIAssistant } from '@/components/leisure/AIAssistant';
+import { PlaceSearch } from '@/components/leisure/PlaceSearch';
+import { LeisureMap } from '@/components/leisure/LeisureMap';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -42,7 +46,7 @@ const CATEGORIES = [
   { value: 'other', label: 'Другое', icon: 'MapPin' },
 ];
 
-const TABS = [
+const TABS_CONFIG = [
   { value: 'want_to_go', label: 'Хочу посетить', icon: 'Heart' },
   { value: 'planned', label: 'Запланировано', icon: 'CalendarCheck' },
   { value: 'visited', label: 'Посещено', icon: 'Check' },
@@ -54,6 +58,7 @@ export default function Leisure() {
   const [allActivities, setAllActivities] = useState<LeisureActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('want_to_go');
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<LeisureActivity | null>(null);
@@ -136,21 +141,7 @@ export default function Leisure() {
         await loadActivities(activeTab);
         await loadAllActivities();
         setIsAddDialogOpen(false);
-        setNewActivity({
-          title: '',
-          category: 'event',
-          location: '',
-          date: '',
-          time: '',
-          price: '',
-          currency: 'RUB',
-          status: 'want_to_go',
-          notes: '',
-          website: '',
-          phone: '',
-          booking_required: false,
-          booking_url: '',
-        });
+        resetNewActivity();
       }
     } catch (error) {
       console.error('Error creating activity:', error);
@@ -217,6 +208,72 @@ export default function Leisure() {
     }
   };
 
+  const handleAddFromAI = (place: any) => {
+    setNewActivity({
+      title: place.title,
+      category: mapCategory(place.category),
+      location: place.address || '',
+      date: '',
+      time: '',
+      price: '',
+      currency: 'RUB',
+      status: 'want_to_go',
+      notes: place.description || '',
+      website: '',
+      phone: '',
+      booking_required: false,
+      booking_url: '',
+    });
+    setIsAddDialogOpen(true);
+  };
+
+  const handleAddFromSearch = (place: any) => {
+    setNewActivity({
+      title: place.name,
+      category: 'other',
+      location: place.address || place.description || '',
+      date: '',
+      time: '',
+      price: '',
+      currency: 'RUB',
+      status: 'want_to_go',
+      notes: place.description || '',
+      website: place.url || '',
+      phone: place.phone || '',
+      booking_required: false,
+      booking_url: '',
+    });
+    setIsAddDialogOpen(true);
+  };
+
+  const mapCategory = (aiCategory: string): string => {
+    const lower = aiCategory.toLowerCase();
+    if (lower.includes('ресторан') || lower.includes('еда')) return 'restaurant';
+    if (lower.includes('музей') || lower.includes('культура')) return 'culture';
+    if (lower.includes('парк') || lower.includes('природа')) return 'attraction';
+    if (lower.includes('развлечение')) return 'entertainment';
+    if (lower.includes('спорт')) return 'sport';
+    return 'other';
+  };
+
+  const resetNewActivity = () => {
+    setNewActivity({
+      title: '',
+      category: 'event',
+      location: '',
+      date: '',
+      time: '',
+      price: '',
+      currency: 'RUB',
+      status: 'want_to_go',
+      notes: '',
+      website: '',
+      phone: '',
+      booking_required: false,
+      booking_url: '',
+    });
+  };
+
   const getCategoryInfo = (category: string) => {
     return CATEGORIES.find(c => c.value === category) || CATEGORIES[0];
   };
@@ -242,7 +299,6 @@ export default function Leisure() {
   };
 
   const getTabCounts = () => {
-    const allActivities = activities;
     return {
       want_to_go: allActivities.filter(a => a.status === 'want_to_go').length,
       planned: allActivities.filter(a => a.status === 'planned').length,
@@ -258,20 +314,46 @@ export default function Leisure() {
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Досуг</h1>
               <p className="text-sm text-gray-500">Места и активности</p>
             </div>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-              <Icon name="Plus" size={20} />
-              Добавить
-            </Button>
+            <div className="flex gap-2">
+              <AIAssistant onAddPlace={handleAddFromAI} />
+              <PlaceSearch onSelectPlace={handleAddFromSearch} />
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                <Icon name="Plus" size={20} />
+                Добавить
+              </Button>
+            </div>
+          </div>
+
+          {/* View Mode */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <Icon name="Grid3x3" size={16} className="mr-2" />
+                Сетка
+              </Button>
+              <Button
+                variant={viewMode === 'map' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('map')}
+              >
+                <Icon name="Map" size={16} className="mr-2" />
+                Карта
+              </Button>
+            </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-            {TABS.map((tab) => (
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {TABS_CONFIG.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
@@ -298,16 +380,20 @@ export default function Leisure() {
           <div className="flex justify-center py-12">
             <Icon name="Loader2" size={32} className="animate-spin text-gray-400" />
           </div>
+        ) : viewMode === 'map' ? (
+          <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
+            <LeisureMap places={activities.map(a => ({ name: a.title, coordinates: undefined }))} />
+          </div>
         ) : activities.length === 0 ? (
           <div className="text-center py-12">
             <Icon name="MapPin" size={64} className="mx-auto mb-4 text-gray-300" />
             <p className="text-gray-500 text-lg mb-4">
               {activeTab === 'all' ? 'Активностей пока нет' : 'Нет активностей в этой категории'}
             </p>
-            <Button onClick={() => setIsAddDialogOpen(true)} variant="outline">
-              <Icon name="Plus" size={16} className="mr-2" />
-              Добавить активность
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <AIAssistant onAddPlace={handleAddFromAI} />
+              <PlaceSearch onSelectPlace={handleAddFromSearch} />
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

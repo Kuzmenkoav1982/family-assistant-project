@@ -1,4 +1,6 @@
 {
+  "upload-leisure-photo": "https://functions.poehali.dev/d9017229-a2a3-4237-a002-bcdb7608c8d9",
+  "leisure-ai": "https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5",
   "data-cleanup": "https://functions.poehali.dev/a2fee8d8-6bf7-4e14-982f-314dbd521bcf",
   "encryption-helper": "https://functions.poehali.dev/3b970e51-7f2a-462f-af32-651897c181ea",
   "rate-limiter": "https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-4702c42ac121",

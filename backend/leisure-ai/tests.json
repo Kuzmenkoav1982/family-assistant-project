@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Get AI recommendations for family leisure",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "recommend",
+        "city": "Москва",
+        "interests": ["культура", "развлечения"],
+        "age_groups": ["дети 5-10 лет"],
+        "budget": "средний"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "recommendations": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Search places via Yandex Maps",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "search_places",
+        "query": "музеи",
+        "city": "Москва"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "places": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

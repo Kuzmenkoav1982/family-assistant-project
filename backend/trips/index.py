@@ -145,16 +145,17 @@ def create_leisure_activity(conn, data: Dict, user_id: str) -> Dict:
             INSERT INTO leisure_activities (
                 user_id, title, category, location, date, time, 
                 price, currency, status, notes, website, phone, 
-                booking_required, booking_url
+                booking_required, booking_url, tags, latitude, longitude
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
             (user_id, data['title'], data['category'], data.get('location'),
              data.get('date'), data.get('time'), data.get('price'), 
              data.get('currency', 'RUB'), data.get('status', 'want_to_go'),
              data.get('notes'), data.get('website'), data.get('phone'),
-             data.get('booking_required', False), data.get('booking_url'))
+             data.get('booking_required', False), data.get('booking_url'),
+             data.get('tags', []), data.get('latitude'), data.get('longitude'))
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
@@ -169,6 +170,7 @@ def update_leisure_activity(conn, data: Dict) -> Dict:
                 title = %s, category = %s, location = %s, date = %s, time = %s,
                 price = %s, currency = %s, status = %s, rating = %s, notes = %s,
                 website = %s, phone = %s, booking_required = %s, booking_url = %s,
+                tags = %s, latitude = %s, longitude = %s,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
             RETURNING *
@@ -177,7 +179,8 @@ def update_leisure_activity(conn, data: Dict) -> Dict:
              data.get('time'), data.get('price'), data.get('currency', 'RUB'),
              data.get('status'), data.get('rating'), data.get('notes'),
              data.get('website'), data.get('phone'), data.get('booking_required', False),
-             data.get('booking_url'), data['id'])
+             data.get('booking_url'), data.get('tags', []), data.get('latitude'), 
+             data.get('longitude'), data['id'])
         )
         conn.commit()
         result = cur.fetchone()
