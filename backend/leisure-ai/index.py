@@ -8,7 +8,7 @@ def handler(event: dict, context) -> dict:
     
     # Логируем входящий запрос для отладки
     print(f"[INFO] Request method: {event.get('httpMethod')}")
-    print(f"[INFO] Request headers: {event.get('headers', {})}")
+    print(f"[INFO] Request body: {event.get('body', 'no-body')[:200]}")
     print(f"[INFO] Request origin: {event.get('headers', {}).get('origin', 'no-origin')}")
     
     method = event.get('httpMethod', 'GET')
@@ -37,10 +37,15 @@ def handler(event: dict, context) -> dict:
             action = body.get('action')
             
             if action == 'recommend':
+                print(f"[INFO] Action: recommend")
                 return handle_recommend(body, headers)
             elif action == 'search_places':
-                return handle_search_places(body, headers)
+                print(f"[INFO] Action: search_places, query={body.get('query')}, city={body.get('city')}")
+                result = handle_search_places(body, headers)
+                print(f"[INFO] Search result status: {result.get('statusCode')}")
+                return result
             else:
+                print(f"[ERROR] Unknown action: {action}")
                 return {
                     'statusCode': 400,
                     'headers': headers,
