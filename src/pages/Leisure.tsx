@@ -45,6 +45,8 @@ interface LeisureActivity {
   participants?: string[];
   share_token?: string;
   is_public?: boolean;
+  show_in_calendar?: boolean;
+  visible_to?: string[];
 }
 
 const CATEGORIES = [
@@ -91,6 +93,8 @@ export default function Leisure() {
     longitude: '',
     tags: [] as string[],
     participants: [] as string[],
+    show_in_calendar: false,
+    visible_to: [] as string[],
   });
   const [tagInput, setTagInput] = useState('');
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
@@ -416,6 +420,8 @@ export default function Leisure() {
       longitude: '',
       tags: [],
       participants: [],
+      show_in_calendar: false,
+      visible_to: [],
     });
     setTagInput('');
   };
@@ -882,6 +888,31 @@ export default function Leisure() {
                 onChange={(ids) => setNewActivity({ ...newActivity, participants: ids })}
               />
             </div>
+
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="flex items-center gap-2">
+                  <Icon name="CalendarDays" size={16} />
+                  Показать в общем календаре семьи
+                </Label>
+                <input
+                  type="checkbox"
+                  checked={newActivity.show_in_calendar}
+                  onChange={(e) => setNewActivity({ ...newActivity, show_in_calendar: e.target.checked })}
+                  className="w-4 h-4 rounded"
+                />
+              </div>
+              {newActivity.show_in_calendar && (
+                <div className="ml-6 space-y-2">
+                  <Label className="text-sm text-gray-600">Кто увидит в календаре?</Label>
+                  <ParticipantsPicker
+                    selectedIds={newActivity.visible_to}
+                    onChange={(ids) => setNewActivity({ ...newActivity, visible_to: ids })}
+                  />
+                  <p className="text-xs text-gray-500">Если никого не выбрать — увидят все члены семьи</p>
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -1136,6 +1167,31 @@ export default function Leisure() {
                   selectedIds={editingActivity.participants || []}
                   onChange={(ids) => setEditingActivity({ ...editingActivity, participants: ids })}
                 />
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="flex items-center gap-2">
+                    <Icon name="CalendarDays" size={16} />
+                    Показать в общем календаре семьи
+                  </Label>
+                  <input
+                    type="checkbox"
+                    checked={editingActivity.show_in_calendar || false}
+                    onChange={(e) => setEditingActivity({ ...editingActivity, show_in_calendar: e.target.checked })}
+                    className="w-4 h-4 rounded"
+                  />
+                </div>
+                {editingActivity.show_in_calendar && (
+                  <div className="ml-6 space-y-2">
+                    <Label className="text-sm text-gray-600">Кто увидит в календаре?</Label>
+                    <ParticipantsPicker
+                      selectedIds={editingActivity.visible_to || []}
+                      onChange={(ids) => setEditingActivity({ ...editingActivity, visible_to: ids })}
+                    />
+                    <p className="text-xs text-gray-500">Если никого не выбрать — увидят все члены семьи</p>
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>

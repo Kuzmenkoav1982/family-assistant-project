@@ -116,12 +116,12 @@ def get_leisure_activities(conn, user_id: str, status_filter: Optional[str] = No
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         if status_filter and status_filter != 'all':
             cur.execute(
-                "SELECT * FROM leisure_activities WHERE user_id = %s AND status = %s ORDER BY date DESC NULLS LAST, created_at DESC",
+                "SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities WHERE user_id = %s AND status = %s ORDER BY date DESC NULLS LAST, created_at DESC",
                 (user_id, status_filter)
             )
         else:
             cur.execute(
-                "SELECT * FROM leisure_activities WHERE user_id = %s ORDER BY date DESC NULLS LAST, created_at DESC",
+                "SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities WHERE user_id = %s ORDER BY date DESC NULLS LAST, created_at DESC",
                 (user_id,)
             )
         return [convert_for_json(dict(row)) for row in cur.fetchall()]
@@ -130,7 +130,7 @@ def get_leisure_activities(conn, user_id: str, status_filter: Optional[str] = No
 def get_leisure_activity(conn, activity_id: int) -> Dict:
     """Получить детали активности"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute("SELECT * FROM leisure_activities WHERE id = %s", (activity_id,))
+        cur.execute("SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities WHERE id = %s", (activity_id,))
         result = cur.fetchone()
         if not result:
             raise ValueError(f"Activity {activity_id} not found")
@@ -142,12 +142,13 @@ def create_leisure_activity(conn, data: Dict, user_id: str) -> Dict:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO leisure_activities (
+            INSERT INTO t_p5815085_family_assistant_pro.leisure_activities (
                 user_id, title, category, location, date, time, 
                 price, currency, status, notes, website, phone, 
-                booking_required, booking_url, tags, latitude, longitude, participants
+                booking_required, booking_url, tags, latitude, longitude, participants,
+                show_in_calendar, visible_to
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
             (user_id, data['title'], data['category'], data.get('location'),
@@ -156,7 +157,8 @@ def create_leisure_activity(conn, data: Dict, user_id: str) -> Dict:
              data.get('notes'), data.get('website'), data.get('phone'),
              data.get('booking_required', False), data.get('booking_url'),
              data.get('tags', []), data.get('latitude'), data.get('longitude'),
-             data.get('participants', []))
+             data.get('participants', []), data.get('show_in_calendar', False),
+             data.get('visible_to'))
         )
         conn.commit()
         return convert_for_json(dict(cur.fetchone()))
@@ -167,11 +169,12 @@ def update_leisure_activity(conn, data: Dict) -> Dict:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            UPDATE leisure_activities SET
+            UPDATE t_p5815085_family_assistant_pro.leisure_activities SET
                 title = %s, category = %s, location = %s, date = %s, time = %s,
                 price = %s, currency = %s, status = %s, rating = %s, notes = %s,
                 website = %s, phone = %s, booking_required = %s, booking_url = %s,
                 tags = %s, latitude = %s, longitude = %s, participants = %s,
+                show_in_calendar = %s, visible_to = %s,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
             RETURNING *
@@ -181,7 +184,8 @@ def update_leisure_activity(conn, data: Dict) -> Dict:
              data.get('status'), data.get('rating'), data.get('notes'),
              data.get('website'), data.get('phone'), data.get('booking_required', False),
              data.get('booking_url'), data.get('tags', []), data.get('latitude'), 
-             data.get('longitude'), data.get('participants', []), data['id'])
+             data.get('longitude'), data.get('participants', []),
+             data.get('show_in_calendar', False), data.get('visible_to'), data['id'])
         )
         conn.commit()
         result = cur.fetchone()
@@ -193,7 +197,7 @@ def update_leisure_activity(conn, data: Dict) -> Dict:
 def delete_leisure_activity(conn, activity_id: int):
     """Удалить активность"""
     with conn.cursor() as cur:
-        cur.execute("DELETE FROM leisure_activities WHERE id = %s", (activity_id,))
+        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.leisure_activities WHERE id = %s", (activity_id,))
         conn.commit()
 
 
