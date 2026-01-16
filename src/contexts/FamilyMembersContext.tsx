@@ -64,7 +64,8 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         method: 'GET',
         headers: {
           'X-Auth-Token': token
-        }
+        },
+        signal: AbortSignal.timeout(10000) // Таймаут 10 секунд
       });
 
       if (!response.ok) {
@@ -132,7 +133,8 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         body: JSON.stringify({
           action: 'add',
           ...backendData
-        })
+        }),
+        signal: AbortSignal.timeout(15000) // Таймаут 15 секунд для добавления
       });
 
       const data = await response.json();

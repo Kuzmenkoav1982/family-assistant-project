@@ -102,15 +102,22 @@ export default function Welcome() {
           method: 'GET',
           headers: {
             'X-Auth-Token': token
-          }
+          },
+          signal: AbortSignal.timeout(8000) // Таймаут 8 секунд
         });
+
+        if (!response.ok) {
+          console.debug('Subscription API unavailable');
+          return;
+        }
 
         const data = await response.json();
         if (data.has_subscription) {
           setSubscription(data);
         }
       } catch (error) {
-        console.error('Ошибка загрузки подписки:', error);
+        console.debug('Subscription load skipped:', error);
+        // Тихо игнорируем ошибку - страница работает без подписки
       }
     };
 

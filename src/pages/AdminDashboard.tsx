@@ -32,13 +32,22 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508');
+        const response = await fetch('https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508', {
+          signal: AbortSignal.timeout(5000) // Таймаут 5 секунд
+        });
+        
+        if (!response.ok) {
+          console.warn('Stats API unavailable, using mock data');
+          return;
+        }
+        
         const data = await response.json();
         if (data.users) {
           setUsersStats(data.users);
         }
       } catch (error) {
-        console.error('Failed to fetch stats:', error);
+        // Тихо игнорируем ошибку - используем моковые данные
+        console.debug('Stats API not available, using default values');
       }
     };
 

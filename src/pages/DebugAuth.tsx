@@ -127,6 +127,24 @@ export default function DebugAuth() {
     return { token, user: user ? JSON.parse(user) : null };
   };
 
+  const clearAssistantSetup = () => {
+    localStorage.removeItem('assistantSetupCompleted');
+    localStorage.removeItem('assistantType');
+    localStorage.removeItem('assistantName');
+    localStorage.removeItem('assistantLevel');
+    localStorage.removeItem('assistantRole');
+    alert('Настройка ассистента сброшена! Перезагрузите страницу.');
+  };
+
+  const clearAllCache = () => {
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    localStorage.clear();
+    if (token) localStorage.setItem('authToken', token);
+    if (user) localStorage.setItem('user', user);
+    alert('Весь кеш очищен (кроме авторизации)! Перезагрузите страницу.');
+  };
+
   const currentData = getCurrentToken();
 
   return (
@@ -165,6 +183,24 @@ export default function DebugAuth() {
             </div>
 
             <div className="space-y-3">
+              <Button 
+                onClick={clearAssistantSetup}
+                className="w-full bg-orange-500 hover:bg-orange-600"
+                size="lg"
+              >
+                <Icon name="RotateCcw" className="mr-2" />
+                🔧 Сбросить настройку ассистента
+              </Button>
+
+              <Button 
+                onClick={clearAllCache}
+                className="w-full bg-red-500 hover:bg-red-600"
+                size="lg"
+              >
+                <Icon name="Trash2" className="mr-2" />
+                🗑️ Очистить весь кеш (кроме авторизации)
+              </Button>
+
               <Button 
                 onClick={testVerify}
                 disabled={loading}

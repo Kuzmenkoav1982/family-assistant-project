@@ -77,7 +77,8 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
           method: 'GET',
           headers: {
             'X-Auth-Token': token
-          }
+          },
+          signal: AbortSignal.timeout(8000) // Таймаут 8 секунд
         });
 
         if (response.ok) {
@@ -88,7 +89,8 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
           }
         }
       } catch (error) {
-        console.error('Ошибка загрузки уровня Домового:', error);
+        console.debug('Assistant level load skipped:', error);
+        // Тихо игнорируем - используем уровень из localStorage
       }
     };
 
@@ -147,7 +149,8 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
         method: 'GET',
         headers: {
           'X-Auth-Token': token
-        }
+        },
+        signal: AbortSignal.timeout(8000) // Таймаут 8 секунд
       });
 
       if (response.ok) {
@@ -158,7 +161,8 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
         }
       }
     } catch (error) {
-      console.error('Ошибка обновления уровня Домового:', error);
+      console.debug('Assistant level refresh skipped:', error);
+      // Тихо игнорируем - используем текущий уровень
     }
   };
 
