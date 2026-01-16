@@ -1287,7 +1287,7 @@ def generate_share_link(conn, activity_id: int, user_id: str) -> Dict:
         
         return {
             'share_token': result['share_token'],
-            'share_url': f"https://domovoy.family/leisure/shared/{result['share_token']}"
+            'share_url': f"https://nasha-semiya.ru/leisure/shared/{result['share_token']}"
         }
 
 
