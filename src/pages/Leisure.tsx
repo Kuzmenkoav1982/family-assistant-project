@@ -499,9 +499,10 @@ export default function Leisure() {
             </div>
           )}
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div>
+          <div className="mb-4">
+            {/* Заголовок и инструкция */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">Досуг</h1>
                 <p className="text-sm text-gray-500">Места и активности</p>
               </div>
@@ -513,74 +514,85 @@ export default function Leisure() {
                 <Icon name="HelpCircle" size={20} />
               </button>
             </div>
-            <div className="flex gap-2">
-              <RouteGenerator activities={allActivities} />
-              <AIAssistant onAddPlace={handleAddFromAI} />
-              <PlaceSearch onSelectPlace={handleAddFromSearch} />
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+
+            {/* Кнопки действий - в 2 ряда на мобильных */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2 flex-1 overflow-x-auto">
+                <RouteGenerator activities={allActivities} />
+                <AIAssistant onAddPlace={handleAddFromAI} />
+                <PlaceSearch onSelectPlace={handleAddFromSearch} />
+              </div>
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 w-full sm:w-auto">
                 <Icon name="Plus" size={20} />
                 Добавить
               </Button>
             </div>
           </div>
 
-          {/* View Mode */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-2">
+          {/* View Mode - прокручиваемые табы */}
+          <div className="mb-4 -mx-4 px-4 overflow-x-auto">
+            <div className="flex gap-2 min-w-max">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
+                className="whitespace-nowrap"
               >
-                <Icon name="Grid3x3" size={16} className="mr-2" />
-                Сетка
+                <Icon name="Grid3x3" size={16} className="sm:mr-2" />
+                <span className="hidden sm:inline">Сетка</span>
               </Button>
               <Button
                 variant={viewMode === 'map' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('map')}
+                className="whitespace-nowrap"
               >
-                <Icon name="Map" size={16} className="mr-2" />
-                Карта
+                <Icon name="Map" size={16} className="sm:mr-2" />
+                <span className="hidden sm:inline">Карта</span>
               </Button>
               <Button
                 variant={viewMode === 'calendar' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('calendar')}
+                className="whitespace-nowrap"
               >
-                <Icon name="Calendar" size={16} className="mr-2" />
-                Календарь
+                <Icon name="Calendar" size={16} className="sm:mr-2" />
+                <span className="hidden sm:inline">Календарь</span>
               </Button>
               <Button
                 variant={viewMode === 'stats' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('stats')}
+                className="whitespace-nowrap"
               >
-                <Icon name="BarChart3" size={16} className="mr-2" />
-                Статистика
+                <Icon name="BarChart3" size={16} className="sm:mr-2" />
+                <span className="hidden sm:inline">Статистика</span>
               </Button>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {TABS_CONFIG.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                  activeTab === tab.value
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Icon name={tab.icon} size={16} />
-                {tab.label}
-                <Badge variant="secondary" className="ml-1">
-                  {counts[tab.value as keyof typeof counts] || 0}
-                </Badge>
-              </button>
-            ))}
+          {/* Tabs - прокручиваемые */}
+          <div className="-mx-4 px-4 overflow-x-auto pb-2">
+            <div className="flex gap-2 min-w-max">
+              {TABS_CONFIG.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                    activeTab === tab.value
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Icon name={tab.icon} size={16} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                  <Badge variant="secondary" className="ml-1">
+                    {counts[tab.value as keyof typeof counts] || 0}
+                  </Badge>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
