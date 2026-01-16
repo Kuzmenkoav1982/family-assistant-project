@@ -250,16 +250,15 @@ def handle_search_places(body: dict, headers: dict) -> dict:
     
     try:
         # Используем Yandex Geocoder (бесплатный) с улучшенным запросом
-        # Добавляем тип места для более точного поиска
         search_text = f"{query} {city}"
         
         params = {
             'apikey': yandex_maps_key,
             'geocode': search_text,
             'format': 'json',
-            'results': 10,
+            'results': 50,  # Увеличиваем лимит результатов
             'lang': 'ru_RU',
-            'kind': 'house'  # Ищем адреса/здания (где могут быть заведения)
+            'kind': 'house'  # Ищем адреса/здания
         }
         
         response = requests.get(
@@ -289,25 +288,32 @@ def handle_search_places(body: dict, headers: dict) -> dict:
             name = geo_obj.get('name', '')
             description = geo_obj.get('description', '')
             coords = geo_obj.get('Point', {}).get('pos', '').split()
+            metadata_property = geo_obj.get('metaDataProperty', {})
+            geocoder_meta = metadata_property.get('GeocoderMetaData', {})
             
             # Фильтруем: только результаты из нужного города
             description_lower = description.lower()
             if city_lower not in description_lower:
                 continue
             
-            # Пропускаем слишком общие результаты (просто улицы)
+            # Пропускаем слишком общие результаты (просто улицы без номеров)
             if not name or name == description:
                 continue
             
             if len(coords) >= 2:
+                # Извлекаем дополнительную информацию
+                address_details = geocoder_meta.get('Address', {})
+                full_address = address_details.get('formatted', f"{name}, {description}")
+                
                 place = {
                     'name': name,
                     'description': description,
-                    'address': f"{name}, {description}",
+                    'address': full_address,
                     'categories': [query],
                     'coordinates': {'lat': float(coords[1]), 'lon': float(coords[0])},
                     'phone': '',
-                    'url': ''
+                    'url': f"https://yandex.ru/maps/?text={full_address}",  # Ссылка на Яндекс.Карты
+                    'kind': geocoder_meta.get('kind', 'house')
                 }
                 places.append(place)
         

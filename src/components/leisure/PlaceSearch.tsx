@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,8 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
   const [query, setQuery] = useState('');
   const [city, setCity] = useState('Москва');
   const [results, setResults] = useState<SearchPlace[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<SearchPlace | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const handleSearch = async () => {
     if (!query.trim()) {
@@ -77,7 +79,7 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Icon name="Search" size={24} />
@@ -111,7 +113,8 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
               </div>
             </div>
 
-            <Button type="button" onClick={handleSearch} disabled={loading} className="w-full">
+            <div className="flex gap-2">
+              <Button type="button" onClick={handleSearch} disabled={loading} className="flex-1">
               {loading ? (
                 <>
                   <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
@@ -123,17 +126,72 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
                   Найти
                 </>
               )}
-            </Button>
+              </Button>
+              {results.length > 0 && (
+                <Button
+                  type="button"
+                  variant={viewMode === 'map' ? 'default' : 'outline'}
+                  onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
+                  className="gap-2"
+                >
+                  <Icon name={viewMode === 'map' ? 'List' : 'Map'} size={16} />
+                  {viewMode === 'map' ? 'Список' : 'Карта'}
+                </Button>
+              )}
+            </div>
 
             {/* Результаты */}
             {results.length > 0 && (
               <div className="space-y-3 mt-4">
-                <h3 className="font-semibold">Найдено: {results.length}</h3>
-                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Найдено: {results.length}</h3>
+                  {results.length > 20 && (
+                    <span className="text-sm text-gray-500">Уточните запрос для лучших результатов</span>
+                  )}
+                </div>
+                
+                {viewMode === 'map' ? (
+                  <div className="space-y-3">
+                    <div className="bg-gray-100 rounded-lg p-4 h-[400px] flex items-center justify-center">
+                      <div className="text-center">
+                        <Icon name="Map" size={48} className="text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-600 mb-2">Просмотр на карте</p>
+                        <a
+                          href={`https://yandex.ru/maps/?text=${encodeURIComponent(query + ' ' + city)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          Открыть в Яндекс.Картах →
+                        </a>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500 text-center">
+                      💡 Совет: кликните на место из списка ниже для просмотра на карте
+                    </div>
+                  </div>
+                ) : null}
+                
+                <div className={`space-y-2 ${viewMode === 'map' ? 'max-h-[200px]' : 'max-h-[500px]'} overflow-y-auto`}>
                   {results.map((place, index) => (
                     <Card key={index} className="p-3 hover:shadow-md transition-shadow cursor-pointer"
                           onClick={() => {
-                            onSelectPlace(place);
+                            // Адаптируем формат для handleAddFromSearch
+                            const adaptedPlace = {
+                              name: place.name,
+                              formatted_address: place.address,
+                              vicinity: place.description,
+                              website: place.url || '',
+                              formatted_phone_number: place.phone || '',
+                              geometry: place.coordinates ? {
+                                location: {
+                                  lat: place.coordinates.lat,
+                                  lng: place.coordinates.lon
+                                }
+                              } : undefined,
+                              types: place.categories || []
+                            };
+                            onSelectPlace(adaptedPlace);
                             setIsOpen(false);
                           }}>
                       <div className="flex items-start justify-between gap-3">
@@ -160,15 +218,29 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
                               {place.hours}
                             </div>
                           )}
-                          {place.categories && place.categories.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {place.categories.map((cat, idx) => (
-                                <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                  {cat}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            {place.categories && place.categories.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {place.categories.slice(0, 3).map((cat, idx) => (
+                                  <span key={idx} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                                    {cat}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {place.url && (
+                              <a
+                                href={place.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs text-blue-600 hover:underline flex items-center gap-1 ml-auto"
+                              >
+                                <Icon name="ExternalLink" size={12} />
+                                На карте
+                              </a>
+                            )}
+                          </div>
                         </div>
                         <Icon name="ChevronRight" size={20} className="text-gray-400 flex-shrink-0" />
                       </div>
