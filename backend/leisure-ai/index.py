@@ -6,12 +6,21 @@ from typing import Optional
 def handler(event: dict, context) -> dict:
     '''ИИ-помощник для поиска и рекомендации мест для семейного досуга'''
     
+    # Логируем входящий запрос для отладки
+    print(f"[INFO] Request method: {event.get('httpMethod')}")
+    print(f"[INFO] Request headers: {event.get('headers', {})}")
+    print(f"[INFO] Request origin: {event.get('headers', {}).get('origin', 'no-origin')}")
+    
     method = event.get('httpMethod', 'GET')
+    
+    # Расширенные CORS заголовки
     headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-User-Id'
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-User-Id, Authorization, X-Requested-With',
+        'Access-Control-Max-Age': '86400',
+        'Access-Control-Allow-Credentials': 'false'
     }
     
     if method == 'OPTIONS':
