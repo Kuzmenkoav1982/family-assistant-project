@@ -215,7 +215,7 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
                               <Badge variant="outline" className="text-xs">
                                 {rec.category}
                               </Badge>
-                              {rec.price_range && rec.price_range.toLowerCase().includes('бесплатн') && (
+                              {rec.price_range && typeof rec.price_range === 'string' && rec.price_range.toLowerCase().includes('бесплатн') && (
                                 <Badge className="text-xs bg-green-100 text-green-800 border-green-200">
                                   Бесплатно
                                 </Badge>
@@ -252,10 +252,13 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => window.open(
-                                  `https://yandex.ru/maps/?text=${encodeURIComponent(rec.title + ' ' + (rec.address || city))}`,
-                                  '_blank'
-                                )}
+                                onClick={() => {
+                                  const searchText = rec.address ? `${rec.title} ${rec.address}` : `${rec.title} ${city}`;
+                                  window.open(
+                                    `https://yandex.ru/maps/?text=${encodeURIComponent(searchText)}`,
+                                    '_blank'
+                                  );
+                                }}
                               >
                                 <Icon name="Map" size={16} className="mr-1" />
                                 На карте
