@@ -266,6 +266,10 @@ export default function Leisure() {
       booking_url: '',
       latitude: place.coordinates?.lat?.toString() || '',
       longitude: place.coordinates?.lon?.toString() || '',
+      tags: [] as string[],
+      participants: [] as string[],
+      show_in_calendar: false,
+      visible_to: [] as string[],
     });
     setIsAddDialogOpen(true);
   };
