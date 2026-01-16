@@ -11,6 +11,7 @@ import { CalendarGrid } from '@/components/calendar/CalendarGrid';
 import { EventDialog } from '@/components/calendar/EventDialog';
 import { ReminderNotifications } from '@/components/calendar/ReminderNotifications';
 import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
+import { CalendarAI } from '@/components/calendar/CalendarAI';
 import Icon from '@/components/ui/icon';
 
 type ViewMode = 'month' | 'week';
@@ -301,6 +302,37 @@ export default function Calendar() {
     setShowEventDialog(true);
   };
 
+  const handleAIRecommendation = (recommendation: any) => {
+    const categoryMap: { [key: string]: string } = {
+      'leisure': 'leisure',
+      'family': 'family',
+      'health': 'health',
+      'education': 'education',
+      'work': 'work',
+      'personal': 'personal'
+    };
+
+    setNewEvent({
+      title: recommendation.title,
+      description: recommendation.description || '',
+      date: recommendation.date || '',
+      time: recommendation.time || '',
+      category: categoryMap[recommendation.category] || 'personal',
+      color: '#8b5cf6',
+      visibility: 'family',
+      assignedTo: 'all',
+      attendees: [],
+      reminderEnabled: true,
+      reminderDays: 1,
+      isRecurring: false,
+      recurringFrequency: 'weekly',
+      recurringInterval: 1,
+      recurringEndDate: '',
+      recurringDaysOfWeek: []
+    });
+    setShowEventDialog(true);
+  };
+
   const handleEventChange = (field: string, value: any) => {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
@@ -384,22 +416,27 @@ export default function Calendar() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <CalendarHeader
-          currentDate={currentDate}
-          viewMode={viewMode}
-          categoryFilter={categoryFilter}
-          memberFilter={memberFilter}
-          isInstructionOpen={isInstructionOpen}
-          onNavigateBack={() => navigate('/')}
-          onViewModeChange={setViewMode}
-          onPreviousPeriod={handlePreviousPeriod}
-          onNextPeriod={handleNextPeriod}
-          onToday={handleToday}
-          onCategoryFilterChange={setCategoryFilter}
-          onMemberFilterChange={setMemberFilter}
-          onInstructionToggle={setIsInstructionOpen}
-          onAddEvent={handleAddEvent}
-        />
+        <div className="flex flex-col gap-4">
+          <CalendarHeader
+            currentDate={currentDate}
+            viewMode={viewMode}
+            categoryFilter={categoryFilter}
+            memberFilter={memberFilter}
+            isInstructionOpen={isInstructionOpen}
+            onNavigateBack={() => navigate('/')}
+            onViewModeChange={setViewMode}
+            onPreviousPeriod={handlePreviousPeriod}
+            onNextPeriod={handleNextPeriod}
+            onToday={handleToday}
+            onCategoryFilterChange={setCategoryFilter}
+            onMemberFilterChange={setMemberFilter}
+            onInstructionToggle={setIsInstructionOpen}
+            onAddEvent={handleAddEvent}
+          />
+          <div className="flex justify-end">
+            <CalendarAI onAddEvent={handleAIRecommendation} />
+          </div>
+        </div>
 
         <Card>
           <CardContent className="p-6">

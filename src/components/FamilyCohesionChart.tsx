@@ -22,9 +22,12 @@ export function FamilyCohesionChart({
   lastActivityDays = 0,
   totalFamilies = 1250 
 }: FamilyCohesionChartProps) {
+  const safeMembers = Array.isArray(familyMembers) ? familyMembers : [];
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  
   const { metrics: cohesionMetrics, averageScore, totalPoints } = calculateFamilyCohesion(
-    familyMembers,
-    tasks,
+    safeMembers,
+    safeTasks,
     chatMessagesCount,
     albumPhotosCount,
     lastActivityDays
@@ -32,7 +35,8 @@ export function FamilyCohesionChart({
 
   const familyRank = calculateFamilyRank(averageScore, totalPoints, totalFamilies);
 
-  const radarData = cohesionMetrics.map(m => ({
+  const safeMetrics = Array.isArray(cohesionMetrics) ? cohesionMetrics : [];
+  const radarData = safeMetrics.map(m => ({
     category: m.category,
     score: m.score,
     fullMark: m.maxScore
@@ -99,7 +103,7 @@ export function FamilyCohesionChart({
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
-            {cohesionMetrics.map((metric) => {
+            {safeMetrics.map((metric) => {
               const level = getScoreLevel(metric.score);
               return (
                 <div

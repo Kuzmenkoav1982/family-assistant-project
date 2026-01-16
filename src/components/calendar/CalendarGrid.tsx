@@ -92,7 +92,7 @@ export function CalendarGrid({
                 )}
               </div>
               
-              <div className="space-y-1">
+              <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
                 {day.events.slice(0, 3).map((event, eventIdx) => (
                   <DropdownMenu key={eventIdx}>
                     <DropdownMenuTrigger asChild>
@@ -103,28 +103,34 @@ export function CalendarGrid({
                           color: getEventColor(event),
                           border: `1px solid ${getEventColor(event)}40`
                         }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
                       >
                         {getEventIcon(event)}
                         <span className="truncate">{event.title}</span>
                       </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={() => onEventClick(event)}>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClick(event);
+                      }}>
                         <Icon name="Eye" size={14} className="mr-2" />
                         Просмотр
                       </DropdownMenuItem>
                       {isEvent(event) && (
                         <>
-                          <DropdownMenuItem onClick={() => onEventEdit(event)}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            onEventEdit(event);
+                          }}>
                             <Icon name="Pencil" size={14} className="mr-2" />
                             Редактировать
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
-                            onClick={() => onEventDelete(event.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEventDelete(event.id);
+                            }}
                             className="text-red-600"
                           >
                             <Icon name="Trash2" size={14} className="mr-2" />
