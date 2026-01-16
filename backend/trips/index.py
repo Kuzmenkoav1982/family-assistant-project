@@ -624,6 +624,37 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
+            
+            if post_action == 'generate_share_link':
+                activity_id = body.get('id')
+                share_data = generate_share_link(conn, activity_id, user_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(share_data, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
+            if post_action == 'revoke_share_link':
+                activity_id = body.get('id')
+                revoke_share_link(conn, activity_id, user_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+        
+        # Получить публичную активность (без авторизации)
+        if method == 'GET' and action == 'public_leisure':
+            share_token = params.get('token')
+            activity = get_public_leisure(conn, share_token)
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'activity': activity}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
         
         # Получить досуговые активности
         if method == 'GET' and action == 'leisure':
@@ -1219,3 +1250,72 @@ def delete_expense(conn, expense_id: int):
     with conn.cursor() as cur:
         cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_expenses WHERE id = %s", (expense_id,))
         conn.commit()
+
+
+def generate_share_link(conn, activity_id: int, user_id: str) -> Dict:
+    """Генерирует публичную ссылку для активности"""
+    import secrets
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        # Проверка доступа
+        cur.execute(
+            "SELECT id FROM t_p5815085_family_assistant_pro.leisure_activities WHERE id = %s AND user_id = %s",
+            (activity_id, user_id)
+        )
+        if not cur.fetchone():
+            raise ValueError('Activity not found or access denied')
+        
+        # Генерируем токен
+        share_token = secrets.token_urlsafe(32)
+        
+        # Обновляем запись
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.leisure_activities
+            SET share_token = %s, is_public = TRUE
+            WHERE id = %s
+            RETURNING share_token
+            """,
+            (share_token, activity_id)
+        )
+        conn.commit()
+        result = cur.fetchone()
+        
+        return {
+            'share_token': result['share_token'],
+            'share_url': f"https://domovoy.family/leisure/shared/{result['share_token']}"
+        }
+
+
+def revoke_share_link(conn, activity_id: int, user_id: str):
+    """Отзывает публичную ссылку"""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.leisure_activities
+            SET share_token = NULL, is_public = FALSE
+            WHERE id = %s AND user_id = %s
+            """,
+            (activity_id, user_id)
+        )
+        conn.commit()
+
+
+def get_public_leisure(conn, share_token: str) -> Dict:
+    """Получает публичную активность по токену"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            SELECT id, title, category, location, date, time, price, currency,
+                   rating, notes, website, phone, booking_required, booking_url,
+                   tags, latitude, longitude, photos
+            FROM t_p5815085_family_assistant_pro.leisure_activities
+            WHERE share_token = %s AND is_public = TRUE
+            """,
+            (share_token,)
+        )
+        activity = cur.fetchone()
+        if not activity:
+            raise ValueError('Public activity not found')
+        
+        return convert_for_json(dict(activity))

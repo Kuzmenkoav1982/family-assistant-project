@@ -259,6 +259,47 @@ def check_new_votings(cur, family_id: str) -> List[Dict[str, str]]:
     
     return notifications
 
+
+def check_leisure_activities(cur, user_id: str) -> List[Dict[str, str]]:
+    """Проверка предстоящих досуговых активностей"""
+    notifications = []
+    user_id_safe = escape_sql_string(user_id)
+    
+    try:
+        # Активности за 1 час до начала
+        query = f"""
+            SELECT title, date, time, location
+            FROM t_p5815085_family_assistant_pro.leisure_activities
+            WHERE user_id = '{user_id_safe}'
+            AND status = 'planned'
+            AND reminder_datetime IS NOT NULL
+            AND reminder_datetime BETWEEN NOW() AND NOW() + INTERVAL '10 minutes'
+            AND (reminder_sent = FALSE OR reminder_sent IS NULL)
+            LIMIT 3
+        """
+        cur.execute(query)
+        upcoming_activities = cur.fetchall()
+        
+        for activity in upcoming_activities:
+            time_str = activity['time'] if activity['time'] else '—'
+            location_str = f" ({activity['location']})" if activity['location'] else ''
+            notifications.append({
+                'title': f"Скоро: {activity['title']}",
+                'message': f"{time_str}{location_str} 🎉",
+                'activity_id': activity.get('id')
+            })
+            
+            # Помечаем напоминание отправленным
+            if activity.get('id'):
+                cur.execute(
+                    f"UPDATE t_p5815085_family_assistant_pro.leisure_activities SET reminder_sent = TRUE WHERE id = {activity['id']}"
+                )
+                
+    except Exception as e:
+        print(f"[ERROR] Leisure activities check failed: {str(e)}")
+    
+    return notifications
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Функция для автоматической отправки напоминаний по расписанию
@@ -316,6 +357,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             all_notifications.extend(check_calendar_events(cur, family_id))
             all_notifications.extend(check_medication_schedule(cur, family_id))
             all_notifications.extend(check_urgent_tasks(cur, family_id))
+            
+            # Добавляем проверку досуговых активностей для каждого пользователя семьи
+            try:
+                cur.execute(f"SELECT user_id FROM t_p5815085_family_assistant_pro.family_members WHERE family_id = '{escape_sql_string(family_id)}'")
+                family_users = cur.fetchall()
+                for user in family_users:
+                    all_notifications.extend(check_leisure_activities(cur, user['user_id']))
+            except:
+                pass
             all_notifications.extend(check_urgent_shopping(cur, family_id))
             all_notifications.extend(check_new_votings(cur, family_id))
             

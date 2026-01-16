@@ -15,6 +15,9 @@ import { PlaceSearch } from '@/components/leisure/PlaceSearch';
 import { LeisureMap } from '@/components/leisure/LeisureMap';
 import { PhotoUpload } from '@/components/leisure/PhotoUpload';
 import { ParticipantsPicker } from '@/components/leisure/ParticipantsPicker';
+import { LeisureCalendar } from '@/components/leisure/LeisureCalendar';
+import { LeisureStats } from '@/components/leisure/LeisureStats';
+import { RouteGenerator } from '@/components/leisure/RouteGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
@@ -40,6 +43,8 @@ interface LeisureActivity {
   latitude?: number;
   longitude?: number;
   participants?: string[];
+  share_token?: string;
+  is_public?: boolean;
 }
 
 const CATEGORIES = [
@@ -64,7 +69,7 @@ export default function Leisure() {
   const [allActivities, setAllActivities] = useState<LeisureActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('want_to_go');
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'map' | 'calendar' | 'stats'>('grid');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<LeisureActivity | null>(null);
@@ -89,6 +94,9 @@ export default function Leisure() {
   });
   const [tagInput, setTagInput] = useState('');
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [sharingActivity, setSharingActivity] = useState<LeisureActivity | null>(null);
 
   const getAllTags = () => {
     const tagsSet = new Set<string>();
@@ -270,8 +278,113 @@ export default function Leisure() {
       booking_url: '',
       latitude: place.coordinates?.lat?.toString() || '',
       longitude: place.coordinates?.lon?.toString() || '',
+      tags: [] as string[],
+      participants: [] as string[],
     });
     setIsAddDialogOpen(true);
+  };
+
+  const handleGenerateShareLink = async (activity: LeisureActivity) => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(`${TRIPS_API_URL}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'generate_share_link',
+          id: activity.id
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setShareLink(data.share_url);
+        setSharingActivity(activity);
+        setShareDialogOpen(true);
+        await loadActivities(activeTab);
+      }
+    } catch (error) {
+      console.error('Error generating share link:', error);
+      alert('Ошибка при генерации ссылки');
+    }
+  };
+
+  const handleRevokeShareLink = async (activity: LeisureActivity) => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(`${TRIPS_API_URL}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'revoke_share_link',
+          id: activity.id
+        })
+      });
+
+      if (response.ok) {
+        await loadActivities(activeTab);
+        alert('Публичная ссылка удалена');
+      }
+    } catch (error) {
+      console.error('Error revoking share link:', error);
+      alert('Ошибка при удалении ссылки');
+    }
+  };
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    alert('Ссылка скопирована!');
+  };
+
+  const handleCalendarDateChange = async (activityId: number, newDate: string) => {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const activity = allActivities.find(a => a.id === activityId);
+      if (!activity) return;
+
+      const response = await fetch(`${TRIPS_API_URL}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'update_leisure',
+          id: activityId,
+          title: activity.title,
+          category: activity.category,
+          date: newDate,
+          status: 'planned',
+          location: activity.location,
+          time: activity.time,
+          price: activity.price,
+          currency: activity.currency,
+          notes: activity.notes,
+          website: activity.website,
+          phone: activity.phone,
+          booking_required: activity.booking_required,
+          booking_url: activity.booking_url,
+          tags: activity.tags || [],
+          participants: activity.participants || [],
+          latitude: activity.latitude,
+          longitude: activity.longitude,
+        })
+      });
+
+      if (response.ok) {
+        await loadActivities(activeTab);
+        await loadAllActivities();
+      }
+    } catch (error) {
+      console.error('Error updating activity date:', error);
+      alert('Ошибка при изменении даты');
+    }
   };
 
   const mapCategory = (aiCategory: string): string => {
@@ -353,6 +466,7 @@ export default function Leisure() {
               <p className="text-sm text-gray-500">Места и активности</p>
             </div>
             <div className="flex gap-2">
+              <RouteGenerator activities={allActivities} />
               <AIAssistant onAddPlace={handleAddFromAI} />
               <PlaceSearch onSelectPlace={handleAddFromSearch} />
               <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
@@ -380,6 +494,22 @@ export default function Leisure() {
               >
                 <Icon name="Map" size={16} className="mr-2" />
                 Карта
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('calendar')}
+              >
+                <Icon name="Calendar" size={16} className="mr-2" />
+                Календарь
+              </Button>
+              <Button
+                variant={viewMode === 'stats' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('stats')}
+              >
+                <Icon name="BarChart3" size={16} className="mr-2" />
+                Статистика
               </Button>
             </div>
           </div>
@@ -438,6 +568,13 @@ export default function Leisure() {
           <div className="flex justify-center py-12">
             <Icon name="Loader2" size={32} className="animate-spin text-gray-400" />
           </div>
+        ) : viewMode === 'stats' ? (
+          <LeisureStats activities={allActivities} />
+        ) : viewMode === 'calendar' ? (
+          <LeisureCalendar 
+            activities={allActivities} 
+            onDateChange={handleCalendarDateChange}
+          />
         ) : viewMode === 'map' ? (
           <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
             <LeisureMap places={activities.map(a => ({ name: a.title, coordinates: undefined }))} />
@@ -539,7 +676,6 @@ export default function Leisure() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
                       onClick={() => {
                         setEditingActivity(activity);
                         setTagInput('');
@@ -548,6 +684,24 @@ export default function Leisure() {
                     >
                       <Icon name="Pencil" size={14} className="mr-1" />
                       Редактировать
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (activity.is_public) {
+                          handleRevokeShareLink(activity);
+                        } else {
+                          handleGenerateShareLink(activity);
+                        }
+                      }}
+                      title={activity.is_public ? 'Отозвать публичную ссылку' : 'Поделиться'}
+                    >
+                      <Icon 
+                        name={activity.is_public ? 'Link' : 'Share2'} 
+                        size={14} 
+                        className={activity.is_public ? 'text-blue-600' : ''} 
+                      />
                     </Button>
                     <Button
                       variant="ghost"
@@ -822,6 +976,53 @@ export default function Leisure() {
                 </div>
               </div>
 
+              {editingActivity.date && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <Label className="flex items-center gap-2 mb-2">
+                    <Icon name="Bell" size={14} />
+                    Напомнить за...
+                  </Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const reminderDate = new Date(`${editingActivity.date}T${editingActivity.time || '12:00'}`);
+                        reminderDate.setHours(reminderDate.getHours() - 1);
+                        alert(`Напоминание установлено на ${reminderDate.toLocaleString('ru-RU')}`);
+                      }}
+                    >
+                      1 час
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const reminderDate = new Date(`${editingActivity.date}T${editingActivity.time || '12:00'}`);
+                        reminderDate.setDate(reminderDate.getDate() - 1);
+                        alert(`Напоминание установлено на ${reminderDate.toLocaleString('ru-RU')}`);
+                      }}
+                    >
+                      1 день
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const reminderDate = new Date(`${editingActivity.date}T${editingActivity.time || '12:00'}`);
+                        reminderDate.setDate(reminderDate.getDate() - 7);
+                        alert(`Напоминание установлено на ${reminderDate.toLocaleString('ru-RU')}`);
+                      }}
+                    >
+                      1 неделя
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Цена</Label>
@@ -948,6 +1149,29 @@ export default function Leisure() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Share Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Публичная ссылка на активность</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Теперь "{sharingActivity?.title}" доступна по публичной ссылке. Любой человек с этой ссылкой сможет посмотреть детали.
+            </p>
+            <div className="flex gap-2">
+              <Input value={shareLink} readOnly className="flex-1" />
+              <Button onClick={copyShareLink} variant="outline">
+                <Icon name="Copy" size={16} />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShareDialogOpen(false)}>Закрыть</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
