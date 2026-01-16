@@ -107,9 +107,11 @@ export default function Leisure() {
 
   const getAllTags = () => {
     const tagsSet = new Set<string>();
-    allActivities.forEach(activity => {
-      activity.tags?.forEach(tag => tagsSet.add(tag));
-    });
+    if (allActivities && Array.isArray(allActivities)) {
+      allActivities.forEach(activity => {
+        activity.tags?.forEach(tag => tagsSet.add(tag));
+      });
+    }
     return Array.from(tagsSet).sort();
   };
 
