@@ -253,7 +253,7 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => window.open(
-                                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rec.title + ' ' + (rec.address || city))}`,
+                                  `https://yandex.ru/maps/?text=${encodeURIComponent(rec.title + ' ' + (rec.address || city))}`,
                                   '_blank'
                                 )}
                               >
