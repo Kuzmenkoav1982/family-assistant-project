@@ -19,6 +19,7 @@ import { LeisureCalendar } from '@/components/leisure/LeisureCalendar';
 import { LeisureStats } from '@/components/leisure/LeisureStats';
 import { RouteGenerator } from '@/components/leisure/RouteGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -101,6 +102,8 @@ export default function Leisure() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareLink, setShareLink] = useState('');
   const [sharingActivity, setSharingActivity] = useState<LeisureActivity | null>(null);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const navigate = useNavigate();
 
   const getAllTags = () => {
     const tagsSet = new Set<string>();
@@ -466,10 +469,49 @@ export default function Leisure() {
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* Инструкция */}
+          {isInstructionOpen && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Icon name="Info" size={20} className="text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Как пользоваться разделом Досуг</h3>
+                </div>
+                <button onClick={() => setIsInstructionOpen(false)} className="text-gray-400 hover:text-gray-600">
+                  <Icon name="X" size={20} />
+                </button>
+              </div>
+              <div className="space-y-2 text-sm text-gray-700">
+                <p><strong>📍 Добавление:</strong> Используйте кнопки AI-помощник, Поиск мест или просто "Добавить" для создания активностей</p>
+                <p><strong>📅 Календарь:</strong> Перетаскивайте активности на даты для планирования. Drag & drop работает прямо в календаре!</p>
+                <p><strong>🗓️ Общий календарь:</strong> Включите чекбокс "Показать в общем календаре" когда точно решили куда идти</p>
+                <p><strong>🏷️ Статусы:</strong> "Хочу посетить" (Wish List) → "Запланировано" (с датой) → "Посещено" (с оценкой)</p>
+                <p><strong>🚗 Маршрут:</strong> Кнопка "Построить маршрут" создаст план на день с временем в пути</p>
+                <p><strong>📊 Статистика:</strong> Смотрите траты, посещённые места и рейтинги по категориям</p>
+                <button
+                  onClick={() => navigate('/instructions?section=leisure')}
+                  className="mt-3 text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                >
+                  Подробная инструкция
+                  <Icon name="ExternalLink" size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Досуг</h1>
-              <p className="text-sm text-gray-500">Места и активности</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Досуг</h1>
+                <p className="text-sm text-gray-500">Места и активности</p>
+              </div>
+              <button
+                onClick={() => setIsInstructionOpen(!isInstructionOpen)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                title="Показать инструкцию"
+              >
+                <Icon name="HelpCircle" size={20} />
+              </button>
             </div>
             <div className="flex gap-2">
               <RouteGenerator activities={allActivities} />
