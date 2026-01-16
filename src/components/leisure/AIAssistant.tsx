@@ -197,45 +197,83 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
                 <h3 className="font-semibold text-lg">Рекомендации</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {recommendations.map((rec, index) => (
-                    <Card key={index} className="p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Icon name={getCategoryIcon(rec.category)} size={18} className="text-purple-600" />
-                            <h4 className="font-semibold">{rec.title}</h4>
+                    <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-lg bg-purple-100 text-purple-600 shrink-0">
+                            <Icon name={getCategoryIcon(rec.category)} size={20} />
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
-                          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                            {rec.price_range && (
-                              <span className="flex items-center gap-1">
-                                <Icon name="Wallet" size={12} />
-                                {rec.price_range}
-                              </span>
-                            )}
-                            {rec.age_suitable && (
-                              <span className="flex items-center gap-1">
-                                <Icon name="Users" size={12} />
-                                {rec.age_suitable}
-                              </span>
-                            )}
-                            {rec.address && (
-                              <span className="flex items-center gap-1">
-                                <Icon name="MapPin" size={12} />
-                                {rec.address}
-                              </span>
-                            )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 mb-1">{rec.title}</h4>
+                            
+                            {/* Badges */}
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              <Badge variant="secondary" className="text-xs">
+                                <Icon name="Sparkles" size={12} className="mr-1" />
+                                AI рекомендация
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {rec.category}
+                              </Badge>
+                              {rec.price_range && rec.price_range.toLowerCase().includes('бесплатн') && (
+                                <Badge className="text-xs bg-green-100 text-green-800 border-green-200">
+                                  Бесплатно
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {/* Description */}
+                            <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
+                            
+                            {/* Additional Info */}
+                            <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-3">
+                              {rec.price_range && (
+                                <span className="flex items-center gap-1">
+                                  <Icon name="Wallet" size={12} />
+                                  {rec.price_range}
+                                </span>
+                              )}
+                              {rec.age_suitable && (
+                                <span className="flex items-center gap-1">
+                                  <Icon name="Users" size={12} />
+                                  {rec.age_suitable}
+                                </span>
+                              )}
+                              {rec.address && (
+                                <span className="flex items-center gap-1">
+                                  <Icon name="MapPin" size={12} />
+                                  {rec.address}
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(
+                                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rec.title + ' ' + (rec.address || city))}`,
+                                  '_blank'
+                                )}
+                              >
+                                <Icon name="Map" size={16} className="mr-1" />
+                                На карте
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  onAddPlace(rec);
+                                  setIsOpen(false);
+                                }}
+                                className="flex-1"
+                              >
+                                <Icon name="Plus" size={16} className="mr-1" />
+                                Добавить
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            onAddPlace(rec);
-                            setIsOpen(false);
-                          }}
-                        >
-                          <Icon name="Plus" size={14} className="mr-1" />
-                          Добавить
-                        </Button>
                       </div>
                     </Card>
                   ))}
