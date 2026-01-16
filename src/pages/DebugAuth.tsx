@@ -145,6 +145,13 @@ export default function DebugAuth() {
     alert('Весь кеш очищен (кроме авторизации)! Перезагрузите страницу.');
   };
 
+  const forceCompleteSetup = () => {
+    localStorage.setItem('assistantSetupCompleted', 'true');
+    localStorage.setItem('assistantType', 'domovoy');
+    localStorage.setItem('assistantName', 'Домовой');
+    alert('Настройка принудительно завершена! Перезагрузите страницу.');
+  };
+
   const currentData = getCurrentToken();
 
   return (
@@ -165,6 +172,18 @@ export default function DebugAuth() {
                 2. Нажми кнопки ниже чтобы протестировать<br/>
                 3. Юра увидит все логи в системе и сможет найти ошибку
               </p>
+            </div>
+
+            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+              <p className="text-sm font-semibold mb-2">✅ Застряли на экране выбора ассистента?</p>
+              <p className="text-sm text-gray-700 mb-3">
+                Если экран "Выберите вашего помощника" не реагирует на нажатия (особенно на iOS с увеличенным шрифтом):
+              </p>
+              <ol className="text-sm text-gray-700 list-decimal list-inside space-y-1">
+                <li>Нажмите зелёную кнопку "Принудительно завершить настройку" ниже</li>
+                <li>Перезагрузите страницу (F5 или потяните вниз)</li>
+                <li>Вы попадёте на главную страницу с выбранным Домовым</li>
+              </ol>
             </div>
 
             <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
@@ -199,6 +218,15 @@ export default function DebugAuth() {
               >
                 <Icon name="Trash2" className="mr-2" />
                 🗑️ Очистить весь кеш (кроме авторизации)
+              </Button>
+
+              <Button 
+                onClick={forceCompleteSetup}
+                className="w-full bg-green-500 hover:bg-green-600"
+                size="lg"
+              >
+                <Icon name="CheckCircle2" className="mr-2" />
+                ✅ Принудительно завершить настройку
               </Button>
 
               <Button 

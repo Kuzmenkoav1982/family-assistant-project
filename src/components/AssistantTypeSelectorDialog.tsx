@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -27,19 +27,37 @@ export default function AssistantTypeSelectorDialog({
   const [selectedType, setSelectedType] = useState<AssistantType | null>(null);
   const [customName, setCustomName] = useState('');
   const [domovoyName, setDomovoyName] = useState('');
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleConfirm = () => {
-    if (!selectedType) return;
-
-    setAssistantType(selectedType);
-    
-    if (selectedType === 'neutral' && customName.trim()) {
-      setAssistantName(customName.trim());
-    } else if (selectedType === 'domovoy') {
-      setAssistantName(domovoyName.trim() || 'Домовой');
+    if (!selectedType || isProcessing) {
+      console.log('[AssistantSelector] Confirm blocked:', { selectedType, isProcessing });
+      return;
     }
 
-    onOpenChange(false);
+    setIsProcessing(true);
+    console.log('[AssistantSelector] Confirm clicked, type:', selectedType);
+
+    try {
+      setAssistantType(selectedType);
+      
+      if (selectedType === 'neutral' && customName.trim()) {
+        setAssistantName(customName.trim());
+      } else if (selectedType === 'domovoy') {
+        setAssistantName(domovoyName.trim() || 'Домовой');
+      }
+
+      console.log('[AssistantSelector] Setup completed, closing dialog');
+      
+      // Задержка для iOS
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 100);
+    } catch (error) {
+      console.error('[AssistantSelector] Error during confirmation:', error);
+      setIsProcessing(false);
+    }
   };
 
   const isValid = selectedType && (
@@ -47,13 +65,26 @@ export default function AssistantTypeSelectorDialog({
     (selectedType === 'domovoy')
   );
 
+  // Прокрутка к кнопке при выборе типа (для iOS с большим шрифтом)
+  useEffect(() => {
+    if (selectedType && buttonRef.current) {
+      setTimeout(() => {
+        buttonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [selectedType]);
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       if (isOpen || isValid) {
         onOpenChange(isOpen);
       }
     }}>
-      <DialogContent className="max-w-2xl" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto" 
+        onPointerDownOutside={(e) => e.preventDefault()} 
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             🏠 Выберите вашего помощника
@@ -99,6 +130,15 @@ export default function AssistantTypeSelectorDialog({
                     <p className="text-xs text-gray-500">
                       Это имя будет использоваться в диалогах
                     </p>
+                    <Button
+                      onClick={handleConfirm}
+                      disabled={!customName.trim()}
+                      className="w-full bg-blue-500 hover:bg-blue-600 mt-2"
+                      size="lg"
+                    >
+                      <Icon name="Bot" className="mr-2" />
+                      🤖 Выбрать этого ассистента
+                    </Button>
                   </div>
                 )}
               </div>
@@ -144,28 +184,51 @@ export default function AssistantTypeSelectorDialog({
                     <p className="text-xs text-gray-500">
                       Оставьте пустым для имени "Домовой"
                     </p>
+                    <Button
+                      onClick={handleConfirm}
+                      className="w-full bg-amber-500 hover:bg-amber-600 mt-2"
+                      size="lg"
+                    >
+                      <Icon name="Home" className="mr-2" />
+                      🏠 Выбрать Домового прямо сейчас
+                    </Button>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
-            <Icon name="Info" size={14} />
-            Вы сможете изменить выбор в любой момент в настройках
-          </p>
+          <div className="space-y-2">
+            <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
+              <Icon name="Info" size={14} />
+              Вы сможете изменить выбор в любой момент в настройках
+            </p>
+            <p className="text-xs text-center text-gray-400">
+              Экран не реагирует? <a href="/debug-auth" className="text-blue-500 underline">Открыть аварийную страницу</a>
+            </p>
+          </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 sticky bottom-0 bg-white pt-4 pb-2 border-t mt-4">
           <Button
+            ref={buttonRef}
             onClick={handleConfirm}
-            disabled={!isValid}
+            disabled={!isValid || isProcessing}
             className="flex-1"
             size="lg"
           >
-            {selectedType === 'neutral' && '🤖 Выбрать нейтрального ассистента'}
-            {selectedType === 'domovoy' && '🏠 Выбрать Домового'}
-            {!selectedType && 'Выберите тип ассистента'}
+            {isProcessing ? (
+              <>
+                <Icon name="Loader" className="mr-2 animate-spin" />
+                Применяем...
+              </>
+            ) : (
+              <>
+                {selectedType === 'neutral' && '🤖 Выбрать нейтрального ассистента'}
+                {selectedType === 'domovoy' && '🏠 Выбрать Домового'}
+                {!selectedType && 'Выберите тип ассистента'}
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

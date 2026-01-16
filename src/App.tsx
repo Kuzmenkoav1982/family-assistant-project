@@ -81,6 +81,7 @@ import ActivateChild from "./pages/ActivateChild";
 import ActivateCallback from "./pages/ActivateCallback";
 import FamilyTracker from "./pages/FamilyTracker";
 import LocationHistory from "./pages/LocationHistory";
+import DebugAuth from "./pages/DebugAuth";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -223,6 +224,7 @@ const App = () => {
               <Route path="/admin/domovoy" element={<AdminDomovoy />} />
               <Route path="/domovoy" element={<DomovoyPage />} />
               <Route path="/services" element={<TelegramServices />} />
+              <Route path="/debug-auth" element={<DebugAuth />} />
               <Route path="/family" element={<Navigate to="/?section=family" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
