@@ -109,7 +109,7 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
               </div>
             </div>
 
-            <Button onClick={handleSearch} disabled={loading} className="w-full">
+            <Button type="button" onClick={handleSearch} disabled={loading} className="w-full">
               {loading ? (
                 <>
                   <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
