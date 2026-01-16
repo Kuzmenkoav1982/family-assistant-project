@@ -235,18 +235,19 @@ def handle_search_places(body: dict, headers: dict) -> dict:
         }
     
     try:
+        # Используем Yandex Search API для поиска организаций
         search_text = f"{query} {city}"
         
         params = {
             'apikey': yandex_maps_key,
-            'geocode': search_text,
-            'format': 'json',
+            'text': search_text,
+            'lang': 'ru_RU',
             'results': 10,
-            'lang': 'ru_RU'
+            'type': 'biz'  # Поиск организаций (business)
         }
         
         response = requests.get(
-            'https://geocode-maps.yandex.ru/1.x/',
+            'https://search-maps.yandex.ru/v1/',
             params=params,
             timeout=10
         )
@@ -255,39 +256,37 @@ def handle_search_places(body: dict, headers: dict) -> dict:
             return {
                 'statusCode': response.status_code,
                 'headers': headers,
-                'body': json.dumps({'error': 'Yandex Geocoder API error', 'details': response.text}),
+                'body': json.dumps({'error': 'Yandex Search API error', 'details': response.text}),
                 'isBase64Encoded': False
             }
         
         data = response.json()
         places = []
         
-        members = data.get('response', {}).get('GeoObjectCollection', {}).get('featureMember', [])
+        features = data.get('features', [])
         
-        # Нормализуем название города для проверки
-        city_lower = city.lower().strip()
-        
-        for member in members:
-            geo_obj = member.get('GeoObject', {})
-            name = geo_obj.get('name', '')
-            description = geo_obj.get('description', '')
-            coords = geo_obj.get('Point', {}).get('pos', '').split()
+        for feature in features:
+            props = feature.get('properties', {})
+            company_meta = props.get('CompanyMetaData', {})
             
-            # Фильтруем результаты: только те, что содержат город в описании
-            # Это исключит "Мевазор, Узбекистан" при поиске в Москве
-            description_lower = description.lower()
+            name = props.get('name', '')
+            description = props.get('description', '')
+            address = company_meta.get('address', '')
+            categories = company_meta.get('Categories', [])
+            category_names = [cat.get('name', '') for cat in categories]
             
-            # Проверяем, что описание содержит искомый город
-            if city_lower not in description_lower:
-                continue
+            # Координаты в формате GeoJSON: [lon, lat]
+            coords = feature.get('geometry', {}).get('coordinates', [])
             
             if len(coords) >= 2:
                 place = {
                     'name': name,
                     'description': description,
-                    'address': f"{name}, {description}",
-                    'categories': [query],
-                    'coordinates': {'lat': float(coords[1]), 'lon': float(coords[0])}
+                    'address': address,
+                    'categories': category_names,
+                    'coordinates': {'lat': coords[1], 'lon': coords[0]},
+                    'phone': company_meta.get('Phones', [{}])[0].get('formatted', '') if company_meta.get('Phones') else '',
+                    'url': company_meta.get('url', '')
                 }
                 places.append(place)
         
