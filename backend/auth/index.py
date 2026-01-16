@@ -871,8 +871,7 @@ def login_user_email(email: str, password: str) -> Dict[str, Any]:
             conn.close()
             return {'error': 'Неверный email или пароль'}
         
-        password_hash = hash_password(password)
-        if user['password_hash'] != password_hash:
+        if not verify_password(password, user['password_hash']):
             cur.close()
             conn.close()
             return {'error': 'Неверный email или пароль'}
