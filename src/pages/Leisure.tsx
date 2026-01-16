@@ -522,10 +522,10 @@ export default function Leisure() {
   const counts = getTabCounts();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-24">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           {/* Инструкция */}
           {isInstructionOpen && (
             <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -558,30 +558,38 @@ export default function Leisure() {
 
           <div className="mb-4">
             {/* Заголовок и инструкция */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">Досуг</h1>
-                <p className="text-sm text-gray-500">Места и активности</p>
+            <div className="flex items-center gap-2 mb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="p-2"
+              >
+                <Icon name="Home" size={18} />
+              </Button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Досуг</h1>
+                <p className="text-xs sm:text-sm text-gray-500">Места и активности</p>
               </div>
               <button
                 onClick={() => setIsInstructionOpen(!isInstructionOpen)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2"
                 title="Показать инструкцию"
               >
-                <Icon name="HelpCircle" size={20} />
+                <Icon name="HelpCircle" size={18} />
               </button>
             </div>
 
-            {/* Кнопки действий - в 2 ряда на мобильных */}
+            {/* Кнопки действий - компактно на мобильных */}
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2 flex-1 overflow-x-auto">
+              <div className="flex gap-2 flex-wrap sm:flex-1">
                 <RouteGenerator activities={allActivities} />
                 <AIAssistant onAddPlace={handleAddFromAI} />
                 <PlaceSearch onSelectPlace={handleAddFromSearch} />
               </div>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 w-full sm:w-auto">
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 flex-shrink-0">
                 <Icon name="Plus" size={20} />
-                Добавить
+                <span>Добавить</span>
               </Button>
             </div>
           </div>
@@ -655,7 +663,7 @@ export default function Leisure() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Tag Filter */}
         {getAllTags().length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
@@ -694,7 +702,7 @@ export default function Leisure() {
             onDateClick={handleCalendarDateClick}
           />
         ) : viewMode === 'map' ? (
-          <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
+          <div className="h-[400px] sm:h-[500px] lg:h-[600px] rounded-lg overflow-hidden shadow-lg">
             <LeisureMap 
               places={activities
                 .filter(a => a.latitude && a.longitude)
@@ -723,7 +731,7 @@ export default function Leisure() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {activities
               .filter(activity => !selectedTagFilter || activity.tags?.includes(selectedTagFilter))
               .map((activity) => {
@@ -852,7 +860,7 @@ export default function Leisure() {
 
       {/* Add Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle>Добавить активность</DialogTitle>
             <DialogDescription>Создайте новую активность для досуга с деталями и местоположением</DialogDescription>
@@ -1058,7 +1066,7 @@ export default function Leisure() {
           setIsEditDialogOpen(open);
           if (!open) setTagInput('');
         }}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
             <DialogHeader>
               <DialogTitle>Редактировать активность</DialogTitle>
               <DialogDescription>Измените информацию о выбранной активности</DialogDescription>

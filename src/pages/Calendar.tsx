@@ -406,6 +406,30 @@ export default function Calendar() {
     setShowDayEventsDialog(true);
   };
 
+  const handleCreateEventForDate = (date: Date) => {
+    setEditingEventId(null);
+    const dateStr = date.toISOString().split('T')[0];
+    setNewEvent({
+      title: '',
+      description: '',
+      date: dateStr,
+      time: '',
+      category: 'personal',
+      color: '#3b82f6',
+      visibility: 'family',
+      assignedTo: memberFilter !== 'all' ? memberFilter : 'all',
+      attendees: [],
+      reminderEnabled: true,
+      reminderDays: 1,
+      isRecurring: false,
+      recurringFrequency: 'weekly',
+      recurringInterval: 1,
+      recurringEndDate: '',
+      recurringDaysOfWeek: []
+    });
+    setShowEventDialog(true);
+  };
+
   const handleEventClick = (event: CalendarEvent | Task | FamilyGoal) => {
     setSelectedEvent(event);
   };
@@ -447,6 +471,7 @@ export default function Calendar() {
               onEventClick={handleEventClick}
               onEventEdit={handleEventEdit}
               onEventDelete={handleEventDelete}
+              onCreateEvent={handleCreateEventForDate}
             />
           </CardContent>
         </Card>

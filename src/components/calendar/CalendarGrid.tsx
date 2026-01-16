@@ -19,6 +19,7 @@ interface CalendarGridProps {
   onEventClick: (event: CalendarEvent | Task | FamilyGoal) => void;
   onEventEdit: (event: CalendarEvent) => void;
   onEventDelete: (eventId: string) => void;
+  onCreateEvent?: (date: Date) => void;
 }
 
 const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -29,7 +30,8 @@ export function CalendarGrid({
   onDayClick,
   onEventClick,
   onEventEdit,
-  onEventDelete
+  onEventDelete,
+  onCreateEvent
 }: CalendarGridProps) {
   const today = new Date().toISOString().split('T')[0];
 
@@ -79,7 +81,13 @@ export function CalendarGrid({
               className={`min-h-[120px] p-2 cursor-pointer transition-all hover:shadow-md ${
                 !day.isCurrentMonth ? 'bg-gray-50 opacity-50' : ''
               } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
-              onClick={() => onDayClick(day.date, day.events)}
+              onClick={(e) => {
+                if (day.events.length === 0 && onCreateEvent) {
+                  onCreateEvent(day.date);
+                } else {
+                  onDayClick(day.date, day.events);
+                }
+              }}
             >
               <div className="flex justify-between items-start mb-2">
                 <span className={`text-sm font-semibold ${isToday ? 'text-blue-600' : ''}`}>
