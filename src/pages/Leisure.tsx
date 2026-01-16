@@ -14,6 +14,7 @@ import { AIAssistant } from '@/components/leisure/AIAssistant';
 import { PlaceSearch } from '@/components/leisure/PlaceSearch';
 import { LeisureMap } from '@/components/leisure/LeisureMap';
 import { PhotoUpload } from '@/components/leisure/PhotoUpload';
+import { ParticipantsPicker } from '@/components/leisure/ParticipantsPicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
@@ -35,6 +36,10 @@ interface LeisureActivity {
   booking_required: boolean;
   booking_url?: string;
   created_at: string;
+  tags?: string[];
+  latitude?: number;
+  longitude?: number;
+  participants?: string[];
 }
 
 const CATEGORIES = [
@@ -79,7 +84,19 @@ export default function Leisure() {
     booking_url: '',
     latitude: '',
     longitude: '',
+    tags: [] as string[],
+    participants: [] as string[],
   });
+  const [tagInput, setTagInput] = useState('');
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
+
+  const getAllTags = () => {
+    const tagsSet = new Set<string>();
+    allActivities.forEach(activity => {
+      activity.tags?.forEach(tag => tagsSet.add(tag));
+    });
+    return Array.from(tagsSet).sort();
+  };
 
   const loadActivities = useCallback(async (status: string) => {
     try {
@@ -139,6 +156,8 @@ export default function Leisure() {
           price: newActivity.price ? parseFloat(newActivity.price) : null,
           latitude: newActivity.latitude ? parseFloat(newActivity.latitude) : null,
           longitude: newActivity.longitude ? parseFloat(newActivity.longitude) : null,
+          tags: newActivity.tags,
+          participants: newActivity.participants,
         }),
       });
 
@@ -282,7 +301,10 @@ export default function Leisure() {
       booking_url: '',
       latitude: '',
       longitude: '',
+      tags: [],
+      participants: [],
     });
+    setTagInput('');
   };
 
   const getCategoryInfo = (category: string) => {
@@ -387,6 +409,31 @@ export default function Leisure() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Tag Filter */}
+        {getAllTags().length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            <span className="text-sm text-gray-600 self-center">Теги:</span>
+            <Badge
+              variant={selectedTagFilter === null ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setSelectedTagFilter(null)}
+            >
+              Все
+            </Badge>
+            {getAllTags().map(tag => (
+              <Badge
+                key={tag}
+                variant={selectedTagFilter === tag ? 'default' : 'outline'}
+                className="cursor-pointer gap-1"
+                onClick={() => setSelectedTagFilter(tag === selectedTagFilter ? null : tag)}
+              >
+                <Icon name="Tag" size={10} />
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-12">
             <Icon name="Loader2" size={32} className="animate-spin text-gray-400" />
@@ -408,7 +455,9 @@ export default function Leisure() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activities.map((activity) => {
+            {activities
+              .filter(activity => !selectedTagFilter || activity.tags?.includes(selectedTagFilter))
+              .map((activity) => {
               const categoryInfo = getCategoryInfo(activity.category);
               const statusBadge = getStatusBadge(activity.status);
 
@@ -463,6 +512,24 @@ export default function Leisure() {
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{activity.notes}</p>
                   )}
 
+                  {activity.tags && activity.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {activity.tags.map((tag, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          <Icon name="Tag" size={10} className="mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {activity.participants && activity.participants.length > 0 && (
+                    <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
+                      <Icon name="Users" size={14} />
+                      <span>{activity.participants.length} участников</span>
+                    </div>
+                  )}
+
                   <div className="flex gap-2 mt-4 pt-4 border-t">
                     <PhotoUpload
                       activityId={activity.id}
@@ -475,6 +542,7 @@ export default function Leisure() {
                       className="flex-1"
                       onClick={() => {
                         setEditingActivity(activity);
+                        setTagInput('');
                         setIsEditDialogOpen(true);
                       }}
                     >
@@ -602,6 +670,64 @@ export default function Leisure() {
                 rows={3}
               />
             </div>
+
+            <div>
+              <Label>Теги</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  placeholder="Введите тег и нажмите Enter"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && tagInput.trim()) {
+                      e.preventDefault();
+                      if (!newActivity.tags.includes(tagInput.trim())) {
+                        setNewActivity({ ...newActivity, tags: [...newActivity.tags, tagInput.trim()] });
+                      }
+                      setTagInput('');
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (tagInput.trim() && !newActivity.tags.includes(tagInput.trim())) {
+                      setNewActivity({ ...newActivity, tags: [...newActivity.tags, tagInput.trim()] });
+                      setTagInput('');
+                    }
+                  }}
+                >
+                  <Icon name="Plus" size={14} />
+                </Button>
+              </div>
+              {newActivity.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {newActivity.tags.map((tag, idx) => (
+                    <Badge key={idx} variant="secondary" className="gap-1">
+                      <Icon name="Tag" size={10} />
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setNewActivity({ ...newActivity, tags: newActivity.tags.filter((_, i) => i !== idx) })}
+                        className="ml-1 hover:text-red-600"
+                      >
+                        <Icon name="X" size={10} />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>Участники</Label>
+              <ParticipantsPicker
+                selectedIds={newActivity.participants}
+                onChange={(ids) => setNewActivity({ ...newActivity, participants: ids })}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -616,7 +742,10 @@ export default function Leisure() {
 
       {/* Edit Dialog */}
       {editingActivity && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setTagInput('');
+        }}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Редактировать активность</DialogTitle>
@@ -742,6 +871,69 @@ export default function Leisure() {
                   value={editingActivity.notes || ''}
                   onChange={(e) => setEditingActivity({ ...editingActivity, notes: e.target.value })}
                   rows={3}
+                />
+              </div>
+
+              <div>
+                <Label>Теги</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    placeholder="Введите тег и нажмите Enter"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && tagInput.trim()) {
+                        e.preventDefault();
+                        const currentTags = editingActivity.tags || [];
+                        if (!currentTags.includes(tagInput.trim())) {
+                          setEditingActivity({ ...editingActivity, tags: [...currentTags, tagInput.trim()] });
+                        }
+                        setTagInput('');
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const currentTags = editingActivity.tags || [];
+                      if (tagInput.trim() && !currentTags.includes(tagInput.trim())) {
+                        setEditingActivity({ ...editingActivity, tags: [...currentTags, tagInput.trim()] });
+                        setTagInput('');
+                      }
+                    }}
+                  >
+                    <Icon name="Plus" size={14} />
+                  </Button>
+                </div>
+                {editingActivity.tags && editingActivity.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {editingActivity.tags.map((tag, idx) => (
+                      <Badge key={idx} variant="secondary" className="gap-1">
+                        <Icon name="Tag" size={10} />
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentTags = editingActivity.tags || [];
+                            setEditingActivity({ ...editingActivity, tags: currentTags.filter((_, i) => i !== idx) });
+                          }}
+                          className="ml-1 hover:text-red-600"
+                        >
+                          <Icon name="X" size={10} />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label>Участники</Label>
+                <ParticipantsPicker
+                  selectedIds={editingActivity.participants || []}
+                  onChange={(ids) => setEditingActivity({ ...editingActivity, participants: ids })}
                 />
               </div>
             </div>
