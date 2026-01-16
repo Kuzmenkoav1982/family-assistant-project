@@ -23,8 +23,11 @@ export function calculateFamilyCohesion(
 ): CohesionCalculationResult {
   const metrics: CohesionMetrics[] = [];
 
-  const completedTasks = tasks.filter(t => t.completed).length;
-  const totalTasks = tasks.length || 1;
+  const safeMembers = Array.isArray(familyMembers) ? familyMembers : [];
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+
+  const completedTasks = safeTasks.filter(t => t.completed).length;
+  const totalTasks = safeTasks.length || 1;
   const taskCompletionRate = Math.round((completedTasks / totalTasks) * 100);
   metrics.push({
     category: 'Задачи',
@@ -34,12 +37,12 @@ export function calculateFamilyCohesion(
     details: `${completedTasks} из ${totalTasks} выполнено`
   });
 
-  const hasProfilesComplete = familyMembers.filter(m => 
+  const hasProfilesComplete = safeMembers.filter(m => 
     m.name && m.avatar && m.role
   ).length;
-  const profileCompleteness = Math.round((hasProfilesComplete / (familyMembers.length || 1)) * 100);
-  const activeMembers = familyMembers.filter(m => m.points && m.points > 0).length;
-  const activityScore = Math.min(100, Math.round((activeMembers / (familyMembers.length || 1)) * 100));
+  const profileCompleteness = Math.round((hasProfilesComplete / (safeMembers.length || 1)) * 100);
+  const activeMembers = safeMembers.filter(m => m.points && m.points > 0).length;
+  const activityScore = Math.min(100, Math.round((activeMembers / (safeMembers.length || 1)) * 100));
   
   metrics.push({
     category: 'Традиции',
@@ -58,8 +61,8 @@ export function calculateFamilyCohesion(
     details: `${chatMessagesCount} сообщений`
   });
 
-  const totalPoints = familyMembers.reduce((sum, m) => sum + (m.points || 0), 0);
-  const avgPointsPerMember = totalPoints / (familyMembers.length || 1);
+  const totalPoints = safeMembers.reduce((sum, m) => sum + (m.points || 0), 0);
+  const avgPointsPerMember = totalPoints / (safeMembers.length || 1);
   const valuesScore = Math.min(100, Math.round(avgPointsPerMember / 10));
   
   metrics.push({
