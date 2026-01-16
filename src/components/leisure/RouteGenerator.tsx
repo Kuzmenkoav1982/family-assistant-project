@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface LeisureActivity {
   id: number;
@@ -131,6 +131,9 @@ export function RouteGenerator({ activities }: RouteGeneratorProps) {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Маршрут на сегодня</DialogTitle>
+            <DialogDescription>
+              Оптимальный маршрут по выбранным местам с учётом расстояний
+            </DialogDescription>
           </DialogHeader>
 
           {route && (

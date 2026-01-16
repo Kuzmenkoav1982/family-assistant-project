@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const LEISURE_AI_URL = 'https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5';
 
@@ -81,6 +81,9 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
               <Icon name="Search" size={24} />
               Поиск мест на карте
             </DialogTitle>
+            <DialogDescription>
+              Найдите интересные места рядом с вами через Яндекс.Карты
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

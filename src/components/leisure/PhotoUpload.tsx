@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const UPLOAD_PHOTO_URL = 'https://functions.poehali.dev/d9017229-a2a3-4237-a002-bcdb7608c8d9';
 
@@ -90,6 +90,9 @@ export function PhotoUpload({ activityId, existingPhotos = [], onPhotosUpdate }:
               <Icon name="Camera" size={24} />
               Фотографии
             </DialogTitle>
+            <DialogDescription>
+              Добавьте фотографии места или просмотрите существующие
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

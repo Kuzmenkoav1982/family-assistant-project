@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const LEISURE_AI_URL = 'https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5';
 
@@ -113,6 +113,9 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
               <Icon name="Sparkles" size={24} className="text-purple-600" />
               ИИ-помощник для поиска мест
             </DialogTitle>
+            <DialogDescription>
+              Найдите интересные места для досуга с помощью ИИ на основе ваших предпочтений
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">

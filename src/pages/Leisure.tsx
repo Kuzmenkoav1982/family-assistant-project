@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -783,6 +783,7 @@ export default function Leisure() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Добавить активность</DialogTitle>
+            <DialogDescription>Создайте новую активность для досуга с деталями и местоположением</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -988,6 +989,7 @@ export default function Leisure() {
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Редактировать активность</DialogTitle>
+              <DialogDescription>Измените информацию о выбранной активности</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -1265,6 +1267,7 @@ export default function Leisure() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Публичная ссылка на активность</DialogTitle>
+            <DialogDescription>Скопируйте ссылку для доступа к этой активности</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
