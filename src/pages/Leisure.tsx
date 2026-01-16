@@ -562,7 +562,7 @@ export default function Leisure() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/')}
                 className="p-2"
               >
                 <Icon name="Home" size={18} />
