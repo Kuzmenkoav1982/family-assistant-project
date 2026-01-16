@@ -264,11 +264,22 @@ def handle_search_places(body: dict, headers: dict) -> dict:
         
         members = data.get('response', {}).get('GeoObjectCollection', {}).get('featureMember', [])
         
+        # Нормализуем название города для проверки
+        city_lower = city.lower().strip()
+        
         for member in members:
             geo_obj = member.get('GeoObject', {})
             name = geo_obj.get('name', '')
             description = geo_obj.get('description', '')
             coords = geo_obj.get('Point', {}).get('pos', '').split()
+            
+            # Фильтруем результаты: только те, что содержат город в описании
+            # Это исключит "Мевазор, Узбекистан" при поиске в Москве
+            description_lower = description.lower()
+            
+            # Проверяем, что описание содержит искомый город
+            if city_lower not in description_lower:
+                continue
             
             if len(coords) >= 2:
                 place = {
