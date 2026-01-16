@@ -52,6 +52,8 @@ export function PlaceSearch({ onSelectPlace }: PlaceSearchProps) {
       });
 
       const data = await response.json();
+      console.log('[PlaceSearch] API Response:', data);
+      console.log('[PlaceSearch] Places count:', data.places?.length || 0);
       setResults(data.places || []);
     } catch (error) {
       console.error('Error searching places:', error);
