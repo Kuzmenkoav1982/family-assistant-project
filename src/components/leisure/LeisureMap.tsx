@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Place {
   name: string;
@@ -24,8 +24,25 @@ declare global {
 export function LeisureMap({ places, center = [55.7558, 37.6173], zoom = 10, onPlaceClick }: LeisureMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
+  const [apiKey, setApiKey] = useState<string>('');
 
   useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
+        const data = await response.json();
+        setApiKey(data.apiKey || '');
+      } catch (error) {
+        console.error('Error loading Yandex Maps API key:', error);
+      }
+    };
+
+    fetchApiKey();
+  }, []);
+
+  useEffect(() => {
+    if (!apiKey) return;
+
     const loadYandexMaps = () => {
       if (document.getElementById('yandex-maps-script')) {
         initMap();
@@ -34,7 +51,7 @@ export function LeisureMap({ places, center = [55.7558, 37.6173], zoom = 10, onP
 
       const script = document.createElement('script');
       script.id = 'yandex-maps-script';
-      script.src = 'https://api-maps.yandex.ru/2.1/?apikey=&lang=ru_RU';
+      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`;
       script.async = true;
       script.onload = () => {
         window.ymaps.ready(initMap);
@@ -95,7 +112,7 @@ export function LeisureMap({ places, center = [55.7558, 37.6173], zoom = 10, onP
         mapInstance.current = null;
       }
     };
-  }, [places, center, zoom, onPlaceClick]);
+  }, [places, center, zoom, onPlaceClick, apiKey]);
 
   return (
     <div ref={mapRef} className="w-full h-full min-h-[400px] rounded-lg" />

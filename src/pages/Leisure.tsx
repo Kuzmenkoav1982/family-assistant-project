@@ -396,6 +396,15 @@ export default function Leisure() {
     }
   };
 
+  const handleCalendarDateClick = (date: string) => {
+    setNewActivity({
+      ...newActivity,
+      date,
+      status: 'planned'
+    });
+    setIsAddDialogOpen(true);
+  };
+
   const mapCategory = (aiCategory: string): string => {
     const lower = aiCategory.toLowerCase();
     if (lower.includes('ресторан') || lower.includes('еда')) return 'restaurant';
@@ -636,10 +645,25 @@ export default function Leisure() {
           <LeisureCalendar 
             activities={allActivities} 
             onDateChange={handleCalendarDateChange}
+            onDateClick={handleCalendarDateClick}
           />
         ) : viewMode === 'map' ? (
           <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
-            <LeisureMap places={activities.map(a => ({ name: a.title, coordinates: undefined }))} />
+            <LeisureMap 
+              places={activities
+                .filter(a => a.latitude && a.longitude)
+                .map(a => ({ 
+                  name: a.title, 
+                  coordinates: { lat: a.latitude!, lon: a.longitude! }
+                }))} 
+              onPlaceClick={(place) => {
+                const activity = activities.find(a => a.title === place.name);
+                if (activity) {
+                  setEditingActivity(activity);
+                  setIsEditDialogOpen(true);
+                }
+              }}
+            />
           </div>
         ) : activities.length === 0 ? (
           <div className="text-center py-12">

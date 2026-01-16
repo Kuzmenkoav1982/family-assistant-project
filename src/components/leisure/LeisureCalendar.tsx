@@ -16,9 +16,10 @@ interface LeisureActivity {
 interface LeisureCalendarProps {
   activities: LeisureActivity[];
   onDateChange: (activityId: number, newDate: string) => void;
+  onDateClick?: (date: string) => void;
 }
 
-export function LeisureCalendar({ activities, onDateChange }: LeisureCalendarProps) {
+export function LeisureCalendar({ activities, onDateChange, onDateClick }: LeisureCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [draggedActivity, setDraggedActivity] = useState<number | null>(null);
 
@@ -144,9 +145,13 @@ export function LeisureCalendar({ activities, onDateChange }: LeisureCalendarPro
                 key={day}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(day)}
+                onClick={() => {
+                  const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  onDateClick?.(dateStr);
+                }}
                 className={`min-h-[100px] border rounded-lg p-2 ${
                   isToday ? 'bg-blue-50 border-blue-300' : 'bg-white'
-                } hover:bg-gray-50 transition-colors`}
+                } hover:bg-gray-50 transition-colors cursor-pointer`}
               >
                 <div className="text-sm font-semibold mb-1">{day}</div>
                 <div className="space-y-1">
