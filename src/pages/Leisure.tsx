@@ -99,9 +99,6 @@ export default function Leisure() {
   });
   const [tagInput, setTagInput] = useState('');
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [shareLink, setShareLink] = useState('');
-  const [sharingActivity, setSharingActivity] = useState<LeisureActivity | null>(null);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -314,15 +311,63 @@ export default function Leisure() {
 
       if (response.ok) {
         const data = await response.json();
-        setShareLink(data.share_url);
-        setSharingActivity(activity);
-        setShareDialogOpen(true);
+        const shareUrl = data.share_url;
         await loadActivities(activeTab);
+        
+        // Используем нативный шаринг (как в разделе Путешествия)
+        handleShareActivity(activity, shareUrl);
       }
     } catch (error) {
       console.error('Error generating share link:', error);
       alert('Ошибка при генерации ссылки');
     }
+  };
+
+  const handleShareActivity = (activity: LeisureActivity, shareUrl: string) => {
+    const categoryInfo = getCategoryInfo(activity.category);
+    let shareText = `${categoryInfo.label}: ${activity.title}\n\n`;
+    
+    if (activity.location) {
+      shareText += `📍 ${activity.location}\n`;
+    }
+    if (activity.date) {
+      shareText += `📅 ${formatDate(activity.date)}`;
+      if (activity.time) {
+        shareText += ` в ${activity.time}`;
+      }
+      shareText += '\n';
+    }
+    if (activity.price) {
+      shareText += `💰 ${formatPrice(activity.price, activity.currency)}\n`;
+    }
+    if (activity.notes) {
+      shareText += `\nℹ️ ${activity.notes}\n`;
+    }
+    
+    shareText += `\n🔗 ${shareUrl}\n`;
+    shareText += '\n🚀 Создано в приложении "Наша Семья" — https://nasha-semiya.ru';
+
+    if (navigator.share) {
+      navigator.share({
+        title: activity.title,
+        text: shareText,
+      }).catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          fallbackShareActivity(shareUrl);
+        }
+      });
+    } else {
+      fallbackShareActivity(shareUrl);
+    }
+  };
+
+  const fallbackShareActivity = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('✅ Ссылка скопирована в буфер обмена!\nТеперь можно вставить в любое сообщение.');
+    }).catch(() => {
+      alert('Не удалось скопировать. Попробуйте ещё раз.');
+    });
   };
 
   const handleRevokeShareLink = async (activity: LeisureActivity) => {
@@ -350,10 +395,7 @@ export default function Leisure() {
     }
   };
 
-  const copyShareLink = () => {
-    navigator.clipboard.writeText(shareLink);
-    alert('Ссылка скопирована!');
-  };
+
 
   const handleCalendarDateChange = async (activityId: number, newDate: string) => {
     try {
@@ -1291,30 +1333,6 @@ export default function Leisure() {
           </DialogContent>
         </Dialog>
       )}
-
-      {/* Share Dialog */}
-      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Публичная ссылка на активность</DialogTitle>
-            <DialogDescription>Скопируйте ссылку для доступа к этой активности</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Теперь "{sharingActivity?.title}" доступна по публичной ссылке. Любой человек с этой ссылкой сможет посмотреть детали.
-            </p>
-            <div className="flex gap-2">
-              <Input value={shareLink} readOnly className="flex-1" />
-              <Button onClick={copyShareLink} variant="outline">
-                <Icon name="Copy" size={16} />
-              </Button>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShareDialogOpen(false)}>Закрыть</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
