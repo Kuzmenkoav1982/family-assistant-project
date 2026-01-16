@@ -27,7 +27,7 @@ export function ParticipantsPicker({ selectedIds, onChange }: ParticipantsPicker
   const loadMembers = async () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/bd04c5da-ca21-42cd-a2fc-3eb949fa2ed5', {
+      const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
         headers: {
           'X-Auth-Token': token || ''
         }
