@@ -298,6 +298,38 @@ export default function FamilyInviteManager() {
     }
   };
 
+  const deleteAllDuplicates = async () => {
+    if (!confirm('⚠️ Удалить ВСЕ дубликаты?\n\nБудут удалены все члены семьи с пометкой [ДУБЛИКАТ - УДАЛИТЬ].\n\nЭто действие нельзя отменить!')) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': getAuthToken()
+        },
+        body: JSON.stringify({
+          action: 'delete_all_duplicates'
+        })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(`✅ Удалено дубликатов: ${data.deleted_count}`);
+        fetchFamilyMembers();
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка удаления дубликатов');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateFamilySettings = async () => {
     if (familyLogo && !isValidImageUrl(familyLogo)) {
       alert('❌ Некорректный URL изображения. Убедитесь, что ссылка ведет напрямую на изображение (.jpg, .png, .gif) или загрузите файл.');
@@ -769,6 +801,16 @@ export default function FamilyInviteManager() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Button 
+            onClick={deleteAllDuplicates} 
+            disabled={isLoading}
+            variant="destructive"
+            className="w-full"
+          >
+            <Icon name="Trash2" className="mr-2" size={16} />
+            {isLoading ? 'Удаление...' : 'Удалить все дубликаты ([ДУБЛИКАТ - УДАЛИТЬ])'}
+          </Button>
+
           {members.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               <Icon name="Users" size={48} className="mx-auto mb-3 text-gray-400" />

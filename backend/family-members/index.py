@@ -272,6 +272,41 @@ def delete_family_member(member_id: str, family_id: str, requesting_user_id: str
         conn.close()
         return {'error': str(e)}
 
+def delete_all_duplicates(family_id: str, requesting_user_id: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        # Проверяем, что запрашивающий - админ
+        cur.execute(
+            f"SELECT access_role FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(requesting_user_id)} AND family_id = {escape_string(family_id)}"
+        )
+        requester = cur.fetchone()
+        
+        if not requester or requester['access_role'] != 'admin':
+            cur.close()
+            conn.close()
+            return {'error': 'Только администратор может удалять дубликаты'}
+        
+        # Удаляем всех членов семьи с пометкой [ДУБЛИКАТ
+        delete_query = f"""
+            DELETE FROM {SCHEMA}.family_members 
+            WHERE family_id = {escape_string(family_id)} 
+              AND name LIKE '[ДУБЛИКАТ%'
+        """
+        cur.execute(delete_query)
+        deleted_count = cur.rowcount
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {'success': True, 'deleted_count': deleted_count}
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
 def get_global_stats() -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -401,6 +436,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 result = delete_family_member(member_id, family_id, user_id)
+                status_code = 200 if 'success' in result else 400
+            elif action == 'delete_all_duplicates':
+                result = delete_all_duplicates(family_id, user_id)
                 status_code = 200 if 'success' in result else 400
             else:
                 result = add_family_member(family_id, body)
