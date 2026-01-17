@@ -217,19 +217,32 @@ export default function FamilyInviteManager() {
 
   const shareInviteLink = (code: string) => {
     const link = `${window.location.origin}/join?code=${code}`;
-    const text = `Присоединяйся к нашей семье в приложении Семейный Органайзер!\n\nПерейди по ссылке:\n${link}`;
+    const text = `👨‍👩‍👧‍👦 Присоединяйся к нашей семье!\n\n${familyName}\n\n${link}`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'Приглашение в семью',
-        text: text,
-        url: link
+        title: `Приглашение в ${familyName}`,
+        text: text
       }).catch(() => {
         copyInviteLink(code);
       });
     } else {
       copyInviteLink(code);
     }
+  };
+
+  const shareViaMax = (code: string) => {
+    const link = `${window.location.origin}/join?code=${code}`;
+    const message = `👨‍👩‍👧‍👦 Присоединяйся к нашей семье!\n\n${familyName}\n\n${link}`;
+    const maxUrl = `https://tamtam.chat/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(message)}`;
+    window.open(maxUrl, '_blank');
+  };
+
+  const shareViaTelegram = (code: string) => {
+    const link = `${window.location.origin}/join?code=${code}`;
+    const message = `👨‍👩‍👧‍👦 Присоединяйся к нашей семье!\n\n${familyName}\n\n${link}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(message)}`;
+    window.open(telegramUrl, '_blank');
   };
 
   const deleteInvite = async (inviteId: string) => {
@@ -701,7 +714,7 @@ export default function FamilyInviteManager() {
                 <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">2</div>
                 <span className="font-semibold">Отправить код</span>
               </div>
-              <p className="text-xs text-gray-600">Отправьте код родственнику в WhatsApp или SMS</p>
+              <p className="text-xs text-gray-600">Отправьте код родственнику в MAX, Telegram или SMS</p>
             </div>
             <div className="bg-white rounded-lg p-3 border border-blue-200">
               <div className="flex items-center gap-2 mb-2">
@@ -755,23 +768,40 @@ export default function FamilyInviteManager() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => shareViaMax(invite.invite_code)} 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      title="Отправить приглашение через MAX"
+                    >
+                      <Icon name="MessageCircle" size={14} className="mr-1" />
+                      MAX
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => shareViaTelegram(invite.invite_code)} 
+                      className="bg-sky-500 hover:bg-sky-600"
+                      title="Отправить приглашение через Telegram"
+                    >
+                      <Icon name="Send" size={14} className="mr-1" />
+                      TG
+                    </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => copyInviteCode(invite.invite_code)}
-                      title="Скопировать код"
+                      onClick={() => copyInviteLink(invite.invite_code)}
+                      title="Скопировать ссылку-приглашение"
                     >
                       <Icon name="Copy" size={14} />
                     </Button>
                     <Button 
                       size="sm" 
                       onClick={() => shareInviteLink(invite.invite_code)} 
-                      className="bg-purple-600"
-                      title="Поделиться ссылкой"
+                      variant="outline"
+                      title="Поделиться через любое приложение"
                     >
-                      <Icon name="Share2" size={14} className="mr-1" />
-                      Ссылка
+                      <Icon name="Share2" size={14} />
                     </Button>
                     <Button 
                       size="sm" 

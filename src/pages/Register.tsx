@@ -148,7 +148,8 @@ export default function Register() {
           description: 'Регистрация успешна! Ваша семья создана.'
         });
 
-        setTimeout(() => window.location.href = '/', 500);
+        // Redirect to onboarding for new users
+        setTimeout(() => window.location.href = '/onboarding', 500);
       } else {
         await checkRateLimit();
         

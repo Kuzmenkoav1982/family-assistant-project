@@ -82,6 +82,7 @@ import ActivateCallback from "./pages/ActivateCallback";
 import FamilyTracker from "./pages/FamilyTracker";
 import LocationHistory from "./pages/LocationHistory";
 import DebugAuth from "./pages/DebugAuth";
+import Onboarding from "./pages/Onboarding";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -169,6 +170,7 @@ const App = () => {
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
               <Route path="/join" element={<JoinFamily />} />

@@ -339,35 +339,7 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="space-y-3 mt-6">
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Icon name="Info" size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-gray-700">
-                  <p className="font-semibold mb-1">Первый вход (создать семью):</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Автоматически создается семья</li>
-                    <li>Вы становитесь владельцем</li>
-                    <li>Можно пригласить родственников</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Icon name="UserPlus" size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-gray-700">
-                  <p className="font-semibold mb-1">Присоединиться к существующей семье:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Попросите владельца семьи прислать приглашение</li>
-                    <li>Войдите под своим Яндекс ID</li>
-                    <li>Владелец добавит вас в семью</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
