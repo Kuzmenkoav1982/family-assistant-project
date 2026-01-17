@@ -35,7 +35,7 @@ interface FamilyMembersContextType {
 
 const FamilyMembersContext = createContext<FamilyMembersContextType | undefined>(undefined);
 
-const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5';
+const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/9c2279f4-7f87-4d3f-8f06-60f151f18962';
 
 export function FamilyMembersProvider({ children }: { children: React.ReactNode }) {
   const dialogLock = useContext(DialogLockContext);
