@@ -128,72 +128,24 @@ export default function Login() {
 
     setLoading(true);
 
-    const debugInfo: string[] = [];
-    debugInfo.push(`[1] Email: ${formData.email}`);
-    debugInfo.push(`[2] Password length: ${formData.password.length} символов`);
-    debugInfo.push(`[3] AUTH_URL: ${AUTH_URL}`);
-
     try {
-      const requestBody = {
-        action: 'login',
-        email: formData.email,
-        password: formData.password
-      };
-      debugInfo.push(`[4] Request body: ${JSON.stringify(requestBody)}`);
-
       const response = await fetch(AUTH_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          action: 'login',
+          email: formData.email,
+          password: formData.password
+        })
       });
 
-      debugInfo.push(`[5] Response status: ${response.status}`);
-      debugInfo.push(`[6] Response ok: ${response.ok}`);
-
-      const responseText = await response.text();
-      debugInfo.push(`[7] Response raw text: ${responseText}`);
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-        debugInfo.push(`[8] Parsed JSON: ${JSON.stringify(data)}`);
-      } catch (parseError) {
-        debugInfo.push(`[8] JSON parse error: ${parseError}`);
-        console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));
-        alert('[DEBUG]\n' + debugInfo.join('\n'));
-        throw parseError;
-      }
+      const data = await response.json();
 
       if (data.success && data.token) {
-        debugInfo.push('[9] Success! Token received');
-        console.log('[DEBUG] Full debug info:', debugInfo.join('\n'));
-        
-        // Сохраняем токен и данные
-        try {
-          const tokenSaved = storage.setItem('authToken', data.token);
-          const userSaved = storage.setItem('userData', JSON.stringify(data.user));
-          
-          // Проверяем, что токен действительно сохранился
-          const savedToken = storage.getItem('authToken');
-          if (!savedToken || !tokenSaved) {
-            throw new Error('Storage не сохранил токен');
-          }
-          
-          debugInfo.push(`[10] Token verified in storage (tokenSaved: ${tokenSaved}, userSaved: ${userSaved})`);
-        } catch (storageError) {
-          debugInfo.push(`[10] Storage error: ${storageError}`);
-          console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));
-          alert('[DEBUG]\n' + debugInfo.join('\n'));
-          
-          toast({
-            title: 'Ошибка сохранения',
-            description: 'Не удалось сохранить данные авторизации. Проверьте настройки браузера.',
-            variant: 'destructive'
-          });
-          return;
-        }
+        storage.setItem('authToken', data.token);
+        storage.setItem('userData', JSON.stringify(data.user));
         
         toast({
           title: 'Добро пожаловать! 👋',
@@ -201,30 +153,23 @@ export default function Login() {
         });
 
         setTimeout(() => {
-          // Используем replace вместо href для PWA
           window.location.replace('/');
         }, 500);
       } else {
-        debugInfo.push(`[9] Login failed: ${data.error || 'Unknown error'}`);
-        console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));
-        alert('[DEBUG]\n' + debugInfo.join('\n'));
-        
         await checkRateLimit();
         
         toast({
-          title: 'Ошибка входа',
-          description: data.error || 'Проверьте email и пароль',
+          title: 'Неверный email или пароль',
+          description: 'Проверьте правильность введенных данных и попробуйте снова',
           variant: 'destructive'
         });
       }
     } catch (error) {
-      debugInfo.push(`[ERROR] Exception: ${error}`);
-      console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));
-      alert('[DEBUG]\n' + debugInfo.join('\n'));
+      console.error('Login error:', error);
       
       toast({
-        title: 'Ошибка сети',
-        description: 'Не удалось связаться с сервером',
+        title: 'Ошибка подключения',
+        description: 'Проверьте интернет-соединение и попробуйте снова',
         variant: 'destructive'
       });
     } finally {
