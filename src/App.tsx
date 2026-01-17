@@ -88,15 +88,36 @@ import { queryClient } from "@/lib/queryClient";
 import { DialogLockProvider } from "@/contexts/DialogLockContext";
 import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
+import { storage } from "@/lib/storage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    setIsAuthenticated(!!token);
-    setIsChecking(false);
+    const checkAuth = () => {
+      try {
+        const token = storage.getItem('authToken');
+        console.log('[ProtectedRoute] Checking auth, token exists:', !!token);
+        
+        // Дополнительная проверка для PWA
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window.navigator as any).standalone === true;
+        
+        if (isPWA && !token) {
+          console.log('[ProtectedRoute] PWA mode detected, no token found');
+        }
+        
+        setIsAuthenticated(!!token);
+      } catch (error) {
+        console.error('[ProtectedRoute] Error checking auth:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+    
+    checkAuth();
   }, []);
 
   if (isChecking) {
@@ -119,8 +140,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    storage.removeItem('authToken');
+    storage.removeItem('userData');
     window.location.href = '/login';
   };
 

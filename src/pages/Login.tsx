@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { storage } from '@/lib/storage';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 const FRONTEND_URL = window.location.origin;
@@ -23,7 +24,7 @@ export default function Login() {
 
   // Если уже авторизован, редирект на главную
   useEffect(() => {
-    const existingToken = localStorage.getItem('authToken');
+    const existingToken = storage.getItem('authToken');
     if (existingToken && !searchParams.get('token')) {
       console.log('[DEBUG Login] Already authorized, redirecting to /');
       window.location.href = '/';
@@ -45,12 +46,12 @@ export default function Login() {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        console.log('[DEBUG Login] Saving token and user to localStorage');
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('userData', JSON.stringify(user));
-        console.log('[DEBUG Login] Token saved, navigating to /');
+        console.log('[DEBUG Login] Saving token and user to storage');
+        const tokenSaved = storage.setItem('authToken', token);
+        const userSaved = storage.setItem('userData', JSON.stringify(user));
+        console.log('[DEBUG Login] Token saved:', tokenSaved, 'User saved:', userSaved);
         
-        // Небольшая задержка, чтобы localStorage точно успел записаться
+        // Небольшая задержка, чтобы storage точно успел записаться
         setTimeout(() => {
           window.location.href = '/';
         }, 100);
@@ -117,15 +118,40 @@ export default function Login() {
         debugInfo.push('[9] Success! Token received');
         console.log('[DEBUG] Full debug info:', debugInfo.join('\n'));
         
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        // Сохраняем токен и данные
+        try {
+          const tokenSaved = storage.setItem('authToken', data.token);
+          const userSaved = storage.setItem('userData', JSON.stringify(data.user));
+          
+          // Проверяем, что токен действительно сохранился
+          const savedToken = storage.getItem('authToken');
+          if (!savedToken || !tokenSaved) {
+            throw new Error('Storage не сохранил токен');
+          }
+          
+          debugInfo.push(`[10] Token verified in storage (tokenSaved: ${tokenSaved}, userSaved: ${userSaved})`);
+        } catch (storageError) {
+          debugInfo.push(`[10] Storage error: ${storageError}`);
+          console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));
+          alert('[DEBUG]\n' + debugInfo.join('\n'));
+          
+          toast({
+            title: 'Ошибка сохранения',
+            description: 'Не удалось сохранить данные авторизации. Проверьте настройки браузера.',
+            variant: 'destructive'
+          });
+          return;
+        }
         
         toast({
           title: 'Добро пожаловать! 👋',
           description: 'Вход выполнен успешно'
         });
 
-        setTimeout(() => window.location.href = '/', 500);
+        setTimeout(() => {
+          // Используем replace вместо href для PWA
+          window.location.replace('/');
+        }, 500);
       } else {
         debugInfo.push(`[9] Login failed: ${data.error || 'Unknown error'}`);
         console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));

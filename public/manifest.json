@@ -2,11 +2,12 @@
   "name": "Наша Семья",
   "short_name": "Наша Семья",
   "description": "Полноценный семейный помощник для управления задачами, событиями, здоровьем и развитием детей",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#d97430",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "https://cdn.poehali.dev/files/Логотип Наша Семья.JPG",
