@@ -216,6 +216,39 @@ export default function FamilyInviteManager() {
     }
   };
 
+  const deleteInvite = async (inviteId: string) => {
+    if (!confirm('Вы уверены, что хотите удалить это приглашение?')) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(INVITE_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': getAuthToken()
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          invite_id: inviteId
+        })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('✅ Приглашение удалено');
+        fetchInvites();
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка удаления приглашения');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateFamilySettings = async () => {
     if (familyLogo && !isValidImageUrl(familyLogo)) {
       alert('❌ Некорректный URL изображения. Убедитесь, что ссылка ведет напрямую на изображение (.jpg, .png, .gif) или загрузите файл.');
@@ -658,6 +691,14 @@ export default function FamilyInviteManager() {
                     >
                       <Icon name="Share2" size={14} className="mr-1" />
                       Ссылка
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => deleteInvite(invite.id)}
+                      title="Удалить приглашение"
+                    >
+                      <Icon name="Trash2" size={14} />
                     </Button>
                   </div>
                 </div>

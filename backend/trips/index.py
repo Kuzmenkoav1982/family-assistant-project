@@ -111,18 +111,70 @@ def get_user_and_family(conn, event: Dict[str, Any]) -> tuple:
         return user_id, family_id
 
 
+def add_itinerary_day(conn, data: Dict) -> Dict:
+    """Добавляет день в маршрут поездки"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            INSERT INTO t_p5815085_family_assistant_pro.trip_itinerary 
+            (trip_id, day_number, date, title, description, places, notes)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (data.get('trip_id'), data.get('day_number'), data.get('date'),
+             data.get('title'), data.get('description'), data.get('places'), data.get('notes'))
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def update_itinerary_day(conn, data: Dict) -> Dict:
+    """Обновляет день в маршруте"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE t_p5815085_family_assistant_pro.trip_itinerary
+            SET day_number = %s, date = %s, title = %s, description = %s, places = %s, notes = %s
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data.get('day_number'), data.get('date'), data.get('title'),
+             data.get('description'), data.get('places'), data.get('notes'), data.get('day_id'))
+        )
+        conn.commit()
+        return convert_for_json(dict(cur.fetchone()))
+
+
+def delete_itinerary_day(conn, day_id: int):
+    """Удаляет день из маршрута"""
+    with conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM t_p5815085_family_assistant_pro.trip_itinerary WHERE id = %s",
+            (day_id,)
+        )
+        conn.commit()
+
+
 def get_leisure_activities(conn, user_id: str, status_filter: Optional[str] = None) -> List[Dict]:
-    """Получить список досуговых активностей"""
+    """Получить список досуговых активностей (где пользователь создатель или участник)"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         if status_filter and status_filter != 'all':
             cur.execute(
-                "SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities WHERE user_id = %s AND status = %s ORDER BY date DESC NULLS LAST, created_at DESC",
-                (user_id, status_filter)
+                """
+                SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities 
+                WHERE (user_id = %s OR %s = ANY(participants)) AND status = %s 
+                ORDER BY date DESC NULLS LAST, created_at DESC
+                """,
+                (user_id, user_id, status_filter)
             )
         else:
             cur.execute(
-                "SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities WHERE user_id = %s ORDER BY date DESC NULLS LAST, created_at DESC",
-                (user_id,)
+                """
+                SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities 
+                WHERE (user_id = %s OR %s = ANY(participants)) 
+                ORDER BY date DESC NULLS LAST, created_at DESC
+                """,
+                (user_id, user_id)
             )
         return [convert_for_json(dict(row)) for row in cur.fetchall()]
 
@@ -440,6 +492,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 201,
                     'headers': headers,
                     'body': json.dumps({'day': day}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            elif body.get('action') == 'update_day':
+                day = update_itinerary_day(conn, body)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'day': day}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            elif body.get('action') == 'delete_day':
+                delete_itinerary_day(conn, body.get('day_id'))
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
         

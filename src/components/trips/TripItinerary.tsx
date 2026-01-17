@@ -27,6 +27,8 @@ interface TripItineraryProps {
 
 export function TripItinerary({ tripId, itinerary, onUpdate }: TripItineraryProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingDay, setEditingDay] = useState<ItineraryDay | null>(null);
   const [newDay, setNewDay] = useState({
     day_number: itinerary.length + 1,
     date: new Date().toISOString().split('T')[0],
@@ -75,6 +77,66 @@ export function TripItinerary({ tripId, itinerary, onUpdate }: TripItineraryProp
     }
   };
 
+  const handleEditDay = async () => {
+    if (!editingDay) return;
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'update_day',
+          day_id: editingDay.id,
+          day_number: editingDay.day_number,
+          date: editingDay.date,
+          title: editingDay.title,
+          description: editingDay.description,
+          places: editingDay.places,
+          notes: editingDay.notes
+        })
+      });
+
+      if (response.ok) {
+        onUpdate();
+        setIsEditOpen(false);
+        setEditingDay(null);
+      }
+    } catch (error) {
+      console.error('Error updating day:', error);
+      alert('Ошибка при обновлении дня');
+    }
+  };
+
+  const handleDeleteDay = async (dayId: number) => {
+    if (!confirm('Удалить этот день из маршрута?')) return;
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'delete_day',
+          day_id: dayId
+        })
+      });
+
+      if (response.ok) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting day:', error);
+      alert('Ошибка при удалении дня');
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -117,6 +179,25 @@ export function TripItinerary({ tripId, itinerary, onUpdate }: TripItineraryProp
                       <CardTitle className="text-lg">{day.title || `День ${day.day_number}`}</CardTitle>
                     </div>
                     <p className="text-sm text-gray-500">{formatDate(day.date)}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setEditingDay(day);
+                        setIsEditOpen(true);
+                      }}
+                    >
+                      <Icon name="Edit" size={16} />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDeleteDay(day.id)}
+                    >
+                      <Icon name="Trash2" size={16} />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -211,6 +292,82 @@ export function TripItinerary({ tripId, itinerary, onUpdate }: TripItineraryProp
               Отмена
             </Button>
             <Button onClick={handleAddDay}>Добавить</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать день</DialogTitle>
+          </DialogHeader>
+          {editingDay && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_day_number">День №</Label>
+                  <Input
+                    id="edit_day_number"
+                    type="number"
+                    value={editingDay.day_number}
+                    onChange={(e) => setEditingDay({ ...editingDay, day_number: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_date">Дата *</Label>
+                  <Input
+                    id="edit_date"
+                    type="date"
+                    value={editingDay.date}
+                    onChange={(e) => setEditingDay({ ...editingDay, date: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="edit_title">Название дня</Label>
+                <Input
+                  id="edit_title"
+                  value={editingDay.title || ''}
+                  onChange={(e) => setEditingDay({ ...editingDay, title: e.target.value })}
+                  placeholder="Например: Прибытие и заселение"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_description">Описание</Label>
+                <Textarea
+                  id="edit_description"
+                  value={editingDay.description || ''}
+                  onChange={(e) => setEditingDay({ ...editingDay, description: e.target.value })}
+                  placeholder="Что планируете делать в этот день?"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_places">Места для посещения</Label>
+                <Input
+                  id="edit_places"
+                  value={editingDay.places || ''}
+                  onChange={(e) => setEditingDay({ ...editingDay, places: e.target.value })}
+                  placeholder="Парк Ривьера, Олимпийский парк..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_notes">Заметки</Label>
+                <Textarea
+                  id="edit_notes"
+                  value={editingDay.notes || ''}
+                  onChange={(e) => setEditingDay({ ...editingDay, notes: e.target.value })}
+                  placeholder="Важные детали, напоминания..."
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleEditDay}>Сохранить</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
