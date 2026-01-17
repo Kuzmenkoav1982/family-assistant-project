@@ -167,7 +167,7 @@ def get_leisure_activities(conn, user_id: str, status_filter: Optional[str] = No
         if not family_result:
             return []
         
-        family_id = family_result[0]
+        family_id = family_result['family_id']
         
         # Получаем все мероприятия семьи
         if status_filter and status_filter != 'all':
@@ -210,7 +210,7 @@ def create_leisure_activity(conn, data: Dict, user_id: str) -> Dict:
             (user_id,)
         )
         family_result = cur.fetchone()
-        family_id = family_result[0] if family_result else None
+        family_id = family_result['family_id'] if family_result else None
         
         cur.execute(
             """
