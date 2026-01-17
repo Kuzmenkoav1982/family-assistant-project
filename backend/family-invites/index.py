@@ -329,6 +329,56 @@ def list_invites(user_id: str) -> Dict[str, Any]:
         'invites': [dict(invite) for invite in invites]
     }
 
+def delete_invite(user_id: str, invite_id: str) -> Dict[str, Any]:
+    family_id = get_user_family_id(user_id)
+    if not family_id:
+        return {'error': 'Пользователь не состоит в семье'}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        # Проверяем, что приглашение принадлежит семье пользователя
+        cur.execute(
+            f"""
+            SELECT family_id FROM {SCHEMA}.family_invites
+            WHERE id = %s
+            """,
+            (invite_id,)
+        )
+        invite = cur.fetchone()
+        
+        if not invite:
+            cur.close()
+            conn.close()
+            return {'error': 'Приглашение не найдено'}
+        
+        if str(invite['family_id']) != family_id:
+            cur.close()
+            conn.close()
+            return {'error': 'Нет доступа к этому приглашению'}
+        
+        # Деактивируем приглашение вместо удаления
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.family_invites
+            SET is_active = FALSE
+            WHERE id = %s
+            """,
+            (invite_id,)
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {'success': True}
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': f'Ошибка удаления: {str(e)}'}
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     
@@ -406,6 +456,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'headers': headers,
                         'body': json.dumps(result)
                     }
+                
+                if 'error' in result:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps(result)
+                    }
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result)
+                }
+            
+            elif action == 'delete':
+                invite_id = body.get('invite_id', '')
+                
+                if not invite_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'Требуется ID приглашения'})
+                    }
+                
+                result = delete_invite(user_id, invite_id)
                 
                 if 'error' in result:
                     return {
