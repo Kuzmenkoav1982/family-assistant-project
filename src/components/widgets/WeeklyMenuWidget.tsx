@@ -26,20 +26,42 @@ const mealIcons = {
   snack: '🍪'
 };
 
+const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
+
 export function WeeklyMenuWidget() {
   const navigate = useNavigate();
   const [weeklyMenu, setWeeklyMenu] = useState<MealPlan[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('family_meal_plan');
-    if (saved) {
-      try {
-        setWeeklyMenu(JSON.parse(saved));
-      } catch {
-        setWeeklyMenu([]);
-      }
-    }
+    fetchMeals();
   }, []);
+
+  const fetchMeals = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(MEAL_API, {
+        headers: {
+          'X-Auth-Token': authToken || ''
+        }
+      });
+      const data = await response.json();
+      if (data.success && data.meals) {
+        setWeeklyMenu(data.meals.map((m: any) => ({
+          id: m.id,
+          day: m.day,
+          mealType: m.meal_type,
+          dishName: m.dish_name,
+          description: m.description,
+          emoji: m.emoji,
+          addedBy: m.added_by,
+          addedByName: m.added_by_name,
+          addedAt: m.created_at
+        })));
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки меню:', error);
+    }
+  };
 
   const daysMap = {
     'monday': 'Понедельник',

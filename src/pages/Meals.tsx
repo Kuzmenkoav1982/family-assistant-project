@@ -10,7 +10,7 @@ import { MealsHeader } from '@/components/meals/MealsHeader';
 import { MealsDayView } from '@/components/meals/MealsDayView';
 import { MealsWeekView } from '@/components/meals/MealsWeekView';
 
-const STORAGE_KEY = 'family_meal_plan';
+const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
 
 interface MealPlan {
   id: string;
@@ -60,61 +60,105 @@ export default function Meals() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setMealPlans(JSON.parse(saved));
-    }
+    fetchMeals();
   }, []);
+
+  const fetchMeals = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(MEAL_API, {
+        headers: {
+          'X-Auth-Token': authToken || ''
+        }
+      });
+      const data = await response.json();
+      if (data.success && data.meals) {
+        setMealPlans(data.meals.map((m: any) => ({
+          id: m.id,
+          day: m.day,
+          mealType: m.meal_type,
+          dishName: m.dish_name,
+          description: m.description,
+          emoji: m.emoji,
+          addedBy: m.added_by,
+          addedByName: m.added_by_name,
+          addedAt: m.created_at
+        })));
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки меню:', error);
+    }
+  };
 
   const saveMealPlans = (updated: MealPlan[]) => {
     setMealPlans(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
-  const handleAddMeal = () => {
+  const handleAddMeal = async () => {
     if (!newMeal.dishName.trim()) return;
 
     const currentMember = members[0] || { id: 'demo', name: 'Пользователь', avatar: '👤' };
+    const authToken = localStorage.getItem('authToken');
 
-    if (editingMeal) {
-      const updated = mealPlans.map(m =>
-        m.id === editingMeal.id
-          ? {
-              ...m,
-              day: newMeal.day,
-              mealType: newMeal.mealType,
-              dishName: newMeal.dishName,
-              description: newMeal.description,
-              emoji: newMeal.emoji
-            }
-          : m
-      );
-      saveMealPlans(updated);
-      setEditingMeal(null);
-    } else {
-      const meal: MealPlan = {
-        id: Date.now().toString(),
-        day: newMeal.day,
-        mealType: newMeal.mealType,
-        dishName: newMeal.dishName,
-        description: newMeal.description,
-        emoji: newMeal.emoji,
-        addedBy: currentMember.id,
-        addedByName: currentMember.name,
-        addedAt: new Date().toISOString()
-      };
+    try {
+      if (editingMeal) {
+        const response = await fetch(MEAL_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Auth-Token': authToken || ''
+          },
+          body: JSON.stringify({
+            action: 'update',
+            id: editingMeal.id,
+            day: newMeal.day,
+            mealType: newMeal.mealType,
+            dishName: newMeal.dishName,
+            description: newMeal.description,
+            emoji: newMeal.emoji
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          await fetchMeals();
+        }
+        setEditingMeal(null);
+      } else {
+        const response = await fetch(MEAL_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Auth-Token': authToken || ''
+          },
+          body: JSON.stringify({
+            action: 'add',
+            day: newMeal.day,
+            mealType: newMeal.mealType,
+            dishName: newMeal.dishName,
+            description: newMeal.description,
+            emoji: newMeal.emoji,
+            addedBy: currentMember.id,
+            addedByName: currentMember.name
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          await fetchMeals();
+        }
+      }
 
-      saveMealPlans([...mealPlans, meal]);
+      setNewMeal({
+        day: 'monday',
+        mealType: 'breakfast',
+        dishName: '',
+        description: '',
+        emoji: '🍳'
+      });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Ошибка сохранения блюда:', error);
+      alert('❌ Ошибка сохранения блюда');
     }
-
-    setNewMeal({
-      day: 'monday',
-      mealType: 'breakfast',
-      dishName: '',
-      description: '',
-      emoji: '🍳'
-    });
-    setIsDialogOpen(false);
   };
 
   const handleEditMeal = (meal: MealPlan) => {
@@ -129,8 +173,28 @@ export default function Meals() {
     setIsDialogOpen(true);
   };
 
-  const deleteMeal = (id: string) => {
-    saveMealPlans(mealPlans.filter(m => m.id !== id));
+  const deleteMeal = async (id: string) => {
+    const authToken = localStorage.getItem('authToken');
+    try {
+      const response = await fetch(MEAL_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': authToken || ''
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          id: id
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        await fetchMeals();
+      }
+    } catch (error) {
+      console.error('Ошибка удаления блюда:', error);
+      alert('❌ Ошибка удаления блюда');
+    }
   };
 
   const getMealsForDay = (day: string) => {
