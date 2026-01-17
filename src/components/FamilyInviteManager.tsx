@@ -612,16 +612,14 @@ export default function FamilyInviteManager() {
                     <h5 className="font-bold text-lg">Отправьте код родственнику</h5>
                   </div>
                   <p className="text-sm text-gray-700 mb-3">
-                    Используйте кнопки MAX или Telegram для отправки приглашения. Родственник получит ссылку вида:
+                    Нажмите кнопку "Отправить ссылку" и выберите мессенджер (MAX, Telegram, WhatsApp, SMS). Родственник получит ссылку вида:
                   </p>
                   <div className="bg-gray-100 rounded p-2 mb-3 font-mono text-xs break-all">
                     {window.location.origin}/join?code=ABC123
                   </div>
-                  <div className="flex gap-2">
-                    <Badge className="bg-blue-600">MAX</Badge>
-                    <Badge className="bg-sky-500">Telegram</Badge>
-                    <Badge variant="outline">SMS</Badge>
-                  </div>
+                  <p className="text-sm text-gray-700">
+                    Ссылку можно отправить через любой удобный способ связи.
+                  </p>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
@@ -779,9 +777,9 @@ export default function FamilyInviteManager() {
             <div className="bg-white rounded-lg p-3 border border-blue-200">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">2</div>
-                <span className="font-semibold">Отправить код</span>
+                <span className="font-semibold">Отправить ссылку</span>
               </div>
-              <p className="text-xs text-gray-600">Отправьте код родственнику в MAX, Telegram или SMS</p>
+              <p className="text-xs text-gray-600">Нажмите "Отправить ссылку" и выберите мессенджер</p>
             </div>
             <div className="bg-white rounded-lg p-3 border border-blue-200">
               <div className="flex items-center gap-2 mb-2">
@@ -838,37 +836,12 @@ export default function FamilyInviteManager() {
                   <div className="flex flex-wrap gap-2">
                     <Button 
                       size="sm" 
-                      onClick={() => shareViaMax(invite.invite_code)} 
-                      className="bg-blue-600 hover:bg-blue-700"
-                      title="Отправить приглашение через MAX"
-                    >
-                      <Icon name="MessageCircle" size={14} className="mr-1" />
-                      MAX
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => shareViaTelegram(invite.invite_code)} 
-                      className="bg-sky-500 hover:bg-sky-600"
-                      title="Отправить приглашение через Telegram"
-                    >
-                      <Icon name="Send" size={14} className="mr-1" />
-                      TG
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => copyInviteLink(invite.invite_code)}
-                      title="Скопировать ссылку-приглашение"
-                    >
-                      <Icon name="Copy" size={14} />
-                    </Button>
-                    <Button 
-                      size="sm" 
                       onClick={() => shareInviteLink(invite.invite_code)} 
-                      variant="outline"
-                      title="Поделиться через любое приложение"
+                      className="bg-purple-600 hover:bg-purple-700"
+                      title="Отправить ссылку через любой мессенджер"
                     >
-                      <Icon name="Share2" size={14} />
+                      <Icon name="Share2" size={14} className="mr-1" />
+                      Отправить ссылку
                     </Button>
                     <Button 
                       size="sm" 
