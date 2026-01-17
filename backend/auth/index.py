@@ -17,6 +17,7 @@ from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from audit_helper import log_auth_action
+from rate_limit_helper import check_rate_limit
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
@@ -300,9 +301,13 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
         conn.close()
         return {'error': f'Ошибка регистрации: {str(e)}'}
 
-def login_user(phone: str, password: str) -> Dict[str, Any]:
+def login_user(phone: str, password: str, ip_address: str = 'unknown') -> Dict[str, Any]:
     if not phone or not password:
         return {'error': 'Телефон и пароль обязательны'}
+    
+    # Проверка Rate Limit
+    if not check_rate_limit(ip_address, 'auth'):
+        return {'error': 'Слишком много попыток входа. Попробуйте позже.'}
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -849,10 +854,14 @@ def register_user_email(email: str, password: str, name: str = '') -> Dict[str, 
         conn.close()
         return {'error': f'Ошибка регистрации: {str(e)}'}
 
-def login_user_email(email: str, password: str) -> Dict[str, Any]:
+def login_user_email(email: str, password: str, ip_address: str = 'unknown') -> Dict[str, Any]:
     """Вход через email"""
     if not email or not password:
         return {'error': 'Email и пароль обязательны'}
+    
+    # Проверка Rate Limit
+    if not check_rate_limit(ip_address, 'auth'):
+        return {'error': 'Слишком много попыток входа. Попробуйте позже.'}
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -1129,6 +1138,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Некорректный JSON'})
             }
         
+        # Извлечение IP-адреса для rate limiting
+        headers = event.get('headers', {})
+        ip_address = (
+            headers.get('X-Forwarded-For', '').split(',')[0].strip() or
+            headers.get('X-Real-IP') or
+            event.get('requestContext', {}).get('identity', {}).get('sourceIp') or
+            'unknown'
+        )
+        
         action = body.get('action')
         
         if action == 'register':
@@ -1151,12 +1169,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if body.get('email'):
                 result = login_user_email(
                     email=body.get('email'),
-                    password=body.get('password')
+                    password=body.get('password'),
+                    ip_address=ip_address
                 )
             else:
                 result = login_user(
                     phone=body.get('phone'),
-                    password=body.get('password')
+                    password=body.get('password'),
+                    ip_address=ip_address
                 )
         elif action == 'request_reset':
             result = request_password_reset(

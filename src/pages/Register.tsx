@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
 
 const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
+const RATE_LIMITER_URL = 'https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-4702c42ac121';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -22,6 +23,43 @@ export default function Register() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{
+    remaining: number;
+    blocked: boolean;
+    resetAt: string | null;
+  } | null>(null);
+
+  const checkRateLimit = async () => {
+    try {
+      const response = await fetch(RATE_LIMITER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action_type: 'auth',
+          log_attempt: false
+        })
+      });
+
+      const data = await response.json();
+      
+      setRateLimitInfo({
+        remaining: data.remaining || 0,
+        blocked: !data.allowed,
+        resetAt: data.reset_at || null
+      });
+
+      return data.allowed;
+    } catch (error) {
+      console.error('Rate limit check error:', error);
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    checkRateLimit();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +86,20 @@ export default function Register() {
       toast({
         title: 'Ошибка',
         description: 'Пароль должен быть не менее 6 символов',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const isAllowed = await checkRateLimit();
+    
+    if (!isAllowed) {
+      const resetDate = rateLimitInfo?.resetAt ? new Date(rateLimitInfo.resetAt) : null;
+      const minutesLeft = resetDate ? Math.ceil((resetDate.getTime() - Date.now()) / 60000) : 15;
+      
+      toast({
+        title: '🔒 Слишком много попыток',
+        description: `Попробуйте снова через ${minutesLeft} минут`,
         variant: 'destructive'
       });
       return;
@@ -88,6 +140,8 @@ export default function Register() {
 
         setTimeout(() => window.location.href = '/', 500);
       } else {
+        await checkRateLimit();
+        
         toast({
           title: 'Ошибка регистрации',
           description: data.error || 'Не удалось создать аккаунт',
@@ -207,15 +261,39 @@ export default function Register() {
               </div>
             </div>
 
+            {rateLimitInfo && !rateLimitInfo.blocked && rateLimitInfo.remaining <= 2 && (
+              <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
+                <Icon name="AlertTriangle" size={16} />
+                <span>
+                  Осталось попыток: <strong>{rateLimitInfo.remaining}</strong>
+                </span>
+              </div>
+            )}
+
+            {rateLimitInfo?.blocked && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <Icon name="Lock" size={16} />
+                <span>
+                  Регистрация заблокирована. Попробуйте через {rateLimitInfo.resetAt ? 
+                    Math.ceil((new Date(rateLimitInfo.resetAt).getTime() - Date.now()) / 60000) : 15} минут
+                </span>
+              </div>
+            )}
+
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading}
+              disabled={loading || rateLimitInfo?.blocked}
             >
               {loading ? (
                 <>
                   <Icon name="Loader2" className="animate-spin mr-2" size={18} />
                   Регистрация...
+                </>
+              ) : rateLimitInfo?.blocked ? (
+                <>
+                  <Icon name="Lock" className="mr-2" size={18} />
+                  Заблокировано
                 </>
               ) : (
                 <>

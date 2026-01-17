@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { storage } from '@/lib/storage';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
+const RATE_LIMITER_URL = 'https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-4702c42ac121';
 const FRONTEND_URL = window.location.origin;
 
 export default function Login() {
@@ -21,6 +22,11 @@ export default function Login() {
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{
+    remaining: number;
+    blocked: boolean;
+    resetAt: string | null;
+  } | null>(null);
 
   // Если уже авторизован, редирект на главную
   useEffect(() => {
@@ -62,6 +68,38 @@ export default function Login() {
     }
   }, [searchParams, navigate]);
 
+  const checkRateLimit = async () => {
+    try {
+      const response = await fetch(RATE_LIMITER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action_type: 'auth',
+          log_attempt: false
+        })
+      });
+
+      const data = await response.json();
+      
+      setRateLimitInfo({
+        remaining: data.remaining || 0,
+        blocked: !data.allowed,
+        resetAt: data.reset_at || null
+      });
+
+      return data.allowed;
+    } catch (error) {
+      console.error('Rate limit check error:', error);
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    checkRateLimit();
+  }, []);
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -69,6 +107,20 @@ export default function Login() {
       toast({
         title: 'Ошибка',
         description: 'Заполните все поля',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const isAllowed = await checkRateLimit();
+    
+    if (!isAllowed) {
+      const resetDate = rateLimitInfo?.resetAt ? new Date(rateLimitInfo.resetAt) : null;
+      const minutesLeft = resetDate ? Math.ceil((resetDate.getTime() - Date.now()) / 60000) : 15;
+      
+      toast({
+        title: '🔒 Слишком много попыток',
+        description: `Попробуйте снова через ${minutesLeft} минут`,
         variant: 'destructive'
       });
       return;
@@ -156,6 +208,8 @@ export default function Login() {
         debugInfo.push(`[9] Login failed: ${data.error || 'Unknown error'}`);
         console.error('[DEBUG] Full debug info:', debugInfo.join('\n'));
         alert('[DEBUG]\n' + debugInfo.join('\n'));
+        
+        await checkRateLimit();
         
         toast({
           title: 'Ошибка входа',
@@ -262,15 +316,39 @@ export default function Login() {
               </div>
             </div>
 
+            {rateLimitInfo && !rateLimitInfo.blocked && rateLimitInfo.remaining <= 2 && (
+              <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
+                <Icon name="AlertTriangle" size={16} />
+                <span>
+                  Осталось попыток: <strong>{rateLimitInfo.remaining}</strong>
+                </span>
+              </div>
+            )}
+
+            {rateLimitInfo?.blocked && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <Icon name="Lock" size={16} />
+                <span>
+                  Вход заблокирован. Попробуйте через {rateLimitInfo.resetAt ? 
+                    Math.ceil((new Date(rateLimitInfo.resetAt).getTime() - Date.now()) / 60000) : 15} минут
+                </span>
+              </div>
+            )}
+
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading}
+              disabled={loading || rateLimitInfo?.blocked}
             >
               {loading ? (
                 <>
                   <Icon name="Loader2" className="animate-spin mr-2" size={18} />
                   Вход...
+                </>
+              ) : rateLimitInfo?.blocked ? (
+                <>
+                  <Icon name="Lock" className="mr-2" size={18} />
+                  Заблокировано
                 </>
               ) : (
                 <>
