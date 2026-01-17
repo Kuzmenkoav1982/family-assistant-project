@@ -74,6 +74,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
                account_type, permissions, access_role, profile_data, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
+          AND name NOT LIKE '[ДУБЛИКАТ%'
         ORDER BY created_at ASC
     """
     print(f"[DEBUG] get_family_members query: {query}")
