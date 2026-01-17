@@ -19,7 +19,8 @@ export default function Register() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    acceptedPolicy: false
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -86,6 +87,15 @@ export default function Register() {
       toast({
         title: 'Ошибка',
         description: 'Пароль должен быть не менее 6 символов',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!formData.acceptedPolicy) {
+      toast({
+        title: 'Требуется согласие',
+        description: 'Необходимо принять политику конфиденциальности',
         variant: 'destructive'
       });
       return;
@@ -261,6 +271,28 @@ export default function Register() {
               </div>
             </div>
 
+            <div className="flex items-start gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <input
+                type="checkbox"
+                id="acceptPolicy"
+                checked={formData.acceptedPolicy}
+                onChange={(e) => setFormData({ ...formData, acceptedPolicy: e.target.checked })}
+                className="mt-1 h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                disabled={loading}
+                required
+              />
+              <label htmlFor="acceptPolicy" className="text-sm text-gray-700">
+                Я прочитал(а) и принимаю{' '}
+                <Link to="/privacy-policy" target="_blank" className="text-purple-600 hover:underline font-medium">
+                  политику конфиденциальности
+                </Link>
+                {' '}и{' '}
+                <Link to="/terms-of-service" target="_blank" className="text-purple-600 hover:underline font-medium">
+                  условия использования
+                </Link>
+              </label>
+            </div>
+
             {rateLimitInfo && !rateLimitInfo.blocked && rateLimitInfo.remaining <= 2 && (
               <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
                 <Icon name="AlertTriangle" size={16} />
@@ -283,7 +315,7 @@ export default function Register() {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading || rateLimitInfo?.blocked}
+              disabled={loading || rateLimitInfo?.blocked || !formData.acceptedPolicy}
             >
               {loading ? (
                 <>
@@ -322,18 +354,7 @@ export default function Register() {
             </Button>
           </div>
 
-          <div className="mt-4 text-xs text-center text-gray-500">
-            <p>
-              Регистрируясь, вы соглашаетесь с{' '}
-              <Link to="/terms-of-service" className="text-purple-600 hover:underline">
-                условиями использования
-              </Link>
-              {' '}и{' '}
-              <Link to="/privacy-policy" className="text-purple-600 hover:underline">
-                политикой конфиденциальности
-              </Link>
-            </p>
-          </div>
+
         </CardContent>
       </Card>
     </div>

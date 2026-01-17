@@ -4,9 +4,10 @@ import psycopg2
 import psycopg2.extras
 from typing import Dict, Any
 from datetime import datetime, timedelta
+from encryption_helper import encrypt_medical_fields, decrypt_medical_fields
 
-# Version: 2025-11-30-01 - Fixed medication loading
-VERSION = "2025-11-30-01"
+# Version: 2025-01-17-01 - Added encryption for medical data
+VERSION = "2025-01-17-01"
 
 def escape_sql_string(value: Any) -> str:
     '''Экранирование значений для Simple Query Protocol'''
@@ -79,16 +80,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if data_type in ['all', 'health']:
                 cur.execute(f"SELECT * FROM {schema}.children_vaccinations WHERE member_id = {child_id_safe} ORDER BY date DESC")
-                vaccinations = [dict(row) for row in cur.fetchall()]
+                vaccinations = [decrypt_medical_fields(dict(row)) for row in cur.fetchall()]
                 
                 cur.execute(f"SELECT * FROM {schema}.children_prescriptions WHERE member_id = {child_id_safe} ORDER BY date DESC")
-                prescriptions = [dict(row) for row in cur.fetchall()]
+                prescriptions = [decrypt_medical_fields(dict(row)) for row in cur.fetchall()]
                 
                 cur.execute(f"SELECT * FROM {schema}.children_analyses WHERE member_id = {child_id_safe} ORDER BY date DESC")
-                analyses = [dict(row) for row in cur.fetchall()]
+                analyses = [decrypt_medical_fields(dict(row)) for row in cur.fetchall()]
                 
                 cur.execute(f"SELECT * FROM {schema}.children_doctor_visits WHERE member_id = {child_id_safe} ORDER BY date DESC")
-                doctor_visits = [dict(row) for row in cur.fetchall()]
+                doctor_visits = [decrypt_medical_fields(dict(row)) for row in cur.fetchall()]
                 
                 print(f"[DEBUG] Loading medications for child {child_id}")
                 cur.execute(f"SELECT * FROM {schema}.children_medications WHERE member_id = {child_id_safe}")
@@ -237,23 +238,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if action == 'add':
                 if data_type == 'vaccination':
+                    encrypted_data = encrypt_medical_fields(data)
                     cur.execute(f"""
                         INSERT INTO {schema}.children_vaccinations (member_id, family_id, date, vaccine, notes)
                         VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
-                                {escape_sql_string(data.get('date'))}, {escape_sql_string(data.get('vaccine'))}, 
-                                {escape_sql_string(data.get('notes', ''))}) 
+                                {escape_sql_string(encrypted_data.get('date'))}, {escape_sql_string(encrypted_data.get('vaccine'))}, 
+                                {escape_sql_string(encrypted_data.get('notes', ''))}) 
                         RETURNING id
                     """)
                     result_id = cur.fetchone()['id']
                     conn.commit()
                     
                 elif data_type == 'doctor_visit':
+                    encrypted_data = encrypt_medical_fields(data)
                     cur.execute(f"""
                         INSERT INTO {schema}.children_doctor_visits (member_id, family_id, date, doctor, specialty, status, notes)
                         VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
-                                {escape_sql_string(data.get('date'))}, {escape_sql_string(data.get('doctor'))}, 
-                                {escape_sql_string(data.get('specialty'))}, {escape_sql_string(data.get('status', 'planned'))}, 
-                                {escape_sql_string(data.get('notes', ''))}) 
+                                {escape_sql_string(encrypted_data.get('date'))}, {escape_sql_string(encrypted_data.get('doctor'))}, 
+                                {escape_sql_string(encrypted_data.get('specialty'))}, {escape_sql_string(encrypted_data.get('status', 'planned'))}, 
+                                {escape_sql_string(encrypted_data.get('notes', ''))}) 
                         RETURNING id
                     """)
                     result_id = cur.fetchone()['id']
@@ -330,13 +333,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 elif data_type == 'medication':
                     try:
                         print(f"[MED ADD] Starting medication add: {data.get('name')}")
+                        encrypted_data = encrypt_medical_fields(data)
                         
                         cur.execute(f"""
                             INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
                             VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
-                                    {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('start_date'))}, 
-                                    {escape_sql_string(data.get('end_date'))}, {escape_sql_string(data.get('frequency', ''))}, 
-                                    {escape_sql_string(data.get('dosage', ''))}, {escape_sql_string(data.get('instructions', ''))}) 
+                                    {escape_sql_string(encrypted_data.get('name'))}, {escape_sql_string(encrypted_data.get('start_date'))}, 
+                                    {escape_sql_string(encrypted_data.get('end_date'))}, {escape_sql_string(encrypted_data.get('frequency', ''))}, 
+                                    {escape_sql_string(encrypted_data.get('dosage', ''))}, {escape_sql_string(encrypted_data.get('instructions', ''))}) 
                             RETURNING id
                         """)
                         result_id = cur.fetchone()['id']
