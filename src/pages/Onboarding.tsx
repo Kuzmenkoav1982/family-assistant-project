@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
@@ -16,6 +18,7 @@ export default function Onboarding() {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string>('');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [familyName, setFamilyName] = useState('');
 
@@ -216,15 +219,91 @@ export default function Onboarding() {
               </Card>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-              <div className="flex items-start gap-3">
-                <Icon name="Info" size={20} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-1">💡 Совет:</p>
-                  <p>Пригласить родных можно в любой момент через раздел "Настройки → Семья"</p>
-                </div>
+            <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg overflow-hidden mt-6">
+                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-blue-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Icon name="BookOpen" size={18} className="text-blue-600" />
+                    <h4 className="font-semibold text-blue-900">📖 Инструкция: Как это работает?</h4>
+                  </div>
+                  <Icon 
+                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                    size={20} 
+                    className="text-blue-600 transition-transform"
+                  />
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="p-4 pt-0 space-y-4">
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+                        <h5 className="font-bold text-lg">Выберите действие</h5>
+                      </div>
+                      <img 
+                        src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7d138190-7be0-46d6-bb0c-16414c68bc63.jpg"
+                        alt="Экран выбора действия"
+                        className="w-full rounded-lg border-2 border-blue-200 mb-3"
+                      />
+                      <p className="text-sm text-gray-700">
+                        <strong>"Пригласить родственников"</strong> — создаст приглашение с QR-кодом и ссылкой<br/>
+                        <strong>"Изучить приложение"</strong> — пропустить, пригласить позже в настройках
+                      </p>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">2</div>
+                        <h5 className="font-bold text-lg">Поделитесь приглашением</h5>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-3">
+                        Если выбрали "Пригласить", вы получите:
+                      </p>
+                      <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside mb-3">
+                        <li><strong>QR-код</strong> — покажите телефон родственнику, он отсканирует камерой</li>
+                        <li><strong>Кнопки отправки</strong> — MAX, Telegram, или любой мессенджер</li>
+                        <li><strong>Ссылку</strong> — скопируйте и отправьте вручную</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">3</div>
+                        <h5 className="font-bold text-lg">Родственник присоединяется</h5>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-3">
+                        По ссылке откроется простая форма где нужно:
+                      </p>
+                      <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
+                        <li>Войти или зарегистрироваться (если ещё нет аккаунта)</li>
+                        <li>Ввести своё имя</li>
+                        <li>Выбрать родство (Отец, Мать, Сын, Дочь...)</li>
+                        <li>Нажать "Присоединиться"</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Icon name="CheckCircle" size={20} className="text-green-600" />
+                        <h5 className="font-bold text-green-800">Готово!</h5>
+                      </div>
+                      <p className="text-sm text-green-800">
+                        Новый член семьи автоматически появится в вашем списке. Можно добавлять совместные события, фото и воспоминания.
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <Icon name="Info" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-blue-800">
+                          <strong>💡 Совет:</strong> Пригласить родных можно в любой момент через раздел "Настройки → Семья"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleContent>
               </div>
-            </div>
+            </Collapsible>
           </CardContent>
         </Card>
       </div>

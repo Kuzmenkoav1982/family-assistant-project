@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,6 +34,7 @@ export default function JoinFamily() {
     relationship: '',
     customRelationship: ''
   });
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -369,15 +371,79 @@ export default function JoinFamily() {
             </Button>
           </form>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Icon name="Shield" size={20} className="text-green-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-green-800">
-                <p className="font-semibold mb-1">🔒 Безопасность</p>
-                <p>Только владелец семьи может видеть и управлять всеми данными</p>
-              </div>
+          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg overflow-hidden">
+              <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-purple-100 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Icon name="BookOpen" size={18} className="text-purple-600" />
+                  <h4 className="font-semibold">📖 Инструкция: Как присоединиться?</h4>
+                </div>
+                <Icon 
+                  name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                  size={20} 
+                  className="text-purple-600 transition-transform"
+                />
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="p-4 pt-0 space-y-4">
+                  <div className="bg-white rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">1</div>
+                      <h5 className="font-bold text-lg">Вы получили приглашение</h5>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2">
+                      Вас пригласили в семью! В сообщении была ссылка вида:
+                    </p>
+                    <div className="bg-gray-100 rounded p-2 mb-2 font-mono text-xs break-all">
+                      {window.location.origin}/join?code=ABC123
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      Код приглашения автоматически подставится в форму
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
+                      <h5 className="font-bold text-lg">Заполните форму</h5>
+                    </div>
+                    <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
+                      <li><strong>Код приглашения</strong> — уже заполнен автоматически</li>
+                      <li><strong>Ваше имя</strong> — как вас будут видеть в семье (например: Иван)</li>
+                      <li><strong>Степень родства</strong> — выберите из списка (Отец, Мать, Сын...)</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">3</div>
+                      <h5 className="font-bold text-lg">Нажмите "Присоединиться"</h5>
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      После нажатия кнопки вы автоматически станете членом семьи. Вы сможете:
+                    </p>
+                    <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside mt-2">
+                      <li>Видеть совместные события</li>
+                      <li>Добавлять фото и воспоминания</li>
+                      <li>Общаться с родственниками</li>
+                      <li>Планировать совместный досуг</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="Shield" size={20} className="text-green-600" />
+                      <h5 className="font-bold text-green-800">🔒 Безопасность</h5>
+                    </div>
+                    <p className="text-sm text-green-800">
+                      Ваши данные защищены. Только члены семьи смогут видеть ваш профиль.
+                    </p>
+                  </div>
+                </div>
+              </CollapsibleContent>
             </div>
-          </div>
+          </Collapsible>
 
           <div className="text-center text-sm text-gray-600">
             <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium">

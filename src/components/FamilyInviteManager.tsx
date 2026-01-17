@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 
@@ -80,6 +81,7 @@ export default function FamilyInviteManager() {
   const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -573,24 +575,89 @@ export default function FamilyInviteManager() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-4">
-          <h4 className="font-semibold mb-2 flex items-center gap-2">
-            <Icon name="HelpCircle" size={18} className="text-purple-600" />
-            Как пригласить родственников?
-          </h4>
-          <p className="text-sm text-gray-600 mb-3">
-            Подробная инструкция с примерами и скриншотами
-          </p>
-          <Button
-            onClick={() => navigate('/instructions?section=invites')}
-            variant="outline"
-            size="sm"
-            className="w-full border-purple-300"
-          >
-            <Icon name="BookOpen" className="mr-2" size={16} />
-            Открыть инструкцию
-          </Button>
-        </div>
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg overflow-hidden">
+            <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-purple-100 transition-colors">
+              <div className="flex items-center gap-2">
+                <Icon name="BookOpen" size={18} className="text-purple-600" />
+                <h4 className="font-semibold">📖 Инструкция: Как пригласить родственников?</h4>
+              </div>
+              <Icon 
+                name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                size={20} 
+                className="text-purple-600 transition-transform"
+              />
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent>
+              <div className="p-4 pt-0 space-y-6">
+                <div className="bg-white rounded-lg p-4 border border-purple-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">1</div>
+                    <h5 className="font-bold text-lg">Создайте приглашение</h5>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3">
+                    Нажмите кнопку "Создать приглашение" ниже. Вы получите уникальный код (например: ABC123) и QR-код.
+                  </p>
+                  <img 
+                    src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a6b6eab2-d66b-46a5-81aa-c9c159310e3e.jpg"
+                    alt="Экран с QR-кодом и кнопками отправки"
+                    className="w-full rounded-lg border-2 border-purple-200"
+                  />
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-purple-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
+                    <h5 className="font-bold text-lg">Отправьте код родственнику</h5>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3">
+                    Используйте кнопки MAX или Telegram для отправки приглашения. Родственник получит ссылку вида:
+                  </p>
+                  <div className="bg-gray-100 rounded p-2 mb-3 font-mono text-xs break-all">
+                    {window.location.origin}/join?code=ABC123
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge className="bg-blue-600">MAX</Badge>
+                    <Badge className="bg-sky-500">Telegram</Badge>
+                    <Badge variant="outline">SMS</Badge>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-purple-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">3</div>
+                    <h5 className="font-bold text-lg">Родственник присоединяется</h5>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3">
+                    По ссылке откроется форма, где нужно:
+                  </p>
+                  <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside mb-3">
+                    <li>Войти или зарегистрироваться</li>
+                    <li>Ввести своё имя</li>
+                    <li>Указать степень родства (Отец, Мать, Сын...)</li>
+                    <li>Нажать "Присоединиться"</li>
+                  </ul>
+                  <img 
+                    src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4519fbd0-e531-4f44-805f-d1e295f148ce.jpg"
+                    alt="Форма присоединения к семье"
+                    className="w-full rounded-lg border-2 border-purple-200"
+                  />
+                </div>
+
+                <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="CheckCircle" size={20} className="text-green-600" />
+                    <h5 className="font-bold text-green-800">Готово!</h5>
+                  </div>
+                  <p className="text-sm text-green-800">
+                    Новый член семьи автоматически появится в вашем списке. Вы сможете видеть его профиль и добавлять совместные события.
+                  </p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
 
         <div className="flex gap-2">
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
