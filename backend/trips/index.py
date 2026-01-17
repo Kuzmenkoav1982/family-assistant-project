@@ -156,25 +156,37 @@ def delete_itinerary_day(conn, day_id: int):
 
 
 def get_leisure_activities(conn, user_id: str, status_filter: Optional[str] = None) -> List[Dict]:
-    """Получить список досуговых активностей (где пользователь создатель или участник)"""
+    """Получить список досуговых активностей всей семьи"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        # Получаем family_id пользователя
+        cur.execute(
+            "SELECT family_id FROM t_p5815085_family_assistant_pro.family_members WHERE user_id = %s LIMIT 1",
+            (user_id,)
+        )
+        family_result = cur.fetchone()
+        if not family_result:
+            return []
+        
+        family_id = family_result[0]
+        
+        # Получаем все мероприятия семьи
         if status_filter and status_filter != 'all':
             cur.execute(
                 """
                 SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities 
-                WHERE (user_id = %s OR %s = ANY(participants)) AND status = %s 
+                WHERE family_id = %s AND status = %s 
                 ORDER BY date DESC NULLS LAST, created_at DESC
                 """,
-                (user_id, user_id, status_filter)
+                (family_id, status_filter)
             )
         else:
             cur.execute(
                 """
                 SELECT * FROM t_p5815085_family_assistant_pro.leisure_activities 
-                WHERE (user_id = %s OR %s = ANY(participants)) 
+                WHERE family_id = %s
                 ORDER BY date DESC NULLS LAST, created_at DESC
                 """,
-                (user_id, user_id)
+                (family_id,)
             )
         return [convert_for_json(dict(row)) for row in cur.fetchall()]
 
@@ -192,18 +204,26 @@ def get_leisure_activity(conn, activity_id: int) -> Dict:
 def create_leisure_activity(conn, data: Dict, user_id: str) -> Dict:
     """Создать новую активность"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        # Получаем family_id пользователя
+        cur.execute(
+            "SELECT family_id FROM t_p5815085_family_assistant_pro.family_members WHERE user_id = %s LIMIT 1",
+            (user_id,)
+        )
+        family_result = cur.fetchone()
+        family_id = family_result[0] if family_result else None
+        
         cur.execute(
             """
             INSERT INTO t_p5815085_family_assistant_pro.leisure_activities (
-                user_id, title, category, location, date, time, 
+                user_id, family_id, title, category, location, date, time, 
                 price, currency, status, notes, website, phone, 
                 booking_required, booking_url, tags, latitude, longitude, participants,
                 show_in_calendar, visible_to
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
-            (user_id, data['title'], data['category'], data.get('location'),
+            (user_id, family_id, data['title'], data['category'], data.get('location'),
              data.get('date'), data.get('time'), data.get('price'), 
              data.get('currency', 'RUB'), data.get('status', 'want_to_go'),
              data.get('notes'), data.get('website'), data.get('phone'),
