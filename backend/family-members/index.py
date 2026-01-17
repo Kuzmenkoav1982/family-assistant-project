@@ -220,12 +220,24 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
         conn.close()
         return {'error': str(e)}
 
-def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
+def delete_family_member(member_id: str, family_id: str, requesting_user_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        query = f"SELECT user_id FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
+        # Проверяем, что запрашивающий - админ
+        cur.execute(
+            f"SELECT access_role FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(requesting_user_id)} AND family_id = {escape_string(family_id)}"
+        )
+        requester = cur.fetchone()
+        
+        if not requester or requester['access_role'] != 'admin':
+            cur.close()
+            conn.close()
+            return {'error': 'Только администратор может удалять членов семьи'}
+        
+        # Проверяем удаляемого члена
+        query = f"SELECT user_id, access_role FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
         cur.execute(query)
         member = cur.fetchone()
         
@@ -234,10 +246,17 @@ def delete_family_member(member_id: str, family_id: str) -> Dict[str, Any]:
             conn.close()
             return {'error': 'Член семьи не найден'}
         
-        if member['user_id']:
+        # Нельзя удалить администратора
+        if member['access_role'] == 'admin':
             cur.close()
             conn.close()
-            return {'error': 'Нельзя удалить члена семьи с привязанным аккаунтом'}
+            return {'error': 'Нельзя удалить администратора'}
+        
+        # Нельзя удалить самого себя
+        if member['user_id'] and str(member['user_id']) == requesting_user_id:
+            cur.close()
+            conn.close()
+            return {'error': 'Нельзя удалить самого себя'}
         
         delete_query = f"DELETE FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
         cur.execute(delete_query)
@@ -371,7 +390,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 result = update_family_member(member_id, family_id, body)
                 status_code = 200 if 'success' in result else 400
-            elif action == 'delete':
+            elif action == 'delete' or action == 'delete_member':
                 member_id = body.get('member_id') or body.get('id')
                 if not member_id:
                     return {
@@ -380,7 +399,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'Требуется ID члена семьи'}),
                         'isBase64Encoded': False
                     }
-                result = delete_family_member(member_id, family_id)
+                result = delete_family_member(member_id, family_id, user_id)
                 status_code = 200 if 'success' in result else 400
             else:
                 result = add_family_member(family_id, body)
@@ -456,7 +475,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            result = delete_family_member(member_id, family_id)
+            result = delete_family_member(member_id, family_id, user_id)
             
             if 'error' in result:
                 return {

@@ -52,6 +52,7 @@ export default function FamilyInviteManager() {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [members, setMembers] = useState<any[]>([]);
   const [familyName, setFamilyName] = useState(() => {
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -98,7 +99,22 @@ export default function FamilyInviteManager() {
 
   useEffect(() => {
     fetchInvites();
+    fetchFamilyMembers();
   }, []);
+
+  const fetchFamilyMembers = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/db70be67-64af-4e9d-ab90-8485ed49c99f', {
+        headers: { 'X-Auth-Token': getAuthToken() }
+      });
+      const data = await response.json();
+      if (data.members) {
+        setMembers(data.members);
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    }
+  };
 
   const createInvite = async () => {
     setIsLoading(true);
@@ -244,6 +260,39 @@ export default function FamilyInviteManager() {
       }
     } catch (error) {
       alert('❌ Ошибка удаления приглашения');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`Вы уверены, что хотите удалить члена семьи "${memberName}"?\n\nЭто действие нельзя отменить.`)) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/db70be67-64af-4e9d-ab90-8485ed49c99f', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': getAuthToken()
+        },
+        body: JSON.stringify({
+          action: 'delete_member',
+          member_id: memberId
+        })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('✅ Член семьи удалён');
+        fetchFamilyMembers();
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка удаления члена семьи');
     } finally {
       setIsLoading(false);
     }
@@ -708,6 +757,77 @@ export default function FamilyInviteManager() {
         </div>
       </CardContent>
     </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="UserMinus" size={24} />
+            Управление членами семьи
+          </CardTitle>
+          <CardDescription>
+            Удаление ошибочно добавленных членов семьи (только для администратора)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {members.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <Icon name="Users" size={48} className="mx-auto mb-3 text-gray-400" />
+              <p className="text-sm text-gray-500">Нет членов семьи</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {members.map((member) => (
+                <div key={member.id} className="border-2 border-gray-200 bg-white rounded-lg p-3 flex justify-between items-center hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    {member.photo_url ? (
+                      <img src={member.photo_url} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-2xl">
+                        {member.avatar || '👤'}
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-lg">{member.name}</p>
+                        {member.access_role === 'admin' && (
+                          <Badge className="bg-red-100 text-red-800 text-xs">Администратор</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{member.role || member.relationship || 'Член семьи'}</p>
+                      {member.account_type === 'child_profile' && (
+                        <Badge variant="outline" className="text-xs mt-1">Детский профиль</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="destructive"
+                    onClick={() => deleteMember(member.id, member.name)}
+                    disabled={isLoading || member.access_role === 'admin'}
+                    title={member.access_role === 'admin' ? 'Нельзя удалить администратора' : 'Удалить члена семьи'}
+                  >
+                    <Icon name="Trash2" size={14} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+            <div className="flex items-start gap-2">
+              <Icon name="AlertTriangle" size={16} className="text-amber-600 mt-0.5" />
+              <div className="text-xs text-amber-800">
+                <p className="font-semibold mb-1">⚠️ Важно:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Администраторов удалить нельзя</li>
+                  <li>Удаление члена семьи необратимо</li>
+                  <li>Все данные члена семьи будут удалены</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
