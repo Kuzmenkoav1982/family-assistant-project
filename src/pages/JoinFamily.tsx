@@ -150,10 +150,9 @@ export default function JoinFamily() {
       }
 
       if (data.warning) {
+        const targetFamilyName = familyInfo?.name || 'новой семье';
         const confirmed = confirm(
-          `⚠️ ${data.message}\n\n` +
-          `Текущая семья: "${data.current_family}"\n\n` +
-          `Вы уверены что хотите покинуть текущую семью и присоединиться к новой?`
+          `Вы уверены, что хотите присоединиться к семье "${targetFamilyName}"?`
         );
 
         if (confirmed) {
