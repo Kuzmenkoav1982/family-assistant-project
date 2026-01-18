@@ -137,6 +137,18 @@ export default function JoinFamily() {
 
       const data = await response.json();
 
+      if (data.success && data.already_member) {
+        toast({
+          title: 'Вы уже в семье',
+          description: data.message
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+        return;
+      }
+
       if (data.warning) {
         const confirmed = confirm(
           `⚠️ ${data.message}\n\n` +

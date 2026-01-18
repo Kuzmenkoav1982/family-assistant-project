@@ -202,26 +202,6 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
     try:
         cur.execute(
             f"""
-            SELECT fm.id, fm.family_id, f.name as family_name 
-            FROM {SCHEMA}.family_members fm
-            JOIN {SCHEMA}.families f ON f.id = fm.family_id
-            WHERE fm.user_id = %s
-            """,
-            (user_id,)
-        )
-        existing_member = cur.fetchone()
-        
-        if existing_member and not force_leave:
-            cur.close()
-            conn.close()
-            return {
-                'warning': True,
-                'current_family': existing_member['family_name'],
-                'message': f'Вы уже состоите в семье "{existing_member["family_name"]}". Присоединение к новой семье приведёт к выходу из текущей.'
-            }
-        
-        cur.execute(
-            f"""
             SELECT id, family_id, max_uses, uses_count, expires_at, is_active
             FROM {SCHEMA}.family_invites
             WHERE invite_code = %s
@@ -234,6 +214,35 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
             cur.close()
             conn.close()
             return {'error': 'Неверный код приглашения'}
+        
+        cur.execute(
+            f"""
+            SELECT fm.id, fm.family_id, f.name as family_name 
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = %s
+            """,
+            (user_id,)
+        )
+        existing_member = cur.fetchone()
+        
+        if existing_member and not force_leave:
+            if existing_member['family_id'] == invite['family_id']:
+                cur.close()
+                conn.close()
+                return {
+                    'success': True,
+                    'already_member': True,
+                    'message': 'Вы уже состоите в этой семье'
+                }
+            
+            cur.close()
+            conn.close()
+            return {
+                'warning': True,
+                'current_family': existing_member['family_name'],
+                'message': f'Вы уже состоите в семье "{existing_member["family_name"]}". Присоединение к новой семье приведёт к выходу из текущей.'
+            }
         
         if not invite['is_active']:
             cur.close()
