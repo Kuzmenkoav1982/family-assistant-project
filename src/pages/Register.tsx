@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,11 @@ const RATE_LIMITER_URL = 'https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const inviteCode = searchParams.get('code');
+  const redirectUrl = searchParams.get('redirect');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -127,7 +130,10 @@ export default function Register() {
           action: 'register',
           email: formData.email,
           password: formData.password,
-          name: formData.name
+          name: formData.name,
+          invite_code: inviteCode,
+          member_name: inviteCode ? formData.name : undefined,
+          relationship: inviteCode ? 'Член семьи' : undefined
         })
       });
 
@@ -148,8 +154,16 @@ export default function Register() {
           description: 'Регистрация успешна! Ваша семья создана.'
         });
 
-        // Redirect to onboarding for new users
-        setTimeout(() => window.location.href = '/onboarding', 500);
+        // Redirect based on context
+        if (redirectUrl) {
+          setTimeout(() => window.location.href = redirectUrl, 500);
+        } else if (inviteCode) {
+          // If registered with invite code, skip onboarding and go to dashboard
+          setTimeout(() => window.location.href = '/dashboard', 500);
+        } else {
+          // New user without invite - show onboarding
+          setTimeout(() => window.location.href = '/onboarding', 500);
+        }
       } else {
         await checkRateLimit();
         
