@@ -41,8 +41,18 @@ export default function TopBar({
   const openJivoChat = () => {
     // @ts-ignore - Jivo глобальная переменная
     if (window.jivo_api) {
+      // Сначала показываем виджет (для мобильных)
+      const jivoWidget = document.querySelector('jdiv');
+      if (jivoWidget) {
+        // @ts-ignore
+        jivoWidget.style.display = 'block';
+      }
+      // Затем открываем чат
       // @ts-ignore
       window.jivo_api.open();
+    } else {
+      // Если Jivo ещё не загрузился, показываем уведомление
+      alert('Чат загружается... Попробуйте через несколько секунд');
     }
   };
 
