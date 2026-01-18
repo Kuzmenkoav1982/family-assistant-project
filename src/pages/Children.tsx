@@ -30,13 +30,20 @@ export default function Children() {
     
     return members.filter(m => {
       const role = m.role?.toLowerCase() || '';
-      // Проверяем различные варианты написания роли ребёнка
+      const relationship = m.relationship?.toLowerCase() || '';
+      
+      // Проверяем роль или родство
       return role.includes('сын') || 
              role.includes('дочь') || 
              role.includes('ребёнок') || 
              role.includes('ребенок') ||
              role === 'сын' ||
-             role === 'дочь';
+             role === 'дочь' ||
+             relationship.includes('сын') ||
+             relationship.includes('дочь') ||
+             relationship.includes('ребёнок') ||
+             relationship.includes('ребенок') ||
+             m.access_role === 'child';
     });
   }, [members]);
   const currentUser = useMemo(() => JSON.parse(localStorage.getItem('userData') || '{}'), []);
