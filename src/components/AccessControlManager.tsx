@@ -96,6 +96,13 @@ export default function AccessControlManager() {
       const enriched = familyMembers.map((member: any) => {
         let accessRole = member.access_role;
         
+        // Маппинг DB роли в UI роль: parent → editor
+        if (accessRole === 'parent' || accessRole === 'guardian') {
+          accessRole = 'editor';
+        } else if (accessRole === 'child') {
+          accessRole = 'viewer';
+        }
+        
         // Проверяем, что роль валидна
         if (!accessRole || !['admin', 'editor', 'viewer'].includes(accessRole)) {
           accessRole = 'viewer';
@@ -136,6 +143,9 @@ export default function AccessControlManager() {
     });
     setMembersWithPermissions(updatedMembers);
     
+    // Маппинг UI роли в DB роль: editor → parent (для совместимости с constraint)
+    const dbRole = newRole === 'editor' ? 'parent' : newRole;
+    
     try {
       const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
         method: 'POST',
@@ -146,7 +156,7 @@ export default function AccessControlManager() {
         body: JSON.stringify({
           action: 'update',
           member_id: memberId,
-          access_role: newRole,
+          access_role: dbRole,
           permissions: DEFAULT_PERMISSIONS[newRole]
         })
       });
@@ -162,16 +172,29 @@ export default function AccessControlManager() {
       console.error('❌ Ошибка сохранения роли:', error);
       alert(`⚠️ Не удалось сохранить роль: ${error.message || 'Неизвестная ошибка'}`);
       
+      // Откат к оригинальным данным с правильным маппингом
       const originalMembers = familyMembers.map((member: any) => {
-        const accessRole = (member.access_role || 'viewer') as 'admin' | 'editor' | 'viewer';
+        let accessRole = member.access_role;
+        
+        // Маппинг DB роли в UI роль для отката
+        if (accessRole === 'parent' || accessRole === 'guardian') {
+          accessRole = 'editor';
+        } else if (accessRole === 'child') {
+          accessRole = 'viewer';
+        }
+        
+        if (!accessRole || !['admin', 'editor', 'viewer'].includes(accessRole)) {
+          accessRole = 'viewer';
+        }
+        
         return {
           id: member.id,
           name: member.name,
           relationship: member.relationship || member.role || 'Член семьи',
           avatarUrl: member.photo_url || member.avatar,
           avatar: member.avatar,
-          role: accessRole,
-          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole]
+          role: accessRole as 'admin' | 'editor' | 'viewer',
+          permissions: member.permissions || DEFAULT_PERMISSIONS[accessRole as 'admin' | 'editor' | 'viewer']
         };
       });
       setMembersWithPermissions(originalMembers);
