@@ -950,12 +950,13 @@ def delete_user_account(user_id: str) -> Dict[str, Any]:
             return {'error': 'Пользователь не найден'}
         
         cur.execute(
-            f"SELECT family_id, role FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}"
+            f"SELECT id, family_id, role FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}"
         )
         member = cur.fetchone()
         
         if member:
             family_id = member['family_id']
+            member_id = member['id']
             
             cur.execute(
                 f"SELECT COUNT(*) as count FROM {SCHEMA}.family_members WHERE family_id = {escape_string(family_id)}"
@@ -963,13 +964,28 @@ def delete_user_account(user_id: str) -> Dict[str, Any]:
             members_count = cur.fetchone()['count']
             
             if members_count <= 1 or member['role'] == 'Владелец':
+                cur.execute(f"DELETE FROM {SCHEMA}.alice_users WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.family_invitations WHERE family_id = {escape_string(family_id)}")
                 cur.execute(f"DELETE FROM {SCHEMA}.tasks WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.trip_wishlist WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.trips WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.subscriptions WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.promo_code_usage WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.payments WHERE family_id = {escape_string(family_id)}")
                 cur.execute(f"DELETE FROM {SCHEMA}.family_invites WHERE family_id = {escape_string(family_id)}")
                 cur.execute(f"DELETE FROM {SCHEMA}.family_members WHERE family_id = {escape_string(family_id)}")
                 cur.execute(f"DELETE FROM {SCHEMA}.families WHERE id = {escape_string(family_id)}")
+            else:
+                cur.execute(f"DELETE FROM {SCHEMA}.tasks WHERE assignee_id = {escape_string(member_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.alice_users WHERE member_id = {escape_string(member_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.family_invitations WHERE invited_by = {escape_string(member_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)}")
         
-        delete_sessions = f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}"
-        cur.execute(delete_sessions)
+        cur.execute(f"DELETE FROM {SCHEMA}.verification_codes WHERE user_id = {escape_string(user_id)}")
+        cur.execute(f"DELETE FROM {SCHEMA}.password_reset_tokens WHERE user_id = {escape_string(user_id)}")
+        cur.execute(f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}")
+        cur.execute(f"DELETE FROM {SCHEMA}.payments WHERE user_id = {escape_string(user_id)}")
+        cur.execute(f"DELETE FROM {SCHEMA}.family_invites WHERE created_by = {escape_string(user_id)}")
         
         delete_user = f"DELETE FROM {SCHEMA}.users WHERE id = {escape_string(user_id)}"
         cur.execute(delete_user)
