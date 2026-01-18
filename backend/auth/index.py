@@ -986,6 +986,7 @@ def delete_user_account(user_id: str) -> Dict[str, Any]:
         cur.execute(f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}")
         cur.execute(f"DELETE FROM {SCHEMA}.payments WHERE user_id = {escape_string(user_id)}")
         cur.execute(f"DELETE FROM {SCHEMA}.family_invites WHERE created_by = {escape_string(user_id)}")
+        cur.execute(f"DELETE FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}")
         
         delete_user = f"DELETE FROM {SCHEMA}.users WHERE id = {escape_string(user_id)}"
         cur.execute(delete_user)

@@ -210,7 +210,6 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
             (user_id,)
         )
         existing_member = cur.fetchone()
-        print(f"DEBUG: user_id={user_id}, existing_member={existing_member}, force_leave={force_leave}")
         
         if existing_member and not force_leave:
             cur.close()
