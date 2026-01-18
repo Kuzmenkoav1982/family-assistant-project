@@ -149,20 +149,30 @@ export default function Register() {
           name: formData.name
         });
         
-        toast({
-          title: 'Добро пожаловать! 🎉',
-          description: 'Регистрация успешна! Ваша семья создана.'
-        });
+        // Show appropriate welcome message
+        if (inviteCode && data.user.family_name) {
+          toast({
+            title: 'Добро пожаловать! 🎉',
+            description: `Вы успешно присоединились к семье "${data.user.family_name}"!`,
+            duration: 3000
+          });
+        } else {
+          toast({
+            title: 'Добро пожаловать! 🎉',
+            description: 'Регистрация успешна! Ваша семья создана.',
+            duration: 3000
+          });
+        }
 
         // Redirect based on context
         if (redirectUrl) {
-          setTimeout(() => window.location.href = redirectUrl, 500);
+          setTimeout(() => window.location.href = redirectUrl, 1000);
         } else if (inviteCode) {
           // If registered with invite code, skip onboarding and go to dashboard
-          setTimeout(() => window.location.href = '/dashboard', 500);
+          setTimeout(() => window.location.href = '/dashboard', 1000);
         } else {
           // New user without invite - show onboarding
-          setTimeout(() => window.location.href = '/onboarding', 500);
+          setTimeout(() => window.location.href = '/onboarding', 1000);
         }
       } else {
         await checkRateLimit();
