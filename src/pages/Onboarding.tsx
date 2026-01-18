@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
@@ -18,7 +16,6 @@ export default function Onboarding() {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string>('');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [familyName, setFamilyName] = useState('');
 
@@ -36,7 +33,7 @@ export default function Onboarding() {
 
   const handleSkip = () => {
     localStorage.setItem('onboarding_completed', 'true');
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const handleInviteFamily = async () => {
@@ -67,7 +64,6 @@ export default function Onboarding() {
         setInviteCode(code);
         setInviteLink(link);
 
-        // Generate QR code
         const qrUrl = await QRCode.toDataURL(link, {
           width: 300,
           margin: 2,
@@ -137,7 +133,7 @@ export default function Onboarding() {
 
   const finishOnboarding = () => {
     localStorage.setItem('onboarding_completed', 'true');
-    navigate('/dashboard');
+    navigate('/');
   };
 
   if (step === 'choice') {
@@ -218,92 +214,6 @@ export default function Onboarding() {
                 </CardContent>
               </Card>
             </div>
-
-            <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg overflow-hidden mt-6">
-                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-blue-100 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Icon name="BookOpen" size={18} className="text-blue-600" />
-                    <h4 className="font-semibold text-blue-900">📖 Инструкция: Как это работает?</h4>
-                  </div>
-                  <Icon 
-                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    size={20} 
-                    className="text-blue-600 transition-transform"
-                  />
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent>
-                  <div className="p-4 pt-0 space-y-4">
-                    <div className="bg-white rounded-lg p-4 border border-blue-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
-                        <h5 className="font-bold text-lg">Выберите действие</h5>
-                      </div>
-                      <img 
-                        src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7d138190-7be0-46d6-bb0c-16414c68bc63.jpg"
-                        alt="Экран выбора действия"
-                        className="w-full rounded-lg border-2 border-blue-200 mb-3"
-                      />
-                      <p className="text-sm text-gray-700">
-                        <strong>"Пригласить родственников"</strong> — создаст приглашение с QR-кодом и ссылкой<br/>
-                        <strong>"Изучить приложение"</strong> — пропустить, пригласить позже в настройках
-                      </p>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-4 border border-blue-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">2</div>
-                        <h5 className="font-bold text-lg">Поделитесь приглашением</h5>
-                      </div>
-                      <p className="text-sm text-gray-700 mb-3">
-                        Если выбрали "Пригласить", вы получите:
-                      </p>
-                      <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside mb-3">
-                        <li><strong>QR-код</strong> — покажите телефон родственнику, он отсканирует камерой</li>
-                        <li><strong>Кнопки отправки</strong> — MAX, Telegram, или любой мессенджер</li>
-                        <li><strong>Ссылку</strong> — скопируйте и отправьте вручную</li>
-                      </ul>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-4 border border-blue-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">3</div>
-                        <h5 className="font-bold text-lg">Родственник присоединяется</h5>
-                      </div>
-                      <p className="text-sm text-gray-700 mb-3">
-                        По ссылке откроется простая форма где нужно:
-                      </p>
-                      <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
-                        <li>Войти или зарегистрироваться (если ещё нет аккаунта)</li>
-                        <li>Ввести своё имя</li>
-                        <li>Выбрать родство (Отец, Мать, Сын, Дочь...)</li>
-                        <li>Нажать "Присоединиться"</li>
-                      </ul>
-                    </div>
-
-                    <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon name="CheckCircle" size={20} className="text-green-600" />
-                        <h5 className="font-bold text-green-800">Готово!</h5>
-                      </div>
-                      <p className="text-sm text-green-800">
-                        Новый член семьи автоматически появится в вашем списке. Можно добавлять совместные события, фото и воспоминания.
-                      </p>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <div className="flex items-start gap-2">
-                        <Icon name="Info" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-blue-800">
-                          <strong>💡 Совет:</strong> Пригласить родных можно в любой момент через раздел "Настройки → Семья"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
           </CardContent>
         </Card>
       </div>
@@ -315,113 +225,114 @@ export default function Onboarding() {
       <Card className="max-w-2xl w-full shadow-2xl">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <Icon name="Users" size={40} className="text-white" />
-            </div>
+            <img 
+              src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
+              alt="Наша семья"
+              className="w-24 h-24 object-contain"
+            />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Пригласите семью
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Добро пожаловать в {familyName}! 👋
           </CardTitle>
           <p className="text-gray-600 text-lg">
-            Поделитесь ссылкой или QR-кодом с родственниками
+            Вы успешно создали семейное пространство
           </p>
         </CardHeader>
 
         <CardContent className="space-y-6 pb-8">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Icon name="Loader2" size={48} className="text-purple-600 animate-spin mb-4" />
-              <p className="text-gray-600">Создаю приглашение...</p>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-lg text-gray-600">Создаю приглашение...</p>
             </div>
-          ) : inviteCode ? (
+          ) : (
             <>
-              {/* QR Code */}
-              <div className="flex justify-center">
-                <div className="bg-white p-6 rounded-lg shadow-lg border-2 border-purple-200">
-                  <img src={qrCodeUrl} alt="QR код приглашения" className="w-64 h-64" />
-                  <p className="text-center text-sm text-gray-600 mt-3">
-                    Отсканируйте камерой телефона
+              <div className="text-center mb-6">
+                <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2">
+                  Что делать дальше?
+                </Badge>
+              </div>
+
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 space-y-4">
+                <h3 className="text-xl font-bold text-center text-gray-900 mb-4">
+                  👥 Пригласить родственников
+                </h3>
+
+                {qrCodeUrl && (
+                  <div className="bg-white rounded-lg p-6 flex justify-center">
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="QR Code"
+                      className="w-64 h-64"
+                    />
+                  </div>
+                )}
+
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Ссылка-приглашение:</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={inviteLink}
+                      readOnly
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50"
+                    />
+                    <Button
+                      onClick={copyLink}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Icon name="Copy" size={16} />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700 text-center mb-3">
+                    Отправить приглашение:
                   </p>
-                </div>
-              </div>
-
-              {/* Invite Code */}
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-4">
-                <Label className="text-sm text-gray-700 mb-2 block">Код приглашения:</Label>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-white px-4 py-3 rounded-lg text-2xl font-mono font-bold text-purple-600 text-center border-2 border-purple-200">
-                    {inviteCode}
-                  </code>
-                </div>
-                <p className="text-xs text-gray-600 mt-2 text-center">
-                  Родственники могут ввести этот код вручную
-                </p>
-              </div>
-
-              {/* Share Buttons */}
-              <div className="space-y-3">
-                <Label className="text-sm text-gray-700">Поделиться ссылкой:</Label>
-                
-                <Button
-                  onClick={shareViaMax}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 h-14 text-base group"
-                  title="Отправить приглашение через мессенджер MAX"
-                >
-                  <Icon name="MessageCircle" size={20} className="mr-2 group-hover:scale-110 transition-transform" />
-                  Отправить через MAX
-                </Button>
-
-                <Button
-                  onClick={shareViaTelegram}
-                  className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 h-14 text-base group"
-                  title="Отправить приглашение через Telegram"
-                >
-                  <Icon name="Send" size={20} className="mr-2 group-hover:scale-110 transition-transform" />
-                  Отправить через Telegram
-                </Button>
-
-                <Button
-                  onClick={shareNative}
-                  variant="outline"
-                  className="w-full border-2 border-purple-300 hover:bg-purple-50 h-14 text-base group"
-                  title="Поделиться через любое установленное приложение"
-                >
-                  <Icon name="Share2" size={20} className="mr-2 group-hover:scale-110 transition-transform" />
-                  Поделиться
-                </Button>
-
-                <Button
-                  onClick={copyLink}
-                  variant="outline"
-                  className="w-full border-2 border-gray-300 hover:bg-gray-50 h-14 text-base group"
-                  title="Скопировать ссылку в буфер обмена"
-                >
-                  <Icon name="Copy" size={20} className="mr-2 group-hover:scale-110 transition-transform" />
-                  Скопировать ссылку
-                </Button>
-              </div>
-
-              {/* Info */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Icon name="CheckCircle" size={20} className="text-green-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-green-800">
-                    <p className="font-semibold mb-1">✅ Приглашение активно</p>
-                    <p>Ссылка действует 30 дней. По ней могут присоединиться до 10 человек.</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      onClick={shareViaMax}
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 h-auto py-4"
+                    >
+                      <Icon name="MessageCircle" size={24} className="text-blue-600" />
+                      <span className="text-xs">MAX</span>
+                    </Button>
+                    
+                    <Button
+                      onClick={shareViaTelegram}
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 h-auto py-4"
+                    >
+                      <Icon name="Send" size={24} className="text-blue-500" />
+                      <span className="text-xs">Telegram</span>
+                    </Button>
+                    
+                    <Button
+                      onClick={shareNative}
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 h-auto py-4"
+                    >
+                      <Icon name="Share2" size={24} className="text-green-600" />
+                      <span className="text-xs">Другое</span>
+                    </Button>
                   </div>
                 </div>
               </div>
 
-              {/* Finish Button */}
-              <Button
-                onClick={finishOnboarding}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-14 text-base"
-              >
-                <Icon name="CheckCircle" size={20} className="mr-2" />
-                Готово, перейти в приложение
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  onClick={finishOnboarding}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                >
+                  <Icon name="Check" size={18} className="mr-2" />
+                  Понятно, начинаем!
+                </Button>
+              </div>
             </>
-          ) : null}
+          )}
         </CardContent>
       </Card>
     </div>

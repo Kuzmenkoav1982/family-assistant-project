@@ -137,7 +137,7 @@ export default function AccessControlManager() {
     setMembersWithPermissions(updatedMembers);
     
     try {
-      const response = await fetch('https://functions.poehali.dev/9c2279f4-7f87-4d3f-8f06-60f151f18962', {
+      const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ export default function AccessControlManager() {
     if (!memberData) return;
 
     try {
-      const response = await fetch('https://functions.poehali.dev/9c2279f4-7f87-4d3f-8f06-60f151f18962', {
+      const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

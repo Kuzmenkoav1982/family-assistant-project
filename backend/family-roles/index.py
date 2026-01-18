@@ -242,30 +242,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             # Обновить роль участника
-            # Поддержка двух форматов: старый (memberId/role) и новый (member_id/access_role)
-            member_id = body.get('memberId') or body.get('member_id')
-            new_role = body.get('role') or body.get('access_role')
+            member_id = body.get('memberId')
+            new_role = body.get('role')
             requesting_member_id = body.get('requestingMemberId')
-            granular_perms = body.get('granularPermissions') or body.get('permissions')
+            granular_perms = body.get('granularPermissions')
             
-            # Маппинг старых ролей на новые
-            role_mapping = {
-                'editor': 'parent',  # editor → parent
-                'admin': 'admin',
-                'viewer': 'viewer',
-                'child': 'child',
-                'parent': 'parent',
-                'guardian': 'guardian'
-            }
-            
-            if new_role in role_mapping:
-                new_role = role_mapping[new_role]
-            
-            if not all([member_id, new_role]):
+            if not all([member_id, new_role, requesting_member_id]):
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Missing required fields: member_id and role'}),
+                    'body': json.dumps({'error': 'Missing required fields'}),
                     'isBase64Encoded': False
                 }
             
@@ -273,67 +259,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': f'Invalid role: {new_role}. Allowed: {list(ROLE_PERMISSIONS.keys())}'}),
+                    'body': json.dumps({'error': 'Invalid role'}),
                     'isBase64Encoded': False
                 }
-            
-            # Если requesting_member_id не передан, получаем его из токена
-            if not requesting_member_id:
-                token = event.get('headers', {}).get('X-Auth-Token') or event.get('headers', {}).get('x-auth-token')
-                if not token:
-                    cursor.close()
-                    conn.close()
-                    return {
-                        'statusCode': 401,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({'error': 'Authentication required'}),
-                        'isBase64Encoded': False
-                    }
-                
-                # Получаем user_id из токена через таблицу сессий
-                cursor.execute(
-                    """
-                    SELECT user_id FROM t_p5815085_family_assistant_pro.user_sessions 
-                    WHERE session_token = %s AND expires_at > NOW()
-                    """,
-                    (token,)
-                )
-                session = cursor.fetchone()
-                
-                if not session:
-                    cursor.close()
-                    conn.close()
-                    return {
-                        'statusCode': 401,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({'error': 'Invalid or expired token'}),
-                        'isBase64Encoded': False
-                    }
-                
-                # Получаем member_id из user_id и family_id целевого участника
-                cursor.execute(
-                    """
-                    SELECT fm2.id as requesting_member_id
-                    FROM t_p5815085_family_assistant_pro.family_members fm1
-                    JOIN t_p5815085_family_assistant_pro.family_members fm2 
-                      ON fm1.family_id = fm2.family_id AND fm2.user_id = %s
-                    WHERE fm1.id = %s
-                    """,
-                    (session['user_id'], member_id)
-                )
-                result = cursor.fetchone()
-                
-                if not result:
-                    cursor.close()
-                    conn.close()
-                    return {
-                        'statusCode': 403,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({'error': 'You are not a member of this family'}),
-                        'isBase64Encoded': False
-                    }
-                
-                requesting_member_id = result['requesting_member_id']
             
             # Проверка прав запрашивающего
             cursor.execute(
