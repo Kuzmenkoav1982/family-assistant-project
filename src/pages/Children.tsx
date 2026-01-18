@@ -83,15 +83,25 @@ export default function Children() {
     } else {
       // Если childId НЕТ в URL
       if (!isParent && currentMember) {
-        // Если текущий пользователь — ребёнок, показываем его профиль
-        const currentChild = children.find(c => 
-          c.id === currentMember.id || 
-          c.user_id === currentMember.user_id
-        );
+        // Если текущий пользователь — ребёнок, ищем его в списке детей по всем возможным полям
+        const currentChild = children.find(c => {
+          // Сравниваем по id члена семьи
+          if (c.id === currentMember.id) return true;
+          // Сравниваем по user_id
+          if (c.user_id && currentMember.user_id && c.user_id === currentMember.user_id) return true;
+          // Сравниваем user_id ребёнка с id текущего пользователя
+          if (c.user_id === currentUser?.id) return true;
+          // Сравниваем id ребёнка с user_id текущего пользователя  
+          if (c.id === currentUser?.user_id) return true;
+          return false;
+        });
+        
         if (currentChild) {
+          // Нашли текущего ребёнка - показываем его
           setSelectedChildId(currentChild.id);
-        } else if (children.length > 0) {
-          setSelectedChildId(children[0].id);
+        } else {
+          // Если НЕ нашли - НЕ показываем профиль (у ребёнка нет доступа к другим детям)
+          setSelectedChildId(null);
         }
       } else {
         // Родителям показываем первого ребёнка
@@ -106,7 +116,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, isParent, children, currentMember]);
+  }, [searchParams, isParent, children, currentMember, currentUser]);
 
   if (loading) {
     return (
