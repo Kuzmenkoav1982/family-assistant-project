@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,11 +13,8 @@ const RATE_LIMITER_URL = 'https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-
 
 export default function Register() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const inviteCode = searchParams.get('code');
-  const redirectUrl = searchParams.get('redirect');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -130,10 +127,7 @@ export default function Register() {
           action: 'register',
           email: formData.email,
           password: formData.password,
-          name: formData.name,
-          invite_code: inviteCode,
-          member_name: inviteCode ? formData.name : undefined,
-          relationship: inviteCode ? 'Член семьи' : undefined
+          name: formData.name
         })
       });
 
@@ -149,25 +143,13 @@ export default function Register() {
           name: formData.name
         });
         
-        // Show success message only for regular registration
-        if (!inviteCode) {
-          toast({
-            title: 'Добро пожаловать! 🎉',
-            description: 'Регистрация успешна! Ваша семья создана.',
-            duration: 3000
-          });
-        }
+        toast({
+          title: 'Добро пожаловать! 🎉',
+          description: 'Регистрация успешна! Ваша семья создана.'
+        });
 
-        // Redirect based on context
-        if (redirectUrl) {
-          setTimeout(() => window.location.href = redirectUrl, inviteCode ? 0 : 1000);
-        } else if (inviteCode) {
-          // If registered with invite code, redirect immediately to join page
-          window.location.href = `/join?code=${inviteCode}`;
-        } else {
-          // New user without invite - show onboarding
-          setTimeout(() => window.location.href = '/onboarding', 1000);
-        }
+        // Redirect to onboarding for new users
+        setTimeout(() => window.location.href = '/onboarding', 500);
       } else {
         await checkRateLimit();
         

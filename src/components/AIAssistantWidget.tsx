@@ -64,9 +64,8 @@ const AIAssistantWidget = () => {
   const [isButtonDragging, setIsButtonDragging] = useState(false);
   const [buttonDragStart, setButtonDragStart] = useState({ x: 0, y: 0 });
 
-  // Скрываем виджет на страницах регистрации и присоединения
-  const hiddenPages = ['/welcome', '/login', '/register', '/join', '/onboarding'];
-  const isWelcomePage = hiddenPages.includes(location.pathname);
+  // Скрываем виджет на странице /welcome
+  const isWelcomePage = location.pathname === '/welcome';
 
   // Скрываем виджет автоматически при переходе
   useEffect(() => {

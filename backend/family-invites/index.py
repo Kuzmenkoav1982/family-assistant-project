@@ -202,6 +202,26 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
     try:
         cur.execute(
             f"""
+            SELECT fm.id, fm.family_id, f.name as family_name 
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = %s
+            """,
+            (user_id,)
+        )
+        existing_member = cur.fetchone()
+        
+        if existing_member and not force_leave:
+            cur.close()
+            conn.close()
+            return {
+                'warning': True,
+                'current_family': existing_member['family_name'],
+                'message': f'Вы уже состоите в семье "{existing_member["family_name"]}". Присоединение к новой семье приведёт к выходу из текущей.'
+            }
+        
+        cur.execute(
+            f"""
             SELECT id, family_id, max_uses, uses_count, expires_at, is_active
             FROM {SCHEMA}.family_invites
             WHERE invite_code = %s
@@ -214,42 +234,6 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
             cur.close()
             conn.close()
             return {'error': 'Неверный код приглашения'}
-        
-        cur.execute(
-            f"""
-            SELECT fm.id, fm.family_id, f.name as family_name 
-            FROM {SCHEMA}.family_members fm
-            JOIN {SCHEMA}.families f ON f.id = fm.family_id
-            WHERE fm.user_id = %s
-            """,
-            (user_id,)
-        )
-        existing_member = cur.fetchone()
-        
-        if existing_member and not force_leave:
-            if existing_member['family_id'] == invite['family_id']:
-                cur.close()
-                conn.close()
-                return {
-                    'success': True,
-                    'already_member': True,
-                    'message': 'Вы уже состоите в этой семье'
-                }
-            
-            cur.execute(
-                f"SELECT name FROM {SCHEMA}.families WHERE id = %s",
-                (invite['family_id'],)
-            )
-            target_family = cur.fetchone()
-            
-            cur.close()
-            conn.close()
-            return {
-                'warning': True,
-                'current_family': existing_member['family_name'],
-                'target_family': target_family['name'] if target_family else 'новой семье',
-                'message': f'Вы уже состоите в семье "{existing_member["family_name"]}". Присоединение к новой семье приведёт к выходу из текущей.'
-            }
         
         if not invite['is_active']:
             cur.close()
@@ -277,35 +261,14 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
         
         cur.execute(
             f"""
-            SELECT id FROM {SCHEMA}.family_members
-            WHERE family_id = %s AND name = %s AND user_id IS NULL
+            INSERT INTO {SCHEMA}.family_members 
+            (family_id, user_id, name, relationship, role, points, level, workload, avatar, avatar_type)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
             """,
-            (invite['family_id'], member_name)
+            (invite['family_id'], user_id, member_name, relationship, 'Член семьи', 0, 1, 0, '👤', 'emoji')
         )
-        temp_member = cur.fetchone()
-        
-        if temp_member:
-            cur.execute(
-                f"""
-                UPDATE {SCHEMA}.family_members
-                SET user_id = %s, relationship = %s, role = %s
-                WHERE id = %s
-                RETURNING id
-                """,
-                (user_id, relationship, 'Член семьи', temp_member['id'])
-            )
-            member = cur.fetchone()
-        else:
-            cur.execute(
-                f"""
-                INSERT INTO {SCHEMA}.family_members 
-                (family_id, user_id, name, relationship, role, points, level, workload, avatar, avatar_type)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
-                """,
-                (invite['family_id'], user_id, member_name, relationship, 'Член семьи', 0, 1, 0, '👤', 'emoji')
-            )
-            member = cur.fetchone()
+        member = cur.fetchone()
         
         cur.execute(
             f"""

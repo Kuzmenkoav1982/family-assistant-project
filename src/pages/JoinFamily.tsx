@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,27 +34,14 @@ export default function JoinFamily() {
     relationship: '',
     customRelationship: ''
   });
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     setIsLoggedIn(!!token);
 
-    if (token) {
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          if (user.name && !formData.memberName) {
-            setFormData(prev => ({ ...prev, memberName: user.name }));
-          }
-        } catch (e) {
-          console.error('Error parsing userData:', e);
-        }
-      }
-      
-      if (formData.inviteCode) {
-        fetchFamilyInfo(formData.inviteCode);
-      }
+    if (token && formData.inviteCode) {
+      fetchFamilyInfo(formData.inviteCode);
     }
   }, [formData.inviteCode]);
 
@@ -137,22 +125,11 @@ export default function JoinFamily() {
 
       const data = await response.json();
 
-      if (data.success && data.already_member) {
-        toast({
-          title: 'Вы уже в семье',
-          description: data.message
-        });
-        
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
-        return;
-      }
-
       if (data.warning) {
-        const targetFamilyName = data.target_family || familyInfo?.name || 'новой семье';
         const confirmed = confirm(
-          `Вы уверены, что хотите присоединиться к семье "${targetFamilyName}"?`
+          `⚠️ ${data.message}\n\n` +
+          `Текущая семья: "${data.current_family}"\n\n` +
+          `Вы уверены что хотите покинуть текущую семью и присоединиться к новой?`
         );
 
         if (confirmed) {
@@ -177,12 +154,9 @@ export default function JoinFamily() {
           user.member_id = data.family.member_id;
           localStorage.setItem('userData', JSON.stringify(user));
         }
-        
-        localStorage.setItem('onboarding_completed', 'true');
-        localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
 
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.href = '/dashboard';
         }, 1000);
       } else {
         toast({
@@ -236,20 +210,22 @@ export default function JoinFamily() {
 
             <div className="space-y-3">
               <Button
-                onClick={() => navigate(`/register?redirect=/join?code=${formData.inviteCode}`)}
+                onClick={() => navigate(`/login?redirect=/join?code=${formData.inviteCode}`)}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-14 text-base"
+                title="Войти в существующий аккаунт"
               >
-                <Icon name="UserPlus" size={20} className="mr-2" />
-                Создать аккаунт
+                <Icon name="LogIn" size={20} className="mr-2" />
+                Войти
               </Button>
 
               <Button
-                onClick={() => navigate(`/login?redirect=/join?code=${formData.inviteCode}`)}
+                onClick={() => navigate(`/register?redirect=/join?code=${formData.inviteCode}`)}
                 variant="outline"
                 className="w-full border-2 border-purple-300 hover:bg-purple-50 h-14 text-base"
+                title="Создать новый аккаунт для присоединения"
               >
-                <Icon name="LogIn" size={20} className="mr-2" />
-                Уже есть аккаунт? Войти
+                <Icon name="UserPlus" size={20} className="mr-2" />
+                Создать аккаунт
               </Button>
             </div>
 
@@ -274,58 +250,81 @@ export default function JoinFamily() {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Приглашение в семью
+            Присоединиться к семье
           </CardTitle>
           {familyInfo && (
-            <p className="text-gray-600">
-              Вас пригласили в семью <strong>"{familyInfo.name}"</strong>
-            </p>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-4">
+              <p className="text-lg font-semibold text-gray-900 mb-1">
+                {familyInfo.name}
+              </p>
+              <p className="text-sm text-gray-600">
+                {familyInfo.members_count} {familyInfo.members_count === 1 ? 'член' : 'членов'} семьи
+              </p>
+            </div>
           )}
         </CardHeader>
 
         <CardContent className="space-y-6 pb-8">
-          <div className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleJoin(); }} className="space-y-4">
             <div>
-              <Label htmlFor="name">Ваше имя</Label>
-              <div className="relative mt-2">
-                <Icon name="User" size={18} className="absolute left-3 top-3 text-gray-400" />
+              <Label htmlFor="inviteCode">
+                Код приглашения
+                <span className="text-xs text-gray-500 ml-2">(если не заполнен автоматически)</span>
+              </Label>
+              <div className="relative">
+                <Icon name="Key" className="absolute left-3 top-3 text-gray-400" size={18} />
                 <Input
-                  id="name"
+                  id="inviteCode"
                   type="text"
-                  placeholder="Как вас зовут?"
+                  placeholder="ABC123"
+                  value={formData.inviteCode}
+                  onChange={(e) => {
+                    const code = e.target.value.toUpperCase();
+                    setFormData({ ...formData, inviteCode: code });
+                    if (code.length >= 6) {
+                      fetchFamilyInfo(code);
+                    }
+                  }}
+                  className="pl-10 uppercase font-mono"
+                  disabled={isLoading}
+                  maxLength={10}
+                  title="Введите код из приглашения"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="memberName">
+                Ваше имя
+                <span className="text-xs text-gray-500 ml-2">(как вас будут видеть в семье)</span>
+              </Label>
+              <div className="relative">
+                <Icon name="User" className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Input
+                  id="memberName"
+                  type="text"
+                  placeholder="Иван"
                   value={formData.memberName}
                   onChange={(e) => setFormData({ ...formData, memberName: e.target.value })}
                   className="pl-10"
                   disabled={isLoading}
+                  title="Введите ваше имя"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="inviteCode">Код приглашения</Label>
-              <div className="relative mt-2">
-                <Icon name="Key" size={18} className="absolute left-3 top-3 text-gray-400" />
-                <Input
-                  id="inviteCode"
-                  type="text"
-                  placeholder="Введите код"
-                  value={formData.inviteCode}
-                  onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value.toUpperCase() })}
-                  className="pl-10 uppercase"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="relationship">Степень родства</Label>
+              <Label htmlFor="relationship">
+                Степень родства
+                <span className="text-xs text-gray-500 ml-2">(кем вы приходитесь владельцу)</span>
+              </Label>
               <Select
                 value={formData.relationship}
                 onValueChange={(value) => setFormData({ ...formData, relationship: value })}
                 disabled={isLoading}
               >
-                <SelectTrigger id="relationship" className="mt-2">
-                  <SelectValue placeholder="Выберите родство" />
+                <SelectTrigger title="Выберите вашу степень родства">
+                  <SelectValue placeholder="Выберите..." />
                 </SelectTrigger>
                 <SelectContent>
                   {RELATIONSHIPS.map((rel) => (
@@ -339,41 +338,116 @@ export default function JoinFamily() {
 
             {formData.relationship === 'Другое' && (
               <div>
-                <Label htmlFor="customRelationship">Укажите родство</Label>
+                <Label htmlFor="customRelationship">Укажите степень родства</Label>
                 <Input
                   id="customRelationship"
                   type="text"
-                  placeholder="Например: кузен, свекровь"
+                  placeholder="Например: Друг семьи"
                   value={formData.customRelationship}
                   onChange={(e) => setFormData({ ...formData, customRelationship: e.target.value })}
-                  className="mt-2"
                   disabled={isLoading}
+                  title="Укажите вашу степень родства"
                 />
               </div>
             )}
-          </div>
 
-          <Button
-            onClick={() => handleJoin()}
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                Присоединяюсь...
-              </>
-            ) : (
-              <>
-                <Icon name="UserPlus" size={20} className="mr-2" />
-                Присоединиться к семье
-              </>
-            )}
-          </Button>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-14 text-base"
+              disabled={isLoading}
+              title="Подтвердить присоединение к семье"
+            >
+              {isLoading ? (
+                <>
+                  <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
+                  Присоединяюсь...
+                </>
+              ) : (
+                <>
+                  <Icon name="CheckCircle" size={20} className="mr-2" />
+                  Присоединиться к семье
+                </>
+              )}
+            </Button>
+          </form>
+
+          <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg overflow-hidden">
+              <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-purple-100 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Icon name="BookOpen" size={18} className="text-purple-600" />
+                  <h4 className="font-semibold">📖 Инструкция: Как присоединиться?</h4>
+                </div>
+                <Icon 
+                  name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
+                  size={20} 
+                  className="text-purple-600 transition-transform"
+                />
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="p-4 pt-0 space-y-4">
+                  <div className="bg-white rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">1</div>
+                      <h5 className="font-bold text-lg">Вы получили приглашение</h5>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2">
+                      Вас пригласили в семью! В сообщении была ссылка вида:
+                    </p>
+                    <div className="bg-gray-100 rounded p-2 mb-2 font-mono text-xs break-all">
+                      {window.location.origin}/join?code=ABC123
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      Код приглашения автоматически подставится в форму
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
+                      <h5 className="font-bold text-lg">Заполните форму</h5>
+                    </div>
+                    <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
+                      <li><strong>Код приглашения</strong> — уже заполнен автоматически</li>
+                      <li><strong>Ваше имя</strong> — как вас будут видеть в семье (например: Иван)</li>
+                      <li><strong>Степень родства</strong> — выберите из списка (Отец, Мать, Сын...)</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">3</div>
+                      <h5 className="font-bold text-lg">Нажмите "Присоединиться"</h5>
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      После нажатия кнопки вы автоматически станете членом семьи. Вы сможете:
+                    </p>
+                    <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside mt-2">
+                      <li>Видеть совместные события</li>
+                      <li>Добавлять фото и воспоминания</li>
+                      <li>Общаться с родственниками</li>
+                      <li>Планировать совместный досуг</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="Shield" size={20} className="text-green-600" />
+                      <h5 className="font-bold text-green-800">🔒 Безопасность</h5>
+                    </div>
+                    <p className="text-sm text-green-800">
+                      Ваши данные защищены. Только члены семьи смогут видеть ваш профиль.
+                    </p>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
 
           <div className="text-center text-sm text-gray-600">
-            <Link to="/dashboard" className="text-purple-600 hover:text-purple-700 font-medium">
-              ← На главную
+            <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium">
+              ← Вернуться на главную
             </Link>
           </div>
         </CardContent>
