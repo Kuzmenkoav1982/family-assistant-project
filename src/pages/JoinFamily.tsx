@@ -38,8 +38,22 @@ export default function JoinFamily() {
     const token = localStorage.getItem('authToken');
     setIsLoggedIn(!!token);
 
-    if (token && formData.inviteCode) {
-      fetchFamilyInfo(formData.inviteCode);
+    if (token) {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          if (user.name && !formData.memberName) {
+            setFormData(prev => ({ ...prev, memberName: user.name }));
+          }
+        } catch (e) {
+          console.error('Error parsing userData:', e);
+        }
+      }
+      
+      if (formData.inviteCode) {
+        fetchFamilyInfo(formData.inviteCode);
+      }
     }
   }, [formData.inviteCode]);
 

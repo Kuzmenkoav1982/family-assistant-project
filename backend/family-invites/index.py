@@ -261,14 +261,35 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
         
         cur.execute(
             f"""
-            INSERT INTO {SCHEMA}.family_members 
-            (family_id, user_id, name, relationship, role, points, level, workload, avatar, avatar_type)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
+            SELECT id FROM {SCHEMA}.family_members
+            WHERE family_id = %s AND name = %s AND user_id IS NULL
             """,
-            (invite['family_id'], user_id, member_name, relationship, 'Член семьи', 0, 1, 0, '👤', 'emoji')
+            (invite['family_id'], member_name)
         )
-        member = cur.fetchone()
+        temp_member = cur.fetchone()
+        
+        if temp_member:
+            cur.execute(
+                f"""
+                UPDATE {SCHEMA}.family_members
+                SET user_id = %s, relationship = %s, role = %s
+                WHERE id = %s
+                RETURNING id
+                """,
+                (user_id, relationship, 'Член семьи', temp_member['id'])
+            )
+            member = cur.fetchone()
+        else:
+            cur.execute(
+                f"""
+                INSERT INTO {SCHEMA}.family_members 
+                (family_id, user_id, name, relationship, role, points, level, workload, avatar, avatar_type)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (invite['family_id'], user_id, member_name, relationship, 'Член семьи', 0, 1, 0, '👤', 'emoji')
+            )
+            member = cur.fetchone()
         
         cur.execute(
             f"""
