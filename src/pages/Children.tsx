@@ -81,9 +81,23 @@ export default function Children() {
       // Если в URL указан childId - выбираем его
       setSelectedChildId(childId);
     } else {
-      // Если childId НЕТ в URL - всегда выбираем первого ребёнка
-      if (children.length > 0) {
-        setSelectedChildId(children[0].id);
+      // Если childId НЕТ в URL
+      if (!isParent && currentMember) {
+        // Если текущий пользователь — ребёнок, показываем его профиль
+        const currentChild = children.find(c => 
+          c.id === currentMember.id || 
+          c.user_id === currentMember.user_id
+        );
+        if (currentChild) {
+          setSelectedChildId(currentChild.id);
+        } else if (children.length > 0) {
+          setSelectedChildId(children[0].id);
+        }
+      } else {
+        // Родителям показываем первого ребёнка
+        if (children.length > 0) {
+          setSelectedChildId(children[0].id);
+        }
       }
     }
     
@@ -92,7 +106,7 @@ export default function Children() {
     } else {
       setViewMode(isParent ? 'parent' : 'child');
     }
-  }, [searchParams, isParent, children]);
+  }, [searchParams, isParent, children, currentMember]);
 
   if (loading) {
     return (
