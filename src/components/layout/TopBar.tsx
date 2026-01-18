@@ -39,20 +39,47 @@ export default function TopBar({
   const isDarkMode = currentTheme === 'dark';
 
   const openJivoChat = () => {
-    // @ts-ignore - Jivo глобальная переменная
-    if (window.jivo_api) {
-      // Сначала показываем виджет (для мобильных)
-      const jivoWidget = document.querySelector('jdiv');
-      if (jivoWidget) {
-        // @ts-ignore
-        jivoWidget.style.display = 'block';
+    console.log('[Jivo] Button clicked');
+    
+    // @ts-ignore - проверяем window.jivo_api
+    const jivoApi = (window as any).jivo_api;
+    console.log('[Jivo] API exists:', !!jivoApi);
+    
+    if (jivoApi) {
+      try {
+        // Находим виджеты Jivo
+        const jivoWidgets = document.querySelectorAll('jdiv');
+        console.log('[Jivo] Widgets found:', jivoWidgets.length);
+        
+        // Для мобильных: принудительно показываем
+        jivoWidgets.forEach((widget: any, index: number) => {
+          console.log(`[Jivo] Widget ${index} before:`, {
+            display: widget.style.display,
+            visibility: widget.style.visibility,
+            classes: widget.className
+          });
+          
+          widget.classList.add('jivo-mobile-visible');
+          widget.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important;';
+          
+          console.log(`[Jivo] Widget ${index} after:`, {
+            display: widget.style.display,
+            visibility: widget.style.visibility,
+            classes: widget.className
+          });
+        });
+        
+        // Открываем чат
+        console.log('[Jivo] Calling jivo_api.open()');
+        jivoApi.open();
+        console.log('[Jivo] Chat opened successfully');
+      } catch (error) {
+        console.error('[Jivo] Error opening chat:', error);
+        alert('Ошибка открытия чата. Попробуйте обновить страницу.');
       }
-      // Затем открываем чат
-      // @ts-ignore
-      window.jivo_api.open();
     } else {
-      // Если Jivo ещё не загрузился, показываем уведомление
-      alert('Чат загружается... Попробуйте через несколько секунд');
+      console.warn('[Jivo] API not loaded');
+      alert('Чат ещё загружается... Попробуйте через 2-3 секунды');
     }
   };
 
