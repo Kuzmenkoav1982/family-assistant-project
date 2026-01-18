@@ -41,9 +41,28 @@ export default function TopBar({
   const openJivoChat = () => {
     console.log('[Jivo] Button clicked');
     
+    // Проверяем, находимся ли мы в PWA режиме
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  (window.navigator as any).standalone === true;
+    console.log('[Jivo] Is PWA mode:', isPWA);
+    
     // @ts-ignore - проверяем window.jivo_api
     const jivoApi = (window as any).jivo_api;
     console.log('[Jivo] API exists:', !!jivoApi);
+    
+    // В PWA режиме на iOS Jivo может не работать - предлагаем Telegram
+    if (isPWA && !jivoApi) {
+      const useTelegram = confirm(
+        'В PWA режиме чат может не работать.\n\n' +
+        'Хотите открыть поддержку в Telegram?\n\n' +
+        '(Нажмите OK для Telegram или Отмена для повторной попытки)'
+      );
+      
+      if (useTelegram) {
+        window.open('https://t.me/nash_dom_poddershka', '_blank');
+        return;
+      }
+    }
     
     if (jivoApi) {
       try {
@@ -53,20 +72,8 @@ export default function TopBar({
         
         // Для мобильных: принудительно показываем
         jivoWidgets.forEach((widget: any, index: number) => {
-          console.log(`[Jivo] Widget ${index} before:`, {
-            display: widget.style.display,
-            visibility: widget.style.visibility,
-            classes: widget.className
-          });
-          
           widget.classList.add('jivo-mobile-visible');
           widget.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important;';
-          
-          console.log(`[Jivo] Widget ${index} after:`, {
-            display: widget.style.display,
-            visibility: widget.style.visibility,
-            classes: widget.className
-          });
         });
         
         // Открываем чат
@@ -75,11 +82,27 @@ export default function TopBar({
         console.log('[Jivo] Chat opened successfully');
       } catch (error) {
         console.error('[Jivo] Error opening chat:', error);
-        alert('Ошибка открытия чата. Попробуйте обновить страницу.');
+        
+        // Fallback на Telegram
+        const useTelegram = confirm(
+          'Не удалось открыть чат.\n\n' +
+          'Открыть поддержку в Telegram?'
+        );
+        if (useTelegram) {
+          window.open('https://t.me/nash_dom_poddershka', '_blank');
+        }
       }
     } else {
       console.warn('[Jivo] API not loaded');
-      alert('Чат ещё загружается... Попробуйте через 2-3 секунды');
+      
+      // Предлагаем Telegram как альтернативу
+      const useTelegram = confirm(
+        'Чат ещё загружается...\n\n' +
+        'Хотите открыть поддержку в Telegram?'
+      );
+      if (useTelegram) {
+        window.open('https://t.me/nash_dom_poddershka', '_blank');
+      }
     }
   };
 
