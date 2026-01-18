@@ -152,9 +152,12 @@ export default function JoinFamily() {
           user.member_id = data.family.member_id;
           localStorage.setItem('userData', JSON.stringify(user));
         }
+        
+        localStorage.setItem('onboarding_completed', 'true');
+        localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
 
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          window.location.href = '/';
         }, 1000);
       } else {
         toast({

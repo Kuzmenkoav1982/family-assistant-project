@@ -949,11 +949,27 @@ def delete_user_account(user_id: str) -> Dict[str, Any]:
             conn.close()
             return {'error': 'Пользователь не найден'}
         
+        cur.execute(
+            f"SELECT family_id, role FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}"
+        )
+        member = cur.fetchone()
+        
+        if member:
+            family_id = member['family_id']
+            
+            cur.execute(
+                f"SELECT COUNT(*) as count FROM {SCHEMA}.family_members WHERE family_id = {escape_string(family_id)}"
+            )
+            members_count = cur.fetchone()['count']
+            
+            if members_count <= 1 or member['role'] == 'Владелец':
+                cur.execute(f"DELETE FROM {SCHEMA}.tasks WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.family_invites WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.family_members WHERE family_id = {escape_string(family_id)}")
+                cur.execute(f"DELETE FROM {SCHEMA}.families WHERE id = {escape_string(family_id)}")
+        
         delete_sessions = f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}"
         cur.execute(delete_sessions)
-        
-        delete_members = f"DELETE FROM {SCHEMA}.family_members WHERE user_id = {escape_string(user_id)}"
-        cur.execute(delete_members)
         
         delete_user = f"DELETE FROM {SCHEMA}.users WHERE id = {escape_string(user_id)}"
         cur.execute(delete_user)

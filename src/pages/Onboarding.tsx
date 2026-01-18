@@ -33,7 +33,7 @@ export default function Onboarding() {
 
   const handleSkip = () => {
     localStorage.setItem('onboarding_completed', 'true');
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const handleInviteFamily = async () => {
@@ -133,7 +133,7 @@ export default function Onboarding() {
 
   const finishOnboarding = () => {
     localStorage.setItem('onboarding_completed', 'true');
-    navigate('/dashboard');
+    navigate('/');
   };
 
   if (step === 'choice') {
