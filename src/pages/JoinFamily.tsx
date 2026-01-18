@@ -150,7 +150,7 @@ export default function JoinFamily() {
       }
 
       if (data.warning) {
-        const targetFamilyName = familyInfo?.name || 'новой семье';
+        const targetFamilyName = data.target_family || familyInfo?.name || 'новой семье';
         const confirmed = confirm(
           `Вы уверены, что хотите присоединиться к семье "${targetFamilyName}"?`
         );

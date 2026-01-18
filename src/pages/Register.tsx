@@ -149,14 +149,17 @@ export default function Register() {
           name: formData.name
         });
         
-        // Show appropriate welcome message
-        if (inviteCode && data.user.family_name) {
+        // Show appropriate welcome message based on context
+        if (inviteCode) {
+          // Registration with invite code - don't show success message yet
+          // Success will be shown on /join page after actual joining
           toast({
-            title: 'Добро пожаловать! 🎉',
-            description: `Вы успешно присоединились к семье "${data.user.family_name}"!`,
-            duration: 3000
+            title: 'Регистрация успешна',
+            description: 'Завершите присоединение к семье',
+            duration: 2000
           });
         } else {
+          // Regular registration - family was created
           toast({
             title: 'Добро пожаловать! 🎉',
             description: 'Регистрация успешна! Ваша семья создана.',
@@ -168,8 +171,8 @@ export default function Register() {
         if (redirectUrl) {
           setTimeout(() => window.location.href = redirectUrl, 1000);
         } else if (inviteCode) {
-          // If registered with invite code, skip onboarding and go to dashboard
-          setTimeout(() => window.location.href = '/dashboard', 1000);
+          // If registered with invite code, redirect to join page
+          setTimeout(() => window.location.href = `/join?code=${inviteCode}`, 1000);
         } else {
           // New user without invite - show onboarding
           setTimeout(() => window.location.href = '/onboarding', 1000);

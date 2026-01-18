@@ -236,11 +236,18 @@ def join_family(user_id: str, invite_code: str, member_name: str, relationship: 
                     'message': 'Вы уже состоите в этой семье'
                 }
             
+            cur.execute(
+                f"SELECT name FROM {SCHEMA}.families WHERE id = %s",
+                (invite['family_id'],)
+            )
+            target_family = cur.fetchone()
+            
             cur.close()
             conn.close()
             return {
                 'warning': True,
                 'current_family': existing_member['family_name'],
+                'target_family': target_family['name'] if target_family else 'новой семье',
                 'message': f'Вы уже состоите в семье "{existing_member["family_name"]}". Присоединение к новой семье приведёт к выходу из текущей.'
             }
         
