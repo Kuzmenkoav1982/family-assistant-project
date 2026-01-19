@@ -73,6 +73,12 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       }
 
       const data = await response.json();
+      console.log('[FamilyMembersContext] API response:', { 
+        success: data.success, 
+        membersCount: data.members?.length,
+        family_id: data.family_id,
+        error: data.error 
+      });
       
       if (data.success && data.members) {
         if (data.family_id) {
@@ -91,9 +97,11 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           piggyBank: m.piggyBank || 0,
           moodStatus: m.moodStatus || null
         }));
+        console.log('[FamilyMembersContext] Setting members:', convertedMembers.length);
         setMembers(convertedMembers);
         setError(null);
       } else {
+        console.warn('[FamilyMembersContext] Failed to load members:', data.error);
         if (!silent) {
           setError(data.error || 'Ошибка загрузки');
           setMembers([]);
