@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Unauthorized access",
+      "method": "GET",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      }
+    },
+    {
+      "name": "Get all plans with admin token",
+      "method": "GET",
+      "headers": {
+        "X-Admin-Token": "admin_authenticated"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "plans": [],
+        "available_features": []
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

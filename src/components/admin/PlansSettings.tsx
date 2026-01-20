@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import func2url from '@/../backend/func2url.json';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -147,16 +148,101 @@ const CATEGORY_COLORS = {
 
 export default function PlansSettings() {
   const { toast } = useToast();
-  const [plans, setPlans] = useState<Plan[]>(DEFAULT_PLANS);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [availableFeatures, setAvailableFeatures] = useState<PlanFeature[]>([]);
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [instructionOpen, setInstructionOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSavePlan = (planId: string) => {
-    toast({
-      title: 'Тариф сохранён',
-      description: 'Изменения применятся после обновления страницы'
-    });
-    setEditingPlan(null);
+  const apiUrl = func2url['subscription-plans'] || '';
+
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  const loadPlans = async () => {
+    try {
+      const response = await fetch(`${apiUrl}?action=all`, {
+        headers: {
+          'X-Admin-Token': 'admin_authenticated'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        const mappedPlans = data.plans.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: parseFloat(p.price),
+          period: p.period,
+          periodMonths: p.period_months,
+          description: p.description,
+          visible: p.visible,
+          popular: p.popular,
+          discount: p.discount,
+          functionsCount: p.functions_count,
+          features: p.features || []
+        }));
+
+        setPlans(mappedPlans);
+        setAvailableFeatures(data.available_features || []);
+      }
+    } catch (error) {
+      console.error('Failed to load plans:', error);
+      toast({
+        title: 'Ошибка загрузки',
+        description: 'Не удалось загрузить тарифы',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSavePlan = async (planId: string) => {
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': 'admin_authenticated'
+        },
+        body: JSON.stringify({
+          plan_id: plan.id,
+          name: plan.name,
+          price: plan.price,
+          period: plan.period,
+          period_months: plan.periodMonths,
+          description: plan.description,
+          visible: plan.visible,
+          popular: plan.popular,
+          discount: plan.discount,
+          functions_count: plan.functionsCount,
+          features: plan.features
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Тариф сохранён',
+          description: 'Изменения успешно применены'
+        });
+        setEditingPlan(null);
+        loadPlans();
+      } else {
+        throw new Error('Failed to save');
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка сохранения',
+        description: 'Не удалось сохранить изменения',
+        variant: 'destructive'
+      });
+    }
   };
 
   const toggleFeature = (planId: string, featureId: string) => {
@@ -193,6 +279,14 @@ export default function PlansSettings() {
       return p;
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Icon name="Loader2" className="animate-spin" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -291,11 +385,27 @@ export default function PlansSettings() {
       {/* Настройки тарифов */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="Settings" size={20} />
-            Настройки тарифных планов
-          </CardTitle>
-          <CardDescription>Редактирование цен, описаний и видимости тарифов</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="Settings" size={20} />
+                Настройки тарифных планов
+              </CardTitle>
+              <CardDescription>Редактирование цен, описаний и видимости тарифов</CardDescription>
+            </div>
+            <Button
+              onClick={() => {
+                toast({
+                  title: 'Функция в разработке',
+                  description: 'Создание новых тарифов скоро будет доступно'
+                });
+              }}
+              className="bg-gradient-to-r from-green-500 to-emerald-500"
+            >
+              <Icon name="Plus" size={16} className="mr-2" />
+              Создать тариф
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {plans.map(plan => (
@@ -445,7 +555,7 @@ export default function PlansSettings() {
                         Добавить функцию
                       </h5>
                       <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-2 bg-gray-50 rounded-lg">
-                        {AVAILABLE_FEATURES.filter(f => !plan.features.find(pf => pf.id === f.id)).map(feature => (
+                        {availableFeatures.filter(f => !plan.features.find(pf => pf.id === f.id)).map(feature => (
                           <Button
                             key={feature.id}
                             variant="outline"

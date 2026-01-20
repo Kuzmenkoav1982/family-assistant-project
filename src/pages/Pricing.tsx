@@ -9,8 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
+import func2url from '@/../backend/func2url.json';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
+const PLANS_API = func2url['subscription-plans'] || '';
 
 const subscriptionPlans = [
   {
@@ -91,6 +93,44 @@ export default function Pricing() {
   const [customDonation, setCustomDonation] = useState<string>('');
   const [paymentDialog, setPaymentDialog] = useState(false);
   const [paymentData, setPaymentData] = useState<any>(null);
+  const [plans, setPlans] = useState(subscriptionPlans);
+  const [plansLoading, setPlansLoading] = useState(true);
+
+  useEffect(() => {
+    loadPlansFromDB();
+  }, []);
+
+  const loadPlansFromDB = async () => {
+    try {
+      const response = await fetch(`${PLANS_API}?action=all`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        const mappedPlans = data.plans
+          .filter((p: any) => p.visible)
+          .map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: parseFloat(p.price),
+            period: p.period,
+            popular: p.popular,
+            color: p.popular ? 'from-purple-500 to-indigo-600' : 'from-gray-500 to-gray-600',
+            features: p.features
+              .filter((f: any) => f.enabled)
+              .map((f: any) => `✅ ${f.name}`),
+            savings: p.discount ? `Экономия ${p.discount}%!` : undefined
+          }));
+        
+        if (mappedPlans.length > 0) {
+          setPlans(mappedPlans);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load plans:', error);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
 
   // Проверка статуса платежа при возврате
   useEffect(() => {
