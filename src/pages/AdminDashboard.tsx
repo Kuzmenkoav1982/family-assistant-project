@@ -170,6 +170,10 @@ export default function AdminDashboard() {
               <Icon name="Mic" size={16} className="mr-2" />
               Алиса
             </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/admin/max'}>
+              <Icon name="MessageCircle" size={16} className="mr-2" />
+              MAX
+            </Button>
             <Button variant="outline" onClick={() => window.location.href = '/admin/subscriptions'}>
               <Icon name="CreditCard" size={16} className="mr-2" />
               Подписки

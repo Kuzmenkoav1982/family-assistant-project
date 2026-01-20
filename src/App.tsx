@@ -78,6 +78,7 @@ import AdminDomovoy from "./pages/AdminDomovoy";
 import DomovoyPage from "./pages/DomovoyPage";
 import AliceIntegration from "./pages/AliceIntegration";
 import AdminAlice from "./pages/AdminAlice";
+import AdminMAX from "./pages/AdminMAX";
 import ActivateChild from "./pages/ActivateChild";
 import ActivateCallback from "./pages/ActivateCallback";
 import FamilyTracker from "./pages/FamilyTracker";
@@ -246,6 +247,7 @@ const App = () => {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/traffic" element={<AdminTraffic />} />
               <Route path="/admin/alice" element={<AdminAlice />} />
+              <Route path="/admin/max" element={<AdminMAX />} />
               <Route path="/alice" element={<AliceIntegration />} />
               <Route path="/nationalities" element={<NationalitiesPage />} />
               <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
