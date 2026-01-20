@@ -206,10 +206,15 @@ export default function PlansSettings() {
 
   const loadPlans = async () => {
     try {
-      // Если API не задеплоен, используем дефолтные планы
+      // Если API не задеплоен, используем локальные или дефолтные планы
       if (!apiUrl) {
         console.log('subscription-plans API not deployed, using default plans');
-        setPlans(DEFAULT_PLANS);
+        const localPlans = localStorage.getItem('admin_plans_local');
+        if (localPlans) {
+          setPlans(JSON.parse(localPlans));
+        } else {
+          setPlans(DEFAULT_PLANS);
+        }
         setAvailableFeatures(AVAILABLE_FEATURES);
         setLoading(false);
         return;
@@ -266,11 +271,12 @@ export default function PlansSettings() {
     if (!plan) return;
 
     if (!apiUrl) {
+      localStorage.setItem('admin_plans_local', JSON.stringify(plans));
       toast({
-        title: 'API недоступен',
-        description: 'Сохранение невозможно. Функция subscription-plans не задеплоена.',
-        variant: 'destructive'
+        title: 'Сохранено локально',
+        description: 'Изменения сохранены в браузере. Для синхронизации с сервером функция subscription-plans должна быть задеплоена.',
       });
+      setEditingPlan(null);
       return;
     }
 
