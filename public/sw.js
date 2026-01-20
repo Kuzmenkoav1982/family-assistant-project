@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-assistant-v10';
+const CACHE_NAME = 'family-assistant-v11';
 let geolocationIntervalId = null;
 
 self.addEventListener('install', (event) => {
@@ -37,6 +37,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // НЕ перехватываем API запросы (избегаем CORS проблем)
+  if (event.request.url.includes('functions.poehali.dev') || 
+      event.request.url.includes('/api/')) {
+    return; // Пропускаем API запросы
+  }
+
   event.respondWith(
     fetch(event.request).catch((error) => {
       console.log('[SW] Fetch failed, returning offline page:', error);
