@@ -1,7 +1,7 @@
 {
   "tests": [
     {
-      "name": "Get public plans (no auth required)",
+      "name": "Get public plans",
       "method": "GET",
       "path": "/?public=true",
       "expectedStatus": 200,

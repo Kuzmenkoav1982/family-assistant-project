@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     API для управления тарифными планами подписок
-    GET - получить все тарифы и функции
+    GET - получить все тарифы и функции (public=true для сайта)
     POST - сохранить изменения тарифа
     PUT - создать новый тариф
     DELETE - удалить тариф
@@ -18,9 +18,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 200,
             'headers': {
-                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Origin': 'https://nasha-semiya.ru',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+                'Access-Control-Allow-Credentials': 'true',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -29,7 +30,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     headers = {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': 'https://nasha-semiya.ru',
+        'Access-Control-Allow-Credentials': 'true'
     }
     
     # Проверяем авторизацию только для изменяющих операций
