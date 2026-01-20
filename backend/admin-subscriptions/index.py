@@ -53,7 +53,7 @@ def get_dashboard_stats() -> Dict[str, Any]:
     
     # Подписки истекающие в ближайшие 3 дня
     cur.execute(f"""
-        SELECT 
+        SELECT DISTINCT ON (s.id)
             s.id,
             s.plan_type,
             s.end_date,
@@ -61,12 +61,12 @@ def get_dashboard_stats() -> Dict[str, Any]:
             u.email as owner_email
         FROM {SCHEMA}.subscriptions s
         JOIN {SCHEMA}.families f ON s.family_id = f.id
-        JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.role = 'Владелец'
+        JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.access_role = 'admin'
         JOIN {SCHEMA}.users u ON fm.user_id = u.id
         WHERE s.status = 'active' 
         AND s.end_date <= CURRENT_TIMESTAMP + INTERVAL '3 days'
         AND s.end_date > CURRENT_TIMESTAMP
-        ORDER BY s.end_date ASC
+        ORDER BY s.id, fm.created_at ASC
         LIMIT 10
     """)
     expiring_soon = cur.fetchall()
@@ -140,7 +140,7 @@ def get_all_subscriptions(filters: Dict[str, str]) -> List[Dict[str, Any]]:
     where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     
     cur.execute(f"""
-        SELECT 
+        SELECT DISTINCT ON (s.id)
             s.id,
             s.plan_type,
             s.status,
@@ -154,10 +154,10 @@ def get_all_subscriptions(filters: Dict[str, str]) -> List[Dict[str, Any]]:
             fm.name as owner_name
         FROM {SCHEMA}.subscriptions s
         JOIN {SCHEMA}.families f ON s.family_id = f.id
-        JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.role = 'Владелец'
+        JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.access_role = 'admin'
         JOIN {SCHEMA}.users u ON fm.user_id = u.id
         {where_sql}
-        ORDER BY s.created_at DESC
+        ORDER BY s.id, fm.created_at ASC
         LIMIT 100
     """)
     
@@ -183,7 +183,7 @@ def get_subscription_details(subscription_id: str) -> Optional[Dict[str, Any]]:
             fm.name as owner_name
         FROM {SCHEMA}.subscriptions s
         JOIN {SCHEMA}.families f ON s.family_id = f.id
-        JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.role = 'Владелец'
+        JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.access_role = 'admin'
         JOIN {SCHEMA}.users u ON fm.user_id = u.id
         WHERE s.id = '{safe_id}'
     """)
