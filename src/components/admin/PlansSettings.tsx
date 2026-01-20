@@ -196,6 +196,7 @@ export default function PlansSettings() {
   const [loading, setLoading] = useState(true);
   const [creatingNewPlan, setCreatingNewPlan] = useState(false);
   const [newPlanId, setNewPlanId] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
 
   const apiUrl = func2url['subscription-plans'] || '';
 
@@ -487,7 +488,25 @@ export default function PlansSettings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {plans.map(plan => (
+          <div className="flex items-center gap-4 mb-6 pb-4 border-b">
+            <Button
+              variant={!showArchived ? 'default' : 'outline'}
+              onClick={() => setShowArchived(false)}
+              className="flex-1"
+            >
+              <Icon name="Eye" size={16} className="mr-2" />
+              Активные тарифы ({plans.filter(p => p.visible).length})
+            </Button>
+            <Button
+              variant={showArchived ? 'default' : 'outline'}
+              onClick={() => setShowArchived(true)}
+              className="flex-1"
+            >
+              <Icon name="Archive" size={16} className="mr-2" />
+              Архив / Скрытые ({plans.filter(p => !p.visible).length})
+            </Button>
+          </div>
+          {plans.filter(plan => showArchived ? !plan.visible : plan.visible).map(plan => (
             <div key={plan.id} className="border-2 rounded-xl p-6 space-y-4 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -772,110 +791,23 @@ export default function PlansSettings() {
               )}
             </div>
           ))}
+          {plans.filter(plan => showArchived ? !plan.visible : plan.visible).length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <Icon name={showArchived ? "Archive" : "Package"} size={48} className="mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">
+                {showArchived 
+                  ? 'Нет архивных тарифов' 
+                  : 'Нет активных тарифов'}
+              </p>
+              <p className="text-sm mt-2">
+                {showArchived 
+                  ? 'Все ваши тарифы активны и видны пользователям' 
+                  : 'Создайте первый тариф или включите существующий из архива'}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Архив тарифов */}
-      {plans.filter(p => !p.visible).length > 0 && (
-        <Collapsible>
-          <Card className="border-gray-300 bg-gray-50">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-100 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-gray-700">
-                      <Icon name="Archive" size={20} />
-                      Архив тарифов
-                      <Badge variant="secondary">{plans.filter(p => !p.visible).length}</Badge>
-                    </CardTitle>
-                    <CardDescription>Скрытые и устаревшие тарифные планы</CardDescription>
-                  </div>
-                  <Icon name="ChevronDown" size={20} className="text-gray-500" />
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-4">
-                {plans.filter(p => !p.visible).map(plan => (
-                  <div key={plan.id} className="border rounded-xl p-4 bg-white opacity-75 hover:opacity-100 transition-opacity">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <h3 className="text-xl font-bold text-gray-700">{plan.name}</h3>
-                          <Badge variant="secondary">Архивный</Badge>
-                          {plan.popular && (
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white opacity-50">
-                              🔥 Популярный
-                            </Badge>
-                          )}
-                          {plan.discount && (
-                            <Badge className="bg-green-100 text-green-800">
-                              Экономия {plan.discount}%
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">{plan.id}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setPlans(plans.map(p => p.id === plan.id ? { ...p, visible: true } : p));
-                            toast({
-                              title: 'Тариф восстановлен',
-                              description: `Тариф "${plan.name}" снова виден пользователям`
-                            });
-                          }}
-                        >
-                          <Icon name="RotateCcw" size={14} className="mr-1" />
-                          Восстановить
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-5 gap-4 mt-4 pt-4 border-t">
-                      <div>
-                        <p className="text-sm text-gray-500">Цена</p>
-                        <p className="text-xl font-bold text-gray-600">₽{plan.price}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Период</p>
-                        <p className="font-semibold text-gray-700">{plan.period}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Функций</p>
-                        <p className="font-semibold text-gray-700">{plan.functionsCount}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Активен с</p>
-                        <p className="font-semibold text-sm text-gray-700">
-                          {plan.activeFrom 
-                            ? new Date(plan.activeFrom).toLocaleDateString('ru-RU', { 
-                                day: 'numeric', 
-                                month: 'short', 
-                                year: 'numeric'
-                              })
-                            : 'Не указано'
-                          }
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Статус</p>
-                        <Badge variant="secondary">Скрыт</Badge>
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-600">{plan.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
 
       {/* Финансовые настройки */}
       <Card>
