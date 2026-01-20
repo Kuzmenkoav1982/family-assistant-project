@@ -35,6 +35,7 @@ interface Plan {
   features: PlanFeature[];
   functionsCount: number;
   discount?: number;
+  activeFrom?: string;
 }
 
 const AVAILABLE_FEATURES: PlanFeature[] = [
@@ -182,7 +183,8 @@ export default function PlansSettings() {
           popular: p.popular,
           discount: p.discount,
           functionsCount: p.functions_count,
-          features: p.features || []
+          features: p.features || [],
+          activeFrom: p.active_from
         }));
 
         setPlans(mappedPlans);
@@ -222,7 +224,8 @@ export default function PlansSettings() {
           popular: plan.popular,
           discount: plan.discount,
           functions_count: plan.functionsCount,
-          features: plan.features
+          features: plan.features,
+          active_from: plan.activeFrom
         })
       });
 
@@ -363,6 +366,18 @@ export default function PlansSettings() {
                     Это мотивирует пользователей покупать долгие подписки.
                   </p>
                 </div>
+
+                <div className="p-4 bg-white rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                    <Icon name="Calendar" size={16} />
+                    Планирование запуска
+                  </h4>
+                  <p className="text-sm text-gray-700">
+                    Поле "Активен с даты" позволяет запланировать появление тарифа на сайте. 
+                    До указанной даты тариф не будет виден пользователям, даже если он включён. 
+                    Используйте для предзапуска акций и новых тарифов.
+                  </p>
+                </div>
               </div>
 
               <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-orange-200">
@@ -374,6 +389,7 @@ export default function PlansSettings() {
                   <li>Изменение цены не влияет на уже активные подписки</li>
                   <li>Удаление функции из тарифа не отключит её у текущих пользователей</li>
                   <li>Сохраняйте изменения после каждого редактирования</li>
+                  <li>Тарифы с будущей датой "Активен с" не отображаются на сайте до этой даты</li>
                   <li>Рекомендуем не менять цены чаще 1 раза в квартал</li>
                 </ul>
               </div>
@@ -412,7 +428,7 @@ export default function PlansSettings() {
             <div key={plan.id} className="border-2 rounded-xl p-6 space-y-4 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <h3 className="text-2xl font-bold">{plan.name}</h3>
                     {plan.popular && (
                       <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
@@ -422,6 +438,11 @@ export default function PlansSettings() {
                     {plan.discount && (
                       <Badge className="bg-green-100 text-green-800">
                         Экономия {plan.discount}%
+                      </Badge>
+                    )}
+                    {plan.activeFrom && new Date(plan.activeFrom) > new Date() && (
+                      <Badge className="bg-blue-100 text-blue-800">
+                        📅 Запуск {new Date(plan.activeFrom).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </Badge>
                     )}
                   </div>
@@ -486,6 +507,23 @@ export default function PlansSettings() {
                         min="0"
                         max="100"
                       />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="flex items-center gap-2">
+                        Активен с даты
+                        <Badge variant="outline" className="text-xs">
+                          Планирование запуска
+                        </Badge>
+                      </Label>
+                      <Input
+                        type="datetime-local"
+                        value={plan.activeFrom ? new Date(plan.activeFrom).toISOString().slice(0, 16) : ''}
+                        onChange={(e) => setPlans(plans.map(p => p.id === plan.id ? { ...p, activeFrom: e.target.value ? new Date(e.target.value).toISOString() : undefined } : p))}
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Тариф появится на сайте с этой даты. Оставьте пустым для немедленной активации.
+                      </p>
                     </div>
                     <div className="col-span-2">
                       <Label>Описание</Label>

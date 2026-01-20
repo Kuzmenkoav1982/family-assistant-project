@@ -102,24 +102,37 @@ export default function Pricing() {
 
   const loadPlansFromDB = async () => {
     try {
-      const response = await fetch(`${PLANS_API}?action=all`);
+      // Используем public=true чтобы получить только активные тарифы (active_from <= NOW)
+      const response = await fetch(`${PLANS_API}?action=all&public=true`);
       if (response.ok) {
         const data = await response.json();
         
         const mappedPlans = data.plans
           .filter((p: any) => p.visible)
-          .map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            price: parseFloat(p.price),
-            period: p.period,
-            popular: p.popular,
-            color: p.popular ? 'from-purple-500 to-indigo-600' : 'from-gray-500 to-gray-600',
-            features: p.features
-              .filter((f: any) => f.enabled)
-              .map((f: any) => `✅ ${f.name}`),
-            savings: p.discount ? `Экономия ${p.discount}%!` : undefined
-          }));
+          .map((p: any) => {
+            // Формируем список функций с эмодзи (✅ включено, 🚫 выключено)
+            const planFeatures = p.features.map((f: any) => {
+              const emoji = f.enabled ? '✅' : '🚫';
+              return `${emoji} ${f.name}`;
+            });
+            
+            // Добавляем условие для бесплатного тарифа
+            if (p.id === 'free' && p.description) {
+              planFeatures.push(`🤝 Условие: ${p.description}`);
+            }
+            
+            return {
+              id: p.id,
+              name: p.name,
+              price: parseFloat(p.price),
+              period: p.period,
+              popular: p.popular,
+              color: p.popular ? 'from-purple-500 to-indigo-600' : 'from-gray-500 to-gray-600',
+              features: planFeatures,
+              savings: p.discount ? `Экономия ${p.discount}%!` : undefined,
+              condition: p.id === 'free' ? p.description : undefined
+            };
+          });
         
         if (mappedPlans.length > 0) {
           setPlans(mappedPlans);
