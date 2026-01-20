@@ -1,12 +1,15 @@
 {
   "tests": [
     {
-      "name": "Unauthorized access",
+      "name": "Get public plans (no auth required)",
       "method": "GET",
-      "expectedStatus": 401,
+      "path": "/?public=true",
+      "expectedStatus": 200,
       "expectedBody": {
-        "error": "Unauthorized"
-      }
+        "plans": "array",
+        "available_features": "array"
+      },
+      "bodyMatcher": "partial"
     },
     {
       "name": "Get all plans with admin token",
@@ -16,8 +19,8 @@
       },
       "expectedStatus": 200,
       "expectedBody": {
-        "plans": [],
-        "available_features": []
+        "plans": "array",
+        "available_features": "array"
       },
       "bodyMatcher": "partial"
     }

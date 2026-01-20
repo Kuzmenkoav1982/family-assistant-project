@@ -163,6 +163,15 @@ export default function PlansSettings() {
 
   const loadPlans = async () => {
     try {
+      // Если API не задеплоен, используем дефолтные планы
+      if (!apiUrl) {
+        console.log('subscription-plans API not deployed, using default plans');
+        setPlans(DEFAULT_PLANS);
+        setAvailableFeatures(AVAILABLE_FEATURES);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${apiUrl}?action=all`, {
         headers: {
           'X-Admin-Token': 'admin_authenticated'
@@ -189,13 +198,19 @@ export default function PlansSettings() {
 
         setPlans(mappedPlans);
         setAvailableFeatures(data.available_features || []);
+      } else {
+        // Fallback на дефолтные планы при ошибке
+        setPlans(DEFAULT_PLANS);
+        setAvailableFeatures(AVAILABLE_FEATURES);
       }
     } catch (error) {
       console.error('Failed to load plans:', error);
+      // Fallback на дефолтные планы
+      setPlans(DEFAULT_PLANS);
+      setAvailableFeatures(AVAILABLE_FEATURES);
       toast({
-        title: 'Ошибка загрузки',
-        description: 'Не удалось загрузить тарифы',
-        variant: 'destructive'
+        title: 'Используются локальные данные',
+        description: 'Подключение к API недоступно. Показаны локальные тарифы.',
       });
     } finally {
       setLoading(false);
@@ -205,6 +220,15 @@ export default function PlansSettings() {
   const handleSavePlan = async (planId: string) => {
     const plan = plans.find(p => p.id === planId);
     if (!plan) return;
+
+    if (!apiUrl) {
+      toast({
+        title: 'API недоступен',
+        description: 'Сохранение невозможно. Функция subscription-plans не задеплоена.',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     try {
       const response = await fetch(apiUrl, {

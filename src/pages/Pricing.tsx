@@ -12,7 +12,8 @@ import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
 import func2url from '@/../backend/func2url.json';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
-const PLANS_API = func2url['subscription-plans'] || '';
+// PLANS_API временно отключен (функция не задеплоена)
+// const PLANS_API = func2url['subscription-plans'] || '';
 
 const subscriptionPlans = [
   {
@@ -101,26 +102,26 @@ export default function Pricing() {
   }, []);
 
   const loadPlansFromDB = async () => {
+    // ВРЕМЕННО: используем статичные данные, пока subscription-plans не задеплоена
+    console.log('Using static subscription plans data');
+    setPlansLoading(false);
+    
+    // TODO: Раскомментировать когда subscription-plans задеплоена
+    /*
     try {
-      // Используем public=true чтобы получить только активные тарифы (active_from <= NOW)
       const response = await fetch(`${PLANS_API}?action=all&public=true`);
       if (response.ok) {
         const data = await response.json();
-        
         const mappedPlans = data.plans
           .filter((p: any) => p.visible)
           .map((p: any) => {
-            // Формируем список функций с эмодзи (✅ включено, 🚫 выключено)
             const planFeatures = p.features.map((f: any) => {
               const emoji = f.enabled ? '✅' : '🚫';
               return `${emoji} ${f.name}`;
             });
-            
-            // Добавляем условие для бесплатного тарифа
             if (p.id === 'free' && p.description) {
               planFeatures.push(`🤝 Условие: ${p.description}`);
             }
-            
             return {
               id: p.id,
               name: p.name,
@@ -133,7 +134,6 @@ export default function Pricing() {
               condition: p.id === 'free' ? p.description : undefined
             };
           });
-        
         if (mappedPlans.length > 0) {
           setPlans(mappedPlans);
         }
@@ -143,6 +143,7 @@ export default function Pricing() {
     } finally {
       setPlansLoading(false);
     }
+    */
   };
 
   // Проверка статуса платежа при возврате

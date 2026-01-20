@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    API для управления тарифными планами
+    API для управления тарифными планами подписок
     GET - получить все тарифы и функции
     POST - сохранить изменения тарифа
     PUT - создать новый тариф
@@ -32,14 +32,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'Access-Control-Allow-Origin': '*'
     }
     
-    admin_token = event.get('headers', {}).get('x-admin-token') or event.get('headers', {}).get('X-Admin-Token')
-    if admin_token != 'admin_authenticated':
-        return {
-            'statusCode': 401,
-            'headers': headers,
-            'body': json.dumps({'error': 'Unauthorized'}),
-            'isBase64Encoded': False
-        }
+    # Проверяем авторизацию только для изменяющих операций
+    is_public_request = event.get('queryStringParameters', {}).get('public') == 'true'
+    
+    if method in ['POST', 'PUT', 'DELETE'] or not is_public_request:
+        admin_token = event.get('headers', {}).get('x-admin-token') or event.get('headers', {}).get('X-Admin-Token')
+        if admin_token != 'admin_authenticated':
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({'error': 'Unauthorized'}),
+                'isBase64Encoded': False
+            }
     
     dsn = os.environ.get('DATABASE_URL')
     if not dsn:
