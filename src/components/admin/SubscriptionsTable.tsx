@@ -110,6 +110,8 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
     setFilteredSubs(filtered);
   };
 
+  const uniquePlanTypes = Array.from(new Set(subscriptions.map(s => s.plan_type)));
+
   const handleExtendSubscription = async () => {
     if (!selectedSub) return;
 
@@ -233,9 +235,11 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Все тарифы</SelectItem>
-                  <SelectItem value="basic">Базовый</SelectItem>
-                  <SelectItem value="standard">Семейный</SelectItem>
-                  <SelectItem value="premium">Премиум</SelectItem>
+                  {uniquePlanTypes.map(planType => (
+                    <SelectItem key={planType} value={planType}>
+                      {PLAN_NAMES[planType] || planType}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
