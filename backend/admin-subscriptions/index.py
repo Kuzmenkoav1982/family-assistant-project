@@ -302,6 +302,60 @@ def extend_subscription(subscription_id: str, days: int, admin_email: str) -> Di
         conn.close()
         return {'error': str(e)}
 
+def change_subscription_plan(subscription_id: str, new_plan: str, admin_email: str) -> Dict[str, Any]:
+    """Изменить тариф подписки"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        safe_id = subscription_id.replace("'", "''")
+        safe_plan = new_plan.replace("'", "''")
+        
+        # Получаем старый тариф
+        cur.execute(f"""
+            SELECT plan_type FROM {SCHEMA}.subscriptions
+            WHERE id = '{safe_id}'
+        """)
+        old_sub = cur.fetchone()
+        
+        if not old_sub:
+            cur.close()
+            conn.close()
+            return {'error': 'Subscription not found'}
+        
+        old_plan = old_sub['plan_type']
+        
+        # Обновляем тариф
+        cur.execute(f"""
+            UPDATE {SCHEMA}.subscriptions
+            SET plan_type = '{safe_plan}',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = '{safe_id}'
+            RETURNING *
+        """)
+        updated = cur.fetchone()
+        
+        # Логируем действие
+        safe_email = admin_email.replace("'", "''")
+        details_json = json.dumps({'old_plan': old_plan, 'new_plan': new_plan}).replace("'", "''")
+        
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.admin_actions_log 
+            (admin_email, action_type, target_type, target_id, details)
+            VALUES ('{safe_email}', 'change_plan', 'subscription', '{safe_id}', '{details_json}')
+        """)
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {'success': True, 'subscription': dict(updated)}
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
 def get_promo_codes() -> List[Dict[str, Any]]:
     """Получить список всех промокодов"""
     conn = get_db_connection()
@@ -445,6 +499,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             admin_email = body.get('admin_email', 'admin@family.com')
             
             result = extend_subscription(sub_id, days, admin_email)
+            return {
+                'statusCode': 200 if 'success' in result else 400,
+                'headers': headers,
+                'body': json.dumps(result, default=str)
+            }
+        
+        # POST ?action=change-plan - изменить тариф
+        if method == 'POST' and action == 'change-plan':
+            body = json.loads(event.get('body', '{}'))
+            sub_id = body.get('subscription_id', '')
+            new_plan = body.get('new_plan', '')
+            admin_email = body.get('admin_email', 'admin@family.com')
+            
+            result = change_subscription_plan(sub_id, new_plan, admin_email)
             return {
                 'statusCode': 200 if 'success' in result else 400,
                 'headers': headers,

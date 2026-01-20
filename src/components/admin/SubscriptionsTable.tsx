@@ -53,6 +53,8 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
   const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
   const [showExtendDialog, setShowExtendDialog] = useState(false);
   const [extendDays, setExtendDays] = useState('30');
+  const [showChangePlanDialog, setShowChangePlanDialog] = useState(false);
+  const [newPlanType, setNewPlanType] = useState('');
 
   useEffect(() => {
     fetchSubscriptions();
@@ -145,6 +147,44 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
       toast({
         title: 'Ошибка',
         description: 'Не удалось продлить подписку',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleChangePlan = async () => {
+    if (!selectedSub || !newPlanType) return;
+
+    try {
+      const response = await fetch(`${apiUrl}?action=change-plan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': 'admin_authenticated'
+        },
+        body: JSON.stringify({
+          subscription_id: selectedSub.id,
+          new_plan: newPlanType,
+          admin_email: 'admin@family.com'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'Тариф изменён',
+          description: `Тариф изменён с "${PLAN_NAMES[selectedSub.plan_type]}" на "${PLAN_NAMES[newPlanType]}"`
+        });
+        setShowChangePlanDialog(false);
+        fetchSubscriptions();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить тариф',
         variant: 'destructive'
       });
     }
@@ -288,17 +328,31 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedSub(sub);
-                                setShowExtendDialog(true);
-                              }}
-                            >
-                              <Icon name="Plus" size={14} className="mr-1" />
-                              Продлить
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedSub(sub);
+                                  setShowExtendDialog(true);
+                                }}
+                              >
+                                <Icon name="Plus" size={14} className="mr-1" />
+                                Продлить
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedSub(sub);
+                                  setNewPlanType(sub.plan_type);
+                                  setShowChangePlanDialog(true);
+                                }}
+                              >
+                                <Icon name="Edit" size={14} className="mr-1" />
+                                Тариф
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -351,6 +405,48 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
             <Button onClick={handleExtendSubscription}>
               <Icon name="Check" size={16} className="mr-2" />
               Продлить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Plan Dialog */}
+      <Dialog open={showChangePlanDialog} onOpenChange={setShowChangePlanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Изменить тариф</DialogTitle>
+            <DialogDescription>
+              Смена тарифа для {selectedSub?.family_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Текущий тариф</Label>
+              <p className="text-sm font-medium mt-1">{selectedSub && PLAN_NAMES[selectedSub.plan_type]}</p>
+            </div>
+            <div>
+              <Label>Новый тариф</Label>
+              <Select value={newPlanType} onValueChange={setNewPlanType}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniquePlanTypes.map(planType => (
+                    <SelectItem key={planType} value={planType}>
+                      {PLAN_NAMES[planType] || planType}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowChangePlanDialog(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleChangePlan} disabled={!newPlanType || newPlanType === selectedSub?.plan_type}>
+              <Icon name="Check" size={16} className="mr-2" />
+              Изменить тариф
             </Button>
           </DialogFooter>
         </DialogContent>
