@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    API для управления тарифными планами подписок
+    API для управления тарифными планами подписок.
     GET - получить все тарифы и функции (public=true для сайта)
     POST - сохранить изменения тарифа
     PUT - создать новый тариф
