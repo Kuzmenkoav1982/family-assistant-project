@@ -14,6 +14,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PlanFeature {
   id: string;
@@ -36,6 +43,7 @@ interface Plan {
   functionsCount: number;
   discount?: number;
   activeFrom?: string;
+  activeUntil?: string;
 }
 
 const AVAILABLE_FEATURES: PlanFeature[] = [
@@ -186,6 +194,8 @@ export default function PlansSettings() {
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [instructionOpen, setInstructionOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [creatingNewPlan, setCreatingNewPlan] = useState(false);
+  const [newPlanId, setNewPlanId] = useState('');
 
   const apiUrl = func2url['subscription-plans'] || '';
 
@@ -225,7 +235,8 @@ export default function PlansSettings() {
           discount: p.discount,
           functionsCount: p.functions_count,
           features: p.features || [],
-          activeFrom: p.active_from
+          activeFrom: p.active_from,
+          activeUntil: p.active_until
         }));
 
         setPlans(mappedPlans);
@@ -281,7 +292,8 @@ export default function PlansSettings() {
           discount: plan.discount,
           functions_count: plan.functionsCount,
           features: plan.features,
-          active_from: plan.activeFrom
+          active_from: plan.activeFrom,
+          active_until: plan.activeUntil
         })
       });
 
@@ -466,12 +478,7 @@ export default function PlansSettings() {
               <CardDescription>Редактирование цен, описаний и видимости тарифов</CardDescription>
             </div>
             <Button
-              onClick={() => {
-                toast({
-                  title: 'Функция в разработке',
-                  description: 'Создание новых тарифов скоро будет доступно'
-                });
-              }}
+              onClick={() => setCreatingNewPlan(true)}
               className="bg-gradient-to-r from-green-500 to-emerald-500"
             >
               <Icon name="Plus" size={16} className="mr-2" />
@@ -499,6 +506,16 @@ export default function PlansSettings() {
                     {plan.activeFrom && new Date(plan.activeFrom) > new Date() && (
                       <Badge className="bg-blue-100 text-blue-800">
                         📅 Запуск {new Date(plan.activeFrom).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </Badge>
+                    )}
+                    {plan.activeUntil && new Date(plan.activeUntil) > new Date() && (
+                      <Badge className="bg-orange-100 text-orange-800">
+                        ⏰ До {new Date(plan.activeUntil).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                      </Badge>
+                    )}
+                    {plan.activeUntil && new Date(plan.activeUntil) <= new Date() && (
+                      <Badge className="bg-red-100 text-red-800">
+                        ⏱️ Истёк {new Date(plan.activeUntil).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                       </Badge>
                     )}
                   </div>
@@ -579,6 +596,23 @@ export default function PlansSettings() {
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Тариф появится на сайте с этой даты. Оставьте пустым для немедленной активации.
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="flex items-center gap-2">
+                        Активен до даты
+                        <Badge variant="outline" className="text-xs">
+                          Автоархивирование
+                        </Badge>
+                      </Label>
+                      <Input
+                        type="datetime-local"
+                        value={plan.activeUntil ? new Date(plan.activeUntil).toISOString().slice(0, 16) : ''}
+                        onChange={(e) => setPlans(plans.map(p => p.id === plan.id ? { ...p, activeUntil: e.target.value ? new Date(e.target.value).toISOString() : undefined } : p))}
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        После этой даты тариф автоматически скроется. Подходит для временных акций.
                       </p>
                     </div>
                     <div className="col-span-2">
@@ -682,7 +716,7 @@ export default function PlansSettings() {
                 </div>
               ) : (
                 <div className="space-y-4 pt-4 border-t">
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-5 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Цена</p>
                       <p className="text-2xl font-bold text-purple-600">₽{plan.price}</p>
@@ -694,6 +728,21 @@ export default function PlansSettings() {
                     <div>
                       <p className="text-sm text-gray-500">Функций</p>
                       <p className="font-semibold">{plan.functionsCount}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Активен с</p>
+                      <p className="font-semibold text-sm">
+                        {plan.activeFrom 
+                          ? new Date(plan.activeFrom).toLocaleDateString('ru-RU', { 
+                              day: 'numeric', 
+                              month: 'short', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'Сейчас'
+                        }
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Статус</p>
@@ -725,6 +774,108 @@ export default function PlansSettings() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Архив тарифов */}
+      {plans.filter(p => !p.visible).length > 0 && (
+        <Collapsible>
+          <Card className="border-gray-300 bg-gray-50">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-gray-700">
+                      <Icon name="Archive" size={20} />
+                      Архив тарифов
+                      <Badge variant="secondary">{plans.filter(p => !p.visible).length}</Badge>
+                    </CardTitle>
+                    <CardDescription>Скрытые и устаревшие тарифные планы</CardDescription>
+                  </div>
+                  <Icon name="ChevronDown" size={20} className="text-gray-500" />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                {plans.filter(p => !p.visible).map(plan => (
+                  <div key={plan.id} className="border rounded-xl p-4 bg-white opacity-75 hover:opacity-100 transition-opacity">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <h3 className="text-xl font-bold text-gray-700">{plan.name}</h3>
+                          <Badge variant="secondary">Архивный</Badge>
+                          {plan.popular && (
+                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white opacity-50">
+                              🔥 Популярный
+                            </Badge>
+                          )}
+                          {plan.discount && (
+                            <Badge className="bg-green-100 text-green-800">
+                              Экономия {plan.discount}%
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">{plan.id}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setPlans(plans.map(p => p.id === plan.id ? { ...p, visible: true } : p));
+                            toast({
+                              title: 'Тариф восстановлен',
+                              description: `Тариф "${plan.name}" снова виден пользователям`
+                            });
+                          }}
+                        >
+                          <Icon name="RotateCcw" size={14} className="mr-1" />
+                          Восстановить
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-5 gap-4 mt-4 pt-4 border-t">
+                      <div>
+                        <p className="text-sm text-gray-500">Цена</p>
+                        <p className="text-xl font-bold text-gray-600">₽{plan.price}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Период</p>
+                        <p className="font-semibold text-gray-700">{plan.period}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Функций</p>
+                        <p className="font-semibold text-gray-700">{plan.functionsCount}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Активен с</p>
+                        <p className="font-semibold text-sm text-gray-700">
+                          {plan.activeFrom 
+                            ? new Date(plan.activeFrom).toLocaleDateString('ru-RU', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric'
+                              })
+                            : 'Не указано'
+                          }
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Статус</p>
+                        <Badge variant="secondary">Скрыт</Badge>
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600">{plan.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {/* Финансовые настройки */}
       <Card>
@@ -782,6 +933,137 @@ export default function PlansSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Диалог создания нового тарифа */}
+      <Dialog open={creatingNewPlan} onOpenChange={setCreatingNewPlan}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Plus" size={20} />
+              Создать новый тариф
+            </DialogTitle>
+            <DialogDescription>
+              Заполните данные нового тарифного плана
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label>ID тарифа (латиница, без пробелов)</Label>
+              <Input
+                value={newPlanId}
+                onChange={(e) => setNewPlanId(e.target.value.toLowerCase().replace(/\s/g, '_'))}
+                placeholder="my_new_plan"
+                className="mt-1 font-mono"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Например: premium_pro, family_plus
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Название тарифа</Label>
+                <Input placeholder="Премиум+" className="mt-1" id="new-plan-name" />
+              </div>
+              <div>
+                <Label>Цена (₽)</Label>
+                <Input type="number" placeholder="999" className="mt-1" id="new-plan-price" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Период</Label>
+                <Input placeholder="1 месяц" className="mt-1" id="new-plan-period" />
+              </div>
+              <div>
+                <Label>Период (месяцы)</Label>
+                <Input type="number" placeholder="1" className="mt-1" id="new-plan-months" />
+              </div>
+            </div>
+
+            <div>
+              <Label>Описание</Label>
+              <Textarea 
+                placeholder="Краткое описание тарифа" 
+                className="mt-1" 
+                id="new-plan-description"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Label>Видимость</Label>
+                <Switch id="new-plan-visible" defaultChecked />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label>Популярный</Label>
+                <Switch id="new-plan-popular" />
+              </div>
+            </div>
+
+            <div className="pt-4 border-t flex gap-2">
+              <Button 
+                onClick={() => {
+                  if (!newPlanId) {
+                    toast({
+                      title: 'Ошибка',
+                      description: 'Укажите ID тарифа',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+
+                  const nameInput = document.getElementById('new-plan-name') as HTMLInputElement;
+                  const priceInput = document.getElementById('new-plan-price') as HTMLInputElement;
+                  const periodInput = document.getElementById('new-plan-period') as HTMLInputElement;
+                  const monthsInput = document.getElementById('new-plan-months') as HTMLInputElement;
+                  const descInput = document.getElementById('new-plan-description') as HTMLTextAreaElement;
+                  const visibleSwitch = document.getElementById('new-plan-visible') as HTMLInputElement;
+                  const popularSwitch = document.getElementById('new-plan-popular') as HTMLInputElement;
+
+                  const newPlan: Plan = {
+                    id: newPlanId,
+                    name: nameInput?.value || 'Новый тариф',
+                    price: parseInt(priceInput?.value) || 0,
+                    period: periodInput?.value || '1 месяц',
+                    periodMonths: parseInt(monthsInput?.value) || 1,
+                    description: descInput?.value || '',
+                    visible: visibleSwitch?.checked || true,
+                    popular: popularSwitch?.checked || false,
+                    functionsCount: 0,
+                    features: []
+                  };
+
+                  setPlans([...plans, newPlan]);
+                  setCreatingNewPlan(false);
+                  setNewPlanId('');
+                  setEditingPlan(newPlan.id);
+                  
+                  toast({
+                    title: 'Тариф создан!',
+                    description: 'Добавьте функции и сохраните изменения',
+                  });
+                }}
+                className="flex-1"
+              >
+                <Icon name="Check" size={16} className="mr-2" />
+                Создать тариф
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setCreatingNewPlan(false);
+                  setNewPlanId('');
+                }}
+              >
+                Отмена
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

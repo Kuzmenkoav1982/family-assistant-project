@@ -66,7 +66,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 # Для сайта (public=true) - только активные на текущую дату
                 is_public = event.get('queryStringParameters', {}).get('public') == 'true'
                 
-                active_filter = "AND sp.active_from <= CURRENT_TIMESTAMP" if is_public else ""
+                if is_public:
+                    # Тариф активен если:
+                    # 1. active_from <= NOW (уже начался)
+                    # 2. active_until IS NULL OR active_until > NOW (не истёк)
+                    active_filter = """
+                        AND sp.active_from <= CURRENT_TIMESTAMP 
+                        AND (sp.active_until IS NULL OR sp.active_until > CURRENT_TIMESTAMP)
+                    """
+                else:
+                    active_filter = ""
                 
                 cur.execute(f"""
                     SELECT 
@@ -139,12 +148,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             discount = body.get('discount', 0)
             functions_count = body.get('functions_count', 0)
             active_from = body.get('active_from', 'CURRENT_TIMESTAMP')
+            active_until = body.get('active_until')
             
             # Если active_from - строка даты, оборачиваем в кавычки
             if active_from != 'CURRENT_TIMESTAMP' and active_from:
                 active_from_value = f"'{active_from.replace("'", "''")}'"
             else:
                 active_from_value = 'CURRENT_TIMESTAMP'
+            
+            # active_until - NULL или дата
+            if active_until:
+                active_until_value = f"'{active_until.replace("'", "''")}'"
+            else:
+                active_until_value = 'NULL'
             
             cur.execute(f"""
                 UPDATE subscription_plans
@@ -159,6 +175,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     discount = {discount},
                     functions_count = {functions_count},
                     active_from = {active_from_value},
+                    active_until = {active_until_value},
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = '{plan_id_safe}'
                 RETURNING *
