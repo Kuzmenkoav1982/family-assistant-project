@@ -28,6 +28,7 @@ export default function AdminDashboard() {
   const [vitals, setVitals] = useState(getVitalsData());
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [usersStats, setUsersStats] = useState({ total: 5, today: 2, week: 4 });
+  const [activityStats, setActivityStats] = useState({ tasks_week: 0, events_week: 0, shopping_week: 0, children_month: 0 });
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -44,6 +45,9 @@ export default function AdminDashboard() {
         const data = await response.json();
         if (data.users) {
           setUsersStats(data.users);
+        }
+        if (data.activity) {
+          setActivityStats(data.activity);
         }
       } catch (error) {
         // Тихо игнорируем ошибку - используем моковые данные
@@ -158,6 +162,10 @@ export default function AdminDashboard() {
             <p className="text-slate-600 mt-2">Управление и мониторинг приложения простым языком</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/admin/traffic'}>
+              <Icon name="TrendingUp" size={16} className="mr-2" />
+              Посещаемость
+            </Button>
             <Button variant="outline" onClick={() => window.location.href = '/admin/alice'}>
               <Icon name="Mic" size={16} className="mr-2" />
               Алиса
@@ -303,22 +311,31 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Icon name="DollarSign" size={18} />
-                  Расходы
+                  <Icon name="Activity" size={18} className="text-green-600" />
+                  Активность за неделю
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div>
-                  <p className="text-2xl font-bold text-slate-800">~0₽</p>
-                  <p className="text-xs text-slate-600">В месяц (бесплатный tier)</p>
-                </div>
-                <div className="text-xs text-slate-500 pt-2 border-t">
-                  <p>• До 10K пользователей - бесплатно</p>
-                  <p className="mt-1">• При 100K пользователей: ~50 000₽/мес</p>
-                  <p className="mt-1">• При 1M пользователей: ~750 000₽/мес</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-2xl font-bold text-green-900">{activityStats.tasks_week}</p>
+                    <p className="text-xs text-green-600">Задач создано</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-900">{activityStats.events_week}</p>
+                    <p className="text-xs text-green-600">События в календаре</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-900">{activityStats.shopping_week}</p>
+                    <p className="text-xs text-green-600">Покупок в списке</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-900">{activityStats.children_month}</p>
+                    <p className="text-xs text-green-600">Развитие детей (мес)</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>

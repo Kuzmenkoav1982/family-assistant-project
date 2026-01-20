@@ -25,7 +25,7 @@ export default function CohortAnalysis({ apiUrl }: Props) {
 
       if (response.ok) {
         const data = await response.json();
-        setCohortData(data);
+        setCohortData(data.cohorts || []);
       }
     } catch (error) {
       console.error(error);
@@ -44,43 +44,16 @@ export default function CohortAnalysis({ apiUrl }: Props) {
     );
   }
 
-  // Моковые данные для демонстрации концепции
-  const mockCohorts = [
-    {
-      month: '2024-09',
-      users: 5,
-      retention: {
-        month0: 100,
-        month1: 80,
-        month2: 60,
-        month3: 60
-      }
-    },
-    {
-      month: '2024-10',
-      users: 3,
-      retention: {
-        month0: 100,
-        month1: 67,
-        month2: 67
-      }
-    },
-    {
-      month: '2024-11',
-      users: 4,
-      retention: {
-        month0: 100,
-        month1: 75
-      }
-    },
-    {
-      month: '2024-12',
-      users: 3,
-      retention: {
-        month0: 100
-      }
+  const displayCohorts = cohortData && cohortData.length > 0 ? cohortData.map((c: any) => ({
+    month: new Date(c.cohort_month).toISOString().slice(0, 7),
+    users: c.users,
+    retention: {
+      month0: Math.round(c.month0 || 0),
+      month1: Math.round(c.month1 || 0),
+      month2: Math.round(c.month2 || 0),
+      month3: Math.round(c.month3 || 0)
     }
-  ];
+  })) : [];
 
   const getRetentionColor = (retention: number) => {
     if (retention >= 80) return 'bg-green-500';
@@ -89,11 +62,11 @@ export default function CohortAnalysis({ apiUrl }: Props) {
     return 'bg-red-500';
   };
 
-  const avgRetention = {
-    month1: 74,
-    month2: 64,
-    month3: 60
-  };
+  const avgRetention = displayCohorts.length > 0 ? {
+    month1: Math.round(displayCohorts.reduce((sum: number, c: any) => sum + (c.retention.month1 || 0), 0) / displayCohorts.length),
+    month2: Math.round(displayCohorts.reduce((sum: number, c: any) => sum + (c.retention.month2 || 0), 0) / displayCohorts.filter((c: any) => c.retention.month2 > 0).length || 0),
+    month3: Math.round(displayCohorts.reduce((sum: number, c: any) => sum + (c.retention.month3 || 0), 0) / displayCohorts.filter((c: any) => c.retention.month3 > 0).length || 0)
+  } : { month1: 0, month2: 0, month3: 0 };
 
   return (
     <div className="space-y-6">
@@ -165,7 +138,7 @@ export default function CohortAnalysis({ apiUrl }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {mockCohorts.map((cohort, idx) => (
+                {displayCohorts.map((cohort: any, idx: number) => (
                   <tr key={idx} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="font-semibold">

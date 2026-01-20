@@ -72,8 +72,34 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             """)
             metrics = cur.fetchall()
             
-            cur.execute("SELECT total_users, active_today, active_week FROM user_statistics ORDER BY id DESC LIMIT 1")
-            stats = cur.fetchone()
+            cur.execute("SELECT COUNT(*) FROM families")
+            total_families = cur.fetchone()[0]
+            
+            cur.execute("""
+                SELECT COUNT(DISTINCT family_id) 
+                FROM calendar_events 
+                WHERE created_at > NOW() - INTERVAL '1 day'
+            """)
+            active_today = cur.fetchone()[0]
+            
+            cur.execute("""
+                SELECT COUNT(DISTINCT family_id) 
+                FROM calendar_events 
+                WHERE created_at > NOW() - INTERVAL '7 days'
+            """)
+            active_week = cur.fetchone()[0]
+            
+            cur.execute("SELECT COUNT(*) FROM tasks WHERE created_at > NOW() - INTERVAL '7 days'")
+            tasks_week = cur.fetchone()[0]
+            
+            cur.execute("SELECT COUNT(*) FROM calendar_events WHERE created_at > NOW() - INTERVAL '7 days'")
+            events_week = cur.fetchone()[0]
+            
+            cur.execute("SELECT COUNT(*) FROM shopping_items_v2 WHERE created_at > NOW() - INTERVAL '7 days'")
+            shopping_week = cur.fetchone()[0]
+            
+            cur.execute("SELECT COUNT(*) FROM children_development WHERE created_at > NOW() - INTERVAL '30 days'")
+            children_month = cur.fetchone()[0]
             
             result = {
                 'metrics': [
@@ -81,10 +107,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     for row in metrics
                 ],
                 'users': {
-                    'total': stats[0] if stats else 5,
-                    'today': stats[1] if stats else 2,
-                    'week': stats[2] if stats else 4
-                } if stats else {'total': 5, 'today': 2, 'week': 4}
+                    'total': total_families,
+                    'today': active_today,
+                    'week': active_week
+                },
+                'activity': {
+                    'tasks_week': tasks_week,
+                    'events_week': events_week,
+                    'shopping_week': shopping_week,
+                    'children_month': children_month
+                }
             }
             
             return {

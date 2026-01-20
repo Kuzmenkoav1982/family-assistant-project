@@ -210,6 +210,60 @@ def get_subscription_details(subscription_id: str) -> Optional[Dict[str, Any]]:
         'payments': [dict(p) for p in payments]
     }
 
+def get_cohort_analysis() -> Dict[str, Any]:
+    """Когортный анализ retention пользователей по месяцам регистрации"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    cur.execute(f"""
+        WITH cohorts AS (
+            SELECT 
+                DATE_TRUNC('month', created_at) as cohort_month,
+                id as family_id
+            FROM {SCHEMA}.families
+            WHERE created_at >= NOW() - INTERVAL '12 months'
+        ),
+        activity AS (
+            SELECT DISTINCT
+                c.cohort_month,
+                c.family_id,
+                DATE_TRUNC('month', ce.created_at) as activity_month
+            FROM cohorts c
+            LEFT JOIN {SCHEMA}.calendar_events ce ON c.family_id = ce.family_id
+            WHERE ce.created_at IS NOT NULL
+        )
+        SELECT 
+            c.cohort_month,
+            COUNT(DISTINCT c.family_id) as users,
+            COUNT(DISTINCT CASE 
+                WHEN a.activity_month = c.cohort_month 
+                THEN a.family_id 
+            END) * 100.0 / NULLIF(COUNT(DISTINCT c.family_id), 0) as month0,
+            COUNT(DISTINCT CASE 
+                WHEN a.activity_month = c.cohort_month + INTERVAL '1 month' 
+                THEN a.family_id 
+            END) * 100.0 / NULLIF(COUNT(DISTINCT c.family_id), 0) as month1,
+            COUNT(DISTINCT CASE 
+                WHEN a.activity_month = c.cohort_month + INTERVAL '2 months' 
+                THEN a.family_id 
+            END) * 100.0 / NULLIF(COUNT(DISTINCT c.family_id), 0) as month2,
+            COUNT(DISTINCT CASE 
+                WHEN a.activity_month = c.cohort_month + INTERVAL '3 months' 
+                THEN a.family_id 
+            END) * 100.0 / NULLIF(COUNT(DISTINCT c.family_id), 0) as month3
+        FROM cohorts c
+        LEFT JOIN activity a ON c.cohort_month = a.cohort_month AND c.family_id = a.family_id
+        GROUP BY c.cohort_month
+        ORDER BY c.cohort_month DESC
+        LIMIT 12
+    """)
+    cohorts = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    return {'cohorts': [dict(c) for c in cohorts]}
+
 def extend_subscription(subscription_id: str, days: int, admin_email: str) -> Dict[str, Any]:
     """Продлить подписку на N дней (бесплатно, как подарок)"""
     conn = get_db_connection()
@@ -416,6 +470,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 201 if 'success' in result else 400,
                 'headers': headers,
                 'body': json.dumps(result, default=str)
+            }
+        
+        # GET ?action=cohort-analysis - когортный анализ
+        if method == 'GET' and action == 'cohort-analysis':
+            cohort_data = get_cohort_analysis()
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps(cohort_data, default=str)
             }
         
         return {

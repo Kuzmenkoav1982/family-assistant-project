@@ -52,6 +52,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import FamilySettings from "./pages/FamilySettings";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminTraffic from "./pages/AdminTraffic";
 import Recipes from "./pages/Recipes";
 import AIAssistant from "./pages/AIAssistant";
 import Development from "./pages/Development";
@@ -90,6 +91,7 @@ import { DialogLockProvider } from "@/contexts/DialogLockContext";
 import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { storage } from "@/lib/storage";
+import { analyticsTracker } from "@/lib/analytics-tracker";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -154,6 +156,35 @@ const App = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const trackPageChange = () => {
+      analyticsTracker.trackPageView(window.location.pathname);
+    };
+
+    trackPageChange();
+    
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args);
+      trackPageChange();
+    };
+
+    window.history.replaceState = function(...args) {
+      originalReplaceState.apply(window.history, args);
+      trackPageChange();
+    };
+
+    window.addEventListener('popstate', trackPageChange);
+
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.removeEventListener('popstate', trackPageChange);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -213,6 +244,7 @@ const App = () => {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/support" element={<AdminSupport />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/traffic" element={<AdminTraffic />} />
               <Route path="/admin/alice" element={<AdminAlice />} />
               <Route path="/alice" element={<AliceIntegration />} />
               <Route path="/nationalities" element={<NationalitiesPage />} />

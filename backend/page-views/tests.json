@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "POST page view tracking",
+      "method": "POST",
+      "body": {
+        "page_path": "/test",
+        "page_title": "Test Page",
+        "session_id": "test_session"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET page view stats",
+      "method": "GET",
+      "path": "/?action=stats",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "total": {},
+        "today": {},
+        "week": {}
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
