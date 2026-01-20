@@ -68,22 +68,73 @@ const AVAILABLE_FEATURES: PlanFeature[] = [
 
 const DEFAULT_PLANS: Plan[] = [
   {
+    id: 'free',
+    name: 'Бесплатный',
+    price: 0,
+    period: 'навсегда',
+    periodMonths: 0,
+    description: 'Условие: помогайте нам развивать платформу своими идеями и предложениями!',
+    visible: true,
+    functionsCount: 8,
+    features: [
+      { id: 'members_10', name: 'Профили семьи (до 10 человек)', enabled: true, category: 'basic' },
+      { id: 'calendar', name: 'Календарь событий (базовый)', enabled: true, category: 'basic' },
+      { id: 'shopping', name: 'Списки покупок и задач', enabled: true, category: 'basic' },
+      { id: 'recipes', name: 'Рецепты (до 50 рецептов)', enabled: true, category: 'family' },
+      { id: 'family_chat', name: 'Семейный чат', enabled: true, category: 'family' },
+      { id: 'storage_1gb', name: 'Хранилище 1 ГБ', enabled: true, category: 'basic' },
+      { id: 'no_ai', name: 'Нет AI-помощника', enabled: false, category: 'ai' },
+      { id: 'history_3m', name: 'История событий 3 месяца', enabled: false, category: 'analytics' },
+    ]
+  },
+  {
+    id: 'ai_assistant',
+    name: 'AI-Помощник "Домовой"',
+    price: 200,
+    period: 'месяц',
+    periodMonths: 1,
+    description: 'Умный помощник для всей семьи',
+    popular: true,
+    visible: true,
+    functionsCount: 6,
+    features: [
+      { id: 'ai_assistant', name: 'Умный семейный помощник', enabled: true, category: 'ai' },
+      { id: 'ai_reminders', name: 'Автоматические напоминания', enabled: true, category: 'ai' },
+      { id: 'ai_recipes', name: 'Подбор рецептов по продуктам', enabled: true, category: 'ai' },
+      { id: 'ai_budget', name: 'Анализ семейного бюджета', enabled: true, category: 'ai' },
+      { id: 'ai_tips', name: 'Советы по организации быта', enabled: true, category: 'ai' },
+      { id: 'ai_qa', name: 'Быстрые ответы на вопросы', enabled: true, category: 'ai' },
+    ]
+  },
+  {
+    id: 'full',
+    name: 'Полный пакет',
+    price: 500,
+    period: 'месяц',
+    periodMonths: 1,
+    description: 'Все возможности + приоритет',
+    popular: true,
+    visible: true,
+    functionsCount: 5,
+    discount: 60,
+    features: [
+      { id: 'ai_full', name: 'AI-Помощник "Домовой"', enabled: true, category: 'ai' },
+      { id: 'storage_20gb', name: '20 ГБ хранилища', enabled: true, category: 'basic' },
+      { id: 'history_unlimited', name: 'Безлимитная история', enabled: true, category: 'analytics' },
+      { id: 'support_priority', name: 'Приоритетная поддержка', enabled: true, category: 'support' },
+      { id: 'alice', name: 'Ранний доступ к новинкам', enabled: true, category: 'support' },
+    ]
+  },
+  {
     id: 'basic',
     name: 'Базовый',
     price: 299,
     period: '1 месяц',
     periodMonths: 1,
     description: 'Гибкая оплата',
-    visible: true,
+    visible: false,
     functionsCount: 6,
-    features: [
-      { id: 'members_5', name: 'До 5 членов семьи', enabled: true, category: 'basic' },
-      { id: 'calendar', name: 'Календарь событий (базовый)', enabled: true, category: 'basic' },
-      { id: 'shopping', name: 'Списки покупок', enabled: true, category: 'basic' },
-      { id: 'finance', name: 'Финансовый учет', enabled: true, category: 'basic' },
-      { id: 'family_chat', name: 'Семейный чат', enabled: true, category: 'family' },
-      { id: 'support_basic', name: 'Техподдержка', enabled: true, category: 'support' },
-    ]
+    features: []
   },
   {
     id: 'standard',
@@ -93,19 +144,10 @@ const DEFAULT_PLANS: Plan[] = [
     periodMonths: 3,
     description: 'Все функции Базового',
     popular: true,
-    visible: true,
+    visible: false,
     functionsCount: 8,
     discount: 20,
-    features: [
-      { id: 'members_10', name: 'До 10 членов семьи', enabled: true, category: 'basic' },
-      { id: 'tasks', name: 'Рецепты (до 50 рецептов)', enabled: true, category: 'family' },
-      { id: 'voting', name: 'Комментарии 1ТБ', enabled: true, category: 'family' },
-      { id: 'children_health', name: 'Здоровье детей', enabled: true, category: 'family' },
-      { id: 'medical', name: 'Медицинские записи', enabled: true, category: 'family' },
-      { id: 'ai_recommendations', name: 'Автоматические напоминания', enabled: true, category: 'ai' },
-      { id: 'support_priority', name: 'Приоритетная поддержка', enabled: true, category: 'support' },
-      { id: 'alice', name: 'Интеграция с Алисой', enabled: true, category: 'ai' },
-    ]
+    features: []
   },
   {
     id: 'premium',
@@ -114,20 +156,10 @@ const DEFAULT_PLANS: Plan[] = [
     period: '12 месяцев',
     periodMonths: 12,
     description: 'Все функции Семейного',
-    visible: true,
+    visible: false,
     functionsCount: 9,
     discount: 50,
-    features: [
-      { id: 'members_unlimited', name: 'Неограниченное число членов', enabled: true, category: 'basic' },
-      { id: 'ai_assistant', name: 'ИИ-помощник "Домовой"', enabled: true, category: 'ai' },
-      { id: 'ai_analysis', name: 'Подбор решений по продуктам', enabled: true, category: 'ai' },
-      { id: 'ai_budget', name: 'Анализ семейного бюджета', enabled: true, category: 'ai' },
-      { id: 'trips', name: 'Путешествия и поездки', enabled: true, category: 'family' },
-      { id: 'analytics', name: 'Аналитика и отчеты', enabled: true, category: 'analytics' },
-      { id: 'export', name: 'Экспорт данных', enabled: true, category: 'analytics' },
-      { id: 'family_tree', name: 'Семейное древо', enabled: true, category: 'family' },
-      { id: 'support_vip', name: 'VIP поддержка 24/7', enabled: true, category: 'support' },
-    ]
+    features: []
   }
 ];
 
