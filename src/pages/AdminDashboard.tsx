@@ -178,6 +178,10 @@ export default function AdminDashboard() {
               <Icon name="CreditCard" size={16} className="mr-2" />
               Подписки
             </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/admin/users'}>
+              <Icon name="Users" size={16} className="mr-2" />
+              Пользователи
+            </Button>
             <Button variant="outline" onClick={() => window.location.href = '/'}>
               <Icon name="ArrowLeft" size={16} className="mr-2" />
               На главную
