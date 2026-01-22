@@ -402,7 +402,8 @@ export default function Calendar() {
         `Напоминание: ${eventData.title}`,
         eventData.description || `Событие в календаре: ${eventData.date}`,
         reminderDateTime,
-        eventData.id
+        eventData.id,
+        eventData.isRecurring ? eventData.recurringPattern : undefined
       );
     }
 
