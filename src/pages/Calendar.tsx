@@ -84,15 +84,31 @@ export default function Calendar() {
   }, [events]);
 
   const checkReminders = useCallback(() => {
-    const today = new Date();
-    const todayStr = formatDateToLocal(today);
+    const now = new Date();
+    const todayStr = formatDateToLocal(now);
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
     const upcomingEvents = events.filter(e => {
       if (!e.reminderEnabled) return false;
-      
-      if (e.reminderDate) {
+
+      const notificationKey = `calendar_notif_${e.id}_${todayStr}`;
+      const alreadyNotified = localStorage.getItem(notificationKey);
+
+      if (alreadyNotified) return false;
+
+      if (e.reminderDate && e.reminderTime) {
+        if (e.reminderDate === todayStr && e.reminderTime === currentTime) {
+          notifyCalendarEvent(e.title, new Date(e.date).toLocaleDateString('ru-RU'), false);
+          localStorage.setItem(notificationKey, 'true');
+          return true;
+        }
+        return false;
+      }
+
+      if (e.reminderDate && !e.reminderTime) {
         return e.reminderDate === todayStr;
       }
-      
+
       const eventDate = new Date(e.date + 'T00:00:00');
       const reminderDate = new Date(eventDate);
       reminderDate.setDate(eventDate.getDate() - (e.reminderDays || 1));
@@ -103,7 +119,15 @@ export default function Calendar() {
     if (upcomingEvents.length > 0) {
       setShowReminders(true);
     }
-  }, [events]);
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('calendar_notif_') && !key.includes(now.toDateString())) {
+        localStorage.removeItem(key);
+      }
+    });
+  }, [events, notifyCalendarEvent]);
 
   useEffect(() => {
     checkReminders();
@@ -112,15 +136,31 @@ export default function Calendar() {
   }, [checkReminders]);
 
   const getUpcomingReminders = () => {
-    const today = new Date();
-    const todayStr = formatDateToLocal(today);
+    const now = new Date();
+    const todayStr = formatDateToLocal(now);
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
     return events.filter(e => {
       if (!e.reminderEnabled) return false;
-      
-      if (e.reminderDate) {
+
+      const notificationKey = `calendar_notif_${e.id}_${todayStr}`;
+      const alreadyNotified = localStorage.getItem(notificationKey);
+
+      if (e.reminderDate && e.reminderTime) {
+        if (e.reminderDate === todayStr) {
+          const [reminderHour, reminderMinute] = e.reminderTime.split(':').map(Number);
+          const [currentHour, currentMinute] = currentTime.split(':').map(Number);
+          const reminderTotalMinutes = reminderHour * 60 + reminderMinute;
+          const currentTotalMinutes = currentHour * 60 + currentMinute;
+          return reminderTotalMinutes <= currentTotalMinutes && !alreadyNotified;
+        }
+        return false;
+      }
+
+      if (e.reminderDate && !e.reminderTime) {
         return e.reminderDate === todayStr;
       }
-      
+
       const eventDate = new Date(e.date + 'T00:00:00');
       const reminderDate = new Date(eventDate);
       reminderDate.setDate(eventDate.getDate() - (e.reminderDays || 1));
