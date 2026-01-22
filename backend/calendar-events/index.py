@@ -90,6 +90,14 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     if event_data.get('recurringDaysOfWeek') and isinstance(event_data['recurringDaysOfWeek'], list):
         recurring_days = event_data['recurringDaysOfWeek']
     
+    reminder_date = event_data.get('reminderDate') or None
+    if reminder_date == '':
+        reminder_date = None
+    
+    recurring_end_date = event_data.get('recurringEndDate') or None
+    if recurring_end_date == '':
+        recurring_end_date = None
+    
     cur.execute(
         f"""
         INSERT INTO {SCHEMA}.calendar_events 
@@ -118,11 +126,11 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
             member_avatar,
             event_data.get('reminderEnabled', True),
             event_data.get('reminderDays'),
-            event_data.get('reminderDate'),
+            reminder_date,
             event_data.get('isRecurring', False),
             event_data.get('recurringFrequency'),
             event_data.get('recurringInterval', 1),
-            event_data.get('recurringEndDate'),
+            recurring_end_date,
             recurring_days
         )
     )
@@ -152,6 +160,14 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
     if event_data.get('recurringDaysOfWeek') and isinstance(event_data['recurringDaysOfWeek'], list):
         recurring_days = event_data['recurringDaysOfWeek']
     
+    reminder_date = event_data.get('reminderDate') or None
+    if reminder_date == '':
+        reminder_date = None
+    
+    recurring_end_date = event_data.get('recurringEndDate') or None
+    if recurring_end_date == '':
+        recurring_end_date = None
+    
     cur.execute(
         f"""
         UPDATE {SCHEMA}.calendar_events
@@ -179,11 +195,11 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
             attendees_json,
             event_data.get('reminderEnabled'),
             event_data.get('reminderDays'),
-            event_data.get('reminderDate'),
+            reminder_date,
             event_data.get('isRecurring'),
             event_data.get('recurringFrequency'),
             event_data.get('recurringInterval'),
-            event_data.get('recurringEndDate'),
+            recurring_end_date,
             recurring_days,
             event_id,
             family_id
