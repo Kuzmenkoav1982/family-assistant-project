@@ -78,6 +78,7 @@ import { FirstLoginWelcome } from '@/components/FirstLoginWelcome';
 
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
+import { useSubscriptionReminder } from '@/hooks/useSubscriptionReminder';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
 import PanelSettings from '@/components/PanelSettings';
@@ -1171,6 +1172,9 @@ export default function Index({ onLogout }: IndexProps) {
       setTimeout(() => notification.remove(), 300);
     }, 3000);
   };
+
+  useBirthdayReminders();
+  useSubscriptionReminder();
 
   const themeClasses = getThemeClasses(currentTheme);
 
