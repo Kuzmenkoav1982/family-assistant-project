@@ -231,7 +231,9 @@ export default function Calendar() {
 
     if (memberFilter !== 'all') {
       matchingEvents = matchingEvents.filter(e => {
+        if (e.visibility === 'family') return true;
         if (!e.assignedTo || e.assignedTo === 'all') return true;
+        if (Array.isArray(e.attendees) && e.attendees.includes(memberFilter)) return true;
         return e.assignedTo === memberFilter;
       });
     }

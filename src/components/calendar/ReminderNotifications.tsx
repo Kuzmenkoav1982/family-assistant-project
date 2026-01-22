@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
@@ -111,10 +111,16 @@ export function ReminderNotifications({
             </>
           )}
 
-          <div className="pt-3 border-t">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
-              Закрыть
-            </Button>
+          <div className="pt-3 border-t flex gap-2">
+            <DialogClose asChild>
+              <Button 
+                variant="outline" 
+                type="button"
+                className="w-full"
+              >
+                Закрыть
+              </Button>
+            </DialogClose>
           </div>
         </div>
       </DialogContent>
