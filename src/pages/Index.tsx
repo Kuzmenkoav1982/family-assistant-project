@@ -79,6 +79,7 @@ import { FirstLoginWelcome } from '@/components/FirstLoginWelcome';
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
 import { useSubscriptionReminder } from '@/hooks/useSubscriptionReminder';
+import { useCalendarReminders } from '@/hooks/useCalendarReminders';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
 import PanelSettings from '@/components/PanelSettings';
@@ -112,6 +113,8 @@ export default function Index({ onLogout }: IndexProps) {
   const tasks = tasksRaw || [];
   
   useBirthdayReminders();
+  useSubscriptionReminder();
+  useCalendarReminders();
   
   const [familyName, setFamilyName] = useState('Наша семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/Логотип Наша Семья.JPG');
