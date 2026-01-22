@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { NotificationPermissionButton } from './NotificationPermissionButton';
 
 type ViewMode = 'month' | 'week';
 
@@ -134,10 +135,13 @@ export function CalendarHeader({
             Сегодня
           </Button>
         </div>
-        <Button onClick={onAddEvent} className="gap-2">
-          <Icon name="Plus" size={16} />
-          Добавить событие
-        </Button>
+        <div className="flex items-center gap-2">
+          <NotificationPermissionButton />
+          <Button onClick={onAddEvent} className="gap-2">
+            <Icon name="Plus" size={16} />
+            Добавить событие
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-2">
