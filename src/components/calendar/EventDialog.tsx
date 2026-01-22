@@ -24,6 +24,8 @@ interface EventDialogProps {
     attendees: string[];
     reminderEnabled: boolean;
     reminderDays: number;
+    reminderDate: string;
+    reminderTime: string;
     isRecurring: boolean;
     recurringFrequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
     recurringInterval: number;
@@ -180,8 +182,8 @@ export function EventDialog({
             </Select>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
               <Switch
                 id="reminder"
                 checked={newEvent.reminderEnabled}
@@ -192,20 +194,27 @@ export function EventDialog({
               </Label>
             </div>
             {newEvent.reminderEnabled && (
-              <div className="flex items-center gap-2">
-                <Label htmlFor="reminderDays" className="text-sm">
-                  За
-                </Label>
-                <Input
-                  id="reminderDays"
-                  type="number"
-                  min={1}
-                  max={30}
-                  value={newEvent.reminderDays}
-                  onChange={(e) => onEventChange('reminderDays', parseInt(e.target.value))}
-                  className="w-16"
-                />
-                <span className="text-sm text-gray-600">дней</span>
+              <div className="space-y-3 pl-8 border-l-2 border-blue-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="reminderDate">Дата напоминания</Label>
+                    <Input
+                      id="reminderDate"
+                      type="date"
+                      value={newEvent.reminderDate}
+                      onChange={(e) => onEventChange('reminderDate', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="reminderTime">Время напоминания</Label>
+                    <Input
+                      id="reminderTime"
+                      type="time"
+                      value={newEvent.reminderTime}
+                      onChange={(e) => onEventChange('reminderTime', e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

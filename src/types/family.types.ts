@@ -249,6 +249,8 @@ export interface CalendarEvent {
   attendees?: string[];
   reminderEnabled?: boolean;
   reminderDays?: number;
+  reminderDate?: string;
+  reminderTime?: string;
   isRecurring?: boolean;
   recurringPattern?: {
     frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';

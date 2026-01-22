@@ -6,6 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { useTasks } from '@/hooks/useTasks';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
+
+const formatDateToLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
 import { EventDialog } from '@/components/calendar/EventDialog';
@@ -63,6 +70,8 @@ export default function Calendar() {
     attendees: [] as string[],
     reminderEnabled: true,
     reminderDays: 1,
+    reminderDate: '',
+    reminderTime: '',
     isRecurring: false,
     recurringFrequency: 'weekly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
     recurringInterval: 1,
@@ -76,13 +85,19 @@ export default function Calendar() {
 
   const checkReminders = useCallback(() => {
     const today = new Date();
+    const todayStr = formatDateToLocal(today);
     const upcomingEvents = events.filter(e => {
       if (!e.reminderEnabled) return false;
-      const eventDate = new Date(e.date);
+      
+      if (e.reminderDate) {
+        return e.reminderDate === todayStr;
+      }
+      
+      const eventDate = new Date(e.date + 'T00:00:00');
       const reminderDate = new Date(eventDate);
       reminderDate.setDate(eventDate.getDate() - (e.reminderDays || 1));
-      const reminderStr = reminderDate.toISOString().split('T')[0];
-      return reminderStr === today.toISOString().split('T')[0];
+      const reminderStr = formatDateToLocal(reminderDate);
+      return reminderStr === todayStr;
     });
 
     if (upcomingEvents.length > 0) {
@@ -98,20 +113,26 @@ export default function Calendar() {
 
   const getUpcomingReminders = () => {
     const today = new Date();
+    const todayStr = formatDateToLocal(today);
     return events.filter(e => {
       if (!e.reminderEnabled) return false;
-      const eventDate = new Date(e.date);
+      
+      if (e.reminderDate) {
+        return e.reminderDate === todayStr;
+      }
+      
+      const eventDate = new Date(e.date + 'T00:00:00');
       const reminderDate = new Date(eventDate);
       reminderDate.setDate(eventDate.getDate() - (e.reminderDays || 1));
-      const reminderStr = reminderDate.toISOString().split('T')[0];
-      return reminderStr === today.toISOString().split('T')[0];
+      const reminderStr = formatDateToLocal(reminderDate);
+      return reminderStr === todayStr;
     });
   };
 
   const isRecurringEventOnDate = (event: CalendarEvent, targetDate: Date): boolean => {
     if (!event.isRecurring || !event.recurringPattern) return false;
 
-    const eventDate = new Date(event.date);
+    const eventDate = new Date(event.date + 'T00:00:00');
     
     if (targetDate < eventDate) return false;
     
@@ -156,7 +177,7 @@ export default function Calendar() {
   };
 
   const getEventsForDate = (date: Date): (CalendarEvent | Task | FamilyGoal)[] => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToLocal(date);
     const allEvents: (CalendarEvent | Task | FamilyGoal)[] = [];
     
     let matchingEvents = events.filter(e => {
@@ -293,6 +314,8 @@ export default function Calendar() {
       attendees: [],
       reminderEnabled: true,
       reminderDays: 1,
+      reminderDate: '',
+      reminderTime: '',
       isRecurring: false,
       recurringFrequency: 'weekly',
       recurringInterval: 1,
@@ -324,6 +347,8 @@ export default function Calendar() {
       attendees: [],
       reminderEnabled: true,
       reminderDays: 1,
+      reminderDate: '',
+      reminderTime: '',
       isRecurring: false,
       recurringFrequency: 'weekly',
       recurringInterval: 1,
@@ -351,6 +376,8 @@ export default function Calendar() {
       attendees: newEvent.attendees,
       reminderEnabled: newEvent.reminderEnabled,
       reminderDays: newEvent.reminderDays,
+      reminderDate: newEvent.reminderDate,
+      reminderTime: newEvent.reminderTime,
       isRecurring: newEvent.isRecurring,
       recurringPattern: newEvent.isRecurring ? {
         frequency: newEvent.recurringFrequency,
@@ -386,6 +413,8 @@ export default function Calendar() {
       attendees: event.attendees || [],
       reminderEnabled: event.reminderEnabled || false,
       reminderDays: event.reminderDays || 1,
+      reminderDate: event.reminderDate || '',
+      reminderTime: event.reminderTime || '',
       isRecurring: event.isRecurring || false,
       recurringFrequency: event.recurringPattern?.frequency || 'weekly',
       recurringInterval: event.recurringPattern?.interval || 1,
@@ -408,7 +437,7 @@ export default function Calendar() {
 
   const handleCreateEventForDate = (date: Date) => {
     setEditingEventId(null);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToLocal(date);
     setNewEvent({
       title: '',
       description: '',
@@ -421,6 +450,8 @@ export default function Calendar() {
       attendees: [],
       reminderEnabled: true,
       reminderDays: 1,
+      reminderDate: '',
+      reminderTime: '',
       isRecurring: false,
       recurringFrequency: 'weekly',
       recurringInterval: 1,
