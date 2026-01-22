@@ -24,6 +24,8 @@ interface User {
   last_login_at: string | null;
   oauth_provider: string | null;
   is_verified: boolean;
+  families_count: number;
+  families_names: string | null;
 }
 
 export default function AdminUsers() {
@@ -269,6 +271,7 @@ export default function AdminUsers() {
                       <TableHead>ФИО</TableHead>
                       <TableHead>Контакт</TableHead>
                       <TableHead>Метод входа</TableHead>
+                      <TableHead>Семьи</TableHead>
                       <TableHead>Дата регистрации</TableHead>
                       <TableHead>Последний вход</TableHead>
                       <TableHead>Статус</TableHead>
@@ -288,6 +291,20 @@ export default function AdminUsers() {
                           </div>
                         </TableCell>
                         <TableCell>{getAuthMethod(user)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {user.families_count || 0} {user.families_count === 1 ? 'семья' : user.families_count > 1 && user.families_count < 5 ? 'семьи' : 'семей'}
+                              </Badge>
+                            </div>
+                            {user.families_names && (
+                              <span className="text-xs text-gray-500 max-w-xs truncate" title={user.families_names}>
+                                {user.families_names}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-sm text-gray-600">
                           {formatDate(user.created_at)}
                         </TableCell>

@@ -23,16 +23,21 @@ def get_users_list() -> Dict[str, Any]:
         
         query = """
             SELECT 
-                id,
-                email,
-                phone,
-                name,
-                created_at,
-                last_login_at,
-                oauth_provider,
-                is_verified
-            FROM t_p5815085_family_assistant_pro.users
-            ORDER BY created_at DESC
+                u.id,
+                u.email,
+                u.phone,
+                u.name,
+                u.created_at,
+                u.last_login_at,
+                u.oauth_provider,
+                u.is_verified,
+                COUNT(DISTINCT fm.family_id) as families_count,
+                STRING_AGG(DISTINCT f.name, ', ' ORDER BY f.name) as families_names
+            FROM t_p5815085_family_assistant_pro.users u
+            LEFT JOIN t_p5815085_family_assistant_pro.family_members fm ON u.id = fm.user_id
+            LEFT JOIN t_p5815085_family_assistant_pro.families f ON fm.family_id = f.id
+            GROUP BY u.id, u.email, u.phone, u.name, u.created_at, u.last_login_at, u.oauth_provider, u.is_verified
+            ORDER BY u.created_at DESC
         """
         
         cursor.execute(query)
@@ -48,7 +53,9 @@ def get_users_list() -> Dict[str, Any]:
                 'created_at': user['created_at'].isoformat() if user['created_at'] else None,
                 'last_login_at': user['last_login_at'].isoformat() if user['last_login_at'] else None,
                 'oauth_provider': user['oauth_provider'],
-                'is_verified': user['is_verified']
+                'is_verified': user['is_verified'],
+                'families_count': user['families_count'],
+                'families_names': user['families_names']
             })
         
         cursor.close()
