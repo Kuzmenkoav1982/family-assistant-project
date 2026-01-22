@@ -267,14 +267,14 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Icon name="Users" size={18} />
-                  Пользователи
+                  <Icon name="Home" size={18} />
+                  Семьи
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-2xl font-bold text-slate-800">{usersCount}</p>
-                  <p className="text-xs text-slate-600">Всего семей</p>
+                  <p className="text-xs text-slate-600">Семейных профилей</p>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
