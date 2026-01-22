@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { useTasks } from '@/hooks/useTasks';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
 
 const formatDateToLocal = (date: Date): string => {
@@ -33,6 +34,7 @@ export default function Calendar() {
   const navigate = useNavigate();
   const { tasks } = useTasks();
   const { notifyCalendarEvent } = useNotifications();
+  const { events: apiEvents, loading: eventsLoading, createEvent, updateEvent, deleteEvent, fetchEvents } = useCalendarEvents();
   const [searchParams] = useSearchParams();
   const memberFilterFromUrl = searchParams.get('member');
   
@@ -48,10 +50,7 @@ export default function Calendar() {
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   
-  const [events, setEvents] = useState<CalendarEvent[]>(() => {
-    const saved = localStorage.getItem('calendarEvents');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const events = apiEvents;
 
   const [goals, setGoals] = useState<FamilyGoal[]>(() => {
     const saved = localStorage.getItem('familyGoals');
@@ -79,9 +78,7 @@ export default function Calendar() {
     recurringDaysOfWeek: [] as number[]
   });
 
-  useEffect(() => {
-    localStorage.setItem('calendarEvents', JSON.stringify(events));
-  }, [events]);
+
 
   const checkReminders = useCallback(() => {
     const now = new Date();
@@ -404,9 +401,8 @@ export default function Calendar() {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveEvent = () => {
-    const eventData: CalendarEvent = {
-      id: editingEventId || Date.now().toString(),
+  const handleSaveEvent = async () => {
+    const eventData = {
       title: newEvent.title,
       description: newEvent.description,
       date: newEvent.date,
@@ -421,23 +417,23 @@ export default function Calendar() {
       reminderDate: newEvent.reminderDate,
       reminderTime: newEvent.reminderTime,
       isRecurring: newEvent.isRecurring,
-      recurringPattern: newEvent.isRecurring ? {
-        frequency: newEvent.recurringFrequency,
-        interval: newEvent.recurringInterval,
-        endDate: newEvent.recurringEndDate || undefined,
-        daysOfWeek: newEvent.recurringFrequency === 'weekly' ? newEvent.recurringDaysOfWeek : undefined
-      } : undefined
+      recurringFrequency: newEvent.recurringFrequency,
+      recurringInterval: newEvent.recurringInterval,
+      recurringEndDate: newEvent.recurringEndDate,
+      recurringDaysOfWeek: newEvent.recurringDaysOfWeek
     };
 
     if (editingEventId) {
-      setEvents(prev => prev.map(e => e.id === editingEventId ? eventData : e));
-      notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), true);
+      const result = await updateEvent(editingEventId, eventData);
+      if (result.success) {
+        notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), true);
+      }
     } else {
-      setEvents(prev => [...prev, eventData]);
-      notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), false);
+      const result = await createEvent(eventData);
+      if (result.success) {
+        notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), false);
+      }
     }
-
-
 
     setShowEventDialog(false);
     setEditingEventId(null);
@@ -468,9 +464,9 @@ export default function Calendar() {
     setShowEventDialog(true);
   };
 
-  const handleEventDelete = (eventId: string) => {
+  const handleEventDelete = async (eventId: string) => {
     if (confirm('Удалить это событие?')) {
-      setEvents(prev => prev.filter(e => e.id !== eventId));
+      await deleteEvent(eventId);
     }
   };
 

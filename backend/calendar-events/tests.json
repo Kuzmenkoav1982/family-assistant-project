@@ -1,0 +1,40 @@
+{
+  "tests": [
+    {
+      "name": "Get calendar events",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "test-token"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "events": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create calendar event",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "test-token",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "create",
+        "title": "Test Event",
+        "date": "2026-02-01",
+        "time": "10:00",
+        "category": "personal",
+        "visibility": "family"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

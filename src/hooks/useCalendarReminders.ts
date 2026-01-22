@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNotifications } from './useNotifications';
+import { useCalendarEvents } from './useCalendarEvents';
 
 interface CalendarEvent {
   id: string;
@@ -21,6 +22,7 @@ const formatDateToLocal = (date: Date): string => {
 
 export function useCalendarReminders() {
   const { notifyCalendarEvent } = useNotifications();
+  const { events: apiEvents } = useCalendarEvents();
 
   useEffect(() => {
     const checkReminders = () => {
@@ -28,10 +30,9 @@ export function useCalendarReminders() {
       const todayStr = formatDateToLocal(now);
       const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-      const savedEvents = localStorage.getItem('calendarEvents');
-      if (!savedEvents) return;
+      if (!apiEvents || apiEvents.length === 0) return;
 
-      const events: CalendarEvent[] = JSON.parse(savedEvents);
+      const events = apiEvents as CalendarEvent[];
 
       events.forEach(event => {
         if (!event.reminderEnabled) return;
@@ -98,5 +99,5 @@ export function useCalendarReminders() {
     const interval = setInterval(checkReminders, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [notifyCalendarEvent]);
+  }, [notifyCalendarEvent, apiEvents]);
 }
