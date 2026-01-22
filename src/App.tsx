@@ -94,7 +94,6 @@ import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
-import { NotificationService } from "@/services/notificationService";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -186,10 +185,6 @@ const App = () => {
       window.history.replaceState = originalReplaceState;
       window.removeEventListener('popstate', trackPageChange);
     };
-  }, []);
-
-  useEffect(() => {
-    NotificationService.restoreScheduledNotifications();
   }, []);
 
   return (

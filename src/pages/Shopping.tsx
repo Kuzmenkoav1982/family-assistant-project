@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useShopping } from '@/hooks/useShopping';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const CATEGORIES = [
   { value: 'Продукты', label: '🥛 Продукты', icon: 'ShoppingBasket' },
@@ -21,6 +22,7 @@ const CATEGORIES = [
 export default function Shopping() {
   const navigate = useNavigate();
   const { items, loading, createItem, toggleBought, deleteItem, clearBought } = useShopping();
+  const { notifyUrgentShopping } = useNotifications();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'bought'>('active');
@@ -42,6 +44,10 @@ export default function Shopping() {
       quantity: newItem.quantity,
       priority: newItem.priority
     });
+    
+    if (newItem.priority === 'urgent') {
+      notifyUrgentShopping(newItem.name);
+    }
     
     setNewItem({
       name: '',

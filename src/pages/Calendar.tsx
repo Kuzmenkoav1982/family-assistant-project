@@ -20,7 +20,6 @@ import { ReminderNotifications } from '@/components/calendar/ReminderNotificatio
 import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
 import { CalendarAI } from '@/components/calendar/CalendarAI';
 import Icon from '@/components/ui/icon';
-import { NotificationService } from '@/services/notificationService';
 
 type ViewMode = 'month' | 'week';
 
@@ -396,16 +395,7 @@ export default function Calendar() {
       notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), false);
     }
 
-    if (eventData.reminderEnabled && eventData.reminderDate && eventData.reminderTime) {
-      const reminderDateTime = new Date(`${eventData.reminderDate}T${eventData.reminderTime}`);
-      NotificationService.scheduleNotification(
-        `Напоминание: ${eventData.title}`,
-        eventData.description || `Событие в календаре: ${eventData.date}`,
-        reminderDateTime,
-        eventData.id,
-        eventData.isRecurring ? eventData.recurringPattern : undefined
-      );
-    }
+
 
     setShowEventDialog(false);
     setEditingEventId(null);
@@ -439,7 +429,6 @@ export default function Calendar() {
   const handleEventDelete = (eventId: string) => {
     if (confirm('Удалить это событие?')) {
       setEvents(prev => prev.filter(e => e.id !== eventId));
-      NotificationService.cancelNotification(eventId);
     }
   };
 

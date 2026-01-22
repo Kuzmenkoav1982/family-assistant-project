@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icon';
 import { useState } from 'react';
 import type { Task, FamilyMember } from '@/types/family.types';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface TasksTabContentProps {
   tasks: Task[];
@@ -75,6 +76,7 @@ export function TasksTabContent({
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const { canDo } = usePermissions();
+  const { notifyTaskAssigned } = useNotifications();
 
   const filteredTasks = tasks.filter(task => {
     if (taskFilter === 'all') return true;
@@ -110,6 +112,11 @@ export function TasksTabContent({
     if (result.success && result.task) {
       setTasks([...tasks, result.task]);
       setIsTaskDialogOpen(false);
+      
+      const assigneeMember = getMemberById(result.task.assignee);
+      if (assigneeMember) {
+        notifyTaskAssigned(result.task.title, assigneeMember.name, result.task.id);
+      }
     }
 
     setIsCreatingTask(false);

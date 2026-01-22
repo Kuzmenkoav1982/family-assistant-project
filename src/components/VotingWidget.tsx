@@ -10,10 +10,12 @@ import { VotingCreateDialog } from '@/components/voting/VotingCreateDialog';
 import { VotingDetailsDialog } from '@/components/voting/VotingDetailsDialog';
 import { VotingContextMenu } from '@/components/voting/VotingContextMenu';
 import { getActiveMembersForVoting } from '@/utils/familyMembers';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export function VotingWidget() {
   const { votings, loading, createVoting, castVote, deleteVoting } = useVotings('active');
   const { members } = useFamilyMembersContext();
+  const { notifyVotingCreated } = useNotifications();
   
   const getCurrentUser = () => {
     try {
@@ -53,9 +55,10 @@ export function VotingWidget() {
   const handleCreateVoting = async (data: any) => {
     const result = await createVoting(data);
     
-    if (result.success) {
+    if (result.success && result.voting) {
       alert('✅ Голосование создано!');
       setShowCreateDialog(false);
+      notifyVotingCreated(result.voting.title, result.voting.id);
     } else {
       alert('❌ Ошибка: ' + result.error);
     }
