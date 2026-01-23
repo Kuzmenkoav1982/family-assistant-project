@@ -55,12 +55,14 @@ export function VotingWidget() {
   const handleCreateVoting = async (data: any) => {
     const result = await createVoting(data);
     
-    if (result.success && result.voting) {
+    if (result.success) {
       alert('✅ Голосование создано!');
       setShowCreateDialog(false);
-      notifyVotingCreated(result.voting.title, result.voting.id);
+      if (result.voting) {
+        notifyVotingCreated(result.voting.title, result.voting.id);
+      }
     } else {
-      alert('❌ Ошибка: ' + result.error);
+      alert('❌ Ошибка: ' + (result.error || 'Не удалось создать голосование'));
     }
     
     return result;
