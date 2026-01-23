@@ -67,6 +67,10 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
             event_dict['reminder_date'] = event_dict['reminder_date'].isoformat()
         if event_dict.get('recurring_end_date'):
             event_dict['recurring_end_date'] = event_dict['recurring_end_date'].isoformat()
+        if event_dict.get('created_at'):
+            event_dict['created_at'] = event_dict['created_at'].isoformat()
+        if event_dict.get('updated_at'):
+            event_dict['updated_at'] = event_dict['updated_at'].isoformat()
         result.append(event_dict)
     
     return result
@@ -139,7 +143,14 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     cur.close()
     conn.close()
     
-    return dict(result) if result else {}
+    if result:
+        event_dict = dict(result)
+        if event_dict.get('date'):
+            event_dict['date'] = event_dict['date'].isoformat()
+        if event_dict.get('created_at'):
+            event_dict['created_at'] = event_dict['created_at'].isoformat()
+        return event_dict
+    return {}
 
 def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> bool:
     conn = get_db_connection()
