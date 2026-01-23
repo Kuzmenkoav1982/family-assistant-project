@@ -45,8 +45,7 @@ class AnalyticsTracker {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data),
-        credentials: 'include'
+        body: JSON.stringify(data)
       });
     } catch (error) {
       console.warn('Analytics tracking failed:', error);
