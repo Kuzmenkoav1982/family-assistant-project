@@ -53,6 +53,18 @@ export function VotingCreateDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.title.trim()) {
+      alert('❌ Укажите название голосования');
+      return;
+    }
+    
+    const validOptions = formData.options.filter(opt => opt.text.trim());
+    if (validOptions.length === 0) {
+      alert('❌ Добавьте хотя бы один вариант ответа');
+      return;
+    }
+    
     setCreating(true);
 
     let endDateTime = '';
@@ -69,7 +81,7 @@ export function VotingCreateDialog({
       description: formData.description,
       voting_type: formData.voting_type,
       end_date: endDateTime,
-      options: formData.options.filter(opt => opt.text.trim())
+      options: validOptions
     });
 
     if (result.success) {
@@ -84,7 +96,7 @@ export function VotingCreateDialog({
         options: [{ text: '', description: '' }]
       });
     } else {
-      alert('❌ Ошибка: ' + result.error);
+      alert('❌ ' + (result.error || 'Ошибка при создании голосования'));
     }
     
     setCreating(false);

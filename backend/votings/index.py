@@ -240,7 +240,12 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any], creator_
     except Exception as e:
         cur.close()
         conn.close()
-        return {'success': False, 'error': str(e)}
+        error_msg = str(e)
+        if 'invalid input syntax for type timestamp' in error_msg.lower():
+            return {'success': False, 'error': 'Неверный формат даты. Проверьте дату окончания голосования.'}
+        elif 'votings_title_check' in error_msg:
+            return {'success': False, 'error': 'Название голосования обязательно'}
+        return {'success': False, 'error': f'Ошибка при создании: {error_msg}'}
 
 def delete_voting(voting_id: str, member_id: str) -> Dict[str, Any]:
     conn = get_db_connection()
