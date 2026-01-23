@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-assistant-v11';
+const CACHE_NAME = 'family-assistant-v12';
 let geolocationIntervalId = null;
 
 self.addEventListener('install', (event) => {
@@ -108,11 +108,20 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
+  console.log('[SW] Push event received!', event);
+  
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+    console.log('[SW] Push data:', data);
+  } catch (error) {
+    console.error('[SW] Failed to parse push data:', error);
+  }
+  
   const title = data.title || 'Семейный Ассистент';
   const options = {
-    body: data.body || 'У вас новое уведомление',
-    icon: '/icon-192.png',
+    body: data.body || data.message || 'У вас новое уведомление',
+    icon: data.icon || '/icon-192.png',
     badge: '/icon-192.png',
     vibrate: [200, 100, 200],
     data: {
@@ -132,8 +141,12 @@ self.addEventListener('push', (event) => {
     ]
   };
 
+  console.log('[SW] Showing notification:', title, options);
+  
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .then(() => console.log('[SW] Notification shown successfully!'))
+      .catch(err => console.error('[SW] Failed to show notification:', err))
   );
 });
 
