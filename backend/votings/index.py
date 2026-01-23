@@ -48,6 +48,8 @@ def send_push_notification(family_id: str, title: str, message: str, notificatio
         cur.execute(query)
         subscriptions = cur.fetchall()
         
+        print(f"[INFO] Found {len(subscriptions)} subscriptions for family {family_id}")
+        
         for sub_row in subscriptions:
             settings = sub_row.get('notification_settings') or {}
             if settings.get(notification_type, True) is False:
@@ -55,12 +57,14 @@ def send_push_notification(family_id: str, title: str, message: str, notificatio
                 continue
             
             try:
+                print(f"[INFO] Sending push notification: {title}")
                 webpush(
                     subscription_info=sub_row['subscription_data'],
                     data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png'}),
                     vapid_private_key=vapid_key,
-                    vapid_claims={'sub': 'mailto:support@family-assistant.app'}
+                    vapid_claims={'sub': 'mailto:support@nasha-semiya.ru'}
                 )
+                print(f"[INFO] Push notification sent successfully")
             except WebPushException as e:
                 print(f"[ERROR] Push failed: {e}")
             except Exception as e:
@@ -186,6 +190,9 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any], creator_
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        end_date = data.get('end_date', None)
+        end_date_value = escape_string(end_date) if end_date and end_date.strip() else 'NULL'
+        
         voting_query = f"""
             INSERT INTO {SCHEMA}.votings
             (family_id, title, description, voting_type, end_date, created_by)
@@ -194,7 +201,7 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any], creator_
                 {escape_string(data.get('title', ''))},
                 {escape_string(data.get('description', ''))},
                 {escape_string(data.get('voting_type', 'general'))},
-                {escape_string(data.get('end_date', ''))},
+                {end_date_value},
                 {escape_string(member_id)}
             )
             RETURNING id
@@ -216,7 +223,10 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any], creator_
                 """
                 cur.execute(option_query)
         
-        send_push_notification(family_id, f"🗳️ Новое голосование", f"{data.get('title', 'Без названия')} — проголосуйте!", exclude_user_id=creator_user_id)
+        created_voting = get_votings(family_id)
+        created_voting_data = next((v for v in created_voting if str(v['id']) == voting_id), None)
+        
+        send_push_notification(family_id, f"🗳️ Новое голосование", f"{data.get('title', 'Без названия')} — проголосуйте!", 'votings', exclude_user_id=creator_user_id)
         
         cur.close()
         conn.close()
@@ -224,6 +234,7 @@ def create_voting(family_id: str, member_id: str, data: Dict[str, Any], creator_
         return {
             'success': True,
             'voting_id': voting_id,
+            'voting': created_voting_data,
             'message': 'Голосование создано успешно'
         }
     except Exception as e:

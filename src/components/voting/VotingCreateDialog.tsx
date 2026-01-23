@@ -24,6 +24,7 @@ export function VotingCreateDialog({
     description: '',
     voting_type: 'general' as 'meal' | 'rule' | 'general',
     end_date: '',
+    end_time: '',
     options: [{ text: '', description: '' }]
   });
 
@@ -54,8 +55,20 @@ export function VotingCreateDialog({
     e.preventDefault();
     setCreating(true);
 
+    let endDateTime = '';
+    if (formData.end_date) {
+      if (formData.end_time) {
+        endDateTime = `${formData.end_date}T${formData.end_time}:00`;
+      } else {
+        endDateTime = `${formData.end_date}T23:59:59`;
+      }
+    }
+
     const result = await onCreateVoting({
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      voting_type: formData.voting_type,
+      end_date: endDateTime,
       options: formData.options.filter(opt => opt.text.trim())
     });
 
@@ -67,6 +80,7 @@ export function VotingCreateDialog({
         description: '',
         voting_type: 'general',
         end_date: '',
+        end_time: '',
         options: [{ text: '', description: '' }]
       });
     } else {
@@ -128,12 +142,23 @@ export function VotingCreateDialog({
 
           <div className="space-y-2">
             <Label htmlFor="end_date">Дата окончания (опционально)</Label>
-            <Input
-              id="end_date"
-              type="date"
-              value={formData.end_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+                className="flex-1"
+              />
+              <Input
+                id="end_time"
+                type="time"
+                value={formData.end_time}
+                onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                className="flex-1"
+                placeholder="Время"
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
