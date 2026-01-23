@@ -12,13 +12,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     method = event.get('httpMethod', 'GET')
     
+    origin = event.get('headers', {}).get('origin', '*')
+    allowed_origin = origin if 'nasha-semiya.ru' in origin or 'poehali.dev' in origin else '*'
+    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
             'headers': {
-                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Origin': allowed_origin,
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Credentials': 'true',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -39,7 +43,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     headers = {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': allowed_origin,
+        'Access-Control-Allow-Credentials': 'true'
     }
     
     try:
