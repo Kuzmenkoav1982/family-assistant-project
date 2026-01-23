@@ -34,7 +34,9 @@ export function CalendarGrid({
   onCreateEvent
 }: CalendarGridProps) {
   const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const todayYear = now.getFullYear();
+  const todayMonth = now.getMonth();
+  const todayDate = now.getDate();
 
   const isEvent = (item: CalendarEvent | Task | FamilyGoal): item is CalendarEvent => {
     return 'category' in item && 'color' in item;
@@ -73,8 +75,9 @@ export function CalendarGrid({
 
       <div className={`grid ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} gap-2`}>
         {days.map((day, idx) => {
-          const dateStr = day.date.toISOString().split('T')[0];
-          const isToday = dateStr === today;
+          const isToday = day.date.getFullYear() === todayYear && 
+                         day.date.getMonth() === todayMonth && 
+                         day.date.getDate() === todayDate;
           
           return (
             <Card
