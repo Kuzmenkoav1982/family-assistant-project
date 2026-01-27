@@ -113,10 +113,24 @@ export default function FamilySettings() {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                  // Обновляем localStorage с новыми данными
+                  const currentUserData = localStorage.getItem('userData');
+                  if (currentUserData) {
+                    const parsedData = JSON.parse(currentUserData);
+                    parsedData.family_name = fullFamilyName;
+                    parsedData.logo_url = familyLogo || parsedData.logo_url;
+                    localStorage.setItem('userData', JSON.stringify(parsedData));
+                  }
+                  
                   toast({
                     title: 'Успешно!',
-                    description: 'Информация о семье обновлена'
+                    description: 'Информация о семье обновлена. Страница обновится через 1 секунду...'
                   });
+                  
+                  // Перезагружаем страницу через 1 секунду для применения изменений
+                  setTimeout(() => {
+                    window.location.href = '/';
+                  }, 1000);
                 } else {
                   throw new Error(data.error || 'Ошибка обновления');
                 }
