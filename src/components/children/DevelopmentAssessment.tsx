@@ -37,6 +37,10 @@ const AGE_RANGES = [
   { value: '4-5', label: '4-5 лет', emoji: '📚' },
   { value: '5-6', label: '5-6 лет', emoji: '⚽' },
   { value: '6-7', label: '6-7 лет', emoji: '🎓' },
+  { value: '7-8', label: '7-8 лет', emoji: '🎮' },
+  { value: '8-9', label: '8-9 лет', emoji: '🔬' },
+  { value: '9-10', label: '9-10 лет', emoji: '🏆' },
+  { value: '10-12', label: '10-12 лет', emoji: '🚀' },
 ];
 
 const getScoreColor = (score: number): string => {
@@ -80,7 +84,11 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       else if (childAge > 3 && childAge <= 4) setSelectedAge('3-4');
       else if (childAge > 4 && childAge <= 5) setSelectedAge('4-5');
       else if (childAge > 5 && childAge <= 6) setSelectedAge('5-6');
-      else if (childAge > 6) setSelectedAge('6-7');
+      else if (childAge > 6 && childAge <= 7) setSelectedAge('6-7');
+      else if (childAge > 7 && childAge <= 8) setSelectedAge('7-8');
+      else if (childAge > 8 && childAge <= 9) setSelectedAge('8-9');
+      else if (childAge > 9 && childAge <= 10) setSelectedAge('9-10');
+      else if (childAge > 10) setSelectedAge('10-12');
     } else {
       console.log('[DevelopmentAssessment] UNLOCKING updates');
       unlockUpdates();
@@ -274,19 +282,19 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
               </div>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4 max-h-[60vh] overflow-y-auto">
               {AGE_RANGES.map((range) => (
                 <Button
                   key={range.value}
                   variant={selectedAge === range.value ? "default" : "outline"}
-                  className={`h-24 flex flex-col gap-2 hover:bg-primary/10 transition-all ${
+                  className={`h-20 sm:h-24 flex flex-col gap-1 sm:gap-2 hover:bg-primary/10 transition-all ${
                     selectedAge === range.value ? 'ring-2 ring-primary ring-offset-2' : ''
                   }`}
                   onClick={() => handleAgeSelect(range.value)}
                   disabled={loading}
                 >
-                  <span className="text-3xl">{range.emoji}</span>
-                  <span className="text-sm font-medium">{range.label}</span>
+                  <span className="text-2xl sm:text-3xl">{range.emoji}</span>
+                  <span className="text-xs sm:text-sm font-medium">{range.label}</span>
                 </Button>
               ))}
             </div>
