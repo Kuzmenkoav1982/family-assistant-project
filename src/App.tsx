@@ -37,6 +37,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
 import OAuthDebug from "./pages/OAuthDebug";
 import Welcome from "./pages/Welcome";
+import DemoMode from "./pages/DemoMode";
 import VotingPage from "./pages/VotingPage";
 import JoinFamily from "./pages/JoinFamily";
 import FeedbackPage from "./pages/FeedbackPage";
@@ -87,6 +88,7 @@ import LocationHistory from "./pages/LocationHistory";
 import DebugAuth from "./pages/DebugAuth";
 import Onboarding from "./pages/Onboarding";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
+import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
 import { DialogLockProvider } from "@/contexts/DialogLockContext";
@@ -199,8 +201,10 @@ const App = () => {
                 <BrowserRouter>
             <PWAInstallPrompt />
             <AIAssistantWidget />
+            <DemoModeIndicator />
             <Routes>
               <Route path="/welcome" element={<Welcome />} />
+              <Route path="/demo" element={<DemoMode />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/onboarding" element={<Onboarding />} />

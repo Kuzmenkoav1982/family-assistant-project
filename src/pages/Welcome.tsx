@@ -165,6 +165,14 @@ export default function Welcome() {
               <Icon name="FileText" size={18} className="mr-2" />
               Презентация
             </Button>
+            <Button
+              onClick={() => navigate('/demo')}
+              variant="outline"
+              className="border-orange-300 hover:bg-orange-50 text-orange-600 font-semibold"
+            >
+              <Icon name="Sparkles" size={18} className="mr-2" />
+              Демо-режим
+            </Button>
             {isLoggedIn ? (
               <Button
                 onClick={() => navigate('/dashboard')}
@@ -199,6 +207,27 @@ export default function Welcome() {
               Всё что нужно для организации семейной жизни: задачи, календарь, 
               развитие детей, традиции и многое другое в одном приложении
             </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {!isLoggedIn && (
+                <Button
+                  onClick={() => navigate('/login')}
+                  size="lg"
+                  className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-lg px-8 py-6"
+                >
+                  <Icon name="LogIn" size={20} className="mr-2" />
+                  Начать бесплатно
+                </Button>
+              )}
+              <Button
+                onClick={() => navigate('/demo')}
+                size="lg"
+                variant="outline"
+                className="border-2 border-orange-400 hover:bg-orange-50 text-orange-600 font-bold text-lg px-8 py-6"
+              >
+                <Icon name="Sparkles" size={20} className="mr-2" />
+                🎭 Попробовать демо
+              </Button>
+            </div>
           </div>
 
           <div className="relative mb-16">
