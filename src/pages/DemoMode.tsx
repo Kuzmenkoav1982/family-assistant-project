@@ -49,60 +49,60 @@ export default function DemoMode() {
 
   const tourSteps = [
     {
+      title: 'Главная страница',
+      description: `Центр управления семьёй - виджеты задач, календаря, покупок и другие разделы`,
+      icon: 'Home',
+      color: 'from-blue-500 to-cyan-500',
+      path: '/'
+    },
+    {
       title: 'Профили семьи',
       description: `В демо-режиме уже создана семья из ${stats.members} человек с фотографиями, возрастом и достижениями`,
       icon: 'Users',
-      color: 'from-blue-500 to-cyan-500',
-      path: '/family/profiles'
-    },
-    {
-      title: 'Задачи и поручения',
-      description: `${stats.tasks} готовых задач с категориями, баллами и напоминаниями`,
-      icon: 'CheckSquare',
-      color: 'from-orange-500 to-amber-500',
-      path: '/family/tasks'
+      color: 'from-purple-500 to-pink-500',
+      path: '/family-management'
     },
     {
       title: 'Рецепты',
       description: `${stats.recipes} семейных рецептов с ингредиентами и пошаговыми инструкциями`,
       icon: 'ChefHat',
       color: 'from-green-500 to-emerald-500',
-      path: '/family/recipes'
+      path: '/recipes'
     },
     {
       title: 'Список покупок',
       description: `${stats.shopping} товаров с категориями и приоритетами`,
       icon: 'ShoppingCart',
-      color: 'from-pink-500 to-rose-500',
-      path: '/family/shopping'
+      color: 'from-orange-500 to-amber-500',
+      path: '/shopping'
     },
     {
       title: 'Календарь событий',
       description: `${stats.events} запланированных событий с напоминаниями`,
       icon: 'Calendar',
-      color: 'from-purple-500 to-indigo-500',
-      path: '/family/calendar'
+      color: 'from-indigo-500 to-purple-500',
+      path: '/calendar'
     },
     {
       title: 'Путешествия',
       description: `${stats.trips} поездок с бюджетом, фотографиями и маршрутами`,
       icon: 'Plane',
-      color: 'from-blue-500 to-sky-500',
-      path: '/family/trips'
+      color: 'from-sky-500 to-blue-500',
+      path: '/trips'
     },
     {
       title: 'Семейные голосования',
       description: `${stats.polls} активных опросов для принятия совместных решений`,
       icon: 'Vote',
-      color: 'from-violet-500 to-purple-500',
-      path: '/family/voting'
+      color: 'from-pink-500 to-rose-500',
+      path: '/voting'
     },
     {
-      title: 'Семейные цели',
-      description: `${stats.goals} целей с прогрессом и дедлайнами`,
-      icon: 'Trophy',
-      color: 'from-yellow-500 to-orange-500',
-      path: '/'
+      title: 'Аналитика и статистика',
+      description: `Отчёты по активности семьи, выполнению задач и достижениям`,
+      icon: 'BarChart',
+      color: 'from-violet-500 to-purple-500',
+      path: '/analytics'
     }
   ];
 
