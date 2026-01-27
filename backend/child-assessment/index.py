@@ -56,6 +56,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
     folder_id = os.environ.get('YANDEX_FOLDER_ID')
     
+    if not api_key or not folder_id:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({
+                'error': 'Не удалось загрузить анкету',
+                'message': 'Не настроены ключи API для генерации анкет. Обратитесь к администратору.'
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+    
     # Определяем категории в зависимости от возраста
     is_school_age = age_range in ['7-8', '8-9', '9-10', '10-12']
     
@@ -119,33 +130,55 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 Верни ТОЛЬКО JSON, без дополнительного текста."""
 
-    yandex_response = requests.post(
-        'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
-        headers={
-            'Authorization': f'Api-Key {api_key}',
-            'Content-Type': 'application/json'
-        },
-        json={
-            'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
-            'completionOptions': {
-                'stream': False,
-                'temperature': 0.7,
-                'maxTokens': 2000
+    try:
+        yandex_response = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={
+                'Authorization': f'Api-Key {api_key}',
+                'Content-Type': 'application/json'
             },
-            'messages': [
-                {
-                    'role': 'user',
-                    'text': prompt
-                }
-            ]
-        }
-    )
-    
-    if yandex_response.status_code != 200:
+            json={
+                'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+                'completionOptions': {
+                    'stream': False,
+                    'temperature': 0.7,
+                    'maxTokens': 2000
+                },
+                'messages': [
+                    {
+                        'role': 'user',
+                        'text': prompt
+                    }
+                ]
+            },
+            timeout=30
+        )
+    except Exception as e:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'YandexGPT API error'}, ensure_ascii=False),
+            'body': json.dumps({
+                'error': 'Не удалось загрузить анкету',
+                'message': f'Ошибка подключения к сервису генерации: {str(e)}'
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+    
+    if yandex_response.status_code != 200:
+        error_details = 'Неизвестная ошибка'
+        try:
+            error_data = yandex_response.json()
+            error_details = error_data.get('message', error_data)
+        except:
+            error_details = yandex_response.text[:200]
+        
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({
+                'error': 'Не удалось загрузить анкету',
+                'message': f'Ошибка API ({yandex_response.status_code}): {error_details}'
+            }, ensure_ascii=False),
             'isBase64Encoded': False
         }
     
@@ -175,9 +208,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
-                'error': 'Failed to parse questionnaire JSON',
-                'details': str(e),
-                'content_preview': content[:500]
+                'error': 'Не удалось загрузить анкету',
+                'message': 'Ошибка обработки данных анкеты. Попробуйте еще раз.',
+                'details': str(e)
             }, ensure_ascii=False),
             'isBase64Encoded': False
         }

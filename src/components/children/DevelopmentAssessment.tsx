@@ -113,10 +113,22 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       );
 
       if (!response.ok) {
-        throw new Error('Ошибка загрузки анкеты');
+        let errorMessage = 'Ошибка загрузки анкеты';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Ошибка сервера (${response.status})`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      
+      if (!data.questionnaire || !data.questionnaire.categories) {
+        throw new Error('Неверный формат анкеты');
+      }
+      
       setQuestionnaire(data.questionnaire.categories);
       
       const initialSkills = new Map<string, Skill>();
@@ -132,8 +144,9 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       
       setStep('questionnaire');
     } catch (err) {
-      setError('Не удалось загрузить анкету. Проверьте настройки OPENAI_API_KEY.');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Не удалось загрузить анкету';
+      setError(errorMessage);
+      console.error('[DevelopmentAssessment] Error:', err);
     } finally {
       setLoading(false);
     }

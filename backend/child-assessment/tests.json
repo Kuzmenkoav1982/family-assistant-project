@@ -1,9 +1,9 @@
 {
   "tests": [
     {
-      "name": "Get assessment questionnaire for age 1-2",
+      "name": "Get assessment questionnaire for age 9-10",
       "method": "GET",
-      "path": "/?age_range=1-2",
+      "path": "/?age_range=9-10",
       "expectedStatus": 200,
       "expectedBody": {
         "age_range": "string",
