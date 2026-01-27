@@ -94,9 +94,6 @@ import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
-import FamilyDashboard from "./pages/FamilyDashboard";
-import FamilyTasks from "./pages/FamilyTasks";
-import DataShowcase from "./pages/DataShowcase";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -246,19 +243,6 @@ const App = () => {
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/suggestions" element={<SuggestionsPage />} />
               <Route path="/support" element={<SupportPage />} />
-              <Route path="/family/dashboard" element={<FamilyDashboard />} />
-              <Route path="/family/tasks" element={<FamilyTasks />} />
-              <Route path="/family/calendar" element={<Calendar />} />
-              <Route path="/family/analytics" element={<Analytics />} />
-              <Route path="/family/shopping" element={<Shopping />} />
-              <Route path="/family/recipes" element={<Recipes />} />
-              <Route path="/family/nutrition" element={<Nutrition />} />
-              <Route path="/family/voting" element={<VotingPage />} />
-              <Route path="/family/trips" element={<Trips />} />
-              <Route path="/family/leisure" element={<Leisure />} />
-              <Route path="/family/development" element={<Development />} />
-              <Route path="/family/profiles" element={<FamilyManagement />} />
-              <Route path="/data-showcase" element={<DataShowcase />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/support" element={<AdminSupport />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
