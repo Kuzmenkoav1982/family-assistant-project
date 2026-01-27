@@ -71,11 +71,21 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       console.log('[DevelopmentAssessment] LOCKING all updates');
       lockUpdates();
       queryClient.cancelQueries();
+      // Автоопределение возраста
+      const childAge = child.age || 0;
+      if (childAge >= 0 && childAge <= 0.5) setSelectedAge('0-6');
+      else if (childAge > 0.5 && childAge <= 1) setSelectedAge('6-12');
+      else if (childAge > 1 && childAge <= 2) setSelectedAge('1-2');
+      else if (childAge > 2 && childAge <= 3) setSelectedAge('2-3');
+      else if (childAge > 3 && childAge <= 4) setSelectedAge('3-4');
+      else if (childAge > 4 && childAge <= 5) setSelectedAge('4-5');
+      else if (childAge > 5 && childAge <= 6) setSelectedAge('5-6');
+      else if (childAge > 6) setSelectedAge('6-7');
     } else {
       console.log('[DevelopmentAssessment] UNLOCKING updates');
       unlockUpdates();
     }
-  }, [open, queryClient, lockUpdates, unlockUpdates]);
+  }, [open, queryClient, lockUpdates, unlockUpdates, child.age]);
 
   useEffect(() => {
     console.log('[DevelopmentAssessment] Component mounted/updated');
@@ -218,23 +228,19 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       modal={true}
     >
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden" 
+        className="max-w-4xl max-h-[90vh] overflow-y-auto" 
         onInteractOutside={(e) => {
-          // Полная блокировка внешних кликов
-          e.preventDefault();
+          // Разрешаем закрытие только на этапе выбора возраста
+          if (step !== 'age') {
+            e.preventDefault();
+          }
         }} 
         onPointerDownOutside={(e) => {
-          // Полная блокировка pointer событий
-          e.preventDefault();
-        }}
-        onEscapeKeyDown={(e) => {
-          // Блокируем Escape на этапах анкеты и анализа
           if (step !== 'age') {
             e.preventDefault();
           }
         }}
-        // Отключаем автофокус который может вызывать закрытие
-        onOpenAutoFocus={(e) => {
+        onEscapeKeyDown={(e) => {
           if (step !== 'age') {
             e.preventDefault();
           }
@@ -255,12 +261,27 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
               </Alert>
             )}
 
+            {selectedAge && (
+              <div className="flex justify-center py-2">
+                <Button
+                  onClick={() => handleAgeSelect(selectedAge)}
+                  disabled={loading}
+                  className="gap-2"
+                >
+                  <Icon name="Zap" size={18} />
+                  Использовать текущий возраст ({AGE_RANGES.find(r => r.value === selectedAge)?.label})
+                </Button>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
               {AGE_RANGES.map((range) => (
                 <Button
                   key={range.value}
-                  variant="outline"
-                  className="h-24 flex flex-col gap-2 hover:bg-primary/10"
+                  variant={selectedAge === range.value ? "default" : "outline"}
+                  className={`h-24 flex flex-col gap-2 hover:bg-primary/10 transition-all ${
+                    selectedAge === range.value ? 'ring-2 ring-primary ring-offset-2' : ''
+                  }`}
                   onClick={() => handleAgeSelect(range.value)}
                   disabled={loading}
                 >
