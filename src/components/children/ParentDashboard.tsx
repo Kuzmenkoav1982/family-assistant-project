@@ -105,7 +105,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
 
       <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             {child.avatarType === 'photo' && child.photoUrl ? (
               <img 
                 src={child.photoUrl} 
@@ -115,28 +115,30 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
             ) : (
               <div className="text-6xl">{child.avatar}</div>
             )}
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold mb-2">{child.name}</h2>
-              <div className="flex gap-4 text-sm">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2">{child.name}</h2>
+              <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
                 <span>Возраст: {age} лет</span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span>Уровень: {child.level}</span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span>Баллы: {child.points}</span>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
               <Button 
                 variant="default" 
-                className="gap-2 bg-white text-purple-600 hover:bg-gray-100"
+                className="gap-2 bg-white text-purple-600 hover:bg-gray-100 whitespace-nowrap"
                 onClick={() => setShowAssessment(true)}
               >
                 <Icon name="Brain" size={18} />
-                Оценка развития
+                <span className="hidden sm:inline">Оценка развития</span>
+                <span className="sm:hidden">Оценка</span>
               </Button>
-              <Button variant="secondary" className="gap-2">
+              <Button variant="secondary" className="gap-2 whitespace-nowrap">
                 <Icon name="Download" size={18} />
-                Экспорт отчёта
+                <span className="hidden sm:inline">Экспорт отчёта</span>
+                <span className="sm:hidden">Экспорт</span>
               </Button>
             </div>
           </div>
