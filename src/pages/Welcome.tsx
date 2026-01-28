@@ -175,7 +175,7 @@ export default function Welcome() {
               className="border-orange-300 hover:bg-orange-50 text-orange-600 font-semibold"
             >
               <Icon name="Sparkles" size={18} className="mr-2" />
-              Песочница
+              Демо-режим
             </Button>
             {isLoggedIn ? (
               <Button
@@ -329,13 +329,17 @@ export default function Welcome() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                onClick={() => navigate('/presentation')}
+                onClick={() => {
+                  localStorage.setItem('isDemoMode', 'true');
+                  localStorage.setItem('demoStartTime', Date.now().toString());
+                  navigate('/');
+                }}
                 size="lg"
                 variant="outline"
                 className="bg-white/10 border-2 border-white text-white hover:bg-white/20 text-lg px-8 py-6 h-auto"
               >
-                <Icon name="FileText" size={24} className="mr-2" />
-                Подробная презентация
+                <Icon name="Sparkles" size={24} className="mr-2" />
+                Попробовать демо
               </Button>
               <Button
                 onClick={() => navigate('/login')}

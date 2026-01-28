@@ -31,7 +31,7 @@ export const recipes = [
     ],
     dietary_tags: ['vegetarian'],
     image_url: 'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=800',
-    created_by: 'Анна',
+    created_by: 'Анастасия',
     created_at: '2024-01-15',
     likes: 24
   },
@@ -73,7 +73,7 @@ export const recipes = [
     ],
     dietary_tags: [],
     image_url: 'https://images.unsplash.com/photo-1604908815699-9d9a4c103b90?w=800',
-    created_by: 'Елена',
+    created_by: 'Анастасия',
     created_at: '2024-02-10',
     likes: 35
   },
@@ -107,7 +107,7 @@ export const recipes = [
     ],
     dietary_tags: [],
     image_url: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800',
-    created_by: 'Александр',
+    created_by: 'Алексей',
     created_at: '2024-03-05',
     likes: 28
   },
@@ -143,7 +143,7 @@ export const recipes = [
     ],
     dietary_tags: ['vegetarian'],
     image_url: 'https://images.unsplash.com/photo-1621955964441-c173e01c135b?w=800',
-    created_by: 'Анна',
+    created_by: 'Анастасия',
     created_at: '2024-03-20',
     likes: 42
   },
@@ -179,7 +179,7 @@ export const recipes = [
     ],
     dietary_tags: [],
     image_url: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=800',
-    created_by: 'Елена',
+    created_by: 'Анастасия',
     created_at: '2024-04-12',
     likes: 31
   }

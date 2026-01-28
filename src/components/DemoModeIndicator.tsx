@@ -64,7 +64,7 @@ export function DemoModeIndicator() {
           <div className="flex items-center gap-2">
             <Icon name="Sparkles" className="w-5 h-5" />
             <div>
-              <div className="text-xs font-medium opacity-90">Песочница</div>
+              <div className="text-xs font-medium opacity-90">Демо-режим</div>
               <div className="text-lg font-bold">
                 {formatTime(timeLeft)}
               </div>
@@ -94,9 +94,9 @@ export function DemoModeIndicator() {
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Выйти из песочницы?</AlertDialogTitle>
+            <AlertDialogTitle>Выйти из демо-режима?</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы потеряете доступ к тестовым данным. Зарегистрируйтесь, чтобы создать 
+              Вы потеряете доступ к тестовым данным семьи Ивановых. Зарегистрируйтесь, чтобы создать 
               свою семью и сохранить данные навсегда.
             </AlertDialogDescription>
           </AlertDialogHeader>

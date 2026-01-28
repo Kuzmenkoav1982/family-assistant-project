@@ -20,118 +20,107 @@ import type {
 export const initialFamilyMembers: FamilyMember[] = [
   { 
     id: '1', 
-    name: 'Александр', 
-    role: 'Муж', 
-    workload: 65, 
-    avatar: '👨',
-    age: 39,
-    points: 450, 
-    level: 5, 
-    achievements: ['early_bird', 'helper', 'chef'],
+    name: 'Алексей', 
+    role: 'Отец', 
+    workload: 70, 
+    avatar: 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
+    age: 43,
+    points: 580, 
+    level: 6, 
+    achievements: ['early_bird', 'helper', 'chef', 'organizer'],
     foodPreferences: {
-      favorites: ['Стейк', 'Паста карбонара', 'Борщ', 'Блины'],
-      dislikes: ['Баклажаны', 'Оливки', 'Грибы']
+      favorites: ['Стейк с картофелем', 'Плов', 'Борщ', 'Шашлык'],
+      dislikes: ['Баклажаны', 'Оливки']
     },
-    responsibilities: ['Покупки', 'Вынести мусор', 'Мелкий ремонт']
+    responsibilities: ['Покупки', 'Вынос мусора', 'Ремонт', 'Финансы']
   },
   { 
     id: '2', 
-    name: 'Елена', 
-    role: 'Жена', 
-    workload: 75, 
-    avatar: '👩',
-    age: 36,
-    points: 680, 
-    level: 7, 
-    achievements: ['organizer', 'champion', 'master_chef'],
+    name: 'Анастасия', 
+    role: 'Мать', 
+    workload: 85, 
+    avatar: 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
+    age: 38,
+    points: 820, 
+    level: 8, 
+    achievements: ['organizer', 'champion', 'master_chef', 'wise'],
     foodPreferences: {
-      favorites: ['Салаты', 'Рыба', 'Овощи на гриле', 'Суши'],
-      dislikes: ['Жирное мясо', 'Майонез', 'Фастфуд']
+      favorites: ['Салаты', 'Рыба на пару', 'Овощи гриль', 'Смузи'],
+      dislikes: ['Жирное мясо', 'Майонез']
     },
-    responsibilities: ['Готовка', 'Стирка', 'Уборка']
+    responsibilities: ['Готовка', 'Стирка', 'Уборка', 'Дети']
   },
   { 
     id: '3', 
-    name: 'Максим', 
+    name: 'Матвей', 
     role: 'Сын', 
-    workload: 30, 
-    avatar: '👦',
+    workload: 35, 
+    avatar: 'https://cdn.poehali.dev/files/2c506753-6a4d-447e-a8b2-294bceb38a95.png',
     age: 11,
-    points: 210, 
-    level: 3, 
-    achievements: ['student', 'helper'],
+    points: 340, 
+    level: 4, 
+    achievements: ['student', 'helper', 'gamer'],
     foodPreferences: {
-      favorites: ['Пицца', 'Бургеры', 'Пельмени', 'Мороженое'],
+      favorites: ['Пицца', 'Бургеры', 'Пельмени', 'Картофель фри'],
       dislikes: ['Брокколи', 'Рыба', 'Лук']
     },
-    responsibilities: ['Уроки', 'Убрать комнату']
+    responsibilities: ['Уроки', 'Уборка комнаты', 'Выгул собаки']
   },
   { 
     id: '4', 
-    name: 'София', 
+    name: 'Даша', 
     role: 'Дочь', 
-    workload: 25, 
-    avatar: '👧',
+    workload: 28, 
+    avatar: 'https://cdn.poehali.dev/files/fcce342c-9b14-420d-b3eb-97084a3bbe08.png',
     age: 8,
-    points: 150, 
-    level: 2, 
-    achievements: ['beginner'],
+    points: 210, 
+    level: 3, 
+    achievements: ['beginner', 'artist'],
     foodPreferences: {
-      favorites: ['Макароны с сыром', 'Блинчики', 'Фрукты', 'Йогурт'],
-      dislikes: ['Острое', 'Горькое', 'Печень']
+      favorites: ['Макароны с сыром', 'Блинчики', 'Мороженое', 'Фрукты'],
+      dislikes: ['Острое', 'Печень']
     },
-    responsibilities: ['Убрать игрушки', 'Полить цветы']
+    responsibilities: ['Убрать игрушки', 'Полить цветы', 'Помощь маме']
   },
   { 
     id: '5', 
-    name: 'Анна', 
-    role: 'Бабушка', 
-    workload: 20, 
-    avatar: '👵',
-    age: 68,
-    points: 320, 
-    level: 4, 
-    achievements: ['wise', 'cook'],
-    foodPreferences: {
-      favorites: ['Домашние пироги', 'Супы', 'Каши', 'Компот'],
-      dislikes: ['Острые блюда', 'Экзотическая еда']
-    },
-    responsibilities: ['Выпечка', 'Присмотр за детьми']
-  },
-  { 
-    id: '6', 
-    name: 'Виктор', 
-    role: 'Дедушка', 
+    name: 'Илья', 
+    role: 'Сын', 
     workload: 15, 
-    avatar: '👴',
-    age: 71,
-    points: 280, 
-    level: 3, 
-    achievements: ['gardener', 'storyteller'],
+    avatar: 'https://cdn.poehali.dev/files/c58eac3b-e952-42aa-abe0-9b1141530809.png',
+    age: 5,
+    points: 85, 
+    level: 1, 
+    achievements: ['beginner'],
     foodPreferences: {
-      favorites: ['Холодец', 'Квашеная капуста', 'Мясные блюда'],
-      dislikes: ['Слишком сладкое', 'Полуфабрикаты']
+      favorites: ['Каша с мёдом', 'Котлеты', 'Йогурт', 'Печенье'],
+      dislikes: ['Овощи', 'Суп']
     },
-    responsibilities: ['Садоводство', 'Помощь с ремонтом']
+    responsibilities: ['Убрать игрушки', 'Помочь накрыть на стол']
   }
 ];
 
 export const initialTasks: Task[] = [
-  { id: '1', title: 'Приготовить ужин', assignee: 'Елена', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '2', title: 'Вынести мусор', assignee: 'Александр', completed: true, category: 'Дом', points: 10, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [1, 4] }, nextOccurrence: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0] },
-  { id: '3', title: 'Сделать уроки', assignee: 'Максим', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '4', title: 'Убрать комнату', assignee: 'София', completed: false, category: 'Дом', points: 20, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [6] }, nextOccurrence: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0] },
-  { id: '5', title: 'Полить цветы', assignee: 'Виктор', completed: false, category: 'Сад', points: 15 },
-  { id: '6', title: 'Купить продукты', assignee: 'Александр', completed: false, category: 'Покупки', points: 20, reminderTime: '12:00', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Овощи'] },
-  { id: '7', title: 'Испечь пирог', assignee: 'Анна', completed: false, category: 'Кухня', points: 35, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [0] }, nextOccurrence: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0] },
-  { id: '8', title: 'Постирать белье', assignee: 'Елена', completed: true, category: 'Дом', points: 20 },
-  { id: '9', title: 'Помыть посуду', assignee: 'Максим', completed: true, category: 'Кухня', points: 15 },
-  { id: '10', title: 'Погулять с собакой', assignee: 'София', completed: false, category: 'Питомцы', points: 10 },
-  { id: '11', title: 'Оплатить счета', assignee: 'Александр', completed: false, category: 'Финансы', points: 25, reminderTime: '10:00' },
-  { id: '12', title: 'Генеральная уборка', assignee: 'Елена', completed: false, category: 'Дом', points: 50, isRecurring: true, recurringPattern: { frequency: 'monthly', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0] },
-  { id: '13', title: 'Подготовиться к экзамену', assignee: 'Максим', completed: false, category: 'Учеба', points: 30 },
-  { id: '14', title: 'Посадить цветы на даче', assignee: 'Виктор', completed: true, category: 'Сад', points: 25 },
-  { id: '15', title: 'Приготовить завтрак', assignee: 'Анна', completed: true, category: 'Кухня', points: 20, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '1', title: 'Приготовить ужин', assignee: 'Анастасия', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '2', title: 'Вынести мусор', assignee: 'Алексей', completed: true, category: 'Дом', points: 10, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [1, 4] }, nextOccurrence: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0] },
+  { id: '3', title: 'Математика - упражнения 45-50', assignee: 'Матвей', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '4', title: 'Убрать комнату', assignee: 'Даша', completed: false, category: 'Дом', points: 20, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [6] }, nextOccurrence: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0] },
+  { id: '5', title: 'Выгулять собаку Рекса', assignee: 'Матвей', completed: false, category: 'Питомцы', points: 15, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '6', title: 'Купить продукты в Пятёрочке', assignee: 'Алексей', completed: false, category: 'Покупки', points: 20, reminderTime: '12:00', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Овощи', 'Мясо'] },
+  { id: '7', title: 'Отвезти Дашу на танцы', assignee: 'Анастасия', completed: true, category: 'Дети', points: 25, reminderTime: '16:30' },
+  { id: '8', title: 'Постирать белье', assignee: 'Анастасия', completed: true, category: 'Дом', points: 20 },
+  { id: '9', title: 'Помыть посуду после ужина', assignee: 'Матвей', completed: true, category: 'Кухня', points: 15 },
+  { id: '10', title: 'Полить цветы на балконе', assignee: 'Даша', completed: false, category: 'Дом', points: 10 },
+  { id: '11', title: 'Оплатить коммунальные услуги', assignee: 'Алексей', completed: false, category: 'Финансы', points: 25, reminderTime: '10:00' },
+  { id: '12', title: 'Генеральная уборка квартиры', assignee: 'Анастасия', completed: false, category: 'Дом', points: 50, isRecurring: true, recurringPattern: { frequency: 'monthly', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0] },
+  { id: '13', title: 'Почитать с Ильёй сказку', assignee: 'Анастасия', completed: false, category: 'Дети', points: 20, reminderTime: '20:30' },
+  { id: '14', title: 'Проверить уроки у Матвея', assignee: 'Алексей', completed: false, category: 'Учеба', points: 20 },
+  { id: '15', title: 'Приготовить завтрак', assignee: 'Анастасия', completed: true, category: 'Кухня', points: 20, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '16', title: 'Футбольная тренировка Матвея', assignee: 'Алексей', completed: false, category: 'Дети', points: 15, reminderTime: '17:00' },
+  { id: '17', title: 'Собрать портфель в детский сад', assignee: 'Анастасия', completed: false, category: 'Дети', points: 10, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '18', title: 'Купить подарок на день рождения', assignee: 'Алексей', completed: false, category: 'Покупки', points: 30 },
+  { id: '19', title: 'Записаться к стоматологу', assignee: 'Анастасия', completed: false, category: 'Здоровье', points: 15 },
+  { id: '20', title: 'Помочь Илье собрать игрушки', assignee: 'Даша', completed: false, category: 'Дом', points: 10 }
 ];
 
 export const initialChildrenProfiles: ChildProfile[] = [];
@@ -139,30 +128,32 @@ export const initialChildrenProfiles: ChildProfile[] = [];
 export const initialDevelopmentPlans: DevelopmentPlan[] = [];
 
 export const initialImportantDates: ImportantDate[] = [
-  { id: '1', title: 'День рождения Максима', date: '2024-11-20', type: 'birthday', daysLeft: 15 },
-  { id: '2', title: 'Годовщина свадьбы', date: '2024-12-05', type: 'anniversary', daysLeft: 30 },
-  { id: '3', title: 'Выпускной София', date: '2025-05-25', type: 'milestone', daysLeft: 180 },
+  { id: '1', title: 'День рождения Матвея', date: '2026-05-14', type: 'birthday', daysLeft: 105 },
+  { id: '2', title: 'Годовщина свадьбы Алексея и Анастасии', date: '2026-08-22', type: 'anniversary', daysLeft: 205 },
+  { id: '3', title: 'День рождения Даши', date: '2026-03-11', type: 'birthday', daysLeft: 41 },
+  { id: '4', title: 'День рождения Ильи', date: '2026-11-03', type: 'birthday', daysLeft: 278 },
+  { id: '5', title: 'Первое сентября - школа', date: '2026-09-01', type: 'milestone', daysLeft: 215 },
 ];
 
 export const initialFamilyValues: FamilyValue[] = [
   {
     id: '1',
     title: 'Честность',
-    description: 'Мы всегда говорим правду друг другу и поддерживаем открытое общение',
+    description: 'В нашей семье мы всегда говорим правду и поддерживаем открытое общение',
     icon: '🤝',
-    tradition: 'Семейный совет каждое воскресенье'
+    tradition: 'Семейный совет каждое воскресенье в 11:00'
   },
   {
     id: '2',
     title: 'Взаимопомощь',
-    description: 'Мы помогаем друг другу в трудные моменты и радуемся успехам вместе',
+    description: 'Мы помогаем друг другу и радуемся успехам вместе',
     icon: '❤️',
     tradition: 'День добрых дел каждую субботу'
   },
   {
     id: '3',
     title: 'Образование',
-    description: 'Мы ценим знания и стремимся к постоянному развитию',
+    description: 'Мы ценим знания и стремимся к развитию',
     icon: '📚',
     tradition: 'Семейное чтение перед сном'
   },
@@ -171,50 +162,50 @@ export const initialFamilyValues: FamilyValue[] = [
     title: 'Традиции',
     description: 'Мы чтим семейные традиции и создаем новые воспоминания',
     icon: '🎉',
-    tradition: 'Воскресные семейные обеды'
+    tradition: 'Воскресные семейные обеды у бабушки'
   }
 ];
 
 export const initialBlogPosts: BlogPost[] = [
   {
     id: '1',
-    title: 'Наше путешествие в горы',
-    author: 'Александр',
-    date: '2024-10-15',
+    title: 'Поездка на дачу всей семьёй',
+    author: 'Алексей',
+    date: '2026-01-20',
     category: 'Путешествия',
-    excerpt: 'Удивительные выходные в горах с семьей. Дети впервые увидели настоящий водопад!',
-    likes: 12,
-    comments: 5
+    excerpt: 'Провели выходные на даче. Дети помогали копать грядки, а вечером жарили шашлык!',
+    likes: 15,
+    comments: 7
   },
   {
     id: '2',
-    title: 'Рецепт бабушкиного пирога',
-    author: 'Анна',
-    date: '2024-10-12',
+    title: 'Рецепт Анастасии: борщ как у мамы',
+    author: 'Анастасия',
+    date: '2026-01-15',
     category: 'Кулинария',
-    excerpt: 'Делюсь секретным рецептом яблочного пирога, который передается в нашей семье из поколения в поколение',
-    likes: 25,
-    comments: 8
+    excerpt: 'Делюсь семейным рецептом борща, который передается из поколения в поколение',
+    likes: 28,
+    comments: 12
   },
   {
     id: '3',
-    title: 'Первая футбольная победа Максима',
-    author: 'Елена',
-    date: '2024-10-08',
+    title: 'Матвей выиграл футбольный турнир!',
+    author: 'Анастасия',
+    date: '2026-01-10',
     category: 'Достижения',
-    excerpt: 'Максим забил решающий гол и привел свою команду к победе!',
-    likes: 18,
-    comments: 6
+    excerpt: 'Матвей забил решающий гол и привел команду к победе! Гордимся нашим чемпионом!',
+    likes: 22,
+    comments: 9
   },
   {
     id: '4',
-    title: 'София и её первый танцевальный концерт',
-    author: 'Елена',
-    date: '2024-09-28',
+    title: 'Даша станцевала на школьном концерте',
+    author: 'Анастасия',
+    date: '2025-12-25',
     category: 'Творчество',
-    excerpt: 'Наша маленькая балерина выступила на сцене впервые. Было волнительно и прекрасно!',
-    likes: 22,
-    comments: 9
+    excerpt: 'Наша маленькая балерина выступила на сцене. Было волнительно и прекрасно!',
+    likes: 19,
+    comments: 8
   }
 ];
 
@@ -225,2262 +216,319 @@ export const initialTraditions: Tradition[] = [
     description: 'Каждое воскресенье мы собираемся всей семьей за большим столом, готовим вместе и делимся новостями недели',
     frequency: 'Еженедельно',
     icon: '🍽️',
-    participants: ['Александр', 'Елена', 'Максим', 'София', 'Анна', 'Виктор']
+    participants: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья']
   },
   {
     id: '2',
-    title: 'Игровой вечер',
-    description: 'Раз в месяц устраиваем настольные игры всей семьей с попкорном и лимонадом',
-    frequency: 'Ежемесячно',
-    icon: '🎲',
-    participants: ['Александр', 'Елена', 'Максим', 'София']
+    title: 'Пятничный киновечер',
+    description: 'Каждую пятницу вечером мы вместе смотрим семейный фильм с попкорном',
+    frequency: 'Еженедельно',
+    icon: '🎬',
+    participants: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья']
   },
   {
     id: '3',
-    title: 'Летний пикник',
-    description: 'Каждое лето выезжаем на природу, жарим шашлыки и играем в активные игры',
-    frequency: 'Ежегодно',
-    icon: '🏕️',
-    participants: ['Александр', 'Елена', 'Максим', 'София', 'Анна', 'Виктор']
+    title: 'Сказка перед сном',
+    description: 'Каждый вечер читаем Илье сказку перед сном',
+    frequency: 'Ежедневно',
+    icon: '📖',
+    participants: ['Анастасия', 'Илья']
   },
   {
     id: '4',
-    title: 'Чтение перед сном',
-    description: 'Каждый вечер читаем детям сказки или интересные истории',
-    frequency: 'Ежедневно',
-    icon: '📖',
-    participants: ['Елена', 'Максим', 'София']
+    title: 'Субботняя уборка всей семьёй',
+    description: 'По субботам вся семья участвует в уборке дома под весёлую музыку',
+    frequency: 'Еженедельно',
+    icon: '🧹',
+    participants: ['Алексей', 'Анастасия', 'Матвей', 'Даша']
   },
   {
     id: '5',
-    title: 'День рождения с сюрпризами',
-    description: 'На каждый день рождения устраиваем квест с загадками и сюрпризами для именинника',
-    frequency: 'По случаю',
-    icon: '🎂',
-    participants: ['Александр', 'Елена', 'Максим', 'София', 'Анна', 'Виктор']
+    title: 'Летний отпуск на море',
+    description: 'Каждое лето мы всей семьёй едем отдыхать на Чёрное море',
+    frequency: 'Ежегодно',
+    icon: '🌊',
+    participants: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья']
   }
 ];
 
 export const initialMealVotings: MealVoting[] = [
   {
     id: '1',
-    title: 'Что приготовим на ужин в пятницу?',
-    mealType: 'dinner',
-    date: '2024-11-15',
-    status: 'active',
+    question: 'Что приготовить на ужин в пятницу?',
     options: [
-      {
-        id: '1',
-        name: 'Пицца Маргарита',
-        description: 'Классическая итальянская пицца с томатами, моцареллой и базиликом',
-        mealType: 'dinner',
-        icon: '🍕',
-        cookingTime: '40 мин',
-        difficulty: 'easy',
-        votes: { '1': true, '3': true, '4': true }
-      },
-      {
-        id: '2',
-        name: 'Борщ с пампушками',
-        description: 'Традиционный украинский борщ со сметаной и чесночными пампушками',
-        mealType: 'dinner',
-        icon: '🥣',
-        cookingTime: '90 мин',
-        difficulty: 'medium',
-        votes: { '2': true, '5': true, '6': true }
-      },
-      {
-        id: '3',
-        name: 'Куриные наггетсы с картофелем фри',
-        description: 'Хрустящие наггетсы с золотистым картофелем и соусами',
-        mealType: 'dinner',
-        icon: '🍗',
-        cookingTime: '35 мин',
-        difficulty: 'easy',
-        votes: { '3': true, '4': true }
-      }
-    ]
+      { id: 'a', text: 'Пицца 🍕', votes: 3, voters: ['Матвей', 'Даша', 'Илья'] },
+      { id: 'b', text: 'Борщ и котлеты', votes: 2, voters: ['Алексей', 'Анастасия'] },
+      { id: 'c', text: 'Паста карбонара', votes: 0, voters: [] }
+    ],
+    deadline: new Date(Date.now() + 86400000 * 2).toISOString(),
+    createdBy: 'Анастасия'
   },
   {
     id: '2',
-    title: 'Завтрак в субботу',
-    mealType: 'breakfast',
-    date: '2024-11-16',
-    status: 'active',
+    question: 'Куда поехать в выходные?',
     options: [
-      {
-        id: '4',
-        name: 'Блины с различными начинками',
-        description: 'Тонкие блинчики с творогом, вареньем, сгущенкой',
-        mealType: 'breakfast',
-        icon: '🥞',
-        cookingTime: '45 мин',
-        difficulty: 'medium',
-        votes: { '1': true, '3': true, '4': true, '5': true }
-      },
-      {
-        id: '5',
-        name: 'Омлет с овощами и беконом',
-        description: 'Пышный омлет с помидорами, перцем и хрустящим беконом',
-        mealType: 'breakfast',
-        icon: '🍳',
-        cookingTime: '20 мин',
-        difficulty: 'easy',
-        votes: { '2': true, '6': true }
-      }
-    ]
+      { id: 'a', text: 'Дача 🏡', votes: 2, voters: ['Алексей', 'Анастасия'] },
+      { id: 'b', text: 'Зоопарк 🦁', votes: 3, voters: ['Матвей', 'Даша', 'Илья'] },
+      { id: 'c', text: 'Кино и ТЦ', votes: 0, voters: [] }
+    ],
+    deadline: new Date(Date.now() + 86400000).toISOString(),
+    createdBy: 'Алексей'
   }
 ];
 
 export const initialChatMessages: ChatMessage[] = [
-  {
-    id: '1',
-    senderId: 'mom',
-    senderName: 'Елена',
-    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
-    content: 'Всем привет! Не забудьте, что завтра родительское собрание в школе в 18:00',
-    timestamp: '2024-11-09 10:30',
-    type: 'text'
-  },
-  {
-    id: '2',
-    senderId: 'dad',
-    senderName: 'Александр',
-    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
-    content: 'Хорошо, приду сразу после работы',
-    timestamp: '2024-11-09 10:35',
-    type: 'text'
-  },
-  {
-    id: '3',
-    senderId: '3',
-    senderName: 'Максим',
-    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
-    content: 'Мама, можно мне пригласить друга на выходные?',
-    timestamp: '2024-11-09 11:15',
-    type: 'text'
-  },
-  {
-    id: '4',
-    senderId: 'mom',
-    senderName: 'Елена',
-    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
-    content: 'Конечно, Максим! Позвони его родителям и договорись',
-    timestamp: '2024-11-09 11:20',
-    type: 'text'
-  },
-  {
-    id: '5',
-    senderId: 'grandma',
-    senderName: 'Мария',
-    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
-    content: 'Испекла ваш любимый яблочный пирог 🥧',
-    timestamp: '2024-11-09 14:00',
-    type: 'text'
-  },
-  {
-    id: '6',
-    senderId: '4',
-    senderName: 'София',
-    senderAvatar: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
-    content: 'Ура! Бабушка лучшая! ❤️',
-    timestamp: '2024-11-09 14:05',
-    type: 'text'
-  }
+  { id: '1', sender: 'Анастасия', text: 'Не забудьте, завтра у Даши танцы в 17:00!', timestamp: new Date(Date.now() - 3600000).toISOString(), reactions: { '👍': 2 } },
+  { id: '2', sender: 'Алексей', text: 'Отвезу её, я буду свободен', timestamp: new Date(Date.now() - 3000000).toISOString(), reactions: { '❤️': 1 } },
+  { id: '3', sender: 'Матвей', text: 'Мама, можно сегодня пригласить друга в гости?', timestamp: new Date(Date.now() - 1800000).toISOString() },
+  { id: '4', sender: 'Анастасия', text: 'Конечно, только сначала уроки!', timestamp: new Date(Date.now() - 900000).toISOString(), reactions: { '📚': 1 } },
+  { id: '5', sender: 'Даша', text: 'Я убрала свою комнату! ✨', timestamp: new Date(Date.now() - 600000).toISOString(), reactions: { '🌟': 3 } }
 ];
 
-export const initialFamilyAlbum: FamilyAlbum[] = [
+export const initialFamilyAlbums: FamilyAlbum[] = [
   {
     id: '1',
-    fileName: 'family_vacation_2024.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    uploadedBy: 'Александр',
-    uploadDate: '2024-10-15',
-    type: 'image'
+    title: 'Отпуск в Сочи 2025',
+    coverPhoto: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    photoCount: 42,
+    date: '2025-07-15',
+    description: 'Наш незабываемый отдых на Черном море'
   },
   {
     id: '2',
-    fileName: 'maxim_football.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
-    uploadedBy: 'Елена',
-    uploadDate: '2024-10-08',
-    type: 'image'
+    title: 'День рождения Матвея',
+    coverPhoto: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800',
+    photoCount: 28,
+    date: '2025-05-14',
+    description: '11 лет нашему футболисту!'
   },
   {
     id: '3',
-    fileName: 'sofia_dance.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
-    uploadedBy: 'Елена',
-    uploadDate: '2024-09-28',
-    type: 'image'
-  },
-  {
-    id: '4',
-    fileName: 'grandma_baking.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
-    uploadedBy: 'София',
-    uploadDate: '2024-10-12',
-    type: 'image'
-  },
-  {
-    id: '5',
-    fileName: 'dad_photo.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
-    uploadedBy: 'Александр',
-    uploadDate: '2024-11-01',
-    type: 'image'
-  },
-  {
-    id: '6',
-    fileName: 'mom_photo.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
-    uploadedBy: 'Елена',
-    uploadDate: '2024-11-02',
-    type: 'image'
-  },
-  {
-    id: '7',
-    fileName: 'grandpa_photo.jpg',
-    fileUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b645bc57-5245-4c0a-87e6-234d82e81815.jpg',
-    uploadedBy: 'Николай',
-    uploadDate: '2024-10-20',
-    type: 'image'
+    title: 'Новый год 2026',
+    coverPhoto: 'https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=800',
+    photoCount: 35,
+    date: '2025-12-31',
+    description: 'Встречали Новый год всей семьёй'
   }
 ];
 
 export const initialFamilyNeeds: FamilyNeed[] = [
   {
     id: '1',
-    title: 'Купить новый учебник по математике',
-    description: 'Максиму нужен новый учебник для школы',
-    createdBy: '3',
-    createdByName: 'Максим',
-    assignedTo: '1',
-    assignedToName: 'Александр',
-    category: 'Образование',
-    priority: 'medium',
-    status: 'pending',
-    createdAt: '2024-11-08',
-    dueDate: '2024-11-15'
+    category: 'Покупки',
+    item: 'Новые кроссовки для Матвея',
+    priority: 'high',
+    requestedBy: 'Анастасия',
+    estimatedCost: 4500,
+    status: 'pending'
   },
   {
     id: '2',
-    title: 'Записаться к стоматологу',
-    description: 'София жалуется на зубную боль',
-    createdBy: '4',
-    createdByName: 'София',
-    assignedTo: '2',
-    assignedToName: 'Елена',
     category: 'Здоровье',
-    priority: 'high',
-    status: 'in_progress',
-    createdAt: '2024-11-07',
-    dueDate: '2024-11-10'
+    item: 'Записаться к ортодонту для Даши',
+    priority: 'medium',
+    requestedBy: 'Анастасия',
+    status: 'pending'
   },
   {
     id: '3',
-    title: 'Починить велосипед',
-    description: 'У велосипеда Максима спустило колесо',
-    createdBy: '3',
-    createdByName: 'Максим',
-    assignedTo: '1',
-    assignedToName: 'Александр',
-    category: 'Дом и быт',
-    priority: 'low',
-    status: 'pending',
-    createdAt: '2024-11-09'
+    category: 'Образование',
+    item: 'Оплатить английский для Матвея',
+    priority: 'high',
+    requestedBy: 'Алексей',
+    estimatedCost: 8000,
+    status: 'completed'
   },
   {
     id: '4',
-    title: 'Купить подарок для друга',
-    description: 'У друга София день рождения на следующей неделе',
-    createdBy: '4',
-    createdByName: 'София',
-    assignedTo: '2',
-    assignedToName: 'Елена',
-    category: 'Покупки',
-    priority: 'medium',
-    status: 'pending',
-    createdAt: '2024-11-08',
-    dueDate: '2024-11-16'
+    category: 'Дом',
+    item: 'Починить кран в ванной',
+    priority: 'high',
+    requestedBy: 'Алексей',
+    estimatedCost: 2000,
+    status: 'in_progress'
   }
 ];
 
 export const initialFamilyTree: FamilyTreeMember[] = [
   {
-    id: 'ft1',
-    fullName: 'Виктор Иванович Петров',
-    firstName: 'Виктор',
-    lastName: 'Петров',
-    middleName: 'Иванович',
-    birthDate: '1950-03-15',
-    age: 74,
+    id: '1',
+    name: 'Владимир Иванов',
+    role: 'Дедушка (отец Алексея)',
+    birthYear: 1948,
     avatar: '👴',
-    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b645bc57-5245-4c0a-87e6-234d82e81815.jpg',
-    generation: 0,
-    parentIds: [],
-    spouseId: 'ft2',
-    placeOfBirth: 'Москва, Россия',
-    occupation: 'Инженер на пенсии',
-    bio: 'Виктор Иванович посвятил свою жизнь инженерному делу. Работал на крупном машиностроительном заводе, где разработал несколько важных технических решений. Сейчас на пенсии, увлекается садоводством и столярным делом.',
-    achievements: ['Заслуженный инженер', 'Изобретатель', 'Ветеран труда'],
-    education: 'МГТУ им. Баумана, факультет машиностроения',
-    hobbies: ['Садоводство', 'Столярное дело', 'Шахматы', 'Рыбалка'],
-    importantDates: [
-      { date: '1950-03-15', event: 'Рождение' },
-      { date: '1975-06-10', event: 'Свадьба с Анной' },
-      { date: '1985-05-20', event: 'Получение звания Заслуженный инженер' }
-    ]
+    children: ['2']
   },
   {
-    id: 'ft2',
-    fullName: 'Анна Сергеевна Петрова',
-    firstName: 'Анна',
-    lastName: 'Петрова',
-    middleName: 'Сергеевна',
-    birthDate: '1952-08-22',
-    age: 72,
-    avatar: '👵',
-    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/15cc7156-7228-4da0-9d75-d971bbd11a6e.jpg',
-    generation: 0,
-    parentIds: [],
-    spouseId: 'ft1',
-    placeOfBirth: 'Санкт-Петербург, Россия',
-    occupation: 'Учитель начальных классов на пенсии',
-    bio: 'Анна Сергеевна 35 лет проработала учителем начальных классов. За свою карьеру воспитала сотни детей, многие из которых до сих пор вспоминают её с теплотой. Известна своими кулинарными талантами и добрым сердцем.',
-    achievements: ['Заслуженный учитель', 'Отличник народного просвещения'],
-    education: 'Педагогический университет им. Герцена',
-    hobbies: ['Выпечка', 'Вязание', 'Садоводство', 'Чтение'],
-    importantDates: [
-      { date: '1952-08-22', event: 'Рождение' },
-      { date: '1975-06-10', event: 'Свадьба с Виктором' },
-      { date: '1990-09-01', event: 'Получение звания Заслуженный учитель' }
-    ]
+    id: '2',
+    name: 'Алексей Иванов',
+    role: 'Отец',
+    birthYear: 1983,
+    avatar: 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
+    parents: ['1'],
+    spouse: '3',
+    children: ['4', '5', '6']
   },
   {
-    id: 'ft3',
-    fullName: 'Александр Викторович Петров',
-    firstName: 'Александр',
-    lastName: 'Петров',
-    middleName: 'Викторович',
-    birthDate: '1985-05-12',
-    age: 39,
-    avatar: '👨',
-    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b14ddbaa-0011-4ded-b9e9-c9018aed82ce.jpg',
-    generation: 1,
-    parentIds: ['ft1', 'ft2'],
-    spouseId: 'ft4',
-    placeOfBirth: 'Москва, Россия',
-    occupation: 'IT-менеджер',
-    bio: 'Александр работает в крупной IT-компании. Увлекается современными технологиями и программированием. Любящий отец и муж, старается проводить больше времени с семьей.',
-    achievements: ['Сертифицированный Scrum Master', 'Руководитель года 2022'],
-    education: 'МГУ, факультет вычислительной математики и кибернетики',
-    hobbies: ['Программирование', 'Походы', 'Фотография', 'Чтение научной фантастики'],
-    importantDates: [
-      { date: '1985-05-12', event: 'Рождение' },
-      { date: '2010-07-15', event: 'Свадьба с Еленой' },
-      { date: '2014-11-20', event: 'Рождение сына Максима' },
-      { date: '2017-04-08', event: 'Рождение дочери Софии' }
-    ]
+    id: '3',
+    name: 'Анастасия Иванова',
+    role: 'Мать',
+    birthYear: 1988,
+    avatar: 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
+    spouse: '2',
+    children: ['4', '5', '6']
   },
   {
-    id: 'ft4',
-    fullName: 'Елена Александровна Петрова',
-    firstName: 'Елена',
-    lastName: 'Петрова',
-    middleName: 'Александровна',
-    birthDate: '1987-09-03',
-    age: 37,
-    avatar: '👩',
-    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9cf25007-fa40-4280-965c-7df0e43eabee.jpg',
-    generation: 1,
-    parentIds: [],
-    spouseId: 'ft3',
-    placeOfBirth: 'Казань, Россия',
-    occupation: 'Дизайнер интерьеров',
-    bio: 'Елена - талантливый дизайнер интерьеров с собственной студией. Создает уютные и функциональные пространства для жизни. Преданная мама и организатор всех семейных мероприятий.',
-    achievements: ['Лучший дизайн года 2021', 'Участник международных выставок'],
-    education: 'Строгановская академия, факультет дизайна',
-    hobbies: ['Дизайн', 'Йога', 'Кулинария', 'Путешествия'],
-    importantDates: [
-      { date: '1987-09-03', event: 'Рождение' },
-      { date: '2010-07-15', event: 'Свадьба с Александром' },
-      { date: '2014-11-20', event: 'Рождение сына Максима' },
-      { date: '2017-04-08', event: 'Рождение дочери Софии' }
-    ]
+    id: '4',
+    name: 'Матвей Иванов',
+    role: 'Сын',
+    birthYear: 2015,
+    avatar: 'https://cdn.poehali.dev/files/2c506753-6a4d-447e-a8b2-294bceb38a95.png',
+    parents: ['2', '3']
   },
   {
-    id: 'ft5',
-    fullName: 'Максим Александрович Петров',
-    firstName: 'Максим',
-    lastName: 'Петров',
-    middleName: 'Александрович',
-    birthDate: '2014-11-20',
-    age: 10,
-    avatar: '👦',
-    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5efe0383-b1ed-4eec-8273-2e53a51f1b78.jpg',
-    generation: 2,
-    parentIds: ['ft3', 'ft4'],
-    placeOfBirth: 'Москва, Россия',
-    occupation: 'Ученик 4 класса',
-    bio: 'Максим - активный и любознательный мальчик. Увлекается футболом и робототехникой. Мечтает стать программистом или профессиональным футболистом.',
-    achievements: ['Победитель школьной олимпиады по математике', 'Лучший игрок футбольной команды'],
-    education: 'Школа №123, 4 класс',
-    hobbies: ['Футбол', 'Робототехника', 'Видеоигры', 'Рисование'],
-    importantDates: [
-      { date: '2014-11-20', event: 'Рождение' },
-      { date: '2021-09-01', event: 'Первый класс' },
-      { date: '2024-10-08', event: 'Первая футбольная победа' }
-    ]
+    id: '5',
+    name: 'Даша Иванова',
+    role: 'Дочь',
+    birthYear: 2018,
+    avatar: 'https://cdn.poehali.dev/files/fcce342c-9b14-420d-b3eb-97084a3bbe08.png',
+    parents: ['2', '3']
   },
   {
-    id: 'ft6',
-    fullName: 'София Александровна Петрова',
-    firstName: 'София',
-    lastName: 'Петрова',
-    middleName: 'Александровна',
-    birthDate: '2017-04-08',
-    age: 7,
-    avatar: '👧',
-    photoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cd14b640-0690-45f8-bde9-bb8773f309f0.jpg',
-    generation: 2,
-    parentIds: ['ft3', 'ft4'],
-    placeOfBirth: 'Москва, Россия',
-    occupation: 'Ученица 1 класса',
-    bio: 'София - творческая и чувствительная девочка. Любит танцевать и рисовать. Занимается балетом и учится играть на фортепиано.',
-    achievements: ['Участник танцевального концерта', 'Победитель конкурса рисунков'],
-    education: 'Школа №123, 1 класс',
-    hobbies: ['Танцы', 'Рисование', 'Музыка', 'Чтение'],
-    importantDates: [
-      { date: '2017-04-08', event: 'Рождение' },
-      { date: '2024-09-01', event: 'Первый класс' },
-      { date: '2024-09-28', event: 'Первый танцевальный концерт' }
-    ]
+    id: '6',
+    name: 'Илья Иванов',
+    role: 'Сын',
+    birthYear: 2021,
+    avatar: 'https://cdn.poehali.dev/files/c58eac3b-e952-42aa-abe0-9b1141530809.png',
+    parents: ['2', '3']
   }
 ];
 
-export function getWeekDays() {
-  const today = new Date();
-  const days = [];
-  const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-  
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    days.push({
-      date: date.getDate(),
-      day: dayNames[date.getDay()],
-      fullDate: date.toISOString().split('T')[0]
-    });
+export const initialCalendarEvents: CalendarEvent[] = [
+  {
+    id: '1',
+    title: 'Футбольная тренировка Матвея',
+    date: new Date(Date.now() + 86400000).toISOString(),
+    time: '17:00',
+    category: 'Спорт',
+    participants: ['Матвей', 'Алексей'],
+    location: 'Стадион "Динамо"',
+    reminder: true
+  },
+  {
+    id: '2',
+    title: 'Танцы для Даши',
+    date: new Date(Date.now() + 86400000 * 2).toISOString(),
+    time: '16:30',
+    category: 'Творчество',
+    participants: ['Даша', 'Анастасия'],
+    location: 'Танцевальная студия "Грация"',
+    reminder: true
+  },
+  {
+    id: '3',
+    title: 'Родительское собрание',
+    date: new Date(Date.now() + 86400000 * 5).toISOString(),
+    time: '18:00',
+    category: 'Учеба',
+    participants: ['Алексей', 'Анастасия'],
+    location: 'Школа №15, кабинет 204',
+    reminder: true
+  },
+  {
+    id: '4',
+    title: 'Детский сад - утренник',
+    date: new Date(Date.now() + 86400000 * 7).toISOString(),
+    time: '10:00',
+    category: 'Дети',
+    participants: ['Илья', 'Анастасия'],
+    location: 'Детский сад №42',
+    reminder: true
+  },
+  {
+    id: '5',
+    title: 'Семейный ужин у бабушки',
+    date: new Date(Date.now() + 86400000 * 3).toISOString(),
+    time: '14:00',
+    category: 'Семья',
+    participants: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья'],
+    location: 'ул. Ленина, 45',
+    reminder: true
   }
-  
-  return days;
-}
-
-export const initialCalendarEvents: CalendarEvent[] = [];
+];
 
 export const initialAIRecommendations: AIRecommendation[] = [
-  // Александр - 39 лет, взрослый мужчина
   {
-    memberId: '1',
-    memberName: 'Александр',
-    age: 39,
-    ageGroup: 'adult',
-    healthCheckups: [
-      {
-        id: 'hc1-1',
-        name: 'Общий медицинский осмотр',
-        description: 'Комплексное обследование организма, измерение давления, осмотр терапевта',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc1-2',
-        name: 'Общий и биохимический анализ крови',
-        description: 'Проверка уровня холестерина, сахара, печеночных показателей',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc1-3',
-        name: 'Кардиологическое обследование',
-        description: 'ЭКГ, УЗИ сердца при необходимости. Важно после 35 лет для мужчин',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc1-4',
-        name: 'Стоматолог',
-        description: 'Профилактический осмотр и профессиональная чистка зубов',
-        frequency: '2 раза в год',
-        importance: 'medium'
-      },
-      {
-        id: 'hc1-5',
-        name: 'Уролог',
-        description: 'Профилактический осмотр мужского здоровья',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc1-6',
-        name: 'Офтальмолог',
-        description: 'Проверка зрения, измерение внутриглазного давления',
-        frequency: '1 раз в 2 года',
-        importance: 'medium'
-      }
-    ],
-    vitamins: [
-      {
-        name: 'Витамин D3',
-        dosage: '2000 МЕ ежедневно',
-        reason: 'Поддержка иммунитета, здоровье костей, профилактика депрессии',
-        season: 'круглый год, особенно осень-зима'
-      },
-      {
-        name: 'Омега-3',
-        dosage: '1000-2000 мг EPA+DHA ежедневно',
-        reason: 'Здоровье сердца и сосудов, снижение холестерина, поддержка мозговой деятельности'
-      },
-      {
-        name: 'Магний',
-        dosage: '400 мг в день',
-        reason: 'Снижение стресса, улучшение сна, поддержка сердца и мышц'
-      },
-      {
-        name: 'Витамин С',
-        dosage: '500-1000 мг в день',
-        reason: 'Укрепление иммунитета, антиоксидантная защита',
-        season: 'осень-зима, период простуд'
-      },
-      {
-        name: 'Цинк',
-        dosage: '15-20 мг в день',
-        reason: 'Поддержка мужского здоровья, иммунитета, уровня тестостерона'
-      }
-    ],
-    nutrition: [
-      {
-        category: 'Белок',
-        items: ['Нежирное мясо (курица, индейка)', 'Рыба 2-3 раза в неделю', 'Яйца', 'Бобовые', 'Творог'],
-        importance: 'high',
-        reason: 'Поддержание мышечной массы, энергия, здоровье после 35 лет'
-      },
-      {
-        category: 'Овощи и клетчатка',
-        items: ['Листовая зелень', 'Брокколи', 'Морковь', 'Помидоры', 'Цельнозерновые продукты'],
-        importance: 'high',
-        reason: 'Профилактика сердечно-сосудистых заболеваний, контроль веса, здоровье ЖКТ'
-      },
-      {
-        category: 'Здоровые жиры',
-        items: ['Оливковое масло', 'Авокадо', 'Орехи', 'Семена льна', 'Жирная рыба'],
-        importance: 'high',
-        reason: 'Здоровье сердца, снижение холестерина, гормональный баланс'
-      },
-      {
-        category: 'Ограничить',
-        items: ['Красное мясо', 'Колбасы и копчености', 'Сахар и сладости', 'Алкоголь', 'Соль'],
-        importance: 'high',
-        reason: 'Профилактика диабета, гипертонии, сердечно-сосудистых заболеваний'
-      }
-    ],
-    physicalActivity: [
-      {
-        type: 'Кардиотренировки',
-        duration: '30-45 минут',
-        frequency: '4-5 раз в неделю'
-      },
-      {
-        type: 'Силовые тренировки',
-        duration: '45-60 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Ходьба или бег',
-        duration: '30 минут минимум',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Растяжка и йога',
-        duration: '15-20 минут',
-        frequency: '2-3 раза в неделю'
-      }
-    ],
-    warnings: [
-      'Риск развития сердечно-сосудистых заболеваний повышается после 35 лет - следить за давлением и холестерином',
-      'Склонность к набору веса из-за замедления метаболизма - контролировать калорийность питания',
-      'Повышенный риск диабета 2 типа - ограничить быстрые углеводы и сахар',
-      'Снижение уровня тестостерона может начаться после 40 - поддерживать физическую активность и здоровый вес',
-      'Стресс и переутомление - важен полноценный сон 7-8 часов'
-    ],
-    tips: [
-      'Проходите профилактические обследования ежегодно, не игнорируйте симптомы',
-      'Поддерживайте здоровый вес через сбалансированное питание и регулярные тренировки',
-      'Уделяйте внимание кардио-здоровью: следите за давлением, холестерином, уровнем сахара',
-      'Включите силовые тренировки для поддержания мышечной массы и метаболизма',
-      'Управляйте стрессом: практикуйте медитацию, дыхательные упражнения, хобби',
-      'Ограничьте алкоголь, откажитесь от курения',
-      'Пейте достаточно воды - не менее 2 литров в день',
-      'Высыпайтесь: 7-8 часов качественного сна критически важны для восстановления'
-    ]
+    id: '1',
+    title: 'Время для отдыха',
+    description: 'Анастасия, вы выполнили 12 задач сегодня. Рекомендуем уделить время себе!',
+    category: 'wellness',
+    priority: 'medium',
+    targetMember: 'Анастасия',
+    actionSuggestion: 'Заварите чай и посмотрите любимый сериал'
   },
-
-  // Елена - 36 лет, взрослая женщина
   {
-    memberId: '2',
-    memberName: 'Елена',
-    age: 36,
-    ageGroup: 'adult',
-    healthCheckups: [
-      {
-        id: 'hc2-1',
-        name: 'Общий медицинский осмотр',
-        description: 'Комплексное обследование у терапевта, измерение давления, веса',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc2-2',
-        name: 'Гинеколог',
-        description: 'Профилактический осмотр, УЗИ органов малого таза, цитология',
-        frequency: '1 раз в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc2-3',
-        name: 'Маммография',
-        description: 'Скрининг рака молочной железы (особенно важно после 35)',
-        frequency: '1 раз в 1-2 года',
-        importance: 'critical'
-      },
-      {
-        id: 'hc2-4',
-        name: 'Анализы крови',
-        description: 'Общий, биохимический анализ, проверка гормонов щитовидной железы',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc2-5',
-        name: 'Стоматолог',
-        description: 'Профилактический осмотр и чистка',
-        frequency: '2 раза в год',
-        importance: 'medium'
-      },
-      {
-        id: 'hc2-6',
-        name: 'УЗИ щитовидной железы',
-        description: 'Проверка состояния щитовидки (важно для женщин)',
-        frequency: '1 раз в 2 года',
-        importance: 'high'
-      },
-      {
-        id: 'hc2-7',
-        name: 'Дерматолог',
-        description: 'Осмотр родинок и кожи',
-        frequency: '1 раз в год',
-        importance: 'medium'
-      }
-    ],
-    vitamins: [
-      {
-        name: 'Витамин D3',
-        dosage: '2000 МЕ ежедневно',
-        reason: 'Здоровье костей, профилактика остеопороза, поддержка иммунитета и настроения'
-      },
-      {
-        name: 'Омега-3',
-        dosage: '1000-2000 мг EPA+DHA ежедневно',
-        reason: 'Женское здоровье, здоровье кожи, профилактика сердечно-сосудистых заболеваний'
-      },
-      {
-        name: 'Железо',
-        dosage: '18 мг в день (или по назначению врача)',
-        reason: 'Профилактика анемии, особенно важно для женщин репродуктивного возраста'
-      },
-      {
-        name: 'Фолиевая кислота (B9)',
-        dosage: '400 мкг в день',
-        reason: 'Здоровье нервной системы, важна для женского здоровья'
-      },
-      {
-        name: 'Магний',
-        dosage: '300-400 мг в день',
-        reason: 'Снижение стресса, улучшение сна, регуляция гормонов, уменьшение ПМС'
-      },
-      {
-        name: 'Витамин B-комплекс',
-        dosage: 'по инструкции',
-        reason: 'Энергия, поддержка нервной системы, здоровье кожи и волос'
-      },
-      {
-        name: 'Коллаген',
-        dosage: '5-10 г в день',
-        reason: 'Здоровье кожи, волос, ногтей, суставов'
-      }
-    ],
-    nutrition: [
-      {
-        category: 'Белок',
-        items: ['Рыба (особенно жирная)', 'Курица, индейка', 'Яйца', 'Бобовые', 'Греческий йогурт'],
-        importance: 'high',
-        reason: 'Поддержание мышечной массы, здоровье кожи и волос, насыщение'
-      },
-      {
-        category: 'Продукты с железом',
-        items: ['Красное мясо (умеренно)', 'Печень', 'Шпинат', 'Чечевица', 'Гранат'],
-        importance: 'high',
-        reason: 'Профилактика анемии, энергия, здоровье крови'
-      },
-      {
-        category: 'Кальций для костей',
-        items: ['Молочные продукты', 'Творог', 'Сыр', 'Зелень (брокколи, капуста кале)', 'Миндаль'],
-        importance: 'high',
-        reason: 'Профилактика остеопороза, здоровье зубов и костей'
-      },
-      {
-        category: 'Антиоксиданты',
-        items: ['Ягоды', 'Темный шоколад', 'Зеленый чай', 'Орехи', 'Цитрусовые'],
-        importance: 'high',
-        reason: 'Замедление старения, здоровье кожи, защита клеток'
-      },
-      {
-        category: 'Клетчатка',
-        items: ['Овощи', 'Фрукты', 'Цельнозерновые', 'Семена чиа и льна', 'Овсянка'],
-        importance: 'high',
-        reason: 'Здоровье ЖКТ, контроль веса, стабильный уровень сахара'
-      },
-      {
-        category: 'Ограничить',
-        items: ['Сахар и сладости', 'Переработанные продукты', 'Избыток кофеина', 'Трансжиры'],
-        importance: 'high',
-        reason: 'Профилактика диабета, контроль веса, гормональный баланс'
-      }
-    ],
-    physicalActivity: [
-      {
-        type: 'Кардио (бег, плавание, велосипед)',
-        duration: '30-40 минут',
-        frequency: '4-5 раз в неделю'
-      },
-      {
-        type: 'Силовые тренировки',
-        duration: '40-50 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Йога или пилатес',
-        duration: '45-60 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Ходьба',
-        duration: '30 минут минимум',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Растяжка',
-        duration: '10-15 минут',
-        frequency: 'ежедневно'
-      }
-    ],
-    warnings: [
-      'Повышенный риск остеопороза после 40 - важно следить за уровнем кальция и витамина D',
-      'Склонность к анемии у женщин - регулярно проверять уровень железа',
-      'Риск заболеваний щитовидной железы выше у женщин - проверять гормоны',
-      'Замедление метаболизма после 35 - важен контроль веса и регулярная активность',
-      'Стресс и эмоциональное выгорание - важна забота о ментальном здоровье',
-      'Варикозное расширение вен - избегать длительного стояния, носить компрессионные чулки при необходимости'
-    ],
-    tips: [
-      'Регулярно посещайте гинеколога и проходите маммографию - ранняя диагностика спасает жизни',
-      'Следите за уровнем железа, особенно при обильных менструациях',
-      'Включите силовые тренировки для поддержания мышечной массы и плотности костей',
-      'Практикуйте йогу или медитацию для снижения стресса и гормонального баланса',
-      'Заботьтесь о качестве сна: ложитесь и вставайте в одно время, 7-8 часов сна',
-      'Пейте достаточно воды (1.5-2 литра в день) для здоровья кожи и обмена веществ',
-      'Используйте солнцезащитный крем ежедневно для профилактики старения кожи',
-      'Уделяйте время себе: хобби, встречи с подругами, релаксация - это не эгоизм, а необходимость',
-      'Следите за гормональным здоровьем: регулярный цикл, отсутствие ПМС - показатели здоровья'
-    ]
+    id: '2',
+    title: 'Активность для Матвея',
+    description: 'Матвей проводит много времени за учёбой. Предлагаем добавить физическую активность',
+    category: 'health',
+    priority: 'high',
+    targetMember: 'Матвей',
+    actionSuggestion: 'Прогулка в парк или игра в футбол'
   },
-
-  // Максим - 11 лет, школьник
   {
-    memberId: '3',
-    memberName: 'Максим',
-    age: 11,
-    ageGroup: 'school',
-    developmentMilestones: [
-      {
-        category: 'Когнитивное развитие',
-        skills: [
-          'Развитое абстрактное мышление и логика',
-          'Способность решать сложные математические задачи',
-          'Понимание причинно-следственных связей',
-          'Улучшенная концентрация внимания (30-40 минут)',
-          'Навыки критического мышления и анализа'
-        ],
-        ageRange: '10-12 лет'
-      },
-      {
-        category: 'Моторные навыки',
-        skills: [
-          'Хорошая координация движений',
-          'Уверенное владение мячом (футбол, баскетбол)',
-          'Развитая мелкая моторика (письмо, рисование)',
-          'Способность выполнять сложные физические упражнения',
-          'Навыки работы с инструментами и конструкторами'
-        ],
-        ageRange: '10-12 лет'
-      },
-      {
-        category: 'Социально-эмоциональное развитие',
-        skills: [
-          'Формирование собственной идентичности',
-          'Дружба становится очень важной',
-          'Развитие эмпатии и понимания чувств других',
-          'Умение работать в команде',
-          'Начало подросткового самосознания'
-        ],
-        ageRange: '10-12 лет'
-      },
-      {
-        category: 'Академические навыки',
-        skills: [
-          'Беглое чтение сложных текстов',
-          'Написание структурированных сочинений',
-          'Решение задач на умножение, деление, дроби',
-          'Базовое понимание научных концепций',
-          'Навыки исследовательской работы'
-        ],
-        ageRange: '10-12 лет'
-      }
-    ],
-    cognitiveSkills: [
-      'Развитие логического и абстрактного мышления через STEM-занятия (робототехника, программирование)',
-      'Чтение художественной и научно-популярной литературы не менее 30 минут в день',
-      'Решение головоломок, шахматы, логические игры',
-      'Развитие критического мышления через обсуждения и дебаты',
-      'Изучение иностранных языков (идеальный возраст для освоения)',
-      'Творческие проекты, которые требуют планирования и реализации'
-    ],
-    socialSkills: [
-      'Участие в командных видах спорта для развития сотрудничества',
-      'Обучение разрешению конфликтов мирным путем',
-      'Развитие эмпатии через чтение и обсуждение эмоций персонажей',
-      'Практика публичных выступлений (презентации, доклады)',
-      'Групповые проекты и совместная работа над задачами',
-      'Развитие лидерских качеств через ответственные роли',
-      'Обучение уважению к различиям и инклюзивности'
-    ],
-    physicalActivity: [
-      {
-        type: 'Командные виды спорта (футбол, баскетбол)',
-        duration: '60-90 минут',
-        frequency: '3-4 раза в неделю'
-      },
-      {
-        type: 'Активные игры на свежем воздухе',
-        duration: '60 минут минимум',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Плавание',
-        duration: '45-60 минут',
-        frequency: '1-2 раза в неделю'
-      },
-      {
-        type: 'Велосипед, ролики, самокат',
-        duration: '30-60 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Растяжка и разминка',
-        duration: '10-15 минут',
-        frequency: 'ежедневно'
-      }
-    ],
-    nutrition: [
-      {
-        category: 'Белок для роста',
-        items: ['Мясо, рыба, птица', 'Яйца', 'Молочные продукты', 'Бобовые'],
-        importance: 'high',
-        reason: 'Критически важен для роста, развития мышц и мозга в период активного развития'
-      },
-      {
-        category: 'Кальций и витамин D',
-        items: ['Молоко, творог, сыр', 'Йогурт', 'Зеленые овощи', 'Рыба с костями'],
-        importance: 'high',
-        reason: 'Формирование крепких костей и зубов в период роста'
-      },
-      {
-        category: 'Омега-3 для мозга',
-        items: ['Жирная рыба (лосось, скумбрия)', 'Грецкие орехи', 'Семена льна'],
-        importance: 'high',
-        reason: 'Развитие мозга, концентрация внимания, улучшение памяти'
-      },
-      {
-        category: 'Фрукты и овощи',
-        items: ['Разнообразные фрукты', 'Овощи всех цветов', 'Ягоды'],
-        importance: 'high',
-        reason: 'Витамины, минералы, клетчатка для иммунитета и здоровья'
-      },
-      {
-        category: 'Сложные углеводы',
-        items: ['Цельнозерновой хлеб', 'Каши', 'Макароны из твердых сортов', 'Картофель'],
-        importance: 'high',
-        reason: 'Энергия для учебы и активности'
-      },
-      {
-        category: 'Ограничить',
-        items: ['Сладкие газировки', 'Фастфуд', 'Чипсы и снеки', 'Избыток сладостей'],
-        importance: 'high',
-        reason: 'Профилактика ожирения, кариеса, формирование здоровых пищевых привычек'
-      }
-    ],
-    vitamins: [
-      {
-        name: 'Витамин D3',
-        dosage: '600-1000 МЕ ежедневно',
-        reason: 'Рост костей, здоровье зубов, иммунитет',
-        season: 'круглый год, особенно осень-зима'
-      },
-      {
-        name: 'Омега-3',
-        dosage: '500-1000 мг ежедневно',
-        reason: 'Развитие мозга, улучшение концентрации и памяти, здоровье глаз'
-      },
-      {
-        name: 'Мультивитамины для детей',
-        dosage: 'по инструкции',
-        reason: 'Восполнение возможных дефицитов во время роста'
-      },
-      {
-        name: 'Витамин С',
-        dosage: '50-100 мг в день',
-        reason: 'Укрепление иммунитета, особенно в период школьных инфекций'
-      }
-    ],
-    warnings: [
-      'Риск развития близорукости из-за учебных нагрузок - ограничить время у экранов, делать перерывы',
-      'Сколиоз и проблемы с осанкой - следить за правильной посадкой при выполнении уроков',
-      'Период интенсивного роста - важно полноценное питание и сон не менее 9-10 часов',
-      'Эмоциональные изменения в начале подросткового возраста - поддержка и открытое общение',
-      'Риск травм при активных играх - использовать защитную экипировку (шлем, наколенники)'
-    ],
-    tips: [
-      'Поощряйте любознательность и интерес к обучению через увлекательные проекты',
-      'Обеспечьте баланс между учебой, спортом и свободным временем',
-      'Развивайте самостоятельность: домашние обязанности, управление временем',
-      'Ограничьте время у экранов (ТВ, компьютер, смартфон) до 1-2 часов в день',
-      'Поддерживайте дружбу и социализацию - это критически важно в этом возрасте',
-      'Читайте вместе и обсуждайте прочитанное для развития критического мышления',
-      'Хвалите за усилия, а не только за результаты - развивайте установку на рост',
-      'Обеспечьте здоровый режим сна: ложиться в одно время, спать 9-10 часов',
-      'Следите за осанкой при выполнении домашних заданий - правильная мебель и перерывы',
-      'Поощряйте вопросы и критическое мышление, а не слепое запоминание'
-    ]
-  },
-
-  // София - 8 лет, школьница
-  {
-    memberId: '4',
-    memberName: 'София',
-    age: 8,
-    ageGroup: 'school',
-    developmentMilestones: [
-      {
-        category: 'Когнитивное развитие',
-        skills: [
-          'Чтение простых книг самостоятельно',
-          'Базовые математические операции (сложение, вычитание до 100)',
-          'Улучшенная память и концентрация (20-30 минут)',
-          'Понимание времени и календаря',
-          'Развитие воображения и творческого мышления'
-        ],
-        ageRange: '7-9 лет'
-      },
-      {
-        category: 'Моторные навыки',
-        skills: [
-          'Уверенное письмо печатными и прописными буквами',
-          'Хорошая координация движений при танцах и играх',
-          'Способность рисовать детализированные картинки',
-          'Умение завязывать шнурки, застегивать пуговицы',
-          'Ловкость при игре с мячом'
-        ],
-        ageRange: '7-9 лет'
-      },
-      {
-        category: 'Социально-эмоциональное развитие',
-        skills: [
-          'Формирование близких дружеских отношений',
-          'Понимание правил и справедливости',
-          'Развитие эмпатии и заботы о других',
-          'Стремление к независимости и самостоятельности',
-          'Выражение эмоций словами'
-        ],
-        ageRange: '7-9 лет'
-      },
-      {
-        category: 'Академические навыки',
-        skills: [
-          'Чтение на уровне 2-3 класса',
-          'Написание простых рассказов',
-          'Решение задач на сложение и вычитание',
-          'Понимание базовых научных концепций',
-          'Следование многоступенчатым инструкциям'
-        ],
-        ageRange: '7-9 лет'
-      }
-    ],
-    cognitiveSkills: [
-      'Ежедневное чтение 20-30 минут для развития навыков и воображения',
-      'Математические игры и головоломки соответствующие возрасту',
-      'Творческие занятия: рисование, лепка, рукоделие',
-      'Музыкальное образование для развития слуха и координации',
-      'Простые научные эксперименты для развития любознательности',
-      'Настольные игры для развития стратегического мышления',
-      'Изучение иностранного языка в игровой форме'
-    ],
-    socialSkills: [
-      'Игры с правилами для понимания социальных норм',
-      'Развитие дружбы через совместные игры и активности',
-      'Обучение выражению эмоций словами, а не действиями',
-      'Практика делиться и работать по очереди',
-      'Развитие эмпатии через ролевые игры и обсуждения',
-      'Участие в групповых занятиях (танцы, музыка)',
-      'Обучение разрешению конфликтов мирным путем'
-    ],
-    physicalActivity: [
-      {
-        type: 'Танцы (балет, современные танцы)',
-        duration: '45-60 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Активные игры на улице',
-        duration: '60 минут минимум',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Плавание',
-        duration: '30-45 минут',
-        frequency: '1-2 раза в неделю'
-      },
-      {
-        type: 'Гимнастика или йога для детей',
-        duration: '30-45 минут',
-        frequency: '2 раза в неделю'
-      },
-      {
-        type: 'Велосипед, самокат, ролики',
-        duration: '30-60 минут',
-        frequency: '2-3 раза в неделю'
-      }
-    ],
-    nutrition: [
-      {
-        category: 'Белок для роста',
-        items: ['Курица, индейка', 'Рыба', 'Яйца', 'Молочные продукты', 'Бобовые'],
-        importance: 'high',
-        reason: 'Необходим для роста, развития мышц и мозга'
-      },
-      {
-        category: 'Кальций для костей',
-        items: ['Молоко, йогурт', 'Творог, сыр', 'Зеленые овощи', 'Обогащенные продукты'],
-        importance: 'high',
-        reason: 'Формирование крепких костей и здоровых зубов'
-      },
-      {
-        category: 'Фрукты и овощи',
-        items: ['Яблоки, бананы, ягоды', 'Морковь, огурцы, помидоры', 'Брокколи, цветная капуста'],
-        importance: 'high',
-        reason: 'Витамины, минералы, укрепление иммунитета'
-      },
-      {
-        category: 'Полезные жиры',
-        items: ['Авокадо', 'Орехи (если нет аллергии)', 'Оливковое масло', 'Жирная рыба'],
-        importance: 'high',
-        reason: 'Развитие мозга, здоровье нервной системы'
-      },
-      {
-        category: 'Цельнозерновые продукты',
-        items: ['Овсянка', 'Цельнозерновой хлеб', 'Коричневый рис', 'Макароны из твердых сортов'],
-        importance: 'high',
-        reason: 'Энергия для активности и учебы, клетчатка'
-      },
-      {
-        category: 'Ограничить',
-        items: ['Сладости и шоколад', 'Газировки и соки с сахаром', 'Фастфуд', 'Чипсы'],
-        importance: 'high',
-        reason: 'Профилактика кариеса, ожирения, формирование здоровых привычек'
-      }
-    ],
-    vitamins: [
-      {
-        name: 'Витамин D3',
-        dosage: '600 МЕ ежедневно',
-        reason: 'Рост костей, здоровье зубов, иммунитет'
-      },
-      {
-        name: 'Омега-3',
-        dosage: '250-500 мг ежедневно',
-        reason: 'Развитие мозга, улучшение концентрации, здоровье глаз'
-      },
-      {
-        name: 'Мультивитамины для детей',
-        dosage: 'по инструкции',
-        reason: 'Поддержка роста и развития'
-      },
-      {
-        name: 'Витамин С',
-        dosage: '25-50 мг в день',
-        reason: 'Иммунитет, особенно в период адаптации к школе',
-        season: 'осень-зима'
-      }
-    ],
-    warnings: [
-      'Период адаптации к школе может быть стрессовым - поддержка и понимание важны',
-      'Риск близорукости - ограничить экранное время, поощрять игры на улице',
-      'Формирование осанки - правильная мебель для занятий, перерывы',
-      'Социальное давление сверстников - открытое общение о чувствах',
-      'Риск травм при активных играх - обучение безопасности'
-    ],
-    tips: [
-      'Читайте вместе каждый вечер - это укрепляет связь и развивает навыки чтения',
-      'Поощряйте творчество: рисование, музыка, танцы развивают мозг по-разному',
-      'Ограничьте экранное время до 1 часа в день, больше времени на активные игры',
-      'Обеспечьте режим сна: ложиться в 20:00-21:00, спать 10-11 часов',
-      'Хвалите за старания, а не только за результаты - это развивает уверенность',
-      'Учите выражать эмоции словами: "Я чувствую...", "Мне нужно..."',
-      'Давайте простые домашние обязанности для развития ответственности',
-      'Поощряйте дружбу и социализацию через игровые встречи',
-      'Следите за питанием: регулярные приемы пищи, здоровые перекусы',
-      'Будьте примером: дети копируют поведение родителей',
-      'Создайте спокойное место для учебы без отвлекающих факторов'
-    ]
-  },
-
-  // Анна - 68 лет, бабушка (пожилая женщина)
-  {
-    memberId: '5',
-    memberName: 'Анна',
-    age: 68,
-    ageGroup: 'senior',
-    healthCheckups: [
-      {
-        id: 'hc5-1',
-        name: 'Терапевт (общий осмотр)',
-        description: 'Комплексное обследование, контроль хронических заболеваний, измерение давления',
-        frequency: '2 раза в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc5-2',
-        name: 'Кардиолог',
-        description: 'ЭКГ, ЭхоКГ, холтеровское мониторирование при необходимости',
-        frequency: '1-2 раза в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc5-3',
-        name: 'Анализы крови',
-        description: 'Общий, биохимический, сахар, холестерин, свертываемость',
-        frequency: '2 раза в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc5-4',
-        name: 'Эндокринолог',
-        description: 'Проверка щитовидной железы, контроль уровня сахара',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc5-5',
-        name: 'Офтальмолог',
-        description: 'Проверка зрения, внутриглазного давления, сетчатки (риск глаукомы, катаракты)',
-        frequency: '1 раз в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc5-6',
-        name: 'Денситометрия (плотность костей)',
-        description: 'Проверка на остеопороз',
-        frequency: '1 раз в 1-2 года',
-        importance: 'critical'
-      },
-      {
-        id: 'hc5-7',
-        name: 'Маммография',
-        description: 'Скрининг рака молочной железы',
-        frequency: '1 раз в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc5-8',
-        name: 'Гинеколог',
-        description: 'Контроль постменопаузального состояния',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc5-9',
-        name: 'Флюорография',
-        description: 'Проверка легких',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc5-10',
-        name: 'Колоноскопия',
-        description: 'Скрининг рака кишечника',
-        frequency: '1 раз в 5 лет',
-        importance: 'high'
-      }
-    ],
-    vitamins: [
-      {
-        name: 'Витамин D3',
-        dosage: '2000-4000 МЕ ежедневно',
-        reason: 'Профилактика остеопороза, поддержка иммунитета, здоровье костей и мышц'
-      },
-      {
-        name: 'Кальций',
-        dosage: '1200 мг в день (с едой)',
-        reason: 'Профилактика остеопороза, здоровье костей, снижение риска переломов'
-      },
-      {
-        name: 'Витамин B12',
-        dosage: '500-1000 мкг в день',
-        reason: 'Поддержка нервной системы, энергия, профилактика когнитивных нарушений'
-      },
-      {
-        name: 'Омега-3',
-        dosage: '1000-2000 мг EPA+DHA ежедневно',
-        reason: 'Здоровье сердца и сосудов, мозга, противовоспалительное действие, поддержка когнитивных функций'
-      },
-      {
-        name: 'Коэнзим Q10',
-        dosage: '100-200 мг в день',
-        reason: 'Энергия, здоровье сердца, антиоксидантная защита'
-      },
-      {
-        name: 'Магний',
-        dosage: '300-400 мг в день',
-        reason: 'Здоровье сердца, мышц, костей, улучшение сна'
-      },
-      {
-        name: 'Витамин K2',
-        dosage: '90-120 мкг в день',
-        reason: 'Работает с кальцием и D3 для здоровья костей и сосудов'
-      }
-    ],
-    nutrition: [
-      {
-        category: 'Кальций для костей',
-        items: ['Молочные продукты', 'Творог, сыр', 'Зеленые листовые овощи', 'Миндаль', 'Кунжут'],
-        importance: 'high',
-        reason: 'Профилактика остеопороза, здоровье костей'
-      },
-      {
-        category: 'Белок',
-        items: ['Нежирная рыба', 'Курица, индейка', 'Яйца', 'Бобовые', 'Творог, греческий йогурт'],
-        importance: 'high',
-        reason: 'Поддержание мышечной массы, профилактика саркопении'
-      },
-      {
-        category: 'Клетчатка',
-        items: ['Овощи', 'Фрукты', 'Цельнозерновые', 'Овсянка', 'Отруби'],
-        importance: 'high',
-        reason: 'Здоровье ЖКТ, профилактика запоров, контроль сахара и холестерина'
-      },
-      {
-        category: 'Омега-3 и полезные жиры',
-        items: ['Жирная рыба (лосось, скумбрия)', 'Грецкие орехи', 'Оливковое масло', 'Авокадо'],
-        importance: 'high',
-        reason: 'Здоровье сердца, мозга, противовоспалительное действие'
-      },
-      {
-        category: 'Антиоксиданты',
-        items: ['Ягоды', 'Зеленый чай', 'Темный шоколад (70%+)', 'Цитрусовые', 'Орехи'],
-        importance: 'high',
-        reason: 'Защита от возрастных заболеваний, когнитивное здоровье'
-      },
-      {
-        category: 'Ограничить',
-        items: ['Соль (не более 5г в день)', 'Сахар и сладости', 'Жирное красное мясо', 'Трансжиры', 'Алкоголь'],
-        importance: 'high',
-        reason: 'Контроль давления, профилактика диабета, сердечно-сосудистых заболеваний'
-      }
-    ],
-    physicalActivity: [
-      {
-        type: 'Ходьба',
-        duration: '30-45 минут',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Упражнения на силу и баланс',
-        duration: '20-30 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Йога или тайцзи для пожилых',
-        duration: '30-45 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Плавание или аквааэробика',
-        duration: '30-45 минут',
-        frequency: '1-2 раза в неделю'
-      },
-      {
-        type: 'Растяжка и гибкость',
-        duration: '10-15 минут',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Садоводство (умеренная активность)',
-        duration: '30-60 минут',
-        frequency: '2-3 раза в неделю'
-      }
-    ],
-    warnings: [
-      'ВЫСОКИЙ РИСК ОСТЕОПОРОЗА - регулярная денситометрия, прием кальция и D3, профилактика падений',
-      'Риск сердечно-сосудистых заболеваний - контроль давления, холестерина, регулярные осмотры кардиолога',
-      'Профилактика падений: убрать коврики, установить поручни в ванной, хорошее освещение',
-      'Риск когнитивных нарушений - умственная активность, социализация, контроль сосудистых факторов',
-      'Снижение слуха и зрения - регулярные проверки, использование очков/слуховых аппаратов',
-      'Полипрагмазия (много лекарств) - регулярный пересмотр с врачом необходимости каждого препарата',
-      'Обезвоживание - пожилые меньше чувствуют жажду, пить воду регулярно',
-      'Дефицит витамина B12 - частая проблема после 65, нужны добавки'
-    ],
-    tips: [
-      'Регулярные медосмотры - ранняя диагностика критически важна в этом возрасте',
-      'Поддерживайте физическую активность ЕЖЕДНЕВНО - это ключ к здоровому старению',
-      'Тренируйте баланс и силу для профилактики падений - падение может быть опасным',
-      'Социализация важна: встречи с семьей, друзьями, клубы по интересам - профилактика депрессии',
-      'Умственная активность: чтение, головоломки, обучение новому - профилактика деменции',
-      'Высыпайтесь: 7-8 часов сна важны для восстановления и когнитивного здоровья',
-      'Пейте достаточно воды даже если не хочется - 1.5 литра в день',
-      'Обустройте дом безопасно: уберите препятствия, хорошее освещение, поручни',
-      'Регулярно проверяйте зрение и слух - их снижение увеличивает риск падений и изоляции',
-      'Поддерживайте здоровый вес - это снижает нагрузку на суставы и сердце',
-      'Найдите хобби и занятия, которые приносят радость - это важно для качества жизни',
-      'Не стесняйтесь просить помощь когда нужно - это не слабость, а мудрость'
-    ]
-  },
-
-  // Виктор - 71 год, дедушка (пожилой мужчина)
-  {
-    memberId: '6',
-    memberName: 'Виктор',
-    age: 71,
-    ageGroup: 'senior',
-    healthCheckups: [
-      {
-        id: 'hc6-1',
-        name: 'Терапевт (общий осмотр)',
-        description: 'Комплексное обследование, контроль хронических заболеваний',
-        frequency: '2 раза в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc6-2',
-        name: 'Кардиолог',
-        description: 'ЭКГ, ЭхоКГ, мониторинг сердечно-сосудистой системы',
-        frequency: '1-2 раза в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc6-3',
-        name: 'Анализы крови',
-        description: 'Общий, биохимический, ПСА (простата), сахар, холестерин',
-        frequency: '2 раза в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc6-4',
-        name: 'Уролог',
-        description: 'Проверка простаты, ПСА тест (профилактика рака простаты)',
-        frequency: '1 раз в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc6-5',
-        name: 'Офтальмолог',
-        description: 'Проверка зрения, глаукома, катаракта, макулодистрофия',
-        frequency: '1 раз в год',
-        importance: 'critical'
-      },
-      {
-        id: 'hc6-6',
-        name: 'Денситометрия',
-        description: 'Проверка плотности костей (остеопороз бывает и у мужчин)',
-        frequency: '1 раз в 2 года',
-        importance: 'high'
-      },
-      {
-        id: 'hc6-7',
-        name: 'Флюорография или КТ легких',
-        description: 'Проверка легких',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc6-8',
-        name: 'УЗИ органов брюшной полости',
-        description: 'Проверка печени, почек, поджелудочной, желчного пузыря',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc6-9',
-        name: 'Невролог',
-        description: 'Когнитивное здоровье, профилактика инсульта',
-        frequency: '1 раз в год',
-        importance: 'high'
-      },
-      {
-        id: 'hc6-10',
-        name: 'Колоноскопия',
-        description: 'Скрининг рака кишечника',
-        frequency: '1 раз в 5 лет',
-        importance: 'high'
-      }
-    ],
-    vitamins: [
-      {
-        name: 'Витамин D3',
-        dosage: '2000-4000 МЕ ежедневно',
-        reason: 'Здоровье костей, мышц, иммунитет, профилактика падений'
-      },
-      {
-        name: 'Кальций',
-        dosage: '1000-1200 мг в день',
-        reason: 'Профилактика остеопороза у мужчин, здоровье костей'
-      },
-      {
-        name: 'Витамин B12',
-        dosage: '500-1000 мкг в день',
-        reason: 'Энергия, поддержка нервной системы, когнитивное здоровье'
-      },
-      {
-        name: 'Омега-3',
-        dosage: '1000-2000 мг EPA+DHA ежедневно',
-        reason: 'Здоровье сердца, сосудов, мозга, противовоспалительное действие'
-      },
-      {
-        name: 'Коэнзим Q10',
-        dosage: '100-200 мг в день',
-        reason: 'Поддержка энергии, здоровье сердца, особенно при приеме статинов'
-      },
-      {
-        name: 'Магний',
-        dosage: '400 мг в день',
-        reason: 'Здоровье сердца, мышц, сна, профилактика судорог'
-      },
-      {
-        name: 'Цинк',
-        dosage: '15 мг в день',
-        reason: 'Поддержка иммунитета, здоровье простаты'
-      },
-      {
-        name: 'Ликопин',
-        dosage: '10-15 мг в день',
-        reason: 'Здоровье простаты, антиоксидантная защита'
-      }
-    ],
-    nutrition: [
-      {
-        category: 'Белок для мышц',
-        items: ['Рыба (особенно жирная)', 'Курица, индейка', 'Яйца', 'Бобовые', 'Нежирное мясо'],
-        importance: 'high',
-        reason: 'Профилактика саркопении (потери мышечной массы), поддержание силы'
-      },
-      {
-        category: 'Продукты для здоровья простаты',
-        items: ['Помидоры (ликопин)', 'Тыквенные семечки', 'Грецкие орехи', 'Брокколи', 'Зеленый чай'],
-        importance: 'high',
-        reason: 'Поддержка здоровья простаты, профилактика заболеваний'
-      },
-      {
-        category: 'Клетчатка',
-        items: ['Овощи', 'Фрукты', 'Цельнозерновые', 'Овсянка', 'Отруби', 'Чернослив'],
-        importance: 'high',
-        reason: 'Здоровье ЖКТ, профилактика запоров, контроль холестерина'
-      },
-      {
-        category: 'Продукты для сердца',
-        items: ['Жирная рыба', 'Оливковое масло', 'Орехи', 'Авокадо', 'Ягоды'],
-        importance: 'high',
-        reason: 'Снижение риска инфаркта, инсульта, контроль давления'
-      },
-      {
-        category: 'Антиоксиданты',
-        items: ['Ягоды', 'Зеленый чай', 'Темный шоколад', 'Орехи', 'Цитрусовые'],
-        importance: 'high',
-        reason: 'Защита от возрастных заболеваний, когнитивное здоровье'
-      },
-      {
-        category: 'Строго ограничить',
-        items: ['Соль (макс 5г/день)', 'Красное и переработанное мясо', 'Сахар', 'Трансжиры', 'Алкоголь'],
-        importance: 'high',
-        reason: 'Контроль давления, профилактика инсульта, диабета, рака'
-      }
-    ],
-    physicalActivity: [
-      {
-        type: 'Ходьба на свежем воздухе',
-        duration: '30-45 минут',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Силовые упражнения с легким весом',
-        duration: '20-30 минут',
-        frequency: '2-3 раза в неделю'
-      },
-      {
-        type: 'Упражнения на баланс и координацию',
-        duration: '15-20 минут',
-        frequency: '3-4 раза в неделю'
-      },
-      {
-        type: 'Плавание или аквааэробика',
-        duration: '30-45 минут',
-        frequency: '1-2 раза в неделю'
-      },
-      {
-        type: 'Растяжка и гибкость',
-        duration: '10-15 минут',
-        frequency: 'ежедневно'
-      },
-      {
-        type: 'Садоводство (умеренная нагрузка)',
-        duration: '30-60 минут',
-        frequency: 'регулярно, по сезону'
-      }
-    ],
-    warnings: [
-      'КРИТИЧНО: Повышенный риск инфаркта и инсульта - регулярный контроль давления, холестерина, прием назначенных препаратов',
-      'Заболевания простаты очень распространены после 70 - ежегодный осмотр уролога обязателен',
-      'Риск падений с серьезными последствиями - тренировка баланса, безопасность дома',
-      'Саркопения (потеря мышечной массы) - необходимы силовые упражнения и достаточный белок',
-      'Когнитивные нарушения - умственная активность, социализация, контроль сосудистых факторов',
-      'Снижение слуха и зрения - влияет на безопасность и качество жизни, регулярные проверки',
-      'Обезвоживание - снижено чувство жажды, пить воду регулярно по графику',
-      'Полипрагмазия - взаимодействие лекарств, регулярный пересмотр с врачом'
-    ],
-    tips: [
-      'Регулярные профилактические осмотры КРИТИЧНЫ - многие заболевания протекают бессимптомно',
-      'Ежедневная физическая активность - лучшая профилактика большинства возрастных проблем',
-      'ОБЯЗАТЕЛЬНО тренируйте баланс - падение в этом возрасте может быть очень опасным',
-      'Следите за давлением дома: измеряйте регулярно, ведите дневник',
-      'Принимайте все назначенные лекарства - не прекращайте без консультации с врачом',
-      'Оставайтесь социально активным: встречи с семьей, друзьями, клубы - это профилактика депрессии и деменции',
-      'Умственная активность: чтение, головоломки, изучение нового - держите мозг в тонусе',
-      'Обустройте дом безопасно: поручни, нескользящие коврики, хорошее освещение',
-      'Регулярно проверяйте слух и зрение - используйте очки/слуховые аппараты при необходимости',
-      'Пейте воду регулярно (1.5-2 л/день) даже если не хочется',
-      'Высыпайтесь: 7-8 часов качественного сна важны для здоровья',
-      'Садоводство - отличная умеренная активность, но избегайте перенапряжения',
-      'Проводите время с внуками - это приносит радость и поддерживает активность',
-      'Не стесняйтесь просить помощь - это не слабость, а забота о себе'
-    ]
+    id: '3',
+    title: 'Семейное время',
+    description: 'Прошло 3 дня без совместного времяпрепровождения. Запланируйте семейный вечер!',
+    category: 'family',
+    priority: 'medium',
+    actionSuggestion: 'Пятничный киновечер или настольные игры'
   }
 ];
 
 export const initialFamilyGoals: FamilyGoal[] = [
   {
-    id: 'goal1',
-    title: 'Покупка семейного автомобиля',
-    description: 'Накопить на покупку нового семейного кроссовера для комфортных поездок всей семьёй',
-    category: 'financial',
-    priority: 'high',
-    status: 'in_progress',
-    startDate: '2024-03-01',
-    targetDate: '2025-06-30',
-    progress: 58,
-    assignedMembers: ['1', '2'],
-    budget: 3500000,
-    currentSpending: 2030000,
-    createdBy: '1',
-    createdByName: 'Александр',
-    createdAt: '2024-03-01T10:00:00Z',
-    checkpoints: [
-      {
-        id: 'cp1-1',
-        title: 'Накопить первый миллион',
-        description: 'Первая крупная сумма на депозите',
-        dueDate: '2024-07-31',
-        completed: true,
-        completedDate: '2024-07-20T00:00:00Z'
-      },
-      {
-        id: 'cp1-2',
-        title: 'Выбрать марку и модель автомобиля',
-        description: 'Изучить рынок, провести тест-драйвы, определиться с выбором',
-        dueDate: '2024-09-30',
-        completed: true,
-        completedDate: '2024-09-15T00:00:00Z'
-      },
-      {
-        id: 'cp1-3',
-        title: 'Накопить 2 миллиона',
-        description: 'Достичь отметки в 60% от целевой суммы',
-        dueDate: '2024-11-30',
-        completed: true,
-        completedDate: '2024-11-25T00:00:00Z'
-      },
-      {
-        id: 'cp1-4',
-        title: 'Накопить 2.8 миллиона',
-        description: '80% суммы накоплено',
-        dueDate: '2025-03-31',
-        completed: false
-      },
-      {
-        id: 'cp1-5',
-        title: 'Оформление покупки',
-        description: 'Полная сумма накоплена, оформление документов',
-        dueDate: '2025-06-30',
-        completed: false
-      }
-    ],
-    aiSuggestions: [
-      {
-        id: 'ai1-1',
-        type: 'tip',
-        title: 'Отличный прогресс!',
-        content: 'Вы уже накопили 58% от целевой суммы! При текущих темпах накопления цель будет достигнута даже раньше намеченного срока.',
-        createdAt: '2024-11-30T00:00:00Z'
-      },
-      {
-        id: 'ai1-2',
-        type: 'recommendation',
-        title: 'Рассмотрите трейд-ин',
-        content: 'Если у вас есть старый автомобиль, программа трейд-ин может добавить 200-400 тыс. рублей к вашему бюджету.',
-        createdAt: '2024-09-01T00:00:00Z'
-      },
-      {
-        id: 'ai1-3',
-        type: 'tip',
-        title: 'Сезонные акции',
-        content: 'В конце марта и сентябре обычно проходят крупные автомобильные выставки со специальными предложениями. Спланируйте покупку на этот период.',
-        createdAt: '2024-10-15T00:00:00Z'
-      }
-    ],
-    tags: ['финансы', 'автомобиль', 'семья', 'комфорт']
+    id: '1',
+    title: 'Накопить на отпуск в Турции',
+    description: 'Семейный отпуск all inclusive на 10 дней',
+    targetAmount: 250000,
+    currentAmount: 87500,
+    deadline: '2026-06-01',
+    category: 'Финансы',
+    assignee: 'Вся семья',
+    priority: 'high'
   },
   {
-    id: 'goal2',
-    title: 'Накопить на первоначальный взнос за квартиру',
-    description: 'Накопить 2.5 миллиона рублей для первоначального взноса на покупку трёхкомнатной квартиры в хорошем районе',
-    category: 'home',
-    priority: 'critical',
-    status: 'in_progress',
-    startDate: '2024-01-01',
-    targetDate: '2027-12-31',
-    progress: 28,
-    assignedMembers: ['1', '2'],
-    budget: 2500000,
-    currentSpending: 700000,
-    createdBy: '1',
-    createdByName: 'Александр',
-    createdAt: '2024-01-01T10:00:00Z',
-    checkpoints: [
-      {
-        id: 'cp2-1',
-        title: 'Накопить первые 500 тыс. руб',
-        description: 'Достичь первой контрольной точки',
-        dueDate: '2024-09-30',
-        completed: true,
-        completedDate: '2024-09-15T00:00:00Z'
-      },
-      {
-        id: 'cp2-2',
-        title: 'Изучить рынок недвижимости',
-        description: 'Определиться с районом, типом дома, планировкой',
-        dueDate: '2025-03-31',
-        completed: false
-      },
-      {
-        id: 'cp2-3',
-        title: 'Накопить 1 млн руб',
-        description: 'Достичь 40% от целевой суммы',
-        dueDate: '2025-08-31',
-        completed: false
-      },
-      {
-        id: 'cp2-4',
-        title: 'Накопить 1.5 млн руб',
-        description: '60% пути пройдено',
-        dueDate: '2026-06-30',
-        completed: false
-      },
-      {
-        id: 'cp2-5',
-        title: 'Накопить 2 млн руб',
-        description: '80% от целевой суммы',
-        dueDate: '2027-03-31',
-        completed: false
-      },
-      {
-        id: 'cp2-6',
-        title: 'Достичь полной суммы 2.5 млн руб',
-        description: 'Финальная сумма для первоначального взноса готова',
-        dueDate: '2027-12-31',
-        completed: false
-      }
-    ],
-    aiSuggestions: [
-      {
-        id: 'ai2-1',
-        type: 'tip',
-        title: 'Автоматизируйте накопления',
-        content: 'Настройте автоматический перевод 15-20% от зарплаты на накопительный счёт сразу после её получения. Это дисциплинирует и ускорит достижение цели.',
-        createdAt: '2024-01-01T00:00:00Z'
-      },
-      {
-        id: 'ai2-2',
-        type: 'recommendation',
-        title: 'Используйте накопительный счёт',
-        content: 'Храните деньги на накопительном счёте с доходностью 15-18% годовых. За 4 года вы получите дополнительно 400-500 тыс. рублей процентов.',
-        createdAt: '2024-02-15T00:00:00Z'
-      },
-      {
-        id: 'ai2-3',
-        type: 'warning',
-        title: 'Рост цен на недвижимость',
-        content: 'Цены на квартиры растут примерно на 10-15% в год. Возможно, стоит увеличить целевую сумму до 3 млн рублей или ускорить темп накоплений.',
-        createdAt: '2024-06-01T00:00:00Z'
-      },
-      {
-        id: 'ai2-4',
-        type: 'tip',
-        title: 'Материнский капитал',
-        content: 'Не забудьте учесть материнский капитал (~630 тыс. рублей) при расчёте первоначального взноса. Это существенно приблизит вас к цели.',
-        createdAt: '2024-08-01T00:00:00Z'
-      }
-    ],
-    tags: ['финансы', 'недвижимость', 'квартира', 'первоначальный взнос']
+    id: '2',
+    title: 'Матвей - выучить 500 английских слов',
+    description: 'Подготовка к международному экзамену',
+    targetAmount: 500,
+    currentAmount: 180,
+    deadline: '2026-05-01',
+    category: 'Образование',
+    assignee: 'Матвей',
+    priority: 'high'
   },
   {
-    id: 'goal3',
-    title: 'Семейное путешествие в Европу',
-    description: 'Организовать двухнедельное путешествие всей семьёй по Италии и Франции летом 2025 года',
-    category: 'travel',
-    priority: 'medium',
-    status: 'planning',
-    startDate: '2024-11-01',
-    targetDate: '2025-08-31',
-    progress: 15,
-    assignedMembers: ['1', '2'],
-    budget: 500000,
-    currentSpending: 75000,
-    createdBy: '2',
-    createdByName: 'Елена',
-    createdAt: '2024-11-01T14:00:00Z',
-    checkpoints: [
-      {
-        id: 'cp1',
-        title: 'Оформить загранпаспорта',
-        description: 'Получить загранпаспорта для всех членов семьи',
-        dueDate: '2025-02-28',
-        completed: false
-      },
-      {
-        id: 'cp2',
-        title: 'Забронировать авиабилеты',
-        description: 'Купить билеты на всю семью заранее для лучшей цены',
-        dueDate: '2025-03-31',
-        completed: false
-      },
-      {
-        id: 'cp3',
-        title: 'Забронировать отели',
-        description: 'Забронировать проживание в Риме, Флоренции и Париже',
-        dueDate: '2025-04-30',
-        completed: false
-      },
-      {
-        id: 'cp4',
-        title: 'Составить маршрут',
-        description: 'Спланировать детальный маршрут с достопримечательностями',
-        dueDate: '2025-06-30',
-        completed: false
-      }
-    ],
-    aiSuggestions: [
-      {
-        id: 'ai1',
-        type: 'tip',
-        title: 'Бронируйте заранее',
-        content: 'Бронирование авиабилетов за 3-4 месяца позволит сэкономить 30-40% от стоимости. Лучшее время для покупки - февраль-март.',
-        createdAt: '2024-11-01T00:00:00Z'
-      },
-      {
-        id: 'ai2',
-        type: 'recommendation',
-        title: 'Апартаменты вместо отелей',
-        content: 'Рассмотрите аренду апартаментов через Airbnb - это на 20-30% дешевле отелей и удобнее с детьми (кухня, больше пространства).',
-        createdAt: '2024-11-05T00:00:00Z'
-      },
-      {
-        id: 'ai3',
-        type: 'tip',
-        title: 'Музейные карты',
-        content: 'Купите Roma Pass и Paris Museum Pass - они дадут скидки на вход и позволят избежать очередей в популярные музеи.',
-        createdAt: '2024-11-10T00:00:00Z'
-      }
-    ],
-    tags: ['путешествия', 'семья', 'отдых']
+    id: '3',
+    title: 'Семейная традиция - 52 воскресных обеда',
+    description: 'Проводить каждое воскресенье вместе за семейным столом',
+    targetAmount: 52,
+    currentAmount: 8,
+    deadline: '2026-12-31',
+    category: 'Семья',
+    assignee: 'Вся семья',
+    priority: 'medium'
   },
   {
-    id: 'goal4',
-    title: 'Ремонт и обустройство детской комнаты',
-    description: 'Сделать современный ремонт в детской комнате с двумя рабочими зонами для Максима и Софии',
-    category: 'home',
-    priority: 'medium',
-    status: 'planning',
-    startDate: '2025-01-15',
-    targetDate: '2025-05-31',
-    progress: 12,
-    assignedMembers: ['1', '2'],
-    budget: 350000,
-    currentSpending: 42000,
-    createdBy: '2',
-    createdByName: 'Елена',
-    createdAt: '2025-01-15T10:00:00Z',
-    checkpoints: [
-      {
-        id: 'cp4-1',
-        title: 'Согласовать дизайн-проект',
-        description: 'Выбрать цветовую гамму, мебель и планировку вместе с детьми',
-        dueDate: '2025-02-15',
-        completed: true,
-        completedDate: '2025-02-10T00:00:00Z'
-      },
-      {
-        id: 'cp4-2',
-        title: 'Закупить материалы',
-        description: 'Краска, обои, напольное покрытие, освещение',
-        dueDate: '2025-03-01',
-        completed: false
-      },
-      {
-        id: 'cp4-3',
-        title: 'Демонтажные работы',
-        description: 'Убрать старые обои, подготовить поверхности',
-        dueDate: '2025-03-15',
-        completed: false
-      },
-      {
-        id: 'cp4-4',
-        title: 'Черновая отделка',
-        description: 'Выравнивание стен, потолка, укладка напольного покрытия',
-        dueDate: '2025-04-15',
-        completed: false
-      },
-      {
-        id: 'cp4-5',
-        title: 'Чистовая отделка',
-        description: 'Покраска, поклейка обоев, установка плинтусов',
-        dueDate: '2025-05-01',
-        completed: false
-      },
-      {
-        id: 'cp4-6',
-        title: 'Установка мебели',
-        description: 'Два письменных стола, кровати, шкафы, полки',
-        dueDate: '2025-05-20',
-        completed: false
-      },
-      {
-        id: 'cp4-7',
-        title: 'Декорирование',
-        description: 'Шторы, постеры, освещение, аксессуары',
-        dueDate: '2025-05-31',
-        completed: false
-      }
-    ],
-    aiSuggestions: [
-      {
-        id: 'ai4-1',
-        type: 'tip',
-        title: 'Вовлеките детей в процесс',
-        content: 'Позвольте Максиму и Софии выбрать цвет стен в своих зонах и элементы декора. Это их пространство, и они будут счастливы участвовать в его создании.',
-        createdAt: '2025-01-15T00:00:00Z'
-      },
-      {
-        id: 'ai4-2',
-        type: 'recommendation',
-        title: 'Зонирование пространства',
-        content: 'Используйте стеллаж или перегородку для разделения комнаты на две зоны. Это даст каждому ребёнку личное пространство и снизит конфликты.',
-        createdAt: '2025-01-20T00:00:00Z'
-      },
-      {
-        id: 'ai4-3',
-        type: 'tip',
-        title: 'Функциональное освещение',
-        content: 'Установите несколько источников света: общее освещение, настольные лампы для учёбы и ночники. Это создаст комфортную атмосферу для разных активностей.',
-        createdAt: '2025-02-01T00:00:00Z'
-      },
-      {
-        id: 'ai4-4',
-        type: 'recommendation',
-        title: 'Экологичные материалы',
-        content: 'Выбирайте краски и материалы с низким содержанием летучих органических соединений (Low VOC). Это важно для здоровья детей.',
-        createdAt: '2025-02-05T00:00:00Z'
-      }
-    ],
-    tags: ['дом', 'ремонт', 'дети', 'интерьер']
-  },
-  {
-    id: 'goal5',
-    title: 'Здоровый образ жизни для всей семьи',
-    description: 'Внедрить регулярные занятия спортом, правильное питание и режим сна для всех членов семьи',
-    category: 'health',
-    priority: 'high',
-    status: 'in_progress',
-    startDate: '2024-09-01',
-    targetDate: '2025-06-01',
-    progress: 45,
-    assignedMembers: ['1', '2', '3', '4'],
-    createdBy: '2',
-    createdByName: 'Елена',
-    createdAt: '2024-09-01T08:00:00Z',
-    checkpoints: [
-      {
-        id: 'cp1',
-        title: 'Купить абонементы в спортзал',
-        description: 'Оформить семейный абонемент на год',
-        dueDate: '2024-09-15',
-        completed: true,
-        completedDate: '2024-09-12T00:00:00Z'
-      },
-      {
-        id: 'cp2',
-        title: 'Записаться на занятия',
-        description: 'Максим - футбол, София - танцы, родители - фитнес',
-        dueDate: '2024-09-30',
-        completed: true,
-        completedDate: '2024-09-28T00:00:00Z'
-      },
-      {
-        id: 'cp3',
-        title: 'Составить план питания',
-        description: 'Разработать еженедельное меню здорового питания',
-        dueDate: '2024-10-31',
-        completed: true,
-        completedDate: '2024-10-20T00:00:00Z'
-      },
-      {
-        id: 'cp4',
-        title: 'Установить режим сна',
-        description: 'Все ложатся не позднее 22:00, дети - в 21:00',
-        dueDate: '2024-11-30',
-        completed: false
-      },
-      {
-        id: 'cp5',
-        title: 'Провести семейный фитнес-челлендж',
-        description: 'Месяц активности: ежедневная зарядка и прогулки',
-        dueDate: '2025-03-31',
-        completed: false
-      }
-    ],
-    aiSuggestions: [
-      {
-        id: 'ai1',
-        type: 'tip',
-        title: 'Начните с малого',
-        content: 'Не пытайтесь изменить всё сразу. Начните с одной привычки (например, утренняя зарядка 10 минут), закрепите её 3 недели, затем добавляйте следующую.',
-        createdAt: '2024-09-01T00:00:00Z'
-      },
-      {
-        id: 'ai2',
-        type: 'recommendation',
-        title: 'Делайте вместе',
-        content: 'Семейные прогулки по выходным, совместные тренировки, готовка здоровых блюд вместе - это укрепит семью и сделает процесс веселее.',
-        createdAt: '2024-09-15T00:00:00Z'
-      },
-      {
-        id: 'ai3',
-        type: 'tip',
-        title: 'Отслеживайте прогресс',
-        content: 'Ведите семейный трекер активности. Вознаграждайте достижения (например, поход в кино после месяца регулярных тренировок).',
-        createdAt: '2024-10-01T00:00:00Z'
-      }
-    ],
-    tags: ['здоровье', 'спорт', 'семья']
-  }
-];
-
-export const initialComplaints: Complaint[] = [
-  {
-    id: 'complaint-1',
-    complainantId: '4',
-    complainantName: 'София',
-    accusedId: '3',
-    accusedName: 'Максим',
-    situation: 'Максим взял мои фломастеры без спроса и не вернул их',
-    feelings: 'Я очень расстроилась, потому что мне они нужны были для рисования. Я долго их искала, а потом нашла у него в комнате',
-    consequences: 'Я не смогла закончить свой рисунок для школы вовремя',
-    createdAt: '2024-11-20T14:30:00Z',
-    status: 'resolved',
-    aiAnalysis: {
-      summary: 'Зарегистрирован конфликт между София и Максим. Уровень серьезности: низкий. Требуется разговор.',
-      recommendationsForComplainant: [
-        'Попробуйте спокойно обсудить ситуацию напрямую с человеком',
-        'Выразите свои чувства используя "Я-сообщения"',
-        'Постарайтесь понять точку зрения другой стороны'
-      ],
-      messageForAccused: 'Здравствуй, Максим! София обратилась с просьбой помочь разобраться в недопонимании между вами. В ситуации "Максим взял мои фломастеры без спроса и не вернул их" София почувствовала: Я очень расстроилась, потому что мне они нужны были для рисования. Я долго их искала, а потом нашла у него в комнате. Это не обвинение, а возможность лучше понять друг друга. Возможно, ты не заметил, как твои действия повлияли на сестру. Предлагаю спокойно поговорить и найти общий язык. Помните: в семье важно слышать друг друга! 💙',
-      peaceSteps: [
-        'Шаг 1: Найдите спокойное время для разговора',
-        'Шаг 2: Объясните свои чувства без обвинений',
-        'Шаг 3: Выслушайте ответ другой стороны',
-        'Шаг 4: Договоритесь о том, как действовать дальше'
-      ],
-      severity: 'low'
-    },
-    resolution: {
-      resolvedAt: '2024-11-21T10:00:00Z',
-      outcome: 'Максим извинился и вернул фломастеры. Мы договорились, что теперь он будет всегда спрашивать разрешения, если хочет что-то взять. София согласилась давать ему фломастеры, если он вежливо попросит.'
-    }
-  },
-  {
-    id: 'complaint-2',
-    complainantId: 'mom',
-    complainantName: 'Елена',
-    accusedId: 'dad',
-    accusedName: 'Александр',
-    situation: 'Александр забыл забрать детей из секций, хотя обещал. Я была на работе и не могла приехать',
-    feelings: 'Я очень переживала и злилась. Дети ждали на улице 40 минут. Чувствую, что на меня одной все обязанности по детям',
-    consequences: 'Дети опоздали на ужин, я нервничала и плохо себя чувствовала весь вечер. Сорвалась на детей',
-    createdAt: '2024-11-18T19:00:00Z',
-    status: 'resolved',
-    aiAnalysis: {
-      summary: 'Зарегистрирован конфликт между Елена и Александр. Уровень серьезности: средний. Требуется медиация.',
-      recommendationsForComplainant: [
-        'Дайте себе время успокоиться перед разговором',
-        'Подготовьте конкретные примеры ситуаций',
-        'Предложите найти компромисс',
-        'Если сложно говорить напрямую, напишите письмо'
-      ],
-      messageForAccused: 'Добрый день, Александр! Елена обратилась за помощью в разрешении конфликта между вами. В ситуации "Александр забыл забрать детей из секций, хотя обещал" Елена испытала сильные чувства: Я очень переживала и злилась. Дети ждали на улице 40 минут. Чувствую, что на меня одной все обязанности по детям. Это привело к: Дети опоздали на ужин, я нервничала и плохо себя чувствовала весь вечер. Сорвалась на детей. Такие моменты случаются в любой семье, и это нормально. Важно не то, что произошел конфликт, а то, как мы его решим. Предлагаю встретиться и спокойно обсудить, что каждый из вас чувствовал и чего хотел. Уверен, вместе вы найдете решение! 🤝',
-      peaceSteps: [
-        'Шаг 1: Оба участника берут паузу для успокоения (1-2 часа)',
-        'Шаг 2: Встретьтесь в нейтральном месте',
-        'Шаг 3: Каждый по очереди описывает ситуацию своими словами',
-        'Шаг 4: Определите общие интересы и потребности',
-        'Шаг 5: Вместе придумайте решение, устраивающее обоих'
-      ],
-      severity: 'medium'
-    },
-    resolution: {
-      resolvedAt: '2024-11-19T21:00:00Z',
-      outcome: 'Мы спокойно поговорили вечером. Александр признал, что забыл из-за работы и очень сожалеет. Мы договорились использовать общий календарь с напоминаниями. Александр взял на себя обязательство забирать детей по вторникам и четвергам. Если не может - предупреждает заранее.'
-    }
-  },
-  {
-    id: 'complaint-3',
-    complainantId: '3',
-    complainantName: 'Максим',
-    accusedId: 'grandma',
-    accusedName: 'Мария',
-    situation: 'Бабушка постоянно заставляет меня есть, когда я не хочу. Говорит, что я плохо выгляжу',
-    feelings: 'Мне неприятно, что меня заставляют. Я же не маленький, сам знаю, когда голоден. Чувствую себя не услышанным',
-    createdAt: '2024-11-22T12:00:00Z',
-    status: 'in_progress',
-    aiAnalysis: {
-      summary: 'Зарегистрирован конфликт между Максим и Мария. Уровень серьезности: низкий. Требуется разговор.',
-      recommendationsForComplainant: [
-        'Попробуйте спокойно обсудить ситуацию напрямую с человеком',
-        'Выразите свои чувства используя "Я-сообщения"',
-        'Постарайтесь понять точку зрения другой стороны'
-      ],
-      messageForAccused: 'Здравствуйте, Мария! Максим обратился с просьбой помочь разобраться в недопонимании между вами. В ситуации "Бабушка постоянно заставляет меня есть, когда я не хочу" Максим почувствовал: Мне неприятно, что меня заставляют. Я же не маленький, сам знаю, когда голоден. Чувствую себя не услышанным. Это не обвинение, а возможность лучше понять друг друга. Возможно, вы не заметили, как ваши действия повлияли на внука. Предлагаю спокойно поговорить и найти общий язык. Помните: в семье важно слышать друг друга! 💙',
-      peaceSteps: [
-        'Шаг 1: Найдите спокойное время для разговора',
-        'Шаг 2: Объясните свои чувства без обвинений',
-        'Шаг 3: Выслушайте ответ другой стороны',
-        'Шаг 4: Договоритесь о том, как действовать дальше'
-      ],
-      severity: 'low'
-    }
-  }
-];
-
-export const initialShoppingList: ShoppingItem[] = [
-  {
-    id: 'shop-1',
-    name: 'Молоко 3.2%',
-    category: 'products',
-    quantity: '2 л',
-    priority: 'urgent',
-    bought: false,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-22T08:00:00Z'
-  },
-  {
-    id: 'shop-2',
-    name: 'Хлеб пшеничный',
-    category: 'products',
-    quantity: '2 шт',
-    priority: 'urgent',
-    bought: false,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-22T08:00:00Z'
-  },
-  {
-    id: 'shop-3',
-    name: 'Яйца куриные С1',
-    category: 'products',
-    quantity: '20 шт',
-    priority: 'normal',
-    bought: false,
-    addedBy: 'grandma',
-    addedByName: 'Мария',
-    addedAt: '2024-11-22T09:00:00Z'
-  },
-  {
-    id: 'shop-4',
-    name: 'Гречка',
-    category: 'products',
-    quantity: '1 кг',
-    priority: 'normal',
-    bought: true,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-21T10:00:00Z'
-  },
-  {
-    id: 'shop-5',
-    name: 'Куриная грудка',
-    category: 'products',
-    quantity: '1.5 кг',
-    priority: 'urgent',
-    bought: false,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-22T08:00:00Z'
-  },
-  {
-    id: 'shop-6',
-    name: 'Помидоры',
-    category: 'products',
-    quantity: '1 кг',
-    priority: 'normal',
-    bought: false,
-    addedBy: 'dad',
-    addedByName: 'Александр',
-    addedAt: '2024-11-22T07:30:00Z'
-  },
-  {
-    id: 'shop-7',
-    name: 'Огурцы',
-    category: 'products',
-    quantity: '1 кг',
-    priority: 'normal',
-    bought: false,
-    addedBy: 'dad',
-    addedByName: 'Александр',
-    addedAt: '2024-11-22T07:30:00Z'
-  },
-  {
-    id: 'shop-8',
-    name: 'Сыр твердый',
-    category: 'products',
-    quantity: '500 г',
-    priority: 'normal',
-    bought: true,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-21T10:00:00Z'
-  },
-  {
-    id: 'shop-9',
-    name: 'Стиральный порошок',
-    category: 'household',
-    quantity: '1 упаковка',
-    priority: 'urgent',
-    bought: false,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-22T08:00:00Z'
-  },
-  {
-    id: 'shop-10',
-    name: 'Средство для мытья посуды',
-    category: 'household',
-    quantity: '1 бутылка',
-    priority: 'normal',
-    bought: false,
-    addedBy: 'grandma',
-    addedByName: 'Мария',
-    addedAt: '2024-11-22T09:00:00Z'
-  },
-  {
-    id: 'shop-11',
-    name: 'Туалетная бумага',
-    category: 'household',
-    quantity: '12 рулонов',
-    priority: 'urgent',
-    bought: false,
-    addedBy: 'dad',
-    addedByName: 'Александр',
-    addedAt: '2024-11-22T08:30:00Z'
-  },
-  {
-    id: 'shop-12',
-    name: 'Футболка для Максима',
-    category: 'clothes',
-    quantity: '1 шт, размер 146',
-    priority: 'normal',
-    bought: false,
-    addedBy: 'mom',
-    addedByName: 'Елена',
-    addedAt: '2024-11-21T15:00:00Z'
-  },
-  {
-    id: 'shop-13',
-    name: 'Яблоки',
-    category: 'products',
-    quantity: '2 кг',
-    priority: 'normal',
-    bought: false,
-    addedBy: '3',
-    addedByName: 'Максим',
-    addedAt: '2024-11-22T10:00:00Z'
-  },
-  {
-    id: 'shop-14',
-    name: 'Бананы',
-    category: 'products',
-    quantity: '1 кг',
-    priority: 'normal',
-    bought: false,
-    addedBy: '4',
-    addedByName: 'София',
-    addedAt: '2024-11-22T10:00:00Z'
-  },
-  {
-    id: 'shop-15',
-    name: 'Корм для собаки',
-    category: 'other',
-    quantity: '3 кг',
-    priority: 'urgent',
-    bought: false,
-    addedBy: '4',
-    addedByName: 'София',
-    addedAt: '2024-11-22T11:00:00Z'
+    id: '4',
+    title: 'Даша - освоить 10 танцевальных номеров',
+    description: 'Подготовка к городскому конкурсу',
+    targetAmount: 10,
+    currentAmount: 4,
+    deadline: '2026-04-15',
+    category: 'Творчество',
+    assignee: 'Даша',
+    priority: 'medium'
   }
 ];
