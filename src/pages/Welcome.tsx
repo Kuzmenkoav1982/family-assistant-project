@@ -169,13 +169,13 @@ export default function Welcome() {
               onClick={() => {
                 localStorage.setItem('isDemoMode', 'true');
                 localStorage.setItem('demoStartTime', Date.now().toString());
-                navigate('/demo');
+                navigate('/');
               }}
               variant="outline"
               className="border-orange-300 hover:bg-orange-50 text-orange-600 font-semibold"
             >
               <Icon name="Sparkles" size={18} className="mr-2" />
-              Демо-режим
+              Песочница
             </Button>
             {isLoggedIn ? (
               <Button
