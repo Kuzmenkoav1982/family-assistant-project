@@ -11,6 +11,7 @@ import {
   familyGoalsExtended,
   trips,
   votingPolls,
+  leisureActivities,
 } from '@/data/extendedMockData';
 import {
   demoTestResults as testResultsData,
@@ -32,6 +33,7 @@ interface DemoModeContextType {
   demoTestResults: any[];
   demoTestSchedule: any[];
   demoTestStats: any;
+  demoLeisureActivities: any[];
   updateDemoTask: (taskId: string, updates: Partial<Task>) => void;
   toggleDemoTask: (taskId: string) => void;
 }
@@ -62,6 +64,7 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
   const [demoTestResults] = useState(testResultsData);
   const [demoTestSchedule] = useState(testScheduleData);
   const [demoTestStats] = useState(testStatsData);
+  const [demoLeisureActivities] = useState(leisureActivities);
 
   useEffect(() => {
     const checkDemoMode = () => {
@@ -105,6 +108,7 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
         demoTestResults,
         demoTestSchedule,
         demoTestStats,
+        demoLeisureActivities,
         updateDemoTask,
         toggleDemoTask,
       }}

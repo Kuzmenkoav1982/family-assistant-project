@@ -295,6 +295,19 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
+  // Подписка на изменение демо-режима
+  useEffect(() => {
+    const checkDemoModeChange = () => {
+      const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+      if (isDemoMode && !isFetchingRef.current) {
+        fetchMembers();
+      }
+    };
+
+    const interval = setInterval(checkDemoModeChange, 500);
+    return () => clearInterval(interval);
+  }, [fetchMembers]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (dialogLockRef.current?.isDialogOpen) {
@@ -302,13 +315,14 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       }
       
       const token = getAuthToken();
-      if (token && hasInitialFetchRef.current && !isFetchingRef.current) {
+      const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+      if ((token || isDemoMode) && hasInitialFetchRef.current && !isFetchingRef.current) {
         fetchMembers(true);
       }
     }, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMembers]);
 
   return (
     <FamilyMembersContext.Provider

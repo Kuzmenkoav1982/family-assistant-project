@@ -20,6 +20,7 @@ import { LeisureStats } from '@/components/leisure/LeisureStats';
 import { RouteGenerator } from '@/components/leisure/RouteGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -68,6 +69,7 @@ const TABS_CONFIG = [
 ];
 
 export default function Leisure() {
+  const { isDemoMode, demoLeisureActivities } = useDemoMode();
   const [activities, setActivities] = useState<LeisureActivity[]>([]);
   const [allActivities, setAllActivities] = useState<LeisureActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,6 +115,16 @@ export default function Leisure() {
   };
 
   const loadActivities = useCallback(async (status: string) => {
+    if (isDemoMode) {
+      setLoading(true);
+      const filtered = status === 'all' 
+        ? demoLeisureActivities 
+        : demoLeisureActivities.filter(a => a.status === status);
+      setActivities(filtered);
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
@@ -128,9 +140,14 @@ export default function Leisure() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode, demoLeisureActivities]);
 
   const loadAllActivities = useCallback(async () => {
+    if (isDemoMode) {
+      setAllActivities(demoLeisureActivities);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(`${TRIPS_API_URL}/?action=leisure&status=all`, {
@@ -143,7 +160,7 @@ export default function Leisure() {
     } catch (error) {
       console.error('Error loading all activities:', error);
     }
-  }, []);
+  }, [isDemoMode, demoLeisureActivities]);
 
   useEffect(() => {
     loadActivities(activeTab);

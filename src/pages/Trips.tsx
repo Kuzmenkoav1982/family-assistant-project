@@ -7,6 +7,7 @@ import { EditTripDialog } from '@/components/trips/EditTripDialog';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { detectCurrencyByCountry } from '@/data/currencies';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -28,6 +29,7 @@ interface Trip {
 
 export default function Trips() {
   const navigate = useNavigate();
+  const { isDemoMode, demoTrips } = useDemoMode();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -46,6 +48,18 @@ export default function Trips() {
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
   const loadTrips = useCallback(async (status: string) => {
+    if (isDemoMode) {
+      setLoading(true);
+      const filtered = status === 'all' 
+        ? demoTrips 
+        : status === 'planning' 
+          ? demoTrips.filter(t => t.status === 'planning' || t.status === 'booked')
+          : demoTrips.filter(t => t.status === status);
+      setTrips(filtered as Trip[]);
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
@@ -65,7 +79,7 @@ export default function Trips() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode, demoTrips]);
 
   useEffect(() => {
     loadTrips(activeTab);
@@ -74,6 +88,11 @@ export default function Trips() {
   const [allTrips, setAllTrips] = useState<Trip[]>([]);
 
   const loadAllTripsForCounting = useCallback(async () => {
+    if (isDemoMode) {
+      setAllTrips(demoTrips as Trip[]);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(`${TRIPS_API_URL}/?action=trips&status=all`, {
