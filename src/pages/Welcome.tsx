@@ -166,7 +166,11 @@ export default function Welcome() {
               Презентация
             </Button>
             <Button
-              onClick={() => navigate('/demo')}
+              onClick={() => {
+                localStorage.setItem('isDemoMode', 'true');
+                localStorage.setItem('demoStartTime', Date.now().toString());
+                navigate('/demo');
+              }}
               variant="outline"
               className="border-orange-300 hover:bg-orange-50 text-orange-600 font-semibold"
             >
