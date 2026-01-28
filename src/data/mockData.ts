@@ -534,3 +534,19 @@ export const initialFamilyGoals: FamilyGoal[] = [
 ];
 
 export const initialShoppingList: any[] = [];
+
+// Экспорты для обратной совместимости
+export const initialFamilyAlbum = initialFamilyAlbums;
+export const initialComplaints: any[] = [];
+
+// Utility function
+export function getWeekDays(startDate?: Date): Date[] {
+  const start = startDate || new Date();
+  const days: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    days.push(day);
+  }
+  return days;
+}
