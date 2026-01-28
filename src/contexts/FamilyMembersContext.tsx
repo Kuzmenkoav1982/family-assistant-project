@@ -46,6 +46,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   const isFetchingRef = useRef(false);
   const hasInitialFetchRef = useRef(false);
   const dialogLockRef = useRef(dialogLock);
+  const prevDemoModeRef = useRef<boolean | null>(null);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
@@ -299,8 +300,16 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     const checkDemoModeChange = () => {
       const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
-      if (isDemoMode && !isFetchingRef.current) {
-        fetchMembers();
+      
+      // Проверяем, изменился ли демо-режим
+      if (prevDemoModeRef.current !== isDemoMode) {
+        prevDemoModeRef.current = isDemoMode;
+        
+        // Перезагружаем данные только если режим изменился на demo
+        if (isDemoMode && !isFetchingRef.current) {
+          hasInitialFetchRef.current = false; // Сбрасываем флаг чтобы данные перезагрузились
+          fetchMembers();
+        }
       }
     };
 
