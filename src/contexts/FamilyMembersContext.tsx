@@ -284,11 +284,13 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     const token = getAuthToken();
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
     
-    if (token && !hasInitialFetchRef.current) {
+    // Загружаем данные если есть токен ИЛИ активен демо-режим
+    if ((token || isDemoMode) && !hasInitialFetchRef.current) {
       hasInitialFetchRef.current = true;
       fetchMembers();
-    } else if (!token) {
+    } else if (!token && !isDemoMode) {
       setLoading(false);
     }
   }, []);
