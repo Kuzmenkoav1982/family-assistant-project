@@ -41,7 +41,7 @@ export function DevelopmentFilters({
         <div>
           <h3 className="text-sm font-semibold mb-3 text-gray-700">Категория тестов</h3>
           <div className="flex flex-wrap gap-2">
-            {categories.map(cat => (
+            {categories.filter(cat => cat && cat.id).map(cat => (
               <Button
                 key={cat.id}
                 variant={selectedCategory === cat.id ? 'default' : 'outline'}

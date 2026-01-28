@@ -33,7 +33,7 @@ export function DevelopmentTestsList({
 }: DevelopmentTestsListProps) {
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {tests.map(test => {
+      {tests.filter(test => test && test.id && test.color).map(test => {
         const progress = selectedMember !== 'all' ? getMemberProgress(selectedMember, test.id) : null;
         const maxScore = getMaxScoreForTest(test.id);
         const progressPercent = progress ? Math.round((progress.score / maxScore) * 100) : 0;
@@ -42,7 +42,7 @@ export function DevelopmentTestsList({
           <Card key={test.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
-                <div className={`w-12 h-12 rounded-xl ${test.color} flex items-center justify-center flex-shrink-0`}>
+                <div className={`w-12 h-12 rounded-xl ${test.color || 'bg-gray-100 text-gray-700 border-gray-300'} flex items-center justify-center flex-shrink-0`}>
                   <Icon name={test.icon as any} size={24} />
                 </div>
                 <div className="flex-1 min-w-0">

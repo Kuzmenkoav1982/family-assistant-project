@@ -325,7 +325,8 @@ export const initialFamilyNeeds: FamilyNeed[] = [
     priority: 'high',
     requestedBy: 'Анастасия',
     estimatedCost: 4500,
-    status: 'pending'
+    status: 'pending',
+    color: 'bg-blue-100 text-blue-700 border-blue-300'
   },
   {
     id: '2',
@@ -333,7 +334,8 @@ export const initialFamilyNeeds: FamilyNeed[] = [
     item: 'Записаться к ортодонту для Даши',
     priority: 'medium',
     requestedBy: 'Анастасия',
-    status: 'pending'
+    status: 'pending',
+    color: 'bg-green-100 text-green-700 border-green-300'
   },
   {
     id: '3',
@@ -342,7 +344,8 @@ export const initialFamilyNeeds: FamilyNeed[] = [
     priority: 'high',
     requestedBy: 'Алексей',
     estimatedCost: 8000,
-    status: 'completed'
+    status: 'completed',
+    color: 'bg-purple-100 text-purple-700 border-purple-300'
   },
   {
     id: '4',
@@ -351,7 +354,8 @@ export const initialFamilyNeeds: FamilyNeed[] = [
     priority: 'high',
     requestedBy: 'Алексей',
     estimatedCost: 2000,
-    status: 'in_progress'
+    status: 'in_progress',
+    color: 'bg-orange-100 text-orange-700 border-orange-300'
   }
 ];
 
@@ -415,50 +419,55 @@ export const initialCalendarEvents: CalendarEvent[] = [
     title: 'Футбольная тренировка Матвея',
     date: new Date(Date.now() + 86400000).toISOString(),
     time: '17:00',
-    category: 'Спорт',
-    participants: ['Матвей', 'Алексей'],
-    location: 'Стадион "Динамо"',
-    reminder: true
+    category: 'leisure',
+    color: 'bg-blue-100 text-blue-700 border-blue-300',
+    visibility: 'family',
+    attendees: ['Матвей', 'Алексей'],
+    reminderEnabled: true
   },
   {
     id: '2',
     title: 'Танцы для Даши',
     date: new Date(Date.now() + 86400000 * 2).toISOString(),
     time: '16:30',
-    category: 'Творчество',
-    participants: ['Даша', 'Анастасия'],
-    location: 'Танцевальная студия "Грация"',
-    reminder: true
+    category: 'leisure',
+    color: 'bg-pink-100 text-pink-700 border-pink-300',
+    visibility: 'family',
+    attendees: ['Даша', 'Анастасия'],
+    reminderEnabled: true
   },
   {
     id: '3',
     title: 'Родительское собрание',
     date: new Date(Date.now() + 86400000 * 5).toISOString(),
     time: '18:00',
-    category: 'Учеба',
-    participants: ['Алексей', 'Анастасия'],
-    location: 'Школа №15, кабинет 204',
-    reminder: true
+    category: 'education',
+    color: 'bg-green-100 text-green-700 border-green-300',
+    visibility: 'family',
+    attendees: ['Алексей', 'Анастасия'],
+    reminderEnabled: true
   },
   {
     id: '4',
     title: 'Детский сад - утренник',
     date: new Date(Date.now() + 86400000 * 7).toISOString(),
     time: '10:00',
-    category: 'Дети',
-    participants: ['Илья', 'Анастасия'],
-    location: 'Детский сад №42',
-    reminder: true
+    category: 'family',
+    color: 'bg-orange-100 text-orange-700 border-orange-300',
+    visibility: 'family',
+    attendees: ['Илья', 'Анастасия'],
+    reminderEnabled: true
   },
   {
     id: '5',
     title: 'Семейный ужин у бабушки',
     date: new Date(Date.now() + 86400000 * 3).toISOString(),
     time: '14:00',
-    category: 'Семья',
-    participants: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья'],
-    location: 'ул. Ленина, 45',
-    reminder: true
+    category: 'family',
+    color: 'bg-purple-100 text-purple-700 border-purple-300',
+    visibility: 'family',
+    attendees: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья'],
+    reminderEnabled: true
   }
 ];
 
