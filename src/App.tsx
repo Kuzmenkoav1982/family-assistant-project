@@ -94,6 +94,7 @@ import { queryClient } from "@/lib/queryClient";
 import { DialogLockProvider } from "@/contexts/DialogLockContext";
 import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 
@@ -105,7 +106,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const checkAuth = () => {
       try {
         const token = storage.getItem('authToken');
-        console.log('[ProtectedRoute] Checking auth, token exists:', !!token);
+        const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+        console.log('[ProtectedRoute] Checking auth, token exists:', !!token, ', demo mode:', isDemoMode);
         
         // Дополнительная проверка для PWA
         const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
@@ -115,7 +117,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('[ProtectedRoute] PWA mode detected, no token found');
         }
         
-        setIsAuthenticated(!!token);
+        // Разрешить доступ если есть токен ИЛИ активен демо-режим
+        setIsAuthenticated(!!token || isDemoMode);
       } catch (error) {
         console.error('[ProtectedRoute] Error checking auth:', error);
         setIsAuthenticated(false);
@@ -192,13 +195,14 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <DialogLockProvider>
-          <FamilyMembersProvider>
-            <AIAssistantProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+        <DemoModeProvider>
+          <DialogLockProvider>
+            <FamilyMembersProvider>
+              <AIAssistantProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
             <PWAInstallPrompt />
             <AIAssistantWidget />
             <DemoModeIndicator />
@@ -293,12 +297,13 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-              </BrowserRouter>
-              </TooltipProvider>
-            </AIAssistantProvider>
-          </FamilyMembersProvider>
-        </DialogLockProvider>
-      </AuthProvider>
+            </BrowserRouter>
+            </TooltipProvider>
+          </AIAssistantProvider>
+        </FamilyMembersProvider>
+      </DialogLockProvider>
+    </DemoModeProvider>
+    </AuthProvider>
     </QueryClientProvider>
   );
 };

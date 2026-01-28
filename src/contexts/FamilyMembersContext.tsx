@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { DialogLockContext } from '@/contexts/DialogLockContext';
+import { initialFamilyMembers } from '@/data/mockData';
 
 interface FamilyMember {
   id: string;
@@ -54,6 +55,46 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     }
 
     isFetchingRef.current = true;
+    
+    // Проверяем демо-режим
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    
+    if (isDemoMode) {
+      // В демо-режиме используем моковые данные
+      console.log('[FamilyMembersContext] Demo mode active, using mock data');
+      if (!silent) {
+        setLoading(true);
+      }
+      
+      // Имитируем небольшую задержку загрузки
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const convertedMembers = initialFamilyMembers.map((m: any) => ({
+        ...m,
+        user_id: `demo_${m.id}`,
+        avatar_type: 'emoji',
+        avatarType: 'emoji',
+        photo_url: m.photoUrl || '',
+        photoUrl: m.photoUrl || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        achievements: m.achievements || [],
+        responsibilities: m.responsibilities || [],
+        foodPreferences: m.foodPreferences || { favorites: [], dislikes: [] },
+        dreams: m.dreams || [],
+        piggyBank: m.piggyBank || 0,
+        moodStatus: m.moodStatus || null,
+        permissions: {}
+      }));
+      
+      setMembers(convertedMembers);
+      setError(null);
+      setLoading(false);
+      isFetchingRef.current = false;
+      hasInitialFetchRef.current = true;
+      return;
+    }
+    
     const token = getAuthToken();
     
     try {

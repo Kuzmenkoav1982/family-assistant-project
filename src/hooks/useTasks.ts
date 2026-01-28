@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { initialTasks } from '@/data/mockData';
 
 interface Task {
   id: string;
@@ -35,6 +36,48 @@ export function useTasks() {
     if (!silent) {
       setLoading(true);
       setError(null);
+    }
+    
+    // Проверяем демо-режим
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    
+    if (isDemoMode) {
+      console.log('[useTasks] Demo mode active, using mock data');
+      
+      // Имитируем небольшую задержку загрузки
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const convertedTasks = initialTasks.map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        assignee_id: `demo_${task.assignee}`,
+        assignee_name: task.assignee,
+        completed: task.completed,
+        points: task.points,
+        priority: task.priority || 'medium',
+        category: task.category,
+        reminder_time: task.reminderTime,
+        is_recurring: task.isRecurring || false,
+        recurring_frequency: task.recurringPattern?.frequency,
+        recurring_interval: task.recurringPattern?.interval,
+        recurring_days_of_week: task.recurringPattern?.daysOfWeek?.join(','),
+        recurring_end_date: task.recurringPattern?.endDate,
+        next_occurrence: task.nextOccurrence,
+        cooking_day: task.cookingDay,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }));
+      
+      // Фильтруем по completed если указано
+      const filteredTasks = completed !== undefined 
+        ? convertedTasks.filter(t => t.completed === completed)
+        : convertedTasks;
+      
+      setTasks(filteredTasks);
+      setError(null);
+      setLoading(false);
+      return;
     }
     
     try {
@@ -181,6 +224,15 @@ export function useTasks() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
+    // В демо-режиме просто обновляем состояние локально
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    if (isDemoMode) {
+      setTasks(prev => prev.map(t => 
+        t.id === taskId ? { ...t, completed: !t.completed } : t
+      ));
+      return { success: true };
+    }
+    
     return updateTask({
       id: taskId,
       completed: !task.completed
@@ -189,14 +241,19 @@ export function useTasks() {
 
   useEffect(() => {
     const token = getAuthToken();
-    if (token) {
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    
+    if (token || isDemoMode) {
       fetchTasks();
       
-      const interval = setInterval(() => {
-        fetchTasks(undefined, true);
-      }, 5000);
-      
-      return () => clearInterval(interval);
+      // В демо-режиме не нужен автообновление с сервера
+      if (!isDemoMode) {
+        const interval = setInterval(() => {
+          fetchTasks(undefined, true);
+        }, 5000);
+        
+        return () => clearInterval(interval);
+      }
     } else {
       setLoading(false);
     }
