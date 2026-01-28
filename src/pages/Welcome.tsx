@@ -167,6 +167,11 @@ export default function Welcome() {
             </Button>
             <Button
               onClick={() => {
+                // Выходим из аккаунта перед входом в демо
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authUser');
+                localStorage.removeItem('familyId');
+                // Активируем демо-режим
                 localStorage.setItem('isDemoMode', 'true');
                 localStorage.setItem('demoStartTime', Date.now().toString());
                 navigate('/');
@@ -224,6 +229,11 @@ export default function Welcome() {
               )}
               <Button
                 onClick={() => {
+                  // Выходим из аккаунта перед входом в демо
+                  localStorage.removeItem('authToken');
+                  localStorage.removeItem('authUser');
+                  localStorage.removeItem('familyId');
+                  // Активируем демо-режим
                   localStorage.setItem('isDemoMode', 'true');
                   localStorage.setItem('demoStartTime', Date.now().toString());
                   navigate('/');
@@ -334,6 +344,11 @@ export default function Welcome() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 onClick={() => {
+                  // Выходим из аккаунта перед входом в демо
+                  localStorage.removeItem('authToken');
+                  localStorage.removeItem('authUser');
+                  localStorage.removeItem('familyId');
+                  // Активируем демо-режим
                   localStorage.setItem('isDemoMode', 'true');
                   localStorage.setItem('demoStartTime', Date.now().toString());
                   navigate('/');
