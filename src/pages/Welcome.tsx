@@ -223,7 +223,11 @@ export default function Welcome() {
                 </Button>
               )}
               <Button
-                onClick={() => navigate('/demo')}
+                onClick={() => {
+                  localStorage.setItem('isDemoMode', 'true');
+                  localStorage.setItem('demoStartTime', Date.now().toString());
+                  navigate('/');
+                }}
                 size="lg"
                 variant="outline"
                 className="border-2 border-orange-400 hover:bg-orange-50 text-orange-600 font-bold text-lg px-8 py-6"
