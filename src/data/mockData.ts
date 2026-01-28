@@ -532,3 +532,5 @@ export const initialFamilyGoals: FamilyGoal[] = [
     priority: 'medium'
   }
 ];
+
+export const initialShoppingList: any[] = [];
