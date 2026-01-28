@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import { toast } from 'sonner';
 import { Development as DevelopmentType, Test } from '@/types/family.types';
 import InteractiveTest, { TestResult } from '@/components/InteractiveTest';
@@ -133,11 +136,14 @@ function getMaxScoreForTest(testId: string): number {
 export default function Development() {
   const navigate = useNavigate();
   const { members: familyMembers, loading: isLoading, updateMember } = useFamilyMembersContext();
+  const { isDemoMode, demoTestResults, demoMembers } = useDemoMode();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMember, setSelectedMember] = useState<string>('all');
   const [activeTest, setActiveTest] = useState<string | null>(null);
   const [savingResult, setSavingResult] = useState(false);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  
+  const members = isDemoMode ? demoMembers : familyMembers;
 
   const categories = [
     { id: 'all', label: 'Все категории', icon: 'Grid' },
@@ -312,6 +318,12 @@ export default function Development() {
 
   const selectedMemberData = familyMembers?.find(m => m.id === selectedMember);
   const allTests = selectedMemberData?.development?.flatMap(d => d.tests) || [];
+  
+  const displayedMembers = isDemoMode ? demoMembers : (familyMembers || []);
+  
+  const completedDemoTests = isDemoMode ? demoTestResults.filter(result => 
+    selectedMember === 'all' || result.memberId === selectedMember
+  ) : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4 lg:p-8">
@@ -327,13 +339,50 @@ export default function Development() {
           categories={categories}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-          familyMembers={familyMembers || []}
+          familyMembers={displayedMembers}
           selectedMember={selectedMember}
           onMemberChange={setSelectedMember}
           isLoading={isLoading}
         />
+        
+        {isDemoMode && completedDemoTests.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="CheckCircle2" className="text-green-600" size={24} />
+                Завершённые тесты
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {completedDemoTests.map((result) => (
+                <div key={result.id} className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="font-medium text-lg">{result.testName}</div>
+                      <div className="text-sm text-gray-600">
+                        {result.memberName} • {new Date(result.completedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </div>
+                    </div>
+                    {result.score > 0 && (
+                      <Badge variant="secondary" className="text-lg">
+                        {result.score}/{result.maxScore}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-700 mb-2">{result.results.summary}</p>
+                  {result.results.strengths && result.results.strengths.length > 0 && (
+                    <div className="text-sm">
+                      <span className="font-medium text-green-700">Сильные стороны:</span>{' '}
+                      {result.results.strengths.join(', ')}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        {selectedMember !== 'all' && selectedMemberData && (
+        {!isDemoMode && selectedMember !== 'all' && selectedMemberData && (
           <>
             {allTests.length > 0 && (
               <TestHistory 

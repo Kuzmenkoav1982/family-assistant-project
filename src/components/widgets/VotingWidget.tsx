@@ -5,21 +5,32 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useVotings } from '@/hooks/useVotings';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 export function VotingWidget() {
   const navigate = useNavigate();
   const { votings } = useVotings('active');
+  const { isDemoMode, demoPolls } = useDemoMode();
 
-  const activeVotings = votings.filter(v => v.status === 'active');
+  const activeVotings = isDemoMode ? demoPolls.filter(p => p.status === 'active') : votings.filter(v => v.status === 'active');
 
-  const getTopOption = (voting: typeof votings[0]) => {
+  const getTopOption = (voting: any) => {
+    if (isDemoMode) {
+      if (!voting.options || voting.options.length === 0) return null;
+      return voting.options.reduce((prev: any, current: any) => 
+        current.votes > prev.votes ? current : prev
+      );
+    }
     if (voting.options.length === 0) return null;
     return voting.options.reduce((prev, current) => 
       current.yes_votes > prev.yes_votes ? current : prev
     );
   };
 
-  const getTotalVotes = (voting: typeof votings[0]) => {
+  const getTotalVotes = (voting: any) => {
+    if (isDemoMode) {
+      return voting.options?.reduce((sum: number, opt: any) => sum + opt.votes, 0) || 0;
+    }
     return voting.options.reduce((sum, opt) => sum + opt.yes_votes, 0);
   };
 
@@ -76,14 +87,14 @@ export function VotingWidget() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-indigo-700">
-                          {topOption.option_text}
+                          {isDemoMode ? topOption.option : topOption.option_text}
                         </span>
                         <span className="text-gray-500">
-                          {topOption.yes_votes} голос{topOption.yes_votes !== 1 ? 'ов' : ''}
+                          {isDemoMode ? topOption.votes : topOption.yes_votes} голос{(isDemoMode ? topOption.votes : topOption.yes_votes) !== 1 ? 'ов' : ''}
                         </span>
                       </div>
                       <Progress 
-                        value={totalVotes > 0 ? (topOption.yes_votes / totalVotes) * 100 : 0} 
+                        value={totalVotes > 0 ? ((isDemoMode ? topOption.votes : topOption.yes_votes) / totalVotes) * 100 : 0} 
                         className="h-2"
                       />
                     </div>

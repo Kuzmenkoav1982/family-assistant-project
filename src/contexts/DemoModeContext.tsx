@@ -12,6 +12,11 @@ import {
   trips,
   votingPolls,
 } from '@/data/extendedMockData';
+import {
+  demoTestResults as testResultsData,
+  demoTestSchedule as testScheduleData,
+  demoTestStats as testStatsData
+} from '@/data/demoTestResults';
 import type { FamilyMember, Task, ShoppingItem } from '@/types/family.types';
 
 interface DemoModeContextType {
@@ -19,6 +24,14 @@ interface DemoModeContextType {
   demoMembers: FamilyMember[];
   demoTasks: Task[];
   demoShoppingList: ShoppingItem[];
+  demoRecipes: any[];
+  demoCalendarEvents: any[];
+  demoGoals: any[];
+  demoTrips: any[];
+  demoPolls: any[];
+  demoTestResults: any[];
+  demoTestSchedule: any[];
+  demoTestStats: any;
   updateDemoTask: (taskId: string, updates: Partial<Task>) => void;
   toggleDemoTask: (taskId: string) => void;
 }
@@ -41,6 +54,14 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     }))
   );
+  const [demoRecipes] = useState(recipes);
+  const [demoCalendarEvents] = useState(calendarEventsExtended);
+  const [demoGoals] = useState(familyGoalsExtended);
+  const [demoTrips] = useState(trips);
+  const [demoPolls] = useState(votingPolls);
+  const [demoTestResults] = useState(testResultsData);
+  const [demoTestSchedule] = useState(testScheduleData);
+  const [demoTestStats] = useState(testStatsData);
 
   useEffect(() => {
     const checkDemoMode = () => {
@@ -76,6 +97,14 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
         demoMembers,
         demoTasks,
         demoShoppingList,
+        demoRecipes,
+        demoCalendarEvents,
+        demoGoals,
+        demoTrips,
+        demoPolls,
+        demoTestResults,
+        demoTestSchedule,
+        demoTestStats,
         updateDemoTask,
         toggleDemoTask,
       }}

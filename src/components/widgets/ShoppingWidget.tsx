@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useShopping } from '@/hooks/useShopping';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 const categoryColors: Record<string, string> = {
   'Продукты': 'bg-green-100 text-green-700 border-green-200',
@@ -23,9 +24,11 @@ const categoryIcons: Record<string, string> = {
 export function ShoppingWidget() {
   const navigate = useNavigate();
   const { items, toggleBought } = useShopping();
+  const { isDemoMode, demoShoppingList } = useDemoMode();
 
-  const notBoughtItems = items.filter(item => !item.bought);
-  const urgentItems = notBoughtItems.filter(item => item.priority === 'urgent');
+  const displayedItems = isDemoMode ? demoShoppingList : items;
+  const notBoughtItems = displayedItems.filter(item => isDemoMode ? !item.completed : !item.bought);
+  const urgentItems = notBoughtItems.filter(item => item.priority === 'urgent' || item.priority === 'high');
 
   return (
     <Card 
