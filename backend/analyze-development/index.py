@@ -11,6 +11,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context - объект с атрибутами request_id
     Returns: HTTP response с анализом развития и планом
     '''
+    print(f'[START] analyze-development handler called')
     method: str = event.get('httpMethod', 'POST')
     
     if method == 'OPTIONS':
@@ -71,7 +72,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn.commit()
     
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
-    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    # Используем проверенный folder_id из старого каталога
+    folder_id = 'b1gaglg8i7v2i32nvism'
     
     skills_summary = "\n".join([
         f"- {s['category']}: {s['skill_name']} ({s['skill_level']})"
@@ -116,35 +118,62 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 Будь конкретным, дай практические советы родителям."""
 
-    yandex_response = requests.post(
-        'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
-        headers={
-            'Authorization': f'Api-Key {api_key}',
-            'Content-Type': 'application/json'
-        },
-        json={
-            'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
-            'completionOptions': {
-                'stream': False,
-                'temperature': 0.7,
-                'maxTokens': 3000
+    print(f'[DEBUG] Calling YandexGPT with folder_id: {folder_id}')
+    print(f'[DEBUG] Skills count: {len(skills)}')
+
+    try:
+        yandex_response = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={
+                'Authorization': f'Api-Key {api_key}',
+                'Content-Type': 'application/json'
             },
-            'messages': [
-                {
-                    'role': 'user',
-                    'text': prompt
-                }
-            ]
-        }
-    )
-    
-    if yandex_response.status_code != 200:
+            json={
+                'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+                'completionOptions': {
+                    'stream': False,
+                    'temperature': 0.7,
+                    'maxTokens': 3000
+                },
+                'messages': [
+                    {
+                        'role': 'user',
+                        'text': prompt
+                    }
+                ]
+            },
+            timeout=30
+        )
+        
+        print(f'[DEBUG] YandexGPT response status: {yandex_response.status_code}')
+        
+    except Exception as e:
+        print(f'[ERROR] Request exception: {str(e)}')
         cur.close()
         conn.close()
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'YandexGPT API error'}, ensure_ascii=False),
+            'body': json.dumps({'error': f'Request failed: {str(e)}'}, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+    
+    if yandex_response.status_code != 200:
+        error_details = 'Неизвестная ошибка'
+        try:
+            error_data = yandex_response.json()
+            error_details = error_data.get('message', error_data)
+            print(f'[ERROR] YandexGPT error response: {json.dumps(error_data)}')
+        except:
+            error_details = yandex_response.text[:200]
+            print(f'[ERROR] YandexGPT error text: {error_details}')
+        
+        cur.close()
+        conn.close()
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'YandexGPT API error: {error_details}'}, ensure_ascii=False),
             'isBase64Encoded': False
         }
     
