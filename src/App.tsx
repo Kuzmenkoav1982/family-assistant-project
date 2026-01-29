@@ -14,6 +14,7 @@ import Education from "./pages/Education";
 import EventsPage from "./pages/EventsPage";
 import CreateEventPage from "./pages/CreateEventPage";
 import EventDetailsPage from "./pages/EventDetailsPage";
+import SharedEventPage from "./pages/SharedEventPage";
 import Pets from "./pages/Pets";
 import Faith from "./pages/Faith";
 import Tree from "./pages/Tree";
@@ -205,6 +206,7 @@ const App = () => {
                     <AIAssistantWidget />
                     <DemoModeIndicator />
                     <Routes>
+                      <Route path="/shared/event/:token" element={<SharedEventPage />} />
                       <Route path="/welcome" element={<Welcome />} />
                       <Route path="/demo" element={<DemoMode />} />
                       <Route path="/login" element={<Login />} />

@@ -12,6 +12,8 @@ import AddTaskDialog from '@/components/events/AddTaskDialog';
 import AddExpenseDialog from '@/components/events/AddExpenseDialog';
 import AddWishlistItemDialog from '@/components/events/AddWishlistItemDialog';
 import AddGuestGiftDialog from '@/components/events/AddGuestGiftDialog';
+import ShareEventDialog from '@/components/events/ShareEventDialog';
+import AIIdeasDialog from '@/components/events/AIIdeasDialog';
 import func2url from '../../backend/func2url.json';
 import type { FamilyEvent, EventGuest, EventTask, EventExpense, WishlistItem, GuestGift } from '@/types/events';
 
@@ -97,6 +99,8 @@ export default function EventDetailsPage() {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddWishlist, setShowAddWishlist] = useState(false);
   const [showAddGuestGift, setShowAddGuestGift] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [showAIIdeas, setShowAIIdeas] = useState(false);
 
   const fetchEvent = async () => {
     try {
@@ -347,12 +351,24 @@ export default function EventDetailsPage() {
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Badge variant={statusLabels[event.status]?.variant || 'default'}>
-              {statusLabels[event.status]?.label || event.status}
-            </Badge>
-            <Badge variant="outline">
-              {eventTypeLabels[event.eventType] || event.eventType}
-            </Badge>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowAIIdeas(true)} variant="outline">
+                <Icon name="Sparkles" size={16} />
+                ИИ-помощник
+              </Button>
+              <Button onClick={() => setShowShare(true)} variant="outline">
+                <Icon name="Share2" size={16} />
+                Поделиться
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant={statusLabels[event.status]?.variant || 'default'}>
+                {statusLabels[event.status]?.label || event.status}
+              </Badge>
+              <Badge variant="outline">
+                {eventTypeLabels[event.eventType] || event.eventType}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -732,6 +748,19 @@ export default function EventDetailsPage() {
         onOpenChange={setShowAddGuestGift}
         eventId={id!}
         onSuccess={fetchGuestGifts}
+      />
+
+      <ShareEventDialog
+        open={showShare}
+        onOpenChange={setShowShare}
+        eventId={id!}
+        eventTitle={event?.title || ''}
+      />
+
+      <AIIdeasDialog
+        open={showAIIdeas}
+        onOpenChange={setShowAIIdeas}
+        eventType={event?.eventType || 'birthday'}
       />
     </div>
   );

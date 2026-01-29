@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Generate event ideas",
+      "method": "POST",
+      "body": {
+        "eventType": "birthday",
+        "age": 10,
+        "budget": 50000,
+        "requestType": "general"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ideas": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Create share token for event",
+      "method": "POST",
+      "headers": {
+        "X-User-Id": "test-user-123"
+      },
+      "body": {
+        "eventId": "test-event-id"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "token": "string",
+        "url": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get event by token",
+      "method": "GET",
+      "queryParams": {
+        "token": "test-token"
+      },
+      "expectedStatus": 404
+    }
+  ]
+}
