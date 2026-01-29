@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import AddWishlistDialog from '@/components/AddWishlistDialog';
 import EditWishlistDialog from '@/components/EditWishlistDialog';
 import CreateTripFromWishlistDialog from '@/components/CreateTripFromWishlistDialog';
+import { DEMO_WISHLIST } from '@/data/demoWishlist';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -39,6 +40,14 @@ export default function TripWishlist() {
   }, []);
 
   const loadWishlist = async () => {
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    
+    if (isDemoMode) {
+      setWishlist(DEMO_WISHLIST);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');

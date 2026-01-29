@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Recipe, RecipeFilters, OCRResponse } from '@/types/recipe.types';
+import { DEMO_RECIPES } from '@/data/demoRecipes';
 
 const RECIPES_API_URL = 'https://functions.poehali.dev/1469e458-c83d-4831-b626-ea58c331d634';
 
@@ -15,6 +16,35 @@ export const useRecipes = (filters?: RecipeFilters) => {
   return useQuery({
     queryKey: ['recipes', filters],
     queryFn: async () => {
+      const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+      
+      if (isDemoMode) {
+        let filtered = DEMO_RECIPES.map(r => ({
+          ...r,
+          id: parseInt(r.id.replace('recipe-', '')),
+          meal_type: r.category,
+          prep_time: r.prepTime,
+          cook_time: r.cookTime,
+          created_by: 'Анастасия',
+          created_at: '2026-01-29',
+          likes: r.rating * 5,
+          images: r.image ? [r.image] : []
+        }));
+
+        if (filters?.category && filters.category !== 'all') {
+          filtered = filtered.filter(r => r.category === filters.category);
+        }
+        if (filters?.search) {
+          const query = filters.search.toLowerCase();
+          filtered = filtered.filter(r => 
+            r.name.toLowerCase().includes(query) || 
+            r.description?.toLowerCase().includes(query)
+          );
+        }
+        
+        return filtered as Recipe[];
+      }
+
       const params = new URLSearchParams();
       if (filters?.category && filters.category !== 'all') params.append('category', filters.category);
       if (filters?.cuisine && filters.cuisine !== 'all') params.append('cuisine', filters.cuisine);

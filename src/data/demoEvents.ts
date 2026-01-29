@@ -14,7 +14,7 @@ export const DEMO_CALENDAR_EVENTS: CalendarEvent[] = [
   {
     id: 'cal-2',
     title: 'Рождество',
-    date: '2025-01-07',
+    date: '2026-01-07',
     category: 'holiday',
     description: 'Семейное празднование Рождества, поход в церковь',
     time: '10:00',
@@ -22,61 +22,99 @@ export const DEMO_CALENDAR_EVENTS: CalendarEvent[] = [
   },
   {
     id: 'cal-3',
-    title: 'Прием к стоматологу - Максим',
-    date: '2025-12-01',
+    title: 'Прием к стоматологу - Матвей',
+    date: '2026-02-15',
     category: 'health',
     description: 'Профилактический осмотр',
-    memberId: 'son',
+    memberId: '3',
     time: '14:00',
     color: 'blue'
   },
   {
     id: 'cal-4',
     title: 'Родительское собрание',
-    date: '2025-12-15',
+    date: '2026-02-20',
     category: 'education',
-    description: 'Собрание в школе у Софии',
-    memberId: 'daughter',
+    description: 'Собрание в школе у Матвея',
+    memberId: '3',
     time: '18:00',
     color: 'purple'
   },
   {
     id: 'cal-5',
-    title: 'Поездка в Суздаль',
-    date: '2026-01-03',
+    title: 'Поездка в Казань',
+    date: '2026-02-10',
     category: 'travel',
-    description: 'Семейная поездка на новогодние каникулы',
+    description: 'Семейная поездка на выходные',
     time: '09:00',
     color: 'green'
   },
   {
     id: 'cal-6',
-    title: 'Годовщина свадьбы',
-    date: '2026-06-15',
-    category: 'anniversary',
-    description: '15 лет вместе! Ужин в ресторане',
+    title: 'День рождения Алексея',
+    date: '2026-03-12',
+    category: 'birthday',
+    description: 'Празднование дня рождения папы',
+    memberId: '2',
     time: '19:00',
-    color: 'pink'
+    color: 'blue'
   },
   {
     id: 'cal-7',
-    title: 'Прием у кардиолога - Николай',
-    date: '2025-12-10',
-    category: 'health',
-    description: 'Плановый осмотр у кардиолога',
-    memberId: 'grandpa',
-    time: '10:00',
-    color: 'red'
+    title: 'Семейный ужин',
+    date: '2026-02-01',
+    category: 'general',
+    description: 'Ужин всей семьей в ресторане',
+    time: '18:30',
+    color: 'orange'
   },
   {
     id: 'cal-8',
-    title: 'Занятие по плаванию - София',
-    date: '2025-11-25',
+    title: 'Футбольный матч - Матвей',
+    date: '2026-02-08',
     category: 'sport',
-    description: 'Тренировка в бассейне',
-    memberId: 'daughter',
+    description: 'Соревнования по футболу',
+    memberId: '3',
     time: '16:00',
-    color: 'blue'
+    color: 'green'
+  },
+  {
+    id: 'cal-9',
+    title: 'День рождения Анастасии',
+    date: '2026-04-22',
+    category: 'birthday',
+    description: 'Празднование дня рождения мамы',
+    memberId: '1',
+    time: '17:00',
+    color: 'pink'
+  },
+  {
+    id: 'cal-10',
+    title: 'Музей космонавтики',
+    date: '2026-02-14',
+    category: 'leisure',
+    description: 'Семейный поход в музей',
+    time: '11:00',
+    color: 'purple'
+  },
+  {
+    id: 'cal-11',
+    title: 'Прививка - Илья',
+    date: '2026-02-18',
+    category: 'health',
+    description: 'Плановая вакцинация',
+    memberId: '5',
+    time: '10:30',
+    color: 'red'
+  },
+  {
+    id: 'cal-12',
+    title: 'Покупка мебели',
+    date: '2026-02-25',
+    category: 'shopping',
+    description: 'Выбрать диван для гостиной',
+    time: '14:00',
+    color: 'orange'
   }
 ];
 

@@ -9,6 +9,7 @@ import { MealDialog } from '@/components/meals/MealDialog';
 import { MealsHeader } from '@/components/meals/MealsHeader';
 import { MealsDayView } from '@/components/meals/MealsDayView';
 import { MealsWeekView } from '@/components/meals/MealsWeekView';
+import { DEMO_MEAL_PLANS } from '@/data/demoMeals';
 
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
 
@@ -64,6 +65,13 @@ export default function Meals() {
   }, []);
 
   const fetchMeals = async () => {
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    
+    if (isDemoMode) {
+      setMealPlans(DEMO_MEAL_PLANS);
+      return;
+    }
+
     try {
       const authToken = localStorage.getItem('authToken');
       const response = await fetch(MEAL_API, {

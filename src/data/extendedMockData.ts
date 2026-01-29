@@ -204,21 +204,24 @@ export const shoppingList = [
 ];
 
 export const nutritionEntries = [
-  { id: '1', user_id: '1', user_name: 'Александр', product_name: 'Овсяная каша с медом', amount: '250 г', meal_type: 'breakfast', calories: 320, protein: 12, fats: 8, carbs: 52, date: '2024-11-10' },
-  { id: '2', user_id: '1', user_name: 'Александр', product_name: 'Кофе с молоком', amount: '200 мл', meal_type: 'breakfast', calories: 45, protein: 2, fats: 2, carbs: 5, date: '2024-11-10' },
-  { id: '3', user_id: '2', user_name: 'Елена', product_name: 'Греческий йогурт с ягодами', amount: '200 г', meal_type: 'breakfast', calories: 180, protein: 15, fats: 5, carbs: 20, date: '2024-11-10' },
-  { id: '4', user_id: '2', user_name: 'Елена', product_name: 'Зелёный чай', amount: '250 мл', meal_type: 'breakfast', calories: 2, protein: 0, fats: 0, carbs: 0, date: '2024-11-10' },
-  { id: '5', user_id: '1', user_name: 'Александр', product_name: 'Куриная грудка с овощами', amount: '300 г', meal_type: 'lunch', calories: 420, protein: 45, fats: 12, carbs: 28, date: '2024-11-10' },
-  { id: '6', user_id: '1', user_name: 'Александр', product_name: 'Компот из сухофруктов', amount: '200 мл', meal_type: 'lunch', calories: 85, protein: 1, fats: 0, carbs: 21, date: '2024-11-10' },
-  { id: '7', user_id: '2', user_name: 'Елена', product_name: 'Салат Цезарь', amount: '250 г', meal_type: 'lunch', calories: 380, protein: 25, fats: 22, carbs: 18, date: '2024-11-10' },
-  { id: '8', user_id: '3', user_name: 'Максим', product_name: 'Пицца Маргарита', amount: '2 куска', meal_type: 'lunch', calories: 540, protein: 22, fats: 18, carbs: 68, date: '2024-11-10' },
-  { id: '9', user_id: '4', user_name: 'София', product_name: 'Макароны с сыром', amount: '200 г', meal_type: 'lunch', calories: 450, protein: 18, fats: 15, carbs: 58, date: '2024-11-10' },
-  { id: '10', user_id: '1', user_name: 'Александр', product_name: 'Яблоко', amount: '1 шт', meal_type: 'snack', calories: 95, protein: 0, fats: 0, carbs: 25, date: '2024-11-10' },
-  { id: '11', user_id: '2', user_name: 'Елена', product_name: 'Орехи миндаль', amount: '30 г', meal_type: 'snack', calories: 170, protein: 6, fats: 15, carbs: 6, date: '2024-11-10' },
-  { id: '12', user_id: '1', user_name: 'Александр', product_name: 'Стейк из говядины', amount: '250 г', meal_type: 'dinner', calories: 520, protein: 52, fats: 28, carbs: 5, date: '2024-11-10' },
-  { id: '13', user_id: '1', user_name: 'Александр', product_name: 'Картофель печеный', amount: '200 г', meal_type: 'dinner', calories: 180, protein: 4, fats: 1, carbs: 40, date: '2024-11-10' },
-  { id: '14', user_id: '2', user_name: 'Елена', product_name: 'Рыба на пару с овощами', amount: '300 г', meal_type: 'dinner', calories: 350, protein: 40, fats: 10, carbs: 22, date: '2024-11-10' },
-  { id: '15', user_id: '3', user_name: 'Максим', product_name: 'Куриные наггетсы', amount: '150 г', meal_type: 'dinner', calories: 380, protein: 28, fats: 18, carbs: 24, date: '2024-11-10' }
+  { id: '1', user_id: '1', user_name: 'Анастасия', product_name: 'Овсяная каша с медом', amount: '250 г', meal_type: 'breakfast', calories: 320, protein: 12, fats: 8, carbs: 52, date: '2026-01-29' },
+  { id: '2', user_id: '1', user_name: 'Анастасия', product_name: 'Кофе с молоком', amount: '200 мл', meal_type: 'breakfast', calories: 45, protein: 2, fats: 2, carbs: 5, date: '2026-01-29' },
+  { id: '3', user_id: '2', user_name: 'Алексей', product_name: 'Яичница с беконом', amount: '200 г', meal_type: 'breakfast', calories: 380, protein: 22, fats: 28, carbs: 3, date: '2026-01-29' },
+  { id: '4', user_id: '2', user_name: 'Алексей', product_name: 'Апельсиновый сок', amount: '250 мл', meal_type: 'breakfast', calories: 110, protein: 2, fats: 0, carbs: 26, date: '2026-01-29' },
+  { id: '5', user_id: '1', user_name: 'Анастасия', product_name: 'Борщ украинский', amount: '350 г', meal_type: 'lunch', calories: 280, protein: 18, fats: 12, carbs: 28, date: '2026-01-29' },
+  { id: '6', user_id: '1', user_name: 'Анастасия', product_name: 'Хлеб ржаной', amount: '2 кус', meal_type: 'lunch', calories: 120, protein: 4, fats: 1, carbs: 24, date: '2026-01-29' },
+  { id: '7', user_id: '2', user_name: 'Алексей', product_name: 'Паста карбонара', amount: '300 г', meal_type: 'lunch', calories: 550, protein: 28, fats: 24, carbs: 58, date: '2026-01-29' },
+  { id: '8', user_id: '3', user_name: 'Матвей', product_name: 'Куриные наггетсы', amount: '150 г', meal_type: 'lunch', calories: 380, protein: 28, fats: 18, carbs: 24, date: '2026-01-29' },
+  { id: '9', user_id: '4', user_name: 'Даша', product_name: 'Макароны с сыром', amount: '200 г', meal_type: 'lunch', calories: 450, protein: 18, fats: 15, carbs: 58, date: '2026-01-29' },
+  { id: '10', user_id: '1', user_name: 'Анастасия', product_name: 'Яблоко', amount: '1 шт', meal_type: 'snack', calories: 95, protein: 0, fats: 0, carbs: 25, date: '2026-01-29' },
+  { id: '11', user_id: '2', user_name: 'Алексей', product_name: 'Орехи миндаль', amount: '30 г', meal_type: 'snack', calories: 170, protein: 6, fats: 15, carbs: 6, date: '2026-01-29' },
+  { id: '12', user_id: '3', user_name: 'Матвей', product_name: 'Банан', amount: '1 шт', meal_type: 'snack', calories: 105, protein: 1, fats: 0, carbs: 27, date: '2026-01-29' },
+  { id: '13', user_id: '1', user_name: 'Анастасия', product_name: 'Рыба на пару с рисом', amount: '300 г', meal_type: 'dinner', calories: 420, protein: 38, fats: 12, carbs: 42, date: '2026-01-29' },
+  { id: '14', user_id: '2', user_name: 'Алексей', product_name: 'Котлеты с пюре', amount: '350 г', meal_type: 'dinner', calories: 580, protein: 32, fats: 28, carbs: 48, date: '2026-01-29' },
+  { id: '15', user_id: '3', user_name: 'Матвей', product_name: 'Куриный суп-лапша', amount: '300 г', meal_type: 'dinner', calories: 220, protein: 18, fats: 6, carbs: 28, date: '2026-01-29' },
+  { id: '16', user_id: '4', user_name: 'Даша', product_name: 'Греческий салат', amount: '200 г', meal_type: 'dinner', calories: 180, protein: 8, fats: 14, carbs: 10, date: '2026-01-29' },
+  { id: '17', user_id: '5', user_name: 'Илья', product_name: 'Творожная запеканка', amount: '150 г', meal_type: 'breakfast', calories: 250, protein: 16, fats: 12, carbs: 22, date: '2026-01-29' },
+  { id: '18', user_id: '5', user_name: 'Илья', product_name: 'Молоко', amount: '200 мл', meal_type: 'breakfast', calories: 120, protein: 6, fats: 6, carbs: 10, date: '2026-01-29' }
 ];
 
 export const votingPolls = [

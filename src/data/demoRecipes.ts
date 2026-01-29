@@ -58,6 +58,7 @@ export const DEMO_RECIPES: Recipe[] = [
       'Добавить специи, чеснок, дать настояться 15 минут',
       'Подавать со сметаной и чесночными пампушками'
     ],
+    image: 'https://images.unsplash.com/photo-1604908815699-9d9a4c103b90?w=800',
     rating: 5,
     favoriteBy: ['dad', 'grandpa', 'grandma'],
     tags: ['семейный', 'традиционный', 'сытный']
@@ -88,6 +89,7 @@ export const DEMO_RECIPES: Recipe[] = [
       'Выливать тесто тонким слоем, жарить с двух сторон',
       'Подавать с медом, вареньем или сметаной'
     ],
+    image: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=800',
     rating: 5,
     favoriteBy: ['daughter', 'son', 'mom'],
     tags: ['завтрак', 'быстро', 'любимое']
@@ -119,6 +121,7 @@ export const DEMO_RECIPES: Recipe[] = [
       'Жарить на масле до золотистой корочки',
       'Подавать с картофельным пюре или гречкой'
     ],
+    image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=800',
     rating: 5,
     favoriteBy: ['son', 'dad', 'grandpa'],
     tags: ['ужин', 'сытный', 'классика']
@@ -151,6 +154,7 @@ export const DEMO_RECIPES: Recipe[] = [
       'Заправить маслом и лимонным соком',
       'Подавать сразу после приготовления'
     ],
+    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=800',
     rating: 5,
     favoriteBy: ['mom', 'daughter'],
     tags: ['легкий', 'свежий', 'быстро']
@@ -177,6 +181,7 @@ export const DEMO_RECIPES: Recipe[] = [
       'Варить в кипящей подсоленной воде 7-10 минут',
       'Подавать со сметаной и зеленью'
     ],
+    image: 'https://images.unsplash.com/photo-1625219611018-6c2e5e4b8c0c?w=800',
     rating: 5,
     favoriteBy: ['grandpa', 'dad', 'son'],
     tags: ['семейный', 'традиция', 'сытный']
@@ -207,6 +212,7 @@ export const DEMO_RECIPES: Recipe[] = [
       'За 5 минут до готовности добавить вермишель',
       'Посолить, поперчить, добавить зелень'
     ],
+    image: 'https://images.unsplash.com/photo-1588566565463-180a5b2090d2?w=800',
     rating: 5,
     favoriteBy: ['son', 'daughter', 'grandma'],
     tags: ['суп', 'детский', 'легкий']
