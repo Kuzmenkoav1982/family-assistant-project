@@ -13,8 +13,16 @@ const API_URLS = {
 };
 
 function getUserId(): string | null {
-  const userId = localStorage.getItem('userId');
-  return userId || '1';
+  const userDataStr = localStorage.getItem('userData');
+  if (userDataStr) {
+    try {
+      const userData = JSON.parse(userDataStr);
+      return userData.member_id || '1';
+    } catch (e) {
+      console.error('[getUserId] Failed to parse userData:', e);
+    }
+  }
+  return '1';
 }
 
 export function useHealthProfiles() {
