@@ -82,7 +82,8 @@ export function WeeklyMenuWidget() {
   const currentDayOfWeek = new Date().toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
   const todayMeals = weeklyMenu.filter(plan => plan.day === currentDayOfWeek);
   
-  const uniqueDays = Array.from(new Set(weeklyMenu.map(m => m.day)));
+  const uniqueDaysSet = new Set(weeklyMenu.map(m => m.day));
+  const uniqueDays = [...uniqueDaysSet];
   const totalPlanned = weeklyMenu.length;
 
   return (

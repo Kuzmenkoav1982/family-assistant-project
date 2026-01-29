@@ -121,7 +121,23 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
 export function useDemoMode() {
   const context = useContext(DemoModeContext);
   if (!context) {
-    throw new Error('useDemoMode must be used within DemoModeProvider');
+    return {
+      isDemoMode: false,
+      demoMembers: [],
+      demoTasks: [],
+      demoShoppingList: [],
+      demoRecipes: [],
+      demoCalendarEvents: [],
+      demoGoals: [],
+      demoTrips: [],
+      demoPolls: [],
+      demoTestResults: [],
+      demoTestSchedule: [],
+      demoTestStats: {},
+      demoLeisureActivities: [],
+      updateDemoTask: () => {},
+      toggleDemoTask: () => {}
+    };
   }
   return context;
 }
