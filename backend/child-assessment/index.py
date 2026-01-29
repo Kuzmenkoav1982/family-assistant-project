@@ -10,6 +10,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context - объект с атрибутами request_id, function_name
     Returns: HTTP response с анкетой навыков по категориям
     '''
+    print(f'[START] child-assessment handler called')
+    print(f'[DEBUG] Event: {json.dumps(event)}')
+    
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
@@ -36,6 +39,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     params = event.get('queryStringParameters', {})
     age_range: str = params.get('age_range', '1-2')
     
+    print(f'[DEBUG] Age range: {age_range}')
+    
     age_ranges_map = {
         '0-6': 'от 0 до 6 месяцев',
         '6-12': 'от 6 до 12 месяцев',
@@ -54,10 +59,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     age_description = age_ranges_map.get(age_range, 'от 1 года до 2 лет')
     
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
-    # Используем проверенный folder_id из старого каталога
+    # Используем проверенный folder_id из старого каталога (как в trips-ai-recommend)
     folder_id = 'b1gaglg8i7v2i32nvism'
     
+    print(f'[DEBUG] API key present: {bool(api_key)}')
+    print(f'[DEBUG] Folder ID: {folder_id}')
+    
     if not api_key:
+        print('[ERROR] YANDEX_GPT_API_KEY not set')
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -95,7 +104,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         examples = f"""Примеры правильных навыков:
 - Для 0-6 месяцев: "Держит голову", "Переворачивается"
-- Для 4-5 лет: "Прыгает на одной ноге", "Рисует человека из 6+ частей", "Использует сложные предложения""""
+- Для 4-5 лет: "Прыгает на одной ноге", "Рисует человека из 6+ частей", "Использует сложные предложения"""
     
     prompt = f"""Создай структурированную анкету для оценки развития ребенка СТРОГО возраста {age_description}.
 
@@ -131,6 +140,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 Верни ТОЛЬКО JSON, без дополнительного текста."""
 
+    print(f'[DEBUG] Calling YandexGPT with folder_id: {folder_id}')
+
     try:
         yandex_response = requests.post(
             'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
@@ -139,7 +150,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Content-Type': 'application/json'
             },
             json={
-                'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+                'modelUri': f'gpt://{folder_id}/yandexgpt-lite',
                 'completionOptions': {
                     'stream': False,
                     'temperature': 0.7,
@@ -154,7 +165,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             },
             timeout=30
         )
+        
+        print(f'[DEBUG] YandexGPT response status: {yandex_response.status_code}')
+        
     except Exception as e:
+        print(f'[ERROR] Request exception: {str(e)}')
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -170,8 +185,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         try:
             error_data = yandex_response.json()
             error_details = error_data.get('message', error_data)
+            print(f'[ERROR] YandexGPT error response: {json.dumps(error_data)}')
         except:
             error_details = yandex_response.text[:200]
+            print(f'[ERROR] YandexGPT error text: {error_details}')
         
         return {
             'statusCode': 500,
@@ -184,6 +201,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     result = yandex_response.json()
+    print(f'[DEBUG] YandexGPT response received')
+    
     content = result['result']['alternatives'][0]['message']['text'].strip()
     
     # Агрессивная очистка markdown и лишнего текста
@@ -204,7 +223,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         questionnaire = json.loads(content)
+        print(f'[SUCCESS] Questionnaire parsed successfully')
     except json.JSONDecodeError as e:
+        print(f'[ERROR] JSON parse error: {str(e)}')
+        print(f'[ERROR] Content: {content[:500]}')
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -216,6 +238,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    print(f'[SUCCESS] Returning questionnaire')
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
