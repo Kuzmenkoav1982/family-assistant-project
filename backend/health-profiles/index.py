@@ -67,14 +67,11 @@ def handler(event: dict, context) -> dict:
                         'isPrimary': c[4]
                     })
                 
-                cursor.execute('SELECT name, age FROM family_members WHERE id = %s', (row[1],))
-                member = cursor.fetchone()
-                
                 profiles.append({
                     'id': row[0],
                     'userId': row[1],
-                    'userName': member[0] if member else 'Неизвестно',
-                    'userAge': member[1] if member else 0,
+                    'userName': 'Член семьи',
+                    'userAge': 0,
                     'bloodType': row[2],
                     'rhFactor': row[3],
                     'allergies': decrypt_list(row[4]) if row[4] else [],
