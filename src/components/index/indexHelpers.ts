@@ -110,6 +110,7 @@ export const menuSections = [
   { id: 'calendar', icon: 'Calendar', label: 'Календарь', ready: true },
   { id: 'family', icon: 'Users', label: 'Семья', ready: true },
   { id: 'children', icon: 'Baby', label: 'Дети', ready: true },
+  { id: 'health', icon: 'HeartPulse', label: 'Здоровье', ready: true },
   { id: 'values', icon: 'Heart', label: 'Ценности', ready: true },
   { id: 'traditions', icon: 'Sparkles', label: 'Традиции', ready: true },
   { id: 'rules', icon: 'Scale', label: 'Правила', ready: true },
