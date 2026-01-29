@@ -4,12 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import AddGuestDialog from '@/components/events/AddGuestDialog';
+import AddTaskDialog from '@/components/events/AddTaskDialog';
+import AddExpenseDialog from '@/components/events/AddExpenseDialog';
 import func2url from '../../backend/func2url.json';
-import type { FamilyEvent } from '@/types/events';
+import type { FamilyEvent, EventGuest, EventTask, EventExpense } from '@/types/events';
 
-const API_URL = func2url['events'];
+const API_URLS = {
+  events: func2url['events'],
+  guests: func2url['event-guests'],
+  tasks: func2url['event-tasks'],
+  expenses: func2url['event-expenses']
+};
 
 function getUserId(): string {
   const userDataStr = localStorage.getItem('userData');
@@ -38,49 +47,188 @@ const statusLabels: Record<string, { label: string; variant: 'default' | 'second
   cancelled: { label: 'Отменён', variant: 'destructive' }
 };
 
+const guestStatusLabels: Record<string, { label: string; variant: 'default' | 'success' | 'destructive' | 'secondary' }> = {
+  invited: { label: 'Приглашён', variant: 'default' },
+  confirmed: { label: 'Подтвердил', variant: 'success' },
+  declined: { label: 'Отказался', variant: 'destructive' },
+  maybe: { label: 'Возможно', variant: 'secondary' }
+};
+
+const taskStatusLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'success' }> = {
+  pending: { label: 'Ожидает', variant: 'default' },
+  in_progress: { label: 'В работе', variant: 'secondary' },
+  completed: { label: 'Выполнено', variant: 'success' }
+};
+
+const categoryLabels: Record<string, string> = {
+  venue: 'Место',
+  food: 'Еда',
+  decorations: 'Декор',
+  entertainment: 'Развлечения',
+  gifts: 'Подарки',
+  other: 'Прочее'
+};
+
 export default function EventDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
   const [event, setEvent] = useState<FamilyEvent | null>(null);
+  const [guests, setGuests] = useState<EventGuest[]>([]);
+  const [tasks, setTasks] = useState<EventTask[]>([]);
+  const [expenses, setExpenses] = useState<EventExpense[]>([]);
+  
   const [loading, setLoading] = useState(true);
+  const [guestsLoading, setGuestsLoading] = useState(false);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [expensesLoading, setExpensesLoading] = useState(false);
+  
+  const [showAddGuest, setShowAddGuest] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [showAddExpense, setShowAddExpense] = useState(false);
+
+  const fetchEvent = async () => {
+    try {
+      setLoading(true);
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URLS.events}?id=${id}`, {
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setEvent(data);
+      } else {
+        throw new Error('Failed to fetch event');
+      }
+    } catch (error) {
+      console.error('[EventDetails] Error:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить данные праздника',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchGuests = async () => {
+    try {
+      setGuestsLoading(true);
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URLS.guests}?eventId=${id}`, {
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGuests(data);
+      }
+    } catch (error) {
+      console.error('[FetchGuests] Error:', error);
+    } finally {
+      setGuestsLoading(false);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      setTasksLoading(true);
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URLS.tasks}?eventId=${id}`, {
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTasks(data);
+      }
+    } catch (error) {
+      console.error('[FetchTasks] Error:', error);
+    } finally {
+      setTasksLoading(false);
+    }
+  };
+
+  const fetchExpenses = async () => {
+    try {
+      setExpensesLoading(true);
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URLS.expenses}?eventId=${id}`, {
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setExpenses(data.expenses || []);
+      }
+    } catch (error) {
+      console.error('[FetchExpenses] Error:', error);
+    } finally {
+      setExpensesLoading(false);
+    }
+  };
+
+  const handleTaskStatusChange = async (taskId: string, currentStatus: string) => {
+    const statusOrder = ['pending', 'in_progress', 'completed'];
+    const currentIndex = statusOrder.indexOf(currentStatus);
+    const newStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+
+    try {
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(API_URLS.tasks, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+        body: JSON.stringify({ id: taskId, status: newStatus })
+      });
+
+      if (response.ok) {
+        fetchTasks();
+        toast({ title: 'Статус обновлён!' });
+      }
+    } catch (error) {
+      console.error('[UpdateTask] Error:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось обновить статус',
+        variant: 'destructive'
+      });
+    }
+  };
 
   useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const authToken = localStorage.getItem('authToken');
-
-        const response = await fetch(`${API_URL}?id=${id}`, {
-          headers: {
-            'X-User-Id': userId,
-            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setEvent(data);
-        } else {
-          throw new Error('Failed to fetch event');
-        }
-      } catch (error) {
-        console.error('[EventDetails] Error:', error);
-        toast({
-          title: 'Ошибка',
-          description: 'Не удалось загрузить данные праздника',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (id) {
       fetchEvent();
     }
-  }, [id, toast]);
+  }, [id]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -209,174 +357,202 @@ export default function EventDetailsPage() {
         )}
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Обзор</TabsTrigger>
+      <Tabs defaultValue="guests" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="guests">Гости</TabsTrigger>
           <TabsTrigger value="tasks">Задачи</TabsTrigger>
           <TabsTrigger value="wishlist">Подарки</TabsTrigger>
           <TabsTrigger value="expenses">Расходы</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">
+        <TabsContent value="guests" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Обзор праздника</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Icon name="Users" className="text-blue-500" />
-                    <span className="font-medium">Список гостей</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const tabsList = document.querySelector('[role="tablist"]');
-                    const guestsTab = tabsList?.querySelector('[value="guests"]') as HTMLElement;
-                    guestsTab?.click();
-                  }}>
-                    Перейти
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Icon name="CheckSquare" className="text-green-500" />
-                    <span className="font-medium">Задачи по организации</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const tabsList = document.querySelector('[role="tablist"]');
-                    const tasksTab = tabsList?.querySelector('[value="tasks"]') as HTMLElement;
-                    tasksTab?.click();
-                  }}>
-                    Перейти
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Icon name="Gift" className="text-pink-500" />
-                    <span className="font-medium">Виш-листы подарков</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const tabsList = document.querySelector('[role="tablist"]');
-                    const wishlistTab = tabsList?.querySelector('[value="wishlist"]') as HTMLElement;
-                    wishlistTab?.click();
-                  }}>
-                    Перейти
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Icon name="Wallet" className="text-orange-500" />
-                    <span className="font-medium">Бюджет и расходы</span>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const tabsList = document.querySelector('[role="tablist"]');
-                    const expensesTab = tabsList?.querySelector('[value="expenses"]') as HTMLElement;
-                    expensesTab?.click();
-                  }}>
-                    Перейти
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="guests">
-          <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Список гостей</CardTitle>
+              <Button onClick={() => { setShowAddGuest(true); fetchGuests(); }}>
+                <Icon name="Plus" size={16} />
+                Добавить гостя
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <Icon name="Users" size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">Гостей пока нет</p>
-                <Button>
-                  <Icon name="Plus" size={16} />
-                  Добавить гостя
-                </Button>
-              </div>
+              {guestsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Icon name="Loader2" className="animate-spin" size={24} />
+                </div>
+              ) : guests.length === 0 ? (
+                <div className="text-center py-12">
+                  <Icon name="Users" size={48} className="mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">Гостей пока нет</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {guests.map((guest) => (
+                    <div key={guest.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium">{guest.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {guest.adultsCount} взр. {guest.childrenCount > 0 && `• ${guest.childrenCount} реб.`}
+                          {guest.phone && ` • ${guest.phone}`}
+                        </p>
+                        {guest.dietaryRestrictions && (
+                          <p className="text-sm text-gray-500 mt-1">🍽️ {guest.dietaryRestrictions}</p>
+                        )}
+                      </div>
+                      <Badge variant={guestStatusLabels[guest.status]?.variant || 'default'}>
+                        {guestStatusLabels[guest.status]?.label || guest.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="tasks">
+        <TabsContent value="tasks" className="mt-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Задачи по организации</CardTitle>
+              <Button onClick={() => { setShowAddTask(true); fetchTasks(); }}>
+                <Icon name="Plus" size={16} />
+                Добавить задачу
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <Icon name="CheckSquare" size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">Задач пока нет</p>
-                <Button>
-                  <Icon name="Plus" size={16} />
-                  Добавить задачу
-                </Button>
-              </div>
+              {tasksLoading ? (
+                <div className="flex justify-center py-8">
+                  <Icon name="Loader2" className="animate-spin" size={24} />
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-12">
+                  <Icon name="CheckSquare" size={48} className="mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">Задач пока нет</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {tasks.map((task) => (
+                    <div key={task.id} className="flex items-start gap-3 p-4 border rounded-lg">
+                      <Checkbox
+                        checked={task.status === 'completed'}
+                        onCheckedChange={() => handleTaskStatusChange(task.id, task.status)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <p className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : ''}`}>
+                          {task.title}
+                        </p>
+                        {task.description && (
+                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
+                          {task.assignedTo && (
+                            <span className="flex items-center gap-1">
+                              <Icon name="User" size={14} />
+                              {task.assignedTo}
+                            </span>
+                          )}
+                          {task.deadline && (
+                            <span className="flex items-center gap-1">
+                              <Icon name="Calendar" size={14} />
+                              {new Date(task.deadline).toLocaleDateString('ru-RU')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant={taskStatusLabels[task.status]?.variant || 'default'}>
+                        {taskStatusLabels[task.status]?.label || task.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="wishlist">
+        <TabsContent value="wishlist" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle>Подарки</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="birthday" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="birthday">Для именинника</TabsTrigger>
-                  <TabsTrigger value="guests">Для гостей</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="birthday">
-                  <div className="text-center py-12">
-                    <Icon name="Gift" size={48} className="mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-4">Виш-лист пуст</p>
-                    <Button>
-                      <Icon name="Plus" size={16} />
-                      Добавить подарок
-                    </Button>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="guests">
-                  <div className="text-center py-12">
-                    <Icon name="Gift" size={48} className="mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-4">Подарков для гостей нет</p>
-                    <Button>
-                      <Icon name="Plus" size={16} />
-                      Добавить подарок для гостей
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="expenses">
-          <Card>
-            <CardHeader>
-              <CardTitle>Расходы</CardTitle>
-            </CardHeader>
-            <CardContent>
               <div className="text-center py-12">
-                <Icon name="Wallet" size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">Расходов пока нет</p>
-                <Button>
-                  <Icon name="Plus" size={16} />
-                  Добавить расход
-                </Button>
+                <Icon name="Gift" size={48} className="mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600 mb-4">Раздел в разработке</p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="expenses" className="mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Расходы</CardTitle>
+              <Button onClick={() => { setShowAddExpense(true); fetchExpenses(); }}>
+                <Icon name="Plus" size={16} />
+                Добавить расход
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {expensesLoading ? (
+                <div className="flex justify-center py-8">
+                  <Icon name="Loader2" className="animate-spin" size={24} />
+                </div>
+              ) : expenses.length === 0 ? (
+                <div className="text-center py-12">
+                  <Icon name="Wallet" size={48} className="mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">Расходов пока нет</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {expenses.map((expense) => (
+                    <div key={expense.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium">{expense.title}</p>
+                        <p className="text-sm text-gray-600">
+                          {categoryLabels[expense.category] || expense.category}
+                        </p>
+                      </div>
+                      <p className="text-lg font-bold">
+                        {expense.amount.toLocaleString('ru-RU')} ₽
+                      </p>
+                    </div>
+                  ))}
+                  <div className="pt-4 border-t">
+                    <div className="flex justify-between text-lg font-bold">
+                      <span>Итого:</span>
+                      <span>
+                        {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('ru-RU')} ₽
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      <AddGuestDialog
+        open={showAddGuest}
+        onOpenChange={setShowAddGuest}
+        eventId={id!}
+        onSuccess={() => { fetchGuests(); fetchEvent(); }}
+      />
+
+      <AddTaskDialog
+        open={showAddTask}
+        onOpenChange={setShowAddTask}
+        eventId={id!}
+        onSuccess={fetchTasks}
+      />
+
+      <AddExpenseDialog
+        open={showAddExpense}
+        onOpenChange={setShowAddExpense}
+        eventId={id!}
+        onSuccess={() => { fetchExpenses(); fetchEvent(); }}
+      />
     </div>
   );
 }
