@@ -56,8 +56,13 @@ export default function CreateEventPage() {
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
-          ...formData,
-          budget: formData.budget ? parseFloat(formData.budget) : null
+          title: formData.title,
+          eventType: formData.eventType,
+          eventDate: formData.eventDate,
+          eventTime: formData.eventTime || null,
+          location: formData.location || null,
+          budget: formData.budget ? parseFloat(formData.budget) : null,
+          description: formData.description || null
         })
       });
 
