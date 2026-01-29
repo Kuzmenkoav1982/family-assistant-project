@@ -38,6 +38,7 @@ def handler(event: dict, context) -> dict:
     
     try:
         if method == 'GET':
+            print(f'[DEBUG] Fetching profiles for user_id: {user_id}')
             cursor.execute('''
                 SELECT id, user_id, blood_type, rh_factor, allergies, chronic_diseases, 
                        privacy, shared_with, created_at, updated_at
@@ -46,6 +47,7 @@ def handler(event: dict, context) -> dict:
             ''', (user_id, user_id))
             
             rows = cursor.fetchall()
+            print(f'[DEBUG] Found {len(rows)} profiles')
             profiles = []
             
             for row in rows:
