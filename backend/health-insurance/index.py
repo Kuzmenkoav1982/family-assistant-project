@@ -1,6 +1,7 @@
 import json
 import os
 import psycopg2
+from encryption_utils import encrypt_data, decrypt_data
 
 def handler(event: dict, context) -> dict:
     '''
@@ -65,7 +66,7 @@ def handler(event: dict, context) -> dict:
                     'id': row[0],
                     'profileId': row[1],
                     'type': row[2],
-                    'policyNumber': row[3],
+                    'policyNumber': decrypt_data(row[3]) if row[3] else '',
                     'provider': row[4],
                     'startDate': row[5].isoformat() if row[5] else None,
                     'endDate': row[6].isoformat() if row[6] else None,
@@ -93,7 +94,7 @@ def handler(event: dict, context) -> dict:
             ''', (
                 body['profileId'],
                 body['type'],
-                body['policyNumber'],
+                encrypt_data(body['policyNumber']),
                 body['provider'],
                 body['startDate'],
                 body['endDate'],
@@ -127,7 +128,7 @@ def handler(event: dict, context) -> dict:
                 SET policy_number = %s, provider = %s, end_date = %s, status = %s
                 WHERE id = %s
             ''', (
-                body['policyNumber'],
+                encrypt_data(body['policyNumber']),
                 body['provider'],
                 body['endDate'],
                 body.get('status', 'active'),

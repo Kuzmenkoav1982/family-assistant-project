@@ -2,6 +2,7 @@ import json
 import os
 import psycopg2
 from datetime import datetime
+from encryption_utils import encrypt_list, decrypt_list
 
 def handler(event: dict, context) -> dict:
     '''
@@ -76,8 +77,8 @@ def handler(event: dict, context) -> dict:
                     'userAge': member[1] if member else 0,
                     'bloodType': row[2],
                     'rhFactor': row[3],
-                    'allergies': row[4] or [],
-                    'chronicDiseases': row[5] or [],
+                    'allergies': decrypt_list(row[4]) if row[4] else [],
+                    'chronicDiseases': decrypt_list(row[5]) if row[5] else [],
                     'emergencyContacts': contacts,
                     'privacy': row[6],
                     'sharedWith': row[7] or [],
@@ -105,8 +106,8 @@ def handler(event: dict, context) -> dict:
                 profile_user_id,
                 body.get('bloodType'),
                 body.get('rhFactor'),
-                body.get('allergies', []),
-                body.get('chronicDiseases', []),
+                encrypt_list(body.get('allergies', [])),
+                encrypt_list(body.get('chronicDiseases', [])),
                 body.get('privacy', 'private'),
                 body.get('sharedWith', [])
             ))
@@ -154,8 +155,8 @@ def handler(event: dict, context) -> dict:
             ''', (
                 body.get('bloodType'),
                 body.get('rhFactor'),
-                body.get('allergies', []),
-                body.get('chronicDiseases', []),
+                encrypt_list(body.get('allergies', [])),
+                encrypt_list(body.get('chronicDiseases', [])),
                 body.get('privacy'),
                 body.get('sharedWith', []),
                 profile_id,

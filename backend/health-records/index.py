@@ -1,6 +1,7 @@
 import json
 import os
 import psycopg2
+from encryption_utils import encrypt_data, decrypt_data, encrypt_list, decrypt_list
 
 def handler(event: dict, context) -> dict:
     '''
@@ -98,11 +99,11 @@ def handler(event: dict, context) -> dict:
                     'type': row[2],
                     'date': row[3].isoformat() if row[3] else None,
                     'title': row[4],
-                    'description': row[5],
+                    'description': decrypt_data(row[5]) if row[5] else None,
                     'doctor': row[6],
                     'clinic': row[7],
-                    'diagnosis': row[8],
-                    'recommendations': row[9],
+                    'diagnosis': decrypt_data(row[8]) if row[8] else None,
+                    'recommendations': decrypt_data(row[9]) if row[9] else None,
                     'attachments': attachments,
                     'aiAnalysis': ai_analysis,
                     'createdAt': row[14].isoformat() if row[14] else None
@@ -128,11 +129,11 @@ def handler(event: dict, context) -> dict:
                 body['type'],
                 body['date'],
                 body['title'],
-                body.get('description'),
+                encrypt_data(body.get('description', '')),
                 body.get('doctor'),
                 body.get('clinic'),
-                body.get('diagnosis'),
-                body.get('recommendations')
+                encrypt_data(body.get('diagnosis', '')),
+                encrypt_data(body.get('recommendations', ''))
             ))
             
             record_id = cursor.fetchone()[0]
@@ -176,11 +177,11 @@ def handler(event: dict, context) -> dict:
                 WHERE id = %s
             ''', (
                 body['title'],
-                body.get('description'),
+                encrypt_data(body.get('description', '')),
                 body.get('doctor'),
                 body.get('clinic'),
-                body.get('diagnosis'),
-                body.get('recommendations'),
+                encrypt_data(body.get('diagnosis', '')),
+                encrypt_data(body.get('recommendations', '')),
                 record_id
             ))
             
