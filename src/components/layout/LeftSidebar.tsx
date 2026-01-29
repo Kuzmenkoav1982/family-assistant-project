@@ -60,6 +60,8 @@ export default function LeftSidebar({
                   navigate('/meals');
                 } else if (section.id === 'analytics') {
                   navigate('/analytics');
+                } else if (section.id === 'health') {
+                  navigate('/health');
                 } else {
                   onSectionChange(section.id);
                 }

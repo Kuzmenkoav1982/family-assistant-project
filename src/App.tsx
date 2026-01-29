@@ -8,7 +8,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import Instructions from "./pages/Instructions";
 import Garage from "./pages/Garage";
-import Health from "./pages/Health";
+import Health from "./pages/HealthNew";
 import Finance from "./pages/Finance";
 import Education from "./pages/Education";
 

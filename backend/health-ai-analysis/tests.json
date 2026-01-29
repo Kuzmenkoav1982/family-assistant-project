@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Test AI analysis endpoint",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "type": "blood_test"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "string",
+        "interpretation": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
