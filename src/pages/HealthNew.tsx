@@ -24,6 +24,9 @@ import {
   useTelemedicine,
 } from '@/hooks/useHealthAPI';
 import type { HealthProfile } from '@/types/health';
+import { AddHealthRecordDialog } from '@/components/health/AddHealthRecordDialog';
+import { AddMedicationDialog } from '@/components/health/AddMedicationDialog';
+import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 
 export default function HealthNew() {
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(null);
@@ -81,10 +84,12 @@ export default function HealthNew() {
           <Icon name="Heart" className="text-rose-500" size={32} />
           Здоровье семьи
         </h1>
-        <Button>
-          <Icon name="Plus" size={16} />
-          Добавить запись
-        </Button>
+        {selectedProfile && (
+          <AddHealthRecordDialog 
+            profileId={selectedProfile.userId} 
+            onSuccess={() => window.location.reload()}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -216,10 +221,10 @@ export default function HealthNew() {
               <TabsContent value="history" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Медицинская история</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Добавить запись
-                  </Button>
+                  <AddHealthRecordDialog 
+                    profileId={selectedProfile.userId} 
+                    onSuccess={() => window.location.reload()}
+                  />
                 </div>
                 {records
                   .map((record: any) => (
@@ -341,10 +346,10 @@ export default function HealthNew() {
               <TabsContent value="medications" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Лекарства и напоминания</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Добавить лекарство
-                  </Button>
+                  <AddMedicationDialog 
+                    profileId={selectedProfile.userId} 
+                    onSuccess={() => window.location.reload()}
+                  />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {medications
@@ -525,10 +530,10 @@ export default function HealthNew() {
               <TabsContent value="insurance" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Страховые полисы</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Добавить полис
-                  </Button>
+                  <AddInsuranceDialog 
+                    profileId={selectedProfile.userId} 
+                    onSuccess={() => window.location.reload()}
+                  />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {insurance
