@@ -57,10 +57,11 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
 
     isFetchingRef.current = true;
     
-    // Проверяем демо-режим
+    // Проверяем демо-режим ТОЛЬКО если пользователь НЕ авторизован
+    const authToken = localStorage.getItem('authToken');
     const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
     
-    if (isDemoMode) {
+    if (isDemoMode && !authToken) {
       // В демо-режиме используем моковые данные
       console.log('[FamilyMembersContext] Demo mode active, using mock data');
       if (!silent) {

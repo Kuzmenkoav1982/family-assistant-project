@@ -20,6 +20,17 @@ export function DemoModeIndicator() {
 
   useEffect(() => {
     const checkDemoMode = () => {
+      const authToken = localStorage.getItem('authToken');
+      
+      // Если пользователь авторизован - НЕ показываем демо-режим
+      if (authToken) {
+        // Очищаем флаг демо-режима если пользователь залогинен
+        localStorage.removeItem('isDemoMode');
+        localStorage.removeItem('demoStartTime');
+        setIsDemoMode(false);
+        return;
+      }
+      
       const demoMode = localStorage.getItem('isDemoMode') === 'true';
       const startTime = parseInt(localStorage.getItem('demoStartTime') || '0');
       

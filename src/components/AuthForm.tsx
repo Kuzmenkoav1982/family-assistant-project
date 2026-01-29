@@ -108,6 +108,9 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
           localStorage.setItem('authToken', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           localStorage.setItem('needsProfileSetup', 'true');
+          // Очищаем флаги демо-режима при успешной регистрации
+          localStorage.removeItem('isDemoMode');
+          localStorage.removeItem('demoStartTime');
           
           onAuthSuccess(data.token, data.user);
         }
@@ -152,6 +155,9 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
         } else {
           localStorage.setItem('authToken', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
+          // Очищаем флаги демо-режима при успешном логине
+          localStorage.removeItem('isDemoMode');
+          localStorage.removeItem('demoStartTime');
           onAuthSuccess(data.token, data.user);
         }
       } catch (parseErr) {

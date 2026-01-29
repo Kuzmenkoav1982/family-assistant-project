@@ -68,7 +68,15 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkDemoMode = () => {
+      const authToken = localStorage.getItem('authToken');
       const demoFlag = localStorage.getItem('isDemoMode') === 'true';
+      
+      // Если пользователь авторизован - НЕ используем демо-режим
+      if (authToken) {
+        setIsDemoMode(false);
+        return;
+      }
+      
       setIsDemoMode(demoFlag);
     };
 

@@ -70,6 +70,9 @@ export default function ActivateCallback() {
         member_id: activateData.member_id
       }));
       localStorage.removeItem('pending_invite_token');
+      // Очищаем флаги демо-режима при активации
+      localStorage.removeItem('isDemoMode');
+      localStorage.removeItem('demoStartTime');
 
       setMemberName(activateData.member_name);
       setStatus('success');

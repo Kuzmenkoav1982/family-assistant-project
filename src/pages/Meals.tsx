@@ -65,9 +65,10 @@ export default function Meals() {
   }, []);
 
   const fetchMeals = async () => {
+    const authToken = localStorage.getItem('authToken');
     const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
     
-    if (isDemoMode) {
+    if (isDemoMode && !authToken) {
       setMealPlans(DEMO_MEAL_PLANS);
       return;
     }

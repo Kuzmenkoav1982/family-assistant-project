@@ -16,9 +16,10 @@ export const useRecipes = (filters?: RecipeFilters) => {
   return useQuery({
     queryKey: ['recipes', filters],
     queryFn: async () => {
+      const authToken = localStorage.getItem('authToken');
       const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
       
-      if (isDemoMode) {
+      if (isDemoMode && !authToken) {
         let filtered = DEMO_RECIPES.map(r => ({
           ...r,
           id: parseInt(r.id.replace('recipe-', '')),

@@ -40,9 +40,10 @@ export default function TripWishlist() {
   }, []);
 
   const loadWishlist = async () => {
+    const authToken = localStorage.getItem('authToken');
     const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
     
-    if (isDemoMode) {
+    if (isDemoMode && !authToken) {
       setWishlist(DEMO_WISHLIST);
       setLoading(false);
       return;
