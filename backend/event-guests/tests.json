@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Get event guests",
+      "method": "GET",
+      "path": "/?eventId=test-event-123",
+      "headers": {
+        "X-User-Id": "test-user-123"
+      },
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

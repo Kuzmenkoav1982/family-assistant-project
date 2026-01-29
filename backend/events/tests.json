@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Get family events",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "test-user-123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "0": "object"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

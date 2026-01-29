@@ -11,7 +11,8 @@ import Garage from "./pages/Garage";
 import Health from "./pages/HealthNew";
 import Finance from "./pages/Finance";
 import Education from "./pages/Education";
-
+import EventsPage from "./pages/EventsPage";
+import CreateEventPage from "./pages/CreateEventPage";
 import Pets from "./pages/Pets";
 import Faith from "./pages/Faith";
 import Tree from "./pages/Tree";
@@ -224,6 +225,8 @@ const App = () => {
                       <Route path="/health" element={<Health />} />
                       <Route path="/finance" element={<Finance />} />
                       <Route path="/education" element={<Education />} />
+                      <Route path="/events" element={<EventsPage />} />
+                      <Route path="/events/create" element={<CreateEventPage />} />
                       <Route path="/pets" element={<Pets />} />
                       <Route path="/faith" element={<Faith />} />
                       <Route path="/tree" element={<Tree />} />

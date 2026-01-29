@@ -85,6 +85,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
         { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/?section=tasks' },
         { id: 'calendar', label: 'Календарь', icon: 'Calendar', path: '/calendar' },
+        { id: 'events', label: 'Праздники', icon: 'PartyPopper', path: '/events' },
         { id: 'analytics', label: 'Аналитика', icon: 'BarChart3', path: '/analytics' }
       ]
     },
