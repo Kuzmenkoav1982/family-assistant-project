@@ -54,6 +54,7 @@ export interface WishlistItem {
   priority: 'low' | 'medium' | 'high';
   reservedBy?: string;
   reservedByName?: string;
+  reserved: boolean;
   purchased: boolean;
   imageUrl?: string;
   createdAt: string;

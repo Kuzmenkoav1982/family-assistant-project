@@ -10,14 +10,18 @@ import { useToast } from '@/hooks/use-toast';
 import AddGuestDialog from '@/components/events/AddGuestDialog';
 import AddTaskDialog from '@/components/events/AddTaskDialog';
 import AddExpenseDialog from '@/components/events/AddExpenseDialog';
+import AddWishlistItemDialog from '@/components/events/AddWishlistItemDialog';
+import AddGuestGiftDialog from '@/components/events/AddGuestGiftDialog';
 import func2url from '../../backend/func2url.json';
-import type { FamilyEvent, EventGuest, EventTask, EventExpense } from '@/types/events';
+import type { FamilyEvent, EventGuest, EventTask, EventExpense, WishlistItem, GuestGift } from '@/types/events';
 
 const API_URLS = {
   events: func2url['events'],
   guests: func2url['event-guests'],
   tasks: func2url['event-tasks'],
-  expenses: func2url['event-expenses']
+  expenses: func2url['event-expenses'],
+  wishlist: func2url['event-wishlist'],
+  guestGifts: func2url['guest-gifts']
 };
 
 function getUserId(): string {
@@ -78,15 +82,21 @@ export default function EventDetailsPage() {
   const [guests, setGuests] = useState<EventGuest[]>([]);
   const [tasks, setTasks] = useState<EventTask[]>([]);
   const [expenses, setExpenses] = useState<EventExpense[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  const [guestGifts, setGuestGifts] = useState<GuestGift[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [guestsLoading, setGuestsLoading] = useState(false);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [expensesLoading, setExpensesLoading] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [guestGiftsLoading, setGuestGiftsLoading] = useState(false);
   
   const [showAddGuest, setShowAddGuest] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showAddWishlist, setShowAddWishlist] = useState(false);
+  const [showAddGuestGift, setShowAddGuestGift] = useState(false);
 
   const fetchEvent = async () => {
     try {
@@ -188,6 +198,54 @@ export default function EventDetailsPage() {
       console.error('[FetchExpenses] Error:', error);
     } finally {
       setExpensesLoading(false);
+    }
+  };
+
+  const fetchWishlist = async () => {
+    try {
+      setWishlistLoading(true);
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URLS.wishlist}?eventId=${id}`, {
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setWishlist(data);
+      }
+    } catch (error) {
+      console.error('[FetchWishlist] Error:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  const fetchGuestGifts = async () => {
+    try {
+      setGuestGiftsLoading(true);
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URLS.guestGifts}?eventId=${id}`, {
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGuestGifts(data);
+      }
+    } catch (error) {
+      console.error('[FetchGuestGifts] Error:', error);
+    } finally {
+      setGuestGiftsLoading(false);
     }
   };
 
@@ -476,10 +534,118 @@ export default function EventDetailsPage() {
               <CardTitle>Подарки</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <Icon name="Gift" size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">Раздел в разработке</p>
-              </div>
+              <Tabs defaultValue="birthday" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="birthday" onClick={fetchWishlist}>Для именинника</TabsTrigger>
+                  <TabsTrigger value="guests" onClick={fetchGuestGifts}>Для гостей</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="birthday" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="flex justify-end">
+                      <Button onClick={() => { setShowAddWishlist(true); fetchWishlist(); }}>
+                        <Icon name="Plus" size={16} />
+                        Добавить подарок
+                      </Button>
+                    </div>
+                    
+                    {wishlistLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Icon name="Loader2" className="animate-spin" size={24} />
+                      </div>
+                    ) : wishlist.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Icon name="Gift" size={48} className="mx-auto text-gray-400 mb-4" />
+                        <p className="text-gray-600">Виш-лист пуст</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {wishlist.map((item) => (
+                          <div key={item.id} className="border rounded-lg p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-medium">{item.title}</h3>
+                              {item.priority === 'high' && (
+                                <Badge variant="destructive">Важно</Badge>
+                              )}
+                            </div>
+                            {item.description && (
+                              <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                            )}
+                            <div className="flex items-center justify-between mt-3">
+                              {item.price && (
+                                <span className="text-lg font-bold">{item.price.toLocaleString('ru-RU')} ₽</span>
+                              )}
+                              {item.link && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <a href={item.link} target="_blank" rel="noopener noreferrer">
+                                    <Icon name="ExternalLink" size={14} />
+                                    Ссылка
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                            {item.reserved && (
+                              <Badge variant="success" className="mt-2">
+                                Зарезервировано{item.reservedByName && `: ${item.reservedByName}`}
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="guests" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="flex justify-end">
+                      <Button onClick={() => { setShowAddGuestGift(true); fetchGuestGifts(); }}>
+                        <Icon name="Plus" size={16} />
+                        Добавить подарок для гостей
+                      </Button>
+                    </div>
+                    
+                    {guestGiftsLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Icon name="Loader2" className="animate-spin" size={24} />
+                      </div>
+                    ) : guestGifts.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Icon name="Gift" size={48} className="mx-auto text-gray-400 mb-4" />
+                        <p className="text-gray-600">Подарков для гостей нет</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {guestGifts.map((gift) => (
+                          <div key={gift.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex-1">
+                              <p className="font-medium">{gift.title}</p>
+                              {gift.description && (
+                                <p className="text-sm text-gray-600">{gift.description}</p>
+                              )}
+                              <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
+                                {gift.category && (
+                                  <Badge variant="outline">
+                                    {gift.category === 'kids' ? 'Детям' : gift.category === 'adults' ? 'Взрослым' : 'Всем'}
+                                  </Badge>
+                                )}
+                                {gift.pricePerItem && (
+                                  <span>{gift.pricePerItem.toLocaleString('ru-RU')} ₽ / шт.</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-600">
+                                {gift.quantityPurchased || 0} / {gift.quantityNeeded}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>
@@ -552,6 +718,20 @@ export default function EventDetailsPage() {
         onOpenChange={setShowAddExpense}
         eventId={id!}
         onSuccess={() => { fetchExpenses(); fetchEvent(); }}
+      />
+
+      <AddWishlistItemDialog
+        open={showAddWishlist}
+        onOpenChange={setShowAddWishlist}
+        eventId={id!}
+        onSuccess={fetchWishlist}
+      />
+
+      <AddGuestGiftDialog
+        open={showAddGuestGift}
+        onOpenChange={setShowAddGuestGift}
+        eventId={id!}
+        onSuccess={fetchGuestGifts}
       />
     </div>
   );
