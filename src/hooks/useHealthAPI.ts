@@ -27,19 +27,25 @@ export function useHealthProfiles() {
       try {
         setLoading(true);
         const userId = getUserId();
+        const authToken = localStorage.getItem('authToken');
+        
         const response = await fetch(API_URLS.profiles, {
           headers: {
             'X-User-Id': userId!,
+            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
           },
         });
 
         if (!response.ok) {
+          console.error('[useHealthProfiles] Failed to fetch:', response.status, response.statusText);
           throw new Error('Failed to fetch profiles');
         }
 
         const data = await response.json();
+        console.log('[useHealthProfiles] Received profiles:', data);
         setProfiles(data);
       } catch (err) {
+        console.error('[useHealthProfiles] Error:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
