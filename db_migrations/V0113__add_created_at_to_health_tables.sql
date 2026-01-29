@@ -1,0 +1,7 @@
+-- Добавляем created_at в таблицу телемедицины
+ALTER TABLE telemedicine_sessions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE vaccinations ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE vital_records ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE insurance_policies ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE health_records ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();

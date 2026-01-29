@@ -1,4 +1,12 @@
 {
+  "health-records": "https://functions.poehali.dev/a5ea76d6-8fb7-4cfa-89c7-837877a2f996",
+  "health-vaccinations": "https://functions.poehali.dev/6aa2ed01-163f-4d6e-9259-8779f2a0d936",
+  "health-profiles": "https://functions.poehali.dev/5af15989-a44d-409e-ad5d-4bac1c3571a1",
+  "health-insurance": "https://functions.poehali.dev/933f7f2e-4542-437f-95ad-fdaee4f6dddc",
+  "health-medications": "https://functions.poehali.dev/520001f0-b1a0-4150-b221-a38041928a67",
+  "health-telemedicine": "https://functions.poehali.dev/51560445-6c6d-40f0-904a-37058c9ccf9d",
+  "health-doctors": "https://functions.poehali.dev/7d7a9874-70a9-4552-80f6-f6e497a7ec47",
+  "health-vitals": "https://functions.poehali.dev/7a1e7235-1205-4eaa-b73a-aeb045084040",
   "health-ai-analysis": "https://functions.poehali.dev/9fd74488-6955-40d9-81ee-b0c086132bdd",
   "calendar-events": "https://functions.poehali.dev/5e14781d-52a6-416c-856b-87061cf5decf",
   "admin-users": "https://functions.poehali.dev/edd9b238-1560-4f49-bf04-0bc787064f02",

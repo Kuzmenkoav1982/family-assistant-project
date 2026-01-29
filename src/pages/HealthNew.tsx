@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -13,20 +13,48 @@ import {
   DEMO_INSURANCE_POLICIES,
   DEMO_TELEMEDICINE_SESSIONS
 } from '@/data/demoHealthNew';
+import {
+  useHealthProfiles,
+  useHealthRecords,
+  useVaccinations,
+  useMedications,
+  useVitalRecords,
+  useDoctors,
+  useInsurance,
+  useTelemedicine,
+} from '@/hooks/useHealthAPI';
 import type { HealthProfile } from '@/types/health';
 
 export default function HealthNew() {
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(null);
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
+  
+  const { profiles: apiProfiles, loading: profilesLoading } = useHealthProfiles();
+  const { records: apiRecords } = useHealthRecords(selectedProfile?.id);
+  const { vaccinations: apiVaccinations } = useVaccinations(selectedProfile?.id);
+  const { medications: apiMedications } = useMedications(selectedProfile?.id);
+  const { vitals: apiVitals } = useVitalRecords(selectedProfile?.id);
+  const { doctors: apiDoctors } = useDoctors();
+  const { insurance: apiInsurance } = useInsurance(selectedProfile?.id);
+  const { sessions: apiSessions } = useTelemedicine(selectedProfile?.id);
 
-  const profiles = isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : [];
+  const profiles = isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles;
+  const records = isDemoMode && !authToken ? DEMO_HEALTH_RECORDS_NEW.filter(r => r.profileId === selectedProfile?.id) : apiRecords;
+  const vaccinations = isDemoMode && !authToken ? DEMO_VACCINATIONS.filter(v => v.profileId === selectedProfile?.id) : apiVaccinations;
+  const medications = isDemoMode && !authToken ? DEMO_MEDICATIONS_NEW.filter(m => m.profileId === selectedProfile?.id) : apiMedications;
+  const vitals = isDemoMode && !authToken ? DEMO_VITAL_RECORDS.filter(v => v.profileId === selectedProfile?.id) : apiVitals;
+  const doctors = isDemoMode && !authToken ? DEMO_DOCTORS : apiDoctors;
+  const insurance = isDemoMode && !authToken ? DEMO_INSURANCE_POLICIES.filter(i => i.profileId === selectedProfile?.id) : apiInsurance;
+  const sessions = isDemoMode && !authToken ? DEMO_TELEMEDICINE_SESSIONS.filter(s => s.profileId === selectedProfile?.id) : apiSessions;
 
-  if (!selectedProfile && profiles.length > 0) {
-    setSelectedProfile(profiles[0]);
-  }
+  useEffect(() => {
+    if (profiles.length > 0 && !selectedProfile) {
+      setSelectedProfile(profiles[0]);
+    }
+  }, [profiles, selectedProfile]);
 
-  if (profiles.length === 0) {
+  if ((isDemoMode && !authToken) || profilesLoading) {
     return (
       <div className="container mx-auto p-6">
         <Card>
@@ -161,10 +189,9 @@ export default function HealthNew() {
                     <CardTitle className="text-lg">Последняя активность</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {DEMO_HEALTH_RECORDS_NEW
-                      .filter((r) => r.profileId === selectedProfile.id)
+                    {records
                       .slice(0, 3)
-                      .map((record) => (
+                      .map((record: any) => (
                         <div key={record.id} className="py-3 border-b last:border-0">
                           <div className="flex items-start justify-between">
                             <div>
@@ -194,9 +221,8 @@ export default function HealthNew() {
                     Добавить запись
                   </Button>
                 </div>
-                {DEMO_HEALTH_RECORDS_NEW
-                  .filter((r) => r.profileId === selectedProfile.id)
-                  .map((record) => (
+                {records
+                  .map((record: any) => (
                     <Card key={record.id}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -274,9 +300,8 @@ export default function HealthNew() {
                   </Button>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {DEMO_VACCINATIONS
-                    .filter((v) => v.profileId === selectedProfile.id)
-                    .map((vacc) => (
+                  {vaccinations
+                    .map((vacc: any) => (
                       <Card key={vacc.id}>
                         <CardHeader>
                           <CardTitle className="text-base flex items-center gap-2">
@@ -322,9 +347,8 @@ export default function HealthNew() {
                   </Button>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {DEMO_MEDICATIONS_NEW
-                    .filter((m) => m.profileId === selectedProfile.id)
-                    .map((med) => (
+                  {medications
+                    .map((med: any) => (
                       <Card key={med.id} className={!med.active ? 'opacity-60' : ''}>
                         <CardHeader>
                           <CardTitle className="text-base flex items-center gap-2">
@@ -386,10 +410,10 @@ export default function HealthNew() {
                       <CardTitle className="text-base">Вес</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {DEMO_VITAL_RECORDS
-                        .filter((v) => v.profileId === selectedProfile.id && v.type === 'weight')
+                      {vitals
+                        .filter((v: any) => v.type === 'weight')
                         .slice(0, 3)
-                        .map((vital) => (
+                        .map((vital: any) => (
                           <div key={vital.id} className="flex justify-between text-sm py-1">
                             <span className="text-muted-foreground">
                               {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
@@ -404,10 +428,10 @@ export default function HealthNew() {
                       <CardTitle className="text-base">Давление</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {DEMO_VITAL_RECORDS
-                        .filter((v) => v.profileId === selectedProfile.id && v.type === 'pressure')
+                      {vitals
+                        .filter((v: any) => v.type === 'pressure')
                         .slice(0, 3)
-                        .map((vital) => (
+                        .map((vital: any) => (
                           <div key={vital.id} className="flex justify-between text-sm py-1">
                             <span className="text-muted-foreground">
                               {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
@@ -422,10 +446,10 @@ export default function HealthNew() {
                       <CardTitle className="text-base">Пульс</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {DEMO_VITAL_RECORDS
-                        .filter((v) => v.profileId === selectedProfile.id && v.type === 'pulse')
+                      {vitals
+                        .filter((v: any) => v.type === 'pulse')
                         .slice(0, 3)
-                        .map((vital) => (
+                        .map((vital: any) => (
                           <div key={vital.id} className="flex justify-between text-sm py-1">
                             <span className="text-muted-foreground">
                               {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
@@ -447,7 +471,7 @@ export default function HealthNew() {
                   </Button>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {DEMO_DOCTORS.map((doctor) => (
+                  {doctors.map((doctor: any) => (
                     <Card key={doctor.id}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -507,9 +531,8 @@ export default function HealthNew() {
                   </Button>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {DEMO_INSURANCE_POLICIES
-                    .filter((p) => p.profileId === selectedProfile.id)
-                    .map((policy) => (
+                  {insurance
+                    .map((policy: any) => (
                       <Card key={policy.id}>
                         <CardHeader>
                           <div className="flex items-start justify-between">
@@ -582,9 +605,8 @@ export default function HealthNew() {
                   Онлайн-консультации с врачами через видеозвонок. Удобно, быстро, безопасно.
                 </p>
                 <div className="space-y-4">
-                  {DEMO_TELEMEDICINE_SESSIONS
-                    .filter((s) => s.profileId === selectedProfile.id)
-                    .map((session) => (
+                  {sessions
+                    .map((session: any) => (
                       <Card key={session.id}>
                         <CardHeader>
                           <div className="flex items-start justify-between">
