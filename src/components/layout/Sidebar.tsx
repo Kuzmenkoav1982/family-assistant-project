@@ -60,6 +60,14 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       ]
     },
     {
+      id: 'health',
+      title: '💊 ЗДОРОВЬЕ',
+      icon: 'HeartPulse',
+      items: [
+        { id: 'health', label: 'Здоровье семьи', icon: 'HeartPulse', path: '/health' }
+      ]
+    },
+    {
       id: 'values',
       title: '💖 ЦЕННОСТИ И КУЛЬТУРА',
       icon: 'Heart',
