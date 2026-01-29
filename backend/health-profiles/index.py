@@ -3,6 +3,32 @@ import os
 import psycopg2
 from datetime import datetime
 from encryption_utils import encrypt_list, decrypt_list
+import urllib.request
+import urllib.error
+
+FAMILY_MEMBERS_URL = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5'
+
+def get_member_info(member_id: str, auth_token: str = None) -> dict:
+    '''Получить имя и возраст члена семьи через family-members функцию'''
+    try:
+        headers = {'X-User-Id': member_id}
+        if auth_token:
+            headers['Authorization'] = f'Bearer {auth_token}'
+        
+        req = urllib.request.Request(FAMILY_MEMBERS_URL, headers=headers)
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            if data.get('success') and data.get('members'):
+                for member in data['members']:
+                    if member.get('id') == member_id:
+                        return {
+                            'name': member.get('name', 'Член семьи'),
+                            'age': member.get('age', 0)
+                        }
+        return {'name': 'Член семьи', 'age': 0}
+    except Exception as e:
+        print(f'[ERROR] Failed to fetch member info for {member_id}: {e}')
+        return {'name': 'Член семьи', 'age': 0}
 
 def handler(event: dict, context) -> dict:
     '''
@@ -23,6 +49,9 @@ def handler(event: dict, context) -> dict:
         }
     
     user_id = event.get('headers', {}).get('X-User-Id') or event.get('headers', {}).get('x-user-id')
+    auth_token = event.get('headers', {}).get('X-Authorization') or event.get('headers', {}).get('x-authorization')
+    if auth_token and auth_token.startswith('Bearer '):
+        auth_token = auth_token[7:]
     
     if not user_id:
         return {
@@ -69,11 +98,13 @@ def handler(event: dict, context) -> dict:
                         'isPrimary': c[4]
                     })
                 
+                member_info = get_member_info(row[1], auth_token)
+                
                 profiles.append({
                     'id': row[0],
                     'userId': row[1],
-                    'userName': 'Член семьи',
-                    'userAge': 0,
+                    'userName': member_info['name'],
+                    'userAge': member_info['age'],
                     'bloodType': row[2],
                     'rhFactor': row[3],
                     'allergies': decrypt_list(row[4]) if row[4] else [],
