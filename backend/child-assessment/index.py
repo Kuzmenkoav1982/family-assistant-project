@@ -54,15 +54,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     age_description = age_ranges_map.get(age_range, 'от 1 года до 2 лет')
     
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
-    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    # Используем проверенный folder_id из старого каталога
+    folder_id = 'b1gaglg8i7v2i32nvism'
     
-    if not api_key or not folder_id:
+    if not api_key:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
                 'error': 'Не удалось загрузить анкету',
-                'message': 'Не настроены ключи API для генерации анкет. Обратитесь к администратору.'
+                'message': 'Не настроен ключ API для генерации анкет. Обратитесь к администратору.'
             }, ensure_ascii=False),
             'isBase64Encoded': False
         }
