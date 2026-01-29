@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Генерирует анкету для оценки развития ребенка на основе возраста
+    Генерирует анкету для оценки развития ребенка на основе возраста через YandexGPT API
     Args: event - dict с httpMethod, queryStringParameters (age_range)
           context - объект с атрибутами request_id, function_name
     Returns: HTTP response с анкетой навыков по категориям
