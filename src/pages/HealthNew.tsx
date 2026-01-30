@@ -120,9 +120,13 @@ export default function HealthNew() {
               onClick={() => setSelectedProfile(profile)}
             >
               <CardContent className="pt-4 md:pt-6 text-center">
-                {photo ? (
-                  <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2 rounded-full overflow-hidden border-2 border-gray-200">
-                    <img src={photo} alt={profile.userName} className="w-full h-full object-cover" />
+                {photo || (!isDemoMode && authToken) ? (
+                  <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
+                    <img 
+                      src={photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.userName)}&size=128&background=f97316&color=fff`} 
+                      alt={profile.userName} 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
                 ) : (
                   <div className="text-3xl md:text-4xl mb-2">
@@ -174,7 +178,7 @@ export default function HealthNew() {
                 <TabsTrigger value="telemedicine">Телемедицина</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="space-y-4 pb-20">
+              <TabsContent value="overview" className="space-y-4 pb-32">
                 <div className="grid md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
@@ -251,7 +255,7 @@ export default function HealthNew() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="history" className="space-y-4 pb-20">
+              <TabsContent value="history" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Медицинская история</h3>
                   <AddHealthRecordDialog 
@@ -329,7 +333,7 @@ export default function HealthNew() {
                   ))}
               </TabsContent>
 
-              <TabsContent value="vaccinations" className="space-y-4 pb-20">
+              <TabsContent value="vaccinations" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">График прививок</h3>
                   <Button size="sm">
@@ -376,7 +380,7 @@ export default function HealthNew() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="medications" className="space-y-4 pb-20">
+              <TabsContent value="medications" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Лекарства и напоминания</h3>
                   <AddMedicationDialog 
@@ -430,7 +434,7 @@ export default function HealthNew() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="vitals" className="space-y-4 pb-20">
+              <TabsContent value="vitals" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Дневник самочувствия</h3>
                   <Button size="sm">
@@ -500,7 +504,7 @@ export default function HealthNew() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="doctors" className="space-y-4 pb-20">
+              <TabsContent value="doctors" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">База врачей</h3>
                   <Button size="sm">
@@ -560,7 +564,7 @@ export default function HealthNew() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="insurance" className="space-y-4 pb-20">
+              <TabsContent value="insurance" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Страховые полисы</h3>
                   <AddInsuranceDialog 
@@ -631,7 +635,7 @@ export default function HealthNew() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="telemedicine" className="space-y-4 pb-20">
+              <TabsContent value="telemedicine" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Телемедицина</h3>
                   <Button size="sm">
