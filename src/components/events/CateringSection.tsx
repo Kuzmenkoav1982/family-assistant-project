@@ -24,8 +24,22 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   const [loadingPlaces, setLoadingPlaces] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [cuisineType, setCuisineType] = useState('all');
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+
+  const cuisineTypes = [
+    { value: 'all', label: 'Все заведения', query: 'кафе ресторан' },
+    { value: 'italian', label: 'Итальянская', query: 'итальянский ресторан' },
+    { value: 'japanese', label: 'Японская', query: 'японский ресторан суши' },
+    { value: 'georgian', label: 'Грузинская', query: 'грузинский ресторан' },
+    { value: 'caucasian', label: 'Кавказская', query: 'кавказская кухня' },
+    { value: 'european', label: 'Европейская', query: 'европейская кухня' },
+    { value: 'asian', label: 'Азиатская', query: 'азиатская кухня' },
+    { value: 'cafe', label: 'Кафе', query: 'кафе' },
+    { value: 'fastfood', label: 'Фастфуд', query: 'фастфуд' },
+    { value: 'bakery', label: 'Пекарня/Кондитерская', query: 'кондитерская пекарня' }
+  ];
 
   useEffect(() => {
     if (showMap && mapRef.current && nearbyPlaces.length > 0 && !mapInstanceRef.current) {
@@ -130,8 +144,11 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       const keyResponse = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
       const { apiKey } = await keyResponse.json();
 
+      const selectedCuisine = cuisineTypes.find(c => c.value === cuisineType);
+      const searchQuery = selectedCuisine?.query || 'кафе ресторан';
+
       const response = await fetch(
-        `https://search-maps.yandex.ru/v1/?text=кафе ресторан&ll=${event.location}&type=biz&lang=ru_RU&apikey=${apiKey}`
+        `https://search-maps.yandex.ru/v1/?text=${encodeURIComponent(searchQuery)}&ll=${event.location}&type=biz&lang=ru_RU&apikey=${apiKey}`
       );
       
       if (response.ok) {
@@ -275,7 +292,24 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
               />
             </div>
 
-            <div>
+            <div className="space-y-3">
+              <div>
+                <Label>Тип кухни</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {cuisineTypes.map((cuisine) => (
+                    <Button
+                      key={cuisine.value}
+                      variant={cuisineType === cuisine.value ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCuisineType(cuisine.value)}
+                      className="text-xs"
+                    >
+                      {cuisine.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               <Button
                 variant="outline"
                 onClick={searchNearbyPlaces}
