@@ -29,7 +29,7 @@ import { AddHealthRecordDialog } from '@/components/health/AddHealthRecordDialog
 import { AddMedicationDialog } from '@/components/health/AddMedicationDialog';
 import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 
-export default function HealthNew() {
+function HealthNew() {
   const navigate = useNavigate();
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(null);
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
@@ -719,3 +719,5 @@ export default function HealthNew() {
     </div>
   );
 }
+
+export default HealthNew;
