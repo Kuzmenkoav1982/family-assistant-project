@@ -56,7 +56,9 @@ function HealthNew() {
   const sessions = isDemoMode && !authToken ? DEMO_TELEMEDICINE_SESSIONS.filter(s => s.profileId === selectedProfile?.id) : apiSessions;
 
   useEffect(() => {
+    console.log('[HealthNew] useEffect triggered, profiles:', profiles.length, 'selectedProfile:', selectedProfile);
     if (profiles.length > 0 && selectedProfile === null) {
+      console.log('[HealthNew] Setting selectedProfile to:', profiles[0]);
       setSelectedProfile(profiles[0]);
     }
   }, [profiles]);
