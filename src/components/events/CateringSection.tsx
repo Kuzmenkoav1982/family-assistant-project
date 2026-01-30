@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,62 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
   const [cateringDetails, setCateringDetails] = useState(event.cateringDetails || '');
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   const [loadingPlaces, setLoadingPlaces] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (showMap && mapRef.current && nearbyPlaces.length > 0 && !mapInstanceRef.current) {
+      const ymaps = (window as any).ymaps;
+      if (!ymaps) return;
+
+      ymaps.ready(() => {
+        if (mapInstanceRef.current) return;
+
+        const [eventLng, eventLat] = event.location?.split(',').map(Number) || [37.6173, 55.7558];
+        
+        const map = new ymaps.Map('yandex-map', {
+          center: [eventLat, eventLng],
+          zoom: 14,
+          controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        const eventPlacemark = new ymaps.Placemark(
+          [eventLat, eventLng],
+          { hintContent: 'Место проведения', balloonContent: event.title },
+          { preset: 'islands#redDotIcon' }
+        );
+        map.geoObjects.add(eventPlacemark);
+
+        nearbyPlaces.forEach((place) => {
+          if (place.coordinates && place.coordinates.length === 2) {
+            const placemark = new ymaps.Placemark(
+              [place.coordinates[1], place.coordinates[0]],
+              {
+                hintContent: place.name,
+                balloonContent: `
+                  <strong>${place.name}</strong><br/>
+                  ${place.address}<br/>
+                  ${place.rating ? `⭐ ${place.rating}` : ''}
+                `
+              },
+              { preset: 'islands#orangeDotIcon' }
+            );
+            map.geoObjects.add(placemark);
+          }
+        });
+
+        mapInstanceRef.current = map;
+      });
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.destroy();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [showMap, nearbyPlaces, event.location, event.title]);
 
   const handleSave = async () => {
     try {
@@ -80,7 +136,17 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       
       if (response.ok) {
         const data = await response.json();
-        setNearbyPlaces(data.features?.slice(0, 10) || []);
+        const places = data.features?.slice(0, 10).map((f: any) => ({
+          name: f.properties?.name || 'Заведение',
+          address: f.properties?.description || '',
+          coordinates: f.geometry?.coordinates || [],
+          rating: f.properties?.rating || null,
+          phone: f.properties?.phone || null,
+          distance: null,
+          type: 'restaurant'
+        })) || [];
+        setNearbyPlaces(places);
+        if (places.length > 0) setShowMap(true);
       }
     } catch (error) {
       console.error('[CateringSection] Search error:', error);
@@ -221,40 +287,56 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
               </Button>
 
               {nearbyPlaces.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium">Ближайшие заведения:</p>
-                  {nearbyPlaces.map((place, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition"
-                      onClick={() => {
-                        setCateringDetails(
-                          `${place.name}\n${place.address}${place.phone ? `\n${place.phone}` : ''}`
-                        );
-                      }}
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Найдено заведений: {nearbyPlaces.length}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowMap(!showMap)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium">{place.name}</p>
-                          <p className="text-sm text-muted-foreground">{place.address}</p>
-                          {place.phone && (
-                            <p className="text-sm text-muted-foreground">{place.phone}</p>
+                      <Icon name={showMap ? 'List' : 'Map'} size={14} />
+                      {showMap ? 'Список' : 'Карта'}
+                    </Button>
+                  </div>
+
+                  {showMap && (
+                    <div
+                      ref={mapRef}
+                      className="w-full h-[400px] rounded-lg border"
+                      id="yandex-map"
+                    />
+                  )}
+
+                  <div className="space-y-2">
+                    {nearbyPlaces.map((place, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition"
+                        onClick={() => {
+                          setCateringDetails(
+                            `${place.name}\n${place.address}${place.phone ? `\n${place.phone}` : ''}`
+                          );
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium">{place.name}</p>
+                            <p className="text-sm text-muted-foreground">{place.address}</p>
+                            {place.phone && (
+                              <p className="text-sm text-muted-foreground">{place.phone}</p>
+                            )}
+                          </div>
+                          {place.rating && (
+                            <div className="flex items-center gap-1">
+                              <Icon name="Star" size={14} className="text-yellow-500 fill-yellow-500" />
+                              <span className="text-sm font-medium">{place.rating}</span>
+                            </div>
                           )}
                         </div>
-                        {place.rating && (
-                          <div className="flex items-center gap-1">
-                            <Icon name="Star" size={14} className="text-yellow-500 fill-yellow-500" />
-                            <span className="text-sm font-medium">{place.rating}</span>
-                          </div>
-                        )}
                       </div>
-                      {place.distance && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ~{place.distance}м от места проведения
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
