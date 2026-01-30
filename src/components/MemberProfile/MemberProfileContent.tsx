@@ -63,7 +63,7 @@ export function MemberProfileContent({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
-              {member.avatarType === 'photo' && member.photoUrl ? (
+              {member.photoUrl ? (
                 <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
                   <img 
                     src={member.photoUrl} 
@@ -73,7 +73,7 @@ export function MemberProfileContent({
                 </div>
               ) : (
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-4xl border-4 border-white shadow-lg">
-                  {member.avatar}
+                  {member.avatarType === 'emoji' && member.avatar && !member.avatar.startsWith('http') ? member.avatar : '👤'}
                 </div>
               )}
               <Badge className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-2 border-white">

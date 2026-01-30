@@ -15,6 +15,7 @@ export interface WorkloadMetrics {
 interface Task {
   id: string;
   assignee_id?: string;
+  assignee?: string;
   completed: boolean;
   completed_date?: string;
   due_date?: string;
@@ -40,14 +41,15 @@ export function calculateMemberWorkload(
   const weekAgo = new Date(today);
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  // Активные задачи
+  // Активные задачи (поддержка и ID, и имени для демо-режима)
   const activeTasks = tasks.filter(
-    t => t.assignee_id === member.id && !t.completed
+    t => (t.assignee_id === member.id || t.assignee === member.name) && !t.completed
   ).length;
 
-  // Завершено сегодня
+  // Завершено сегодня (поддержка и ID, и имени для демо-режима)
   const completedToday = tasks.filter(t => {
-    if (t.assignee_id !== member.id || !t.completed || !t.completed_date) return false;
+    const isAssigned = t.assignee_id === member.id || t.assignee === member.name;
+    if (!isAssigned || !t.completed || !t.completed_date) return false;
     const completedDate = new Date(t.completed_date);
     completedDate.setHours(0, 0, 0, 0);
     return completedDate.getTime() === today.getTime();

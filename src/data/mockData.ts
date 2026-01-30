@@ -23,11 +23,12 @@ export const initialFamilyMembers: FamilyMember[] = [
     name: 'Алексей', 
     role: 'Отец', 
     workload: 70, 
-    avatar: 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
+    avatar: '👨',
     photoUrl: 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
     age: 43,
     points: 580, 
     level: 6, 
+    tasksCompleted: 42,
     achievements: ['early_bird', 'helper', 'chef', 'organizer'],
     foodPreferences: {
       favorites: ['Стейк с картофелем', 'Плов', 'Борщ', 'Шашлык'],
@@ -40,11 +41,12 @@ export const initialFamilyMembers: FamilyMember[] = [
     name: 'Анастасия', 
     role: 'Мать', 
     workload: 85, 
-    avatar: 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
+    avatar: '👩',
     photoUrl: 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
     age: 38,
     points: 820, 
     level: 8, 
+    tasksCompleted: 68,
     achievements: ['organizer', 'champion', 'master_chef', 'wise'],
     foodPreferences: {
       favorites: ['Салаты', 'Рыба на пару', 'Овощи гриль', 'Смузи'],
@@ -57,11 +59,12 @@ export const initialFamilyMembers: FamilyMember[] = [
     name: 'Матвей', 
     role: 'Сын', 
     workload: 35, 
-    avatar: 'https://cdn.poehali.dev/files/2c506753-6a4d-447e-a8b2-294bceb38a95.png',
+    avatar: '👦',
     photoUrl: 'https://cdn.poehali.dev/files/2c506753-6a4d-447e-a8b2-294bceb38a95.png',
     age: 11,
     points: 340, 
     level: 4, 
+    tasksCompleted: 28,
     achievements: ['student', 'helper', 'gamer'],
     foodPreferences: {
       favorites: ['Пицца', 'Бургеры', 'Пельмени', 'Картофель фри'],
@@ -74,11 +77,12 @@ export const initialFamilyMembers: FamilyMember[] = [
     name: 'Даша', 
     role: 'Дочь', 
     workload: 28, 
-    avatar: 'https://cdn.poehali.dev/files/fcce342c-9b14-420d-b3eb-97084a3bbe08.png',
+    avatar: '👧',
     photoUrl: 'https://cdn.poehali.dev/files/fcce342c-9b14-420d-b3eb-97084a3bbe08.png',
     age: 8,
     points: 210, 
     level: 3, 
+    tasksCompleted: 18,
     achievements: ['beginner', 'artist'],
     foodPreferences: {
       favorites: ['Макароны с сыром', 'Блинчики', 'Мороженое', 'Фрукты'],
@@ -91,11 +95,12 @@ export const initialFamilyMembers: FamilyMember[] = [
     name: 'Илья', 
     role: 'Сын', 
     workload: 15, 
-    avatar: 'https://cdn.poehali.dev/files/c58eac3b-e952-42aa-abe0-9b1141530809.png',
+    avatar: '🧒',
     photoUrl: 'https://cdn.poehali.dev/files/c58eac3b-e952-42aa-abe0-9b1141530809.png',
     age: 5,
     points: 85, 
     level: 1, 
+    tasksCompleted: 7,
     achievements: ['beginner'],
     foodPreferences: {
       favorites: ['Каша с мёдом', 'Котлеты', 'Йогурт', 'Печенье'],
@@ -106,26 +111,26 @@ export const initialFamilyMembers: FamilyMember[] = [
 ];
 
 export const initialTasks: Task[] = [
-  { id: '1', title: 'Приготовить ужин', assignee: 'Анастасия', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '2', title: 'Вынести мусор', assignee: 'Алексей', completed: true, category: 'Дом', points: 10, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [1, 4] }, nextOccurrence: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0] },
-  { id: '3', title: 'Математика - упражнения 45-50', assignee: 'Матвей', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '4', title: 'Убрать комнату', assignee: 'Даша', completed: false, category: 'Дом', points: 20, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [6] }, nextOccurrence: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0] },
-  { id: '5', title: 'Выгулять собаку Рекса', assignee: 'Матвей', completed: false, category: 'Питомцы', points: 15, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '6', title: 'Купить продукты в Пятёрочке', assignee: 'Алексей', completed: false, category: 'Покупки', points: 20, reminderTime: '12:00', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Овощи', 'Мясо'] },
-  { id: '7', title: 'Отвезти Дашу на танцы', assignee: 'Анастасия', completed: true, category: 'Дети', points: 25, reminderTime: '16:30' },
-  { id: '8', title: 'Постирать белье', assignee: 'Анастасия', completed: true, category: 'Дом', points: 20 },
-  { id: '9', title: 'Помыть посуду после ужина', assignee: 'Матвей', completed: true, category: 'Кухня', points: 15 },
-  { id: '10', title: 'Полить цветы на балконе', assignee: 'Даша', completed: false, category: 'Дом', points: 10 },
-  { id: '11', title: 'Оплатить коммунальные услуги', assignee: 'Алексей', completed: false, category: 'Финансы', points: 25, reminderTime: '10:00' },
-  { id: '12', title: 'Генеральная уборка квартиры', assignee: 'Анастасия', completed: false, category: 'Дом', points: 50, isRecurring: true, recurringPattern: { frequency: 'monthly', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0] },
-  { id: '13', title: 'Почитать с Ильёй сказку', assignee: 'Анастасия', completed: false, category: 'Дети', points: 20, reminderTime: '20:30' },
-  { id: '14', title: 'Проверить уроки у Матвея', assignee: 'Алексей', completed: false, category: 'Учеба', points: 20 },
-  { id: '15', title: 'Приготовить завтрак', assignee: 'Анастасия', completed: true, category: 'Кухня', points: 20, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '16', title: 'Футбольная тренировка Матвея', assignee: 'Алексей', completed: false, category: 'Дети', points: 15, reminderTime: '17:00' },
-  { id: '17', title: 'Собрать портфель в детский сад', assignee: 'Анастасия', completed: false, category: 'Дети', points: 10, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-  { id: '18', title: 'Купить подарок на день рождения', assignee: 'Алексей', completed: false, category: 'Покупки', points: 30 },
-  { id: '19', title: 'Записаться к стоматологу', assignee: 'Анастасия', completed: false, category: 'Здоровье', points: 15 },
-  { id: '20', title: 'Помочь Илье собрать игрушки', assignee: 'Даша', completed: false, category: 'Дом', points: 10 }
+  { id: '1', title: 'Приготовить ужин', assignee: 'Анастасия', assignee_id: '2', completed: false, category: 'Кухня', points: 30, reminderTime: '18:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '2', title: 'Вынести мусор', assignee: 'Алексей', assignee_id: '1', completed: true, completed_date: new Date().toISOString(), category: 'Дом', points: 10, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [1, 4] }, nextOccurrence: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0] },
+  { id: '3', title: 'Математика - упражнения 45-50', assignee: 'Матвей', assignee_id: '3', completed: false, category: 'Учеба', points: 25, reminderTime: '16:00', isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '4', title: 'Убрать комнату', assignee: 'Даша', assignee_id: '4', completed: false, category: 'Дом', points: 20, isRecurring: true, recurringPattern: { frequency: 'weekly', interval: 1, daysOfWeek: [6] }, nextOccurrence: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0] },
+  { id: '5', title: 'Выгулять собаку Рекса', assignee: 'Матвей', assignee_id: '3', completed: false, category: 'Питомцы', points: 15, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '6', title: 'Купить продукты в Пятёрочке', assignee: 'Алексей', assignee_id: '1', completed: false, category: 'Покупки', points: 20, reminderTime: '12:00', shoppingList: ['Молоко', 'Хлеб', 'Яйца', 'Овощи', 'Мясо'] },
+  { id: '7', title: 'Отвезти Дашу на танцы', assignee: 'Анастасия', assignee_id: '2', completed: true, completed_date: new Date().toISOString(), category: 'Дети', points: 25, reminderTime: '16:30' },
+  { id: '8', title: 'Постирать белье', assignee: 'Анастасия', assignee_id: '2', completed: true, completed_date: new Date().toISOString(), category: 'Дом', points: 20 },
+  { id: '9', title: 'Помыть посуду после ужина', assignee: 'Матвей', assignee_id: '3', completed: true, completed_date: new Date().toISOString(), category: 'Кухня', points: 15 },
+  { id: '10', title: 'Полить цветы на балконе', assignee: 'Даша', assignee_id: '4', completed: false, category: 'Дом', points: 10 },
+  { id: '11', title: 'Оплатить коммунальные услуги', assignee: 'Алексей', assignee_id: '1', completed: false, category: 'Финансы', points: 25, reminderTime: '10:00' },
+  { id: '12', title: 'Генеральная уборка квартиры', assignee: 'Анастасия', assignee_id: '2', completed: false, category: 'Дом', points: 50, isRecurring: true, recurringPattern: { frequency: 'monthly', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0] },
+  { id: '13', title: 'Почитать с Ильёй сказку', assignee: 'Анастасия', assignee_id: '2', completed: false, category: 'Дети', points: 20, reminderTime: '20:30' },
+  { id: '14', title: 'Проверить уроки у Матвея', assignee: 'Алексей', assignee_id: '1', completed: false, category: 'Учеба', points: 20 },
+  { id: '15', title: 'Приготовить завтрак', assignee: 'Анастасия', assignee_id: '2', completed: true, completed_date: new Date().toISOString(), category: 'Кухня', points: 20, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1 }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '16', title: 'Футбольная тренировка Матвея', assignee: 'Алексей', assignee_id: '1', completed: false, category: 'Дети', points: 15, reminderTime: '17:00' },
+  { id: '17', title: 'Собрать портфель в детский сад', assignee: 'Анастасия', assignee_id: '2', completed: false, category: 'Дети', points: 10, isRecurring: true, recurringPattern: { frequency: 'daily', interval: 1, daysOfWeek: [1, 2, 3, 4, 5] }, nextOccurrence: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+  { id: '18', title: 'Купить подарок на день рождения', assignee: 'Алексей', assignee_id: '1', completed: false, category: 'Покупки', points: 30 },
+  { id: '19', title: 'Записаться к стоматологу', assignee: 'Анастасия', assignee_id: '2', completed: false, category: 'Здоровье', points: 15 },
+  { id: '20', title: 'Помочь Илье собрать игрушки', assignee: 'Даша', assignee_id: '4', completed: false, category: 'Дом', points: 10 }
 ];
 
 export const initialChildrenProfiles: ChildProfile[] = [];
@@ -417,23 +422,25 @@ export const initialCalendarEvents: CalendarEvent[] = [
   {
     id: '1',
     title: 'Футбольная тренировка Матвея',
-    date: new Date(Date.now() + 86400000).toISOString(),
+    date: new Date(Date.now()).toISOString(),
     time: '17:00',
     category: 'leisure',
     color: 'bg-blue-100 text-blue-700 border-blue-300',
     visibility: 'family',
     attendees: ['Матвей', 'Алексей'],
+    participants: ['3', '1'],
     reminderEnabled: true
   },
   {
     id: '2',
     title: 'Танцы для Даши',
-    date: new Date(Date.now() + 86400000 * 2).toISOString(),
+    date: new Date(Date.now()).toISOString(),
     time: '16:30',
     category: 'leisure',
     color: 'bg-pink-100 text-pink-700 border-pink-300',
     visibility: 'family',
     attendees: ['Даша', 'Анастасия'],
+    participants: ['4', '2'],
     reminderEnabled: true
   },
   {
@@ -445,6 +452,7 @@ export const initialCalendarEvents: CalendarEvent[] = [
     color: 'bg-green-100 text-green-700 border-green-300',
     visibility: 'family',
     attendees: ['Алексей', 'Анастасия'],
+    participants: ['1', '2'],
     reminderEnabled: true
   },
   {
@@ -456,6 +464,7 @@ export const initialCalendarEvents: CalendarEvent[] = [
     color: 'bg-orange-100 text-orange-700 border-orange-300',
     visibility: 'family',
     attendees: ['Илья', 'Анастасия'],
+    participants: ['5', '2'],
     reminderEnabled: true
   },
   {
@@ -467,6 +476,7 @@ export const initialCalendarEvents: CalendarEvent[] = [
     color: 'bg-purple-100 text-purple-700 border-purple-300',
     visibility: 'family',
     attendees: ['Алексей', 'Анастасия', 'Матвей', 'Даша', 'Илья'],
+    participants: ['1', '2', '3', '4', '5'],
     reminderEnabled: true
   }
 ];
@@ -548,6 +558,219 @@ export const initialFamilyGoals: FamilyGoal[] = [
 ];
 
 export const initialShoppingList: any[] = [];
+
+// Health Records for demo mode
+export const initialHealthRecords = [
+  {
+    id: '1',
+    member_id: '1',
+    member_name: 'Алексей',
+    record_type: 'checkup',
+    date: '2026-01-15',
+    provider: 'Городская поликлиника №5',
+    diagnosis: 'Профилактический осмотр',
+    notes: 'Артериальное давление: 125/80. Рекомендована диета с низким содержанием соли.',
+    files: [],
+    medications: ['Аспирин 100мг'],
+    next_appointment: '2026-07-15'
+  },
+  {
+    id: '2',
+    member_id: '2',
+    member_name: 'Анастасия',
+    record_type: 'doctor_visit',
+    date: '2025-12-20',
+    provider: 'Стоматологическая клиника "Улыбка"',
+    diagnosis: 'Профессиональная чистка зубов',
+    notes: 'Состояние полости рта хорошее. Рекомендована повторная чистка через 6 месяцев.',
+    files: [],
+    next_appointment: '2026-06-20'
+  },
+  {
+    id: '3',
+    member_id: '3',
+    member_name: 'Матвей',
+    record_type: 'vaccination',
+    date: '2025-11-10',
+    provider: 'Детская поликлиника №12',
+    diagnosis: 'Прививка от гриппа',
+    notes: 'Вакцина: Совигрипп. Переносимость хорошая.',
+    files: [],
+    next_appointment: '2026-11-10'
+  },
+  {
+    id: '4',
+    member_id: '4',
+    member_name: 'Даша',
+    record_type: 'allergy',
+    date: '2025-09-05',
+    provider: 'Аллергологический центр',
+    diagnosis: 'Аллергия на пыльцу березы',
+    notes: 'Весенний период - принимать антигистаминные препараты. Избегать прогулок в парке во время цветения.',
+    files: [],
+    medications: ['Зодак 10мг (при обострении)'],
+    allergies: ['Пыльца березы']
+  },
+  {
+    id: '5',
+    member_id: '5',
+    member_name: 'Илья',
+    record_type: 'checkup',
+    date: '2026-01-10',
+    provider: 'Детская поликлиника №12',
+    diagnosis: 'Плановый осмотр 5 лет',
+    notes: 'Рост: 115 см, Вес: 19 кг. Развитие соответствует возрасту. Слух и зрение в норме.',
+    files: [],
+    next_appointment: '2027-01-10'
+  },
+  {
+    id: '6',
+    member_id: '1',
+    member_name: 'Алексей',
+    record_type: 'lab_results',
+    date: '2026-01-05',
+    provider: 'Лаборатория "Инвитро"',
+    diagnosis: 'Общий анализ крови',
+    notes: 'Гемоглобин: 145 г/л, Лейкоциты: 6.2×10⁹/л, СОЭ: 8 мм/ч. Все показатели в норме.',
+    files: []
+  },
+  {
+    id: '7',
+    member_id: '3',
+    member_name: 'Матвей',
+    record_type: 'injury',
+    date: '2025-10-22',
+    provider: 'Травмпункт',
+    diagnosis: 'Ушиб правого колена',
+    notes: 'Получена травма во время футбольной тренировки. Назначен покой 3 дня, холодные компрессы.',
+    files: [],
+    medications: ['Троксевазин гель (наружно)']
+  }
+];
+
+export const initialMedications = [
+  {
+    id: '1',
+    member_id: '1',
+    member_name: 'Алексей',
+    name: 'Аспирин',
+    dosage: '100 мг',
+    frequency: 'Ежедневно',
+    times_per_day: 1,
+    start_date: '2025-06-01',
+    end_date: null,
+    notes: 'Принимать после еды',
+    reminder_enabled: true,
+    reminder_times: ['09:00']
+  },
+  {
+    id: '2',
+    member_id: '4',
+    member_name: 'Даша',
+    name: 'Зодак',
+    dosage: '10 мг',
+    frequency: 'При необходимости',
+    times_per_day: 1,
+    start_date: '2025-09-05',
+    end_date: null,
+    notes: 'При аллергических реакциях, особенно весной',
+    reminder_enabled: false
+  },
+  {
+    id: '3',
+    member_id: '2',
+    member_name: 'Анастасия',
+    name: 'Витамин D3',
+    dosage: '2000 МЕ',
+    frequency: 'Ежедневно',
+    times_per_day: 1,
+    start_date: '2025-11-01',
+    end_date: '2026-03-31',
+    notes: 'Осенне-зимний период',
+    reminder_enabled: true,
+    reminder_times: ['10:00']
+  }
+];
+
+export const initialInsurance = [
+  {
+    id: '1',
+    member_id: '1',
+    member_name: 'Алексей',
+    policy_number: 'ОМС 7812345678901234',
+    insurance_company: 'СОГАЗ-Мед',
+    policy_type: 'ОМС',
+    valid_from: '2025-01-01',
+    valid_until: '2030-12-31',
+    notes: ''
+  },
+  {
+    id: '2',
+    member_id: '2',
+    member_name: 'Анастасия',
+    policy_number: 'ОМС 7823456789012345',
+    insurance_company: 'СОГАЗ-Мед',
+    policy_type: 'ОМС',
+    valid_from: '2025-01-01',
+    valid_until: '2030-12-31',
+    notes: ''
+  },
+  {
+    id: '3',
+    member_id: '3',
+    member_name: 'Матвей',
+    policy_number: 'ОМС 7834567890123456',
+    insurance_company: 'СОГАЗ-Мед',
+    policy_type: 'ОМС',
+    valid_from: '2015-05-14',
+    valid_until: '2030-12-31',
+    notes: ''
+  },
+  {
+    id: '4',
+    member_id: '4',
+    member_name: 'Даша',
+    policy_number: 'ОМС 7845678901234567',
+    insurance_company: 'СОГАЗ-Мед',
+    policy_type: 'ОМС',
+    valid_from: '2018-03-11',
+    valid_until: '2030-12-31',
+    notes: ''
+  },
+  {
+    id: '5',
+    member_id: '5',
+    member_name: 'Илья',
+    policy_number: 'ОМС 7856789012345678',
+    insurance_company: 'СОГАЗ-Мед',
+    policy_type: 'ОМС',
+    valid_from: '2021-11-03',
+    valid_until: '2030-12-31',
+    notes: ''
+  },
+  {
+    id: '6',
+    member_id: '1',
+    member_name: 'Алексей',
+    policy_number: 'ДМС 9876543210',
+    insurance_company: 'АльфаСтрахование',
+    policy_type: 'ДМС',
+    valid_from: '2026-01-01',
+    valid_until: '2026-12-31',
+    notes: 'Корпоративный полис от работодателя. Включает: стоматологию, диагностику, стационар.'
+  },
+  {
+    id: '7',
+    member_id: '2',
+    member_name: 'Анастасия',
+    policy_number: 'ДМС 9876543211',
+    insurance_company: 'АльфаСтрахование',
+    policy_type: 'ДМС',
+    valid_from: '2026-01-01',
+    valid_until: '2026-12-31',
+    notes: 'Семейный полис. Включает: стоматологию, диагностику, стационар.'
+  }
+];
 
 // Экспорты для обратной совместимости
 export const initialFamilyAlbum = initialFamilyAlbums;
