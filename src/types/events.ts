@@ -12,6 +12,11 @@ export interface FamilyEvent {
   spent: number;
   guestsCount: number;
   status: 'planning' | 'confirmed' | 'completed' | 'cancelled';
+  theme?: string;
+  cateringType?: 'catering' | 'restaurant' | 'none';
+  cateringDetails?: string;
+  invitationImageUrl?: string;
+  invitationText?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -98,4 +103,13 @@ export interface EventIdea {
   votes: number;
   createdBy: string;
   createdAt: string;
+}
+
+export interface NearbyPlace {
+  name: string;
+  address: string;
+  rating?: number;
+  phone?: string;
+  distance?: number;
+  type: 'restaurant' | 'cafe' | 'catering';
 }

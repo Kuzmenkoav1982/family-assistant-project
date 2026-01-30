@@ -55,7 +55,8 @@ def handler(event: dict, context) -> dict:
                 cursor.execute('''
                     SELECT id, family_id, title, event_type, event_date, event_time, member_id,
                            description, location, budget, spent, guests_count, status, created_by,
-                           created_at, updated_at
+                           created_at, updated_at, theme, catering_type, catering_details,
+                           invitation_image_url, invitation_text
                     FROM family_events
                     WHERE id = %s AND family_id = %s
                 ''', (event_id, family_id))
@@ -85,7 +86,12 @@ def handler(event: dict, context) -> dict:
                     'status': row[12],
                     'createdBy': row[13],
                     'createdAt': row[14].isoformat() if row[14] else None,
-                    'updatedAt': row[15].isoformat() if row[15] else None
+                    'updatedAt': row[15].isoformat() if row[15] else None,
+                    'theme': row[16],
+                    'cateringType': row[17],
+                    'cateringDetails': row[18],
+                    'invitationImageUrl': row[19],
+                    'invitationText': row[20]
                 }
                 
                 return {
@@ -98,7 +104,8 @@ def handler(event: dict, context) -> dict:
                 cursor.execute('''
                     SELECT id, family_id, title, event_type, event_date, event_time, member_id,
                            description, location, budget, spent, guests_count, status, created_by,
-                           created_at, updated_at
+                           created_at, updated_at, theme, catering_type, catering_details,
+                           invitation_image_url, invitation_text
                     FROM family_events
                     WHERE family_id = %s
                     ORDER BY event_date ASC
@@ -124,7 +131,12 @@ def handler(event: dict, context) -> dict:
                         'status': row[12],
                         'createdBy': row[13],
                         'createdAt': row[14].isoformat() if row[14] else None,
-                        'updatedAt': row[15].isoformat() if row[15] else None
+                        'updatedAt': row[15].isoformat() if row[15] else None,
+                        'theme': row[16],
+                        'cateringType': row[17],
+                        'cateringDetails': row[18],
+                        'invitationImageUrl': row[19],
+                        'invitationText': row[20]
                     })
                 
                 return {
@@ -183,7 +195,9 @@ def handler(event: dict, context) -> dict:
                 UPDATE family_events
                 SET title = %s, event_type = %s, event_date = %s, event_time = %s,
                     member_id = %s, description = %s, location = %s, budget = %s,
-                    guests_count = %s, status = %s, updated_at = NOW()
+                    guests_count = %s, status = %s, theme = %s, catering_type = %s,
+                    catering_details = %s, invitation_image_url = %s, invitation_text = %s,
+                    updated_at = NOW()
                 WHERE id = %s AND family_id = %s
             ''', (
                 body.get('title'),
@@ -196,6 +210,11 @@ def handler(event: dict, context) -> dict:
                 body.get('budget'),
                 body.get('guestsCount'),
                 body.get('status'),
+                body.get('theme'),
+                body.get('cateringType'),
+                body.get('cateringDetails'),
+                body.get('invitationImageUrl'),
+                body.get('invitationText'),
                 event_id,
                 family_id
             ))

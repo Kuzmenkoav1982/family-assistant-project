@@ -14,6 +14,9 @@ import AddWishlistItemDialog from '@/components/events/AddWishlistItemDialog';
 import AddGuestGiftDialog from '@/components/events/AddGuestGiftDialog';
 import ShareEventDialog from '@/components/events/ShareEventDialog';
 import AIIdeasDialog from '@/components/events/AIIdeasDialog';
+import CateringSection from '@/components/events/CateringSection';
+import ThemeSection from '@/components/events/ThemeSection';
+import InvitationSection from '@/components/events/InvitationSection';
 import func2url from '../../backend/func2url.json';
 import type { FamilyEvent, EventGuest, EventTask, EventExpense, WishlistItem, GuestGift } from '@/types/events';
 
@@ -432,11 +435,14 @@ export default function EventDetailsPage() {
       </div>
 
       <Tabs defaultValue="guests" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="guests">Гости</TabsTrigger>
-          <TabsTrigger value="tasks">Задачи</TabsTrigger>
+          <TabsTrigger value="theme">Тематика</TabsTrigger>
+          <TabsTrigger value="catering">Питание</TabsTrigger>
+          <TabsTrigger value="invitation">Приглашение</TabsTrigger>
           <TabsTrigger value="wishlist">Подарки</TabsTrigger>
           <TabsTrigger value="expenses">Расходы</TabsTrigger>
+          <TabsTrigger value="ideas">Идеи</TabsTrigger>
         </TabsList>
 
         <TabsContent value="guests" className="mt-4">
@@ -710,6 +716,40 @@ export default function EventDetailsPage() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="theme" className="mt-4">
+          <ThemeSection event={event} onUpdate={fetchEvent} />
+        </TabsContent>
+
+        <TabsContent value="catering" className="mt-4">
+          <CateringSection event={event} onUpdate={fetchEvent} />
+        </TabsContent>
+
+        <TabsContent value="invitation" className="mt-4">
+          <InvitationSection event={event} onUpdate={fetchEvent} />
+        </TabsContent>
+
+        <TabsContent value="ideas" className="mt-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Lightbulb" className="text-yellow-500" />
+                  ИИ Идеи и рекомендации
+                </CardTitle>
+                <Button onClick={() => setShowAIIdeas(true)}>
+                  <Icon name="Wand2" size={16} />
+                  Генерировать идеи
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Используйте ИИ для генерации идей меню, декора, активностей и распределения бюджета
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

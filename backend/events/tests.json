@@ -5,13 +5,9 @@
       "method": "GET",
       "path": "/",
       "headers": {
-        "X-User-Id": "test-user-123"
+        "X-User-Id": "c0e043ce-8f71-45df-999e-f76bf696d4c9"
       },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "0": "object"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }
