@@ -167,16 +167,18 @@ export default function HealthNew() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-8">
-                <TabsTrigger value="overview">Обзор</TabsTrigger>
-                <TabsTrigger value="history">История</TabsTrigger>
-                <TabsTrigger value="vaccinations">Прививки</TabsTrigger>
-                <TabsTrigger value="medications">Лекарства</TabsTrigger>
-                <TabsTrigger value="vitals">Показатели</TabsTrigger>
-                <TabsTrigger value="doctors">Врачи</TabsTrigger>
-                <TabsTrigger value="insurance">Страховки</TabsTrigger>
-                <TabsTrigger value="telemedicine">Телемедицина</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
+                <TabsList className="inline-flex w-max min-w-full lg:grid lg:w-full lg:grid-cols-8">
+                  <TabsTrigger value="overview" className="whitespace-nowrap">Обзор</TabsTrigger>
+                  <TabsTrigger value="history" className="whitespace-nowrap">История</TabsTrigger>
+                  <TabsTrigger value="vaccinations" className="whitespace-nowrap">Прививки</TabsTrigger>
+                  <TabsTrigger value="medications" className="whitespace-nowrap">Лекарства</TabsTrigger>
+                  <TabsTrigger value="vitals" className="whitespace-nowrap">Показатели</TabsTrigger>
+                  <TabsTrigger value="doctors" className="whitespace-nowrap">Врачи</TabsTrigger>
+                  <TabsTrigger value="insurance" className="whitespace-nowrap">Страховки</TabsTrigger>
+                  <TabsTrigger value="telemedicine" className="whitespace-nowrap">Телемедицина</TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="overview" className="space-y-4 pb-32">
                 <div className="grid md:grid-cols-2 gap-4">

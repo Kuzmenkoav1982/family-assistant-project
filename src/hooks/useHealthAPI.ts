@@ -38,6 +38,7 @@ export function useHealthProfiles() {
         const authToken = localStorage.getItem('authToken');
         
         const response = await fetch(API_URLS.profiles, {
+          credentials: 'include',
           headers: {
             'X-User-Id': userId!,
             ...(authToken && { 'Authorization': `Bearer ${authToken}` })
