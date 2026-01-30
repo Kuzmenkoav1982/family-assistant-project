@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import { AddMedicationDialog } from '@/components/health/AddMedicationDialog';
 import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 
 export default function HealthNew() {
+  const navigate = useNavigate();
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(null);
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
@@ -57,7 +59,7 @@ export default function HealthNew() {
     }
   }, [profiles, selectedProfile]);
 
-  if ((isDemoMode && !authToken) || profilesLoading) {
+  if (profilesLoading && !isDemoMode) {
     return (
       <div className="container mx-auto p-6">
         <Card>
@@ -79,6 +81,15 @@ export default function HealthNew() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/')}
+        className="mb-4"
+      >
+        <Icon name="ArrowLeft" size={16} className="mr-2" />
+        Назад
+      </Button>
+      
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Icon name="Heart" className="text-rose-500" size={32} />

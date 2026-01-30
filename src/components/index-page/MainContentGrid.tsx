@@ -263,9 +263,10 @@ export function MainContentGrid({
 
           <TabsContent value="family">
             <FamilyMembersGrid 
-              familyMembers={familyMembers}
-              onMemberClick={() => {}}
-              currentUserId={currentUserId}
+              members={familyMembers}
+              onMemberClick={(member) => navigate(`/member/${member.id}`)}
+              tasks={tasks}
+              events={calendarEvents}
             />
           </TabsContent>
 
