@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,9 +31,17 @@ import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 
 function HealthNew() {
   const navigate = useNavigate();
-  const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(null);
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
+  
+  const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(() => {
+    try {
+      const cached = sessionStorage.getItem('selectedHealthProfile');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   
   console.log('[HealthNew] Component mounted, isDemoMode:', isDemoMode, 'authToken:', !!authToken);
   
@@ -46,22 +54,60 @@ function HealthNew() {
   const { insurance: apiInsurance } = useInsurance(selectedProfile?.id);
   const { sessions: apiSessions } = useTelemedicine(selectedProfile?.id);
 
-  const profiles = isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles;
-  const records = isDemoMode && !authToken ? DEMO_HEALTH_RECORDS_NEW.filter(r => r.profileId === selectedProfile?.id) : apiRecords;
-  const vaccinations = isDemoMode && !authToken ? DEMO_VACCINATIONS.filter(v => v.profileId === selectedProfile?.id) : apiVaccinations;
-  const medications = isDemoMode && !authToken ? DEMO_MEDICATIONS_NEW.filter(m => m.profileId === selectedProfile?.id) : apiMedications;
-  const vitals = isDemoMode && !authToken ? DEMO_VITAL_RECORDS.filter(v => v.profileId === selectedProfile?.id) : apiVitals;
-  const doctors = isDemoMode && !authToken ? DEMO_DOCTORS : apiDoctors;
-  const insurance = isDemoMode && !authToken ? DEMO_INSURANCE_POLICIES.filter(i => i.profileId === selectedProfile?.id) : apiInsurance;
-  const sessions = isDemoMode && !authToken ? DEMO_TELEMEDICINE_SESSIONS.filter(s => s.profileId === selectedProfile?.id) : apiSessions;
+  const profiles = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles,
+    [isDemoMode, authToken, apiProfiles]
+  );
+  
+  const records = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_HEALTH_RECORDS_NEW.filter(r => r.profileId === selectedProfile?.id) : apiRecords,
+    [isDemoMode, authToken, selectedProfile?.id, apiRecords]
+  );
+  
+  const vaccinations = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_VACCINATIONS.filter(v => v.profileId === selectedProfile?.id) : apiVaccinations,
+    [isDemoMode, authToken, selectedProfile?.id, apiVaccinations]
+  );
+  
+  const medications = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_MEDICATIONS_NEW.filter(m => m.profileId === selectedProfile?.id) : apiMedications,
+    [isDemoMode, authToken, selectedProfile?.id, apiMedications]
+  );
+  
+  const vitals = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_VITAL_RECORDS.filter(v => v.profileId === selectedProfile?.id) : apiVitals,
+    [isDemoMode, authToken, selectedProfile?.id, apiVitals]
+  );
+  
+  const doctors = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_DOCTORS : apiDoctors,
+    [isDemoMode, authToken, apiDoctors]
+  );
+  
+  const insurance = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_INSURANCE_POLICIES.filter(i => i.profileId === selectedProfile?.id) : apiInsurance,
+    [isDemoMode, authToken, selectedProfile?.id, apiInsurance]
+  );
+  
+  const sessions = useMemo(() => 
+    isDemoMode && !authToken ? DEMO_TELEMEDICINE_SESSIONS.filter(s => s.profileId === selectedProfile?.id) : apiSessions,
+    [isDemoMode, authToken, selectedProfile?.id, apiSessions]
+  );
 
   useEffect(() => {
     console.log('[HealthNew] useEffect triggered, profiles:', profiles.length, 'selectedProfile:', selectedProfile);
     if (profiles.length > 0 && selectedProfile === null) {
       console.log('[HealthNew] Setting selectedProfile to:', profiles[0]);
       setSelectedProfile(profiles[0]);
+      sessionStorage.setItem('selectedHealthProfile', JSON.stringify(profiles[0]));
     }
   }, [profiles]);
+  
+  useEffect(() => {
+    if (selectedProfile) {
+      sessionStorage.setItem('selectedHealthProfile', JSON.stringify(selectedProfile));
+    }
+  }, [selectedProfile]);
 
   if (profilesLoading && !isDemoMode) {
     return (
