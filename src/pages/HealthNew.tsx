@@ -79,20 +79,31 @@ export default function HealthNew() {
     );
   }
 
+  const getMemberPhoto = (userName: string) => {
+    const photoMap: Record<string, string> = {
+      'Анастасия': 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
+      'Алексей': 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
+      'Матвей': 'https://cdn.poehali.dev/files/2c506753-6a4d-447e-a8b2-294bceb38a95.png',
+      'Даша': 'https://cdn.poehali.dev/files/fcce342c-9b14-420d-b3eb-97084a3bbe08.png',
+      'Илья': 'https://cdn.poehali.dev/files/c58eac3b-e952-42aa-abe0-9b1141530809.png'
+    };
+    return photoMap[userName] || null;
+  };
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
       <Button
         variant="ghost"
         onClick={() => navigate('/')}
-        className="mb-4"
+        className="mb-2 md:mb-4"
       >
         <Icon name="ArrowLeft" size={16} className="mr-2" />
         Назад
       </Button>
       
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Icon name="Heart" className="text-rose-500" size={32} />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+          <Icon name="Heart" className="text-rose-500" size={28} />
           Здоровье семьи
         </h1>
         {selectedProfile && (
@@ -103,28 +114,37 @@ export default function HealthNew() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {profiles.map((profile) => (
-          <Card
-            key={profile.id}
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              selectedProfile?.id === profile.id ? 'border-primary border-2' : ''
-            }`}
-            onClick={() => setSelectedProfile(profile)}
-          >
-            <CardContent className="pt-6 text-center">
-              <div className="text-4xl mb-2">
-                {profile.userAge < 13 ? '👦' : profile.userAge < 18 ? '👧' : profile.userName === 'Анастасия' ? '👩' : '👨'}
-              </div>
-              <h3 className="font-semibold">{profile.userName}</h3>
-              <p className="text-sm text-muted-foreground">{profile.userAge} лет</p>
-              <div className="mt-2 flex justify-center gap-1">
-                {profile.privacy === 'private' && <Icon name="Lock" size={14} className="text-muted-foreground" />}
-                {profile.privacy === 'parents' && <Icon name="Users" size={14} className="text-muted-foreground" />}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {profiles.map((profile) => {
+          const photo = getMemberPhoto(profile.userName);
+          return (
+            <Card
+              key={profile.id}
+              className={`cursor-pointer transition-all hover:shadow-lg ${
+                selectedProfile?.id === profile.id ? 'border-primary border-2' : ''
+              }`}
+              onClick={() => setSelectedProfile(profile)}
+            >
+              <CardContent className="pt-4 md:pt-6 text-center">
+                {photo ? (
+                  <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2 rounded-full overflow-hidden border-2 border-gray-200">
+                    <img src={photo} alt={profile.userName} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="text-3xl md:text-4xl mb-2">
+                    {profile.userAge < 13 ? '👦' : profile.userAge < 18 ? '👧' : profile.userName === 'Анастасия' ? '👩' : '👨'}
+                  </div>
+                )}
+                <h3 className="font-semibold text-sm md:text-base">{profile.userName}</h3>
+                <p className="text-xs md:text-sm text-muted-foreground">{profile.userAge} лет</p>
+                <div className="mt-1 md:mt-2 flex justify-center gap-1">
+                  {profile.privacy === 'private' && <Icon name="Lock" size={12} className="text-muted-foreground" />}
+                  {profile.privacy === 'parents' && <Icon name="Users" size={12} className="text-muted-foreground" />}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {selectedProfile && (

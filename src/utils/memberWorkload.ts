@@ -45,6 +45,17 @@ export function calculateMemberWorkload(
   const activeTasks = tasks.filter(
     t => (t.assignee_id === member.id || t.assignee === member.name) && !t.completed
   ).length;
+  
+  if (member.name === 'Алексей' && tasks.length > 0) {
+    console.log('[calculateMemberWorkload] Debug for Алексей:', {
+      memberId: member.id,
+      memberName: member.name,
+      totalTasks: tasks.length,
+      sampleTask: tasks[0],
+      matchingTasks: tasks.filter(t => t.assignee_id === member.id || t.assignee === member.name),
+      activeTasks
+    });
+  }
 
   // Завершено сегодня (поддержка и ID, и имени для демо-режима)
   const completedToday = tasks.filter(t => {

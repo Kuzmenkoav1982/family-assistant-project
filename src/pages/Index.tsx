@@ -1619,6 +1619,7 @@ export default function Index({ onLogout }: IndexProps) {
                         members={familyMembers}
                         onMemberClick={(member) => navigate(`/member/${member.id}`)}
                         tasks={tasks}
+                        events={calendarEvents}
                       />
                     </CardContent>
                   </Card>
