@@ -1,0 +1,10 @@
+{
+  "tests": [{
+    "name": "Generate invitation image",
+    "method": "POST",
+    "body": {
+      "prompt": "Beautiful birthday invitation card"
+    },
+    "expectedStatus": 401
+  }]
+}

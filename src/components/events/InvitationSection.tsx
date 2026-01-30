@@ -65,7 +65,7 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
         event.theme ? `theme: ${event.theme}, ` : ''
       }elegant design, festive, celebration, high quality`;
 
-      const response = await fetch('/api/generate-image', {
+      const response = await fetch('https://functions.poehali.dev/02eb0e6d-e5ae-4444-bc5a-777f33a1b3cb', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
