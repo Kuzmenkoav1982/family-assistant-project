@@ -183,13 +183,23 @@ export default function Welcome() {
               Демо-режим
             </Button>
             {isLoggedIn ? (
-              <Button
-                onClick={() => navigate('/dashboard')}
-                className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-              >
-                <Icon name="Home" size={18} className="mr-2" />
-                Главная
-              </Button>
+              <>
+                <Button
+                  onClick={() => navigate('/')}
+                  className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                >
+                  <Icon name="Home" size={18} className="mr-2" />
+                  Главная
+                </Button>
+                <Button
+                  onClick={() => navigate('/health')}
+                  variant="outline"
+                  className="border-rose-300 hover:bg-rose-50 text-rose-600"
+                >
+                  <Icon name="Heart" size={18} className="mr-2" />
+                  Здоровье семьи
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={() => navigate('/login')}
