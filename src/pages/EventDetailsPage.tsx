@@ -438,7 +438,7 @@ export default function EventDetailsPage() {
         <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="guests">Гости</TabsTrigger>
           <TabsTrigger value="theme">Тематика</TabsTrigger>
-          <TabsTrigger value="catering">Питание</TabsTrigger>
+          <TabsTrigger value="catering">Ресторан</TabsTrigger>
           <TabsTrigger value="invitation">Приглашение</TabsTrigger>
           <TabsTrigger value="wishlist">Подарки</TabsTrigger>
           <TabsTrigger value="expenses">Расходы</TabsTrigger>

@@ -151,8 +151,9 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       const selectedCuisine = cuisineTypes.find(c => c.value === cuisineType);
       const searchQuery = selectedCuisine?.query || 'кафе ресторан';
 
+      const [eventLng, eventLat] = event.location.split(',').map(Number);
       const response = await fetch(
-        `https://search-maps.yandex.ru/v1/?text=${encodeURIComponent(searchQuery)}&ll=${event.location}&type=biz&lang=ru_RU&apikey=${apiKey}`
+        `https://search-maps.yandex.ru/v1/?text=${encodeURIComponent(searchQuery)}&ll=${eventLng},${eventLat}&type=biz&lang=ru_RU&apikey=${apiKey}`
       );
       
       if (response.ok) {
@@ -201,7 +202,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Icon name="UtensilsCrossed" className="text-orange-500" />
-              Питание
+              Ресторан
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
               <Icon name="Pencil" size={16} />
@@ -249,7 +250,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Icon name="UtensilsCrossed" className="text-orange-500" />
-          Питание
+          Ресторан
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
