@@ -101,17 +101,11 @@ export default function HealthNew() {
         Назад
       </Button>
       
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-3">
         <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
           <Icon name="Heart" className="text-rose-500" size={28} />
           Здоровье семьи
         </h1>
-        {selectedProfile && (
-          <AddHealthRecordDialog 
-            profileId={selectedProfile.userId} 
-            onSuccess={() => window.location.reload()}
-          />
-        )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -150,14 +144,22 @@ export default function HealthNew() {
       {selectedProfile && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="User" />
-              Здоровье: {selectedProfile.userName}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {selectedProfile.privacy === 'private' && '🔒 Приватность: Только я'}
-              {selectedProfile.privacy === 'parents' && '👨‍👩‍👧 Приватность: Родители'}
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="User" />
+                  Здоровье: {selectedProfile.userName}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {selectedProfile.privacy === 'private' && '🔒 Приватность: Только я'}
+                  {selectedProfile.privacy === 'parents' && '👨‍👩‍👧 Приватность: Родители'}
+                </p>
+              </div>
+              <AddHealthRecordDialog 
+                profileId={selectedProfile.userId} 
+                onSuccess={() => window.location.reload()}
+              />
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="overview" className="w-full">
