@@ -71,8 +71,11 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
 
     setLoadingPlaces(true);
     try {
+      const keyResponse = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
+      const { apiKey } = await keyResponse.json();
+
       const response = await fetch(
-        `https://search-maps.yandex.ru/v1/?text=кафе ресторан&ll=${event.location}&type=biz&lang=ru_RU&apikey=YOUR_API_KEY`
+        `https://search-maps.yandex.ru/v1/?text=кафе ресторан&ll=${event.location}&type=biz&lang=ru_RU&apikey=${apiKey}`
       );
       
       if (response.ok) {
