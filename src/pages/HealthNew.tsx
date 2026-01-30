@@ -35,6 +35,8 @@ export default function HealthNew() {
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
   
+  console.log('[HealthNew] Component mounted, isDemoMode:', isDemoMode, 'authToken:', !!authToken);
+  
   const { profiles: apiProfiles, loading: profilesLoading } = useHealthProfiles();
   const { records: apiRecords } = useHealthRecords(selectedProfile?.id);
   const { vaccinations: apiVaccinations } = useVaccinations(selectedProfile?.id);

@@ -37,6 +37,8 @@ export function useHealthProfiles() {
         const userId = getUserId();
         const authToken = localStorage.getItem('authToken');
         
+        console.log('[useHealthProfiles] Starting fetch, userId:', userId, 'token:', !!authToken, 'API URL:', API_URLS.profiles);
+        
         const response = await fetch(API_URLS.profiles, {
           credentials: 'include',
           headers: {
@@ -44,6 +46,8 @@ export function useHealthProfiles() {
             ...(authToken && { 'Authorization': `Bearer ${authToken}` })
           },
         });
+
+        console.log('[useHealthProfiles] Response status:', response.status);
 
         if (!response.ok) {
           console.error('[useHealthProfiles] Failed to fetch:', response.status, response.statusText);
