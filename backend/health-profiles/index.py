@@ -13,8 +13,9 @@ def get_member_info(member_id: str, auth_token: str = None) -> dict:
     try:
         headers = {'X-User-Id': member_id}
         if auth_token:
-            # Прокси преобразует Authorization в X-Authorization, используем напрямую
-            headers['X-Authorization'] = f'Bearer {auth_token}'
+            # Внутренние вызовы между Cloud Functions НЕ проходят через прокси
+            # Используем обычный Authorization заголовок
+            headers['Authorization'] = f'Bearer {auth_token}'
         
         req = urllib.request.Request(FAMILY_MEMBERS_URL, headers=headers)
         with urllib.request.urlopen(req, timeout=5) as response:
