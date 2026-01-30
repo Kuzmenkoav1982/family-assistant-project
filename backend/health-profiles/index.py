@@ -37,13 +37,16 @@ def handler(event: dict, context) -> dict:
     '''
     method = event.get('httpMethod', 'GET')
     
+    origin = event.get('headers', {}).get('origin') or event.get('headers', {}).get('Origin') or 'https://nasha-semiya.ru'
+    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
             'headers': {
-                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Origin': origin,
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization'
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization',
+                'Access-Control-Allow-Credentials': 'true'
             },
             'body': '',
             'isBase64Encoded': False
@@ -57,7 +60,11 @@ def handler(event: dict, context) -> dict:
     if not user_id:
         return {
             'statusCode': 401,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {
+                'Content-Type': 'application/json', 
+                'Access-Control-Allow-Origin': origin,
+                'Access-Control-Allow-Credentials': 'true'
+            },
             'body': json.dumps({'error': 'User ID required'}),
             'isBase64Encoded': False
         }
@@ -119,7 +126,11 @@ def handler(event: dict, context) -> dict:
             
             return {
                 'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'headers': {
+                    'Content-Type': 'application/json', 
+                    'Access-Control-Allow-Origin': origin,
+                    'Access-Control-Allow-Credentials': 'true'
+                },
                 'body': json.dumps(profiles, ensure_ascii=False),
                 'isBase64Encoded': False
             }
@@ -161,7 +172,11 @@ def handler(event: dict, context) -> dict:
             
             return {
                 'statusCode': 201,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'headers': {
+                    'Content-Type': 'application/json', 
+                    'Access-Control-Allow-Origin': origin,
+                    'Access-Control-Allow-Credentials': 'true'
+                },
                 'body': json.dumps({'id': profile_id, 'message': 'Profile created'}),
                 'isBase64Encoded': False
             }
@@ -173,7 +188,11 @@ def handler(event: dict, context) -> dict:
             if not profile_id:
                 return {
                     'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'headers': {
+                        'Content-Type': 'application/json', 
+                        'Access-Control-Allow-Origin': origin,
+                        'Access-Control-Allow-Credentials': 'true'
+                    },
                     'body': json.dumps({'error': 'Profile ID required'}),
                     'isBase64Encoded': False
                 }
@@ -214,14 +233,22 @@ def handler(event: dict, context) -> dict:
             
             return {
                 'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'headers': {
+                    'Content-Type': 'application/json', 
+                    'Access-Control-Allow-Origin': origin,
+                    'Access-Control-Allow-Credentials': 'true'
+                },
                 'body': json.dumps({'message': 'Profile updated'}),
                 'isBase64Encoded': False
             }
         
         return {
             'statusCode': 405,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {
+                'Content-Type': 'application/json', 
+                'Access-Control-Allow-Origin': origin,
+                'Access-Control-Allow-Credentials': 'true'
+            },
             'body': json.dumps({'error': 'Method not allowed'}),
             'isBase64Encoded': False
         }
@@ -231,7 +258,11 @@ def handler(event: dict, context) -> dict:
         print(f'[ERROR] {str(e)}')
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {
+                'Content-Type': 'application/json', 
+                'Access-Control-Allow-Origin': origin,
+                'Access-Control-Allow-Credentials': 'true'
+            },
             'body': json.dumps({'error': str(e)}),
             'isBase64Encoded': False
         }
