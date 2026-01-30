@@ -164,23 +164,23 @@ export default function ShareEventDialog({ open, onOpenChange, eventId, eventTit
 
             <div className="space-y-2">
               <Label>Отправить гостям</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-3">
                 {navigator.share && (
-                  <Button onClick={shareViaWebShare} variant="outline" className="w-full gap-2">
-                    <Icon name="Share2" size={16} />
+                  <Button 
+                    onClick={shareViaWebShare} 
+                    variant="outline" 
+                    className="w-full gap-2 h-12 text-base"
+                  >
+                    <Icon name="Share2" size={20} />
                     Поделиться
                   </Button>
                 )}
-                <Button onClick={shareViaTelegram} variant="outline" className="w-full gap-2">
-                  <Icon name="Send" size={16} />
-                  Telegram
-                </Button>
-                <Button onClick={shareViaWhatsApp} variant="outline" className="w-full gap-2">
-                  <Icon name="MessageCircle" size={16} />
-                  WhatsApp
-                </Button>
-                <Button onClick={shareViaEmail} variant="outline" className="w-full gap-2">
-                  <Icon name="Mail" size={16} />
+                <Button 
+                  onClick={shareViaEmail} 
+                  variant="outline" 
+                  className="w-full gap-2 h-12 text-base"
+                >
+                  <Icon name="Mail" size={20} />
                   Email
                 </Button>
               </div>
