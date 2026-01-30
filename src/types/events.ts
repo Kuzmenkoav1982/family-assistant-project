@@ -15,6 +15,8 @@ export interface FamilyEvent {
   theme?: string;
   cateringType?: 'catering' | 'restaurant' | 'none';
   cateringDetails?: string;
+  venueName?: string;
+  venueAddress?: string;
   invitationImageUrl?: string;
   invitationText?: string;
   createdBy: string;

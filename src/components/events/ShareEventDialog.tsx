@@ -135,7 +135,7 @@ export default function ShareEventDialog({ open, onOpenChange, eventId, eventTit
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Icon name="Share2" />
@@ -148,7 +148,7 @@ export default function ShareEventDialog({ open, onOpenChange, eventId, eventTit
             <Icon name="Loader2" className="animate-spin" size={32} />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-2">
             <div className="space-y-2">
               <Label>Ссылка для гостей</Label>
               <div className="flex gap-2">
@@ -166,20 +166,20 @@ export default function ShareEventDialog({ open, onOpenChange, eventId, eventTit
               <Label>Отправить гостям</Label>
               <div className="grid grid-cols-2 gap-2">
                 {navigator.share && (
-                  <Button onClick={shareViaWebShare} variant="outline" className="w-full">
+                  <Button onClick={shareViaWebShare} variant="outline" className="w-full gap-2">
                     <Icon name="Share2" size={16} />
                     Поделиться
                   </Button>
                 )}
-                <Button onClick={shareViaTelegram} variant="outline" className="w-full">
+                <Button onClick={shareViaTelegram} variant="outline" className="w-full gap-2">
                   <Icon name="Send" size={16} />
                   Telegram
                 </Button>
-                <Button onClick={shareViaWhatsApp} variant="outline" className="w-full">
+                <Button onClick={shareViaWhatsApp} variant="outline" className="w-full gap-2">
                   <Icon name="MessageCircle" size={16} />
                   WhatsApp
                 </Button>
-                <Button onClick={shareViaEmail} variant="outline" className="w-full">
+                <Button onClick={shareViaEmail} variant="outline" className="w-full gap-2">
                   <Icon name="Mail" size={16} />
                   Email
                 </Button>

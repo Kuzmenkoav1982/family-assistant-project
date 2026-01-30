@@ -21,6 +21,8 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
     event.cateringType || 'none'
   );
   const [cateringDetails, setCateringDetails] = useState(event.cateringDetails || '');
+  const [venueName, setVenueName] = useState(event.venueName || '');
+  const [venueAddress, setVenueAddress] = useState(event.venueAddress || '');
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   const [loadingPlaces, setLoadingPlaces] = useState(false);
   const [showMap, setShowMap] = useState(false);
@@ -110,7 +112,9 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         },
         body: JSON.stringify({
           cateringType,
-          cateringDetails
+          cateringDetails,
+          venueName,
+          venueAddress
         })
       });
 
@@ -219,8 +223,19 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
                   {event.cateringType === 'catering' ? 'Кейтринг' : 'Ресторан/Кафе'}
                 </span>
               </div>
+              {event.venueName && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Icon name="MapPin" size={14} className="text-muted-foreground" />
+                    <span className="text-sm font-medium">{event.venueName}</span>
+                  </div>
+                  {event.venueAddress && (
+                    <p className="text-sm text-muted-foreground ml-6">{event.venueAddress}</p>
+                  )}
+                </div>
+              )}
               {event.cateringDetails && (
-                <p className="text-sm text-muted-foreground">{event.cateringDetails}</p>
+                <p className="text-sm text-muted-foreground mt-2">{event.cateringDetails}</p>
               )}
             </div>
           )}
@@ -282,14 +297,36 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
 
         {cateringType === 'restaurant' && (
           <>
-            <div>
-              <Label htmlFor="restaurant-details">Информация о заведении</Label>
-              <Textarea
-                id="restaurant-details"
-                placeholder="Название, адрес, контакты..."
-                value={cateringDetails}
-                onChange={(e) => setCateringDetails(e.target.value)}
-              />
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="venue-name">Название заведения</Label>
+                <Input
+                  id="venue-name"
+                  placeholder="Например: Ресторан 'Праздник'"
+                  value={venueName}
+                  onChange={(e) => setVenueName(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="venue-address">Адрес заведения</Label>
+                <Input
+                  id="venue-address"
+                  placeholder="Укажите точный адрес"
+                  value={venueAddress}
+                  onChange={(e) => setVenueAddress(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="restaurant-details">Дополнительная информация</Label>
+                <Textarea
+                  id="restaurant-details"
+                  placeholder="Меню, особенности, контакты..."
+                  value={cateringDetails}
+                  onChange={(e) => setCateringDetails(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -348,9 +385,11 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
                         key={idx}
                         className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition"
                         onClick={() => {
-                          setCateringDetails(
-                            `${place.name}\n${place.address}${place.phone ? `\n${place.phone}` : ''}`
-                          );
+                          setVenueName(place.name);
+                          setVenueAddress(place.address);
+                          if (place.phone) {
+                            setCateringDetails(`Телефон: ${place.phone}`);
+                          }
                         }}
                       >
                         <div className="flex items-start justify-between">
