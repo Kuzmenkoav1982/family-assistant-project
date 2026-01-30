@@ -51,7 +51,21 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       ymaps.ready(() => {
         if (mapInstanceRef.current) return;
 
-        const [eventLng, eventLat] = event.location?.split(',').map(Number) || [37.6173, 55.7558];
+        // Default coordinates (Moscow center)
+        let eventLng = 37.6173;
+        let eventLat = 55.7558;
+        
+        // Try to parse coordinates if location looks like "lng,lat"
+        if (event.location) {
+          const parts = event.location.split(',').map(s => s.trim());
+          if (parts.length === 2) {
+            const [lng, lat] = parts.map(Number);
+            if (!isNaN(lng) && !isNaN(lat)) {
+              eventLng = lng;
+              eventLat = lat;
+            }
+          }
+        }
         
         const map = new ymaps.Map('yandex-map', {
           center: [eventLat, eventLng],
@@ -151,7 +165,22 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       const selectedCuisine = cuisineTypes.find(c => c.value === cuisineType);
       const searchQuery = selectedCuisine?.query || 'кафе ресторан';
 
-      const [eventLng, eventLat] = event.location.split(',').map(Number);
+      // Default coordinates (Moscow center)
+      let eventLng = 37.6173;
+      let eventLat = 55.7558;
+      
+      // Try to parse coordinates if location looks like "lng,lat"
+      if (event.location) {
+        const parts = event.location.split(',').map(s => s.trim());
+        if (parts.length === 2) {
+          const [lng, lat] = parts.map(Number);
+          if (!isNaN(lng) && !isNaN(lat)) {
+            eventLng = lng;
+            eventLat = lat;
+          }
+        }
+      }
+
       const response = await fetch(
         `https://search-maps.yandex.ru/v1/?text=${encodeURIComponent(searchQuery)}&ll=${eventLng},${eventLat}&type=biz&lang=ru_RU&apikey=${apiKey}`
       );
