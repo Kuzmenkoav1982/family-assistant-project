@@ -22,6 +22,7 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
   );
   const [generatingImage, setGeneratingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState(event.invitationImageUrl || '');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleSave = async () => {
     try {
@@ -87,6 +88,76 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
       });
     } finally {
       setGeneratingImage(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Ошибка',
+        description: 'Пожалуйста, выберите изображение',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'Ошибка',
+        description: 'Размер файла не должен превышать 10 МБ',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        const base64Data = base64.split(',')[1];
+
+        const userId = localStorage.getItem('userData')
+          ? JSON.parse(localStorage.getItem('userData')!).member_id
+          : '1';
+        const authToken = localStorage.getItem('authToken');
+
+        const response = await fetch('https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': userId,
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          },
+          body: JSON.stringify({
+            file: base64Data,
+            file_name: file.name,
+            content_type: file.type,
+            folder: 'invitation-images'
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setPreviewImage(data.url);
+          toast({ title: 'Готово!', description: 'Изображение загружено' });
+        } else {
+          throw new Error('Upload failed');
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('[InvitationSection] Upload error:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить изображение',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -197,15 +268,34 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
               </div>
             )}
 
-            <Button
-              variant="outline"
-              onClick={generateInvitationImage}
-              disabled={generatingImage}
-              className="w-full"
-            >
-              <Icon name="Wand2" size={16} />
-              {generatingImage ? 'Генерирую...' : 'Сгенерировать открытку с ИИ'}
-            </Button>
+            <div className="grid grid-cols-1 gap-2">
+              <Button
+                variant="outline"
+                onClick={generateInvitationImage}
+                disabled={generatingImage || uploadingImage}
+                className="w-full"
+              >
+                <Icon name="Wand2" size={16} />
+                {generatingImage ? 'Генерирую...' : 'Сгенерировать открытку с ИИ'}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('file-upload')?.click()}
+                disabled={generatingImage || uploadingImage}
+                className="w-full"
+              >
+                <Icon name="Upload" size={16} />
+                {uploadingImage ? 'Загружаю...' : 'Загрузить с устройства'}
+              </Button>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </div>
 
             <div className="text-center text-sm text-muted-foreground">или</div>
 
