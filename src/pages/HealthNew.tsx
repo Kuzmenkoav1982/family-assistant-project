@@ -59,7 +59,7 @@ export default function HealthNew() {
     if (profiles.length > 0 && !selectedProfile) {
       setSelectedProfile(profiles[0]);
     }
-  }, [profiles, selectedProfile]);
+  }, [profiles]);
 
   if (profilesLoading && !isDemoMode) {
     return (
