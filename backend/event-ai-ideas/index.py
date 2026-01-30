@@ -53,7 +53,7 @@ def handler(event: dict, context) -> dict:
             }
         
         yandex_request = {
-            'modelUri': f'gpt://{folder_id}/yandexgpt-lite',
+            'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
             'completionOptions': {
                 'stream': False,
                 'temperature': 0.7,
@@ -62,7 +62,7 @@ def handler(event: dict, context) -> dict:
             'messages': [
                 {
                     'role': 'system',
-                    'text': 'Ты - эксперт по организации праздников. Даёшь конкретные, практичные советы и идеи. Отвечаешь на русском языке.'
+                    'text': 'Ты - эксперт по организации праздников. Даёшь конкретные, практичные советы и идеи.'
                 },
                 {
                     'role': 'user',
@@ -70,6 +70,8 @@ def handler(event: dict, context) -> dict:
                 }
             ]
         }
+        
+        print(f'[DEBUG] YandexGPT request: {json.dumps(yandex_request, ensure_ascii=False)}')
         
         req = urllib.request.Request(
             YANDEX_GPT_URL,
@@ -80,20 +82,27 @@ def handler(event: dict, context) -> dict:
             }
         )
         
-        with urllib.request.urlopen(req, timeout=30) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            
-            if data.get('result') and data['result'].get('alternatives'):
-                text = data['result']['alternatives'][0]['message']['text']
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                response_text = response.read().decode('utf-8')
+                print(f'[DEBUG] YandexGPT response: {response_text}')
+                data = json.loads(response_text)
                 
-                return {
-                    'statusCode': 200,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'ideas': text}, ensure_ascii=False),
-                    'isBase64Encoded': False
-                }
-            else:
-                raise Exception('Invalid response from Yandex GPT')
+                if data.get('result') and data['result'].get('alternatives'):
+                    text = data['result']['alternatives'][0]['message']['text']
+                    
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'ideas': text}, ensure_ascii=False),
+                        'isBase64Encoded': False
+                    }
+                else:
+                    raise Exception('Invalid response from Yandex GPT')
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            print(f'[ERROR] YandexGPT HTTP {e.code}: {error_body}')
+            raise Exception(f'YandexGPT API error: {error_body}')
         
     except Exception as e:
         print(f'[ERROR] {str(e)}')
