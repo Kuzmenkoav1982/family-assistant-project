@@ -56,7 +56,7 @@ export default function HealthNew() {
   const sessions = isDemoMode && !authToken ? DEMO_TELEMEDICINE_SESSIONS.filter(s => s.profileId === selectedProfile?.id) : apiSessions;
 
   useEffect(() => {
-    if (profiles.length > 0 && !selectedProfile) {
+    if (profiles.length > 0 && selectedProfile === null) {
       setSelectedProfile(profiles[0]);
     }
   }, [profiles]);
