@@ -145,51 +145,46 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
 
     setLoadingPlaces(true);
     try {
-      const keyResponse = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
-      const { apiKey } = await keyResponse.json();
-
       const selectedCuisine = cuisineTypes.find(c => c.value === cuisineType);
       const searchQuery = selectedCuisine?.query || 'кафе ресторан';
 
       const [eventLng, eventLat] = event.location.split(',').map(Number);
-      const response = await fetch(
-        `https://search-maps.yandex.ru/v1/?text=${encodeURIComponent(searchQuery)}&ll=${eventLng},${eventLat}&type=biz&lang=ru_RU&apikey=${apiKey}`
-      );
-      
+      const city = event.venueAddress || 'Москва';
+
+      const response = await fetch('https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'search_places',
+          query: searchQuery,
+          city: city
+        })
+      });
+
       if (response.ok) {
         const data = await response.json();
-        const places = data.features?.slice(0, 10).map((f: any) => ({
-          name: f.properties?.name || 'Заведение',
-          address: f.properties?.description || '',
-          coordinates: f.geometry?.coordinates || [],
-          rating: f.properties?.rating || null,
-          phone: f.properties?.phone || null,
+        const places = (data.places || []).slice(0, 10).map((p: any) => ({
+          name: p.name || 'Заведение',
+          address: p.address || '',
+          coordinates: p.coordinates ? [p.coordinates.lon, p.coordinates.lat] : [],
+          rating: null,
+          phone: p.phone || null,
           distance: null,
           type: 'restaurant'
-        })) || [];
+        }));
         setNearbyPlaces(places);
         if (places.length > 0) setShowMap(true);
+      } else {
+        throw new Error('Поиск не удался');
       }
     } catch (error) {
       console.error('[CateringSection] Search error:', error);
-      setNearbyPlaces([
-        {
-          name: 'Ресторан "Праздник"',
-          address: 'рядом с местом проведения',
-          rating: 4.5,
-          phone: '+7 (999) 123-45-67',
-          distance: 500,
-          type: 'restaurant'
-        },
-        {
-          name: 'Кафе "Уют"',
-          address: 'в 2 минутах ходьбы',
-          rating: 4.2,
-          phone: '+7 (999) 765-43-21',
-          distance: 300,
-          type: 'cafe'
-        }
-      ]);
+      toast({
+        title: 'Ошибка поиска',
+        description: 'Не удалось найти заведения. Попробуйте позже.',
+        variant: 'destructive'
+      });
+      setNearbyPlaces([]);
     } finally {
       setLoadingPlaces(false);
     }
