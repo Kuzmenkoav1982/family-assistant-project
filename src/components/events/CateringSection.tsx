@@ -63,14 +63,15 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
   };
 
   const handleSelectRestaurant = (restaurant: { name: string; address: string; cuisine: string; priceRange: string; description: string }) => {
+    setEditing(true);
+    setCateringType('restaurant');
     setVenueName(restaurant.name);
     setVenueAddress(restaurant.address);
     setCateringDetails(`${restaurant.cuisine} • ${restaurant.priceRange}\n${restaurant.description}`);
-    setCateringType('restaurant');
     
     toast({
-      title: 'Заведение выбрано',
-      description: 'Данные автоматически заполнены. Нажмите "Сохранить" для применения.',
+      title: '✓ Заведение выбрано',
+      description: `${restaurant.name} добавлен. Теперь нажми "Сохранить"`,
     });
   };
 
