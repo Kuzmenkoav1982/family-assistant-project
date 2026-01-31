@@ -32,12 +32,12 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         : '1';
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/events/${event.id}`, {
+      const response = await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac/${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
-          ...(authToken && { Authorization: `Bearer ${authToken}` })
+          ...(authToken && { 'X-Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
           cateringType,
