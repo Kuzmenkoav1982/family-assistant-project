@@ -44,6 +44,11 @@ def handler(event: dict, context) -> dict:
                 result = handle_search_places(body, headers)
                 print(f"[INFO] Search result status: {result.get('statusCode')}")
                 return result
+            elif action == 'search_restaurants':
+                print(f"[INFO] Action: search_restaurants, query={body.get('query')}")
+                result = handle_search_restaurants(body, headers)
+                print(f"[INFO] Restaurant search result status: {result.get('statusCode')}")
+                return result
             else:
                 print(f"[ERROR] Unknown action: {action}")
                 return {
@@ -357,6 +362,116 @@ def handle_search_places(body: dict, headers: dict) -> dict:
             'isBase64Encoded': False
         }
         
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
+        }
+
+
+def handle_search_restaurants(body: dict, headers: dict) -> dict:
+    query = body.get('query', '')
+    
+    if not query:
+        return {
+            'statusCode': 400,
+            'headers': headers,
+            'body': json.dumps({'error': 'Query is required'}),
+            'isBase64Encoded': False
+        }
+    
+    yandex_api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    yandex_folder_id = 'b1gaglg8i7v2i32nvism'
+    
+    if not yandex_api_key:
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': 'YANDEX_GPT_API_KEY not configured'}),
+            'isBase64Encoded': False
+        }
+    
+    prompt = f"""Найди 4-5 реальных существующих заведений (ресторанов, кафе, столовых) по запросу: "{query}".
+
+ВАЖНО: Укажи ТОЛЬКО реальные места, которые существуют сейчас. НЕ выдумывай названия.
+
+Для каждого заведения укажи:
+1. Точное название (как оно называется в реальности)
+2. Полный адрес с названием города
+3. Тип кухни (например: итальянская, грузинская, европейская)
+4. Примерный средний чек на человека в рублях
+5. Краткое описание атмосферы или особенностей (1 предложение)
+
+Верни ТОЛЬКО валидный JSON массив без markdown разметки:
+[{{"name": "название", "address": "город, улица, дом", "cuisine": "тип кухни", "priceRange": "1000-2000₽", "description": "описание"}}]"""
+
+    try:
+        response = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={
+                'Authorization': f'Api-Key {yandex_api_key}',
+                'Content-Type': 'application/json',
+                'x-folder-id': yandex_folder_id
+            },
+            json={
+                'modelUri': f'gpt://{yandex_folder_id}/yandexgpt-lite',
+                'completionOptions': {
+                    'temperature': 0.6,
+                    'maxTokens': 2000
+                },
+                'messages': [
+                    {
+                        'role': 'user',
+                        'text': prompt
+                    }
+                ]
+            },
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            return {
+                'statusCode': response.status_code,
+                'headers': headers,
+                'body': json.dumps({'error': 'YandexGPT API error', 'details': response.text}),
+                'isBase64Encoded': False
+            }
+        
+        result = response.json()
+        text_response = result['result']['alternatives'][0]['message']['text']
+        
+        text_clean = text_response.strip()
+        if text_clean.startswith('```json'):
+            text_clean = text_clean[7:]
+        elif text_clean.startswith('```'):
+            text_clean = text_clean[3:]
+        if text_clean.endswith('```'):
+            text_clean = text_clean[:-3]
+        text_clean = text_clean.strip()
+        
+        try:
+            restaurants = json.loads(text_clean)
+            if not isinstance(restaurants, list):
+                restaurants = []
+        except:
+            restaurants = []
+        
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({'restaurants': restaurants, 'total': len(restaurants)}),
+            'isBase64Encoded': False
+        }
+        
+    except requests.exceptions.Timeout:
+        return {
+            'statusCode': 504,
+            'headers': headers,
+            'body': json.dumps({'error': 'YandexGPT request timeout'}),
+            'isBase64Encoded': False
+        }
     except Exception as e:
         return {
             'statusCode': 500,
