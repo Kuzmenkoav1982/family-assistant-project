@@ -134,7 +134,9 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
   };
 
   const searchNearbyPlaces = async () => {
-    if (!event.location) {
+    const searchAddress = event.venueAddress || event.location;
+    
+    if (!searchAddress) {
       toast({
         title: 'Укажите адрес',
         description: 'Сначала добавьте адрес проведения мероприятия',
@@ -148,8 +150,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
       const selectedCuisine = cuisineTypes.find(c => c.value === cuisineType);
       const searchQuery = selectedCuisine?.query || 'кафе ресторан';
 
-      const [eventLng, eventLat] = event.location.split(',').map(Number);
-      const city = event.venueAddress || 'Москва';
+      const city = searchAddress;
 
       const response = await fetch('https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5', {
         method: 'POST',
