@@ -185,7 +185,16 @@ def handler(event: dict, context) -> dict:
         
         elif method == 'PUT':
             body = json.loads(event.get('body', '{}'))
-            event_id = body.get('id') or event.get('pathParameters', {}).get('id')
+            
+            # Get event_id from URL path (last segment)
+            request_context = event.get('requestContext', {})
+            http_path = request_context.get('http', {}).get('path', '')
+            path_parts = [p for p in http_path.split('/') if p]
+            event_id = path_parts[-1] if path_parts else None
+            
+            # Fallback to body or pathParameters
+            if not event_id or not event_id.strip():
+                event_id = body.get('id') or event.get('pathParameters', {}).get('id')
             
             if not event_id:
                 return {
