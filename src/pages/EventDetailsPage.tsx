@@ -325,24 +325,33 @@ export default function EventDetailsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-4 md:p-6">
+      {/* Mobile Back Button */}
+      <div className="flex items-center gap-2 mb-4 md:hidden">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/events')}>
+          <Icon name="ArrowLeft" size={20} />
+        </Button>
+        <span className="text-sm font-medium">Назад к праздникам</span>
+      </div>
+
+      {/* Desktop Back Button */}
       <Button
         variant="ghost"
         onClick={() => navigate('/events')}
-        className="mb-4"
+        className="mb-4 hidden md:flex"
       >
         <Icon name="ArrowLeft" size={16} />
         Назад к праздникам
       </Button>
 
       <div className="mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+        <div className="flex flex-col md:flex-row items-start justify-between mb-4 gap-4">
+          <div className="w-full md:w-auto">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
               <Icon name="PartyPopper" className="text-pink-500" />
               {event.title}
             </h1>
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-gray-600 text-sm md:text-base">
               <Icon name="Calendar" size={16} />
               <span>{formatDate(event.eventDate)}</span>
               {event.eventTime && (
@@ -352,8 +361,20 @@ export default function EventDetailsPage() {
                 </>
               )}
             </div>
+            
+            {/* Mobile Badges */}
+            <div className="flex gap-2 mt-3 md:hidden">
+              <Badge variant={statusLabels[event.status]?.variant || 'default'}>
+                {statusLabels[event.status]?.label || event.status}
+              </Badge>
+              <Badge variant="outline">
+                {eventTypeLabels[event.eventType] || event.eventType}
+              </Badge>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          
+          {/* Desktop Action Buttons */}
+          <div className="hidden md:flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <Button onClick={() => setShowAIIdeas(true)} variant="outline">
                 <Icon name="Sparkles" size={16} />
@@ -372,6 +393,26 @@ export default function EventDetailsPage() {
                 {eventTypeLabels[event.eventType] || event.eventType}
               </Badge>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile Action Buttons */}
+        <div className="flex flex-col gap-2 mb-4 md:hidden">
+          <Button onClick={() => setShowAIIdeas(true)} variant="outline" className="w-full">
+            <Icon name="Sparkles" size={16} />
+            ИИ-помощник
+          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => setShowShare(true)} variant="outline">
+              <Icon name="Share2" size={16} />
+              Поделиться
+            </Button>
+            {event.eventType === 'birthday' && (
+              <div className="bg-muted rounded-md px-3 py-2 text-sm flex items-center justify-center gap-2">
+                <Icon name="Cake" size={16} />
+                <span className="text-xs">День рождения</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -435,14 +476,35 @@ export default function EventDetailsPage() {
       </div>
 
       <Tabs defaultValue="guests" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="guests">Гости</TabsTrigger>
-          <TabsTrigger value="theme">Тематика</TabsTrigger>
-          <TabsTrigger value="catering">Ресторан</TabsTrigger>
-          <TabsTrigger value="invitation">Приглашение</TabsTrigger>
-          <TabsTrigger value="wishlist">Подарки</TabsTrigger>
-          <TabsTrigger value="expenses">Расходы</TabsTrigger>
-          <TabsTrigger value="ideas">Идеи</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1">
+          <TabsTrigger value="guests" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="Users" size={14} className="md:hidden" />
+            <span>Гости</span>
+          </TabsTrigger>
+          <TabsTrigger value="theme" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="Palette" size={14} className="md:hidden" />
+            <span>Тематика</span>
+          </TabsTrigger>
+          <TabsTrigger value="catering" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="MapPin" size={14} className="md:hidden" />
+            <span>Ресторан</span>
+          </TabsTrigger>
+          <TabsTrigger value="invitation" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="Mail" size={14} className="md:hidden" />
+            <span>Приглашение</span>
+          </TabsTrigger>
+          <TabsTrigger value="wishlist" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="Gift" size={14} className="md:hidden" />
+            <span>Подарки</span>
+          </TabsTrigger>
+          <TabsTrigger value="expenses" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="Wallet" size={14} className="md:hidden" />
+            <span>Расходы</span>
+          </TabsTrigger>
+          <TabsTrigger value="ideas" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
+            <Icon name="Lightbulb" size={14} className="md:hidden" />
+            <span>Идеи</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="guests" className="mt-4">
