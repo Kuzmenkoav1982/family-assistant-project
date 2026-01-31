@@ -111,33 +111,13 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
-      {/* Mobile Header with Back Button */}
-      <div className="flex items-center gap-3 md:hidden">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-          <Icon name="ArrowLeft" size={20} />
-        </Button>
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Icon name="PartyPopper" className="text-pink-500" size={24} />
-          Праздники семьи
-        </h1>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden md:flex items-center justify-between">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Icon name="PartyPopper" className="text-pink-500" size={32} />
           Праздники семьи
         </h1>
         <Button onClick={() => navigate('/events/create')}>
-          <Icon name="Plus" size={16} />
-          Создать праздник
-        </Button>
-      </div>
-
-      {/* Mobile Create Button */}
-      <div className="md:hidden">
-        <Button onClick={() => navigate('/events/create')} className="w-full">
           <Icon name="Plus" size={16} />
           Создать праздник
         </Button>

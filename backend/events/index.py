@@ -56,7 +56,7 @@ def handler(event: dict, context) -> dict:
                     SELECT id, family_id, title, event_type, event_date, event_time, member_id,
                            description, location, budget, spent, guests_count, status, created_by,
                            created_at, updated_at, theme, catering_type, catering_details,
-                           invitation_image_url, invitation_text, venue_name, venue_address
+                           invitation_image_url, invitation_text
                     FROM family_events
                     WHERE id = %s AND family_id = %s
                 ''', (event_id, family_id))
@@ -91,9 +91,7 @@ def handler(event: dict, context) -> dict:
                     'cateringType': row[17],
                     'cateringDetails': row[18],
                     'invitationImageUrl': row[19],
-                    'invitationText': row[20],
-                    'venueName': row[21],
-                    'venueAddress': row[22]
+                    'invitationText': row[20]
                 }
                 
                 return {
@@ -107,7 +105,7 @@ def handler(event: dict, context) -> dict:
                     SELECT id, family_id, title, event_type, event_date, event_time, member_id,
                            description, location, budget, spent, guests_count, status, created_by,
                            created_at, updated_at, theme, catering_type, catering_details,
-                           invitation_image_url, invitation_text, venue_name, venue_address
+                           invitation_image_url, invitation_text
                     FROM family_events
                     WHERE family_id = %s
                     ORDER BY event_date ASC
@@ -138,9 +136,7 @@ def handler(event: dict, context) -> dict:
                         'cateringType': row[17],
                         'cateringDetails': row[18],
                         'invitationImageUrl': row[19],
-                        'invitationText': row[20],
-                        'venueName': row[21],
-                        'venueAddress': row[22]
+                        'invitationText': row[20]
                     })
                 
                 return {
@@ -185,16 +181,7 @@ def handler(event: dict, context) -> dict:
         
         elif method == 'PUT':
             body = json.loads(event.get('body', '{}'))
-            
-            # Get event_id from URL path (last segment)
-            request_context = event.get('requestContext', {})
-            http_path = request_context.get('http', {}).get('path', '')
-            path_parts = [p for p in http_path.split('/') if p]
-            event_id = path_parts[-1] if path_parts else None
-            
-            # Fallback to body or pathParameters
-            if not event_id or not event_id.strip():
-                event_id = body.get('id') or event.get('pathParameters', {}).get('id')
+            event_id = body.get('id')
             
             if not event_id:
                 return {
@@ -210,7 +197,6 @@ def handler(event: dict, context) -> dict:
                     member_id = %s, description = %s, location = %s, budget = %s,
                     guests_count = %s, status = %s, theme = %s, catering_type = %s,
                     catering_details = %s, invitation_image_url = %s, invitation_text = %s,
-                    venue_name = %s, venue_address = %s,
                     updated_at = NOW()
                 WHERE id = %s AND family_id = %s
             ''', (
@@ -229,8 +215,6 @@ def handler(event: dict, context) -> dict:
                 body.get('cateringDetails'),
                 body.get('invitationImageUrl'),
                 body.get('invitationText'),
-                body.get('venueName'),
-                body.get('venueAddress'),
                 event_id,
                 family_id
             ))

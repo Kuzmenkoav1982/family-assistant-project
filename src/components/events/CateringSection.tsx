@@ -32,12 +32,12 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         : '1';
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac/${event.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/events/${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
-          ...(authToken && { 'X-Authorization': `Bearer ${authToken}` })
+          ...(authToken && { Authorization: `Bearer ${authToken}` })
         },
         body: JSON.stringify({
           cateringType,
@@ -63,15 +63,14 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
   };
 
   const handleSelectRestaurant = (restaurant: { name: string; address: string; cuisine: string; priceRange: string; description: string }) => {
-    setEditing(true);
-    setCateringType('restaurant');
     setVenueName(restaurant.name);
     setVenueAddress(restaurant.address);
     setCateringDetails(`${restaurant.cuisine} • ${restaurant.priceRange}\n${restaurant.description}`);
+    setCateringType('restaurant');
     
     toast({
-      title: '✓ Заведение выбрано',
-      description: `${restaurant.name} добавлен. Теперь нажми "Сохранить"`,
+      title: 'Заведение выбрано',
+      description: 'Данные автоматически заполнены. Нажмите "Сохранить" для применения.',
     });
   };
 
