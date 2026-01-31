@@ -62,16 +62,53 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
     }
   };
 
-  const handleSelectRestaurant = (restaurant: { name: string; address: string; cuisine: string; priceRange: string; description: string }) => {
+  const handleSelectRestaurant = async (restaurant: { name: string; address: string; cuisine: string; priceRange: string; description: string }) => {
+    const newCateringDetails = `${restaurant.cuisine} • ${restaurant.priceRange}\n${restaurant.description}`;
+    
     setCateringType('restaurant');
     setVenueName(restaurant.name);
     setVenueAddress(restaurant.address);
-    setCateringDetails(`${restaurant.cuisine} • ${restaurant.priceRange}\n${restaurant.description}`);
-    
-    toast({
-      title: '✓ Заведение выбрано',
-      description: `${restaurant.name} — теперь нажми "Сохранить" внизу`,
-    });
+    setCateringDetails(newCateringDetails);
+
+    try {
+      const userId = localStorage.getItem('userData')
+        ? JSON.parse(localStorage.getItem('userData')!).member_id
+        : '1';
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac/${event.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': userId,
+          ...(authToken && { 'X-Authorization': `Bearer ${authToken}` })
+        },
+        body: JSON.stringify({
+          cateringType: 'restaurant',
+          cateringDetails: newCateringDetails,
+          venueName: restaurant.name,
+          venueAddress: restaurant.address
+        })
+      });
+
+      if (response.ok) {
+        toast({ 
+          title: '✓ Ресторан сохранён', 
+          description: `${restaurant.name} добавлен в праздник`,
+        });
+        setEditing(false);
+        onUpdate();
+      } else {
+        throw new Error('Failed to save');
+      }
+    } catch (error) {
+      console.error('[CateringSection] Save error:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить ресторан. Попробуй ещё раз.',
+        variant: 'destructive'
+      });
+    }
   };
 
   if (!editing) {

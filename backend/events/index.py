@@ -6,27 +6,22 @@ from datetime import datetime, date
 def handler(event: dict, context) -> dict:
     '''
     Управление праздниками семьи: создание, получение, обновление и удаление праздников
-    CORS fix: добавлен X-Authorization в разрешённые заголовки
     '''
     method = event.get('httpMethod', 'GET')
     
-    # CORS preflight handling
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Authorization, Authorization',
-                'Access-Control-Max-Age': '86400'
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization'
             },
             'body': '',
             'isBase64Encoded': False
         }
     
-    # Get user ID from headers
-    headers = event.get('headers', {})
-    user_id = headers.get('X-User-Id') or headers.get('x-user-id') or headers.get('X-USER-ID')
+    user_id = event.get('headers', {}).get('X-User-Id') or event.get('headers', {}).get('x-user-id')
     
     if not user_id:
         return {

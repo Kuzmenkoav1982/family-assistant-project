@@ -4,6 +4,7 @@
   "event-share": "https://functions.poehali.dev/6e3083a3-792f-4224-91d5-1e665f109014",
   "event-guests": "https://functions.poehali.dev/312e50c3-c9e7-486b-bb89-902d40999a88",
   "guest-gifts": "https://functions.poehali.dev/3c48e165-8b41-426c-ac57-33479aef153b",
+  "events": "https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac",
   "event-expenses": "https://functions.poehali.dev/b322f4b6-5877-4ae2-abd8-8918c2815220",
   "event-ideas": "https://functions.poehali.dev/08e42be0-af42-4333-a69f-32c1d20f2610",
   "event-wishlist": "https://functions.poehali.dev/64c0d9a2-7e24-49ea-b786-52e900feb79b",
