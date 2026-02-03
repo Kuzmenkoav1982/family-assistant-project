@@ -175,7 +175,36 @@ export function MedicationsWidget() {
   }
 
   if (todayMedications.length === 0) {
-    return null;
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950 dark:to-green-950">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Icon name="Pill" size={20} className="text-blue-600" />
+              Лекарства на сегодня
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/health')}
+            >
+              <Icon name="ArrowRight" size={16} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center">
+              <Icon name="CheckCircle2" size={32} className="text-green-600" />
+            </div>
+            <p className="font-medium text-gray-700">Нет приёмов на сегодня</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Добавьте лекарства в разделе "Здоровье"
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const takenCount = todayMedications.filter(m => m.taken).length;
