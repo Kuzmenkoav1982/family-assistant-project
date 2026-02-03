@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import func2url from '../../../backend/func2url.json';
 
 interface AddHealthRecordDialogProps {
   profileId: string;
@@ -36,7 +37,7 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
 
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch('https://functions.poehali.dev/a5ea76d6-8fb7-4cfa-89c7-837877a2f996', {
+      const response = await fetch(func2url['health-records'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

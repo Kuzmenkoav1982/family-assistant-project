@@ -129,7 +129,10 @@ function HealthNew() {
     );
   }
 
-  const getMemberPhoto = (userName: string) => {
+  const getMemberPhoto = (profile: HealthProfile) => {
+    if (profile.photoUrl) {
+      return profile.photoUrl;
+    }
     const photoMap: Record<string, string> = {
       'Анастасия': 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
       'Алексей': 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
@@ -137,7 +140,7 @@ function HealthNew() {
       'Даша': 'https://cdn.poehali.dev/files/fcce342c-9b14-420d-b3eb-97084a3bbe08.png',
       'Илья': 'https://cdn.poehali.dev/files/c58eac3b-e952-42aa-abe0-9b1141530809.png'
     };
-    return photoMap[userName] || null;
+    return photoMap[profile.userName] || null;
   };
 
   return (
@@ -160,7 +163,7 @@ function HealthNew() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {profiles.map((profile) => {
-          const photo = getMemberPhoto(profile.userName);
+          const photo = getMemberPhoto(profile);
           return (
             <Card
               key={profile.id}
@@ -170,10 +173,10 @@ function HealthNew() {
               onClick={() => setSelectedProfile(profile)}
             >
               <CardContent className="pt-4 md:pt-6 text-center">
-                {photo || (!isDemoMode && authToken) ? (
+                {photo ? (
                   <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
                     <img 
-                      src={photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.userName)}&size=128&background=f97316&color=fff`} 
+                      src={photo} 
                       alt={profile.userName} 
                       className="w-full h-full object-cover" 
                     />

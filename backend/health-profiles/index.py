@@ -9,7 +9,7 @@ import urllib.error
 FAMILY_MEMBERS_URL = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5'
 
 def get_member_info(member_id: str, auth_token: str = None) -> dict:
-    '''Получить имя и возраст члена семьи через family-members функцию'''
+    '''Получить имя, возраст и фото члена семьи через family-members функцию'''
     try:
         headers = {'X-User-Id': member_id}
         if auth_token:
@@ -25,12 +25,13 @@ def get_member_info(member_id: str, auth_token: str = None) -> dict:
                     if member.get('id') == member_id:
                         return {
                             'name': member.get('name', 'Член семьи'),
-                            'age': member.get('age', 0)
+                            'age': member.get('age', 0),
+                            'photo_url': member.get('photo_url') or member.get('photoUrl')
                         }
-        return {'name': 'Член семьи', 'age': 0}
+        return {'name': 'Член семьи', 'age': 0, 'photo_url': None}
     except Exception as e:
         print(f'[ERROR] Failed to fetch member info for {member_id}: {e}')
-        return {'name': 'Член семьи', 'age': 0}
+        return {'name': 'Член семьи', 'age': 0, 'photo_url': None}
 
 def handler(event: dict, context) -> dict:
     '''
@@ -114,6 +115,7 @@ def handler(event: dict, context) -> dict:
                     'userId': row[1],
                     'userName': member_info['name'],
                     'userAge': member_info['age'],
+                    'photoUrl': member_info.get('photo_url'),
                     'bloodType': row[2],
                     'rhFactor': row[3],
                     'allergies': decrypt_list(row[4]) if row[4] else [],

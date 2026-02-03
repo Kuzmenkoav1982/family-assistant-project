@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import func2url from '../../../backend/func2url.json';
 
 interface AddMedicationDialogProps {
   profileId: string;
@@ -35,7 +36,7 @@ export function AddMedicationDialog({ profileId, onSuccess, trigger }: AddMedica
 
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch('https://functions.poehali.dev/520001f0-b1a0-4150-b221-a38041928a67', {
+      const response = await fetch(func2url['health-medications'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

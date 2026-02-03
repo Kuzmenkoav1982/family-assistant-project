@@ -15,6 +15,7 @@ export interface HealthProfile {
   userId: string;
   userName: string;
   userAge: number;
+  photoUrl?: string;
   bloodType?: string;
   rhFactor?: '+' | '-';
   allergies: string[];
