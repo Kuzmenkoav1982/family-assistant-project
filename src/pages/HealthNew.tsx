@@ -46,9 +46,9 @@ function HealthNew() {
   console.log('[HealthNew] Component mounted, isDemoMode:', isDemoMode, 'authToken:', !!authToken);
   
   const { profiles: apiProfiles, loading: profilesLoading } = useHealthProfiles();
-  const { records: apiRecords } = useHealthRecords(selectedProfile?.id);
+  const { records: apiRecords, refetch: refetchRecords } = useHealthRecords(selectedProfile?.id);
   const { vaccinations: apiVaccinations } = useVaccinations(selectedProfile?.id);
-  const { medications: apiMedications } = useMedications(selectedProfile?.id);
+  const { medications: apiMedications, refetch: refetchMedications } = useMedications(selectedProfile?.id);
   const { vitals: apiVitals } = useVitalRecords(selectedProfile?.id);
   const { doctors: apiDoctors } = useDoctors();
   const { insurance: apiInsurance } = useInsurance(selectedProfile?.id);
@@ -315,7 +315,7 @@ function HealthNew() {
                   <h3 className="text-lg font-semibold">Медицинская история</h3>
                   <AddHealthRecordDialog 
                     profileId={selectedProfile.userId} 
-                    onSuccess={() => window.location.reload()}
+                    onSuccess={refetchRecords}
                   />
                 </div>
                 {records
@@ -440,7 +440,7 @@ function HealthNew() {
                   <h3 className="text-lg font-semibold">Лекарства и напоминания</h3>
                   <AddMedicationDialog 
                     profileId={selectedProfile.userId} 
-                    onSuccess={() => window.location.reload()}
+                    onSuccess={refetchMedications}
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">

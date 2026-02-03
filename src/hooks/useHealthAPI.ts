@@ -75,6 +75,7 @@ export function useHealthRecords(profileId?: string) {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -105,9 +106,11 @@ export function useHealthRecords(profileId?: string) {
     };
 
     fetchRecords();
-  }, [profileId]);
+  }, [profileId, refetchTrigger]);
 
-  return { records, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { records, loading, error, refetch };
 }
 
 export function useVaccinations(profileId?: string) {
@@ -153,6 +156,7 @@ export function useMedications(profileId?: string) {
   const [medications, setMedications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchMedications = async () => {
@@ -183,9 +187,11 @@ export function useMedications(profileId?: string) {
     };
 
     fetchMedications();
-  }, [profileId]);
+  }, [profileId, refetchTrigger]);
 
-  return { medications, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { medications, loading, error, refetch };
 }
 
 export function useVitalRecords(profileId?: string) {

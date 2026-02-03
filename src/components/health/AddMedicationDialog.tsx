@@ -47,6 +47,7 @@ export function AddMedicationDialog({ profileId, onSuccess, trigger }: AddMedica
         body: JSON.stringify({
           profileId,
           ...formData,
+          endDate: formData.endDate || null,
           status: 'active'
         })
       });
