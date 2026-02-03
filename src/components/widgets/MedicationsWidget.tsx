@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useMedicationNotifications } from '@/hooks/useMedicationNotifications';
 import func2url from '../../../backend/func2url.json';
 
 interface MedicationReminder {
@@ -19,10 +20,12 @@ interface MedicationReminder {
 
 export function MedicationsWidget() {
   const [todayMedications, setTodayMedications] = useState<MedicationReminder[]>([]);
+  const [medications, setMedications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { permission, requestPermission } = useMedicationNotifications(medications);
 
   const fetchTodayMedications = async () => {
     try {
@@ -45,8 +48,10 @@ export function MedicationsWidget() {
         throw new Error('Failed to fetch medications');
       }
 
-      const medications = await medsResponse.json();
-      const activeMeds = medications.filter((m: any) => m.active);
+      const fetchedMedications = await medsResponse.json();
+      const activeMeds = fetchedMedications.filter((m: any) => m.active);
+      
+      setMedications(activeMeds);
 
       const reminders: MedicationReminder[] = [];
       const today = new Date().toISOString().split('T')[0];
@@ -185,13 +190,28 @@ export function MedicationsWidget() {
             <Icon name="Pill" size={20} className="text-blue-600" />
             Лекарства на сегодня
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/health')}
-          >
-            <Icon name="ArrowRight" size={16} />
-          </Button>
+          <div className="flex items-center gap-2">
+            {permission === 'default' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={requestPermission}
+                className="gap-1"
+              >
+                <Icon name="Bell" size={14} />
+              </Button>
+            )}
+            {permission === 'granted' && (
+              <Icon name="BellRing" size={16} className="text-green-600" />
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/health')}
+            >
+              <Icon name="ArrowRight" size={16} />
+            </Button>
+          </div>
         </div>
         <div className="mt-3">
           <div className="flex items-center justify-between text-sm mb-2">
