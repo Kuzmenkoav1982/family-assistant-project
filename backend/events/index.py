@@ -186,15 +186,12 @@ def handler(event: dict, context) -> dict:
         elif method == 'PUT':
             body = json.loads(event.get('body', '{}'))
             
-            # Get event_id from URL path (last segment)
-            request_context = event.get('requestContext', {})
-            http_path = request_context.get('http', {}).get('path', '')
-            path_parts = [p for p in http_path.split('/') if p]
-            event_id = path_parts[-1] if path_parts else None
+            # Get event_id from query params, body, or path
+            query_params = event.get('queryStringParameters', {})
+            event_id = query_params.get('id') if query_params else None
             
-            # Fallback to body or pathParameters
-            if not event_id or not event_id.strip():
-                event_id = body.get('id') or event.get('pathParameters', {}).get('id')
+            if not event_id:
+                event_id = body.get('id')
             
             if not event_id:
                 return {
@@ -204,37 +201,53 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
-            cursor.execute('''
-                UPDATE family_events
-                SET title = %s, event_type = %s, event_date = %s, event_time = %s,
-                    member_id = %s, description = %s, location = %s, budget = %s,
-                    guests_count = %s, status = %s, theme = %s, catering_type = %s,
-                    catering_details = %s, invitation_image_url = %s, invitation_text = %s,
-                    venue_name = %s, venue_address = %s,
-                    updated_at = NOW()
-                WHERE id = %s AND family_id = %s
-            ''', (
-                body.get('title'),
-                body.get('eventType'),
-                body.get('eventDate'),
-                body.get('eventTime'),
-                body.get('memberId'),
-                body.get('description'),
-                body.get('location'),
-                body.get('budget'),
-                body.get('guestsCount'),
-                body.get('status'),
-                body.get('theme'),
-                body.get('cateringType'),
-                body.get('cateringDetails'),
-                body.get('invitationImageUrl'),
-                body.get('invitationText'),
-                body.get('venueName'),
-                body.get('venueAddress'),
-                event_id,
-                family_id
-            ))
+            # Build dynamic UPDATE query for partial updates
+            update_fields = []
+            update_values = []
             
+            field_mapping = {
+                'title': 'title',
+                'eventType': 'event_type',
+                'eventDate': 'event_date',
+                'eventTime': 'event_time',
+                'memberId': 'member_id',
+                'description': 'description',
+                'location': 'location',
+                'budget': 'budget',
+                'guestsCount': 'guests_count',
+                'status': 'status',
+                'theme': 'theme',
+                'cateringType': 'catering_type',
+                'cateringDetails': 'catering_details',
+                'invitationImageUrl': 'invitation_image_url',
+                'invitationText': 'invitation_text',
+                'venueName': 'venue_name',
+                'venueAddress': 'venue_address'
+            }
+            
+            for json_key, db_column in field_mapping.items():
+                if json_key in body:
+                    update_fields.append(f'{db_column} = %s')
+                    update_values.append(body[json_key])
+            
+            if not update_fields:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'No fields to update'}),
+                    'isBase64Encoded': False
+                }
+            
+            update_fields.append('updated_at = NOW()')
+            update_values.extend([event_id, family_id])
+            
+            query = f'''
+                UPDATE family_events
+                SET {', '.join(update_fields)}
+                WHERE id = %s AND family_id = %s
+            '''
+            
+            cursor.execute(query, tuple(update_values))
             conn.commit()
             
             return {

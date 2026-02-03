@@ -9,6 +9,9 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import RestaurantAISearch from './RestaurantAISearch';
 import type { FamilyEvent } from '@/types/events';
+import func2url from '../../../backend/func2url.json';
+
+const API_URL = func2url['events'];
 
 interface CateringSectionProps {
   event: FamilyEvent;
@@ -32,7 +35,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         : '1';
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac/${event.id}`, {
+      const response = await fetch(`${API_URL}?id=${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -40,6 +43,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
+          id: event.id,
           cateringType,
           cateringDetails,
           venueName,
@@ -76,7 +80,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         : '1';
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac/${event.id}`, {
+      const response = await fetch(`${API_URL}?id=${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -84,6 +88,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
+          id: event.id,
           cateringType: 'restaurant',
           cateringDetails: newCateringDetails,
           venueName: restaurant.name,
