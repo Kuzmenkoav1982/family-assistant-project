@@ -32,6 +32,10 @@ import { AddDoctorDialog } from '@/components/health/AddDoctorDialog';
 import { AddVaccinationDialog } from '@/components/health/AddVaccinationDialog';
 import { AddVitalRecordDialog } from '@/components/health/AddVitalRecordDialog';
 import { EditProfileDialog } from '@/components/health/EditProfileDialog';
+import { EditDoctorDialog } from '@/components/health/EditDoctorDialog';
+import { EditVaccinationDialog } from '@/components/health/EditVaccinationDialog';
+import { EditInsuranceDialog } from '@/components/health/EditInsuranceDialog';
+import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -411,10 +415,16 @@ function HealthNew() {
                     .map((vacc: any) => (
                       <Card key={vacc.id}>
                         <CardHeader>
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Icon name="Syringe" size={18} className="text-blue-600" />
-                            {vacc.name}
-                          </CardTitle>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Icon name="Syringe" size={18} className="text-blue-600" />
+                              {vacc.name}
+                            </CardTitle>
+                            <EditVaccinationDialog 
+                              vaccination={vacc} 
+                              onSuccess={refetchVaccinations}
+                            />
+                          </div>
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <div className="flex justify-between text-sm">
@@ -521,11 +531,17 @@ function HealthNew() {
                         .filter((v: any) => v.type === 'weight')
                         .slice(0, 3)
                         .map((vital: any) => (
-                          <div key={vital.id} className="flex justify-between text-sm py-1">
-                            <span className="text-muted-foreground">
-                              {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                            </span>
-                            <span className="font-medium">{vital.value} {vital.unit}</span>
+                          <div key={vital.id} className="flex justify-between items-center text-sm py-1">
+                            <div className="flex-1 flex justify-between">
+                              <span className="text-muted-foreground">
+                                {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                              </span>
+                              <span className="font-medium">{vital.value} {vital.unit}</span>
+                            </div>
+                            <EditVitalRecordDialog 
+                              vital={vital} 
+                              onSuccess={refetchVitals}
+                            />
                           </div>
                         ))}
                     </CardContent>
@@ -539,11 +555,17 @@ function HealthNew() {
                         .filter((v: any) => v.type === 'pressure')
                         .slice(0, 3)
                         .map((vital: any) => (
-                          <div key={vital.id} className="flex justify-between text-sm py-1">
-                            <span className="text-muted-foreground">
-                              {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                            </span>
-                            <span className="font-medium">{vital.value} {vital.unit}</span>
+                          <div key={vital.id} className="flex justify-between items-center text-sm py-1">
+                            <div className="flex-1 flex justify-between">
+                              <span className="text-muted-foreground">
+                                {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                              </span>
+                              <span className="font-medium">{vital.value} {vital.unit}</span>
+                            </div>
+                            <EditVitalRecordDialog 
+                              vital={vital} 
+                              onSuccess={refetchVitals}
+                            />
                           </div>
                         ))}
                     </CardContent>
@@ -557,11 +579,17 @@ function HealthNew() {
                         .filter((v: any) => v.type === 'pulse')
                         .slice(0, 3)
                         .map((vital: any) => (
-                          <div key={vital.id} className="flex justify-between text-sm py-1">
-                            <span className="text-muted-foreground">
-                              {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                            </span>
-                            <span className="font-medium">{vital.value} {vital.unit}</span>
+                          <div key={vital.id} className="flex justify-between items-center text-sm py-1">
+                            <div className="flex-1 flex justify-between">
+                              <span className="text-muted-foreground">
+                                {new Date(vital.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                              </span>
+                              <span className="font-medium">{vital.value} {vital.unit}</span>
+                            </div>
+                            <EditVitalRecordDialog 
+                              vital={vital} 
+                              onSuccess={refetchVitals}
+                            />
                           </div>
                         ))}
                     </CardContent>
@@ -586,6 +614,10 @@ function HealthNew() {
                             </CardTitle>
                             <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
                           </div>
+                          <EditDoctorDialog 
+                            doctor={doctor} 
+                            onSuccess={refetchDoctors}
+                          />
                           {doctor.rating && (
                             <div className="flex items-center gap-1 text-sm">
                               <Icon name="Star" size={14} className="text-yellow-500 fill-yellow-500" />
@@ -639,26 +671,32 @@ function HealthNew() {
                     .map((policy: any) => (
                       <Card key={policy.id}>
                         <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <CardTitle className="text-base flex items-center gap-2">
-                                <Icon name="Shield" size={18} className="text-blue-600" />
-                                {policy.type === 'oms' && 'ОМС'}
-                                {policy.type === 'dms' && 'ДМС'}
-                                {policy.type === 'travel' && 'Страхование путешествий'}
-                                {policy.type === 'life' && 'Страхование жизни'}
-                              </CardTitle>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                  <Icon name="Shield" size={18} className="text-blue-600" />
+                                  {policy.type === 'oms' && 'ОМС'}
+                                  {policy.type === 'dms' && 'ДМС'}
+                                  {policy.type === 'travel' && 'Страхование путешествий'}
+                                  {policy.type === 'life' && 'Страхование жизни'}
+                                </CardTitle>
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  policy.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                                  policy.status === 'expiring' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100' :
+                                  'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+                                }`}>
+                                  {policy.status === 'active' && 'Активен'}
+                                  {policy.status === 'expiring' && 'Истекает'}
+                                  {policy.status === 'expired' && 'Истек'}
+                                </span>
+                              </div>
                               <p className="text-sm text-muted-foreground">{policy.provider}</p>
                             </div>
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              policy.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
-                              policy.status === 'expiring' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100' :
-                              'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
-                            }`}>
-                              {policy.status === 'active' && 'Активен'}
-                              {policy.status === 'expiring' && 'Истекает'}
-                              {policy.status === 'expired' && 'Истек'}
-                            </span>
+                            <EditInsuranceDialog 
+                              insurance={policy} 
+                              onSuccess={refetchInsurance}
+                            />
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-2">
