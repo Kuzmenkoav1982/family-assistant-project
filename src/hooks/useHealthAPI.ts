@@ -117,6 +117,7 @@ export function useVaccinations(profileId?: string) {
   const [vaccinations, setVaccinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchVaccinations = async () => {
@@ -147,9 +148,11 @@ export function useVaccinations(profileId?: string) {
     };
 
     fetchVaccinations();
-  }, [profileId]);
+  }, [profileId, refetchTrigger]);
 
-  return { vaccinations, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { vaccinations, loading, error, refetch };
 }
 
 export function useMedications(profileId?: string) {
@@ -198,6 +201,7 @@ export function useVitalRecords(profileId?: string) {
   const [vitals, setVitals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchVitals = async () => {
@@ -228,9 +232,11 @@ export function useVitalRecords(profileId?: string) {
     };
 
     fetchVitals();
-  }, [profileId]);
+  }, [profileId, refetchTrigger]);
 
-  return { vitals, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { vitals, loading, error, refetch };
 }
 
 export function useDoctors() {
@@ -275,6 +281,7 @@ export function useInsurance(profileId?: string) {
   const [insurance, setInsurance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchInsurance = async () => {
@@ -305,9 +312,11 @@ export function useInsurance(profileId?: string) {
     };
 
     fetchInsurance();
-  }, [profileId]);
+  }, [profileId, refetchTrigger]);
 
-  return { insurance, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { insurance, loading, error, refetch };
 }
 
 export function useTelemedicine(profileId?: string) {

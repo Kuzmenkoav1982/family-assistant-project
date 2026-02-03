@@ -29,6 +29,9 @@ import { AddHealthRecordDialog } from '@/components/health/AddHealthRecordDialog
 import { AddMedicationDialog } from '@/components/health/AddMedicationDialog';
 import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 import { AddDoctorDialog } from '@/components/health/AddDoctorDialog';
+import { AddVaccinationDialog } from '@/components/health/AddVaccinationDialog';
+import { AddVitalRecordDialog } from '@/components/health/AddVitalRecordDialog';
+import { EditProfileDialog } from '@/components/health/EditProfileDialog';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -48,11 +51,11 @@ function HealthNew() {
   
   const { profiles: apiProfiles, loading: profilesLoading } = useHealthProfiles();
   const { records: apiRecords, refetch: refetchRecords } = useHealthRecords(selectedProfile?.id);
-  const { vaccinations: apiVaccinations } = useVaccinations(selectedProfile?.id);
+  const { vaccinations: apiVaccinations, refetch: refetchVaccinations } = useVaccinations(selectedProfile?.id);
   const { medications: apiMedications, refetch: refetchMedications } = useMedications(selectedProfile?.id);
-  const { vitals: apiVitals } = useVitalRecords(selectedProfile?.id);
+  const { vitals: apiVitals, refetch: refetchVitals } = useVitalRecords(selectedProfile?.id);
   const { doctors: apiDoctors, refetch: refetchDoctors } = useDoctors();
-  const { insurance: apiInsurance } = useInsurance(selectedProfile?.id);
+  const { insurance: apiInsurance, refetch: refetchInsurance } = useInsurance(selectedProfile?.id);
   const { sessions: apiSessions } = useTelemedicine(selectedProfile?.id);
 
   const profiles = useMemo(() => 
@@ -238,7 +241,13 @@ function HealthNew() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Общая информация</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">Общая информация</CardTitle>
+                        <EditProfileDialog 
+                          profile={selectedProfile} 
+                          onSuccess={() => window.location.reload()}
+                        />
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div className="flex justify-between">
@@ -392,10 +401,10 @@ function HealthNew() {
               <TabsContent value="vaccinations" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">График прививок</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Добавить прививку
-                  </Button>
+                  <AddVaccinationDialog 
+                    profileId={selectedProfile.id} 
+                    onSuccess={refetchVaccinations}
+                  />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {vaccinations
@@ -493,10 +502,10 @@ function HealthNew() {
               <TabsContent value="vitals" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Дневник самочувствия</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Добавить запись
-                  </Button>
+                  <AddVitalRecordDialog 
+                    profileId={selectedProfile.id} 
+                    onSuccess={refetchVitals}
+                  />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Отслеживайте вес, рост, давление, пульс и другие показатели здоровья.
@@ -622,7 +631,7 @@ function HealthNew() {
                   <h3 className="text-lg font-semibold">Страховые полисы</h3>
                   <AddInsuranceDialog 
                     profileId={selectedProfile.id} 
-                    onSuccess={() => window.location.reload()}
+                    onSuccess={refetchInsurance}
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
