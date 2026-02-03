@@ -69,6 +69,13 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     icon: 'UtensilsCrossed',
     enabled: false,
     description: 'План питания на неделю'
+  },
+  {
+    id: 'medications',
+    name: 'Лекарства на сегодня',
+    icon: 'Pill',
+    enabled: true,
+    description: 'Расписание приёма лекарств с отметками'
   }
 ];
 

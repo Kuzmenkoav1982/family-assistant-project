@@ -87,6 +87,7 @@ import { ShoppingWidget } from '@/components/widgets/ShoppingWidget';
 import { VotingWidget } from '@/components/widgets/VotingWidget';
 import { NutritionWidget } from '@/components/widgets/NutritionWidget';
 import { WeeklyMenuWidget } from '@/components/widgets/WeeklyMenuWidget';
+import { MedicationsWidget } from '@/components/widgets/MedicationsWidget';
 
 interface IndexProps {
   onLogout?: () => void;
@@ -3042,6 +3043,12 @@ export default function Index({ onLogout }: IndexProps) {
             {isWidgetEnabled('weekly-menu') && (
               <div className="animate-fade-in" style={{ animationDelay: '1.25s' }}>
                 <WeeklyMenuWidget />
+              </div>
+            )}
+
+            {isWidgetEnabled('medications') && (
+              <div className="animate-fade-in" style={{ animationDelay: '1.4s' }}>
+                <MedicationsWidget />
               </div>
             )}
 
