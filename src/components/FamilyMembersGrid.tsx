@@ -203,8 +203,7 @@ const MemberCard = ({
                     {member.account_type === 'child_profile' ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700 border-amber-300 cursor-help">
-                            <Icon name="Baby" size={10} className="mr-1" />
+                          <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700 border-amber-300 cursor-help px-1.5 py-0">
                             Без доступа
                           </Badge>
                         </TooltipTrigger>
@@ -219,8 +218,7 @@ const MemberCard = ({
                     ) : (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-300 cursor-help">
-                            <Icon name="UserCheck" size={10} className="mr-1" />
+                          <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-300 cursor-help px-1.5 py-0">
                             С доступом
                           </Badge>
                         </TooltipTrigger>

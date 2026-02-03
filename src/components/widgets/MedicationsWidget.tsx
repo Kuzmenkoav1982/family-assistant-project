@@ -194,9 +194,6 @@ export function MedicationsWidget() {
         </CardHeader>
         <CardContent className="p-6">
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center">
-              <Icon name="CheckCircle2" size={32} className="text-green-600" />
-            </div>
             <p className="font-medium text-gray-700">Нет приёмов на сегодня</p>
             <p className="text-sm text-muted-foreground mt-1">
               Добавьте лекарства в разделе "Здоровье"
