@@ -37,7 +37,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
-          ...(authToken && { 'X-Authorization': `Bearer ${authToken}` })
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
           cateringType,
@@ -81,7 +81,7 @@ export default function CateringSection({ event, onUpdate }: CateringSectionProp
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
-          ...(authToken && { 'X-Authorization': `Bearer ${authToken}` })
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
           cateringType: 'restaurant',
