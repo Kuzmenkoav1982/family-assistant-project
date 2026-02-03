@@ -109,24 +109,38 @@ def handler(event: dict, context) -> dict:
             ''', (
                 body['profileId'],
                 encrypt_data(body['name']),
-                body['dosage'],
-                body['frequency'],
-                body['startDate'],
+                body.get('dosage', ''),
+                body.get('frequency', ''),
+                body.get('startDate'),
                 body.get('endDate'),
                 body.get('active', True)
             ))
             
             med_id = cursor.fetchone()[0]
             
-            for rem in body.get('reminders', []):
-                cursor.execute('''
-                    INSERT INTO medication_reminders (id, medication_id, time, enabled)
-                    VALUES (gen_random_uuid()::text, %s, %s, %s)
-                ''', (
-                    med_id,
-                    rem['time'],
-                    rem.get('enabled', True)
-                ))
+            times = body.get('times', [])
+            reminders = body.get('reminders', [])
+            
+            if times:
+                for time in times:
+                    cursor.execute('''
+                        INSERT INTO medication_reminders (id, medication_id, time, enabled)
+                        VALUES (gen_random_uuid()::text, %s, %s, %s)
+                    ''', (
+                        med_id,
+                        time,
+                        True
+                    ))
+            elif reminders:
+                for rem in reminders:
+                    cursor.execute('''
+                        INSERT INTO medication_reminders (id, medication_id, time, enabled)
+                        VALUES (gen_random_uuid()::text, %s, %s, %s)
+                    ''', (
+                        med_id,
+                        rem['time'],
+                        rem.get('enabled', True)
+                    ))
             
             conn.commit()
             

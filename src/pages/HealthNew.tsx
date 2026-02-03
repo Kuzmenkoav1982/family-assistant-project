@@ -26,7 +26,7 @@ import {
 } from '@/hooks/useHealthAPI';
 import type { HealthProfile } from '@/types/health';
 import { AddHealthRecordDialog } from '@/components/health/AddHealthRecordDialog';
-import { AddMedicationDialog } from '@/components/health/AddMedicationDialog';
+import { AddMedicationAdvancedDialog } from '@/components/health/AddMedicationAdvancedDialog';
 import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 import { AddDoctorDialog } from '@/components/health/AddDoctorDialog';
 import { AddVaccinationDialog } from '@/components/health/AddVaccinationDialog';
@@ -458,7 +458,7 @@ function HealthNew() {
               <TabsContent value="medications" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Лекарства и напоминания</h3>
-                  <AddMedicationDialog 
+                  <AddMedicationAdvancedDialog 
                     profileId={selectedProfile.id} 
                     onSuccess={refetchMedications}
                   />
