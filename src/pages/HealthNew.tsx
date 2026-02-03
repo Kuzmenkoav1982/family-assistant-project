@@ -36,6 +36,7 @@ import { EditDoctorDialog } from '@/components/health/EditDoctorDialog';
 import { EditVaccinationDialog } from '@/components/health/EditVaccinationDialog';
 import { EditInsuranceDialog } from '@/components/health/EditInsuranceDialog';
 import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog';
+import { MedicationCard } from '@/components/health/MedicationCard';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -464,48 +465,13 @@ function HealthNew() {
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {medications
-                    .map((med: any) => (
-                      <Card key={med.id} className={!med.active ? 'opacity-60' : ''}>
-                        <CardHeader>
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Icon name="Pill" size={18} className={med.active ? 'text-green-600' : 'text-gray-400'} />
-                            {med.name}
-                          </CardTitle>
-                          {!med.active && (
-                            <p className="text-xs text-muted-foreground">Прием завершен</p>
-                          )}
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Дозировка:</span>
-                            <span className="font-medium">{med.dosage}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Частота:</span>
-                            <span>{med.frequency}</span>
-                          </div>
-                          {med.purpose && (
-                            <div className="text-sm">
-                              <span className="text-muted-foreground">Назначение:</span> {med.purpose}
-                            </div>
-                          )}
-                          {med.reminders.length > 0 && med.active && (
-                            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-950 rounded">
-                              <p className="text-xs font-medium mb-1 flex items-center gap-1">
-                                <Icon name="Bell" size={12} />
-                                Напоминания:
-                              </p>
-                              {med.reminders.map((rem) => (
-                                <p key={rem.id} className="text-xs">
-                                  🕐 {rem.time} {rem.enabled ? '✅' : '⏸️'}
-                                </p>
-                              ))}
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
+                  {medications.map((med: any) => (
+                    <MedicationCard 
+                      key={med.id} 
+                      medication={med}
+                      onUpdate={refetchMedications}
+                    />
+                  ))}
                 </div>
               </TabsContent>
 

@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get medication intakes",
+      "method": "GET",
+      "path": "/?medicationId=test-med-123",
+      "headers": {
+        "X-User-Id": "test-user"
+      },
+      "expectedStatus": 200,
+      "expectedBody": [],
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -36,6 +36,34 @@ def handler(event: dict, context) -> dict:
     
     try:
         if method == 'GET':
+            path = event.get('path', '')
+            
+            if '/schedule' in path:
+                cursor.execute('''
+                    SELECT id, name, age_months, description, is_mandatory
+                    FROM vaccination_schedule
+                    ORDER BY age_months ASC
+                ''')
+                
+                rows = cursor.fetchall()
+                schedule = []
+                
+                for row in rows:
+                    schedule.append({
+                        'id': row[0],
+                        'name': row[1],
+                        'ageMonths': row[2],
+                        'description': row[3],
+                        'isMandatory': row[4]
+                    })
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps(schedule, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            
             profile_id = event.get('queryStringParameters', {}).get('profileId') if event.get('queryStringParameters') else None
             
             if profile_id:

@@ -42,7 +42,7 @@ def handler(event: dict, context) -> dict:
             if profile_id:
                 cursor.execute('''
                     SELECT m.id, m.profile_id, m.name, m.dosage, m.frequency, 
-                           m.start_date, m.end_date, m.active, m.created_at
+                           m.start_date, m.end_date, m.active, m.files, m.created_at
                     FROM medications m
                     JOIN health_profiles hp ON m.profile_id = hp.id
                     WHERE m.profile_id = %s AND (hp.user_id = %s OR %s = ANY(hp.shared_with))
@@ -51,7 +51,7 @@ def handler(event: dict, context) -> dict:
             else:
                 cursor.execute('''
                     SELECT m.id, m.profile_id, m.name, m.dosage, m.frequency, 
-                           m.start_date, m.end_date, m.active, m.created_at
+                           m.start_date, m.end_date, m.active, m.files, m.created_at
                     FROM medications m
                     JOIN health_profiles hp ON m.profile_id = hp.id
                     WHERE hp.user_id = %s OR %s = ANY(hp.shared_with)
@@ -88,8 +88,9 @@ def handler(event: dict, context) -> dict:
                     'startDate': row[5].isoformat() if row[5] else None,
                     'endDate': row[6].isoformat() if row[6] else None,
                     'active': row[7],
+                    'files': row[8] if row[8] else [],
                     'reminders': reminders,
-                    'createdAt': row[8].isoformat() if row[8] else None
+                    'createdAt': row[9].isoformat() if row[9] else None
                 })
             
             return {
@@ -102,9 +103,11 @@ def handler(event: dict, context) -> dict:
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
             
+            files_json = json.dumps(body.get('files', []))
+            
             cursor.execute('''
-                INSERT INTO medications (id, profile_id, name, dosage, frequency, start_date, end_date, active, created_at)
-                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, NOW())
+                INSERT INTO medications (id, profile_id, name, dosage, frequency, start_date, end_date, active, files, created_at)
+                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW())
                 RETURNING id
             ''', (
                 body['profileId'],
@@ -113,7 +116,8 @@ def handler(event: dict, context) -> dict:
                 body.get('frequency', ''),
                 body.get('startDate'),
                 body.get('endDate'),
-                body.get('active', True)
+                body.get('active', True),
+                files_json
             ))
             
             med_id = cursor.fetchone()[0]

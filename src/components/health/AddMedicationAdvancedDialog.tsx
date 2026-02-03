@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import func2url from '../../../backend/func2url.json';
 
 interface AddMedicationAdvancedDialogProps {
@@ -20,6 +21,8 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
   const [loading, setLoading] = useState(false);
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
   const { toast } = useToast();
+  const { upload, uploading } = useFileUpload();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,6 +35,8 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
     sideEffects: '',
     prescribedBy: ''
   });
+
+  const [attachedFiles, setAttachedFiles] = useState<Array<{ url: string; filename: string; fileType: string }>>([]);
 
   const [notificationSettings, setNotificationSettings] = useState({
     enabled: false,
@@ -76,6 +81,33 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
     setFormData({ ...formData, times: newTimes });
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const url = await upload(file, 'medications');
+        setAttachedFiles(prev => [...prev, { 
+          url, 
+          filename: file.name,
+          fileType: file.type
+        }]);
+      } catch (error) {
+        console.error('File upload failed:', error);
+      }
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -94,6 +126,7 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
           ...formData,
           endDate: formData.endDate || null,
           status: 'active',
+          files: attachedFiles,
           notificationSettings: notificationSettings.enabled ? notificationSettings : null
         })
       });
@@ -115,6 +148,7 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
           sideEffects: '',
           prescribedBy: ''
         });
+        setAttachedFiles([]);
         onSuccess();
       } else {
         throw new Error('Ошибка при добавлении лекарства');
@@ -267,6 +301,47 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
                 placeholder="Возможные побочные эффекты"
                 rows={2}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Прикрепить файлы</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Icon name="Paperclip" size={16} />
+                {uploading ? 'Загрузка...' : 'Прикрепить рецепт или документ'}
+              </Button>
+              
+              {attachedFiles.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                      <Icon name="FileText" size={16} className="text-blue-600" />
+                      <span className="flex-1 text-sm truncate">{file.filename}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFile(index)}
+                      >
+                        <Icon name="X" size={14} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="border-t pt-4">
