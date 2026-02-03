@@ -237,6 +237,7 @@ export function useDoctors() {
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -263,9 +264,11 @@ export function useDoctors() {
     };
 
     fetchDoctors();
-  }, []);
+  }, [refetchTrigger]);
 
-  return { doctors, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { doctors, loading, error, refetch };
 }
 
 export function useInsurance(profileId?: string) {

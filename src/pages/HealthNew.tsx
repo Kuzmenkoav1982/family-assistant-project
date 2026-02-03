@@ -28,6 +28,7 @@ import type { HealthProfile } from '@/types/health';
 import { AddHealthRecordDialog } from '@/components/health/AddHealthRecordDialog';
 import { AddMedicationDialog } from '@/components/health/AddMedicationDialog';
 import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
+import { AddDoctorDialog } from '@/components/health/AddDoctorDialog';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ function HealthNew() {
   const { vaccinations: apiVaccinations } = useVaccinations(selectedProfile?.id);
   const { medications: apiMedications, refetch: refetchMedications } = useMedications(selectedProfile?.id);
   const { vitals: apiVitals } = useVitalRecords(selectedProfile?.id);
-  const { doctors: apiDoctors } = useDoctors();
+  const { doctors: apiDoctors, refetch: refetchDoctors } = useDoctors();
   const { insurance: apiInsurance } = useInsurance(selectedProfile?.id);
   const { sessions: apiSessions } = useTelemedicine(selectedProfile?.id);
 
@@ -314,7 +315,7 @@ function HealthNew() {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Медицинская история</h3>
                   <AddHealthRecordDialog 
-                    profileId={selectedProfile.userId} 
+                    profileId={selectedProfile.id} 
                     onSuccess={refetchRecords}
                   />
                 </div>
@@ -439,7 +440,7 @@ function HealthNew() {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Лекарства и напоминания</h3>
                   <AddMedicationDialog 
-                    profileId={selectedProfile.userId} 
+                    profileId={selectedProfile.id} 
                     onSuccess={refetchMedications}
                   />
                 </div>
@@ -562,10 +563,7 @@ function HealthNew() {
               <TabsContent value="doctors" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">База врачей</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Добавить врача
-                  </Button>
+                  <AddDoctorDialog onSuccess={refetchDoctors} />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {doctors.map((doctor: any) => (
@@ -623,7 +621,7 @@ function HealthNew() {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Страховые полисы</h3>
                   <AddInsuranceDialog 
-                    profileId={selectedProfile.userId} 
+                    profileId={selectedProfile.id} 
                     onSuccess={() => window.location.reload()}
                   />
                 </div>
