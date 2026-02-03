@@ -24,6 +24,7 @@ export function AddMedicationDialog({ profileId, onSuccess, trigger }: AddMedica
     dosage: '',
     frequency: '',
     startDate: new Date().toISOString().split('T')[0],
+    startTime: '09:00',
     endDate: '',
     purpose: '',
     sideEffects: '',
@@ -61,6 +62,7 @@ export function AddMedicationDialog({ profileId, onSuccess, trigger }: AddMedica
           dosage: '',
           frequency: '',
           startDate: new Date().toISOString().split('T')[0],
+          startTime: '09:00',
           endDate: '',
           purpose: '',
           sideEffects: '',
@@ -144,14 +146,25 @@ export function AddMedicationDialog({ profileId, onSuccess, trigger }: AddMedica
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endDate">Дата окончания</Label>
+              <Label htmlFor="startTime">Время приёма *</Label>
               <Input
-                id="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                id="startTime"
+                type="time"
+                value={formData.startTime}
+                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                required
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="endDate">Дата окончания</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={formData.endDate}
+              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">

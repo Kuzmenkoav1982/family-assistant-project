@@ -11,11 +11,10 @@ FAMILY_MEMBERS_URL = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02
 def get_member_info(member_id: str, auth_token: str = None) -> dict:
     '''Получить имя, возраст и фото члена семьи через family-members функцию'''
     try:
-        headers = {'X-User-Id': member_id}
+        headers = {}
         if auth_token:
-            # Внутренние вызовы между Cloud Functions НЕ проходят через прокси
-            # Используем обычный Authorization заголовок
-            headers['Authorization'] = f'Bearer {auth_token}'
+            # family-members API использует X-Auth-Token заголовок
+            headers['X-Auth-Token'] = auth_token
         
         req = urllib.request.Request(FAMILY_MEMBERS_URL, headers=headers)
         with urllib.request.urlopen(req, timeout=5) as response:

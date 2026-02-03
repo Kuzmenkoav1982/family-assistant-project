@@ -26,15 +26,19 @@ def encrypt_data(plaintext: str) -> str:
     if not plaintext:
         return ""
     
-    key = get_encryption_key()
-    aesgcm = AESGCM(key)
-    nonce = os.urandom(12)
-    ciphertext = aesgcm.encrypt(nonce, plaintext.encode('utf-8'), None)
-    
-    nonce_b64 = base64.b64encode(nonce).decode('utf-8')
-    ciphertext_b64 = base64.b64encode(ciphertext).decode('utf-8')
-    
-    return f"{nonce_b64}:{ciphertext_b64}"
+    try:
+        key = get_encryption_key()
+        aesgcm = AESGCM(key)
+        nonce = os.urandom(12)
+        ciphertext = aesgcm.encrypt(nonce, plaintext.encode('utf-8'), None)
+        
+        nonce_b64 = base64.b64encode(nonce).decode('utf-8')
+        ciphertext_b64 = base64.b64encode(ciphertext).decode('utf-8')
+        
+        return f"{nonce_b64}:{ciphertext_b64}"
+    except Exception as e:
+        print(f"[ERROR] Encryption failed: {e}. Storing unencrypted.")
+        return plaintext
 
 def decrypt_data(encrypted: str) -> str:
     """Расшифровка строки"""

@@ -25,6 +25,7 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
     title: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5),
     doctor: '',
     clinic: '',
     diagnosis: '',
@@ -61,6 +62,7 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
           title: '',
           description: '',
           date: new Date().toISOString().split('T')[0],
+          time: new Date().toTimeString().slice(0, 5),
           doctor: '',
           clinic: '',
           diagnosis: '',
@@ -122,15 +124,28 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="date">Дата *</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Дата *</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="time">Время *</Label>
+              <Input
+                id="time"
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                required
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
