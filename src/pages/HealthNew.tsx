@@ -39,6 +39,7 @@ import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog
 import { MedicationCard } from '@/components/health/MedicationCard';
 import { AIAnalysisCard } from '@/components/health/AIAnalysisCard';
 import { HealthDashboard } from '@/components/health/HealthDashboard';
+import { HealthInstructions } from '@/components/health/HealthInstructions';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -171,6 +172,8 @@ function HealthNew() {
           Здоровье семьи
         </h1>
       </div>
+
+      <HealthInstructions />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {profiles.map((profile) => {
