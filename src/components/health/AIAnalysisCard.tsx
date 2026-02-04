@@ -12,6 +12,7 @@ interface AIAnalysisResult {
   warnings?: string[];
   fullResponse?: string;
   processedAt?: string;
+  sourceImageUrl?: string;
 }
 
 interface HealthAttachment {
@@ -33,9 +34,11 @@ export function AIAnalysisCard({ analysis, title = 'ИИ-анализ докум
     return null;
   }
 
+  const fileUrl = sourceFile?.fileUrl || analysis.sourceImageUrl;
+
   const handleViewFile = () => {
-    if (sourceFile?.fileUrl) {
-      window.open(sourceFile.fileUrl, '_blank');
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
     }
   };
 
@@ -47,7 +50,7 @@ export function AIAnalysisCard({ analysis, title = 'ИИ-анализ докум
             <Icon name="Sparkles" size={20} className="text-blue-600" />
             {title}
           </CardTitle>
-          {sourceFile && (
+          {fileUrl && (
             <Button
               variant="outline"
               size="sm"

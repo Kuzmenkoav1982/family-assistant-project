@@ -244,7 +244,10 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
                       
                       if (response.ok) {
                         const data = await response.json();
-                        setAiAnalysis(data);
+                        setAiAnalysis({
+                          ...data,
+                          sourceImageUrl: base64
+                        });
                         toast({
                           title: '✅ Анализ завершён',
                           description: 'ИИ обработал документ'

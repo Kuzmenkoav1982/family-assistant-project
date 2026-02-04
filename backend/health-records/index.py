@@ -44,7 +44,7 @@ def handler(event: dict, context) -> dict:
                     SELECT hr.id, hr.profile_id, hr.type, hr.date, hr.title, hr.description,
                            hr.doctor, hr.clinic, hr.diagnosis, hr.recommendations,
                            hr.ai_analysis_status, hr.ai_extracted_text, hr.ai_interpretation, hr.ai_warnings,
-                           hr.created_at
+                           hr.ai_source_image_url, hr.created_at
                     FROM health_records hr
                     JOIN health_profiles hp ON hr.profile_id = hp.id
                     WHERE hr.profile_id = %s AND (hp.user_id = %s OR %s = ANY(hp.shared_with))
@@ -55,7 +55,7 @@ def handler(event: dict, context) -> dict:
                     SELECT hr.id, hr.profile_id, hr.type, hr.date, hr.title, hr.description,
                            hr.doctor, hr.clinic, hr.diagnosis, hr.recommendations,
                            hr.ai_analysis_status, hr.ai_extracted_text, hr.ai_interpretation, hr.ai_warnings,
-                           hr.created_at
+                           hr.ai_source_image_url, hr.created_at
                     FROM health_records hr
                     JOIN health_profiles hp ON hr.profile_id = hp.id
                     WHERE hp.user_id = %s OR %s = ANY(hp.shared_with)
@@ -90,7 +90,8 @@ def handler(event: dict, context) -> dict:
                         'status': row[10],
                         'extractedText': row[11],
                         'interpretation': row[12],
-                        'warnings': row[13] or []
+                        'warnings': row[13] or [],
+                        'sourceImageUrl': row[14]
                     }
                 
                 records.append({
@@ -123,8 +124,8 @@ def handler(event: dict, context) -> dict:
             cursor.execute('''
                 INSERT INTO health_records 
                 (id, profile_id, type, date, title, description, doctor, clinic, diagnosis, recommendations, 
-                 ai_analysis_status, ai_extracted_text, ai_interpretation, ai_warnings, created_at)
-                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                 ai_analysis_status, ai_extracted_text, ai_interpretation, ai_warnings, ai_source_image_url, created_at)
+                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 RETURNING id
             ''', (
                 body['profileId'],
@@ -139,7 +140,8 @@ def handler(event: dict, context) -> dict:
                 ai_analysis.get('status') if ai_analysis else None,
                 encrypt_data(ai_analysis.get('extractedText', '')) if ai_analysis and ai_analysis.get('extractedText') else None,
                 encrypt_data(ai_analysis.get('interpretation', '')) if ai_analysis and ai_analysis.get('interpretation') else None,
-                ai_analysis.get('warnings') if ai_analysis else None
+                ai_analysis.get('warnings') if ai_analysis else None,
+                ai_analysis.get('sourceImageUrl') if ai_analysis else None
             ))
             
             record_id = cursor.fetchone()[0]
