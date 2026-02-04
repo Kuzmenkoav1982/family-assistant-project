@@ -107,14 +107,7 @@ export default function DomovoyPage() {
           </Button>
         </div>
 
-        {/* Illustration */}
-        <Card className="overflow-hidden border-4 border-amber-300">
-          <img 
-            src={DOMOVOY_IMAGE} 
-            alt="Домовой" 
-            className="w-full h-96 object-cover"
-          />
-        </Card>
+
 
         {/* Current Level */}
         <Card className="border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50">
