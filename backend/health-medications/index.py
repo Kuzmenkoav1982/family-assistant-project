@@ -79,15 +79,8 @@ def handler(event: dict, context) -> dict:
                         'enabled': rem[2]
                     })
                 
-                # Расшифровываем только если данные зашифрованы (содержат :)
-                if row[2] and ':' in row[2]:
-                    try:
-                        name = decrypt_data(row[2])
-                    except Exception as e:
-                        print(f"[WARN] Failed to decrypt name for medication {row[0]}: {e}")
-                        name = row[2]
-                else:
-                    name = row[2] if row[2] else ''
+                # Названия лекарств больше не шифруются
+                name = row[2] if row[2] else ''
                 
                 medications.append({
                     'id': row[0],
@@ -139,7 +132,7 @@ def handler(event: dict, context) -> dict:
                 RETURNING id
             ''', (
                 profile_id,
-                encrypt_data(body['name']),
+                body['name'],
                 body.get('dosage', ''),
                 body.get('frequency', ''),
                 body.get('startDate'),
@@ -202,7 +195,7 @@ def handler(event: dict, context) -> dict:
                 SET name = %s, dosage = %s, frequency = %s, start_date = %s, end_date = %s, active = %s, files = %s::jsonb
                 WHERE id = %s
             ''', (
-                encrypt_data(body['name']),
+                body['name'],
                 body.get('dosage', ''),
                 body.get('frequency', ''),
                 body.get('startDate'),
