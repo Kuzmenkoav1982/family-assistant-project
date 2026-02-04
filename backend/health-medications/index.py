@@ -256,6 +256,7 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
+            cursor.execute('DELETE FROM medication_intakes WHERE medication_id = %s', (med_id,))
             cursor.execute('DELETE FROM medication_reminders WHERE medication_id = %s', (med_id,))
             cursor.execute('DELETE FROM medications WHERE id = %s', (med_id,))
             conn.commit()
