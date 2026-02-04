@@ -116,6 +116,12 @@ export function MedicationsWidget() {
 
   useEffect(() => {
     fetchTodayMedications();
+    
+    const intervalId = setInterval(() => {
+      fetchTodayMedications();
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleToggle = async (reminder: MedicationReminder, checked: boolean) => {
