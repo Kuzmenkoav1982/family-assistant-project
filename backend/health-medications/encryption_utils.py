@@ -19,7 +19,18 @@ def get_encryption_key() -> bytes:
         print("Сохраните его в секретах проекта как ENCRYPTION_KEY")
         return key
     
-    return base64.b64decode(key_b64)
+    try:
+        key = base64.b64decode(key_b64)
+        if len(key) not in [16, 24, 32]:
+            print(f"[ERROR] Invalid key length: {len(key)} bytes. Expected 16, 24, or 32.")
+            key = AESGCM.generate_key(bit_length=256)
+            print(f"Generated new key: {base64.b64encode(key).decode('utf-8')}")
+        return key
+    except Exception as e:
+        print(f"[ERROR] Failed to decode key: {e}")
+        key = AESGCM.generate_key(bit_length=256)
+        print(f"Generated new key: {base64.b64encode(key).decode('utf-8')}")
+        return key
 
 def encrypt_data(plaintext: str) -> str:
     """Шифрование строки с использованием AES-256-GCM"""

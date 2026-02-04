@@ -103,6 +103,24 @@ def handler(event: dict, context) -> dict:
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
             
+            profile_id = body.get('profileId')
+            if not profile_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Profile ID required'}),
+                    'isBase64Encoded': False
+                }
+            
+            cursor.execute('SELECT id FROM health_profiles WHERE id = %s', (profile_id,))
+            if not cursor.fetchone():
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Profile not found'}),
+                    'isBase64Encoded': False
+                }
+            
             files_json = json.dumps(body.get('files', []))
             
             cursor.execute('''
@@ -110,7 +128,7 @@ def handler(event: dict, context) -> dict:
                 VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW())
                 RETURNING id
             ''', (
-                body['profileId'],
+                profile_id,
                 encrypt_data(body['name']),
                 body.get('dosage', ''),
                 body.get('frequency', ''),
