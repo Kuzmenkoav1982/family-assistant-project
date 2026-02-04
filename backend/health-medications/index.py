@@ -206,9 +206,14 @@ def handler(event: dict, context) -> dict:
             
             files_json = json.dumps(body.get('files', []))
             
+            print(f'[UPDATE] About to update medication {med_id}')
+            print(f'[UPDATE] name={body.get("name")}, dosage={body.get("dosage")}, frequency={body.get("frequency")}')
+            print(f'[UPDATE] startDate={body.get("startDate")}, endDate={body.get("endDate")}')
+            print(f'[UPDATE] profileId={body.get("profileId")}')
+            
             cursor.execute('''
                 UPDATE medications
-                SET name = %s, dosage = %s, frequency = %s, start_date = %s, end_date = %s, active = %s, files = %s::jsonb
+                SET name = %s, dosage = %s, frequency = %s, start_date = %s, end_date = %s, active = %s, files = %s::jsonb, profile_id = %s
                 WHERE id = %s
             ''', (
                 body['name'],
@@ -218,17 +223,23 @@ def handler(event: dict, context) -> dict:
                 body.get('endDate'),
                 body.get('active', True),
                 files_json,
+                body.get('profileId'),
                 med_id
             ))
             
+            print(f'[UPDATE] Medication updated, rows affected: {cursor.rowcount}')
+            
             if 'times' in body or 'reminders' in body:
+                print(f'[REMINDERS] Deleting old reminders for medication {med_id}')
                 cursor.execute('DELETE FROM medication_reminders WHERE medication_id = %s', (med_id,))
+                print(f'[REMINDERS] Deleted {cursor.rowcount} reminders')
                 
                 times = body.get('times', [])
                 reminders = body.get('reminders', [])
                 
                 if times:
                     for time in times:
+                        print(f'[REMINDERS] Inserting reminder: time={time}, medication_id={med_id}')
                         cursor.execute('''
                             INSERT INTO medication_reminders (id, medication_id, time, enabled)
                             VALUES (gen_random_uuid()::text, %s, %s, %s)
@@ -237,6 +248,7 @@ def handler(event: dict, context) -> dict:
                             time,
                             True
                         ))
+                        print(f'[REMINDERS] Inserted, rowcount={cursor.rowcount}')
                 elif reminders:
                     for rem in reminders:
                         cursor.execute('''
