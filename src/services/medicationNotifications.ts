@@ -113,17 +113,27 @@ class MedicationNotificationService {
   private async loadMedications(): Promise<Medication[]> {
     try {
       const authToken = localStorage.getItem('authToken');
-      if (!authToken) {
-        console.log('[MedicationNotifications] No auth token found');
+      const userDataStr = localStorage.getItem('userData');
+      
+      if (!userDataStr) {
+        console.log('[MedicationNotifications] No user data found');
         return [];
+      }
+
+      let userId = '1';
+      try {
+        const userData = JSON.parse(userDataStr);
+        userId = userData.member_id || '1';
+      } catch (e) {
+        console.error('[MedicationNotifications] Failed to parse userData:', e);
       }
 
       const response = await fetch(func2url['health-medications'], {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': authToken,
-          'Authorization': `Bearer ${authToken}`
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         }
       });
 
