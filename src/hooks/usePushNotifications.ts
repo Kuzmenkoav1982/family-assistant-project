@@ -183,7 +183,7 @@ export function usePushNotifications() {
         },
         body: JSON.stringify({
           action: 'send',
-          title: 'Тестовое уведомление от Наша Семья',
+          title: 'Тестовое уведомление',
           message: 'Это тестовое push-уведомление!'
         })
       });
