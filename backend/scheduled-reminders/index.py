@@ -54,7 +54,7 @@ def check_important_dates(cur, family_id: str) -> List[Dict[str, str]]:
         
         for date_info in tomorrow_dates:
             notifications.append({
-                'title': f"Завтра: {date_info['title']}",
+                'title': f"Завтра: {date_info['title']} от Наша Семья",
                 'message': f"Не забудьте поздравить! 🎉"
             })
     except Exception as e:
@@ -74,7 +74,7 @@ def check_important_dates(cur, family_id: str) -> List[Dict[str, str]]:
         
         for member in birthdays:
             notifications.append({
-                'title': f"День рождения {member['name']}",
+                'title': f"День рождения {member['name']} от Наша Семья",
                 'message': f"Завтра день рождения! Подготовьте поздравление 🎂"
             })
     except Exception as e:
@@ -103,7 +103,7 @@ def check_calendar_events(cur, family_id: str) -> List[Dict[str, str]]:
         for event in upcoming_events:
             time_str = event['start_date'].strftime('%H:%M')
             notifications.append({
-                'title': f"📅 Скоро событие в {time_str}",
+                'title': f"📅 Скоро событие в {time_str} от Наша Семья",
                 'message': f"{event['title']}"
             })
     except Exception as e:
@@ -125,7 +125,7 @@ def check_calendar_events(cur, family_id: str) -> List[Dict[str, str]]:
         for event in tomorrow_events:
             time_str = event['start_date'].strftime('%H:%M')
             notifications.append({
-                'title': f"Завтра: {event['title']}",
+                'title': f"Завтра: {event['title']} от Наша Семья",
                 'message': f"Запланировано на {time_str} ⏰"
             })
     except Exception as e:
@@ -162,7 +162,7 @@ def check_medication_schedule(cur, family_id: str) -> List[Dict[str, str]]:
         for med in upcoming_meds:
             time_str = med['time'].strftime('%H:%M')
             notifications.append({
-                'title': f"Лекарство для {med['child_name']}",
+                'title': f"Лекарство для {med['child_name']} от Наша Семья",
                 'message': f"{med['medication_name']} ({med['dosage']}) в {time_str} 💊"
             })
     except Exception as e:
@@ -189,12 +189,12 @@ def check_urgent_tasks(cur, family_id: str) -> List[Dict[str, str]]:
         for task in urgent_tasks:
             if task['deadline'] and task['deadline'] < datetime.now():
                 notifications.append({
-                    'title': f"⚠️ Просрочена задача",
+                    'title': f"⚠️ Просрочена задача от Наша Семья",
                     'message': f"{task['title']}"
                 })
             elif task['priority'] == 'high':
                 notifications.append({
-                    'title': f"⚡ Срочная задача",
+                    'title': f"⚡ Срочная задача от Наша Семья",
                     'message': f"{task['title']}"
                 })
     except Exception as e:

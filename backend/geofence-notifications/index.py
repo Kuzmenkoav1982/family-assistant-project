@@ -94,7 +94,7 @@ def check_and_send_notifications() -> dict:
                         }
                         
                         payload = json.dumps({
-                            'title': f'⚠️ {member_name} вышел из зоны',
+                            'title': f'⚠️ {member_name} вышел из зоны от Наша Семья',
                             'body': f'Покинул безопасную зону "{zone_name}"',
                             'url': '/family-tracker'
                         })

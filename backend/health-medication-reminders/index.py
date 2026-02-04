@@ -123,7 +123,7 @@ def handler(event: dict, context) -> dict:
                                             'endpoint': endpoint,
                                             'keys': {'p256dh': p256dh, 'auth': auth}
                                         },
-                                        f'💊 Время принять лекарство',
+                                        f'💊 Время принять лекарство от Наша Семья',
                                         f'{name} ({dosage}) для {user_name}',
                                         vapid_private_key
                                     )
