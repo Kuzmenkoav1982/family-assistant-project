@@ -88,8 +88,8 @@ def handler(event: dict, context) -> dict:
                 if row[10]:
                     ai_analysis = {
                         'status': row[10],
-                        'extractedText': row[11],
-                        'interpretation': row[12],
+                        'extractedText': decrypt_data(row[11]) if row[11] else None,
+                        'interpretation': decrypt_data(row[12]) if row[12] else None,
                         'warnings': row[13] or [],
                         'sourceImageUrl': row[14]
                     }
@@ -98,7 +98,7 @@ def handler(event: dict, context) -> dict:
                     'id': row[0],
                     'profileId': row[1],
                     'type': row[2],
-                    'date': row[3].isoformat() if row[3] else None,
+                    'date': row[3].isoformat() if hasattr(row[3], 'isoformat') else str(row[3]) if row[3] else None,
                     'title': row[4],
                     'description': decrypt_data(row[5]) if row[5] else None,
                     'doctor': row[6],
@@ -107,7 +107,7 @@ def handler(event: dict, context) -> dict:
                     'recommendations': decrypt_data(row[9]) if row[9] else None,
                     'attachments': attachments,
                     'aiAnalysis': ai_analysis,
-                    'createdAt': row[14].isoformat() if row[14] else None
+                    'createdAt': row[15].isoformat() if hasattr(row[15], 'isoformat') else str(row[15]) if row[15] else None
                 })
             
             return {
@@ -120,6 +120,21 @@ def handler(event: dict, context) -> dict:
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
             ai_analysis = body.get('aiAnalysis')
+            
+            ai_status = None
+            ai_extracted = None
+            ai_interpret = None
+            ai_warn = None
+            ai_source = None
+            
+            if ai_analysis:
+                ai_status = 'completed'
+                if ai_analysis.get('extractedText'):
+                    ai_extracted = encrypt_data(ai_analysis['extractedText'])
+                if ai_analysis.get('interpretation'):
+                    ai_interpret = encrypt_data(ai_analysis['interpretation'])
+                ai_warn = ai_analysis.get('warnings')
+                ai_source = ai_analysis.get('sourceImageUrl')
             
             cursor.execute('''
                 INSERT INTO health_records 
@@ -137,11 +152,11 @@ def handler(event: dict, context) -> dict:
                 body.get('clinic'),
                 encrypt_data(body.get('diagnosis', '')),
                 encrypt_data(body.get('recommendations', '')),
-                ai_analysis.get('status') if ai_analysis else None,
-                encrypt_data(ai_analysis.get('extractedText', '')) if ai_analysis and ai_analysis.get('extractedText') else None,
-                encrypt_data(ai_analysis.get('interpretation', '')) if ai_analysis and ai_analysis.get('interpretation') else None,
-                ai_analysis.get('warnings') if ai_analysis else None,
-                ai_analysis.get('sourceImageUrl') if ai_analysis else None
+                ai_status,
+                ai_extracted,
+                ai_interpret,
+                ai_warn,
+                ai_source
             ))
             
             record_id = cursor.fetchone()[0]
