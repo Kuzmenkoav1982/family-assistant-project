@@ -96,7 +96,7 @@ export function useMedicationNotifications(medications: any[] = []) {
 
           if (timeDiff === settings.minutesBefore && !alreadyNotified) {
             showNotification(
-              '⏰ Напоминание о приёме лекарства',
+              '⏰ Напоминание о приёме лекарства от Наша Семья',
               `Через ${settings.minutesBefore} минут нужно дать ребёнку ${med.name} (${med.dosage || 'по назначению'})`,
               med.id
             );
@@ -106,7 +106,7 @@ export function useMedicationNotifications(medications: any[] = []) {
 
           if (timeDiff === 0 && !alreadyNotified) {
             showNotification(
-              '💊 Время принять лекарство!',
+              '💊 Время принять лекарство от Наша Семья!',
               `Сейчас нужно дать ребёнку ${med.name} (${med.dosage || 'по назначению'})`,
               med.id
             );

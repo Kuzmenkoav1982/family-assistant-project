@@ -192,7 +192,7 @@ class MedicationNotificationService {
 
   private async showNotification(medicationName: string, dosage: string, time: string, settings: NotificationSettings) {
     try {
-      const notification = new Notification('Напоминание о приёме лекарства', {
+      const notification = new Notification('Напоминание о приёме лекарства от Наша Семья', {
         body: `${medicationName} (${dosage}) - примите в ${time}`,
         icon: '/icon-192.png',
         badge: '/icon-192.png',
