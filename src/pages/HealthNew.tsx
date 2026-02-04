@@ -31,6 +31,7 @@ import { AddInsuranceDialog } from '@/components/health/AddInsuranceDialog';
 import { AddDoctorDialog } from '@/components/health/AddDoctorDialog';
 import { AddVaccinationDialog } from '@/components/health/AddVaccinationDialog';
 import { AddVitalRecordDialog } from '@/components/health/AddVitalRecordDialog';
+import { AddTelemedicineDialog } from '@/components/health/AddTelemedicineDialog';
 import { EditProfileDialog } from '@/components/health/EditProfileDialog';
 import { EditDoctorDialog } from '@/components/health/EditDoctorDialog';
 import { EditVaccinationDialog } from '@/components/health/EditVaccinationDialog';
@@ -71,7 +72,7 @@ function HealthNew() {
   const { vitals: apiVitals, refetch: refetchVitals } = useVitalRecords(selectedProfile?.id);
   const { doctors: apiDoctors, refetch: refetchDoctors } = useDoctors();
   const { insurance: apiInsurance, refetch: refetchInsurance } = useInsurance(selectedProfile?.id);
-  const { sessions: apiSessions } = useTelemedicine(selectedProfile?.id);
+  const { sessions: apiSessions, refetch: refetchTelemedicine } = useTelemedicine(selectedProfile?.id);
 
   const profiles = useMemo(() => 
     isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles,
@@ -821,10 +822,10 @@ function HealthNew() {
               <TabsContent value="telemedicine" className="space-y-4 pb-32">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Телемедицина</h3>
-                  <Button size="sm">
-                    <Icon name="Plus" size={14} />
-                    Записаться на консультацию
-                  </Button>
+                  <AddTelemedicineDialog
+                    profileId={selectedProfile.id}
+                    onSuccess={refetchTelemedicine}
+                  />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Онлайн-консультации с врачами через видеозвонок. Удобно, быстро, безопасно.
