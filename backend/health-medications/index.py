@@ -180,11 +180,27 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get('body', '{}'))
             med_id = body.get('id')
             
+            print(f'[PUT] Medication ID: {med_id}')
+            print(f'[PUT] Body keys: {body.keys()}')
+            print(f'[PUT] Times: {body.get("times")}')
+            print(f'[PUT] Reminders: {body.get("reminders")}')
+            
             if not med_id:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({'error': 'Medication ID required'}),
+                    'isBase64Encoded': False
+                }
+            
+            # Проверяем что лекарство существует
+            cursor.execute('SELECT id FROM medications WHERE id = %s', (med_id,))
+            if not cursor.fetchone():
+                print(f'[ERROR] Medication not found: {med_id}')
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Medication not found'}),
                     'isBase64Encoded': False
                 }
             
