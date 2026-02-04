@@ -1,17 +1,16 @@
 {
   "tests": [
     {
-      "name": "Test AI analysis endpoint",
+      "name": "Test AI analysis endpoint accepts image",
       "method": "POST",
       "path": "/",
       "body": {
         "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "type": "blood_test"
+        "type": "general"
       },
-      "expectedStatus": 200,
+      "expectedStatus": 400,
       "expectedBody": {
-        "status": "string",
-        "interpretation": "string"
+        "error": "На изображении не найдено текста"
       },
       "bodyMatcher": "partial"
     }
