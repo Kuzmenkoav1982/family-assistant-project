@@ -162,7 +162,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             elif action == 'send':
-                title = body.get('title', 'Семейный Ассистент')
+                title = body.get('title', 'Наша Семья')
                 message = body.get('message', '')
                 exclude_user_id = body.get('exclude_user_id')
                 
