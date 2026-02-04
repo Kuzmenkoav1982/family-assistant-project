@@ -99,6 +99,7 @@ import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
+import { medicationNotificationService } from "@/services/medicationNotifications";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -184,10 +185,14 @@ const App = () => {
 
     window.addEventListener('popstate', trackPageChange);
 
+    // Запускаем сервис уведомлений о лекарствах
+    medicationNotificationService.start();
+
     return () => {
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       window.removeEventListener('popstate', trackPageChange);
+      medicationNotificationService.stop();
     };
   }, []);
 

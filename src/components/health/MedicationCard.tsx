@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
-import { MedicationReminderSettings } from './MedicationReminderSettings';
 
 interface Reminder {
   id: string;
@@ -101,24 +99,6 @@ export function MedicationCard({ medication, onUpdate, onDelete, onEdit }: Medic
             )}
           </div>
           <div className="flex items-center gap-1">
-            {medication.active && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Icon name="Bell" size={16} />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Настройка напоминаний</DialogTitle>
-                  </DialogHeader>
-                  <MedicationReminderSettings 
-                    medication={medication}
-                    onUpdate={() => onUpdate?.()}
-                  />
-                </DialogContent>
-              </Dialog>
-            )}
             {onEdit && (
               <Button 
                 variant="ghost" 

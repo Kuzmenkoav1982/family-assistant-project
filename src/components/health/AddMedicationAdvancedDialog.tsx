@@ -348,17 +348,15 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
               <Button 
                 type="button" 
                 variant="outline" 
-                className="w-full gap-2 mb-4"
+                className="w-full gap-2"
                 onClick={() => setNotificationSettingsOpen(true)}
               >
                 <Icon name="Bell" size={16} />
-                Уведомления
+                {notificationSettings.enabled 
+                  ? `Уведомления включены (за ${notificationSettings.minutesBefore} мин)` 
+                  : 'Настроить уведомления'
+                }
               </Button>
-              {notificationSettings.enabled && (
-                <div className="text-sm text-muted-foreground text-center">
-                  ✓ Уведомления включены (за {notificationSettings.minutesBefore} мин)
-                </div>
-              )}
             </div>
 
             <div className="flex justify-end gap-2">
@@ -454,10 +452,19 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
                         <div>
                           <p className="font-medium text-green-900">Уведомления настроены!</p>
                           <p className="text-sm text-green-700 mt-1">
-                            Вы будете получать напоминания за {notificationSettings.minutesBefore} минут до приёма лекарства и в момент приёма.
+                            Вы будете получать напоминания за {notificationSettings.minutesBefore} минут до времени приёма лекарства.
                           </p>
                         </div>
                       </div>
+                    </div>
+                    
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-900 font-medium mb-2">Как это работает:</p>
+                      <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                        <li>За 30 минут до приёма придёт уведомление</li>
+                        <li>Можно отметить приём или отложить на 15 минут</li>
+                        <li>История приёма сохраняется автоматически</li>
+                      </ul>
                     </div>
                   </>
                 )}
