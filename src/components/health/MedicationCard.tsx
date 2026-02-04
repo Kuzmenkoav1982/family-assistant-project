@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -36,21 +36,76 @@ interface MedicationCardProps {
   onEdit?: (medication: Medication) => void;
 }
 
+function getUserId(): string | null {
+  const userDataStr = localStorage.getItem('userData');
+  if (userDataStr) {
+    try {
+      const userData = JSON.parse(userDataStr);
+      return userData.member_id || '1';
+    } catch (e) {
+      console.error('[MedicationCard] Failed to parse userData:', e);
+    }
+  }
+  return '1';
+}
+
 export function MedicationCard({ medication, onUpdate, onDelete, onEdit }: MedicationCardProps) {
   const [intakes, setIntakes] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
+  useEffect(() => {
+    const loadIntakes = async () => {
+      try {
+        const userId = getUserId();
+        const authToken = localStorage.getItem('authToken');
+        const today = new Date().toISOString().split('T')[0];
+
+        const response = await fetch(
+          `${func2url['medication-intakes']}?medicationId=${medication.id}`,
+          {
+            headers: {
+              'X-User-Id': userId || '',
+              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+            }
+          }
+        );
+
+        if (response.ok) {
+          const allIntakes = await response.json();
+          const todayIntakes: { [key: string]: boolean } = {};
+
+          for (const reminder of medication.reminders) {
+            const taken = allIntakes.some(
+              (intake: any) =>
+                intake.scheduledDate === today &&
+                intake.scheduledTime === reminder.time &&
+                intake.status === 'taken'
+            );
+            todayIntakes[reminder.id] = taken;
+          }
+
+          setIntakes(todayIntakes);
+        }
+      } catch (error) {
+        console.error('Failed to load intakes:', error);
+      }
+    };
+
+    loadIntakes();
+  }, [medication.id, medication.reminders]);
+
   const handleIntakeToggle = async (reminderId: string, time: string, checked: boolean) => {
     setLoading({ ...loading, [reminderId]: true });
     
     try {
+      const userId = getUserId();
       const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['medication-intakes'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': medication.id,
+          'X-User-Id': userId || '',
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({

@@ -242,18 +242,22 @@ function HealthNew() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="overview" className="w-full">
-              <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
-                <TabsList className="inline-flex w-max min-w-full lg:grid lg:w-full lg:grid-cols-9">
-                  <TabsTrigger value="dashboard" className="whitespace-nowrap">📊 Дашборд</TabsTrigger>
-                  <TabsTrigger value="overview" className="whitespace-nowrap">Обзор</TabsTrigger>
-                  <TabsTrigger value="history" className="whitespace-nowrap">История</TabsTrigger>
-                  <TabsTrigger value="vaccinations" className="whitespace-nowrap">Прививки</TabsTrigger>
-                  <TabsTrigger value="medications" className="whitespace-nowrap">Лекарства</TabsTrigger>
-                  <TabsTrigger value="vitals" className="whitespace-nowrap">Показатели</TabsTrigger>
-                  <TabsTrigger value="doctors" className="whitespace-nowrap">Врачи</TabsTrigger>
-                  <TabsTrigger value="insurance" className="whitespace-nowrap">Страховки</TabsTrigger>
-                  <TabsTrigger value="telemedicine" className="whitespace-nowrap">Телемедицина</TabsTrigger>
-                </TabsList>
+              <div className="relative w-full">
+                <div className="w-full overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                  <TabsList className="inline-flex w-max min-w-full lg:grid lg:w-full lg:grid-cols-9">
+                    <TabsTrigger value="dashboard" className="whitespace-nowrap">📊 Дашборд</TabsTrigger>
+                    <TabsTrigger value="overview" className="whitespace-nowrap">Обзор</TabsTrigger>
+                    <TabsTrigger value="history" className="whitespace-nowrap">История</TabsTrigger>
+                    <TabsTrigger value="vaccinations" className="whitespace-nowrap">Прививки</TabsTrigger>
+                    <TabsTrigger value="medications" className="whitespace-nowrap">Лекарства</TabsTrigger>
+                    <TabsTrigger value="vitals" className="whitespace-nowrap">Показатели</TabsTrigger>
+                    <TabsTrigger value="doctors" className="whitespace-nowrap">Врачи</TabsTrigger>
+                    <TabsTrigger value="insurance" className="whitespace-nowrap">Страховки</TabsTrigger>
+                    <TabsTrigger value="telemedicine" className="whitespace-nowrap">Телемедицина</TabsTrigger>
+                  </TabsList>
+                </div>
+                <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-white dark:from-gray-950 to-transparent lg:hidden"></div>
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white dark:from-gray-950 to-transparent lg:hidden"></div>
               </div>
 
               <TabsContent value="dashboard" className="space-y-4 pb-32">
