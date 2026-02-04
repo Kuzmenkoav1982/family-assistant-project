@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
 interface AIAnalysisResult {
@@ -13,23 +14,51 @@ interface AIAnalysisResult {
   processedAt?: string;
 }
 
+interface HealthAttachment {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: 'image' | 'pdf' | 'document';
+  uploadedAt: string;
+}
+
 interface AIAnalysisCardProps {
   analysis: AIAnalysisResult;
   title?: string;
+  sourceFile?: HealthAttachment;
 }
 
-export function AIAnalysisCard({ analysis, title = 'ИИ-анализ документа' }: AIAnalysisCardProps) {
+export function AIAnalysisCard({ analysis, title = 'ИИ-анализ документа', sourceFile }: AIAnalysisCardProps) {
   if (!analysis || analysis.status !== 'completed') {
     return null;
   }
 
+  const handleViewFile = () => {
+    if (sourceFile?.fileUrl) {
+      window.open(sourceFile.fileUrl, '_blank');
+    }
+  };
+
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-blue-900">
-          <Icon name="Sparkles" size={20} className="text-blue-600" />
-          {title}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-blue-900">
+            <Icon name="Sparkles" size={20} className="text-blue-600" />
+            {title}
+          </CardTitle>
+          {sourceFile && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleViewFile}
+              className="bg-white hover:bg-blue-50"
+            >
+              <Icon name="Eye" size={14} />
+              Открыть файл
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="bg-white rounded-lg p-4 shadow-sm">

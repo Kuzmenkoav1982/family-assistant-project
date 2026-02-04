@@ -455,7 +455,10 @@ function HealthNew() {
                         )}
                         {record.aiAnalysis && record.aiAnalysis.status === 'completed' && (
                           <div className="mt-3">
-                            <AIAnalysisCard analysis={record.aiAnalysis} />
+                            <AIAnalysisCard 
+                              analysis={record.aiAnalysis}
+                              sourceFile={record.attachments.find(att => att.fileType === 'image' || att.fileType === 'pdf')}
+                            />
                           </div>
                         )}
                         {record.attachments.length > 0 && (
