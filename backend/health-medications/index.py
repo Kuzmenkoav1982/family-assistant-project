@@ -79,10 +79,16 @@ def handler(event: dict, context) -> dict:
                         'enabled': rem[2]
                     })
                 
+                try:
+                    name = decrypt_data(row[2]) if row[2] else ''
+                except Exception as e:
+                    print(f"[WARN] Failed to decrypt name for medication {row[0]}: {e}")
+                    name = row[2]
+                
                 medications.append({
                     'id': row[0],
                     'profileId': row[1],
-                    'name': decrypt_data(row[2]) if row[2] else '',
+                    'name': name,
                     'dosage': row[3],
                     'frequency': row[4],
                     'startDate': row[5].isoformat() if row[5] else None,
