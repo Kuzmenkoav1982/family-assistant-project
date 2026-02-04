@@ -38,6 +38,7 @@ import { EditInsuranceDialog } from '@/components/health/EditInsuranceDialog';
 import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog';
 import { MedicationCard } from '@/components/health/MedicationCard';
 import { AIAnalysisCard } from '@/components/health/AIAnalysisCard';
+import { HealthDashboard } from '@/components/health/HealthDashboard';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -231,7 +232,8 @@ function HealthNew() {
           <CardContent>
             <Tabs defaultValue="overview" className="w-full">
               <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
-                <TabsList className="inline-flex w-max min-w-full lg:grid lg:w-full lg:grid-cols-8">
+                <TabsList className="inline-flex w-max min-w-full lg:grid lg:w-full lg:grid-cols-9">
+                  <TabsTrigger value="dashboard" className="whitespace-nowrap">📊 Дашборд</TabsTrigger>
                   <TabsTrigger value="overview" className="whitespace-nowrap">Обзор</TabsTrigger>
                   <TabsTrigger value="history" className="whitespace-nowrap">История</TabsTrigger>
                   <TabsTrigger value="vaccinations" className="whitespace-nowrap">Прививки</TabsTrigger>
@@ -242,6 +244,22 @@ function HealthNew() {
                   <TabsTrigger value="telemedicine" className="whitespace-nowrap">Телемедицина</TabsTrigger>
                 </TabsList>
               </div>
+
+              <TabsContent value="dashboard" className="space-y-4 pb-32">
+                <HealthDashboard
+                  profile={selectedProfile}
+                  vitals={vitals}
+                  medications={medications}
+                  records={records}
+                  vaccinations={vaccinations}
+                  onRefresh={() => {
+                    refetchVitals();
+                    refetchMedications();
+                    refetchRecords();
+                    refetchVaccinations();
+                  }}
+                />
+              </TabsContent>
 
               <TabsContent value="overview" className="space-y-4 pb-32">
                 <div className="grid md:grid-cols-2 gap-4">
