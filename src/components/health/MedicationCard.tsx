@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { MedicationReminderSettings } from './MedicationReminderSettings';
 
 interface Reminder {
   id: string;
@@ -86,13 +88,35 @@ export function MedicationCard({ medication, onUpdate }: MedicationCardProps) {
   return (
     <Card className={!medication.active ? 'opacity-60' : ''}>
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Icon name="Pill" size={18} className={medication.active ? 'text-green-600' : 'text-gray-400'} />
-          {medication.name}
-        </CardTitle>
-        {!medication.active && (
-          <p className="text-xs text-muted-foreground">Прием завершен</p>
-        )}
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Icon name="Pill" size={18} className={medication.active ? 'text-green-600' : 'text-gray-400'} />
+              {medication.name}
+            </CardTitle>
+            {!medication.active && (
+              <p className="text-xs text-muted-foreground">Прием завершен</p>
+            )}
+          </div>
+          {medication.active && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Icon name="Bell" size={16} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Настройка напоминаний</DialogTitle>
+                </DialogHeader>
+                <MedicationReminderSettings 
+                  medication={medication}
+                  onUpdate={() => onUpdate?.()}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex justify-between text-sm">

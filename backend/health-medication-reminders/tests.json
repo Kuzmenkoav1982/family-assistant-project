@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Check upcoming medication reminders",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string",
+        "notificationsSent": "number",
+        "reminders": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Mark medication as taken",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "mark_taken",
+        "intakeId": "test-intake-id"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "Intake marked as taken"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
