@@ -238,6 +238,18 @@ def handler(event: dict, context) -> dict:
             
             if 'times' in body or 'reminders' in body:
                 print(f'[REMINDERS] Deleting old reminders for medication {med_id}')
+                
+                # Сначала удаляем связанные записи в medication_intakes
+                cursor.execute('''
+                    DELETE FROM medication_intakes 
+                    WHERE reminder_id IN (
+                        SELECT id FROM medication_reminders WHERE medication_id = %s
+                    )
+                ''', (med_id,))
+                intakes_deleted = cursor.rowcount
+                print(f'[REMINDERS] Deleted {intakes_deleted} related intakes')
+                
+                # Теперь можно удалить сами напоминания
                 cursor.execute('DELETE FROM medication_reminders WHERE medication_id = %s', (med_id,))
                 print(f'[REMINDERS] Deleted {cursor.rowcount} reminders')
                 
