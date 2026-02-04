@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Generate itinerary for Paris",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "location": "Париж",
+        "duration": 3,
+        "interests": ["культура", "искусство"],
+        "budget": "medium"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "title": "string",
+        "description": "string",
+        "days": "array",
+        "metadata": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle missing location",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "duration": 5
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Location is required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

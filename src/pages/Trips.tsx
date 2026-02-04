@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { detectCurrencyByCountry } from '@/data/currencies';
 import { useDemoMode } from '@/contexts/DemoModeContext';
+import ItineraryGenerator from '@/components/ItineraryGenerator';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -311,6 +312,10 @@ export default function Trips() {
       />
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+        {activeTab === 'all' && trips.length === 0 && !loading && (
+          <ItineraryGenerator />
+        )}
+        
         <TripsList
           trips={trips}
           loading={loading}
