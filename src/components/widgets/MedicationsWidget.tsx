@@ -18,6 +18,19 @@ interface MedicationReminder {
   taken: boolean;
 }
 
+function getUserId(): string | null {
+  const userDataStr = localStorage.getItem('userData');
+  if (userDataStr) {
+    try {
+      const userData = JSON.parse(userDataStr);
+      return userData.member_id || '1';
+    } catch (e) {
+      console.error('[MedicationsWidget] Failed to parse userData:', e);
+    }
+  }
+  return '1';
+}
+
 export function MedicationsWidget() {
   const [todayMedications, setTodayMedications] = useState<MedicationReminder[]>([]);
   const [medications, setMedications] = useState<any[]>([]);
@@ -30,7 +43,7 @@ export function MedicationsWidget() {
   const fetchTodayMedications = async () => {
     try {
       const authToken = localStorage.getItem('authToken');
-      const userId = localStorage.getItem('userId');
+      const userId = getUserId();
       
       if (!userId) {
         setLoading(false);
@@ -110,7 +123,7 @@ export function MedicationsWidget() {
 
     try {
       const authToken = localStorage.getItem('authToken');
-      const userId = localStorage.getItem('userId');
+      const userId = getUserId();
 
       const response = await fetch(func2url['medication-intakes'], {
         method: 'POST',
