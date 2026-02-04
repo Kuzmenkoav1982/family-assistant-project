@@ -229,6 +229,13 @@ def handler(event: dict, context) -> dict:
             
             print(f'[UPDATE] Medication updated, rows affected: {cursor.rowcount}')
             
+            # Проверим что лекарство действительно существует после UPDATE
+            cursor.execute('SELECT id FROM medications WHERE id = %s', (med_id,))
+            if cursor.fetchone():
+                print(f'[UPDATE] Medication {med_id} confirmed in database')
+            else:
+                print(f'[UPDATE ERROR] Medication {med_id} NOT FOUND after update!')
+            
             if 'times' in body or 'reminders' in body:
                 print(f'[REMINDERS] Deleting old reminders for medication {med_id}')
                 cursor.execute('DELETE FROM medication_reminders WHERE medication_id = %s', (med_id,))
@@ -238,17 +245,22 @@ def handler(event: dict, context) -> dict:
                 reminders = body.get('reminders', [])
                 
                 if times:
+                    print(f'[REMINDERS] About to insert {len(times)} new reminders')
                     for time in times:
                         print(f'[REMINDERS] Inserting reminder: time={time}, medication_id={med_id}')
-                        cursor.execute('''
-                            INSERT INTO medication_reminders (id, medication_id, time, enabled)
-                            VALUES (gen_random_uuid()::text, %s, %s, %s)
-                        ''', (
-                            med_id,
-                            time,
-                            True
-                        ))
-                        print(f'[REMINDERS] Inserted, rowcount={cursor.rowcount}')
+                        try:
+                            cursor.execute('''
+                                INSERT INTO medication_reminders (id, medication_id, time, enabled)
+                                VALUES (gen_random_uuid()::text, %s, %s, %s)
+                            ''', (
+                                med_id,
+                                time,
+                                True
+                            ))
+                            print(f'[REMINDERS] Inserted successfully, rowcount={cursor.rowcount}')
+                        except Exception as insert_error:
+                            print(f'[REMINDERS INSERT ERROR] {str(insert_error)}')
+                            raise
                 elif reminders:
                     for rem in reminders:
                         cursor.execute('''
