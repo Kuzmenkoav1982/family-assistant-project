@@ -118,11 +118,13 @@ def handler(event: dict, context) -> dict:
         
         elif method == 'POST':
             body = json.loads(event.get('body', '{}'))
+            ai_analysis = body.get('aiAnalysis')
             
             cursor.execute('''
                 INSERT INTO health_records 
-                (id, profile_id, type, date, title, description, doctor, clinic, diagnosis, recommendations, created_at)
-                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                (id, profile_id, type, date, title, description, doctor, clinic, diagnosis, recommendations, 
+                 ai_analysis_status, ai_extracted_text, ai_interpretation, ai_warnings, created_at)
+                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 RETURNING id
             ''', (
                 body['profileId'],
@@ -133,7 +135,11 @@ def handler(event: dict, context) -> dict:
                 body.get('doctor'),
                 body.get('clinic'),
                 encrypt_data(body.get('diagnosis', '')),
-                encrypt_data(body.get('recommendations', ''))
+                encrypt_data(body.get('recommendations', '')),
+                ai_analysis.get('status') if ai_analysis else None,
+                encrypt_data(ai_analysis.get('extractedText', '')) if ai_analysis and ai_analysis.get('extractedText') else None,
+                encrypt_data(ai_analysis.get('interpretation', '')) if ai_analysis and ai_analysis.get('interpretation') else None,
+                ai_analysis.get('warnings') if ai_analysis else None
             ))
             
             record_id = cursor.fetchone()[0]

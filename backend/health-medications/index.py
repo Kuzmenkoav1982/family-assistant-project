@@ -167,31 +167,49 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
+            files_json = json.dumps(body.get('files', []))
+            
             cursor.execute('''
                 UPDATE medications
-                SET name = %s, dosage = %s, frequency = %s, end_date = %s, active = %s
+                SET name = %s, dosage = %s, frequency = %s, start_date = %s, end_date = %s, active = %s, files = %s::jsonb
                 WHERE id = %s
             ''', (
                 encrypt_data(body['name']),
-                body['dosage'],
-                body['frequency'],
+                body.get('dosage', ''),
+                body.get('frequency', ''),
+                body.get('startDate'),
                 body.get('endDate'),
                 body.get('active', True),
+                files_json,
                 med_id
             ))
             
-            if 'reminders' in body:
+            if 'times' in body or 'reminders' in body:
                 cursor.execute('DELETE FROM medication_reminders WHERE medication_id = %s', (med_id,))
                 
-                for rem in body['reminders']:
-                    cursor.execute('''
-                        INSERT INTO medication_reminders (id, medication_id, time, enabled)
-                        VALUES (gen_random_uuid()::text, %s, %s, %s)
-                    ''', (
-                        med_id,
-                        rem['time'],
-                        rem.get('enabled', True)
-                    ))
+                times = body.get('times', [])
+                reminders = body.get('reminders', [])
+                
+                if times:
+                    for time in times:
+                        cursor.execute('''
+                            INSERT INTO medication_reminders (id, medication_id, time, enabled)
+                            VALUES (gen_random_uuid()::text, %s, %s, %s)
+                        ''', (
+                            med_id,
+                            time,
+                            True
+                        ))
+                elif reminders:
+                    for rem in reminders:
+                        cursor.execute('''
+                            INSERT INTO medication_reminders (id, medication_id, time, enabled)
+                            VALUES (gen_random_uuid()::text, %s, %s, %s)
+                        ''', (
+                            med_id,
+                            rem['time'],
+                            rem.get('enabled', True)
+                        ))
             
             conn.commit()
             
@@ -203,7 +221,8 @@ def handler(event: dict, context) -> dict:
             }
         
         elif method == 'DELETE':
-            med_id = event.get('queryStringParameters', {}).get('id') if event.get('queryStringParameters') else None
+            body = json.loads(event.get('body', '{}'))
+            med_id = body.get('id') or (event.get('queryStringParameters', {}).get('id') if event.get('queryStringParameters') else None)
             
             if not med_id:
                 return {

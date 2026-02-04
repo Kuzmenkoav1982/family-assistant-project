@@ -36,15 +36,20 @@ import { EditDoctorDialog } from '@/components/health/EditDoctorDialog';
 import { EditVaccinationDialog } from '@/components/health/EditVaccinationDialog';
 import { EditInsuranceDialog } from '@/components/health/EditInsuranceDialog';
 import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog';
+import { EditMedicationDialog } from '@/components/health/EditMedicationDialog';
 import { MedicationCard } from '@/components/health/MedicationCard';
 import { AIAnalysisCard } from '@/components/health/AIAnalysisCard';
 import { HealthDashboard } from '@/components/health/HealthDashboard';
 import { HealthInstructions } from '@/components/health/HealthInstructions';
+import { useToast } from '@/hooks/use-toast';
+import func2url from '../../backend/func2url.json';
 
 function HealthNew() {
   const navigate = useNavigate();
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
+  const [editingMedication, setEditingMedication] = useState<any>(null);
+  const { toast } = useToast();
   
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(() => {
     try {
@@ -488,9 +493,48 @@ function HealthNew() {
                       key={med.id} 
                       medication={med}
                       onUpdate={refetchMedications}
+                      onEdit={(medication) => setEditingMedication(medication)}
+                      onDelete={async (id) => {
+                        try {
+                          const authToken = localStorage.getItem('authToken');
+                          const response = await fetch(func2url['health-medications'], {
+                            method: 'DELETE',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'X-User-Id': selectedProfile.id,
+                              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                            },
+                            body: JSON.stringify({ id })
+                          });
+                          if (response.ok) {
+                            toast({
+                              title: 'Лекарство удалено',
+                              description: 'Лекарство успешно удалено из списка'
+                            });
+                            refetchMedications();
+                          } else {
+                            throw new Error('Ошибка при удалении');
+                          }
+                        } catch (error) {
+                          toast({
+                            title: 'Ошибка',
+                            description: 'Не удалось удалить лекарство',
+                            variant: 'destructive'
+                          });
+                        }
+                      }}
                     />
                   ))}
                 </div>
+                {editingMedication && (
+                  <EditMedicationDialog
+                    medication={editingMedication}
+                    profileId={selectedProfile.id}
+                    open={!!editingMedication}
+                    onOpenChange={(open) => !open && setEditingMedication(null)}
+                    onSuccess={refetchMedications}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="vitals" className="space-y-4 pb-32">

@@ -53,7 +53,8 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
         },
         body: JSON.stringify({
           profileId,
-          ...formData
+          ...formData,
+          aiAnalysis: aiAnalysis
         })
       });
 
@@ -74,6 +75,8 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
           diagnosis: '',
           recommendations: ''
         });
+        setAiAnalysis(null);
+        setUploadedImage(null);
         onSuccess();
       } else {
         throw new Error('Ошибка при добавлении записи');

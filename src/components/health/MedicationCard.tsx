@@ -34,9 +34,11 @@ interface Medication {
 interface MedicationCardProps {
   medication: Medication;
   onUpdate?: () => void;
+  onDelete?: (id: string) => void;
+  onEdit?: (medication: Medication) => void;
 }
 
-export function MedicationCard({ medication, onUpdate }: MedicationCardProps) {
+export function MedicationCard({ medication, onUpdate, onDelete, onEdit }: MedicationCardProps) {
   const [intakes, setIntakes] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
@@ -98,24 +100,49 @@ export function MedicationCard({ medication, onUpdate }: MedicationCardProps) {
               <p className="text-xs text-muted-foreground">Прием завершен</p>
             )}
           </div>
-          {medication.active && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Icon name="Bell" size={16} />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Настройка напоминаний</DialogTitle>
-                </DialogHeader>
-                <MedicationReminderSettings 
-                  medication={medication}
-                  onUpdate={() => onUpdate?.()}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
+          <div className="flex items-center gap-1">
+            {medication.active && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Icon name="Bell" size={16} />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Настройка напоминаний</DialogTitle>
+                  </DialogHeader>
+                  <MedicationReminderSettings 
+                    medication={medication}
+                    onUpdate={() => onUpdate?.()}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+            {onEdit && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onEdit(medication)}
+              >
+                <Icon name="Pencil" size={16} />
+              </Button>
+            )}
+            {onDelete && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-600 hover:text-red-700"
+                onClick={() => {
+                  if (confirm(`Удалить лекарство "${medication.name}"?`)) {
+                    onDelete(medication.id);
+                  }
+                }}
+              >
+                <Icon name="Trash2" size={16} />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
