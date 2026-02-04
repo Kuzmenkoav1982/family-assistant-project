@@ -37,6 +37,7 @@ import { EditVaccinationDialog } from '@/components/health/EditVaccinationDialog
 import { EditInsuranceDialog } from '@/components/health/EditInsuranceDialog';
 import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog';
 import { MedicationCard } from '@/components/health/MedicationCard';
+import { AIAnalysisCard } from '@/components/health/AIAnalysisCard';
 
 function HealthNew() {
   const navigate = useNavigate();
@@ -380,12 +381,8 @@ function HealthNew() {
                           </p>
                         )}
                         {record.aiAnalysis && record.aiAnalysis.status === 'completed' && (
-                          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                            <p className="text-sm font-medium flex items-center gap-2 mb-2">
-                              <Icon name="Sparkles" size={16} className="text-blue-600" />
-                              ИИ-анализ результатов
-                            </p>
-                            <p className="text-sm">{record.aiAnalysis.interpretation}</p>
+                          <div className="mt-3">
+                            <AIAnalysisCard analysis={record.aiAnalysis} />
                           </div>
                         )}
                         {record.attachments.length > 0 && (
