@@ -37,6 +37,7 @@ import { EditVaccinationDialog } from '@/components/health/EditVaccinationDialog
 import { EditInsuranceDialog } from '@/components/health/EditInsuranceDialog';
 import { EditVitalRecordDialog } from '@/components/health/EditVitalRecordDialog';
 import { EditMedicationDialog } from '@/components/health/EditMedicationDialog';
+import { EditHealthRecordDialog } from '@/components/health/EditHealthRecordDialog';
 import { MedicationCard } from '@/components/health/MedicationCard';
 import { AIAnalysisCard } from '@/components/health/AIAnalysisCard';
 import { HealthDashboard } from '@/components/health/HealthDashboard';
@@ -49,6 +50,7 @@ function HealthNew() {
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
   const [editingMedication, setEditingMedication] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
   const { toast } = useToast();
   
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(() => {
@@ -379,9 +381,53 @@ function HealthNew() {
                               })}
                             </p>
                           </div>
-                          <Button variant="ghost" size="sm">
-                            <Icon name="MoreVertical" size={16} />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setEditingRecord(record)}
+                            >
+                              <Icon name="Pencil" size={16} />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={async () => {
+                                if (confirm(`Удалить запись "${record.title}"?`)) {
+                                  try {
+                                    const authToken = localStorage.getItem('authToken');
+                                    const response = await fetch(func2url['health-records'], {
+                                      method: 'DELETE',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-User-Id': selectedProfile.id,
+                                        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                                      },
+                                      body: JSON.stringify({ id: record.id })
+                                    });
+                                    if (response.ok) {
+                                      toast({
+                                        title: 'Запись удалена',
+                                        description: 'Медицинская запись успешно удалена'
+                                      });
+                                      refetchRecords();
+                                    } else {
+                                      throw new Error('Ошибка при удалении');
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: 'Ошибка',
+                                      description: 'Не удалось удалить запись',
+                                      variant: 'destructive'
+                                    });
+                                  }
+                                }
+                              }}
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2">
@@ -424,6 +470,15 @@ function HealthNew() {
                       </CardContent>
                     </Card>
                   ))}
+                {editingRecord && (
+                  <EditHealthRecordDialog
+                    record={editingRecord}
+                    profileId={selectedProfile.id}
+                    open={!!editingRecord}
+                    onOpenChange={(open) => !open && setEditingRecord(null)}
+                    onSuccess={refetchRecords}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="vaccinations" className="space-y-4 pb-32">

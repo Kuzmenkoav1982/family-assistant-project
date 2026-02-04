@@ -201,7 +201,8 @@ def handler(event: dict, context) -> dict:
             }
         
         elif method == 'DELETE':
-            record_id = event.get('queryStringParameters', {}).get('id') if event.get('queryStringParameters') else None
+            body = json.loads(event.get('body', '{}'))
+            record_id = body.get('id') or (event.get('queryStringParameters', {}).get('id') if event.get('queryStringParameters') else None)
             
             if not record_id:
                 return {
