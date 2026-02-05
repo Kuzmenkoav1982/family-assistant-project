@@ -235,7 +235,7 @@ function HealthNew() {
                 </p>
               </div>
               <AddHealthRecordDialog 
-                profileId={selectedProfile.userId} 
+                profileId={selectedProfile.id} 
                 onSuccess={() => refetchRecords()}
               />
             </div>
