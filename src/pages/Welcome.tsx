@@ -83,7 +83,14 @@ const sections = [
     title: 'Здоровье',
     description: 'Медкарты, прививки, врачи, анализы всей семьи',
     icon: 'Activity',
-    color: 'from-green-500 to-emerald-500'
+    color: 'from-green-500 to-emerald-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/c45e38e3-a925-40a1-958b-aee6dec32bc8.JPG',
+      'https://cdn.poehali.dev/files/99a1f24b-9e9f-40f1-b3f0-5e26eb258377.JPG',
+      'https://cdn.poehali.dev/files/7bbfbb97-7803-4f52-89fe-1a1ed35adafe.JPG',
+      'https://cdn.poehali.dev/files/6ffcf860-68b9-4a80-b8a0-98250ec701af.JPG',
+      'https://cdn.poehali.dev/files/119d304c-4bc7-4265-85fa-d9d1d11fa9ba.JPG'
+    ]
   },
   {
     title: 'Путешествия',
