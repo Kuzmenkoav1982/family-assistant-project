@@ -389,6 +389,7 @@ export default function Welcome() {
                     )}
                   </div>
                   <CardContent className="p-6">
+                    <h4 className="text-xl font-bold text-gray-800 mb-3">{section.title}</h4>
                     <p className="text-gray-700 leading-relaxed">{section.description}</p>
                   </CardContent>
                 </Card>
