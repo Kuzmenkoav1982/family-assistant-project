@@ -12,7 +12,7 @@ const sections = [
   {
     title: 'Профили семьи',
     description: 'Индивидуальные профили для всех членов семьи с фото и достижениями',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a0a1d44-df6a-47ec-a096-aefc7bdb2971.JPG',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/de4b03f6-f019-4f65-8f22-7d0d9a4cb5e0.JPG',
     icon: 'Users',
     color: 'from-blue-500 to-cyan-500'
   },
