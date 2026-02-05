@@ -141,65 +141,72 @@ export default function Welcome() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
-              alt="Наша семья"
-              className="w-12 h-12 object-contain"
-            />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
-              Наша семья
-            </h1>
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-3 md:mb-0">
+            <div className="flex items-center gap-3">
+              <img 
+                src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
+                alt="Наша семья"
+                className="w-12 h-12 object-contain"
+              />
+              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
+                Наша семья
+              </h1>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-2 flex-wrap">
             {isLoggedIn && subscription && (
-              <Badge className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 flex items-center gap-2">
-                <Icon name="Crown" size={16} />
+              <Badge className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-3 py-1.5 flex items-center gap-2 text-sm">
+                <Icon name="Crown" size={14} />
                 {subscription.plan_name}
               </Badge>
             )}
 
             <Button
               onClick={() => {
-                // Выходим из аккаунта перед входом в демо
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('authUser');
                 localStorage.removeItem('familyId');
-                // Активируем демо-режим
                 localStorage.setItem('isDemoMode', 'true');
                 localStorage.setItem('demoStartTime', Date.now().toString());
                 navigate('/');
               }}
               variant="outline"
-              className="border-orange-300 hover:bg-orange-50 text-orange-600 font-semibold"
+              size="sm"
+              className="border-orange-300 hover:bg-orange-50 text-orange-600 font-semibold text-xs sm:text-sm"
             >
-              <Icon name="Sparkles" size={18} className="mr-2" />
-              Демо-режим
+              <Icon name="Sparkles" size={16} className="mr-1" />
+              <span className="hidden sm:inline">Демо-режим</span>
+              <span className="sm:hidden">Демо</span>
             </Button>
             {isLoggedIn ? (
               <Button
                 onClick={() => navigate('/')}
-                className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                size="sm"
+                className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-xs sm:text-sm"
               >
-                <Icon name="Home" size={18} className="mr-2" />
+                <Icon name="Home" size={16} className="mr-1" />
                 Главная
               </Button>
             ) : (
               <>
                 <Button
                   onClick={() => navigate('/register')}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-lg"
+                  size="sm"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-lg text-xs sm:text-sm"
                 >
-                  <Icon name="UserPlus" size={18} className="mr-2" />
-                  Создать семью
+                  <Icon name="UserPlus" size={16} className="mr-1" />
+                  <span className="hidden sm:inline">Создать семью</span>
+                  <span className="sm:hidden">Создать</span>
                 </Button>
                 <Button
                   onClick={() => navigate('/login')}
                   variant="ghost"
-                  className="text-gray-600 hover:text-gray-900"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm"
                 >
-                  <Icon name="LogIn" size={18} className="mr-2" />
+                  <Icon name="LogIn" size={16} className="mr-1" />
                   Войти
                 </Button>
               </>
@@ -208,7 +215,7 @@ export default function Welcome() {
         </div>
       </div>
 
-      <div className="pt-20 pb-12">
+      <div className="pt-32 md:pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
