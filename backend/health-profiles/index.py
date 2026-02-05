@@ -190,6 +190,8 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get('body', '{}'))
             profile_id = body.get('id')
             
+            print(f'[DEBUG] PUT request body: {json.dumps(body, ensure_ascii=False)}')
+            
             if not profile_id:
                 return {
                     'statusCode': 400,
@@ -202,40 +204,56 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
-            cursor.execute('''
-                UPDATE health_profiles
-                SET blood_type = %s, rh_factor = %s, allergies = %s, 
-                    chronic_diseases = %s, privacy = %s, shared_with = %s, updated_at = NOW()
-                WHERE id = %s AND (user_id = %s OR %s = ANY(shared_with))
-            ''', (
-                body.get('bloodType'),
-                body.get('rhFactor'),
-                encrypt_list(body.get('allergies', [])),
-                encrypt_list(body.get('chronicDiseases', [])),
-                body.get('privacy'),
-                body.get('sharedWith', []),
-                profile_id,
-                user_id,
-                user_id
-            ))
-            
-            if 'emergencyContacts' in body:
-                cursor.execute('DELETE FROM emergency_contacts WHERE profile_id = %s', (profile_id,))
+            try:
+                cursor.execute('''
+                    UPDATE health_profiles
+                    SET blood_type = %s, rh_factor = %s, allergies = %s, 
+                        chronic_diseases = %s, privacy = %s, shared_with = %s, updated_at = NOW()
+                    WHERE id = %s AND (user_id = %s OR %s = ANY(shared_with))
+                ''', (
+                    body.get('bloodType'),
+                    body.get('rhFactor'),
+                    encrypt_list(body.get('allergies', [])),
+                    encrypt_list(body.get('chronicDiseases', [])),
+                    body.get('privacy', 'private'),
+                    body.get('sharedWith', []),
+                    profile_id,
+                    user_id,
+                    user_id
+                ))
                 
-                for contact in body['emergencyContacts']:
-                    # Пропускаем контакты с пустыми обязательными полями
-                    if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
-                        continue
-                    cursor.execute('''
-                        INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
-                        VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)
-                    ''', (
-                        profile_id,
-                        contact['name'],
-                        contact['relation'],
-                        contact['phone'],
-                        contact.get('isPrimary', False)
-                    ))
+                if 'emergencyContacts' in body:
+                    cursor.execute('DELETE FROM emergency_contacts WHERE profile_id = %s', (profile_id,))
+                    
+                    for contact in body['emergencyContacts']:
+                        # Пропускаем контакты с пустыми обязательными полями
+                        if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
+                            print(f'[DEBUG] Skipping empty contact: {contact}')
+                            continue
+                        print(f'[DEBUG] Inserting contact: {contact}')
+                        cursor.execute('''
+                            INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
+                            VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)
+                        ''', (
+                            profile_id,
+                            contact['name'],
+                            contact['relation'],
+                            contact['phone'],
+                            contact.get('isPrimary', False)
+                        ))
+            except Exception as e:
+                print(f'[ERROR] PUT request failed: {e}')
+                conn.rollback()
+                return {
+                    'statusCode': 500,
+                    'headers': {
+                        'Content-Type': 'application/json', 
+                        'Access-Control-Allow-Origin': origin,
+                        'Access-Control-Allow-Credentials': 'true'
+                    },
+                    'body': json.dumps({'error': str(e)}),
+                    'isBase64Encoded': False
+                }
             
             conn.commit()
             
