@@ -70,7 +70,14 @@ const sections = [
     title: 'Покупки и питание',
     description: 'Списки покупок, рецепты, планирование меню',
     icon: 'ShoppingCart',
-    color: 'from-teal-500 to-green-500'
+    color: 'from-teal-500 to-green-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/9ca89df6-d1c5-4680-9fc1-c385eed37312.JPG',
+      'https://cdn.poehali.dev/files/6acd446c-652a-43e5-95e8-01340a0dcb3e.JPG',
+      'https://cdn.poehali.dev/files/3a556238-65cd-4c0c-b450-df642a999a2a.JPG',
+      'https://cdn.poehali.dev/files/544080a3-65da-4c22-8365-804463384260.JPG',
+      'https://cdn.poehali.dev/files/d26e750a-9082-4baa-95b0-96632d652bb2.JPG'
+    ]
   },
   {
     title: 'Здоровье',
