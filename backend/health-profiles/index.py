@@ -159,6 +159,9 @@ def handler(event: dict, context) -> dict:
             profile_id = cursor.fetchone()[0]
             
             for contact in body.get('emergencyContacts', []):
+                # Пропускаем контакты с пустыми обязательными полями
+                if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
+                    continue
                 cursor.execute('''
                     INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
                     VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)
@@ -220,6 +223,9 @@ def handler(event: dict, context) -> dict:
                 cursor.execute('DELETE FROM emergency_contacts WHERE profile_id = %s', (profile_id,))
                 
                 for contact in body['emergencyContacts']:
+                    # Пропускаем контакты с пустыми обязательными полями
+                    if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
+                        continue
                     cursor.execute('''
                         INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
                         VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)
