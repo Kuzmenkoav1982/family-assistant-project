@@ -19,10 +19,10 @@ const sections = [
   {
     title: 'AI-ассистент Домовой',
     description: '9 ролей: повар, психолог, финансист, педагог и другие эксперты',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/71af9754-b203-427d-b48e-4c85e024452e.JPG',
     icon: 'Bot',
     color: 'from-violet-500 to-purple-600',
     carousel: [
+      'https://cdn.poehali.dev/files/47327121-8534-430d-a7c0-e50690437237.JPG',
       'https://cdn.poehali.dev/files/bb75d02b-10ae-46f9-851d-5f14bf8bdbe5.png',
       'https://cdn.poehali.dev/files/e86bb9d8-5b0d-4075-b1c9-c25d86b7adbf.png',
       'https://cdn.poehali.dev/files/0f6aa830-8e74-443f-844d-29e89f950064.png',
