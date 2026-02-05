@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,9 +32,15 @@ const sections = [
   },
   {
     title: 'Развитие детей',
-    description: 'ИИ-оценка развития, персональные планы для детей 0-7 лет',
+    description: 'ИИ-оценка развития, персональные планы для детей 0-12 лет',
     icon: 'Brain',
-    color: 'from-orange-500 to-red-500'
+    color: 'from-orange-500 to-red-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/f94f9d2a-9c1d-4ede-b479-3c775731f474.JPG',
+      'https://cdn.poehali.dev/files/33b7284b-299c-431e-aab0-b93959ce8ebd.JPG',
+      'https://cdn.poehali.dev/files/d53f1028-47c2-422c-a051-eb3353c3e845.JPG',
+      'https://cdn.poehali.dev/files/dc2a81b0-608f-4c7d-8178-3c9f8e8be7b4.JPG'
+    ]
   },
   {
     title: 'Календарь',
@@ -99,6 +105,8 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [carouselIndexes, setCarouselIndexes] = useState<{ [key: number]: number }>({});
+  const carouselRefs = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   useEffect(() => {
     const loadSubscription = async () => {
@@ -136,7 +144,23 @@ export default function Welcome() {
     loadSubscription();
   }, []);
 
+  useEffect(() => {
+    sections.forEach((section, index) => {
+      if (section.carousel && section.carousel.length > 1) {
+        const interval = setInterval(() => {
+          setCarouselIndexes(prev => ({
+            ...prev,
+            [index]: ((prev[index] || 0) + 1) % section.carousel!.length
+          }));
+        }, 4000);
+        carouselRefs.current[index] = interval;
+      }
+    });
 
+    return () => {
+      Object.values(carouselRefs.current).forEach(interval => clearInterval(interval));
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -266,7 +290,56 @@ export default function Welcome() {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="relative h-64 overflow-hidden">
-                    {section.image ? (
+                    {section.carousel ? (
+                      <div className="relative w-full h-full bg-white">
+                        <img
+                          src={section.carousel[carouselIndexes[index] || 0]}
+                          alt={`${section.title} - Слайд ${(carouselIndexes[index] || 0) + 1}`}
+                          className="w-full h-full object-contain transition-opacity duration-500"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCarouselIndexes(prev => ({
+                              ...prev,
+                              [index]: ((prev[index] || 0) - 1 + section.carousel!.length) % section.carousel!.length
+                            }));
+                            if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all"
+                        >
+                          <Icon name="ChevronLeft" size={20} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCarouselIndexes(prev => ({
+                              ...prev,
+                              [index]: ((prev[index] || 0) + 1) % section.carousel!.length
+                            }));
+                            if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all"
+                        >
+                          <Icon name="ChevronRight" size={20} />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                          {section.carousel.map((_, dotIndex) => (
+                            <button
+                              key={dotIndex}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCarouselIndexes(prev => ({ ...prev, [index]: dotIndex }));
+                                if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
+                              }}
+                              className={`w-2 h-2 rounded-full transition-all ${
+                                (carouselIndexes[index] || 0) === dotIndex ? 'bg-white scale-125' : 'bg-white/50'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : section.image ? (
                       <>
                         <img
                           src={section.image}
