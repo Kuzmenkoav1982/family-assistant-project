@@ -59,7 +59,12 @@ const sections = [
     title: 'Семейные ценности',
     description: 'Семейные традиции и история вашей семьи',
     icon: 'Heart',
-    color: 'from-pink-500 to-rose-500'
+    color: 'from-pink-500 to-rose-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/0b39376b-a819-48ea-b0be-bc936be55949.JPG',
+      'https://cdn.poehali.dev/files/e44ce06d-788f-43c9-887d-8a3ce23fdcce.JPG',
+      'https://cdn.poehali.dev/files/dd35f06e-2495-40db-9f32-515915a8d57d.JPG'
+    ]
   },
   {
     title: 'Покупки и питание',
