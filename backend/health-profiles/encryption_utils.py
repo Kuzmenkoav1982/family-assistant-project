@@ -81,8 +81,13 @@ def decrypt_list(encrypted: str) -> list:
     """Расшифровка списка"""
     if not encrypted:
         return []
-    decrypted = decrypt_data(encrypted)
     try:
-        return json.loads(decrypted) if decrypted else []
-    except:
+        decrypted = decrypt_data(encrypted)
+        if not decrypted:
+            return []
+        result = json.loads(decrypted)
+        print(f"[DEBUG] Successfully decrypted list: {result}")
+        return result
+    except Exception as e:
+        print(f"[ERROR] Failed to decrypt list: {e}, encrypted: {encrypted[:50]}...")
         return []
