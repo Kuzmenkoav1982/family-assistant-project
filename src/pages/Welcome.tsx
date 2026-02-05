@@ -12,6 +12,7 @@ const sections = [
   {
     title: 'Профили семьи',
     description: 'Индивидуальные профили для всех членов семьи с фото и достижениями',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a0a1d44-df6a-47ec-a096-aefc7bdb2971.JPG',
     icon: 'Users',
     color: 'from-blue-500 to-cyan-500'
   },
@@ -254,9 +255,25 @@ export default function Welcome() {
                   className="overflow-hidden border-2 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 animate-fade-in group"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className={`relative h-64 overflow-hidden bg-gradient-to-br ${section.color} flex items-center justify-center transition-all duration-300 group-hover:scale-105`}>
-                    <div className="absolute inset-0 bg-black/5"></div>
-                    <Icon name={section.icon} size={80} className="text-white/90 relative z-10" />
+                  <div className="relative h-64 overflow-hidden">
+                    {section.image ? (
+                      <>
+                        <img
+                          src={section.image}
+                          alt={section.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                      </>
+                    ) : (
+                      <>
+                        <div className={`absolute inset-0 bg-gradient-to-br ${section.color}`}></div>
+                        <div className="absolute inset-0 bg-black/5"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Icon name={section.icon} size={80} className="text-white/90" />
+                        </div>
+                      </>
+                    )}
                   </div>
                   <CardContent className="p-6">
                     <p className="text-gray-700 leading-relaxed">{section.description}</p>
