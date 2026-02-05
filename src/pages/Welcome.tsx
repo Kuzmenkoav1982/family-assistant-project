@@ -38,6 +38,7 @@ const sections = [
   {
     title: 'Календарь',
     description: 'События с экспортом в Google Calendar, Apple Calendar, Outlook',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/01b848b8-d5d5-448a-8d5a-ff27951a757e.JPG',
     icon: 'Calendar',
     color: 'from-purple-500 to-pink-500'
   },
@@ -262,9 +263,8 @@ export default function Welcome() {
                         <img
                           src={section.image}
                           alt={section.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          className="w-full h-full object-contain bg-white transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                       </>
                     ) : (
                       <>
