@@ -21,7 +21,19 @@ const sections = [
     description: '9 ролей: повар, психолог, финансист, педагог и другие эксперты',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/71af9754-b203-427d-b48e-4c85e024452e.JPG',
     icon: 'Bot',
-    color: 'from-violet-500 to-purple-600'
+    color: 'from-violet-500 to-purple-600',
+    carousel: [
+      'https://cdn.poehali.dev/files/bb75d02b-10ae-46f9-851d-5f14bf8bdbe5.png',
+      'https://cdn.poehali.dev/files/e86bb9d8-5b0d-4075-b1c9-c25d86b7adbf.png',
+      'https://cdn.poehali.dev/files/0f6aa830-8e74-443f-844d-29e89f950064.png',
+      'https://cdn.poehali.dev/files/94618c5b-23ee-4108-a13f-f281e8a87281.png',
+      'https://cdn.poehali.dev/files/98efb2a9-2d25-483d-b481-ac35513004ac.png',
+      'https://cdn.poehali.dev/files/0b8c0528-9896-4da5-a4f4-5152c2d7d522.png',
+      'https://cdn.poehali.dev/files/ec910c26-11e0-4622-afb3-3bac06cec25b.png',
+      'https://cdn.poehali.dev/files/854774af-565e-431e-b48a-77d47c7a9813.png',
+      'https://cdn.poehali.dev/files/286d6578-905f-41bd-85f8-d49043ce5566.png',
+      'https://cdn.poehali.dev/files/2f7f6221-1d43-40af-8591-3f9ca0750342.png'
+    ]
   },
   {
     title: 'Задачи и поручения',
