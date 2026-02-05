@@ -45,8 +45,8 @@ const screenshots = [
     color: 'from-purple-500 to-pink-500'
   },
   {
-    title: 'Push-уведомления',
-    description: 'Получайте мгновенные уведомления о задачах, событиях и достижениях',
+    title: 'Уведомления везде',
+    description: 'Push в браузере, Telegram-бот и Email — выбирайте удобный способ получать напоминания',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
     icon: 'Bell',
     color: 'from-amber-500 to-orange-500'
@@ -73,12 +73,13 @@ const features = [
   { icon: 'CheckSquare', title: 'Задачи', description: 'Система задач с баллами и уровнями' },
   { icon: 'Brain', title: 'ИИ-оценка развития', description: 'Персональные планы для детей 0-7 лет' },
   { icon: 'Calendar', title: 'Календарь + Экспорт', description: 'События с экспортом в iCal формат' },
-  { icon: 'Bell', title: 'Push-уведомления', description: 'Мгновенные оповещения о важных событиях' },
+  { icon: 'Bell', title: 'Уведомления', description: 'Push, Telegram и Email оповещения о событиях' },
   { icon: 'Heart', title: 'Ценности', description: 'Семейные традиции и история' },
   { icon: 'ShoppingCart', title: 'Покупки и питание', description: 'Списки покупок, рецепты, планирование меню' },
-  { icon: 'Activity', title: 'Здоровье', description: 'Медицинские карты, прививки, врачи' },
-  { icon: 'DollarSign', title: 'Финансы', description: 'Бюджет семьи и контроль расходов' },
-  { icon: 'Plane', title: 'Поездки', description: 'Планирование путешествий' },
+  { icon: 'Activity', title: 'Здоровье', description: 'Медкарты, прививки, врачи, анализы всей семьи' },
+  { icon: 'Plane', title: 'Путешествия', description: 'Планирование поездок, маршруты, бронирования' },
+  { icon: 'Sparkles', title: 'Досуг', description: 'Идеи развлечений, мероприятия, хобби' },
+  { icon: 'PartyPopper', title: 'Праздники', description: 'Организация семейных торжеств и событий' },
   { icon: 'BarChart', title: 'Аналитика', description: 'Статистика и отчёты' }
 ];
 
@@ -183,31 +184,31 @@ export default function Welcome() {
               Демо-режим
             </Button>
             {isLoggedIn ? (
-              <>
-                <Button
-                  onClick={() => navigate('/')}
-                  className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                >
-                  <Icon name="Home" size={18} className="mr-2" />
-                  Главная
-                </Button>
-                <Button
-                  onClick={() => navigate('/health')}
-                  variant="outline"
-                  className="border-rose-300 hover:bg-rose-50 text-rose-600"
-                >
-                  <Icon name="Heart" size={18} className="mr-2" />
-                  Здоровье семьи
-                </Button>
-              </>
-            ) : (
               <Button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/')}
                 className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
               >
-                <Icon name="LogIn" size={18} className="mr-2" />
-                Войти
+                <Icon name="Home" size={18} className="mr-2" />
+                Главная
               </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={() => navigate('/register')}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-lg"
+                >
+                  <Icon name="UserPlus" size={18} className="mr-2" />
+                  Создать семью
+                </Button>
+                <Button
+                  onClick={() => navigate('/login')}
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <Icon name="LogIn" size={18} className="mr-2" />
+                  Войти
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -217,43 +218,41 @@ export default function Welcome() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12 animate-fade-in">
             <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 text-base">
-              Современный семейный органайзер
+              <Icon name="Users" size={16} className="mr-2" />
+              Уже 35 семей доверяют нам
             </Badge>
             <h2 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
               Управляйте семьёй<br />как настоящей командой
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
-              Всё что нужно для организации семейной жизни: задачи, календарь, 
-              развитие детей, традиции и многое другое в одном приложении
+              Здоровье, путешествия, праздники, задачи, развитие детей — всё для организации семейной жизни в одном приложении
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {!isLoggedIn && (
                 <Button
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/register')}
                   size="lg"
-                  className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-lg px-8 py-6"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-transform"
                 >
-                  <Icon name="LogIn" size={20} className="mr-2" />
-                  Начать бесплатно
+                  <Icon name="UserPlus" size={22} className="mr-3" />
+                  Создать семью бесплатно
                 </Button>
               )}
               <Button
                 onClick={() => {
-                  // Выходим из аккаунта перед входом в демо
                   localStorage.removeItem('authToken');
                   localStorage.removeItem('authUser');
                   localStorage.removeItem('familyId');
-                  // Активируем демо-режим
                   localStorage.setItem('isDemoMode', 'true');
                   localStorage.setItem('demoStartTime', Date.now().toString());
                   navigate('/');
                 }}
                 size="lg"
                 variant="outline"
-                className="border-2 border-orange-400 hover:bg-orange-50 text-orange-600 font-bold text-lg px-8 py-6"
+                className="border-2 border-orange-400 hover:bg-orange-50 text-orange-600 font-bold text-lg px-8 py-7"
               >
                 <Icon name="Sparkles" size={20} className="mr-2" />
-                🎭 Попробовать демо
+                Демо (10 минут)
               </Button>
             </div>
           </div>
