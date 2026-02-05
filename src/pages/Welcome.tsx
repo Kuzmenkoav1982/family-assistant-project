@@ -8,62 +8,48 @@ import { openJivoChat } from '@/lib/jivo';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
-const screenshots = [
+const sections = [
   {
     title: 'Профили семьи',
     description: 'Создайте профили для всех членов семьи с фото, достижениями и статистикой',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f788b2be-a56b-4b48-b944-61b7a7cdcbc4.jpg',
     icon: 'Users',
     color: 'from-blue-500 to-cyan-500'
   },
   {
+    title: 'Календарь',
+    description: 'Планируйте события семьи и экспортируйте их в Google Calendar, Apple Calendar, Outlook',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ff898014-2c34-40ec-9c67-ea4f0c4cb84f.jpg',
+    icon: 'Calendar',
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
+    title: 'Здоровье',
+    description: 'Медицинские карты, прививки, врачи и анализы всей семьи в одном месте',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f96bd368-f790-48ff-a8b0-40e25c351cfd.jpg',
+    icon: 'Activity',
+    color: 'from-green-500 to-emerald-500'
+  },
+  {
+    title: 'Развитие детей',
+    description: 'ИИ-оценка развития ребёнка, персональные планы и рекомендации на основе возраста',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3b817c73-c0eb-4120-8c22-5a1eabdf13ef.jpg',
+    icon: 'Brain',
+    color: 'from-orange-500 to-red-500'
+  },
+  {
     title: 'AI-ассистент Домовой',
     description: 'Умный помощник с 8 ролями: повар, психолог, финансист, педагог и другие',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/37f29a32-e062-4196-b782-0d8066eb9ca8.jpg',
     icon: 'Bot',
     color: 'from-violet-500 to-purple-600'
   },
   {
     title: 'Задачи и поручения',
     description: 'Распределяйте задачи между членами семьи, отслеживайте прогресс и начисляйте баллы',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b25555e-1486-409c-be3c-d60e58926320.jpg',
     icon: 'CheckSquare',
     color: 'from-green-500 to-emerald-500'
-  },
-  {
-    title: 'Развитие детей с ИИ',
-    description: 'ИИ-оценка развития ребёнка, персональные планы и рекомендации на основе возраста',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'Brain',
-    color: 'from-orange-500 to-red-500'
-  },
-  {
-    title: 'Календарь с экспортом',
-    description: 'Планируйте события и экспортируйте их в Google Calendar, Apple Calendar, Outlook',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'Calendar',
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    title: 'Уведомления везде',
-    description: 'Push в браузере, Telegram-бот и Email — выбирайте удобный способ получать напоминания',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'Bell',
-    color: 'from-amber-500 to-orange-500'
-  },
-  {
-    title: 'Семейные ценности',
-    description: 'Храните и передавайте традиции, ценности и историю вашей семьи',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'Heart',
-    color: 'from-pink-500 to-rose-500'
-  },
-  {
-    title: 'Аналитика и отчёты',
-    description: 'Следите за статистикой семьи, прогрессом задач и достижениями',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg',
-    icon: 'BarChart',
-    color: 'from-indigo-500 to-blue-500'
   }
 ];
 
@@ -85,7 +71,6 @@ const features = [
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [subscription, setSubscription] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -125,17 +110,7 @@ export default function Welcome() {
     loadSubscription();
   }, []);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % screenshots.length);
-  };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + screenshots.length) % screenshots.length);
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -246,66 +221,34 @@ export default function Welcome() {
             </div>
           </div>
 
-          <div className="relative mb-16">
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-white">
-              <div className="relative h-[500px] lg:h-[600px]">
-                {screenshots.map((slide, index) => (
-                  <div
-                    key={index}
-                    className={`absolute inset-0 transition-all duration-700 ${
-                      index === currentSlide
-                        ? 'opacity-100 translate-x-0'
-                        : index < currentSlide
-                        ? 'opacity-0 -translate-x-full'
-                        : 'opacity-0 translate-x-full'
-                    }`}
-                  >
-                    <div
-                      className="absolute inset-0 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${slide.image})` }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12 text-white">
-                      <div className={`inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-gradient-to-r ${slide.color}`}>
-                        <Icon name={slide.icon} size={24} />
-                        <span className="font-semibold text-lg">{slide.title}</span>
-                      </div>
-                      <p className="text-xl lg:text-2xl font-medium max-w-2xl">
-                        {slide.description}
-                      </p>
+          <div className="mb-16">
+            <h3 className="text-3xl font-bold text-center mb-8 text-gray-800">
+              Основные разделы платформы
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sections.map((section, index) => (
+                <Card
+                  key={index}
+                  className="overflow-hidden border-2 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 animate-fade-in group"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="relative h-64 overflow-hidden">
+                    <img
+                      src={section.image}
+                      alt={section.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-full bg-gradient-to-r ${section.color} flex items-center gap-2`}>
+                      <Icon name={section.icon} size={18} className="text-white" />
+                      <span className="text-white font-semibold text-sm">{section.title}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-110"
-              >
-                <Icon name="ChevronLeft" size={24} className="text-gray-800" />
-              </button>
-
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-110"
-              >
-                <Icon name="ChevronRight" size={24} className="text-gray-800" />
-              </button>
-
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {screenshots.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`transition-all ${
-                      index === currentSlide
-                        ? 'w-12 h-3 bg-white'
-                        : 'w-3 h-3 bg-white/50 hover:bg-white/75'
-                    } rounded-full`}
-                  />
-                ))}
-              </div>
+                  <CardContent className="p-6">
+                    <p className="text-gray-700 leading-relaxed">{section.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
 
