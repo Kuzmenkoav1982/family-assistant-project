@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,19 @@ export function EditProfileDialog({ profile, onSuccess, trigger }: EditProfileDi
     chronicDiseases: profile.chronicDiseases?.join(', ') || '',
     emergencyContact: profile.emergencyContact || ''
   });
+
+  // Обновляем formData при изменении profile или открытии диалога
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        bloodType: profile.bloodType || 'A',
+        rhFactor: profile.rhFactor || '+',
+        allergies: profile.allergies?.join(', ') || '',
+        chronicDiseases: profile.chronicDiseases?.join(', ') || '',
+        emergencyContact: profile.emergencyContact || ''
+      });
+    }
+  }, [open, profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

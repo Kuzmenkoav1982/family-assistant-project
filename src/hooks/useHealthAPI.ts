@@ -29,6 +29,7 @@ export function useHealthProfiles() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -66,9 +67,11 @@ export function useHealthProfiles() {
     };
 
     fetchProfiles();
-  }, []);
+  }, [refetchTrigger]);
 
-  return { profiles, loading, error };
+  const refetch = () => setRefetchTrigger(prev => prev + 1);
+
+  return { profiles, loading, error, refetch };
 }
 
 export function useHealthRecords(profileId?: string) {

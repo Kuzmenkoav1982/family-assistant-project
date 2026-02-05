@@ -65,7 +65,7 @@ function HealthNew() {
   
   console.log('[HealthNew] Component mounted, isDemoMode:', isDemoMode, 'authToken:', !!authToken);
   
-  const { profiles: apiProfiles, loading: profilesLoading } = useHealthProfiles();
+  const { profiles: apiProfiles, loading: profilesLoading, refetch: refetchProfiles } = useHealthProfiles();
   const { records: apiRecords, refetch: refetchRecords } = useHealthRecords(selectedProfile?.id);
   const { vaccinations: apiVaccinations, refetch: refetchVaccinations } = useVaccinations(selectedProfile?.id);
   const { medications: apiMedications, refetch: refetchMedications } = useMedications(selectedProfile?.id);
@@ -236,7 +236,7 @@ function HealthNew() {
               </div>
               <AddHealthRecordDialog 
                 profileId={selectedProfile.userId} 
-                onSuccess={() => window.location.reload()}
+                onSuccess={() => refetchRecords()}
               />
             </div>
           </CardHeader>
@@ -284,7 +284,14 @@ function HealthNew() {
                         <CardTitle className="text-lg">Общая информация</CardTitle>
                         <EditProfileDialog 
                           profile={selectedProfile} 
-                          onSuccess={() => window.location.reload()}
+                          onSuccess={() => {
+                            refetchProfiles();
+                            // Обновляем selectedProfile из обновлённого списка
+                            setTimeout(() => {
+                              const updated = apiProfiles.find(p => p.id === selectedProfile.id);
+                              if (updated) setSelectedProfile(updated);
+                            }, 500);
+                          }}
                         />
                       </div>
                     </CardHeader>
