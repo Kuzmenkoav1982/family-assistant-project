@@ -12,91 +12,78 @@ const sections = [
   {
     title: 'Профили семьи',
     description: 'Индивидуальные профили для всех членов семьи с фото и достижениями',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f788b2be-a56b-4b48-b944-61b7a7cdcbc4.jpg',
     icon: 'Users',
     color: 'from-blue-500 to-cyan-500'
   },
   {
     title: 'AI-ассистент Домовой',
     description: '8 ролей: повар, психолог, финансист, педагог и другие эксперты',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/37f29a32-e062-4196-b782-0d8066eb9ca8.jpg',
     icon: 'Bot',
     color: 'from-violet-500 to-purple-600'
   },
   {
     title: 'Задачи и поручения',
     description: 'Система задач с баллами и уровнями для всей семьи',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b25555e-1486-409c-be3c-d60e58926320.jpg',
     icon: 'CheckSquare',
     color: 'from-green-500 to-emerald-500'
   },
   {
     title: 'Развитие детей',
     description: 'ИИ-оценка развития, персональные планы для детей 0-7 лет',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3b817c73-c0eb-4120-8c22-5a1eabdf13ef.jpg',
     icon: 'Brain',
     color: 'from-orange-500 to-red-500'
   },
   {
     title: 'Календарь',
     description: 'События с экспортом в Google Calendar, Apple Calendar, Outlook',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ff898014-2c34-40ec-9c67-ea4f0c4cb84f.jpg',
     icon: 'Calendar',
     color: 'from-purple-500 to-pink-500'
   },
   {
     title: 'Уведомления',
     description: 'Push, Telegram и Email оповещения о событиях',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9a457fcc-d7e5-4a72-b8e9-122f34d05a18.jpg',
     icon: 'Bell',
     color: 'from-amber-500 to-orange-500'
   },
   {
     title: 'Семейные ценности',
     description: 'Семейные традиции и история вашей семьи',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e09021bb-684b-47aa-9275-298d33e648bc.jpg',
     icon: 'Heart',
     color: 'from-pink-500 to-rose-500'
   },
   {
     title: 'Покупки и питание',
     description: 'Списки покупок, рецепты, планирование меню',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/33f3c000-4327-48ac-b34b-a4cd07669b88.jpg',
     icon: 'ShoppingCart',
     color: 'from-teal-500 to-green-500'
   },
   {
     title: 'Здоровье',
     description: 'Медкарты, прививки, врачи, анализы всей семьи',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f96bd368-f790-48ff-a8b0-40e25c351cfd.jpg',
     icon: 'Activity',
     color: 'from-green-500 to-emerald-500'
   },
   {
     title: 'Путешествия',
     description: 'Планирование поездок, маршруты, бронирования',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e55d15b5-89b6-40bf-97ac-5e2c3a204a35.jpg',
     icon: 'Plane',
     color: 'from-sky-500 to-blue-500'
   },
   {
     title: 'Досуг',
     description: 'Идеи развлечений, мероприятия, хобби',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/997d3366-7f99-486d-8e0d-d71b8abeb1eb.jpg',
     icon: 'Sparkles',
     color: 'from-yellow-500 to-orange-500'
   },
   {
     title: 'Праздники',
     description: 'Организация семейных торжеств и событий',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/752908df-41b6-4eee-be5a-27ad99dae3ef.jpg',
     icon: 'PartyPopper',
     color: 'from-pink-500 to-purple-500'
   },
   {
     title: 'Аналитика',
     description: 'Статистика и отчёты по всем аспектам семейной жизни',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/89774cfc-45c6-4fee-b562-26f5934a064b.jpg',
     icon: 'BarChart',
     color: 'from-indigo-500 to-blue-500'
   }
@@ -267,17 +254,9 @@ export default function Welcome() {
                   className="overflow-hidden border-2 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 animate-fade-in group"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={section.image}
-                      alt={section.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                    <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-full bg-gradient-to-r ${section.color} flex items-center gap-2`}>
-                      <Icon name={section.icon} size={18} className="text-white" />
-                      <span className="text-white font-semibold text-sm">{section.title}</span>
-                    </div>
+                  <div className={`relative h-64 overflow-hidden bg-gradient-to-br ${section.color} flex items-center justify-center transition-all duration-300 group-hover:scale-105`}>
+                    <div className="absolute inset-0 bg-black/5"></div>
+                    <Icon name={section.icon} size={80} className="text-white/90 relative z-10" />
                   </div>
                   <CardContent className="p-6">
                     <p className="text-gray-700 leading-relaxed">{section.description}</p>
