@@ -25,6 +25,7 @@ const sections = [
   {
     title: 'Задачи и поручения',
     description: 'Система задач с баллами и уровнями для всей семьи',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a975113-b781-4867-a03c-76da41b91083.JPG',
     icon: 'CheckSquare',
     color: 'from-green-500 to-emerald-500'
   },
