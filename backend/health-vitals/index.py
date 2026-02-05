@@ -13,8 +13,8 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization'
             },
             'body': '',
             'isBase64Encoded': False
@@ -102,6 +102,39 @@ def handler(event: dict, context) -> dict:
                 'statusCode': 201,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'id': vital_id, 'message': 'Vital record created'}),
+                'isBase64Encoded': False
+            }
+        
+        elif method == 'PUT':
+            body = json.loads(event.get('body', '{}'))
+            vital_id = body.get('id')
+            
+            if not vital_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Vital record ID required'}),
+                    'isBase64Encoded': False
+                }
+            
+            cursor.execute('''
+                UPDATE vital_records
+                SET type = %s, value = %s, unit = %s, date = %s, time = %s
+                WHERE id = %s
+            ''', (
+                body.get('type'),
+                body.get('value'),
+                body.get('unit'),
+                body.get('date'),
+                body.get('time', '00:00'),
+                vital_id
+            ))
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'message': 'Vital record updated'}),
                 'isBase64Encoded': False
             }
         

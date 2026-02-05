@@ -262,6 +262,8 @@ def handler(event: dict, context) -> dict:
                 'headers': {
                     'Content-Type': 'application/json', 
                     'Access-Control-Allow-Origin': origin,
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization',
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 'body': json.dumps({'message': 'Profile updated'}),
