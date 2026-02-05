@@ -158,14 +158,7 @@ export default function Welcome() {
                 {subscription.plan_name}
               </Badge>
             )}
-            <Button
-              onClick={() => navigate('/presentation')}
-              variant="outline"
-              className="border-purple-300 hover:bg-purple-50"
-            >
-              <Icon name="FileText" size={18} className="mr-2" />
-              Презентация
-            </Button>
+
             <Button
               onClick={() => {
                 // Выходим из аккаунта перед входом в демо
@@ -217,10 +210,6 @@ export default function Welcome() {
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12 animate-fade-in">
-            <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 text-base">
-              <Icon name="Users" size={16} className="mr-2" />
-              Уже 35 семей доверяют нам
-            </Badge>
             <h2 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800 bg-clip-text text-transparent">
               Управляйте семьёй<br />как настоящей командой
             </h2>
