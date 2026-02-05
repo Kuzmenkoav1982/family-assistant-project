@@ -65,7 +65,7 @@ def handler(event: dict, context) -> dict:
                     'id': row[0],
                     'profileId': row[1],
                     'type': row[2],
-                    'value': float(row[3]),
+                    'value': row[3],
                     'unit': row[4],
                     'date': row[5].isoformat() if row[5] else None,
                     'time': str(row[6]) if row[6] else None,
