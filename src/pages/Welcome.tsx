@@ -11,63 +11,98 @@ const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e
 const sections = [
   {
     title: 'Профили семьи',
-    description: 'Создайте профили для всех членов семьи с фото, достижениями и статистикой',
+    description: 'Индивидуальные профили для всех членов семьи с фото и достижениями',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f788b2be-a56b-4b48-b944-61b7a7cdcbc4.jpg',
     icon: 'Users',
     color: 'from-blue-500 to-cyan-500'
   },
   {
-    title: 'Календарь',
-    description: 'Планируйте события семьи и экспортируйте их в Google Calendar, Apple Calendar, Outlook',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ff898014-2c34-40ec-9c67-ea4f0c4cb84f.jpg',
-    icon: 'Calendar',
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    title: 'Здоровье',
-    description: 'Медицинские карты, прививки, врачи и анализы всей семьи в одном месте',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f96bd368-f790-48ff-a8b0-40e25c351cfd.jpg',
-    icon: 'Activity',
-    color: 'from-green-500 to-emerald-500'
-  },
-  {
-    title: 'Развитие детей',
-    description: 'ИИ-оценка развития ребёнка, персональные планы и рекомендации на основе возраста',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3b817c73-c0eb-4120-8c22-5a1eabdf13ef.jpg',
-    icon: 'Brain',
-    color: 'from-orange-500 to-red-500'
-  },
-  {
     title: 'AI-ассистент Домовой',
-    description: 'Умный помощник с 8 ролями: повар, психолог, финансист, педагог и другие',
+    description: '8 ролей: повар, психолог, финансист, педагог и другие эксперты',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/37f29a32-e062-4196-b782-0d8066eb9ca8.jpg',
     icon: 'Bot',
     color: 'from-violet-500 to-purple-600'
   },
   {
     title: 'Задачи и поручения',
-    description: 'Распределяйте задачи между членами семьи, отслеживайте прогресс и начисляйте баллы',
+    description: 'Система задач с баллами и уровнями для всей семьи',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b25555e-1486-409c-be3c-d60e58926320.jpg',
     icon: 'CheckSquare',
     color: 'from-green-500 to-emerald-500'
+  },
+  {
+    title: 'Развитие детей',
+    description: 'ИИ-оценка развития, персональные планы для детей 0-7 лет',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3b817c73-c0eb-4120-8c22-5a1eabdf13ef.jpg',
+    icon: 'Brain',
+    color: 'from-orange-500 to-red-500'
+  },
+  {
+    title: 'Календарь',
+    description: 'События с экспортом в Google Calendar, Apple Calendar, Outlook',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ff898014-2c34-40ec-9c67-ea4f0c4cb84f.jpg',
+    icon: 'Calendar',
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
+    title: 'Уведомления',
+    description: 'Push, Telegram и Email оповещения о событиях',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9a457fcc-d7e5-4a72-b8e9-122f34d05a18.jpg',
+    icon: 'Bell',
+    color: 'from-amber-500 to-orange-500'
+  },
+  {
+    title: 'Семейные ценности',
+    description: 'Семейные традиции и история вашей семьи',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e09021bb-684b-47aa-9275-298d33e648bc.jpg',
+    icon: 'Heart',
+    color: 'from-pink-500 to-rose-500'
+  },
+  {
+    title: 'Покупки и питание',
+    description: 'Списки покупок, рецепты, планирование меню',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/33f3c000-4327-48ac-b34b-a4cd07669b88.jpg',
+    icon: 'ShoppingCart',
+    color: 'from-teal-500 to-green-500'
+  },
+  {
+    title: 'Здоровье',
+    description: 'Медкарты, прививки, врачи, анализы всей семьи',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f96bd368-f790-48ff-a8b0-40e25c351cfd.jpg',
+    icon: 'Activity',
+    color: 'from-green-500 to-emerald-500'
+  },
+  {
+    title: 'Путешествия',
+    description: 'Планирование поездок, маршруты, бронирования',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e55d15b5-89b6-40bf-97ac-5e2c3a204a35.jpg',
+    icon: 'Plane',
+    color: 'from-sky-500 to-blue-500'
+  },
+  {
+    title: 'Досуг',
+    description: 'Идеи развлечений, мероприятия, хобби',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/997d3366-7f99-486d-8e0d-d71b8abeb1eb.jpg',
+    icon: 'Sparkles',
+    color: 'from-yellow-500 to-orange-500'
+  },
+  {
+    title: 'Праздники',
+    description: 'Организация семейных торжеств и событий',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/752908df-41b6-4eee-be5a-27ad99dae3ef.jpg',
+    icon: 'PartyPopper',
+    color: 'from-pink-500 to-purple-500'
+  },
+  {
+    title: 'Аналитика',
+    description: 'Статистика и отчёты по всем аспектам семейной жизни',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/89774cfc-45c6-4fee-b562-26f5934a064b.jpg',
+    icon: 'BarChart',
+    color: 'from-indigo-500 to-blue-500'
   }
 ];
 
-const features = [
-  { icon: 'Users', title: 'Профили семьи', description: 'Индивидуальные профили с фото и достижениями' },
-  { icon: 'Bot', title: 'AI-ассистент Домовой', description: '8 ролей: повар, психолог, финансист, педагог' },
-  { icon: 'CheckSquare', title: 'Задачи', description: 'Система задач с баллами и уровнями' },
-  { icon: 'Brain', title: 'ИИ-оценка развития', description: 'Персональные планы для детей 0-7 лет' },
-  { icon: 'Calendar', title: 'Календарь + Экспорт', description: 'События с экспортом в iCal формат' },
-  { icon: 'Bell', title: 'Уведомления', description: 'Push, Telegram и Email оповещения о событиях' },
-  { icon: 'Heart', title: 'Ценности', description: 'Семейные традиции и история' },
-  { icon: 'ShoppingCart', title: 'Покупки и питание', description: 'Списки покупок, рецепты, планирование меню' },
-  { icon: 'Activity', title: 'Здоровье', description: 'Медкарты, прививки, врачи, анализы всей семьи' },
-  { icon: 'Plane', title: 'Путешествия', description: 'Планирование поездок, маршруты, бронирования' },
-  { icon: 'Sparkles', title: 'Досуг', description: 'Идеи развлечений, мероприятия, хобби' },
-  { icon: 'PartyPopper', title: 'Праздники', description: 'Организация семейных торжеств и событий' },
-  { icon: 'BarChart', title: 'Аналитика', description: 'Статистика и отчёты' }
-];
+
 
 export default function Welcome() {
   const navigate = useNavigate();
@@ -252,28 +287,7 @@ export default function Welcome() {
             </div>
           </div>
 
-          <div className="mb-16">
-            <h3 className="text-3xl font-bold text-center mb-8 text-gray-800">
-              Все возможности в одном месте
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {features.map((feature, index) => (
-                <Card
-                  key={index}
-                  className="border-2 hover:border-purple-300 hover:shadow-lg transition-all animate-fade-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mb-4">
-                      <Icon name={feature.icon} size={24} className="text-purple-600" />
-                    </div>
-                    <h4 className="font-bold text-lg mb-2">{feature.title}</h4>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+
 
           <div className="from-orange-500 via-pink-500 to-purple-500 rounded-2xl p-8 lg:p-12 text-white text-center bg-slate-500">
             <h3 className="text-3xl lg:text-4xl font-bold mb-4">
