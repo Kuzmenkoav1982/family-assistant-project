@@ -109,7 +109,7 @@ export default function Analytics() {
   console.log('📊 Analytics - Raw data:', {
     isDemoMode,
     shouldUseDemoData,
-    hasAuthToken: !!authToken,
+    hasAuthToken: typeof window !== 'undefined' ? !!localStorage.getItem('authToken') : false,
     membersCount: members.length,
     tasksCount: tasks.length,
     childrenCount: children.length,
