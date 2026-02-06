@@ -166,7 +166,15 @@ const sections = [
     title: 'Праздники',
     description: 'Организация семейных торжеств и событий',
     icon: 'PartyPopper',
-    color: 'from-pink-500 to-purple-500'
+    color: 'from-pink-500 to-purple-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/42b5e6a2-727e-4b86-9123-6235e7a78b40.JPG',
+      'https://cdn.poehali.dev/files/6ebad032-e777-492a-a4f4-6374e58ad8bd.JPG',
+      'https://cdn.poehali.dev/files/ef85189d-21a2-48b8-8812-2f02b391c1b3.JPG',
+      'https://cdn.poehali.dev/files/bab18a04-f1a0-42a3-be6f-a853533c9c80.JPG',
+      'https://cdn.poehali.dev/files/75cbcfd0-6528-421f-b02d-77cea6603403.JPG',
+      'https://cdn.poehali.dev/files/c9293dca-312f-43c0-92a7-a140ed5a67b3.JPG'
+    ]
   },
   {
     title: 'Аналитика',
