@@ -60,10 +60,23 @@ export function calculateMemberWorkload(
   // Завершено сегодня (поддержка и ID, и имени для демо-режима)
   const completedToday = tasks.filter(t => {
     const isAssigned = t.assignee_id === member.id || t.assignee === member.name;
-    if (!isAssigned || !t.completed || !t.completed_date) return false;
-    const completedDate = new Date(t.completed_date);
-    completedDate.setHours(0, 0, 0, 0);
-    return completedDate.getTime() === today.getTime();
+    if (!isAssigned || !t.completed) return false;
+    
+    // Если есть completed_date - используем его, иначе считаем выполненным недавно
+    if (t.completed_date) {
+      const completedDate = new Date(t.completed_date);
+      completedDate.setHours(0, 0, 0, 0);
+      return completedDate.getTime() === today.getTime();
+    }
+    
+    // Если нет completed_date, но задача completed и создана сегодня - считаем
+    if (t.due_date) {
+      const dueDate = new Date(t.due_date);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate.getTime() === today.getTime();
+    }
+    
+    return false;
   }).length;
 
   // Обязанности (из профиля)

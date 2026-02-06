@@ -250,41 +250,41 @@ const MemberCard = ({
                 </div>
               )}
               
-              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
+              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-1.5">
                   {widgetSettings.showActiveTasks && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-0.5">
-                        <Icon name="ListTodo" size={14} className="text-blue-500" />
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Icon name="ListTodo" size={13} className="text-blue-500" />
                         <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
+                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Задач</p>
                       </div>
-                      <p className="text-[10px] text-gray-500 leading-tight">Задач</p>
                     </div>
                   )}
                   {widgetSettings.showCompletedToday && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-0.5">
-                        <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Icon name="CheckSquare" size={13} className="text-green-500" />
                         <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
+                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Готово</p>
                       </div>
-                      <p className="text-[10px] text-gray-500 leading-tight">Готово</p>
                     </div>
                   )}
                   {widgetSettings.showTodayEvents && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-0.5">
-                        <Icon name="Calendar" size={14} className="text-purple-500" />
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Icon name="Calendar" size={13} className="text-purple-500" />
                         <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
+                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Событий</p>
                       </div>
-                      <p className="text-[10px] text-gray-500 leading-tight">Событий</p>
                     </div>
                   )}
                   {widgetSettings.showWeekAchievements && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-0.5">
-                        <Icon name="Trophy" size={14} className="text-yellow-500" />
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Icon name="Trophy" size={13} className="text-yellow-500" />
                         <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
+                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Неделя</p>
                       </div>
-                      <p className="text-[10px] text-gray-500 leading-tight">За неделю</p>
                     </div>
                   )}
                 </div>
@@ -359,7 +359,9 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events =
     tasksCount: tasks.length,
     eventsCount: events.length,
     sampleTask: tasks[0],
-    sampleEvent: events[0]
+    sampleEvent: events[0],
+    allTasks: tasks.slice(0, 3),
+    memberIds: members.map(m => ({ id: m.id, name: m.name }))
   });
 
   if (members.length > 50) {

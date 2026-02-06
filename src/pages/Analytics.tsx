@@ -65,12 +65,15 @@ export default function Analytics() {
   const blogPosts = isDemoMode ? demoAnalyticsData.blog_posts : (familyData?.blog_posts || []);
 
   console.log('📊 Analytics - Raw data:', {
+    isDemoMode,
     membersCount: members.length,
     tasksCount: tasks.length,
     childrenCount: children.length,
     eventsCount: calendarEvents.length,
+    blogPostsCount: blogPosts.length,
     members: members.map((m: any) => ({ id: m.id, name: m.name })),
-    tasks: tasks.map((t: any) => ({ id: t.id, title: t.title, assignee_id: t.assignee_id }))
+    tasks: tasks.map((t: any) => ({ id: t.id, title: t.title, assignee_id: t.assignee_id, completed: t.completed })),
+    familyDataRaw: familyData
   });
 
   const taskStats = useMemo(() => {
