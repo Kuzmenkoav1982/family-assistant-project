@@ -34,7 +34,7 @@ interface FamilyMembersContextType {
   deleteMember: (memberId: string) => Promise<any>;
 }
 
-const FamilyMembersContext = createContext<FamilyMembersContextType | undefined>(undefined);
+export const FamilyMembersContext = createContext<FamilyMembersContextType | undefined>(undefined);
 
 const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5';
 
