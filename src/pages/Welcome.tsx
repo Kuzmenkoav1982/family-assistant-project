@@ -153,7 +153,14 @@ const sections = [
     title: 'Досуг',
     description: 'Идеи развлечений, мероприятия, хобби',
     icon: 'Sparkles',
-    color: 'from-yellow-500 to-orange-500'
+    color: 'from-yellow-500 to-orange-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/292d10c3-aaf8-48d4-94ea-f69f95c98540.JPG',
+      'https://cdn.poehali.dev/files/6423dbb0-6291-484d-873e-c875aacc9dee.JPG',
+      'https://cdn.poehali.dev/files/61786193-acf7-4d30-9b80-bee5750c9598.JPG',
+      'https://cdn.poehali.dev/files/367d90e0-7905-4365-893e-5262b198ad2e.JPG',
+      'https://cdn.poehali.dev/files/8ba9b520-fe10-4571-9dbc-3d47a0ca983e.JPG'
+    ]
   },
   {
     title: 'Праздники',
