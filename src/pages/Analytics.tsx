@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFamilyDataQuery } from '@/hooks/useFamilyDataQuery';
+import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useTasks } from '@/hooks/useTasks';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { AnalyticsSkeleton } from '@/components/skeletons/AnalyticsSkeleton';
 import { AnalyticsHeader } from '@/components/analytics/AnalyticsHeader';
 import { AnalyticsStatsCards } from '@/components/analytics/AnalyticsStatsCards';
@@ -52,28 +54,37 @@ const demoAnalyticsData = {
 export default function Analytics() {
   const navigate = useNavigate();
   const { isDemoMode } = useDemoMode();
-  const { data: familyData, isLoading, error } = useFamilyDataQuery();
+  const familyMembersContext = useContext(FamilyMembersContext);
+  const { tasks: tasksData, loading: tasksLoading } = useTasks();
+  const { events: calendarEventsData, loading: eventsLoading } = useCalendarEvents();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [period, setPeriod] = useState<Period>('month');
 
-  // Extract data before any conditional returns - use demo data if in demo mode
-  const members = isDemoMode ? demoAnalyticsData.members : (familyData?.members || []);
-  const tasks = isDemoMode ? demoAnalyticsData.tasks : (familyData?.tasks || []);
-  const children = isDemoMode ? demoAnalyticsData.children_profiles : (familyData?.children_profiles || []);
-  const calendarEvents = isDemoMode ? demoAnalyticsData.calendar_events : (familyData?.calendar_events || []);
-  const traditions = isDemoMode ? demoAnalyticsData.traditions : (familyData?.traditions || []);
-  const blogPosts = isDemoMode ? demoAnalyticsData.blog_posts : (familyData?.blog_posts || []);
+  // Extract data - use demo data if in demo mode OR if no auth, otherwise use context/hooks
+  const authToken = localStorage.getItem('authToken');
+  const shouldUseDemoData = isDemoMode || !authToken;
+  
+  const members = shouldUseDemoData ? demoAnalyticsData.members : (familyMembersContext?.members || []);
+  const tasks = shouldUseDemoData ? demoAnalyticsData.tasks : (tasksData || []);
+  const children = shouldUseDemoData ? demoAnalyticsData.children_profiles : [];
+  const calendarEvents = shouldUseDemoData ? demoAnalyticsData.calendar_events : (calendarEventsData || []);
+  const traditions = shouldUseDemoData ? demoAnalyticsData.traditions : [];
+  const blogPosts = shouldUseDemoData ? demoAnalyticsData.blog_posts : [];
+  
+  const isLoading = !shouldUseDemoData && (familyMembersContext?.loading || tasksLoading || eventsLoading);
 
   console.log('📊 Analytics - Raw data:', {
     isDemoMode,
+    shouldUseDemoData,
+    hasAuthToken: !!authToken,
     membersCount: members.length,
     tasksCount: tasks.length,
     childrenCount: children.length,
     eventsCount: calendarEvents.length,
     blogPostsCount: blogPosts.length,
-    members: members.map((m: any) => ({ id: m.id, name: m.name })),
-    tasks: tasks.map((t: any) => ({ id: t.id, title: t.title, assignee_id: t.assignee_id, completed: t.completed })),
-    familyDataRaw: familyData
+    sampleMembers: members.slice(0, 2).map((m: any) => ({ id: m.id, name: m.name })),
+    sampleTasks: tasks.slice(0, 2).map((t: any) => ({ id: t.id, title: t.title, assignee_id: t.assignee_id, completed: t.completed })),
+    sampleEvents: calendarEvents.slice(0, 2).map((e: any) => ({ id: e.id, title: e.title, date: e.date, participants: e.participants }))
   });
 
   const taskStats = useMemo(() => {
@@ -210,7 +221,7 @@ export default function Analytics() {
   , [calendarEvents]);
 
   // Now check loading after all hooks - skip loading in demo mode
-  if (isLoading && !isDemoMode) {
+  if (isLoading) {
     return <AnalyticsSkeleton />;
   }
 
