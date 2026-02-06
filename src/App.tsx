@@ -13,6 +13,7 @@ import Finance from "./pages/Finance";
 import Education from "./pages/Education";
 import EventsPage from "./pages/EventsPage";
 import CreateEventPage from "./pages/CreateEventPage";
+import EditEventPage from "./pages/EditEventPage";
 import EventDetailsPage from "./pages/EventDetailsPage";
 import SharedEventPage from "./pages/SharedEventPage";
 import Pets from "./pages/Pets";
@@ -236,6 +237,7 @@ const App = () => {
                       <Route path="/education" element={<Education />} />
                       <Route path="/events" element={<EventsPage />} />
                       <Route path="/events/create" element={<CreateEventPage />} />
+                      <Route path="/events/edit/:id" element={<EditEventPage />} />
                       <Route path="/events/:id" element={<EventDetailsPage />} />
                       <Route path="/pets" element={<Pets />} />
                       <Route path="/faith" element={<Faith />} />
