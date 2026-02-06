@@ -184,7 +184,11 @@ const sections = [
     title: 'Аналитика',
     description: 'Статистика и отчёты по всем аспектам семейной жизни',
     icon: 'BarChart',
-    color: 'from-indigo-500 to-blue-500'
+    color: 'from-indigo-500 to-blue-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/ce36fe1d-d4ce-432e-b3f3-debf3a56dcc4.JPG',
+      'https://cdn.poehali.dev/files/c02dd8a7-0625-4984-945b-20d8cd5e0f20.JPG'
+    ]
   }
 ];
 
