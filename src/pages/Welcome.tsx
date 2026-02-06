@@ -8,8 +8,19 @@ import { openJivoChat } from '@/lib/jivo';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
+const recentClicks = new Map<number, number>();
+
 const trackSectionClick = async (sectionIndex: number, sectionTitle: string) => {
   try {
+    // Защита от дублирования кликов (фронтенд)
+    const now = Date.now();
+    const lastClick = recentClicks.get(sectionIndex);
+    if (lastClick && now - lastClick < 10000) {
+      // Клик был меньше 10 секунд назад - игнорируем
+      return;
+    }
+    recentClicks.set(sectionIndex, now);
+
     const sessionId = localStorage.getItem('sessionId') || `session_${Date.now()}_${Math.random()}`;
     localStorage.setItem('sessionId', sessionId);
     
@@ -129,7 +140,14 @@ const sections = [
     title: 'Путешествия',
     description: 'Планирование поездок, маршруты, бронирования',
     icon: 'Plane',
-    color: 'from-sky-500 to-blue-500'
+    color: 'from-sky-500 to-blue-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/277c51a1-a9e8-412e-8461-870329ab06a5.JPG',
+      'https://cdn.poehali.dev/files/11260244-b6a9-4ae5-a198-cf9d6f6ccb58.JPG',
+      'https://cdn.poehali.dev/files/6ae52c13-a7bc-445d-9972-4318a1255741.JPG',
+      'https://cdn.poehali.dev/files/3d3d1937-a12d-4cb4-9ebd-428d081ea3b4.JPG',
+      'https://cdn.poehali.dev/files/45477d59-5cbd-4c6a-995a-41dd26d9644e.JPG'
+    ]
   },
   {
     title: 'Досуг',

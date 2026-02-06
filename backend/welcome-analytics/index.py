@@ -43,6 +43,24 @@ def handler(event: dict, context) -> dict:
                 session_id = body.get('session_id')
                 user_agent = body.get('user_agent', '')
                 
+                # Проверка дублирования: если в последние 10 секунд уже был клик по этому разделу в этой сессии
+                cursor.execute(f'''
+                    SELECT COUNT(*) FROM {schema}.welcome_section_clicks
+                    WHERE session_id = %s 
+                    AND section_index = %s 
+                    AND clicked_at > %s
+                ''', (session_id, section_index, datetime.utcnow() - timedelta(seconds=10)))
+                
+                if cursor.fetchone()[0] > 0:
+                    # Дубликат - не записываем
+                    cursor.close()
+                    conn.close()
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'success': True, 'duplicate': True})
+                    }
+                
                 cursor.execute(f'''
                     INSERT INTO {schema}.welcome_section_clicks 
                     (section_index, section_title, session_id, user_agent, clicked_at)
