@@ -5,6 +5,8 @@ import { AnalyticsSkeleton } from '@/components/skeletons/AnalyticsSkeleton';
 import { AnalyticsHeader } from '@/components/analytics/AnalyticsHeader';
 import { AnalyticsStatsCards } from '@/components/analytics/AnalyticsStatsCards';
 import { AnalyticsContentTabs } from '@/components/analytics/AnalyticsContentTabs';
+import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/icon';
 
 type Period = 'week' | 'month' | 'quarter' | 'half-year' | 'year';
 
@@ -160,6 +162,8 @@ export default function Analytics() {
     return <AnalyticsSkeleton />;
   }
 
+  const hasData = activeMembers > 0 || totalTasks > 0 || calendarEvents.length > 0 || blogPosts.length > 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -178,16 +182,38 @@ export default function Analytics() {
           eventsCount={calendarEvents.length}
         />
 
-        <AnalyticsContentTabs
-          monthlyActivity={monthlyActivity}
-          familyRoles={familyRoles}
-          memberActivity={memberActivity}
-          tasksByMember={tasksByMember}
-          totalTasks={totalTasks}
-          completedTasks={completedTasks}
-          upcomingEvents={upcomingEvents}
-          blogPosts={blogPosts}
-        />
+        {!hasData && (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-4">
+              <Icon name="BarChart3" size={32} className="text-purple-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Данных пока нет</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Начните использовать разделы приложения — создавайте задачи, добавляйте события в календарь, 
+              заполняйте профили членов семьи. Здесь появится статистика вашей активности.
+            </p>
+            <Button 
+              onClick={() => navigate('/')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              <Icon name="Home" size={20} className="mr-2" />
+              На главную
+            </Button>
+          </div>
+        )}
+
+        {hasData && (
+          <AnalyticsContentTabs
+            monthlyActivity={monthlyActivity}
+            familyRoles={familyRoles}
+            memberActivity={memberActivity}
+            tasksByMember={tasksByMember}
+            totalTasks={totalTasks}
+            completedTasks={completedTasks}
+            upcomingEvents={upcomingEvents}
+            blogPosts={blogPosts}
+          />
+        )}
       </div>
     </div>
   );
