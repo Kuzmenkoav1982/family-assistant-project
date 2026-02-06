@@ -97,7 +97,11 @@ const sections = [
     title: 'Уведомления',
     description: 'Push, Telegram и Email оповещения о событиях',
     icon: 'Bell',
-    color: 'from-amber-500 to-orange-500'
+    color: 'from-amber-500 to-orange-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/174f233c-3a83-41ef-b03e-0b1e0a9773b7.JPG',
+      'https://cdn.poehali.dev/files/df86f3af-2069-4d1d-add4-b9dab47cfd22.JPG'
+    ]
   },
   {
     title: 'Семейные ценности',
