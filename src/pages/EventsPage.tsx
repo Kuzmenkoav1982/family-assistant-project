@@ -54,6 +54,30 @@ export default function EventsPage() {
     }
   };
 
+  const handleDelete = async (eventId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Вы уверены, что хотите удалить праздник?')) return;
+
+    try {
+      const userId = getUserId();
+      const authToken = localStorage.getItem('authToken');
+
+      const response = await fetch(`${API_URL}?eventId=${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-User-Id': userId,
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+      });
+
+      if (response.ok) {
+        await fetchEvents();
+      }
+    } catch (error) {
+      console.error('[EventsPage] Error deleting event:', error);
+    }
+  };
+
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'birthday': return '🎂';
@@ -185,9 +209,11 @@ export default function EventsPage() {
                         })}
                       </p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded ${getStatusColor(event.status)}`}>
-                      {getStatusLabel(event.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded ${getStatusColor(event.status)}`}>
+                        {getStatusLabel(event.status)}
+                      </span>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -211,6 +237,29 @@ export default function EventsPage() {
                       </span>
                     </div>
                   )}
+                  <div className="flex gap-2 mt-3 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/events/edit/${event.id}`);
+                      }}
+                    >
+                      <Icon name="Pencil" size={14} />
+                      <span className="ml-1">Изменить</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={(e) => handleDelete(event.id, e)}
+                    >
+                      <Icon name="Trash2" size={14} />
+                      <span className="ml-1">Удалить</span>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -244,9 +293,11 @@ export default function EventsPage() {
                         })}
                       </p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded ${getStatusColor(event.status)}`}>
-                      {getStatusLabel(event.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded ${getStatusColor(event.status)}`}>
+                        {getStatusLabel(event.status)}
+                      </span>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -262,6 +313,29 @@ export default function EventsPage() {
                       <span>Потрачено: {event.spent.toLocaleString('ru-RU')} ₽</span>
                     </div>
                   )}
+                  <div className="flex gap-2 mt-3 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/events/edit/${event.id}`);
+                      }}
+                    >
+                      <Icon name="Pencil" size={14} />
+                      <span className="ml-1">Изменить</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={(e) => handleDelete(event.id, e)}
+                    >
+                      <Icon name="Trash2" size={14} />
+                      <span className="ml-1">Удалить</span>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
