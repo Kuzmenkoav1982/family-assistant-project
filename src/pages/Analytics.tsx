@@ -1,8 +1,6 @@
-import { useMemo, useState, useContext } from 'react';
+import { useMemo, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
-import { useTasks } from '@/hooks/useTasks';
-import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { AnalyticsSkeleton } from '@/components/skeletons/AnalyticsSkeleton';
 import { AnalyticsHeader } from '@/components/analytics/AnalyticsHeader';
 import { AnalyticsStatsCards } from '@/components/analytics/AnalyticsStatsCards';
@@ -55,23 +53,58 @@ export default function Analytics() {
   const navigate = useNavigate();
   const { isDemoMode } = useDemoMode();
   const familyMembersContext = useContext(FamilyMembersContext);
-  const { tasks: tasksData, loading: tasksLoading } = useTasks();
-  const { events: calendarEventsData, loading: eventsLoading } = useCalendarEvents();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [period, setPeriod] = useState<Period>('month');
+  const [shouldUseDemoData, setShouldUseDemoData] = useState(true);
+  const [members, setMembers] = useState<any[]>(demoAnalyticsData.members);
+  const [tasks, setTasks] = useState<any[]>(demoAnalyticsData.tasks);
+  const [calendarEvents, setCalendarEvents] = useState<any[]>(demoAnalyticsData.calendar_events);
+  
+  const children = demoAnalyticsData.children_profiles;
+  const traditions = demoAnalyticsData.traditions;
+  const blogPosts = demoAnalyticsData.blog_posts;
 
-  // Extract data - use demo data if in demo mode OR if no auth, otherwise use context/hooks
-  const authToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-  const shouldUseDemoData = isDemoMode || !authToken;
+  // Fetch real data or use demo
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (typeof window === 'undefined') return;
+      
+      const authToken = localStorage.getItem('authToken');
+      const useDemoData = isDemoMode || !authToken;
+      setShouldUseDemoData(useDemoData);
+      
+      if (!useDemoData) {
+        // Load from contexts
+        setMembers(familyMembersContext?.members || []);
+        
+        // Load tasks
+        try {
+          const tasksResponse = await fetch('https://functions.poehali.dev/638290a3-bc43-46ef-9ca1-1e80b72544bf', {
+            headers: { 'X-Auth-Token': authToken || '' }
+          });
+          const tasksData = await tasksResponse.json();
+          if (tasksData.success) setTasks(tasksData.tasks || []);
+        } catch (e) {
+          console.error('Failed to load tasks:', e);
+        }
+        
+        // Load events
+        try {
+          const eventsResponse = await fetch('https://functions.poehali.dev/5e14781d-52a6-416c-856b-87061cf5decf', {
+            headers: { 'X-Auth-Token': authToken || '' }
+          });
+          const eventsData = await eventsResponse.json();
+          if (eventsData.success) setCalendarEvents(eventsData.events || []);
+        } catch (e) {
+          console.error('Failed to load events:', e);
+        }
+      }
+    };
+    
+    checkAuth();
+  }, [isDemoMode, familyMembersContext?.members]);
   
-  const members = shouldUseDemoData ? demoAnalyticsData.members : (familyMembersContext?.members || []);
-  const tasks = shouldUseDemoData ? demoAnalyticsData.tasks : (tasksData || []);
-  const children = shouldUseDemoData ? demoAnalyticsData.children_profiles : [];
-  const calendarEvents = shouldUseDemoData ? demoAnalyticsData.calendar_events : (calendarEventsData || []);
-  const traditions = shouldUseDemoData ? demoAnalyticsData.traditions : [];
-  const blogPosts = shouldUseDemoData ? demoAnalyticsData.blog_posts : [];
-  
-  const isLoading = !shouldUseDemoData && (familyMembersContext?.loading || tasksLoading || eventsLoading);
+  const isLoading = false;
 
   console.log('📊 Analytics - Raw data:', {
     isDemoMode,
