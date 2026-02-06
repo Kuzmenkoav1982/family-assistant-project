@@ -52,7 +52,7 @@ export default function EditEventPage() {
       const userId = getUserId();
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`${API_URL}?eventId=${id}`, {
+      const response = await fetch(`${API_URL}?id=${id}`, {
         headers: {
           'X-User-Id': userId,
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
@@ -99,7 +99,7 @@ export default function EditEventPage() {
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify({
-          eventId: id,
+          id: id,
           title: formData.title,
           eventType: formData.eventType,
           eventDate: formData.eventDate,
