@@ -7,22 +7,62 @@ import { AnalyticsStatsCards } from '@/components/analytics/AnalyticsStatsCards'
 import { AnalyticsContentTabs } from '@/components/analytics/AnalyticsContentTabs';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 type Period = 'week' | 'month' | 'quarter' | 'half-year' | 'year';
 
+// Демо-данные для аналитики
+const demoAnalyticsData = {
+  members: [
+    { id: '1', name: 'Алексей', role: 'Родитель', level: 5, points: 320, age: 35 },
+    { id: '2', name: 'Анастасия', role: 'Родитель', level: 4, points: 280, age: 33 },
+    { id: '3', name: 'Матвей', role: 'Ребёнок', level: 3, points: 150, age: 8 },
+    { id: '4', name: 'Илья', role: 'Ребёнок', level: 2, points: 90, age: 5 }
+  ],
+  tasks: [
+    { id: '1', title: 'Купить продукты', assignee_id: '1', completed: true, created_at: new Date().toISOString() },
+    { id: '2', title: 'Помыть посуду', assignee_id: '2', completed: true, created_at: new Date().toISOString() },
+    { id: '3', title: 'Убрать комнату', assignee_id: '3', completed: false, created_at: new Date().toISOString() },
+    { id: '4', title: 'Сделать уроки', assignee_id: '3', completed: true, created_at: new Date(Date.now() - 86400000).toISOString() },
+    { id: '5', title: 'Погулять с собакой', assignee_id: '4', completed: false, created_at: new Date().toISOString() },
+    { id: '6', title: 'Приготовить ужин', assignee_id: '1', completed: true, created_at: new Date(Date.now() - 172800000).toISOString() },
+    { id: '7', title: 'Полить цветы', assignee_id: '2', completed: true, created_at: new Date(Date.now() - 259200000).toISOString() },
+    { id: '8', title: 'Вынести мусор', assignee_id: '4', completed: true, created_at: new Date(Date.now() - 345600000).toISOString() }
+  ],
+  children_profiles: [
+    { id: '1', child_member_id: '3', child_name: 'Матвей', age: 8 },
+    { id: '2', child_member_id: '4', child_name: 'Илья', age: 5 }
+  ],
+  calendar_events: [
+    { id: '1', title: 'День рождения Матвея', date: new Date(Date.now() + 604800000).toISOString(), participants: ['1', '2', '3', '4'] },
+    { id: '2', title: 'Родительское собрание', date: new Date(Date.now() + 259200000).toISOString(), participants: ['1', '2'] },
+    { id: '3', title: 'Поход в театр', date: new Date(Date.now() + 1209600000).toISOString(), participants: ['1', '2', '3', '4'] },
+    { id: '4', title: 'Врач - педиатр', date: new Date(Date.now() + 86400000).toISOString(), participants: ['2', '4'] },
+    { id: '5', title: 'Семейный ужин', date: new Date().toISOString(), participants: ['1', '2', '3', '4'] }
+  ],
+  blog_posts: [
+    { id: '1', title: 'Первый день в школе', content: 'Матвей пошёл в первый класс!', author_name: 'Анастасия', created_at: new Date(Date.now() - 2592000000).toISOString() },
+    { id: '2', title: 'Семейный отдых на море', content: 'Провели замечательную неделю в Сочи', author_name: 'Алексей', created_at: new Date(Date.now() - 5184000000).toISOString() },
+    { id: '3', title: 'Илья научился читать', content: 'Сегодня Илья прочитал свою первую книгу!', author_name: 'Анастасия', created_at: new Date(Date.now() - 1296000000).toISOString() }
+  ],
+  traditions: [],
+  family_values: []
+};
+
 export default function Analytics() {
   const navigate = useNavigate();
+  const { isDemoMode } = useDemoMode();
   const { data: familyData, isLoading, error } = useFamilyDataQuery();
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [period, setPeriod] = useState<Period>('month');
 
-  // Extract data before any conditional returns
-  const members = familyData?.members || [];
-  const tasks = familyData?.tasks || [];
-  const children = familyData?.children_profiles || [];
-  const calendarEvents = familyData?.calendar_events || [];
-  const traditions = familyData?.traditions || [];
-  const blogPosts = familyData?.blog_posts || [];
+  // Extract data before any conditional returns - use demo data if in demo mode
+  const members = isDemoMode ? demoAnalyticsData.members : (familyData?.members || []);
+  const tasks = isDemoMode ? demoAnalyticsData.tasks : (familyData?.tasks || []);
+  const children = isDemoMode ? demoAnalyticsData.children_profiles : (familyData?.children_profiles || []);
+  const calendarEvents = isDemoMode ? demoAnalyticsData.calendar_events : (familyData?.calendar_events || []);
+  const traditions = isDemoMode ? demoAnalyticsData.traditions : (familyData?.traditions || []);
+  const blogPosts = isDemoMode ? demoAnalyticsData.blog_posts : (familyData?.blog_posts || []);
 
   console.log('📊 Analytics - Raw data:', {
     membersCount: members.length,
@@ -166,8 +206,8 @@ export default function Analytics() {
       .slice(0, 5)
   , [calendarEvents]);
 
-  // Now check loading after all hooks
-  if (isLoading) {
+  // Now check loading after all hooks - skip loading in demo mode
+  if (isLoading && !isDemoMode) {
     return <AnalyticsSkeleton />;
   }
 
