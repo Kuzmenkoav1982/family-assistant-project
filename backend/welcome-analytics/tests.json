@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Track section click",
+      "method": "POST",
+      "body": {
+        "action": "track_click",
+        "section_index": 0,
+        "section_title": "Профили семьи",
+        "session_id": "test_session_123",
+        "user_agent": "Mozilla/5.0 Test"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    },
+    {
+      "name": "Get analytics stats",
+      "method": "GET",
+      "path": "/?action=stats",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "total": "array",
+        "today": "array",
+        "week": "array",
+        "month": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

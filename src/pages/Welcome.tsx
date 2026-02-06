@@ -8,6 +8,27 @@ import { openJivoChat } from '@/lib/jivo';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
+const trackSectionClick = async (sectionIndex: number, sectionTitle: string) => {
+  try {
+    const sessionId = localStorage.getItem('sessionId') || `session_${Date.now()}_${Math.random()}`;
+    localStorage.setItem('sessionId', sessionId);
+    
+    await fetch('https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'track_click',
+        section_index: sectionIndex,
+        section_title: sectionTitle,
+        session_id: sessionId,
+        user_agent: navigator.userAgent
+      })
+    });
+  } catch (error) {
+    console.debug('Analytics tracking failed:', error);
+  }
+};
+
 const sections = [
   {
     title: 'Профили семьи',
@@ -317,7 +338,8 @@ export default function Welcome() {
               {sections.map((section, index) => (
                 <Card
                   key={index}
-                  className="overflow-hidden border-2 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 animate-fade-in group"
+                  onClick={() => trackSectionClick(index, section.title)}
+                  className="overflow-hidden border-2 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 animate-fade-in group cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="relative h-64 overflow-hidden">

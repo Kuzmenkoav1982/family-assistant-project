@@ -87,10 +87,16 @@ export default function AdminTraffic() {
             </h1>
             <p className="text-slate-600 mt-2">Статистика посещений и активности пользователей</p>
           </div>
-          <Button variant="outline" onClick={() => window.location.href = '/admin/dashboard'}>
-            <Icon name="ArrowLeft" size={16} className="mr-2" />
-            Назад
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/admin/welcome'}>
+              <Icon name="Sparkles" size={16} className="mr-2" />
+              Велком-страница
+            </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/admin/dashboard'}>
+              <Icon name="ArrowLeft" size={16} className="mr-2" />
+              Назад
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
