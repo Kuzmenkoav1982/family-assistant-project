@@ -61,7 +61,7 @@ export default function Analytics() {
   const [period, setPeriod] = useState<Period>('month');
 
   // Extract data - use demo data if in demo mode OR if no auth, otherwise use context/hooks
-  const authToken = localStorage.getItem('authToken');
+  const authToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
   const shouldUseDemoData = isDemoMode || !authToken;
   
   const members = shouldUseDemoData ? demoAnalyticsData.members : (familyMembersContext?.members || []);
