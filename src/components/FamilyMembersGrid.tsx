@@ -252,64 +252,40 @@ const MemberCard = ({
               
               <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-2">
                   {widgetSettings.showActiveTasks && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="text-center cursor-help">
-                          <div className="flex items-center justify-center gap-1">
-                            <Icon name="ListTodo" size={14} className="text-blue-500" />
-                            <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>📝 Активных задач</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-0.5">
+                        <Icon name="ListTodo" size={14} className="text-blue-500" />
+                        <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 leading-tight">Задач</p>
+                    </div>
                   )}
                   {widgetSettings.showCompletedToday && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="text-center cursor-help">
-                          <div className="flex items-center justify-center gap-1">
-                            <Icon name="CheckCircle2" size={14} className="text-green-500" />
-                            <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>✅ Завершено сегодня</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-0.5">
+                        <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                        <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 leading-tight">Готово</p>
+                    </div>
                   )}
                   {widgetSettings.showTodayEvents && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="text-center cursor-help">
-                          <div className="flex items-center justify-center gap-1">
-                            <Icon name="Calendar" size={14} className="text-purple-500" />
-                            <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>📅 События на сегодня</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-0.5">
+                        <Icon name="Calendar" size={14} className="text-purple-500" />
+                        <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 leading-tight">Событий</p>
+                    </div>
                   )}
                   {widgetSettings.showWeekAchievements && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="text-center cursor-help">
-                          <div className="flex items-center justify-center gap-1">
-                            <Icon name="Trophy" size={14} className="text-yellow-500" />
-                            <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>🏆 Достижений за неделю</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-0.5">
+                        <Icon name="Trophy" size={14} className="text-yellow-500" />
+                        <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 leading-tight">За неделю</p>
+                    </div>
                   )}
                 </div>
               

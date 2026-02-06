@@ -24,6 +24,15 @@ export default function Analytics() {
   const traditions = familyData?.traditions || [];
   const blogPosts = familyData?.blog_posts || [];
 
+  console.log('📊 Analytics - Raw data:', {
+    membersCount: members.length,
+    tasksCount: tasks.length,
+    childrenCount: children.length,
+    eventsCount: calendarEvents.length,
+    members: members.map((m: any) => ({ id: m.id, name: m.name })),
+    tasks: tasks.map((t: any) => ({ id: t.id, title: t.title, assignee_id: t.assignee_id }))
+  });
+
   const taskStats = useMemo(() => {
     const completedTasks = tasks.filter((t: any) => t.completed).length;
     const totalTasks = tasks.length;
