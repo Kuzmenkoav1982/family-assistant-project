@@ -42,6 +42,64 @@ const trackSectionClick = async (sectionIndex: number, sectionTitle: string) => 
 
 const sections = [
   {
+    title: 'Безопасность',
+    description: 'Банковский уровень защиты ваших данных',
+    icon: 'Shield',
+    color: 'from-emerald-500 to-teal-500',
+    securitySlides: [
+      {
+        title: 'Банковский уровень защиты',
+        subtitle: 'Ваша семейная информация защищена технологиями крупнейших банков России',
+        features: [
+          { icon: 'Lock', title: 'Шифрование 256-бит', description: 'Военный стандарт защиты данных' },
+          { icon: 'Shield', title: 'Защита от взлома', description: 'Автоматическая блокировка подозрительной активности' },
+          { icon: 'ShieldCheck', title: 'HTTPS-протокол', description: 'Безопасная передача данных между устройствами' },
+          { icon: 'Zap', title: 'Обнаружение угроз', description: 'Система мониторинга работает 24/7' }
+        ]
+      },
+      {
+        title: 'Невзламываемые пароли',
+        subtitle: 'Технология bcrypt делает пароли практически невозможными для подбора',
+        features: [
+          { icon: 'Key', title: 'Хеширование bcrypt', description: 'Даже мы не видим ваши пароли' },
+          { icon: 'Ban', title: 'Защита от брутфорса', description: 'Ограничение попыток входа' },
+          { icon: 'Clock', title: 'Автоблокировка', description: 'Подозрительные попытки блокируются мгновенно' },
+          { icon: 'BarChart3', title: 'Анализ безопасности', description: 'Система анализирует каждый вход' }
+        ]
+      },
+      {
+        title: 'Медицинские данные под защитой',
+        subtitle: 'Информация о здоровье ваших детей зашифрована по военному стандарту AES-256-GCM',
+        features: [
+          { icon: 'Heart', title: 'Медицинское шифрование', description: 'Диагнозы, анализы, прививки полностью защищены' },
+          { icon: 'Lock', title: 'AES-256-GCM', description: 'Криптография военного уровня' },
+          { icon: 'UserCheck', title: 'Доступ только вам', description: 'Никто кроме вас не видит медданные' },
+          { icon: 'Database', title: 'Безопасное хранение', description: 'Данные в защищенном облаке' }
+        ]
+      },
+      {
+        title: '100% соответствие закону',
+        subtitle: 'Полное соответствие всем требованиям российского законодательства',
+        features: [
+          { icon: 'Scale', title: '152-ФЗ', description: 'О персональных данных (100% соответствие)' },
+          { icon: 'FileText', title: 'Приказ ФСТЭК №21', description: 'Требования по защите информации' },
+          { icon: 'Flag', title: '149-ФЗ', description: 'Об информации и защите данных' },
+          { icon: 'BadgeCheck', title: 'Сертификация', description: 'Готовы к проверкам регуляторов' }
+        ]
+      },
+      {
+        title: 'Прозрачность и контроль',
+        subtitle: 'Полная прозрачность действий и автоматическое удаление старых данных',
+        features: [
+          { icon: 'FileText', title: 'Журнал действий', description: 'Все операции логируются для вашей безопасности' },
+          { icon: 'Trash2', title: 'Автоудаление', description: 'Старые данные удаляются согласно 152-ФЗ' },
+          { icon: 'Eye', title: 'Полная прозрачность', description: 'Вы всегда знаете, что происходит с данными' },
+          { icon: 'RefreshCw', title: 'Право на забвение', description: 'Удалите свои данные в любой момент' }
+        ]
+      }
+    ]
+  },
+  {
     title: 'Профили семьи',
     description: 'Индивидуальные профили для всех членов семьи с фото и достижениями',
     image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/de4b03f6-f019-4f65-8f22-7d0d9a4cb5e0.JPG',
@@ -239,11 +297,15 @@ export default function Welcome() {
 
   useEffect(() => {
     sections.forEach((section, index) => {
-      if (section.carousel && section.carousel.length > 1) {
+      const hasCarousel = section.carousel && section.carousel.length > 1;
+      const hasSecuritySlides = (section as any).securitySlides && (section as any).securitySlides.length > 1;
+      
+      if (hasCarousel || hasSecuritySlides) {
+        const length = hasSecuritySlides ? (section as any).securitySlides.length : section.carousel!.length;
         const interval = setInterval(() => {
           setCarouselIndexes(prev => ({
             ...prev,
-            [index]: ((prev[index] || 0) + 1) % section.carousel!.length
+            [index]: ((prev[index] || 0) + 1) % length
           }));
         }, 4000);
         carouselRefs.current[index] = interval;
@@ -384,7 +446,71 @@ export default function Welcome() {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="relative h-64 overflow-hidden">
-                    {section.carousel ? (
+                    {(section as any).securitySlides ? (
+                      <div className="relative w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 p-6 overflow-y-auto">
+                        {(() => {
+                          const slide = (section as any).securitySlides[carouselIndexes[index] || 0];
+                          return (
+                            <div className="space-y-3">
+                              <h4 className="text-lg font-bold text-emerald-900 mb-1">{slide.title}</h4>
+                              <p className="text-sm text-emerald-700 mb-4">{slide.subtitle}</p>
+                              <div className="grid grid-cols-1 gap-2">
+                                {slide.features.map((feature: any, fIndex: number) => (
+                                  <div key={fIndex} className="flex items-start gap-2 bg-white/60 rounded-lg p-2">
+                                    <Icon name={feature.icon} size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                                    <div className="min-w-0">
+                                      <p className="font-semibold text-sm text-gray-900 leading-tight">{feature.title}</p>
+                                      <p className="text-xs text-gray-600 leading-tight">{feature.description}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCarouselIndexes(prev => ({
+                              ...prev,
+                              [index]: ((prev[index] || 0) - 1 + (section as any).securitySlides.length) % (section as any).securitySlides.length
+                            }));
+                            if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-emerald-600/80 hover:bg-emerald-700 text-white rounded-full p-2 transition-all"
+                        >
+                          <Icon name="ChevronLeft" size={20} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCarouselIndexes(prev => ({
+                              ...prev,
+                              [index]: ((prev[index] || 0) + 1) % (section as any).securitySlides.length
+                            }));
+                            if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600/80 hover:bg-emerald-700 text-white rounded-full p-2 transition-all"
+                        >
+                          <Icon name="ChevronRight" size={20} />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                          {(section as any).securitySlides.map((_: any, dotIndex: number) => (
+                            <button
+                              key={dotIndex}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCarouselIndexes(prev => ({ ...prev, [index]: dotIndex }));
+                                if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
+                              }}
+                              className={`w-2 h-2 rounded-full transition-all ${
+                                (carouselIndexes[index] || 0) === dotIndex ? 'bg-emerald-600 scale-125' : 'bg-emerald-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : section.carousel ? (
                       <div className="relative w-full h-full bg-white">
                         <img
                           src={section.carousel[carouselIndexes[index] || 0]}
