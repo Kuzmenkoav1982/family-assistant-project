@@ -219,61 +219,36 @@ export default function Calendar() {
     const dateStr = formatDateToLocal(date);
     const allEvents: (CalendarEvent | Task | FamilyGoal)[] = [];
     
-    console.log('[getEventsForDate] Called for date:', dateStr);
-    console.log('[getEventsForDate] Current memberFilter:', memberFilter);
-    console.log('[getEventsForDate] Total events from API:', events.length);
-    
     let matchingEvents = events.filter(e => {
       if (e.date === dateStr) return true;
       return isRecurringEventOnDate(e, date);
     });
-    
-    console.log('[getEventsForDate] Events matching date:', matchingEvents.length, matchingEvents.map(e => ({
-      title: e.title,
-      assignedTo: e.assignedTo,
-      attendees: e.attendees
-    })));
     
     if (categoryFilter !== 'all') {
       matchingEvents = matchingEvents.filter(e => e.category === categoryFilter);
     }
 
     if (memberFilter !== 'all') {
-      console.log('[Calendar Filter] Filtering for member:', memberFilter);
-      console.log('[Calendar Filter] All members:', members.map(m => ({ id: m.id, name: m.name })));
-      console.log('[Calendar Filter] Events before filter:', matchingEvents.map(e => ({ 
-        title: e.title, 
-        assignedTo: e.assignedTo, 
-        attendees: e.attendees 
-      })));
-      
       matchingEvents = matchingEvents.filter(e => {
         // Если событие для всех - показываем
         if (!e.assignedTo || e.assignedTo === 'all') {
-          console.log('[Calendar Filter] Event', e.title, '- FOR ALL');
           return true;
         }
         // Если человек в списке участников
         if (Array.isArray(e.attendees) && e.attendees.includes(memberFilter)) {
-          console.log('[Calendar Filter] Event', e.title, '- IN ATTENDEES');
           return true;
         }
         // Если событие назначено конкретно на этого человека (по ID или имени)
         if (e.assignedTo === memberFilter) {
-          console.log('[Calendar Filter] Event', e.title, '- ASSIGNED BY ID:', e.assignedTo);
           return true;
         }
         // Дополнительная проверка: ищем по имени если memberFilter это ID
         const member = members.find(m => m.id === memberFilter);
         if (member && e.assignedTo === member.name) {
-          console.log('[Calendar Filter] Event', e.title, '- ASSIGNED BY NAME:', e.assignedTo, 'matches', member.name);
           return true;
         }
-        console.log('[Calendar Filter] Event', e.title, '- FILTERED OUT');
         return false;
       });
-      
-      console.log('[Calendar Filter] Events after filter:', matchingEvents.length);
     }
 
     allEvents.push(...matchingEvents);
@@ -390,7 +365,7 @@ export default function Calendar() {
       category: 'personal',
       color: '#3b82f6',
       visibility: 'family',
-      assignedTo: memberFilter !== 'all' ? memberFilter : 'all',
+      assignedTo: 'all', // ВСЕГДА начинаем с "Вся семья"
       attendees: [],
       reminderEnabled: true,
       reminderDays: 1,
@@ -439,16 +414,10 @@ export default function Calendar() {
   };
 
   const handleEventChange = (field: string, value: string | boolean | number | string[]) => {
-    console.log(`[Calendar] handleEventChange: ${field} =`, value);
-    setNewEvent(prev => {
-      const updated = { ...prev, [field]: value };
-      console.log('[Calendar] newEvent after change:', updated);
-      return updated;
-    });
+    setNewEvent(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveEvent = async () => {
-    console.log('[Calendar] Saving event. newEvent.assignedTo:', newEvent.assignedTo);
     const eventData = {
       title: newEvent.title,
       description: newEvent.description,
@@ -533,7 +502,7 @@ export default function Calendar() {
       category: 'personal',
       color: '#3b82f6',
       visibility: 'family',
-      assignedTo: memberFilter !== 'all' ? memberFilter : 'all',
+      assignedTo: 'all', // ВСЕГДА начинаем с "Вся семья"
       attendees: [],
       reminderEnabled: true,
       reminderDays: 1,

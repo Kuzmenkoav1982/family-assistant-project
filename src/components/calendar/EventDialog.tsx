@@ -156,10 +156,7 @@ export function EventDialog({
             <Label htmlFor="assignedTo">Для кого событие</Label>
             <Select 
               value={newEvent.assignedTo || 'all'} 
-              onValueChange={(val) => {
-                console.log('[EventDialog] assignedTo changed to:', val);
-                onEventChange('assignedTo', val);
-              }}
+              onValueChange={(val) => onEventChange('assignedTo', val)}
             >
               <SelectTrigger id="assignedTo">
                 <SelectValue placeholder="Выберите члена семьи" />
