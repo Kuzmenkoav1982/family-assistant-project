@@ -102,9 +102,14 @@ const sections = [
   {
     title: 'Профили семьи',
     description: 'Индивидуальные профили для всех членов семьи с фото и достижениями',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/de4b03f6-f019-4f65-8f22-7d0d9a4cb5e0.JPG',
     icon: 'Users',
-    color: 'from-blue-500 to-cyan-500'
+    color: 'from-blue-500 to-cyan-500',
+    carousel: [
+      'https://cdn.poehali.dev/files/98335cb4-cd33-4984-a62a-b41c0f395a08.JPG',
+      'https://cdn.poehali.dev/files/38ccde3a-5dda-40f6-868d-59641e6fbd84.JPG',
+      'https://cdn.poehali.dev/files/cd388084-2bb8-4726-9d4f-e6b9906a68cf.JPG',
+      'https://cdn.poehali.dev/files/c62cde5c-4c3b-489b-a629-2dbcc8791ef1.JPG'
+    ]
   },
   {
     title: 'AI-ассистент Домовой',
