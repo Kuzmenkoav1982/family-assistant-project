@@ -152,12 +152,32 @@ export function MemberProfileContent({
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Icon name="ListTodo" className="text-blue-600" />
-                Активные задачи
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Icon name="ListTodo" className="text-blue-600" />
+                  Активные задачи
+                </h3>
+                <Button
+                  onClick={() => navigate(`/tasks?assignee=${member.id}`)}
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  <Icon name="Plus" className="mr-2" size={16} />
+                  Добавить задачу
+                </Button>
+              </div>
               {memberTasks.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Нет активных задач</p>
+                <div className="text-center py-8 space-y-3">
+                  <p className="text-muted-foreground">Нет активных задач</p>
+                  <Button
+                    onClick={() => navigate(`/tasks?assignee=${member.id}`)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Создать первую задачу
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {memberTasks.map(task => (
