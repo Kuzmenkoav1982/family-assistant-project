@@ -12,6 +12,7 @@ import { VotingWidget } from '@/components/VotingWidget';
 import { PermissionsManager } from '@/components/PermissionsManager';
 import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionnaire';
 import { usePermissions } from '@/hooks/usePermissions';
+import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task } from '@/types/family.types';
 
 interface MemberProfileContentProps {
@@ -46,6 +47,7 @@ export function MemberProfileContent({
   const navigate = useNavigate();
   const { canDo, loading: permissionsLoading, role } = usePermissions();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
 
   console.log('[MemberProfile] Permissions state:', { 
     loading: permissionsLoading, 
@@ -158,7 +160,7 @@ export function MemberProfileContent({
                   Активные задачи
                 </h3>
                 <Button
-                  onClick={() => navigate('/')}
+                  onClick={() => setIsCreateTaskOpen(true)}
                   size="sm"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
@@ -170,7 +172,7 @@ export function MemberProfileContent({
                 <div className="text-center py-8 space-y-3">
                   <p className="text-muted-foreground">Нет активных задач</p>
                   <Button
-                    onClick={() => navigate('/')}
+                    onClick={() => setIsCreateTaskOpen(true)}
                     variant="outline"
                     size="sm"
                   >
@@ -282,6 +284,12 @@ export function MemberProfileContent({
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      <CreateTaskDialog 
+        open={isCreateTaskOpen} 
+        onOpenChange={setIsCreateTaskOpen}
+        preselectedMemberId={member.id}
+      />
     </Card>
   );
 }
