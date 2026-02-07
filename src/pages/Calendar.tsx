@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTasks } from '@/hooks/useTasks';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
 
 const formatDateToLocal = (date: Date): string => {
@@ -35,6 +36,7 @@ export default function Calendar() {
   const { tasks } = useTasks();
   const { notifyCalendarEvent } = useNotifications();
   const { events: apiEvents, loading: eventsLoading, createEvent, updateEvent, deleteEvent, fetchEvents } = useCalendarEvents();
+  const { members } = useFamilyMembersContext();
   const [searchParams] = useSearchParams();
   const memberFilterFromUrl = searchParams.get('member');
   
@@ -228,10 +230,16 @@ export default function Calendar() {
 
     if (memberFilter !== 'all') {
       matchingEvents = matchingEvents.filter(e => {
-        if (e.visibility === 'family') return true;
+        // Если событие для всех - показываем
         if (!e.assignedTo || e.assignedTo === 'all') return true;
+        // Если человек в списке участников
         if (Array.isArray(e.attendees) && e.attendees.includes(memberFilter)) return true;
-        return e.assignedTo === memberFilter;
+        // Если событие назначено конкретно на этого человека (по ID или имени)
+        if (e.assignedTo === memberFilter) return true;
+        // Дополнительная проверка: ищем по имени если memberFilter это ID
+        const member = members.find(m => m.id === memberFilter);
+        if (member && e.assignedTo === member.name) return true;
+        return false;
       });
     }
 
@@ -364,7 +372,7 @@ export default function Calendar() {
     setShowEventDialog(true);
   };
 
-  const handleAIRecommendation = (recommendation: any) => {
+  const handleAIRecommendation = (recommendation: { title: string; category: string; description: string; date?: string; time?: string }) => {
     const categoryMap: { [key: string]: string } = {
       'leisure': 'leisure',
       'family': 'family',
@@ -397,7 +405,7 @@ export default function Calendar() {
     setShowEventDialog(true);
   };
 
-  const handleEventChange = (field: string, value: any) => {
+  const handleEventChange = (field: string, value: string | boolean | number | string[]) => {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
 
@@ -449,7 +457,7 @@ export default function Calendar() {
       category: event.category,
       color: event.color,
       visibility: event.visibility,
-      assignedTo: event.assignedTo || 'all',
+      assignedTo: event.assignedTo || 'all', // Если assignedTo пустой/null - значит для всех
       attendees: event.attendees || [],
       reminderEnabled: event.reminderEnabled || false,
       reminderDays: event.reminderDays || 1,
@@ -575,31 +583,103 @@ export default function Calendar() {
 
         {selectedEvent && (
           <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Icon name="Info" size={24} />
                   Детали события
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-lg">{selectedEvent.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2">{selectedEvent.title}</h3>
                   {'description' in selectedEvent && selectedEvent.description && (
-                    <p className="text-gray-600 mt-1">{selectedEvent.description}</p>
+                    <p className="text-gray-600 text-sm">{selectedEvent.description}</p>
                   )}
                 </div>
-                {'category' in selectedEvent && (
-                  <Badge>{selectedEvent.category}</Badge>
-                )}
-                {'status' in selectedEvent && 'dueDate' in selectedEvent && (
-                  <div className="text-sm text-gray-600">
-                    Статус: {selectedEvent.status}
+                
+                {'date' in selectedEvent && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Icon name="Calendar" size={16} className="text-gray-500" />
+                    <span>{new Date(selectedEvent.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
                 )}
+                
+                {'time' in selectedEvent && selectedEvent.time && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Icon name="Clock" size={16} className="text-gray-500" />
+                    <span>{selectedEvent.time}</span>
+                  </div>
+                )}
+                
+                {'category' in selectedEvent && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Категория:</span>
+                    <Badge>{selectedEvent.category === 'personal' ? 'Личное' : selectedEvent.category === 'family' ? 'Семейное' : selectedEvent.category === 'work' ? 'Работа' : selectedEvent.category === 'health' ? 'Здоровье' : selectedEvent.category === 'education' ? 'Образование' : 'Досуг'}</Badge>
+                  </div>
+                )}
+                
+                {'assignedTo' in selectedEvent && selectedEvent.assignedTo && (
+                  <div className="flex items-center gap-2">
+                    <Icon name="User" size={16} className="text-gray-500" />
+                    <span className="text-sm">
+                      <span className="text-gray-500">Для кого:</span> {selectedEvent.assignedTo === 'all' ? 'Вся семья' : selectedEvent.assignedTo}
+                    </span>
+                  </div>
+                )}
+                
+                {'attendees' in selectedEvent && Array.isArray(selectedEvent.attendees) && selectedEvent.attendees.length > 0 && (
+                  <div className="flex items-start gap-2">
+                    <Icon name="Users" size={16} className="text-gray-500 mt-0.5" />
+                    <div className="text-sm">
+                      <span className="text-gray-500">Участники:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedEvent.attendees.map((attendee, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">{attendee}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {'visibility' in selectedEvent && (
+                  <div className="flex items-center gap-2">
+                    <Icon name={selectedEvent.visibility === 'private' ? 'Lock' : 'Globe'} size={16} className="text-gray-500" />
+                    <span className="text-sm">
+                      <span className="text-gray-500">Видимость:</span> {selectedEvent.visibility === 'private' ? 'Приватное' : 'Семейное'}
+                    </span>
+                  </div>
+                )}
+                
+                {'isRecurring' in selectedEvent && selectedEvent.isRecurring && (
+                  <div className="flex items-center gap-2 text-purple-600">
+                    <Icon name="Repeat" size={16} />
+                    <span className="text-sm font-medium">Повторяющееся событие</span>
+                  </div>
+                )}
+                
+                {'reminderEnabled' in selectedEvent && selectedEvent.reminderEnabled && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Icon name="Bell" size={16} className="text-gray-500" />
+                    <span className="text-gray-600">Напоминание включено</span>
+                  </div>
+                )}
+                
+                {'status' in selectedEvent && 'dueDate' in selectedEvent && (
+                  <div className="flex items-center gap-2">
+                    <Icon name="CheckCircle" size={16} className="text-gray-500" />
+                    <span className="text-sm">
+                      <span className="text-gray-500">Статус:</span> {selectedEvent.status}
+                    </span>
+                  </div>
+                )}
+                
                 {'progress' in selectedEvent && (
-                  <div className="text-sm text-gray-600">
-                    Прогресс: {selectedEvent.progress}%
+                  <div className="flex items-center gap-2">
+                    <Icon name="Target" size={16} className="text-gray-500" />
+                    <span className="text-sm">
+                      <span className="text-gray-500">Прогресс:</span> {selectedEvent.progress}%
+                    </span>
                   </div>
                 )}
               </div>

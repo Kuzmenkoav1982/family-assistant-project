@@ -65,12 +65,48 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
             event_dict['date'] = event_dict['date'].isoformat()
         if event_dict.get('reminder_date'):
             event_dict['reminder_date'] = event_dict['reminder_date'].isoformat()
+            event_dict['reminderDate'] = event_dict['reminder_date']
         if event_dict.get('recurring_end_date'):
             event_dict['recurring_end_date'] = event_dict['recurring_end_date'].isoformat()
+            event_dict['recurringEndDate'] = event_dict['recurring_end_date']
         if event_dict.get('created_at'):
             event_dict['created_at'] = event_dict['created_at'].isoformat()
         if event_dict.get('updated_at'):
             event_dict['updated_at'] = event_dict['updated_at'].isoformat()
+        
+        # Конвертация snake_case → camelCase для фронтенда
+        if 'assigned_to' in event_dict:
+            # assigned_to это массив в БД, берём первый элемент или 'all'
+            assigned_to_value = event_dict['assigned_to']
+            if assigned_to_value and len(assigned_to_value) > 0:
+                event_dict['assignedTo'] = assigned_to_value[0]
+            else:
+                event_dict['assignedTo'] = 'all'
+        
+        if 'reminder_enabled' in event_dict:
+            event_dict['reminderEnabled'] = event_dict['reminder_enabled']
+        if 'reminder_days' in event_dict:
+            event_dict['reminderDays'] = event_dict['reminder_days']
+        if 'reminder_time' in event_dict:
+            event_dict['reminderTime'] = event_dict['reminder_time']
+        if 'is_recurring' in event_dict:
+            event_dict['isRecurring'] = event_dict['is_recurring']
+        if 'recurring_frequency' in event_dict:
+            event_dict['recurringFrequency'] = event_dict['recurring_frequency']
+        if 'recurring_interval' in event_dict:
+            event_dict['recurringInterval'] = event_dict['recurring_interval']
+        if 'recurring_days_of_week' in event_dict:
+            event_dict['recurringDaysOfWeek'] = event_dict['recurring_days_of_week']
+        
+        # Формируем recurringPattern для фронта
+        if event_dict.get('isRecurring'):
+            event_dict['recurringPattern'] = {
+                'frequency': event_dict.get('recurringFrequency'),
+                'interval': event_dict.get('recurringInterval', 1),
+                'endDate': event_dict.get('recurringEndDate'),
+                'daysOfWeek': event_dict.get('recurringDaysOfWeek')
+            }
+        
         result.append(event_dict)
     
     return result
