@@ -60,6 +60,15 @@ export default function MemberProfile() {
     });
   };
 
+  const handleDeleteDream = async (dreamId: string) => {
+    const filteredDreams = (member.dreams || []).filter(d => d.id !== dreamId);
+
+    await updateMember({
+      id: member.id,
+      dreams: filteredDreams
+    });
+  };
+
   const handleUpdateBalance = async (newBalance: number) => {
     await updateMember({
       id: member.id,
@@ -122,6 +131,7 @@ export default function MemberProfile() {
           deleteTask={deleteTask}
           handleAddDream={handleAddDream}
           handleUpdateDream={handleUpdateDream}
+          handleDeleteDream={handleDeleteDream}
           handleUpdateBalance={handleUpdateBalance}
           saveProfile={saveProfile}
           updateMember={updateMember}

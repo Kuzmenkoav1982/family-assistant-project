@@ -26,6 +26,7 @@ interface MemberProfileContentProps {
   deleteTask: (taskId: string) => Promise<void>;
   handleAddDream: (dream: Omit<Dream, 'id' | 'createdAt'>) => Promise<void>;
   handleUpdateDream: (dreamId: string, updates: Partial<Dream>) => Promise<void>;
+  handleDeleteDream: (dreamId: string) => Promise<void>;
   handleUpdateBalance: (newBalance: number) => Promise<void>;
   saveProfile: (memberId: string, profile: MemberProfileType) => Promise<void>;
   updateMember: (updates: Partial<FamilyMember> & { id: string }) => Promise<void>;
@@ -41,6 +42,7 @@ export function MemberProfileContent({
   deleteTask,
   handleAddDream,
   handleUpdateDream,
+  handleDeleteDream,
   handleUpdateBalance,
   saveProfile,
   updateMember
@@ -259,7 +261,7 @@ export function MemberProfileContent({
               dreams={member.dreams || []}
               onAddDream={handleAddDream}
               onUpdateDream={handleUpdateDream}
-              isChild={isChild}
+              onDeleteDream={handleDeleteDream}
             />
           </TabsContent>
 

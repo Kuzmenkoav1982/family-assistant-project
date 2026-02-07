@@ -12,10 +12,13 @@ interface ChildDreamsManagerProps {
   dreams: Dream[];
   onAddDream: (dream: Omit<Dream, 'id' | 'createdAt'>) => void;
   onUpdateDream: (dreamId: string, updates: Partial<Dream>) => void;
+  onDeleteDream?: (dreamId: string) => void;
 }
 
-export function ChildDreamsManager({ dreams, onAddDream, onUpdateDream }: ChildDreamsManagerProps) {
+export function ChildDreamsManager({ dreams, onAddDream, onUpdateDream, onDeleteDream }: ChildDreamsManagerProps) {
   const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
+  const [editingDream, setEditingDream] = useState<Dream | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const getAIAdvice = (dream: Dream): string => {
     const adviceList = [
@@ -106,25 +109,50 @@ export function ChildDreamsManager({ dreams, onAddDream, onUpdateDream }: ChildD
                       <span className="text-2xl">{dream.icon}</span>
                       {dream.title}
                     </span>
-                    <Dialog>
-                      <DialogTrigger asChild>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          setEditingDream(dream);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Icon name="Pencil" size={16} className="text-blue-500" />
+                      </Button>
+                      {onDeleteDream && (
                         <Button 
                           size="sm" 
-                          variant="outline"
-                          onClick={() => setSelectedDream(dream)}
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm(`Удалить мечту "${dream.title}"?`)) {
+                              onDeleteDream(dream.id);
+                            }
+                          }}
                         >
-                          <Icon name="Lightbulb" size={16} />
+                          <Icon name="Trash2" size={16} className="text-red-500" />
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>💡 Совет от ИИ</DialogTitle>
-                        </DialogHeader>
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <p className="text-sm">{getAIAdvice(dream)}</p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                      )}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setSelectedDream(dream)}
+                          >
+                            <Icon name="Lightbulb" size={16} />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>💡 Совет от ИИ</DialogTitle>
+                          </DialogHeader>
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <p className="text-sm">{getAIAdvice(dream)}</p>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -167,6 +195,74 @@ export function ChildDreamsManager({ dreams, onAddDream, onUpdateDream }: ChildD
           })
         )}
       </div>
+
+      {/* Диалог редактирования мечты */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать мечту</DialogTitle>
+          </DialogHeader>
+          {editingDream && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              onUpdateDream(editingDream.id, {
+                title: formData.get('title') as string,
+                description: formData.get('description') as string,
+                targetAmount: formData.get('targetAmount') ? Number(formData.get('targetAmount')) : undefined,
+              });
+              setIsEditDialogOpen(false);
+              setEditingDream(null);
+            }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Моя мечта *</label>
+                <Input 
+                  name="title" 
+                  defaultValue={editingDream.title}
+                  placeholder="Например: Купить велосипед" 
+                  required 
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Описание</label>
+                <Input 
+                  name="description" 
+                  defaultValue={editingDream.description || ''}
+                  placeholder="Почему это важно для меня?" 
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Нужно денег (₽)</label>
+                <Input 
+                  name="targetAmount" 
+                  type="number" 
+                  min="0"
+                  defaultValue={editingDream.targetAmount || ''}
+                  placeholder="Если нужны деньги" 
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500">
+                  Сохранить изменения
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingDream(null);
+                  }}
+                >
+                  Отмена
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
