@@ -159,7 +159,9 @@ const sections = [
     icon: 'Calendar',
     color: 'from-purple-500 to-pink-500',
     carousel: [
-      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/01b848b8-d5d5-448a-8d5a-ff27951a757e.JPG'
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/01b848b8-d5d5-448a-8d5a-ff27951a757e.JPG',
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/724cc08e-5d76-4e24-b815-e8094933bec0.JPG',
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/9e3fecbd-6dc7-4541-bae0-c6a80f2f62ad.JPG'
     ]
   },
   {
