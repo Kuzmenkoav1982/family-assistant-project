@@ -192,13 +192,13 @@ const MemberCard = ({
                   ) : null}
                   
                   <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="outline" className="text-xs bg-purple-50">
+                    <Badge variant="outline" className="text-xs bg-purple-50 flex items-center justify-center">
                       <Icon name="Award" size={10} className="mr-1" />
-                      Ур. {member.level}
+                      <span className="flex items-center">Ур. {member.level}</span>
                     </Badge>
-                    <Badge variant="outline" className="text-xs bg-orange-50">
+                    <Badge variant="outline" className="text-xs bg-orange-50 flex items-center justify-center">
                       <Icon name="Star" size={10} className="mr-1" />
-                      {member.points}
+                      <span className="flex items-center">{member.points}</span>
                     </Badge>
                     {member.account_type === 'child_profile' ? (
                       <Tooltip>
@@ -252,39 +252,31 @@ const MemberCard = ({
               
               <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-4 gap-1.5">
                   {widgetSettings.showActiveTasks && (
-                    <div className="text-center">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Icon name="ListTodo" size={13} className="text-blue-500" />
-                        <span className="text-sm font-bold text-gray-900">{metrics.activeTasks}</span>
-                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Задач</p>
-                      </div>
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <Icon name="ListTodo" size={13} className="text-blue-500 mb-0.5" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">{metrics.activeTasks}</span>
+                      <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap mt-0.5">Задач</p>
                     </div>
                   )}
                   {widgetSettings.showCompletedToday && (
-                    <div className="text-center">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Icon name="CheckSquare" size={13} className="text-green-500" />
-                        <span className="text-sm font-bold text-gray-900">{metrics.completedToday}</span>
-                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Готово</p>
-                      </div>
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <Icon name="CheckSquare" size={13} className="text-green-500 mb-0.5" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">{metrics.completedToday}</span>
+                      <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap mt-0.5">Готово</p>
                     </div>
                   )}
                   {widgetSettings.showTodayEvents && (
-                    <div className="text-center">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Icon name="Calendar" size={13} className="text-purple-500" />
-                        <span className="text-sm font-bold text-gray-900">{metrics.todayEvents}</span>
-                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Событий</p>
-                      </div>
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <Icon name="Calendar" size={13} className="text-purple-500 mb-0.5" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">{metrics.todayEvents}</span>
+                      <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap mt-0.5">Событий</p>
                     </div>
                   )}
                   {widgetSettings.showWeekAchievements && (
-                    <div className="text-center">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Icon name="Trophy" size={13} className="text-yellow-500" />
-                        <span className="text-sm font-bold text-gray-900">{metrics.weekAchievements}</span>
-                        <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap">Неделя</p>
-                      </div>
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <Icon name="Trophy" size={13} className="text-yellow-500 mb-0.5" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">{metrics.weekAchievements}</span>
+                      <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap mt-0.5">Неделя</p>
                     </div>
                   )}
                 </div>
