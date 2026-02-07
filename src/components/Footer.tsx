@@ -173,6 +173,18 @@ export default function Footer() {
                   <Icon name="ExternalLink" size={12} />
                 </a>
               </li>
+              <li className="flex items-center gap-2 text-gray-300">
+                <Icon name="Send" size={16} />
+                <a 
+                  href="https://t.me/Nasha7iya" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Наш канал в Telegram
+                  <Icon name="ExternalLink" size={12} />
+                </a>
+              </li>
             </ul>
           </div>
         </div>
