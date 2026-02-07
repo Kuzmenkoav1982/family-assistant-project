@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { getVitalsData, getPerformanceRating, getPerformanceDescription } from '@/utils/webVitals';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface SystemStatus {
   status: 'healthy' | 'warning' | 'critical';
@@ -24,11 +28,14 @@ interface AlertItem {
 }
 
 export default function AdminDashboard() {
+  const { toast } = useToast();
   const [performanceRating, setPerformanceRating] = useState<'good' | 'needs-improvement' | 'poor'>('good');
   const [vitals, setVitals] = useState(getVitalsData());
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [usersStats, setUsersStats] = useState({ total: 5, today: 2, week: 4 });
   const [activityStats, setActivityStats] = useState({ tasks_week: 0, events_week: 0, shopping_week: 0, children_month: 0 });
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -151,6 +158,27 @@ export default function AdminDashboard() {
   const todayUsers = usersStats.today;
   const weekUsers = usersStats.week;
 
+  const handlePasswordSubmit = () => {
+    if (passwordInput === '010677') {
+      setShowPasswordDialog(false);
+      setPasswordInput('');
+      window.location.href = '/admin/users';
+    } else {
+      toast({
+        title: 'Неверный пароль',
+        description: 'Доступ запрещён',
+        variant: 'destructive'
+      });
+      setPasswordInput('');
+    }
+  };
+
+  const handlePasswordKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handlePasswordSubmit();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -178,7 +206,7 @@ export default function AdminDashboard() {
               <Icon name="CreditCard" size={16} className="mr-2" />
               Подписки
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/users'}>
+            <Button variant="outline" onClick={() => setShowPasswordDialog(true)}>
               <Icon name="Users" size={16} className="mr-2" />
               Пользователи
             </Button>
@@ -195,7 +223,7 @@ export default function AdminDashboard() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium">{system.label}</CardTitle>
-                  <Icon name={system.icon as any} size={20} className={system.color} />
+                  <Icon name={system.icon} size={20} className={system.color} />
                 </div>
               </CardHeader>
               <CardContent>
@@ -447,6 +475,50 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Password Dialog for Users Section */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Lock" size={24} className="text-orange-600" />
+              Введите пароль сотрудника безопасности
+            </DialogTitle>
+            <DialogDescription>
+              Раздел пользователей содержит конфиденциальные данные
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="security-password">Пароль</Label>
+              <Input
+                id="security-password"
+                type="password"
+                placeholder="Введите пароль..."
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                onKeyPress={handlePasswordKeyPress}
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handlePasswordSubmit} className="flex-1">
+                <Icon name="Unlock" size={16} className="mr-2" />
+                Войти
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowPasswordDialog(false);
+                  setPasswordInput('');
+                }}
+              >
+                Отмена
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
