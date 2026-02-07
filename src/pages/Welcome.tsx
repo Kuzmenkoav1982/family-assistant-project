@@ -262,6 +262,7 @@ export default function Welcome() {
   const [subscription, setSubscription] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [carouselIndexes, setCarouselIndexes] = useState<{ [key: number]: number }>({});
+  const [fullscreenImage, setFullscreenImage] = useState<{ url: string; title: string; sectionIndex: number } | null>(null);
   const carouselRefs = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   // Отслеживание просмотра welcome-страницы
@@ -558,6 +559,20 @@ export default function Welcome() {
                           alt={`${section.title} - Слайд ${(carouselIndexes[index] || 0) + 1}`}
                           className="w-full h-full object-contain transition-opacity duration-500"
                         />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFullscreenImage({
+                              url: section.carousel![carouselIndexes[index] || 0],
+                              title: section.title,
+                              sectionIndex: index
+                            });
+                          }}
+                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all z-10"
+                          title="Развернуть"
+                        >
+                          <Icon name="Maximize2" size={18} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1018,6 +1033,92 @@ export default function Welcome() {
           </footer>
         </div>
       </div>
+
+      {/* Fullscreen Image Viewer */}
+      {fullscreenImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+          onClick={() => setFullscreenImage(null)}
+        >
+          <button
+            onClick={() => setFullscreenImage(null)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition-all z-10"
+            title="Закрыть"
+          >
+            <Icon name="X" size={24} />
+          </button>
+          
+          <div className="relative w-full h-full p-8 flex flex-col items-center justify-center">
+            <h3 className="text-white text-2xl font-bold mb-4">{fullscreenImage.title}</h3>
+            <img
+              src={fullscreenImage.url}
+              alt={fullscreenImage.title}
+              className="max-w-full max-h-[85vh] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {/* Navigation arrows in fullscreen */}
+            {sections[fullscreenImage.sectionIndex]?.carousel && sections[fullscreenImage.sectionIndex].carousel!.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const section = sections[fullscreenImage.sectionIndex];
+                    const currentIndex = carouselIndexes[fullscreenImage.sectionIndex] || 0;
+                    const newIndex = (currentIndex - 1 + section.carousel!.length) % section.carousel!.length;
+                    setCarouselIndexes(prev => ({ ...prev, [fullscreenImage.sectionIndex]: newIndex }));
+                    setFullscreenImage({
+                      ...fullscreenImage,
+                      url: section.carousel![newIndex]
+                    });
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-4 transition-all"
+                >
+                  <Icon name="ChevronLeft" size={32} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const section = sections[fullscreenImage.sectionIndex];
+                    const currentIndex = carouselIndexes[fullscreenImage.sectionIndex] || 0;
+                    const newIndex = (currentIndex + 1) % section.carousel!.length;
+                    setCarouselIndexes(prev => ({ ...prev, [fullscreenImage.sectionIndex]: newIndex }));
+                    setFullscreenImage({
+                      ...fullscreenImage,
+                      url: section.carousel![newIndex]
+                    });
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-4 transition-all"
+                >
+                  <Icon name="ChevronRight" size={32} />
+                </button>
+                
+                {/* Dots in fullscreen */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                  {sections[fullscreenImage.sectionIndex].carousel!.map((_, dotIndex) => (
+                    <button
+                      key={dotIndex}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCarouselIndexes(prev => ({ ...prev, [fullscreenImage.sectionIndex]: dotIndex }));
+                        setFullscreenImage({
+                          ...fullscreenImage,
+                          url: sections[fullscreenImage.sectionIndex].carousel![dotIndex]
+                        });
+                      }}
+                      className={`w-3 h-3 rounded-full transition-all ${
+                        (carouselIndexes[fullscreenImage.sectionIndex] || 0) === dotIndex 
+                          ? 'bg-white scale-125' 
+                          : 'bg-white/40'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
