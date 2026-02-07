@@ -97,14 +97,14 @@ export function TasksWidget() {
           Задачи семьи
         </CardTitle>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {completedCount} выполнено
+          <Badge variant="secondary" className="text-xs flex items-center justify-center">
+            <span className="flex items-center leading-none">{completedCount} выполнено</span>
           </Badge>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-gradient-to-r from-blue-500 to-purple-500">
+              <Button size="sm" className="bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
                 <Icon name="Plus" size={16} className="mr-1" />
-                Добавить
+                <span className="leading-none">Добавить</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
