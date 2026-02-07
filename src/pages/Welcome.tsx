@@ -518,7 +518,7 @@ export default function Welcome() {
                             }));
                             if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
                           }}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-emerald-600/80 hover:bg-emerald-700 text-white rounded-full p-2 transition-all"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all"
                         >
                           <Icon name="ChevronLeft" size={20} />
                         </button>
@@ -531,7 +531,7 @@ export default function Welcome() {
                             }));
                             if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
                           }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600/80 hover:bg-emerald-700 text-white rounded-full p-2 transition-all"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all"
                         >
                           <Icon name="ChevronRight" size={20} />
                         </button>
@@ -545,7 +545,7 @@ export default function Welcome() {
                                 if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
                               }}
                               className={`w-2 h-2 rounded-full transition-all ${
-                                (carouselIndexes[index] || 0) === dotIndex ? 'bg-emerald-600 scale-125' : 'bg-emerald-300'
+                                (carouselIndexes[index] || 0) === dotIndex ? 'bg-gray-800 scale-125' : 'bg-gray-400/70'
                               }`}
                             />
                           ))}
@@ -594,7 +594,7 @@ export default function Welcome() {
                                 if (carouselRefs.current[index]) clearInterval(carouselRefs.current[index]);
                               }}
                               className={`w-2 h-2 rounded-full transition-all ${
-                                (carouselIndexes[index] || 0) === dotIndex ? 'bg-white scale-125' : 'bg-white/50'
+                                (carouselIndexes[index] || 0) === dotIndex ? 'bg-gray-800 scale-125' : 'bg-gray-400/70'
                               }`}
                             />
                           ))}
