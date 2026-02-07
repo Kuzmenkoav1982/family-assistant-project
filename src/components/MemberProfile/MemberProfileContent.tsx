@@ -60,8 +60,8 @@ export function MemberProfileContent({
     canDeleteTasks: canDo('tasks', 'delete') 
   });
 
-  // Динамический подсчёт выполненных задач сегодня
-  const metrics = calculateMemberWorkload(member, memberTasks, []);
+  // Динамический подсчёт выполненных задач сегодня и событий
+  const metrics = calculateMemberWorkload(member, memberTasks, memberEvents);
   const completedTasksToday = metrics.completedToday;
 
   const handleCalendarClick = () => {
