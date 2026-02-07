@@ -23,13 +23,25 @@ interface TrafficStats {
   daily_chart: Array<{ date: string; views: number; sessions: number }>;
 }
 
+interface UserStats {
+  total: number;
+  verified: number;
+  oauth: number;
+  today: number;
+}
+
 export default function AdminTraffic() {
   const [stats, setStats] = useState<TrafficStats | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 30000);
+    fetchUserStats();
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchUserStats();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -50,6 +62,49 @@ export default function AdminTraffic() {
       console.error('Failed to fetch traffic stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserStats = async () => {
+    try {
+      const apiUrl = func2url['admin-users'] || '';
+      if (!apiUrl) {
+        console.warn('admin-users API URL not found');
+        return;
+      }
+
+      const response = await fetch(apiUrl, {
+        headers: {
+          'X-Admin-Token': 'admin_authenticated'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const users = data.users || [];
+          const today = new Date();
+          
+          interface UserFromAPI {
+            is_verified: boolean;
+            oauth_provider: string | null;
+            created_at: string | null;
+          }
+          
+          setUserStats({
+            total: data.total || 0,
+            verified: users.filter((u: UserFromAPI) => u.is_verified).length,
+            oauth: users.filter((u: UserFromAPI) => u.oauth_provider).length,
+            today: users.filter((u: UserFromAPI) => {
+              if (!u.created_at) return false;
+              const createdDate = new Date(u.created_at);
+              return createdDate.toDateString() === today.toDateString();
+            }).length
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch user stats:', error);
     }
   };
 
@@ -140,6 +195,63 @@ export default function AdminTraffic() {
             </CardContent>
           </Card>
         </div>
+
+        {/* User Registration Stats */}
+        {userStats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-2 border-slate-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Icon name="Users" size={16} className="text-blue-600" />
+                  Всего
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-slate-900">{userStats.total}</div>
+                <p className="text-xs text-gray-500 mt-1">Зарегистрировано</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-green-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Icon name="CheckCircle" size={16} className="text-green-600" />
+                  Подтверждённые
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-700">{userStats.verified}</div>
+                <p className="text-xs text-gray-500 mt-1">Верифицированы</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-purple-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Icon name="Globe" size={16} className="text-purple-600" />
+                  OAuth
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-purple-700">{userStats.oauth}</div>
+                <p className="text-xs text-gray-500 mt-1">Через соцсети</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-orange-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Icon name="TrendingUp" size={16} className="text-orange-600" />
+                  Сегодня
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-orange-700">{userStats.today}</div>
+                <p className="text-xs text-gray-500 mt-1">Новых за день</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
