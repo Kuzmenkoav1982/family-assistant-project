@@ -133,9 +133,11 @@ const sections = [
   {
     title: 'Задачи и поручения',
     description: 'Система задач с баллами и уровнями для всей семьи',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a975113-b781-4867-a03c-76da41b91083.JPG',
     icon: 'CheckSquare',
-    color: 'from-green-500 to-emerald-500'
+    color: 'from-green-500 to-emerald-500',
+    carousel: [
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a975113-b781-4867-a03c-76da41b91083.JPG'
+    ]
   },
   {
     title: 'Развитие детей',
@@ -152,9 +154,11 @@ const sections = [
   {
     title: 'Календарь',
     description: 'События с экспортом в Google Calendar, Apple Calendar, Outlook',
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/01b848b8-d5d5-448a-8d5a-ff27951a757e.JPG',
     icon: 'Calendar',
-    color: 'from-purple-500 to-pink-500'
+    color: 'from-purple-500 to-pink-500',
+    carousel: [
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/01b848b8-d5d5-448a-8d5a-ff27951a757e.JPG'
+    ]
   },
   {
     title: 'Уведомления',
@@ -510,6 +514,20 @@ export default function Welcome() {
                             </div>
                           );
                         })()}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFullscreenImage({
+                              url: '',
+                              title: section.title,
+                              sectionIndex: index
+                            });
+                          }}
+                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all z-10"
+                          title="Развернуть"
+                        >
+                          <Icon name="Maximize2" size={18} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1050,27 +1068,60 @@ export default function Welcome() {
           
           <div className="relative w-full h-full p-8 flex flex-col items-center justify-center">
             <h3 className="text-white text-2xl font-bold mb-4">{fullscreenImage.title}</h3>
-            <img
-              src={fullscreenImage.url}
-              alt={fullscreenImage.title}
-              className="max-w-full max-h-[85vh] object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+            
+            {/* Show security slide or image */}
+            {(sections[fullscreenImage.sectionIndex] as any).securitySlides ? (
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+                {(() => {
+                  const slide = (sections[fullscreenImage.sectionIndex] as any).securitySlides[carouselIndexes[fullscreenImage.sectionIndex] || 0];
+                  return (
+                    <div className="space-y-4">
+                      <h4 className="text-3xl font-bold text-emerald-900 leading-tight">{slide.title}</h4>
+                      <p className="text-lg text-emerald-700 leading-relaxed">{slide.subtitle}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        {slide.features.map((feature: any, fIndex: number) => (
+                          <div key={fIndex} className="flex items-start gap-3 bg-white/80 rounded-xl p-4 shadow-md">
+                            <Icon name={feature.icon} size={24} className="text-emerald-600 flex-shrink-0 mt-1" />
+                            <div className="min-w-0">
+                              <p className="font-bold text-base text-gray-900 leading-snug">{feature.title}</p>
+                              <p className="text-sm text-gray-600 leading-relaxed mt-1">{feature.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <img
+                src={fullscreenImage.url}
+                alt={fullscreenImage.title}
+                className="max-w-full max-h-[85vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
             
             {/* Navigation arrows in fullscreen */}
-            {sections[fullscreenImage.sectionIndex]?.carousel && sections[fullscreenImage.sectionIndex].carousel!.length > 1 && (
+            {((sections[fullscreenImage.sectionIndex]?.carousel && sections[fullscreenImage.sectionIndex].carousel!.length > 1) || 
+              ((sections[fullscreenImage.sectionIndex] as any).securitySlides && (sections[fullscreenImage.sectionIndex] as any).securitySlides.length > 1)) && (
               <>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     const section = sections[fullscreenImage.sectionIndex];
                     const currentIndex = carouselIndexes[fullscreenImage.sectionIndex] || 0;
-                    const newIndex = (currentIndex - 1 + section.carousel!.length) % section.carousel!.length;
+                    const length = (section as any).securitySlides 
+                      ? (section as any).securitySlides.length 
+                      : section.carousel!.length;
+                    const newIndex = (currentIndex - 1 + length) % length;
                     setCarouselIndexes(prev => ({ ...prev, [fullscreenImage.sectionIndex]: newIndex }));
-                    setFullscreenImage({
-                      ...fullscreenImage,
-                      url: section.carousel![newIndex]
-                    });
+                    if (section.carousel) {
+                      setFullscreenImage({
+                        ...fullscreenImage,
+                        url: section.carousel![newIndex]
+                      });
+                    }
                   }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-4 transition-all"
                 >
@@ -1081,12 +1132,17 @@ export default function Welcome() {
                     e.stopPropagation();
                     const section = sections[fullscreenImage.sectionIndex];
                     const currentIndex = carouselIndexes[fullscreenImage.sectionIndex] || 0;
-                    const newIndex = (currentIndex + 1) % section.carousel!.length;
+                    const length = (section as any).securitySlides 
+                      ? (section as any).securitySlides.length 
+                      : section.carousel!.length;
+                    const newIndex = (currentIndex + 1) % length;
                     setCarouselIndexes(prev => ({ ...prev, [fullscreenImage.sectionIndex]: newIndex }));
-                    setFullscreenImage({
-                      ...fullscreenImage,
-                      url: section.carousel![newIndex]
-                    });
+                    if (section.carousel) {
+                      setFullscreenImage({
+                        ...fullscreenImage,
+                        url: section.carousel![newIndex]
+                      });
+                    }
                   }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-4 transition-all"
                 >
@@ -1095,16 +1151,19 @@ export default function Welcome() {
                 
                 {/* Dots in fullscreen */}
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-                  {sections[fullscreenImage.sectionIndex].carousel!.map((_, dotIndex) => (
+                  {((sections[fullscreenImage.sectionIndex] as any).securitySlides || sections[fullscreenImage.sectionIndex].carousel!).map((_: any, dotIndex: number) => (
                     <button
                       key={dotIndex}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCarouselIndexes(prev => ({ ...prev, [fullscreenImage.sectionIndex]: dotIndex }));
-                        setFullscreenImage({
-                          ...fullscreenImage,
-                          url: sections[fullscreenImage.sectionIndex].carousel![dotIndex]
-                        });
+                        const section = sections[fullscreenImage.sectionIndex];
+                        if (section.carousel) {
+                          setFullscreenImage({
+                            ...fullscreenImage,
+                            url: section.carousel![dotIndex]
+                          });
+                        }
                       }}
                       className={`w-3 h-3 rounded-full transition-all ${
                         (carouselIndexes[fullscreenImage.sectionIndex] || 0) === dotIndex 
