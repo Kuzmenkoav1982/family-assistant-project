@@ -14,7 +14,16 @@ interface SectionStats {
   sessions?: number;
 }
 
+interface PageViewsStats {
+  total: number;
+  unique_sessions: number;
+  today: number;
+  week: number;
+  month: number;
+}
+
 interface AnalyticsData {
+  page_views?: PageViewsStats;
   total: SectionStats[];
   today: SectionStats[];
   week: SectionStats[];
@@ -163,44 +172,144 @@ export default function AdminWelcomeAnalytics() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Всего кликов</CardTitle>
+        <Card className="border-2 border-blue-300 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                <Icon name="Info" size={24} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg mb-2 text-blue-900">Как работает аналитика?</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-blue-800">👁️ Просмотры страницы</p>
+                    <p className="text-gray-700">Считаются все заходы на /welcome (сравнивается с Яндекс.Метрикой). Один просмотр = один уникальный заход в течение 30 минут.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-purple-800">🖱️ Клики по разделам</p>
+                    <p className="text-gray-700">Когда пользователь кликает на карточку раздела. Показывает, какие разделы интересны пользователям.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-orange-800">📊 CTR (Click-Through Rate)</p>
+                    <p className="text-gray-700">Процент пользователей, которые кликнули на разделы после просмотра страницы. Высокий CTR = заинтересованные пользователи.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-pink-800">🎯 Вовлечённость</p>
+                    <p className="text-gray-700">Процент уникальных посетителей, которые кликнули хотя бы по одному разделу. Показывает качество аудитории.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <Icon name="Eye" size={24} />
+                Просмотры страницы
+              </CardTitle>
+              <CardDescription>Сколько раз открывали /welcome (как Яндекс.Метрика)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{totalClicks}</div>
-              <p className="text-xs text-gray-500 mt-1">{totalSessions} уникальных сессий</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.page_views?.today || 0}</div>
+                  <p className="text-xs text-gray-600">Сегодня</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.page_views?.week || 0}</div>
+                  <p className="text-xs text-gray-600">За неделю</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.page_views?.month || 0}</div>
+                  <p className="text-xs text-gray-600">За месяц</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.page_views?.total || 0}</div>
+                  <p className="text-xs text-gray-600">Всего</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Сегодня</CardTitle>
+          <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-purple-900">
+                <Icon name="MousePointerClick" size={24} />
+                Клики по разделам
+              </CardTitle>
+              <CardDescription>Сколько кликнули на карточки разделов платформы</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{todayClicks}</div>
-              <p className="text-xs text-gray-500 mt-1">За последние 24 часа</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">{todayClicks}</div>
+                  <p className="text-xs text-gray-600">Сегодня</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">{weekClicks}</div>
+                  <p className="text-xs text-gray-600">За неделю</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">{monthClicks}</div>
+                  <p className="text-xs text-gray-600">За месяц</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">{totalClicks}</div>
+                  <p className="text-xs text-gray-600">Всего</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-emerald-900 flex items-center gap-2">
+                <Icon name="Users" size={16} />
+                Уникальные сессии
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-600">{stats.page_views?.unique_sessions || 0}</div>
+              <p className="text-xs text-emerald-700 mt-1">Уникальных посетителей</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">За неделю</CardTitle>
+              <CardTitle className="text-sm font-medium text-orange-900 flex items-center gap-2">
+                <Icon name="Percent" size={16} />
+                CTR (Click-Through Rate)
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-orange-600">{weekClicks}</div>
-              <p className="text-xs text-gray-500 mt-1">Последние 7 дней</p>
+              <div className="text-3xl font-bold text-orange-600">
+                {stats.page_views?.total && stats.page_views.total > 0 
+                  ? ((todayClicks / stats.page_views.today) * 100).toFixed(1)
+                  : '0'}%
+              </div>
+              <p className="text-xs text-orange-700 mt-1">Кликов на просмотр (сегодня)</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">За месяц</CardTitle>
+              <CardTitle className="text-sm font-medium text-pink-900 flex items-center gap-2">
+                <Icon name="Target" size={16} />
+                Вовлечённость
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">{monthClicks}</div>
-              <p className="text-xs text-gray-500 mt-1">Последние 30 дней</p>
+              <div className="text-3xl font-bold text-pink-600">
+                {stats.page_views?.total && stats.page_views.total > 0 
+                  ? ((totalSessions / stats.page_views.unique_sessions) * 100).toFixed(0)
+                  : '0'}%
+              </div>
+              <p className="text-xs text-pink-700 mt-1">Кликнули хотя бы раз</p>
             </CardContent>
           </Card>
         </div>
@@ -209,10 +318,10 @@ export default function AdminWelcomeAnalytics() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Icon name="TrendingUp" size={20} />
-              Интерес к разделам
+              Детальная статистика по разделам
             </CardTitle>
             <CardDescription>
-              Статистика кликов по всем 13 разделам велком-страницы
+              Какие разделы интересуют пользователей больше всего — анализ кликов по 13 карточкам
             </CardDescription>
           </CardHeader>
           <CardContent>
