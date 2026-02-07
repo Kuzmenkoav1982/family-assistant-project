@@ -22,6 +22,9 @@ interface PiggyBankManagerProps {
 export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [plannedExpenses, setPlannedExpenses] = useState<Array<{id: string; title: string; amount: number}>>([]);
+  const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
 
   const addTransaction = (type: 'income' | 'expense', amount: number, description: string) => {
     const newTransaction: Transaction = {
@@ -61,7 +64,7 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
           <p className="text-4xl font-bold text-pink-600 mb-4">{balance} ₽</p>
           
           <div className="flex gap-2">
-            <Dialog>
+            <Dialog open={isIncomeDialogOpen} onOpenChange={setIsIncomeDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-md">
                   <Icon name="TrendingUp" className="mr-2" size={18} />
@@ -79,6 +82,7 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
                   const description = formData.get('description') as string;
                   addTransaction('income', amount, description);
                   (e.target as HTMLFormElement).reset();
+                  setIsIncomeDialogOpen(false);
                 }} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Сумма (₽) *</label>
@@ -95,7 +99,7 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
               </DialogContent>
             </Dialog>
 
-            <Dialog>
+            <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-md">
                   <Icon name="TrendingDown" className="mr-2" size={18} />
@@ -119,6 +123,7 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
                   
                   addTransaction('expense', amount, description);
                   (e.target as HTMLFormElement).reset();
+                  setIsExpenseDialogOpen(false);
                 }} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Сумма (₽) *</label>
@@ -149,7 +154,7 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Dialog>
+          <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline" className="w-full border-purple-200 hover:bg-purple-50">
                 <Icon name="ShoppingCart" className="mr-2" size={16} />
@@ -172,6 +177,7 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
                   }
                 ]);
                 (e.target as HTMLFormElement).reset();
+                setIsPlanDialogOpen(false);
               }} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Что хочу купить *</label>
