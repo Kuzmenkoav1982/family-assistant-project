@@ -82,6 +82,9 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
                 event_dict['assignedTo'] = assigned_to_value[0]
             else:
                 event_dict['assignedTo'] = 'all'
+        else:
+            # Если assigned_to отсутствует в БД - это событие для всех
+            event_dict['assignedTo'] = 'all'
         
         if 'reminder_enabled' in event_dict:
             event_dict['reminderEnabled'] = event_dict['reminder_enabled']

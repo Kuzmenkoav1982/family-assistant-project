@@ -619,22 +619,22 @@ export default function Calendar() {
                   </div>
                 )}
                 
-                {'assignedTo' in selectedEvent && selectedEvent.assignedTo && (
+                {'category' in selectedEvent && 'assignedTo' in selectedEvent && (
                   <div className="flex items-center gap-2">
                     <Icon name="User" size={16} className="text-gray-500" />
                     <span className="text-sm">
-                      <span className="text-gray-500">Для кого:</span> {selectedEvent.assignedTo === 'all' ? 'Вся семья' : selectedEvent.assignedTo}
+                      <span className="text-gray-500">Для кого:</span> {(selectedEvent as CalendarEvent).assignedTo === 'all' ? 'Вся семья' : (selectedEvent as CalendarEvent).assignedTo || 'Не указано'}
                     </span>
                   </div>
                 )}
                 
-                {'attendees' in selectedEvent && Array.isArray(selectedEvent.attendees) && selectedEvent.attendees.length > 0 && (
+                {'category' in selectedEvent && 'attendees' in selectedEvent && Array.isArray((selectedEvent as CalendarEvent).attendees) && (selectedEvent as CalendarEvent).attendees && (selectedEvent as CalendarEvent).attendees!.length > 0 && (
                   <div className="flex items-start gap-2">
                     <Icon name="Users" size={16} className="text-gray-500 mt-0.5" />
                     <div className="text-sm">
                       <span className="text-gray-500">Участники:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedEvent.attendees.map((attendee, idx) => (
+                        {(selectedEvent as CalendarEvent).attendees!.map((attendee, idx) => (
                           <Badge key={idx} variant="outline" className="text-xs">{attendee}</Badge>
                         ))}
                       </div>
@@ -644,21 +644,21 @@ export default function Calendar() {
                 
                 {'visibility' in selectedEvent && (
                   <div className="flex items-center gap-2">
-                    <Icon name={selectedEvent.visibility === 'private' ? 'Lock' : 'Globe'} size={16} className="text-gray-500" />
+                    <Icon name={(selectedEvent as CalendarEvent).visibility === 'private' ? 'Lock' : 'Globe'} size={16} className="text-gray-500" />
                     <span className="text-sm">
-                      <span className="text-gray-500">Видимость:</span> {selectedEvent.visibility === 'private' ? 'Приватное' : 'Семейное'}
+                      <span className="text-gray-500">Видимость:</span> {(selectedEvent as CalendarEvent).visibility === 'private' ? 'Приватное' : 'Семейное'}
                     </span>
                   </div>
                 )}
                 
-                {'isRecurring' in selectedEvent && selectedEvent.isRecurring && (
+                {'category' in selectedEvent && 'isRecurring' in selectedEvent && (selectedEvent as CalendarEvent).isRecurring && (
                   <div className="flex items-center gap-2 text-purple-600">
                     <Icon name="Repeat" size={16} />
                     <span className="text-sm font-medium">Повторяющееся событие</span>
                   </div>
                 )}
                 
-                {'reminderEnabled' in selectedEvent && selectedEvent.reminderEnabled && (
+                {'category' in selectedEvent && 'reminderEnabled' in selectedEvent && (selectedEvent as CalendarEvent).reminderEnabled && (
                   <div className="flex items-center gap-2 text-sm">
                     <Icon name="Bell" size={16} className="text-gray-500" />
                     <span className="text-gray-600">Напоминание включено</span>
