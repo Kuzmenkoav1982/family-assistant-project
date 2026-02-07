@@ -16,9 +16,9 @@ export default function AssistantSettings() {
   const [newName, setNewName] = useState(assistantName);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
 
-  const handleSaveName = () => {
+  const handleSaveName = async () => {
     if (newName.trim()) {
-      setAssistantName(newName.trim());
+      await setAssistantName(newName.trim());
       setIsEditingName(false);
       toast({
         title: '✅ Имя изменено',

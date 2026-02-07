@@ -16,10 +16,10 @@ interface AIAssistantContextType {
   assistantLevel: number;
   selectedRole: AIAssistantRole | null;
   hasCompletedSetup: boolean;
-  setAssistantType: (type: AssistantType) => void;
-  setAssistantName: (name: string) => void;
+  setAssistantType: (type: AssistantType) => Promise<void>;
+  setAssistantName: (name: string) => Promise<void>;
   setAssistantLevel: (level: number) => void;
-  setSelectedRole: (role: AIAssistantRole | null) => void;
+  setSelectedRole: (role: AIAssistantRole | null) => Promise<void>;
   resetSelection: () => void;
   refreshAssistantLevel: () => Promise<void>;
 }
@@ -66,9 +66,9 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     return null;
   });
 
-  // Загрузка уровня с сервера при авторизации
+  // Загрузка настроек ассистента с сервера при авторизации
   useEffect(() => {
-    const loadAssistantLevel = async () => {
+    const loadAssistantSettings = async () => {
       const token = localStorage.getItem('authToken');
       if (!token) return;
 
@@ -78,39 +78,108 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
           headers: {
             'X-Auth-Token': token
           },
-          signal: AbortSignal.timeout(8000) // Таймаут 8 секунд
+          signal: AbortSignal.timeout(8000)
         });
 
         if (response.ok) {
           const data = await response.json();
-          if (data.success && data.level) {
-            setAssistantLevelState(data.level);
-            localStorage.setItem('assistantLevel', data.level.toString());
+          if (data.success) {
+            // Загружаем уровень
+            if (data.level) {
+              setAssistantLevelState(data.level);
+              localStorage.setItem('assistantLevel', data.level.toString());
+            }
+            
+            // Загружаем настройки ассистента с сервера
+            if (data.settings) {
+              const settings = data.settings;
+              
+              if (settings.assistant_type) {
+                setAssistantTypeState(settings.assistant_type);
+                localStorage.setItem('assistantType', settings.assistant_type);
+                localStorage.setItem('assistantSetupCompleted', 'true');
+                setHasCompletedSetup(true);
+              }
+              
+              if (settings.assistant_name) {
+                setAssistantNameState(settings.assistant_name);
+                localStorage.setItem('assistantName', settings.assistant_name);
+              }
+              
+              if (settings.assistant_role) {
+                const role = defaultRoles.find(r => r.id === settings.assistant_role);
+                if (role) {
+                  setSelectedRoleState(role);
+                  localStorage.setItem('assistantRole', settings.assistant_role);
+                }
+              }
+            }
           }
         }
       } catch (error) {
-        console.debug('Assistant level load skipped:', error);
-        // Тихо игнорируем - используем уровень из localStorage
+        console.debug('Assistant settings load skipped:', error);
+        // Тихо игнорируем - используем настройки из localStorage
       }
     };
 
-    loadAssistantLevel();
+    loadAssistantSettings();
   }, []);
 
-  const setAssistantType = (type: AssistantType) => {
+  const setAssistantType = async (type: AssistantType) => {
     setAssistantTypeState(type);
     localStorage.setItem('assistantType', type);
     localStorage.setItem('assistantSetupCompleted', 'true');
     setHasCompletedSetup(true);
+    
+    const name = type === 'domovoy' ? 'Домовой' : '';
     if (type === 'domovoy') {
-      setAssistantNameState('Домовой');
-      localStorage.setItem('assistantName', 'Домовой');
+      setAssistantNameState(name);
+      localStorage.setItem('assistantName', name);
+    }
+    
+    // Сохраняем на сервер
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=update-settings', {
+          method: 'POST',
+          headers: {
+            'X-Auth-Token': token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            assistant_type: type,
+            assistant_name: name
+          })
+        });
+      } catch (error) {
+        console.debug('Failed to save assistant type to server:', error);
+      }
     }
   };
 
-  const setAssistantName = (name: string) => {
+  const setAssistantName = async (name: string) => {
     setAssistantNameState(name);
     localStorage.setItem('assistantName', name);
+    
+    // Сохраняем на сервер
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=update-settings', {
+          method: 'POST',
+          headers: {
+            'X-Auth-Token': token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            assistant_name: name
+          })
+        });
+      } catch (error) {
+        console.debug('Failed to save assistant name to server:', error);
+      }
+    }
   };
 
   const setAssistantLevel = (level: number) => {
@@ -118,10 +187,29 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     localStorage.setItem('assistantLevel', level.toString());
   };
 
-  const setSelectedRole = (role: AIAssistantRole | null) => {
+  const setSelectedRole = async (role: AIAssistantRole | null) => {
     setSelectedRoleState(role);
     if (role) {
       localStorage.setItem('assistantRole', role.id);
+      
+      // Сохраняем на сервер
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085?action=update-settings', {
+            method: 'POST',
+            headers: {
+              'X-Auth-Token': token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              assistant_role: role.id
+            })
+          });
+        } catch (error) {
+          console.debug('Failed to save assistant role to server:', error);
+        }
+      }
     } else {
       localStorage.removeItem('assistantRole');
     }

@@ -30,7 +30,7 @@ export default function AssistantTypeSelectorDialog({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedType || isProcessing) {
       console.log('[AssistantSelector] Confirm blocked:', { selectedType, isProcessing });
       return;
@@ -40,12 +40,12 @@ export default function AssistantTypeSelectorDialog({
     console.log('[AssistantSelector] Confirm clicked, type:', selectedType);
 
     try {
-      setAssistantType(selectedType);
+      await setAssistantType(selectedType);
       
       if (selectedType === 'neutral' && customName.trim()) {
-        setAssistantName(customName.trim());
+        await setAssistantName(customName.trim());
       } else if (selectedType === 'domovoy') {
-        setAssistantName(domovoyName.trim() || 'Домовой');
+        await setAssistantName(domovoyName.trim() || 'Домовой');
       }
 
       console.log('[AssistantSelector] Setup completed, closing dialog');

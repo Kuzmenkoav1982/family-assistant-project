@@ -83,8 +83,8 @@ export default function DomovoyPage() {
     checkPendingPayment();
   }, [refreshAssistantLevel]);
 
-  const handleRoleClick = (role: AIAssistantRole) => {
-    setSelectedRole(role);
+  const handleRoleClick = async (role: AIAssistantRole) => {
+    await setSelectedRole(role);
     if (role.id === 'astrologer') {
       setShowAstrologyDialog(true);
     }
