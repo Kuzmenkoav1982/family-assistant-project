@@ -98,7 +98,7 @@ export function TasksWidget() {
         </CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs flex items-center justify-center">
-            <span className="flex items-center leading-none">{completedCount} выполнено</span>
+            <span className="leading-none">{completedCount} выполнено</span>
           </Badge>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
