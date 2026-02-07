@@ -392,6 +392,28 @@ export default function Welcome() {
               </Badge>
             )}
 
+            {/* Ссылки на каналы */}
+            <a
+              href="https://t.me/Nasha7iya"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white transition-all shadow-md hover:shadow-lg group"
+              title="Наш Telegram канал"
+            >
+              <Icon name="Send" size={16} className="group-hover:scale-110 transition-transform" />
+              <span className="hidden md:inline text-xs font-medium">Telegram</span>
+            </a>
+            <a
+              href="https://max.ru/id231805288780_biz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all shadow-md hover:shadow-lg group"
+              title="Наш канал в MAX"
+            >
+              <Icon name="MessageCircle" size={16} className="group-hover:scale-110 transition-transform" />
+              <span className="hidden md:inline text-xs font-medium">MAX</span>
+            </a>
+            
             <Button
               onClick={() => {
                 localStorage.removeItem('authToken');
