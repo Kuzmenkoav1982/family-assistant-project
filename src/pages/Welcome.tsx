@@ -136,7 +136,9 @@ const sections = [
     icon: 'CheckSquare',
     color: 'from-green-500 to-emerald-500',
     carousel: [
-      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a975113-b781-4867-a03c-76da41b91083.JPG'
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a975113-b781-4867-a03c-76da41b91083.JPG',
+      'https://cdn.poehali.dev/files/70953f9b-81a4-4c2f-80a5-ce10c25f46a2.JPG',
+      'https://cdn.poehali.dev/files/1195ba06-ba10-40dd-ad91-9ba6bb76d039.JPG'
     ]
   },
   {
