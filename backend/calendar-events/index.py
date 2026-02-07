@@ -118,12 +118,17 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
+    print(f'[CREATE EVENT] Received assignedTo: {event_data.get("assignedTo")}')
+    print(f'[CREATE EVENT] Full event_data: {event_data}')
+    
     assigned_to_array = None
     if event_data.get('assignedTo'):
         if event_data['assignedTo'] == 'all':
             assigned_to_array = None
         else:
             assigned_to_array = [event_data['assignedTo']]
+    
+    print(f'[CREATE EVENT] Will save assigned_to_array: {assigned_to_array}')
     
     attendees_json = None
     if event_data.get('attendees') and isinstance(event_data['attendees'], list):
