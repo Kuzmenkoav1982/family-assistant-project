@@ -259,6 +259,42 @@ export default function Welcome() {
   const [carouselIndexes, setCarouselIndexes] = useState<{ [key: number]: number }>({});
   const carouselRefs = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
+  // Отслеживание просмотра welcome-страницы
+  useEffect(() => {
+    const trackPageView = async () => {
+      try {
+        const sessionId = localStorage.getItem('sessionId') || `session_${Date.now()}_${Math.random()}`;
+        localStorage.setItem('sessionId', sessionId);
+        
+        // Проверяем, не отслеживали ли мы этот просмотр в текущей сессии
+        const lastPageView = localStorage.getItem('lastWelcomePageView');
+        const now = Date.now();
+        
+        // Если просмотр был меньше 30 минут назад - не отправляем повторно
+        if (lastPageView && now - parseInt(lastPageView) < 30 * 60 * 1000) {
+          return;
+        }
+        
+        localStorage.setItem('lastWelcomePageView', now.toString());
+        
+        await fetch('https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'track_page_view',
+            page: 'welcome',
+            session_id: sessionId,
+            user_agent: navigator.userAgent
+          })
+        });
+      } catch (error) {
+        console.debug('Page view tracking failed:', error);
+      }
+    };
+
+    trackPageView();
+  }, []);
+
   useEffect(() => {
     const loadSubscription = async () => {
       const token = localStorage.getItem('authToken');

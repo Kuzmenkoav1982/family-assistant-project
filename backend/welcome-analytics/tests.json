@@ -1,6 +1,20 @@
 {
   "tests": [
     {
+      "name": "Track page view",
+      "method": "POST",
+      "body": {
+        "action": "track_page_view",
+        "page": "welcome",
+        "session_id": "test_session_pageview_123",
+        "user_agent": "Mozilla/5.0 Test"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    },
+    {
       "name": "Track section click",
       "method": "POST",
       "body": {
@@ -21,6 +35,7 @@
       "path": "/?action=stats",
       "expectedStatus": 200,
       "expectedBody": {
+        "page_views": "object",
         "total": "array",
         "today": "array",
         "week": "array",
