@@ -121,9 +121,11 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
           <div className="grid grid-cols-7 gap-1">
             {getWeekDays().map((day, index) => {
               const dayEvents = calendarEvents.filter(e =>
-                new Date(e.date).toDateString() === day.date.toDateString()
+                new Date(e.date).toDateString() === day.toDateString()
               );
-              const isToday = day.date.toDateString() === new Date().toDateString();
+              const isToday = day.toDateString() === new Date().toDateString();
+              const dayOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][day.getDay()];
+              const dayOfMonth = day.getDate();
 
               return (
                 <div
@@ -136,10 +138,10 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="text-xs font-medium mb-1">
-                    {day.dayOfWeek}
+                    {dayOfWeek}
                   </div>
                   <div className={`text-lg font-bold ${isToday ? 'text-white' : 'text-gray-900'}`}>
-                    {day.dayOfMonth}
+                    {dayOfMonth}
                   </div>
                   {dayEvents.length > 0 && (
                     <div className="mt-1">
