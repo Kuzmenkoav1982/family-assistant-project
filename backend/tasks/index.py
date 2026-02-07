@@ -172,6 +172,10 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     
     fields.append("updated_at = CURRENT_TIMESTAMP")
     
+    # Если задача помечается как выполненная - устанавливаем completed_date
+    if data.get('completed') == True and not old_task['completed']:
+        fields.append("completed_date = CURRENT_TIMESTAMP")
+    
     query = f"""
         UPDATE {SCHEMA}.tasks_v2 
         SET {', '.join(fields)}
