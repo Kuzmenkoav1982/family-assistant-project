@@ -447,20 +447,20 @@ export default function Welcome() {
                 >
                   <div className="relative h-64 overflow-hidden">
                     {(section as any).securitySlides ? (
-                      <div className="relative w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 p-6 overflow-y-auto">
+                      <div className="relative w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 p-4 flex flex-col justify-center">
                         {(() => {
                           const slide = (section as any).securitySlides[carouselIndexes[index] || 0];
                           return (
-                            <div className="space-y-3">
-                              <h4 className="text-lg font-bold text-emerald-900 mb-1">{slide.title}</h4>
-                              <p className="text-sm text-emerald-700 mb-4">{slide.subtitle}</p>
-                              <div className="grid grid-cols-1 gap-2">
+                            <div className="space-y-2">
+                              <h4 className="text-base font-bold text-emerald-900 leading-tight mb-0.5">{slide.title}</h4>
+                              <p className="text-xs text-emerald-700 leading-snug mb-2">{slide.subtitle}</p>
+                              <div className="grid grid-cols-1 gap-1.5">
                                 {slide.features.map((feature: any, fIndex: number) => (
-                                  <div key={fIndex} className="flex items-start gap-2 bg-white/60 rounded-lg p-2">
-                                    <Icon name={feature.icon} size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                                  <div key={fIndex} className="flex items-start gap-1.5 bg-white/60 rounded-lg p-1.5">
+                                    <Icon name={feature.icon} size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
                                     <div className="min-w-0">
-                                      <p className="font-semibold text-sm text-gray-900 leading-tight">{feature.title}</p>
-                                      <p className="text-xs text-gray-600 leading-tight">{feature.description}</p>
+                                      <p className="font-semibold text-xs text-gray-900 leading-snug">{feature.title}</p>
+                                      <p className="text-[10px] text-gray-600 leading-snug">{feature.description}</p>
                                     </div>
                                   </div>
                                 ))}
