@@ -13,6 +13,7 @@ import { PermissionsManager } from '@/components/PermissionsManager';
 import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionnaire';
 import { usePermissions } from '@/hooks/usePermissions';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
+import { calculateMemberWorkload } from '@/utils/memberWorkload';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task } from '@/types/family.types';
 
 interface MemberProfileContentProps {
@@ -54,6 +55,10 @@ export function MemberProfileContent({
     role, 
     canDeleteTasks: canDo('tasks', 'delete') 
   });
+
+  // Динамический подсчёт выполненных задач сегодня
+  const metrics = calculateMemberWorkload(member, memberTasks, []);
+  const completedTasksToday = metrics.completedToday;
 
   const handleCalendarClick = () => {
     navigate(`/calendar?member=${member.id}`);
@@ -107,10 +112,10 @@ export function MemberProfileContent({
             className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all cursor-pointer text-left"
           >
             <div className="flex items-center gap-2 mb-2">
-              <Icon name="CheckCircle2" className="text-blue-600" size={20} />
-              <span className="text-sm font-medium text-blue-900">Выполнено задач</span>
+              <Icon name="CheckSquare" className="text-green-600" size={20} />
+              <span className="text-sm font-medium text-blue-900">Готово</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600">{member.tasksCompleted || 0}</p>
+            <p className="text-2xl font-bold text-green-600">{completedTasksToday}</p>
           </button>
 
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
