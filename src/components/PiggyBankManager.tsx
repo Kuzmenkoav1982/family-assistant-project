@@ -52,15 +52,19 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
 
       <Card className="bg-gradient-to-br from-pink-50 to-purple-50">
         <CardContent className="p-6 text-center">
-          <div className="text-5xl mb-2">🐷</div>
+          <div className="flex justify-center mb-3">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center shadow-lg">
+              <Icon name="Wallet" size={36} className="text-white" />
+            </div>
+          </div>
           <p className="text-sm text-muted-foreground mb-2">Мой баланс</p>
           <p className="text-4xl font-bold text-pink-600 mb-4">{balance} ₽</p>
           
           <div className="flex gap-2">
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="flex-1 bg-green-500 hover:bg-green-600">
-                  <Icon name="Plus" className="mr-2" size={16} />
+                <Button className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-md">
+                  <Icon name="TrendingUp" className="mr-2" size={18} />
                   Пополнить
                 </Button>
               </DialogTrigger>
@@ -93,8 +97,8 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="flex-1 bg-red-500 hover:bg-red-600">
-                  <Icon name="Minus" className="mr-2" size={16} />
+                <Button className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-md">
+                  <Icon name="TrendingDown" className="mr-2" size={18} />
                   Потратить
                 </Button>
               </DialogTrigger>
@@ -136,16 +140,19 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Icon name="ListTodo" size={16} />
-            Планы на покупки
-          </CardTitle>
+          <div className="space-y-1">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Icon name="ShoppingBag" size={16} className="text-purple-500" />
+              Планы на покупки
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Список того, что хочешь купить. Добавляй желаемые покупки и отслеживай, когда накопишь достаточно!</p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="w-full">
-                <Icon name="Plus" className="mr-2" size={14} />
+              <Button size="sm" variant="outline" className="w-full border-purple-200 hover:bg-purple-50">
+                <Icon name="ShoppingCart" className="mr-2" size={16} />
                 Запланировать покупку
               </Button>
             </DialogTrigger>
@@ -180,14 +187,24 @@ export function PiggyBankManager({ balance, onUpdateBalance }: PiggyBankManagerP
           </Dialog>
 
           {plannedExpenses.map((expense) => (
-            <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
+            <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+              <div className="flex-1">
                 <p className="font-medium text-sm">{expense.title}</p>
                 <p className="text-xs text-muted-foreground">{expense.amount} ₽</p>
               </div>
-              <Badge variant={balance >= expense.amount ? "default" : "secondary"}>
-                {balance >= expense.amount ? '✅ Могу купить' : `Еще ${expense.amount - balance} ₽`}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={balance >= expense.amount ? "default" : "secondary"}>
+                  {balance >= expense.amount ? '✅ Могу купить' : `Еще ${expense.amount - balance} ₽`}
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => setPlannedExpenses(plannedExpenses.filter(e => e.id !== expense.id))}
+                >
+                  <Icon name="X" size={16} className="text-gray-400 hover:text-red-500" />
+                </Button>
+              </div>
             </div>
           ))}
           
