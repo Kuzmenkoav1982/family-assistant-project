@@ -309,7 +309,26 @@ export default function Index({ onLogout }: IndexProps) {
   });
   const [showWelcome, setShowWelcome] = useState(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    return !hasSeenWelcome;
+    const userData = localStorage.getItem('userData');
+    
+    // Не показываем приветствие, если пользователь уже видел его
+    if (hasSeenWelcome) return false;
+    
+    // Не показываем приветствие зарегистрированным пользователям (у которых есть семья)
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (user.family_name && user.logo_url) {
+          // Пользователь уже настроил семью - не показываем приветствие
+          localStorage.setItem('hasSeenWelcome', 'true');
+          return false;
+        }
+      } catch (e) {
+        console.error('[DEBUG Index] Error checking userData for welcome:', e);
+      }
+    }
+    
+    return true;
   });
   const [welcomeText, setWelcomeText] = useState('Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций.');
   const [isTopBarVisible, setIsTopBarVisible] = useState(true);

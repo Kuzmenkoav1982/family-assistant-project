@@ -17,9 +17,9 @@ export function WelcomeScreen({ show, familyName, familyLogo, welcomeText, onClo
       onClick={onClose}
       onTouchEnd={onClose}
     >
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none"></div>
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pointer-events-none">
+      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         <div className="mb-8 animate-bounce-slow">
           <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
             <img
@@ -36,9 +36,8 @@ export function WelcomeScreen({ show, familyName, familyLogo, welcomeText, onClo
           </h1>
 
           <div className="min-h-[200px] flex items-center justify-center px-4">
-            <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl">
+            <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl animate-fade-in" style={{ animationDelay: '0.5s' }}>
               {welcomeText}
-              <span className="inline-block w-1 h-7 bg-purple-600 ml-1 animate-pulse"></span>
             </p>
           </div>
 
@@ -70,12 +69,9 @@ export function WelcomeScreen({ show, familyName, familyLogo, welcomeText, onClo
             </div>
           </div>
 
-          <div className="mt-8 space-y-2">
-            <p className="text-sm text-gray-500 animate-fade-in" style={{ animationDelay: '4s' }}>
+          <div className="mt-8">
+            <p className="text-sm text-gray-500 animate-fade-in" style={{ animationDelay: '2s' }}>
               Нажмите в любом месте, чтобы продолжить
-            </p>
-            <p className="text-xs text-gray-400 animate-fade-in" style={{ animationDelay: '5s' }}>
-              🎭 Демо-режим: все данные хранятся локально в вашем браузере
             </p>
           </div>
         </div>
