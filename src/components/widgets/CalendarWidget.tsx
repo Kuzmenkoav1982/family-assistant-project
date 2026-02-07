@@ -130,26 +130,26 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
               return (
                 <div
                   key={index}
-                  className={`text-center p-2 rounded-lg transition-all ${
+                  className={`flex flex-col items-center justify-center text-center p-2 rounded-lg transition-all ${
                     isToday
                       ? 'bg-purple-600 text-white shadow-lg scale-110'
                       : 'bg-white hover:bg-purple-100'
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="text-xs font-medium mb-1">
+                  <div className="text-xs font-medium mb-1 leading-none">
                     {dayOfWeek}
                   </div>
-                  <div className={`text-lg font-bold ${isToday ? 'text-white' : 'text-gray-900'}`}>
+                  <div className={`text-lg font-bold leading-none ${isToday ? 'text-white' : 'text-gray-900'}`}>
                     {dayOfMonth}
                   </div>
                   {dayEvents.length > 0 && (
-                    <div className="mt-1">
+                    <div className="mt-1 flex items-center justify-center">
                       <Badge
                         variant="secondary"
-                        className={`text-xs ${isToday ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-700'}`}
+                        className={`text-xs flex items-center justify-center ${isToday ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-700'}`}
                       >
-                        {dayEvents.length}
+                        <span className="leading-none">{dayEvents.length}</span>
                       </Badge>
                     </div>
                   )}
