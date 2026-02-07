@@ -32,8 +32,8 @@ import { ShoppingWidget } from '@/components/widgets/ShoppingWidget';
 import { VotingWidget } from '@/components/widgets/VotingWidget';
 import { NutritionWidget } from '@/components/widgets/NutritionWidget';
 import { WeeklyMenuWidget } from '@/components/widgets/WeeklyMenuWidget';
+import { CalendarWidget } from '@/components/widgets/CalendarWidget';
 import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
-import { getWeekDays } from '@/data/mockData';
 
 interface MainContentGridProps {
   activeSection: string;
@@ -375,63 +375,7 @@ export function MainContentGrid({
         </div>
         
         {isWidgetEnabled('calendar') && (
-          <Card 
-            key="sidebar-weekly-calendar" 
-            className="animate-fade-in border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 cursor-pointer hover:shadow-lg transition-all" 
-            style={{ animationDelay: '0.5s' }}
-            onClick={() => navigate('/calendar')}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon name="Calendar" size={24} />
-                Календарь на неделю
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-1">
-                {getWeekDays().map((day, index) => {
-                  const dayEvents = calendarEvents.filter(e => 
-                    new Date(e.date).toDateString() === day.date.toDateString()
-                  );
-                  const isToday = day.date.toDateString() === new Date().toDateString();
-                  
-                  return (
-                    <div 
-                      key={index} 
-                      className={`text-center p-2 rounded-lg transition-all ${
-                        isToday 
-                          ? 'bg-purple-600 text-white shadow-lg scale-110' 
-                          : 'bg-white hover:bg-purple-100'
-                      }`}
-                    >
-                      <div className="text-xs font-medium mb-1">
-                        {day.dayOfWeek}
-                      </div>
-                      <div className={`text-lg font-bold ${isToday ? 'text-white' : 'text-gray-900'}`}>
-                        {day.dayOfMonth}
-                      </div>
-                      {dayEvents.length > 0 && (
-                        <div className="space-y-1 mt-2">
-                          {dayEvents.slice(0, 2).map((event) => (
-                            <div key={event.id} className={`text-xs p-2 rounded ${event.color} border`}>
-                              <div className="flex items-center gap-1">
-                                <Icon name="Clock" size={12} />
-                                <span className="font-semibold">{event.time}</span>
-                              </div>
-                              <p className="font-medium mt-1 truncate">{event.title}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <Button variant="ghost" size="sm" className="w-full mt-3 text-purple-600">
-                Открыть полный календарь →
-              </Button>
-            </CardContent>
-          </Card>
+          <CalendarWidget calendarEvents={calendarEvents} />
         )}
 
         {isWidgetEnabled('tasks') && (
