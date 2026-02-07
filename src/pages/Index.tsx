@@ -129,8 +129,11 @@ export default function Index({ onLogout }: IndexProps) {
         const user = JSON.parse(userData);
         console.log('[DEBUG Index] userData from localStorage:', user);
         
-        // Показываем приветствие только при первом входе
-        if (!hasSeenWelcome) {
+        // Проверяем, настроена ли семья (есть название и логотип)
+        const hasFamilySetup = user.family_name && user.logo_url;
+        
+        // Показываем приветствие только при первом входе И если семья еще не настроена
+        if (!hasSeenWelcome && !hasFamilySetup) {
           setShowFirstLoginWelcome(true);
           localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
         }
@@ -159,7 +162,21 @@ export default function Index({ onLogout }: IndexProps) {
   }, []);
 
   useEffect(() => {
-    if (!hasCompletedSetup) {
+    // Проверяем, настроена ли семья (есть название и логотип в userData)
+    const userData = localStorage.getItem('userData');
+    let hasFamilySetup = false;
+    
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        hasFamilySetup = user.family_name && user.logo_url;
+      } catch (e) {
+        console.error('[DEBUG Index] Error checking family setup:', e);
+      }
+    }
+    
+    // Показываем выбор ассистента только если он не настроен И семья не настроена
+    if (!hasCompletedSetup && !hasFamilySetup) {
       const timer = setTimeout(() => {
         setShowAssistantSelector(true);
       }, 2000);
