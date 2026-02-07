@@ -267,9 +267,8 @@ export function MemberProfileContent({
 
           <TabsContent value="piggybank" className="mt-6">
             <PiggyBankManager
-              currentBalance={member.piggyBank || 0}
+              balance={member.piggyBank || 0}
               onUpdateBalance={handleUpdateBalance}
-              dreams={member.dreams || []}
             />
           </TabsContent>
 
