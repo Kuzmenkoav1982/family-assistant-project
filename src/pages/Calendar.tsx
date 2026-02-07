@@ -439,10 +439,16 @@ export default function Calendar() {
   };
 
   const handleEventChange = (field: string, value: string | boolean | number | string[]) => {
-    setNewEvent(prev => ({ ...prev, [field]: value }));
+    console.log(`[Calendar] handleEventChange: ${field} =`, value);
+    setNewEvent(prev => {
+      const updated = { ...prev, [field]: value };
+      console.log('[Calendar] newEvent after change:', updated);
+      return updated;
+    });
   };
 
   const handleSaveEvent = async () => {
+    console.log('[Calendar] Saving event. newEvent.assignedTo:', newEvent.assignedTo);
     const eventData = {
       title: newEvent.title,
       description: newEvent.description,
