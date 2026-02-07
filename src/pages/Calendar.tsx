@@ -219,10 +219,20 @@ export default function Calendar() {
     const dateStr = formatDateToLocal(date);
     const allEvents: (CalendarEvent | Task | FamilyGoal)[] = [];
     
+    console.log('[getEventsForDate] Called for date:', dateStr);
+    console.log('[getEventsForDate] Current memberFilter:', memberFilter);
+    console.log('[getEventsForDate] Total events from API:', events.length);
+    
     let matchingEvents = events.filter(e => {
       if (e.date === dateStr) return true;
       return isRecurringEventOnDate(e, date);
     });
+    
+    console.log('[getEventsForDate] Events matching date:', matchingEvents.length, matchingEvents.map(e => ({
+      title: e.title,
+      assignedTo: e.assignedTo,
+      attendees: e.attendees
+    })));
     
     if (categoryFilter !== 'all') {
       matchingEvents = matchingEvents.filter(e => e.category === categoryFilter);
