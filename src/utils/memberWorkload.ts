@@ -25,6 +25,8 @@ interface CalendarEvent {
   id: string;
   date: string;
   participants?: string[];
+  attendees?: string[];
+  assignedTo?: string;
 }
 
 /**
@@ -87,8 +89,14 @@ export function calculateMemberWorkload(
     const eventDate = new Date(event.date);
     eventDate.setHours(0, 0, 0, 0);
     const isToday = eventDate.getTime() === today.getTime();
+    
+    // Проверяем: участник в participants/attendees или событие назначено на него (assignedTo)
     const isParticipant = event.participants?.includes(member.id) || 
-                          event.participants?.includes(member.name);
+                          event.participants?.includes(member.name) ||
+                          event.attendees?.includes(member.id) ||
+                          event.attendees?.includes(member.name) ||
+                          event.assignedTo === member.id ||
+                          event.assignedTo === member.name;
     return isToday && isParticipant;
   }).length;
 

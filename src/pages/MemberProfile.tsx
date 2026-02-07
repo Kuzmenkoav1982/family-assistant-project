@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useMemberProfile } from '@/hooks/useMemberProfile';
 import { useTasks } from '@/hooks/useTasks';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { MemberProfileHeader } from '@/components/MemberProfile/MemberProfileHeader';
 import { MemberProfileInstruction } from '@/components/MemberProfile/MemberProfileInstruction';
 import { MemberProfileContent } from '@/components/MemberProfile/MemberProfileContent';
@@ -15,66 +16,26 @@ export default function MemberProfile() {
   const { members, updateMember } = useFamilyMembersContext();
   const { saveProfile } = useMemberProfile();
   const { tasks, toggleTask, deleteTask } = useTasks();
+  const { events } = useCalendarEvents();
   const [memberProfile, setMemberProfile] = useState<MemberProfileType | null>(null);
   const loadedMemberRef = useRef<string | null>(null);
   
   const member = members.find(m => m.id === memberId);
 
-  if (!member) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-lg text-muted-foreground mb-4">Член семьи не найден</p>
-          <Button onClick={() => navigate('/')}>На главную</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const isChild = member.age && member.age < 18;
-  const isOwner = member.role === 'Папа' || member.role.toLowerCase().includes('владел');
+  const isChild = member?.age && member.age < 18;
+  const isOwner = member?.role === 'Папа' || member?.role.toLowerCase().includes('владел');
   
-  const memberTasks = tasks.filter(task => task.assignee_id === memberId);
-
-  const handleAddDream = async (dream: Omit<Dream, 'id' | 'createdAt'>) => {
-    const newDream: Dream = {
-      ...dream,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-
-    await updateMember({
-      id: member.id,
-      dreams: [...(member.dreams || []), newDream]
-    });
-  };
-
-  const handleUpdateDream = async (dreamId: string, updates: Partial<Dream>) => {
-    const updatedDreams = (member.dreams || []).map(d => 
-      d.id === dreamId ? { ...d, ...updates } : d
-    );
-
-    await updateMember({
-      id: member.id,
-      dreams: updatedDreams
-    });
-  };
-
-  const handleDeleteDream = async (dreamId: string) => {
-    const filteredDreams = (member.dreams || []).filter(d => d.id !== dreamId);
-
-    await updateMember({
-      id: member.id,
-      dreams: filteredDreams
-    });
-  };
-
-  const handleUpdateBalance = async (newBalance: number) => {
-    await updateMember({
-      id: member.id,
-      piggyBank: newBalance
-    });
-  };
+  const memberTasks = member ? tasks.filter(task => task.assignee_id === memberId) : [];
+  
+  // Фильтруем события члена семьи
+  const memberEvents = member ? events.filter(event => 
+    event.assignedTo === memberId || 
+    event.assignedTo === member.name ||
+    event.attendees?.includes(memberId) ||
+    event.attendees?.includes(member.name) ||
+    event.participants?.includes(memberId) ||
+    event.participants?.includes(member.name)
+  ) : [];
 
   useEffect(() => {
     if (!memberId) {
@@ -116,6 +77,57 @@ export default function MemberProfile() {
     loadProfile();
   }, [memberId]);
 
+  if (!member) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-lg text-muted-foreground mb-4">Член семьи не найден</p>
+          <Button onClick={() => navigate('/')}>На главную</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAddDream = async (dream: Omit<Dream, 'id' | 'createdAt'>) => {
+    const newDream: Dream = {
+      ...dream,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    };
+
+    await updateMember({
+      id: member.id,
+      dreams: [...(member.dreams || []), newDream]
+    });
+  };
+
+  const handleUpdateDream = async (dreamId: string, updates: Partial<Dream>) => {
+    const updatedDreams = (member.dreams || []).map(d => 
+      d.id === dreamId ? { ...d, ...updates } : d
+    );
+
+    await updateMember({
+      id: member.id,
+      dreams: updatedDreams
+    });
+  };
+
+  const handleDeleteDream = async (dreamId: string) => {
+    const filteredDreams = (member.dreams || []).filter(d => d.id !== dreamId);
+
+    await updateMember({
+      id: member.id,
+      dreams: filteredDreams
+    });
+  };
+
+  const handleUpdateBalance = async (newBalance: number) => {
+    await updateMember({
+      id: member.id,
+      piggyBank: newBalance
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -126,6 +138,7 @@ export default function MemberProfile() {
           isChild={isChild}
           isOwner={isOwner}
           memberTasks={memberTasks}
+          memberEvents={memberEvents}
           memberProfile={memberProfile}
           toggleTask={toggleTask}
           deleteTask={deleteTask}

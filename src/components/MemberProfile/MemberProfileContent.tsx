@@ -14,13 +14,14 @@ import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionna
 import { usePermissions } from '@/hooks/usePermissions';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { calculateMemberWorkload } from '@/utils/memberWorkload';
-import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task } from '@/types/family.types';
+import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task, CalendarEvent } from '@/types/family.types';
 
 interface MemberProfileContentProps {
   member: FamilyMember;
   isChild: boolean;
   isOwner: boolean;
   memberTasks: Task[];
+  memberEvents: CalendarEvent[];
   memberProfile: MemberProfileType | null;
   toggleTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -37,6 +38,7 @@ export function MemberProfileContent({
   isChild,
   isOwner,
   memberTasks,
+  memberEvents,
   memberProfile,
   toggleTask,
   deleteTask,
@@ -246,7 +248,82 @@ export function MemberProfileContent({
               )}
             </div>
 
-
+            {/* События */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Icon name="Calendar" className="text-purple-600" />
+                  События
+                </h3>
+              </div>
+              {memberEvents.length === 0 ? (
+                <div className="text-center py-8 space-y-3 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                  <Icon name="Calendar" size={40} className="mx-auto text-gray-300" />
+                  <p className="text-muted-foreground">Нет предстоящих событий</p>
+                  <Button
+                    onClick={handleCalendarClick}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Icon name="Plus" className="mr-2" size={16} />
+                    Создать событие в календаре
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {memberEvents.map(event => (
+                    <Card key={event.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0" 
+                                style={{ backgroundColor: event.color }}
+                              />
+                              <h4 className="font-semibold">{event.title}</h4>
+                            </div>
+                            {event.description && (
+                              <p className="text-sm text-gray-600 mb-2">{event.description}</p>
+                            )}
+                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Icon name="Calendar" size={12} />
+                                {new Date(event.date).toLocaleDateString('ru-RU', { 
+                                  day: 'numeric', 
+                                  month: 'long' 
+                                })}
+                              </div>
+                              {event.time && (
+                                <div className="flex items-center gap-1">
+                                  <Icon name="Clock" size={12} />
+                                  {event.time}
+                                </div>
+                              )}
+                              <Badge variant="outline" className="text-xs">
+                                {event.category === 'personal' && 'Личное'}
+                                {event.category === 'family' && 'Семейное'}
+                                {event.category === 'work' && 'Работа'}
+                                {event.category === 'health' && 'Здоровье'}
+                                {event.category === 'education' && 'Образование'}
+                                {event.category === 'leisure' && 'Досуг'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleCalendarClick}
+                          >
+                            <Icon name="ExternalLink" size={16} className="text-purple-500" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {isOwner && (
               <>
