@@ -158,7 +158,7 @@ export function MemberProfileContent({
                   Активные задачи
                 </h3>
                 <Button
-                  onClick={() => navigate(`/tasks?assignee=${member.id}`)}
+                  onClick={() => navigate('/')}
                   size="sm"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
@@ -170,7 +170,7 @@ export function MemberProfileContent({
                 <div className="text-center py-8 space-y-3">
                   <p className="text-muted-foreground">Нет активных задач</p>
                   <Button
-                    onClick={() => navigate(`/tasks?assignee=${member.id}`)}
+                    onClick={() => navigate('/')}
                     variant="outline"
                     size="sm"
                   >
@@ -221,27 +221,8 @@ export function MemberProfileContent({
                               variant="ghost" 
                               size="sm"
                               onClick={async () => {
-                                console.log('[MemberProfile] Delete button clicked for task:', task.id, task.title);
-                                console.log('[MemberProfile] deleteTask function:', typeof deleteTask, deleteTask);
-                                console.log('[MemberProfile] Can delete tasks:', canDo('tasks', 'delete'));
                                 if (confirm('Удалить эту задачу?')) {
-                                  console.log('[MemberProfile] User confirmed deletion');
-                                  try {
-                                    console.log('[MemberProfile] About to call deleteTask with:', task.id);
-                                    const result = await deleteTask(task.id);
-                                    console.log('[MemberProfile] Delete result type:', typeof result, result);
-                                    
-                                    if (result?.success) {
-                                      alert('✅ Задача успешно удалена!');
-                                    } else {
-                                      alert('❌ Ошибка: ' + (result?.error || 'Неизвестная ошибка'));
-                                    }
-                                  } catch (error) {
-                                    console.error('[MemberProfile] Error deleting task:', error);
-                                    alert('❌ Ошибка при удалении задачи: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
-                                  }
-                                } else {
-                                  console.log('[MemberProfile] User cancelled deletion');
+                                  await deleteTask(task.id);
                                 }
                               }}
                             >
