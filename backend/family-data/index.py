@@ -27,6 +27,8 @@ def escape_string(value: Any) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 def get_db_connection():
+    if not DATABASE_URL:
+        raise Exception('DATABASE_URL environment variable is not set')
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = True
     return conn
