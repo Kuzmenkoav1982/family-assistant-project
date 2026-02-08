@@ -39,10 +39,36 @@ export default function Settings() {
   const { members: familyMembers } = useFamilyMembersContext();
   const { tasks } = useTasks();
 
-  const handleSaveChanges = () => {
-    localStorage.setItem('familyName', familyName);
-    localStorage.setItem('familyLogo', familyLogo);
-    alert('✅ Изменения сохранены');
+  const handleSaveChanges = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken') || '';
+      const FAMILY_DATA_API = 'https://functions.poehali.dev/5cab3ca7-6fa8-4ffb-b9d1-999d93d29d2e';
+
+      const response = await fetch(FAMILY_DATA_API, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': authToken
+        },
+        body: JSON.stringify({
+          name: familyName,
+          logoUrl: familyLogo
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem('familyName', familyName);
+        localStorage.setItem('familyLogo', familyLogo);
+        alert('✅ Изменения сохранены');
+      } else {
+        alert(`❌ Ошибка: ${data.error || 'Не удалось сохранить'}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка сохранения');
+      console.error('Save error:', error);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -206,6 +232,103 @@ export default function Settings() {
           <div className="lg:col-span-3 space-y-6">
             {activeSection === 'family' && (
               <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Home" size={24} />
+                      Настройки семьи
+                    </CardTitle>
+                    <CardDescription>
+                      Название и логотип вашей семьи
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <Label htmlFor="familyName" className="text-base font-semibold mb-2 block">
+                        Название семьи
+                      </Label>
+                      <Input
+                        id="familyName"
+                        value={familyName}
+                        onChange={(e) => setFamilyName(e.target.value)}
+                        placeholder="Например: Семья Ивановых"
+                        className="text-base"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-base font-semibold mb-3 block">
+                        Логотип семьи
+                      </Label>
+                      <div className="flex items-start gap-4">
+                        {familyLogo && (
+                          <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-gray-200 flex-shrink-0">
+                            <img 
+                              src={familyLogo} 
+                              alt="Логотип семьи" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 space-y-3">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+
+                              if (file.size > 5 * 1024 * 1024) {
+                                alert('❌ Файл слишком большой (макс. 5 МБ)');
+                                return;
+                              }
+
+                              const reader = new FileReader();
+                              reader.onload = async (event) => {
+                                const base64 = event.target?.result as string;
+                                const base64Data = base64.split(',')[1];
+
+                                try {
+                                  const response = await fetch('https://functions.poehali.dev/2f62bb8b-fd49-44d9-beac-a56eb79cdc00', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      file_data: base64Data,
+                                      file_name: file.name,
+                                      content_type: file.type,
+                                      folder: 'family-logos'
+                                    })
+                                  });
+
+                                  const data = await response.json();
+                                  if (data.url) {
+                                    setFamilyLogo(data.url);
+                                    alert('✅ Логотип загружен');
+                                  } else {
+                                    throw new Error(data.error || 'Ошибка загрузки');
+                                  }
+                                } catch (error: any) {
+                                  alert(`❌ Ошибка: ${error.message}`);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                            className="cursor-pointer"
+                          />
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG, GIF до 5 МБ
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleSaveChanges} className="w-full" size="lg">
+                      <Icon name="Save" className="mr-2" size={18} />
+                      Сохранить изменения
+                    </Button>
+                  </CardContent>
+                </Card>
+
                 <FamilyInviteManager />
                 <AccessControlManager />
               </>
