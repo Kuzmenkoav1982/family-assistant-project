@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useEffect } from 'react';
 
 interface EventDialogProps {
   open: boolean;
@@ -58,11 +59,25 @@ export function EventDialog({
 }: EventDialogProps) {
   const { members } = useFamilyMembersContext();
 
+  // КРИТИЧНО: Синхронизация assignedTo при открытии диалога
+  useEffect(() => {
+    if (open && !newEvent.assignedTo) {
+      // Если assignedTo пустой/null - устанавливаем 'all'
+      onEventChange('assignedTo', 'all');
+    }
+  }, [open, newEvent.assignedTo, onEventChange]);
+
   const handleSave = () => {
     if (!newEvent.title || !newEvent.date) {
       alert('Пожалуйста, заполните название и дату события');
       return;
     }
+    
+    // КРИТИЧНО: Проверяем assignedTo перед сохранением
+    if (!newEvent.assignedTo) {
+      onEventChange('assignedTo', 'all');
+    }
+    
     onSaveEvent();
   };
 
@@ -155,8 +170,12 @@ export function EventDialog({
           <div>
             <Label htmlFor="assignedTo">Для кого событие</Label>
             <Select 
+              key={`assignedTo-${newEvent.assignedTo || 'all'}`}
               value={newEvent.assignedTo || 'all'} 
-              onValueChange={(val) => onEventChange('assignedTo', val)}
+              onValueChange={(val) => {
+                console.log('[EventDialog] assignedTo changed:', val);
+                onEventChange('assignedTo', val);
+              }}
             >
               <SelectTrigger id="assignedTo">
                 <SelectValue placeholder="Выберите члена семьи" />

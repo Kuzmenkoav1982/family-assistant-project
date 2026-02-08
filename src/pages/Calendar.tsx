@@ -418,6 +418,9 @@ export default function Calendar() {
   };
 
   const handleSaveEvent = async () => {
+    // КРИТИЧНО: Гарантируем что assignedTo не undefined
+    const assignedToValue = newEvent.assignedTo || 'all';
+    
     const eventData = {
       title: newEvent.title,
       description: newEvent.description,
@@ -426,7 +429,7 @@ export default function Calendar() {
       category: newEvent.category,
       color: newEvent.color,
       visibility: newEvent.visibility,
-      assignedTo: newEvent.assignedTo,
+      assignedTo: assignedToValue,
       attendees: newEvent.attendees,
       reminderEnabled: newEvent.reminderEnabled,
       reminderDays: newEvent.reminderDays,
@@ -438,6 +441,8 @@ export default function Calendar() {
       recurringEndDate: newEvent.recurringEndDate,
       recurringDaysOfWeek: newEvent.recurringDaysOfWeek
     };
+    
+    console.log('[Calendar] Saving event with assignedTo:', assignedToValue);
 
     if (editingEventId) {
       const result = await updateEvent(editingEventId, eventData);

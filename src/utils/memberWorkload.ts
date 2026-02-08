@@ -47,33 +47,21 @@ export function calculateMemberWorkload(
   const activeTasks = tasks.filter(
     t => (t.assignee_id === member.id || t.assignee === member.name) && !t.completed
   ).length;
-  
-  if (member.name === 'Алексей' && tasks.length > 0) {
-    console.log('[calculateMemberWorkload] Debug for Алексей:', {
-      memberId: member.id,
-      memberName: member.name,
-      totalTasks: tasks.length,
-      sampleTask: tasks[0],
-      matchingTasks: tasks.filter(t => t.assignee_id === member.id || t.assignee === member.name),
-      activeTasks
-    });
-  }
 
   // Завершено сегодня (поддержка и ID, и имени для демо-режима)
   const completedToday = tasks.filter(t => {
     const isAssigned = t.assignee_id === member.id || t.assignee === member.name;
     if (!isAssigned || !t.completed) return false;
     
-    // Если есть completed_date - используем его
+    // КРИТИЧНО: Считаем только задачи выполненные СЕГОДНЯ
     if (t.completed_date) {
       const completedDate = new Date(t.completed_date);
       completedDate.setHours(0, 0, 0, 0);
       return completedDate.getTime() === today.getTime();
     }
     
-    // Если нет completed_date, но задача выполнена - считаем что выполнена сегодня
-    // (в API задачи могут не иметь completed_date, но иметь completed: true)
-    return true;
+    // Если нет completed_date - НЕ считаем (старые задачи без даты)
+    return false;
   }).length;
 
   // Обязанности (из профиля)
