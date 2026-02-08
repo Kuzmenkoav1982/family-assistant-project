@@ -96,6 +96,25 @@ export default function Settings() {
           localStorage.setItem('familyLogo', data.family.logo_url);
           setFamilyLogo(data.family.logo_url);
         }
+        
+        // Обновляем userData для других компонентов
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+            user.family_name = familyName;
+            if (data.family?.logo_url) {
+              user.logo_url = data.family.logo_url;
+            }
+            localStorage.setItem('userData', JSON.stringify(user));
+          } catch (e) {
+            console.error('Error updating userData:', e);
+          }
+        }
+        
+        // Dispatch события для обновления главной страницы
+        window.dispatchEvent(new Event('familySettingsUpdated'));
+        
         alert('✅ Изменения сохранены');
         setCroppedImageBase64('');
       } else {

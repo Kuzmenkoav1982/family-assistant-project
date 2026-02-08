@@ -122,44 +122,76 @@ export default function Index({ onLogout }: IndexProps) {
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/Логотип Наша Семья.JPG');
   
   useEffect(() => {
-    const userData = localStorage.getItem('userData');
-    const hasSeenWelcome = localStorage.getItem('hasSeenFirstLoginWelcome');
-    
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        console.log('[DEBUG Index] userData from localStorage:', user);
-        
-        // Проверяем, настроена ли семья (есть название и логотип)
-        const hasFamilySetup = user.family_name && user.logo_url;
-        
-        // Показываем приветствие только при первом входе И если семья еще не настроена
-        if (!hasSeenWelcome && !hasFamilySetup) {
-          setShowFirstLoginWelcome(true);
-          localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
-        }
-        
-        if (user.family_name) {
-          console.log('[DEBUG Index] Setting family name:', user.family_name);
-          // Если family_name не содержит "Наша семья", добавляем его
-          if (user.family_name.includes('Наша семья')) {
-            setFamilyName(user.family_name);
-          } else {
-            // Если пользователь указал только свою фамилию (например, "Кузьменко")
-            // добавляем "Наша семья" в начало
-            setFamilyName(`Наша семья "${user.family_name}"`);
-          }
-        }
-        if (user.logo_url) {
-          console.log('[DEBUG Index] Setting logo URL:', user.logo_url);
-          setFamilyLogo(user.logo_url);
-        }
-      } catch (e) {
-        console.error('[DEBUG Index] Error parsing userData:', e);
+    const loadFamilyData = () => {
+      // Приоритет: сначала проверяем прямые ключи familyName и familyLogo
+      const savedFamilyName = localStorage.getItem('familyName');
+      const savedFamilyLogo = localStorage.getItem('familyLogo');
+      
+      if (savedFamilyName) {
+        console.log('[DEBUG Index] Using saved familyName:', savedFamilyName);
+        setFamilyName(savedFamilyName);
       }
-    } else {
-      console.log('[DEBUG Index] No userData in localStorage');
-    }
+      
+      if (savedFamilyLogo) {
+        console.log('[DEBUG Index] Using saved familyLogo:', savedFamilyLogo);
+        setFamilyLogo(savedFamilyLogo);
+      }
+      
+      // Если прямых ключей нет, пробуем получить из userData
+      const userData = localStorage.getItem('userData');
+      const hasSeenWelcome = localStorage.getItem('hasSeenFirstLoginWelcome');
+      
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          console.log('[DEBUG Index] userData from localStorage:', user);
+          
+          // Проверяем, настроена ли семья (есть название и логотип)
+          const hasFamilySetup = user.family_name && user.logo_url;
+          
+          // Показываем приветствие только при первом входе И если семья еще не настроена
+          if (!hasSeenWelcome && !hasFamilySetup && !savedFamilyName) {
+            setShowFirstLoginWelcome(true);
+            localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
+          }
+          
+          if (!savedFamilyName && user.family_name) {
+            console.log('[DEBUG Index] Setting family name from userData:', user.family_name);
+            setFamilyName(user.family_name);
+          }
+          
+          if (!savedFamilyLogo && user.logo_url) {
+            console.log('[DEBUG Index] Setting logo URL from userData:', user.logo_url);
+            setFamilyLogo(user.logo_url);
+          }
+        } catch (e) {
+          console.error('[DEBUG Index] Error parsing userData:', e);
+        }
+      }
+    };
+    
+    // Загружаем данные при монтировании
+    loadFamilyData();
+    
+    // Слушаем события изменения localStorage (для обновления при сохранении в настройках)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'familyName' || e.key === 'familyLogo' || e.key === 'userData') {
+        loadFamilyData();
+      }
+    };
+    
+    // Также слушаем кастомное событие для обновления в том же окне
+    const handleCustomUpdate = () => {
+      loadFamilyData();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('familySettingsUpdated', handleCustomUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('familySettingsUpdated', handleCustomUpdate);
+    };
   }, []);
 
   useEffect(() => {
