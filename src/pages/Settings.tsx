@@ -39,10 +39,36 @@ export default function Settings() {
   const { members: familyMembers } = useFamilyMembersContext();
   const { tasks } = useTasks();
 
-  const handleSaveChanges = () => {
-    localStorage.setItem('familyName', familyName);
-    localStorage.setItem('familyLogo', familyLogo);
-    alert('✅ Изменения сохранены');
+  const handleSaveChanges = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken') || '';
+      const FAMILY_DATA_API = 'https://functions.poehali.dev/5cab3ca7-6fa8-4ffb-b9d1-999d93d29d2e';
+
+      const response = await fetch(FAMILY_DATA_API, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': authToken
+        },
+        body: JSON.stringify({
+          name: familyName,
+          logoUrl: familyLogo
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem('familyName', familyName);
+        localStorage.setItem('familyLogo', familyLogo);
+        alert('✅ Изменения сохранены');
+      } else {
+        alert(`❌ Ошибка: ${data.error || 'Не удалось сохранить'}`);
+      }
+    } catch (error) {
+      alert('❌ Ошибка сохранения');
+      console.error('Save error:', error);
+    }
   };
 
   const handleDeleteAccount = async () => {
