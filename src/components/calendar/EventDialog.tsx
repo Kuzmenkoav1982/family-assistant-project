@@ -61,8 +61,14 @@ export function EventDialog({
 
   // КРИТИЧНО: Синхронизация assignedTo при открытии диалога
   useEffect(() => {
+    console.log('[EventDialog] Dialog opened:', open);
+    console.log('[EventDialog] newEvent.assignedTo:', newEvent.assignedTo);
+    console.log('[EventDialog] newEvent.assignedTo type:', typeof newEvent.assignedTo);
+    console.log('[EventDialog] newEvent.assignedTo length:', newEvent.assignedTo?.length);
+    
     if (open && !newEvent.assignedTo) {
       // Если assignedTo пустой/null - устанавливаем 'all'
+      console.log('[EventDialog] Setting assignedTo to "all"');
       onEventChange('assignedTo', 'all');
     }
   }, [open, newEvent.assignedTo, onEventChange]);
@@ -172,7 +178,12 @@ export function EventDialog({
             <Select 
               key={`assignedTo-${newEvent.assignedTo || 'all'}`}
               value={newEvent.assignedTo || 'all'} 
-              onValueChange={(val) => onEventChange('assignedTo', val)}
+              onValueChange={(val) => {
+                console.log('[EventDialog] Select changed to:', val);
+                console.log('[EventDialog] Select value type:', typeof val);
+                console.log('[EventDialog] Select value length:', val?.length);
+                onEventChange('assignedTo', val);
+              }}
             >
               <SelectTrigger id="assignedTo">
                 <SelectValue placeholder="Выберите члена семьи" />

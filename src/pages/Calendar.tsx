@@ -459,7 +459,16 @@ export default function Calendar() {
   };
 
   const handleEventEdit = (event: CalendarEvent) => {
+    console.log('[Calendar] handleEventEdit called');
+    console.log('[Calendar] event.assignedTo:', event.assignedTo);
+    console.log('[Calendar] event.assignedTo type:', typeof event.assignedTo);
+    console.log('[Calendar] event.assignedTo length:', event.assignedTo?.length);
+    console.log('[Calendar] Full event object:', event);
+    
     setEditingEventId(event.id);
+    const assignedToValue = event.assignedTo || 'all';
+    console.log('[Calendar] Setting assignedTo to:', assignedToValue);
+    
     setNewEvent({
       title: event.title,
       description: event.description || '',
@@ -468,7 +477,7 @@ export default function Calendar() {
       category: event.category,
       color: event.color,
       visibility: event.visibility,
-      assignedTo: event.assignedTo || 'all', // Если assignedTo пустой/null - значит для всех
+      assignedTo: assignedToValue, // Если assignedTo пустой/null - значит для всех
       attendees: event.attendees || [],
       reminderEnabled: event.reminderEnabled || false,
       reminderDays: event.reminderDays || 1,
