@@ -192,6 +192,7 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     conn.commit()
     
     # КРИТИЧНО: Проверяем что реально записалось в БД
+    db_check_value = None
     if result:
         event_id = result['id']
         print(f"[create_event] Event created with ID: {event_id}")
@@ -204,7 +205,8 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
         )
         check_result = cur2.fetchone()
         if check_result:
-            print(f"[create_event] CHECK: assigned_to in DB = {check_result['assigned_to']} (type: {type(check_result['assigned_to'])})")
+            db_check_value = check_result['assigned_to']
+            print(f"[create_event] CHECK: assigned_to in DB = {db_check_value} (type: {type(db_check_value)})")
         cur2.close()
     
     cur.close()
@@ -239,6 +241,11 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
         # attendees - уже JSON, оставляем как есть
         if event_data.get('attendees'):
             event_dict['attendees'] = event_data.get('attendees', [])
+        
+        # DEBUG: Добавляем db_check для отладки
+        event_dict['_debug_db_check'] = db_check_value
+        event_dict['_debug_input_assignedTo'] = event_data.get('assignedTo')
+        event_dict['_debug_array'] = assigned_to_array
         
         return event_dict
     return {}
@@ -383,10 +390,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if action == 'create':
                 result = create_event(family_id, member_name, member_avatar, body)
+                
+                # DEBUG: Возвращаем debug info в ответе
+                debug_info = {
+                    'received_assignedTo': body.get('assignedTo'),
+                    'received_assignedTo_type': str(type(body.get('assignedTo'))),
+                    'result_assignedTo': result.get('assignedTo')
+                }
+                
                 return {
                     'statusCode': 200,
                     'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                    'body': json.dumps({'success': True, 'event': result}),
+                    'body': json.dumps({
+                        'success': True, 
+                        'event': result,
+                        'debug': debug_info
+                    }),
                     'isBase64Encoded': False
                 }
             
