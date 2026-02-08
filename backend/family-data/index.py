@@ -27,8 +27,6 @@ def escape_string(value: Any) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 def get_db_connection():
-    if not DATABASE_URL:
-        raise Exception('DATABASE_URL environment variable is not set')
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = True
     return conn
@@ -337,23 +335,6 @@ def get_alice_logs() -> List[Dict[str, Any]]:
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     
-    # DEBUG: Check DATABASE_URL value
-    print(f"[DEBUG] DATABASE_URL exists: {DATABASE_URL is not None}")
-    if DATABASE_URL:
-        print(f"[DEBUG] DATABASE_URL length: {len(DATABASE_URL)}")
-        print(f"[DEBUG] DATABASE_URL prefix: {DATABASE_URL[:50]}...")
-    else:
-        print(f"[DEBUG] Available env vars: {list(os.environ.keys())}")
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'error': 'DATABASE_URL environment variable is not configured',
-                'available_vars': list(os.environ.keys())
-            }),
-            'isBase64Encoded': False
-        }
-    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -384,19 +365,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        try:
-            user_data = verify_token(token)
-        except Exception as e:
-            return {
-                'statusCode': 500,
-                'headers': headers,
-                'body': json.dumps({
-                    'error': f'Database connection error: {str(e)}',
-                    'DATABASE_URL_exists': DATABASE_URL is not None,
-                    'DATABASE_URL_length': len(DATABASE_URL) if DATABASE_URL else 0
-                }),
-                'isBase64Encoded': False
-            }
+        user_data = verify_token(token)
         
         if not user_data:
             return {
