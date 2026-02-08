@@ -376,6 +376,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             action = body.get('action')
             
+            # КРИТИЧНО: Логируем ВЕСЬ body запроса
+            print(f"[handler] POST body received: {json.dumps(body, ensure_ascii=False)}")
+            print(f"[handler] body.assignedTo = {body.get('assignedTo')}")
+            print(f"[handler] body.assignedTo type = {type(body.get('assignedTo'))}")
+            
             if action == 'create':
                 result = create_event(family_id, member_name, member_avatar, body)
                 return {
