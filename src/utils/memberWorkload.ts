@@ -79,7 +79,8 @@ export function calculateMemberWorkload(
                           event.attendees?.includes(member.id) ||
                           event.attendees?.includes(member.name) ||
                           event.assignedTo === member.id ||
-                          event.assignedTo === member.name;
+                          event.assignedTo === member.name ||
+                          event.assignedTo === 'all';  // Событие для всей семьи
     return isToday && isParticipant;
   }).length;
 
