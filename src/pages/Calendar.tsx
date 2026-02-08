@@ -421,9 +421,6 @@ export default function Calendar() {
     // КРИТИЧНО: Гарантируем что assignedTo не undefined
     const assignedToValue = newEvent.assignedTo || 'all';
     
-    console.log('[Calendar] handleSaveEvent - newEvent.assignedTo:', newEvent.assignedTo);
-    console.log('[Calendar] handleSaveEvent - assignedToValue:', assignedToValue);
-    
     const eventData = {
       title: newEvent.title,
       description: newEvent.description,
@@ -444,8 +441,6 @@ export default function Calendar() {
       recurringEndDate: newEvent.recurringEndDate,
       recurringDaysOfWeek: newEvent.recurringDaysOfWeek
     };
-    
-    console.log('[Calendar] handleSaveEvent - eventData:', JSON.stringify(eventData, null, 2));
 
     if (editingEventId) {
       const result = await updateEvent(editingEventId, eventData);
@@ -464,15 +459,8 @@ export default function Calendar() {
   };
 
   const handleEventEdit = (event: CalendarEvent) => {
-    console.log('[Calendar] handleEventEdit called');
-    console.log('[Calendar] event.assignedTo:', event.assignedTo);
-    console.log('[Calendar] event.assignedTo type:', typeof event.assignedTo);
-    console.log('[Calendar] event.assignedTo length:', event.assignedTo?.length);
-    console.log('[Calendar] Full event object:', event);
-    
     setEditingEventId(event.id);
     const assignedToValue = event.assignedTo || 'all';
-    console.log('[Calendar] Setting assignedTo to:', assignedToValue);
     
     setNewEvent({
       title: event.title,

@@ -44,14 +44,6 @@ export function useCalendarEvents() {
   const createEvent = async (eventData: Partial<CalendarEvent>) => {
     const token = getAuthToken();
     
-    const payload = {
-      action: 'create',
-      ...eventData
-    };
-    
-    console.log('[useCalendarEvents] createEvent payload:', JSON.stringify(payload, null, 2));
-    console.log('[useCalendarEvents] payload.assignedTo:', payload.assignedTo);
-    
     try {
       const response = await fetch(CALENDAR_API, {
         method: 'POST',
@@ -59,7 +51,10 @@ export function useCalendarEvents() {
           'Content-Type': 'application/json',
           'X-Auth-Token': token
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          action: 'create',
+          ...eventData
+        })
       });
 
       const data = await response.json();

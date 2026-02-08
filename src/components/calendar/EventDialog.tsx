@@ -33,7 +33,7 @@ interface EventDialogProps {
     recurringEndDate: string;
     recurringDaysOfWeek: number[];
   };
-  onEventChange: (field: string, value: any) => void;
+  onEventChange: (field: string, value: string | boolean | number | string[]) => void;
   onSaveEvent: () => void;
   editingEventId: string | null;
 }
@@ -59,12 +59,10 @@ export function EventDialog({
 }: EventDialogProps) {
   const { members } = useFamilyMembersContext();
 
-  // Логируем для отладки
+  // Синхронизация при открытии диалога
   useEffect(() => {
-    if (open) {
-      console.log('[EventDialog] Dialog opened with assignedTo:', newEvent.assignedTo);
-    }
-  }, [open, newEvent.assignedTo]);
+    // Ничего не делаем - значение передается через props
+  }, [open]);
 
   const handleSave = () => {
     if (!newEvent.title || !newEvent.date) {
@@ -167,12 +165,7 @@ export function EventDialog({
             <Select 
               key={`assignedTo-${newEvent.assignedTo || 'all'}`}
               value={newEvent.assignedTo || 'all'} 
-              onValueChange={(val) => {
-                console.log('[EventDialog] Select changed to:', val);
-                console.log('[EventDialog] Select value type:', typeof val);
-                console.log('[EventDialog] Select value length:', val?.length);
-                onEventChange('assignedTo', val);
-              }}
+              onValueChange={(val) => onEventChange('assignedTo', val)}
             >
               <SelectTrigger id="assignedTo">
                 <SelectValue placeholder="Выберите члена семьи" />
