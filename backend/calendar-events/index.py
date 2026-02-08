@@ -194,18 +194,27 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     db_check_value = None
     if result:
         event_id = result['id']
-        print(f"[create_event] Event created with ID: {event_id}")
+        print(f"[create_event] ✅ Event created with ID: {event_id}")
         
         # Читаем обратно из БД чтобы проверить assigned_to
         cur2 = conn.cursor(cursor_factory=RealDictCursor)
         cur2.execute(
-            f"SELECT assigned_to FROM {SCHEMA}.calendar_events WHERE id = %s",
+            f"SELECT id, title, assigned_to FROM {SCHEMA}.calendar_events WHERE id = %s",
             (event_id,)
         )
         check_result = cur2.fetchone()
         if check_result:
             db_check_value = check_result['assigned_to']
-            print(f"[create_event] CHECK: assigned_to in DB = {db_check_value} (type: {type(db_check_value)})")
+            print(f"[create_event] 🔍 DB CHECK:")
+            print(f"  - ID: {check_result['id']}")
+            print(f"  - Title: {check_result['title']}")
+            print(f"  - assigned_to value: {db_check_value}")
+            print(f"  - assigned_to type: {type(db_check_value)}")
+            print(f"  - Is NULL: {db_check_value is None}")
+            if db_check_value is not None:
+                print(f"  - Array length: {len(db_check_value) if isinstance(db_check_value, list) else 'NOT A LIST'}")
+        else:
+            print(f"[create_event] ❌ ERROR: Could not read back event {event_id} from DB!")
         cur2.close()
     
     cur.close()
