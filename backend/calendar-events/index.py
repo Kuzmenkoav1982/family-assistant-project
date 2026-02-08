@@ -78,13 +78,18 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
         if 'assigned_to' in event_dict:
             # assigned_to это массив в БД, берём первый элемент или 'all'
             assigned_to_value = event_dict['assigned_to']
+            print(f"[get_events] Event {event_dict.get('id')} assigned_to from DB: {assigned_to_value} (type: {type(assigned_to_value)})")
+            
             if assigned_to_value and len(assigned_to_value) > 0:
                 event_dict['assignedTo'] = assigned_to_value[0]
+                print(f"[get_events] Set assignedTo to: {assigned_to_value[0]}")
             else:
                 event_dict['assignedTo'] = 'all'
+                print(f"[get_events] Set assignedTo to 'all' (empty array)")
         else:
             # Если assigned_to отсутствует в БД - это событие для всех
             event_dict['assignedTo'] = 'all'
+            print(f"[get_events] Event {event_dict.get('id')} has NO assigned_to field")
         
         if 'reminder_enabled' in event_dict:
             event_dict['reminderEnabled'] = event_dict['reminder_enabled']
@@ -118,12 +123,18 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
+    print(f"[create_event] Received assignedTo: {event_data.get('assignedTo')}")
+    
     assigned_to_array = None
     if event_data.get('assignedTo'):
         if event_data['assignedTo'] == 'all':
             assigned_to_array = None
+            print(f"[create_event] assignedTo is 'all', saving NULL to DB")
         else:
             assigned_to_array = [event_data['assignedTo']]
+            print(f"[create_event] assignedTo is '{event_data['assignedTo']}', saving array: {assigned_to_array}")
+    else:
+        print(f"[create_event] NO assignedTo in event_data, saving NULL")
     
     attendees_json = None
     if event_data.get('attendees') and isinstance(event_data['attendees'], list):
