@@ -226,7 +226,7 @@ def update_family_info(family_id: str, name: Optional[str] = None, logo_url: Opt
         query = f"""
             UPDATE {SCHEMA}.families
             SET {', '.join(updates)}, updated_at = NOW()
-            WHERE id = {escape_string(family_id)}::uuid
+            WHERE id = '{family_id}'::uuid
             RETURNING id, name, logo_url
         """
         cur.execute(query)
