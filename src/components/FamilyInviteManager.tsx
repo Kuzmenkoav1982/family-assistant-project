@@ -559,10 +559,10 @@ export default function FamilyInviteManager() {
           </div>
         </Collapsible>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button className="flex-1">
+              <Button className="flex-1 w-full sm:w-auto">
                 <Icon name="Plus" className="mr-2" size={16} />
                 Создать приглашение
               </Button>
@@ -599,7 +599,7 @@ export default function FamilyInviteManager() {
 
           <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex-1">
+              <Button variant="outline" className="flex-1 w-full sm:w-auto">
                 <Icon name="UserPlus" className="mr-2" size={16} />
                 Присоединиться
               </Button>

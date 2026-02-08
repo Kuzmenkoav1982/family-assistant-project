@@ -155,7 +155,7 @@ export function MemberProfileContent({
           <Button 
             onClick={handleCalendarClick}
             variant="outline" 
-            className="mt-4 w-full"
+            className="mt-6 sm:mt-8 w-full"
           >
             <Icon name="Calendar" className="mr-2" size={18} />
             Открыть календарь
