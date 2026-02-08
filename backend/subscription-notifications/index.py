@@ -19,8 +19,8 @@ NOTIFICATIONS_API = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de9
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-def get_expiring_subscriptions(days_threshold: int = 7) -> List[Dict[str, Any]]:
-    """Получить подписки, истекающие в ближайшие N дней"""
+def get_expiring_subscriptions() -> List[Dict[str, Any]]:
+    """Получить подписки, истекающие в ближайшие 7 дней"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -40,7 +40,7 @@ def get_expiring_subscriptions(days_threshold: int = 7) -> List[Dict[str, Any]]:
         JOIN {SCHEMA}.users u ON fm.user_id = u.id
         WHERE s.status = 'active'
         AND s.end_date > CURRENT_TIMESTAMP
-        AND s.end_date <= CURRENT_TIMESTAMP + INTERVAL '{days_threshold} days'
+        AND s.end_date <= CURRENT_TIMESTAMP + INTERVAL '7 days'
     """)
     
     subscriptions = cur.fetchall()
@@ -48,6 +48,54 @@ def get_expiring_subscriptions(days_threshold: int = 7) -> List[Dict[str, Any]]:
     conn.close()
     
     return [dict(s) for s in subscriptions]
+
+def should_send_notification(subscription_id: str, days_left: int, channel: str) -> bool:
+    """Проверить, нужно ли отправлять уведомление (максимум 3: за 7, 3 и 1 день)"""
+    # Определяем тип уведомления по количеству оставшихся дней
+    notification_type = None
+    if days_left >= 7:
+        notification_type = 'expiring_7days'
+    elif 3 <= days_left < 7:
+        notification_type = 'expiring_3days'
+    elif 1 <= days_left < 3:
+        notification_type = 'expiring_1day'
+    else:
+        return False  # Не отправляем уведомления за пределами этих диапазонов
+    
+    # Проверяем, отправляли ли уже такое уведомление
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    cur.execute(f"""
+        SELECT COUNT(*) FROM {SCHEMA}.subscription_notifications_log
+        WHERE subscription_id = %s 
+        AND notification_type = %s 
+        AND channel = %s
+    """, (subscription_id, notification_type, channel))
+    
+    count = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    
+    return count == 0  # Отправляем только если ещё не отправляли
+
+def save_notification_log(subscription_id: str, user_id: str, notification_type: str, channel: str, days_left: int):
+    """Сохранить информацию об отправленном уведомлении"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.subscription_notifications_log 
+            (subscription_id, user_id, notification_type, channel, days_left)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (subscription_id, notification_type, channel) DO NOTHING
+        """, (subscription_id, user_id, notification_type, channel, days_left))
+        
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
 
 def send_email_notification(user_email: str, user_name: str, plan_name: str, days_left: int):
     """Отправить email через notifications API"""
@@ -106,16 +154,22 @@ def send_push_notification(user_id: str, plan_name: str, days_left: int):
         print(f"Push error: {str(e)}")
         return {'error': str(e)}
 
-def log_notification(user_id: str, notification_type: str, channel: str, details: Dict[str, Any]):
-    """Записать в лог (временно только print)"""
-    print(f"[NOTIFICATION LOG] user={user_id}, type={notification_type}, channel={channel}, details={details}")
+def get_notification_type(days_left: int) -> str:
+    """Определить тип уведомления по количеству дней"""
+    if days_left >= 7:
+        return 'expiring_7days'
+    elif 3 <= days_left < 7:
+        return 'expiring_3days'
+    elif 1 <= days_left < 3:
+        return 'expiring_1day'
+    return 'unknown'
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Основной обработчик - запускается по расписанию (cron) или вручную"""
     
     try:
         # Получаем истекающие подписки
-        expiring = get_expiring_subscriptions(days_threshold=7)
+        expiring = get_expiring_subscriptions()
         
         if not expiring:
             return {
@@ -127,56 +181,76 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         sent_count = 0
+        skipped_count = 0
         errors = []
         
         for sub in expiring:
             days_left = (sub['end_date'] - datetime.now()).days
+            notification_type = get_notification_type(days_left)
             
-            # Отправляем Email
-            email_result = send_email_notification(
-                sub['user_email'],
-                sub['user_name'],
-                sub['plan_type'],
-                days_left
-            )
-            
-            if 'error' not in email_result:
-                log_notification(
-                    sub['user_id'],
-                    'subscription_expiring',
-                    'email',
-                    {'plan': sub['plan_type'], 'days_left': days_left}
+            # Проверяем Email
+            if should_send_notification(sub['subscription_id'], days_left, 'email'):
+                email_result = send_email_notification(
+                    sub['user_email'],
+                    sub['user_name'],
+                    sub['plan_type'],
+                    days_left
                 )
-                sent_count += 1
+                
+                if 'error' not in email_result:
+                    save_notification_log(
+                        sub['subscription_id'],
+                        sub['user_id'],
+                        notification_type,
+                        'email',
+                        days_left
+                    )
+                    sent_count += 1
+                    print(f"✅ Email sent to {sub['user_email']} (days_left={days_left}, type={notification_type})")
+                else:
+                    errors.append(f"Email to {sub['user_email']}: {email_result['error']}")
             else:
-                errors.append(f"Email to {sub['user_email']}: {email_result['error']}")
+                skipped_count += 1
+                print(f"⏭️ Skipped email for {sub['user_email']} (days_left={days_left}, already sent)")
             
-            # Отправляем Push
-            push_result = send_push_notification(
-                sub['user_id'],
-                sub['plan_type'],
-                days_left
-            )
-            
-            if 'error' not in push_result:
-                log_notification(
+            # Проверяем Push
+            if should_send_notification(sub['subscription_id'], days_left, 'push'):
+                push_result = send_push_notification(
                     sub['user_id'],
-                    'subscription_expiring',
-                    'push',
-                    {'plan': sub['plan_type'], 'days_left': days_left}
+                    sub['plan_type'],
+                    days_left
                 )
+                
+                if 'error' not in push_result:
+                    save_notification_log(
+                        sub['subscription_id'],
+                        sub['user_id'],
+                        notification_type,
+                        'push',
+                        days_left
+                    )
+                    sent_count += 1
+                    print(f"✅ Push sent to user {sub['user_id']} (days_left={days_left}, type={notification_type})")
+                else:
+                    errors.append(f"Push to user {sub['user_id']}: {push_result['error']}")
+            else:
+                skipped_count += 1
+                print(f"⏭️ Skipped push for user {sub['user_id']} (days_left={days_left}, already sent)")
         
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': f'Отправлено {sent_count} уведомлений',
+                'message': f'Отправлено {sent_count} уведомлений, пропущено {skipped_count}',
                 'total_subscriptions': len(expiring),
                 'sent': sent_count,
+                'skipped': skipped_count,
                 'errors': errors if errors else None
             }, default=str)
         }
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})

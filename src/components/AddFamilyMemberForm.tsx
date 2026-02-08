@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { ImageCropDialog } from '@/components/ImageCropDialog';
 import type { FamilyMember } from '@/types/family.types';
 
 interface AddFamilyMemberFormProps {
@@ -29,8 +30,27 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
   const [selectedAvatar, setSelectedAvatar] = useState(editingMember?.avatar || '👤');
   const [submitting, setSubmitting] = useState(false);
   const { upload, uploading } = useFileUpload();
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState('');
 
   const avatarOptions = ['👨', '👩', '👴', '👵', '👦', '👧', '🧑', '👶', '🧔', '👨‍🦱', '👩‍🦰', '🧑‍🦳', '👱', '🧓', '👤'];
+
+  const handleCropComplete = async (croppedBase64: string) => {
+    try {
+      const blob = await fetch(croppedBase64).then(r => r.blob());
+      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      
+      const url = await upload(file, 'avatars');
+      setFormData({ 
+        ...formData, 
+        photoUrl: url, 
+        avatarType: 'photo' 
+      });
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Ошибка загрузки фото. Попробуйте ещё раз.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,20 +170,15 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
               type="file"
               accept="image/*"
               disabled={uploading}
-              onChange={async (e) => {
+              onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  try {
-                    const url = await upload(file, 'avatars');
-                    setFormData({ 
-                      ...formData, 
-                      photoUrl: url, 
-                      avatarType: 'photo' 
-                    });
-                  } catch (error) {
-                    console.error('Upload failed:', error);
-                    alert('Ошибка загрузки фото. Попробуйте ещё раз.');
-                  }
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    setTempImageSrc(reader.result as string);
+                    setCropDialogOpen(true);
+                  };
+                  reader.readAsDataURL(file);
                 }
               }}
             />
@@ -272,6 +287,13 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
           )}
         </Button>
       </div>
+
+      <ImageCropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        imageSrc={tempImageSrc}
+        onCropComplete={handleCropComplete}
+      />
     </form>
   );
 }

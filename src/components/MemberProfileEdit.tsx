@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { ImageCropDialog } from '@/components/ImageCropDialog';
 import type { FamilyMember } from '@/types/family.types';
 
 interface MemberProfileEditProps {
@@ -19,6 +20,8 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
   const [avatarType, setAvatarType] = useState<'emoji' | 'photo'>(member.photoUrl ? 'photo' : 'emoji');
   const [photoUrl, setPhotoUrl] = useState(member.photoUrl || '');
   const { upload, uploading: uploadingPhoto } = useFileUpload();
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState('');
   const [formData, setFormData] = useState({
     name: member.name || '',
     role: member.role || '',
@@ -62,7 +65,20 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
       return;
     }
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImageSrc(reader.result as string);
+      setCropDialogOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedBase64: string) => {
     try {
+      // Конвертируем base64 в File для загрузки
+      const blob = await fetch(croppedBase64).then(r => r.blob());
+      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      
       const url = await upload(file, 'avatars');
       setPhotoUrl(url);
       setAvatarType('photo');
@@ -466,6 +482,13 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
           <li>• Достижения мотивируют и поднимают самооценку</li>
         </ul>
       </div>
+
+      <ImageCropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        imageSrc={tempImageSrc}
+        onCropComplete={handleCropComplete}
+      />
     </form>
   );
 }

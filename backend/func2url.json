@@ -54,6 +54,7 @@
   "payments-tbank": "https://functions.poehali.dev/e25d60ac-d0c8-428d-92bf-18126183f140",
   "alice": "https://functions.poehali.dev/3654f595-6c6d-4ebf-9213-f12b4d75efaf",
   "domovoy-donations": "https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085",
+  "subscription-notifications": "https://functions.poehali.dev/07b9c48b-eba2-458b-bb51-e9763d08504e",
   "admin-subscriptions": "https://functions.poehali.dev/0785b781-b361-4def-810e-131977a99fbe",
   "scheduled-reminders": "https://functions.poehali.dev/1b065d31-c535-44ca-ad19-36658de8235e",
   "analytics": "https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508",
