@@ -80,12 +80,13 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
             assigned_to_value = event_dict['assigned_to']
             print(f"[get_events] Event {event_dict.get('id')} assigned_to from DB: {assigned_to_value} (type: {type(assigned_to_value)})")
             
-            if assigned_to_value and len(assigned_to_value) > 0:
+            # Проверяем: массив должен быть не None, не пустым, и содержать валидное значение
+            if assigned_to_value is not None and isinstance(assigned_to_value, list) and len(assigned_to_value) > 0:
                 event_dict['assignedTo'] = assigned_to_value[0]
                 print(f"[get_events] Set assignedTo to: {assigned_to_value[0]}")
             else:
                 event_dict['assignedTo'] = 'all'
-                print(f"[get_events] Set assignedTo to 'all' (empty array)")
+                print(f"[get_events] Set assignedTo to 'all' (NULL or empty array)")
         else:
             # Если assigned_to отсутствует в БД - это событие для всех
             event_dict['assignedTo'] = 'all'
@@ -123,18 +124,16 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    print(f"[create_event] Received assignedTo: {event_data.get('assignedTo')}")
+    assigned_to_value = event_data.get('assignedTo')
+    print(f"[create_event] Received assignedTo: '{assigned_to_value}' (type: {type(assigned_to_value)})")
     
     assigned_to_array = None
-    if event_data.get('assignedTo'):
-        if event_data['assignedTo'] == 'all':
-            assigned_to_array = None
-            print(f"[create_event] assignedTo is 'all', saving NULL to DB")
-        else:
-            assigned_to_array = [event_data['assignedTo']]
-            print(f"[create_event] assignedTo is '{event_data['assignedTo']}', saving array: {assigned_to_array}")
+    # Проверяем: должно быть не None, не пустая строка, и не 'all'
+    if assigned_to_value is not None and assigned_to_value != '' and assigned_to_value != 'all':
+        assigned_to_array = [assigned_to_value]
+        print(f"[create_event] Saving array to DB: {assigned_to_array}")
     else:
-        print(f"[create_event] NO assignedTo in event_data, saving NULL")
+        print(f"[create_event] Saving NULL to DB (value was: '{assigned_to_value}')")
     
     attendees_json = None
     if event_data.get('attendees') and isinstance(event_data['attendees'], list):
@@ -242,11 +241,6 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
         if event_data.get('attendees'):
             event_dict['attendees'] = event_data.get('attendees', [])
         
-        # DEBUG: Добавляем db_check для отладки
-        event_dict['_debug_db_check'] = db_check_value
-        event_dict['_debug_input_assignedTo'] = event_data.get('assignedTo')
-        event_dict['_debug_array'] = assigned_to_array
-        
         return event_dict
     return {}
 
@@ -254,12 +248,16 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
     conn = get_db_connection()
     cur = conn.cursor()
     
+    assigned_to_value = event_data.get('assignedTo')
+    print(f"[update_event] Received assignedTo: '{assigned_to_value}' (type: {type(assigned_to_value)})")
+    
     assigned_to_array = None
-    if event_data.get('assignedTo'):
-        if event_data['assignedTo'] == 'all':
-            assigned_to_array = None
-        else:
-            assigned_to_array = [event_data['assignedTo']]
+    # Проверяем: должно быть не None, не пустая строка, и не 'all'
+    if assigned_to_value is not None and assigned_to_value != '' and assigned_to_value != 'all':
+        assigned_to_array = [assigned_to_value]
+        print(f"[update_event] Saving array to DB: {assigned_to_array}")
+    else:
+        print(f"[update_event] Saving NULL to DB (value was: '{assigned_to_value}')")
     
     attendees_json = None
     if event_data.get('attendees') and isinstance(event_data['attendees'], list):
@@ -383,29 +381,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             action = body.get('action')
             
-            # КРИТИЧНО: Логируем ВЕСЬ body запроса
-            print(f"[handler] POST body received: {json.dumps(body, ensure_ascii=False)}")
-            print(f"[handler] body.assignedTo = {body.get('assignedTo')}")
-            print(f"[handler] body.assignedTo type = {type(body.get('assignedTo'))}")
-            
             if action == 'create':
                 result = create_event(family_id, member_name, member_avatar, body)
-                
-                # DEBUG: Возвращаем debug info в ответе
-                debug_info = {
-                    'received_assignedTo': body.get('assignedTo'),
-                    'received_assignedTo_type': str(type(body.get('assignedTo'))),
-                    'result_assignedTo': result.get('assignedTo')
-                }
-                
                 return {
                     'statusCode': 200,
                     'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                    'body': json.dumps({
-                        'success': True, 
-                        'event': result,
-                        'debug': debug_info
-                    }),
+                    'body': json.dumps({'success': True, 'event': result}),
                     'isBase64Encoded': False
                 }
             

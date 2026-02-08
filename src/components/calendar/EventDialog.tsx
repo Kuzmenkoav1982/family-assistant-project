@@ -59,19 +59,12 @@ export function EventDialog({
 }: EventDialogProps) {
   const { members } = useFamilyMembersContext();
 
-  // КРИТИЧНО: Синхронизация assignedTo при открытии диалога
+  // Логируем для отладки
   useEffect(() => {
-    console.log('[EventDialog] Dialog opened:', open);
-    console.log('[EventDialog] newEvent.assignedTo:', newEvent.assignedTo);
-    console.log('[EventDialog] newEvent.assignedTo type:', typeof newEvent.assignedTo);
-    console.log('[EventDialog] newEvent.assignedTo length:', newEvent.assignedTo?.length);
-    
-    if (open && !newEvent.assignedTo) {
-      // Если assignedTo пустой/null - устанавливаем 'all'
-      console.log('[EventDialog] Setting assignedTo to "all"');
-      onEventChange('assignedTo', 'all');
+    if (open) {
+      console.log('[EventDialog] Dialog opened with assignedTo:', newEvent.assignedTo);
     }
-  }, [open, newEvent.assignedTo, onEventChange]);
+  }, [open, newEvent.assignedTo]);
 
   const handleSave = () => {
     if (!newEvent.title || !newEvent.date) {
@@ -79,11 +72,7 @@ export function EventDialog({
       return;
     }
     
-    // КРИТИЧНО: Проверяем assignedTo перед сохранением
-    if (!newEvent.assignedTo) {
-      onEventChange('assignedTo', 'all');
-    }
-    
+    // Просто вызываем onSaveEvent - логика assignedTo обработается в Calendar.tsx
     onSaveEvent();
   };
 
