@@ -337,10 +337,13 @@ def get_alice_logs() -> List[Dict[str, Any]]:
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
     
-    # DEBUG: Check if DATABASE_URL is available
-    if not DATABASE_URL:
-        print(f"ERROR: DATABASE_URL is not set!")
-        print(f"Available env vars: {list(os.environ.keys())}")
+    # DEBUG: Check DATABASE_URL value
+    print(f"[DEBUG] DATABASE_URL exists: {DATABASE_URL is not None}")
+    if DATABASE_URL:
+        print(f"[DEBUG] DATABASE_URL length: {len(DATABASE_URL)}")
+        print(f"[DEBUG] DATABASE_URL prefix: {DATABASE_URL[:50]}...")
+    else:
+        print(f"[DEBUG] Available env vars: {list(os.environ.keys())}")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
