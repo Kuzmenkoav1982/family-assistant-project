@@ -68,7 +68,7 @@ export function calculateMemberWorkload(
   const responsibilities = member.responsibilities?.length || 0;
 
   // События на сегодня и будущие (для виджета показываем все предстоящие)
-  const todayEvents = events.filter(event => {
+  const filteredEvents = events.filter(event => {
     const eventDate = new Date(event.date);
     eventDate.setHours(0, 0, 0, 0);
     const isTodayOrFuture = eventDate.getTime() >= today.getTime();
@@ -81,8 +81,24 @@ export function calculateMemberWorkload(
                           event.assignedTo === member.id ||
                           event.assignedTo === member.name ||
                           event.assignedTo === 'all';  // Событие для всей семьи
-    return isTodayOrFuture && isParticipant;
-  }).length;
+    
+    const match = isTodayOrFuture && isParticipant;
+    
+    // DEBUG: Логируем для Анастасии
+    if (member.name === 'Анастасия' && match) {
+      console.log('[memberWorkload] Event matched for Анастасия:', {
+        id: event.id,
+        date: event.date,
+        assignedTo: event.assignedTo,
+        isTodayOrFuture,
+        isParticipant
+      });
+    }
+    
+    return match;
+  });
+  
+  const todayEvents = filteredEvents.length;
 
   // Достижения за неделю
   const weekAchievements = member.achievements?.filter(achievement => {
