@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Unauthorized access",
+      "method": "PUT",
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "expectedStatus": 200
+    }
+  ]
+}

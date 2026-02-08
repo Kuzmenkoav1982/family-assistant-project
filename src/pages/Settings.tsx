@@ -15,13 +15,22 @@ import AssistantSettings from '@/components/settings/AssistantSettings';
 import { CalendarExport } from '@/components/CalendarExport';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useTasks } from '@/hooks/useTasks';
+import { ImageCropDialog } from '@/components/ImageCropDialog';
 
 export default function Settings() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('family');
-  const [familyName, setFamilyName] = useState('Наша Семья "Кузьменко"');
-  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/family-logos/2025-12-21_00-39-51.png');
+  const [familyName, setFamilyName] = useState(() => {
+    return localStorage.getItem('familyName') || 'Наша Семья';
+  });
+  const [familyLogo, setFamilyLogo] = useState(() => {
+    return localStorage.getItem('familyLogo') || 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/family-logos/2025-12-21_00-39-51.png';
+  });
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState('');
+  const [croppedImageBase64, setCroppedImageBase64] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved === 'true';
@@ -39,35 +48,64 @@ export default function Settings() {
   const { members: familyMembers } = useFamilyMembersContext();
   const { tasks } = useTasks();
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImageSrc(reader.result as string);
+      setCropDialogOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedBase64: string) => {
+    setCroppedImageBase64(croppedBase64);
+    setFamilyLogo(croppedBase64);
+  };
+
   const handleSaveChanges = async () => {
+    setIsSaving(true);
     try {
       const authToken = localStorage.getItem('authToken') || '';
-      const FAMILY_DATA_API = 'https://functions.poehali.dev/5cab3ca7-6fa8-4ffb-b9d1-999d93d29d2e';
+      const FAMILY_SETTINGS_API = 'https://functions.poehali.dev/444bfdad-3354-44c6-95cb-c58ad7c8e4ea';
 
-      const response = await fetch(FAMILY_DATA_API, {
+      const payload: { name: string; logoBase64?: string } = {
+        name: familyName
+      };
+
+      if (croppedImageBase64) {
+        payload.logoBase64 = croppedImageBase64;
+      }
+
+      const response = await fetch(FAMILY_SETTINGS_API, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Auth-Token': authToken
         },
-        body: JSON.stringify({
-          name: familyName,
-          logoUrl: familyLogo
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
       
       if (data.success) {
         localStorage.setItem('familyName', familyName);
-        localStorage.setItem('familyLogo', familyLogo);
+        if (data.family?.logo_url) {
+          localStorage.setItem('familyLogo', data.family.logo_url);
+          setFamilyLogo(data.family.logo_url);
+        }
         alert('✅ Изменения сохранены');
+        setCroppedImageBase64('');
       } else {
         alert(`❌ Ошибка: ${data.error || 'Не удалось сохранить'}`);
       }
     } catch (error) {
       alert('❌ Ошибка сохранения');
       console.error('Save error:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -92,8 +130,9 @@ export default function Settings() {
       } else {
         throw new Error(data.error || 'Ошибка удаления');
       }
-    } catch (error: any) {
-      alert(`❌ ${error.message || 'Ошибка удаления аккаунта'}`);
+    } catch (error) {
+      const err = error as Error;
+      alert(`❌ ${err.message || 'Ошибка удаления аккаунта'}`);
       throw error;
     }
   };
@@ -105,7 +144,7 @@ export default function Settings() {
         // CSV Export
         const csvData = [
           ['Имя', 'Роль', 'Баллы', 'Уровень', 'Загрузка'],
-          ...familyMembers.map((m: any) => [
+          ...familyMembers.map((m) => [
             m.name,
             m.role,
             m.points || 0,
@@ -232,6 +271,79 @@ export default function Settings() {
           <div className="lg:col-span-3 space-y-6">
             {activeSection === 'family' && (
               <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Users" size={24} />
+                      Настройки семьи
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="familyName">Название семьи</Label>
+                        <Input
+                          id="familyName"
+                          value={familyName}
+                          onChange={(e) => setFamilyName(e.target.value)}
+                          placeholder="Например: Семья Ивановых"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Логотип семьи</Label>
+                        <div className="flex items-center gap-4 mt-2">
+                          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                            {familyLogo ? (
+                              <img src={familyLogo} alt="Family logo" className="w-full h-full object-cover" />
+                            ) : (
+                              <Icon name="Users" size={32} className="text-gray-400" />
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileSelect}
+                              className="hidden"
+                              id="logoUpload"
+                            />
+                            <label htmlFor="logoUpload">
+                              <Button variant="outline" className="cursor-pointer" asChild>
+                                <span>
+                                  <Icon name="Upload" size={16} className="mr-2" />
+                                  Загрузить изображение
+                                </span>
+                              </Button>
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                              После выбора файла откроется редактор для кадрирования
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={handleSaveChanges} 
+                        disabled={isSaving}
+                        className="w-full"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                            Сохранение...
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="Save" size={16} className="mr-2" />
+                            Сохранить изменения
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <FamilyInviteManager />
                 <AccessControlManager />
               </>
@@ -430,6 +542,13 @@ export default function Settings() {
             )}
           </div>
         </div>
+
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onOpenChange={setCropDialogOpen}
+          imageSrc={tempImageSrc}
+          onCropComplete={handleCropComplete}
+        />
       </div>
     </div>
   );
