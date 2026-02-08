@@ -188,6 +188,30 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
             event_dict['date'] = event_dict['date'].isoformat()
         if event_dict.get('created_at'):
             event_dict['created_at'] = event_dict['created_at'].isoformat()
+        
+        # КРИТИЧНО: Добавляем все поля события для фронтенда
+        event_dict['title'] = event_data.get('title', '')
+        event_dict['description'] = event_data.get('description', '')
+        event_dict['time'] = event_data.get('time', '')
+        event_dict['category'] = event_data.get('category', 'personal')
+        event_dict['color'] = event_data.get('color', '#3b82f6')
+        event_dict['visibility'] = event_data.get('visibility', 'family')
+        event_dict['reminderEnabled'] = event_data.get('reminderEnabled', True)
+        event_dict['reminderDays'] = event_data.get('reminderDays', 1)
+        event_dict['reminderDate'] = event_data.get('reminderDate', '')
+        event_dict['reminderTime'] = event_data.get('reminderTime', '')
+        event_dict['isRecurring'] = event_data.get('isRecurring', False)
+        
+        # assignedTo - конвертируем массив в строку для фронта
+        if assigned_to_array and len(assigned_to_array) > 0:
+            event_dict['assignedTo'] = assigned_to_array[0]
+        else:
+            event_dict['assignedTo'] = 'all'
+        
+        # attendees - уже JSON, оставляем как есть
+        if event_data.get('attendees'):
+            event_dict['attendees'] = event_data.get('attendees', [])
+        
         return event_dict
     return {}
 

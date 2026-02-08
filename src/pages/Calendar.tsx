@@ -441,8 +441,6 @@ export default function Calendar() {
       recurringEndDate: newEvent.recurringEndDate,
       recurringDaysOfWeek: newEvent.recurringDaysOfWeek
     };
-    
-    console.log('[Calendar] Saving event with assignedTo:', assignedToValue);
 
     if (editingEventId) {
       const result = await updateEvent(editingEventId, eventData);
