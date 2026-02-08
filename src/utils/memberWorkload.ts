@@ -67,11 +67,11 @@ export function calculateMemberWorkload(
   // Обязанности (из профиля)
   const responsibilities = member.responsibilities?.length || 0;
 
-  // События на сегодня
+  // События на сегодня и будущие (для виджета показываем все предстоящие)
   const todayEvents = events.filter(event => {
     const eventDate = new Date(event.date);
     eventDate.setHours(0, 0, 0, 0);
-    const isToday = eventDate.getTime() === today.getTime();
+    const isTodayOrFuture = eventDate.getTime() >= today.getTime();
     
     // Проверяем: участник в participants/attendees или событие назначено на него (assignedTo)
     const isParticipant = event.participants?.includes(member.id) || 
@@ -81,7 +81,7 @@ export function calculateMemberWorkload(
                           event.assignedTo === member.id ||
                           event.assignedTo === member.name ||
                           event.assignedTo === 'all';  // Событие для всей семьи
-    return isToday && isParticipant;
+    return isTodayOrFuture && isParticipant;
   }).length;
 
   // Достижения за неделю
@@ -152,7 +152,7 @@ export function getWorkloadDescription(metrics: WorkloadMetrics): string {
   }
   
   if (metrics.todayEvents > 0) {
-    parts.push(`${metrics.todayEvents} ${getEventWord(metrics.todayEvents)} на сегодня`);
+    parts.push(`${metrics.todayEvents} ${getEventWord(metrics.todayEvents)}`);
   }
 
   return parts.length > 0 ? parts.join(', ') : 'Нет активностей';
