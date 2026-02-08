@@ -381,7 +381,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        user_data = verify_token(token)
+        try:
+            user_data = verify_token(token)
+        except Exception as e:
+            return {
+                'statusCode': 500,
+                'headers': headers,
+                'body': json.dumps({
+                    'error': f'Database connection error: {str(e)}',
+                    'DATABASE_URL_exists': DATABASE_URL is not None,
+                    'DATABASE_URL_length': len(DATABASE_URL) if DATABASE_URL else 0
+                }),
+                'isBase64Encoded': False
+            }
+        
         if not user_data:
             return {
                 'statusCode': 401,
