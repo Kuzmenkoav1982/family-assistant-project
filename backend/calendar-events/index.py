@@ -190,6 +190,23 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     )
     result = cur.fetchone()
     conn.commit()
+    
+    # КРИТИЧНО: Проверяем что реально записалось в БД
+    if result:
+        event_id = result['id']
+        print(f"[create_event] Event created with ID: {event_id}")
+        
+        # Читаем обратно из БД чтобы проверить assigned_to
+        cur2 = conn.cursor(cursor_factory=RealDictCursor)
+        cur2.execute(
+            f"SELECT assigned_to FROM {SCHEMA}.calendar_events WHERE id = %s",
+            (event_id,)
+        )
+        check_result = cur2.fetchone()
+        if check_result:
+            print(f"[create_event] CHECK: assigned_to in DB = {check_result['assigned_to']} (type: {type(check_result['assigned_to'])})")
+        cur2.close()
+    
     cur.close()
     conn.close()
     
