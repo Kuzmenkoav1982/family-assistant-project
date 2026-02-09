@@ -83,8 +83,8 @@ def get_user_email(user_id: str) -> str:
     
     return user['email'] if user and user['email'] else 'support@nasha-semiya.ru'
 
-def create_yookassa_payment(amount: float, description: str, return_url: str, metadata: dict = None, save_payment_method: bool = False) -> Dict[str, Any]:
-    """Создаёт платёж в ЮКассе через REST API с поддержкой рекуррентных платежей"""
+def create_yookassa_payment(amount: float, description: str, return_url: str, metadata: dict = None, save_payment_method: bool = False, payment_method: str = None) -> Dict[str, Any]:
+    """Создаёт платёж в ЮКассе через REST API с поддержкой рекуррентных платежей и СБП"""
     idempotence_key = str(uuid.uuid4())
     
     payment_data = {
@@ -118,7 +118,11 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
         }
     }
     
-    if save_payment_method:
+    # Если указан метод оплаты СБП, добавляем payment_method_data
+    if payment_method == 'sbp':
+        payment_data['payment_method_data'] = {'type': 'sbp'}
+    
+    if save_payment_method and payment_method != 'sbp':
         payment_data['save_payment_method'] = True
     
     if metadata:
@@ -194,9 +198,9 @@ def get_payment_status(payment_id: str) -> Dict[str, Any]:
     except Exception as e:
         return {'error': f'Ошибка проверки платежа: {str(e)}'}
 
-def create_subscription(family_id: str, user_id: str, plan_type: str, return_url: str, force: bool = False) -> Dict[str, Any]:
+def create_subscription(family_id: str, user_id: str, plan_type: str, return_url: str, force: bool = False, payment_method: str = None) -> Dict[str, Any]:
     """Создаёт подписку и инициирует платёж. Проверяет наличие активной подписки."""
-    print(f'[create_subscription] family_id={family_id}, user_id={user_id}, plan_type={plan_type}, force={force}')
+    print(f'[create_subscription] family_id={family_id}, user_id={user_id}, plan_type={plan_type}, force={force}, payment_method={payment_method}')
     
     if plan_type not in PLANS:
         print(f'[create_subscription] ERROR: plan_type not in PLANS')
@@ -233,7 +237,8 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
             'plan_type': plan_type,
             'user_email': user_email
         },
-        save_payment_method=True
+        save_payment_method=True,
+        payment_method=payment_method
     )
     
     print(f'[create_subscription] YooKassa result: {payment_result}')
