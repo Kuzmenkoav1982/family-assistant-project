@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { getWeekDays } from '@/data/mockData';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { CalendarEvent } from '@/types/family.types';
 
 interface CalendarWidgetProps {
@@ -13,21 +14,35 @@ interface CalendarWidgetProps {
 
 export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
   const navigate = useNavigate();
+  const { members } = useFamilyMembersContext();
   const [viewMode, setViewMode] = useState<'today' | 'week'>('week');
+  const [memberFilter, setMemberFilter] = useState<string>('all');
+  
+  // Фильтруем события по выбранному члену семьи
+  const filteredEvents = memberFilter === 'all'
+    ? calendarEvents
+    : calendarEvents.filter(event => {
+        // Если у события есть participants, проверяем их
+        if (event.participants && event.participants.length > 0) {
+          return event.participants.includes(memberFilter);
+        }
+        // Если participants пустой или нет, показываем всем
+        return true;
+      });
   
   // Получаем события на текущий месяц
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   
-  const monthEvents = calendarEvents.filter(e => {
+  const monthEvents = filteredEvents.filter(e => {
     const eventDate = new Date(e.date);
     return eventDate >= monthStart && eventDate <= monthEnd;
   });
   
   // Получаем сегодняшние события
   const today = new Date();
-  const todayEvents = calendarEvents.filter(e => 
+  const todayEvents = filteredEvents.filter(e => 
     new Date(e.date).toDateString() === today.toDateString()
   );
   
@@ -75,6 +90,37 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
             Неделя
           </Button>
         </div>
+        
+        {/* Фильтр по членам семьи */}
+        <div className="mt-3">
+          <div className="flex gap-2 flex-wrap">
+            <Badge
+              className={`cursor-pointer transition-all text-xs ${
+                memberFilter === 'all' ? 'bg-indigo-600 text-white border-2 border-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMemberFilter('all');
+              }}
+            >
+              Вся семья
+            </Badge>
+            {members.map(member => (
+              <Badge
+                key={member.id}
+                className={`cursor-pointer transition-all text-xs ${
+                  memberFilter === member.id ? 'bg-indigo-600 text-white border-2 border-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMemberFilter(member.id);
+                }}
+              >
+                {member.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent>
@@ -120,7 +166,7 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
           // Режим "Неделя"
           <div className="grid grid-cols-7 gap-1">
             {getWeekDays().map((day, index) => {
-              const dayEvents = calendarEvents.filter(e =>
+              const dayEvents = filteredEvents.filter(e =>
                 new Date(e.date).toDateString() === day.toDateString()
               );
               const isToday = day.toDateString() === new Date().toDateString();
