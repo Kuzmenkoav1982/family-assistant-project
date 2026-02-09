@@ -120,19 +120,14 @@ export default function Index({ onLogout }: IndexProps) {
   useSubscriptionReminder();
   useCalendarReminders();
   
-  const [familyName, setFamilyName] = useState('Наша семья');
-  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/files/Логотип Наша Семья.JPG');
+  const familyName = 'Наша Семья';
+  const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a0d51e84-ace1-4aec-9b12-45447b0650b0.jpg');
   
   useEffect(() => {
     const loadFamilyData = () => {
-      // Приоритет: сначала проверяем прямые ключи familyName и familyLogo
-      const savedFamilyName = localStorage.getItem('familyName');
+      // Название семьи всегда фиксированное
+      // Загружаем только логотип
       const savedFamilyLogo = localStorage.getItem('familyLogo');
-      
-      if (savedFamilyName) {
-        console.log('[DEBUG Index] Using saved familyName:', savedFamilyName);
-        setFamilyName(savedFamilyName);
-      }
       
       if (savedFamilyLogo) {
         console.log('[DEBUG Index] Using saved familyLogo:', savedFamilyLogo);
