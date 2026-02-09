@@ -119,22 +119,22 @@ export function CalendarHeader({
         </Alert>
       </Collapsible>
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 justify-center sm:justify-start overflow-x-auto pb-1">
           <Button variant="outline" size="sm" onClick={onPreviousPeriod}>
             <Icon name="ChevronLeft" size={16} />
           </Button>
-          <h2 className="text-2xl font-bold min-w-[200px] text-center">
+          <h2 className="text-xl sm:text-2xl font-bold min-w-[160px] sm:min-w-[200px] text-center whitespace-nowrap">
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h2>
           <Button variant="outline" size="sm" onClick={onNextPeriod}>
             <Icon name="ChevronRight" size={16} />
           </Button>
-          <Button variant="outline" size="sm" onClick={onToday}>
+          <Button variant="outline" size="sm" onClick={onToday} className="whitespace-nowrap">
             Сегодня
           </Button>
         </div>
-        <Button onClick={onAddEvent} className="gap-2">
+        <Button onClick={onAddEvent} className="gap-2 w-full sm:w-auto shrink-0">
           <Icon name="Plus" size={16} />
           Добавить событие
         </Button>
