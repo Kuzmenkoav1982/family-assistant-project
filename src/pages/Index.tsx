@@ -80,6 +80,7 @@ import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
 import { useSubscriptionReminder } from '@/hooks/useSubscriptionReminder';
 import { useCalendarReminders } from '@/hooks/useCalendarReminders';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
 import PanelSettings from '@/components/PanelSettings';
@@ -101,6 +102,7 @@ export default function Index({ onLogout }: IndexProps) {
   const { tasks: tasksRaw, loading: tasksLoading, toggleTask: toggleTaskDB, createTask, updateTask, deleteTask } = useTasks();
   const { data: familyData, syncing, syncData, getLastSyncTime } = useFamilyData();
   const { hasCompletedSetup } = useAIAssistant();
+  const { events: calendarEventsAPI, loading: calendarLoading } = useCalendarEvents();
   const [showAssistantSelector, setShowAssistantSelector] = useState(false);
   const [showFirstLoginWelcome, setShowFirstLoginWelcome] = useState(false);
   
@@ -313,17 +315,11 @@ export default function Index({ onLogout }: IndexProps) {
     setChatMessages([...chatMessages, message]);
     setNewMessage('');
   };
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
-    const saved = localStorage.getItem('calendarEvents');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialCalendarEvents;
-      }
-    }
-    return initialCalendarEvents;
-  });
+  // Используем события из API вместо localStorage
+  const calendarEvents = calendarEventsAPI || [];
+  const setCalendarEvents = () => {
+    console.warn('[Index] setCalendarEvents is deprecated, use useCalendarEvents hook instead');
+  };
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
