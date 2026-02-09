@@ -640,7 +640,11 @@ export default function Calendar() {
                   <div className="flex items-center gap-2">
                     <Icon name="User" size={16} className="text-gray-500" />
                     <span className="text-sm">
-                      <span className="text-gray-500">Для кого:</span> {(selectedEvent as CalendarEvent).assignedTo === 'all' ? 'Вся семья' : (selectedEvent as CalendarEvent).assignedTo || 'Не указано'}
+                      <span className="text-gray-500">Для кого:</span> {
+                        (selectedEvent as CalendarEvent).assignedTo === 'all' 
+                          ? 'Вся семья' 
+                          : members.find(m => m.id === (selectedEvent as CalendarEvent).assignedTo)?.name || 'Не указано'
+                      }
                     </span>
                   </div>
                 )}
