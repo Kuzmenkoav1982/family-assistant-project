@@ -236,6 +236,7 @@ export default function FamilyTracker() {
     
     setIsTracking(false);
     localStorage.setItem('isTracking', 'false');
+    sessionStorage.removeItem('trackingStarted');
   };
 
   // Добавление геозоны
@@ -493,10 +494,12 @@ export default function FamilyTracker() {
     }
   }, [map]);
 
-  // Восстановление отслеживания при загрузке страницы
+  // Восстановление отслеживания при загрузке страницы (только один раз)
   useEffect(() => {
-    if (isTracking && map) {
+    const hasStartedTracking = sessionStorage.getItem('trackingStarted');
+    if (isTracking && map && !hasStartedTracking) {
       startTracking();
+      sessionStorage.setItem('trackingStarted', 'true');
     }
   }, [map]);
 
