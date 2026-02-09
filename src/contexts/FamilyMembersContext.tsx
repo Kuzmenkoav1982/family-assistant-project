@@ -89,7 +89,9 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         permissions: {}
       }));
       
-      setMembers(convertedMembers);
+      // Стабильная сортировка по ID для предсказуемого порядка
+      const sortedMembers = [...convertedMembers].sort((a, b) => a.id.localeCompare(b.id));
+      setMembers(sortedMembers);
       setError(null);
       setLoading(false);
       isFetchingRef.current = false;
@@ -140,8 +142,16 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           piggyBank: m.piggyBank || 0,
           moodStatus: m.moodStatus || null
         }));
-        console.log('[FamilyMembersContext] Setting members:', convertedMembers.length);
-        setMembers(convertedMembers);
+        
+        // Стабильная сортировка по created_at для предсказуемого порядка
+        const sortedMembers = [...convertedMembers].sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          return dateA - dateB; // Сначала старые (кто раньше создан)
+        });
+        
+        console.log('[FamilyMembersContext] Setting members:', sortedMembers.length);
+        setMembers(sortedMembers);
         setError(null);
       } else {
         console.warn('[FamilyMembersContext] Failed to load members:', data.error);
