@@ -134,6 +134,10 @@ export default function Pricing() {
   const [paymentData, setPaymentData] = useState<any>(null);
   const [plans, setPlans] = useState(subscriptionPlans);
   const [plansLoading, setPlansLoading] = useState(true);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'sbp'>('card');
+  const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<'create' | 'extend' | 'upgrade'>('create');
 
   useEffect(() => {
     loadPlansFromDB();
@@ -231,7 +235,7 @@ export default function Pricing() {
     loadSubscription();
   }, []);
 
-  const handleSubscribe = async (planId: string, action: 'create' | 'extend' | 'upgrade' = 'create') => {
+  const showPaymentDialog = (planId: string, action: 'create' | 'extend' | 'upgrade' = 'create') => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       toast({
@@ -243,7 +247,7 @@ export default function Pricing() {
       return;
     }
 
-    if (planId === 'free') {
+    if (planId === 'free' || planId === 'free_2026') {
       toast({
         title: 'Бесплатный план',
         description: 'Вы уже используете бесплатный тариф! Помогайте нам развиваться — предлагайте новые идеи в разделе "Предложения".',
@@ -251,7 +255,19 @@ export default function Pricing() {
       return;
     }
 
-    setLoading(planId);
+    setPendingPlanId(planId);
+    setPendingAction(action);
+    setShowPaymentMethodDialog(true);
+  };
+
+  const handleSubscribe = showPaymentDialog;
+
+  const proceedWithPayment = async (paymentMethod: 'card' | 'sbp') => {
+    if (!pendingPlanId) return;
+    
+    const token = localStorage.getItem('authToken');
+    setLoading(pendingPlanId);
+    setShowPaymentMethodDialog(false);
 
     try {
       const response = await fetch(PAYMENTS_API, {
@@ -261,8 +277,9 @@ export default function Pricing() {
           'X-Auth-Token': token
         },
         body: JSON.stringify({
-          action: action,
-          plan_type: planId,
+          action: pendingAction,
+          plan_type: pendingPlanId,
+          payment_method: paymentMethod === 'sbp' ? 'sbp' : undefined,
           return_url: window.location.origin + '/pricing?status=success'
         })
       });
@@ -284,7 +301,7 @@ export default function Pricing() {
               {extendAvailable && (
                 <Button 
                   size="sm" 
-                  onClick={() => handleSubscribe(planId, 'extend')}
+                  onClick={() => showPaymentDialog(pendingPlanId || '', 'extend')}
                   className="w-full mt-2"
                 >
                   Продлить на месяц
@@ -293,7 +310,7 @@ export default function Pricing() {
               {upgradeAvailable && (
                 <Button 
                   size="sm" 
-                  onClick={() => handleSubscribe('full', 'upgrade')}
+                  onClick={() => showPaymentDialog('full', 'upgrade')}
                   className="w-full mt-2"
                 >
                   Перейти на "Полный пакет"
@@ -308,7 +325,7 @@ export default function Pricing() {
 
       if (data.success && data.payment_url) {
         // Отправка события в Яндекс.Метрику
-        sendMetrikaGoal(METRIKA_GOALS.CLICK_PREMIUM, { plan: planId, action: action });
+        sendMetrikaGoal(METRIKA_GOALS.CLICK_PREMIUM, { plan: pendingPlanId, action: pendingAction });
         window.location.href = data.payment_url;
       } else if (data.error) {
         toast({
@@ -790,6 +807,48 @@ export default function Pricing() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Method Selection Dialog */}
+      <Dialog open={showPaymentMethodDialog} onOpenChange={setShowPaymentMethodDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center">Выберите способ оплаты</DialogTitle>
+            <DialogDescription className="text-center">
+              Как вам удобнее оплатить подписку?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <Button
+              onClick={() => proceedWithPayment('sbp')}
+              className="h-auto py-6 flex flex-col items-center gap-3 hover:bg-blue-50 hover:border-blue-300"
+              variant="outline"
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className="text-4xl">📱</div>
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-lg">Система Быстрых Платежей (СБП)</div>
+                  <div className="text-sm text-muted-foreground">Выберите любой свой банк</div>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => proceedWithPayment('card')}
+              className="h-auto py-6 flex flex-col items-center gap-3 hover:bg-green-50 hover:border-green-300"
+              variant="outline"
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className="text-4xl">💳</div>
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-lg">Банковская карта</div>
+                  <div className="text-sm text-muted-foreground">Visa, MasterCard, МИР</div>
+                </div>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Payment Dialog with QR Code */}
       <Dialog open={paymentDialog} onOpenChange={setPaymentDialog}>

@@ -1,4 +1,5 @@
 {
+  "payment-sbp": "https://functions.poehali.dev/c6530a3b-947b-4cca-976d-430c9b91ee4a",
   "check-limits": "https://functions.poehali.dev/fde40f52-0eca-440b-915c-173b39e5b55a",
   "family-settings": "https://functions.poehali.dev/444bfdad-3354-44c6-95cb-c58ad7c8e4ea",
   "data-export": "https://functions.poehali.dev/bc534308-e636-472a-9104-78e3268c1157",

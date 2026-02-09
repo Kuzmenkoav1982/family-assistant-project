@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Create SBP payment",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "amount": 100,
+        "description": "Test payment",
+        "return_url": "https://example.com/success"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "payment_id": "string",
+        "confirmation_url": "string",
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get payment status",
+      "method": "GET",
+      "path": "/?payment_id=test-payment-id",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

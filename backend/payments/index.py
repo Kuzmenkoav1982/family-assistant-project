@@ -808,12 +808,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 plan_type = body.get('plan_type')
                 return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
                 force = body.get('force', False)
+                payment_method = body.get('payment_method')
                 
                 print(f'[DEBUG] plan_type: {plan_type}')
                 print(f'[DEBUG] return_url: {return_url}')
                 print(f'[DEBUG] family_id: {family_id}')
                 print(f'[DEBUG] user_id: {user_id}')
                 print(f'[DEBUG] force: {force}')
+                print(f'[DEBUG] payment_method: {payment_method}')
                 
                 if not plan_type:
                     return {
@@ -823,7 +825,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 print('[DEBUG] Calling create_subscription...')
-                result = create_subscription(family_id, user_id, plan_type, return_url, force)
+                result = create_subscription(family_id, user_id, plan_type, return_url, force, payment_method)
                 print(f'[DEBUG] create_subscription result: {result}')
                 
                 if 'error' in result:
