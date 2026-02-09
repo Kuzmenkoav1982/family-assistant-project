@@ -75,6 +75,7 @@ import FamilyPolicy from "./pages/FamilyPolicy";
 import WhatIsFamily from "./pages/WhatIsFamily";
 import FamilyNews from "./pages/FamilyNews";
 import Pricing from "./pages/Pricing";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import InvestorDeck from "./pages/InvestorDeck";
 import AdminSubscriptions from "./pages/AdminSubscriptions";
 import IdeasBoard from "./pages/IdeasBoard";
@@ -295,6 +296,7 @@ const App = () => {
                       <Route path="/terms-of-service" element={<TermsOfService />} />
                       <Route path="/refund-policy" element={<RefundPolicy />} />
                       <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/ideas" element={<IdeasBoard />} />
                       <Route path="/ideas-board" element={<IdeasBoard />} />
                       <Route path="/investor-deck" element={<InvestorDeck />} />
