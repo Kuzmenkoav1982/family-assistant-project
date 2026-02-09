@@ -22,12 +22,28 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
   const filteredEvents = memberFilter === 'all'
     ? calendarEvents
     : calendarEvents.filter(event => {
-        // Если у события есть participants, проверяем их
-        if (event.participants && event.participants.length > 0) {
-          return event.participants.includes(memberFilter);
+        // Если событие для всей семьи - показываем всегда
+        if (event.assignedTo === 'all') {
+          return true;
         }
-        // Если participants пустой или нет, показываем всем
-        return true;
+        
+        // Если событие назначено конкретно на этого человека (по ID)
+        if (event.assignedTo === memberFilter) {
+          return true;
+        }
+        
+        // Дополнительная проверка: ищем по имени если memberFilter это ID
+        const member = members.find(m => m.id === memberFilter);
+        if (member && event.assignedTo === member.name) {
+          return true;
+        }
+        
+        // Если человек в списке участников
+        if (Array.isArray(event.attendees) && event.attendees.includes(memberFilter)) {
+          return true;
+        }
+        
+        return false;
       });
   
   // Получаем события на текущий месяц
