@@ -20,8 +20,13 @@ YOOKASSA_SHOP_ID = os.environ.get('YOOKASSA_SHOP_ID', '')
 YOOKASSA_SECRET_KEY = os.environ.get('YOOKASSA_SECRET_KEY', '')
 
 PLANS = {
-    'ai_assistant': {'name': 'AI-помощник', 'price': 200, 'months': 1},
-    'full': {'name': 'Полный пакет', 'price': 500, 'months': 1}
+    'free_2026': {'name': 'Free', 'price': 0, 'months': 0},
+    'premium_1m': {'name': 'Premium 1 месяц', 'price': 299, 'months': 1},
+    'premium_3m': {'name': 'Premium 3 месяца', 'price': 799, 'months': 3},
+    'premium_6m': {'name': 'Premium 6 месяцев', 'price': 1499, 'months': 6},
+    'premium_12m': {'name': 'Premium 12 месяцев', 'price': 2699, 'months': 12},
+    'ai_assistant': {'name': 'AI-помощник (старый)', 'price': 200, 'months': 1},
+    'full': {'name': 'Полный пакет (старый)', 'price': 500, 'months': 1}
 }
 
 def get_db_connection():
@@ -78,8 +83,8 @@ def get_user_email(user_id: str) -> str:
     
     return user['email'] if user and user['email'] else 'support@nasha-semiya.ru'
 
-def create_yookassa_payment(amount: float, description: str, return_url: str, metadata: dict = None) -> Dict[str, Any]:
-    """Создаёт платёж в ЮКассе через REST API"""
+def create_yookassa_payment(amount: float, description: str, return_url: str, metadata: dict = None, save_payment_method: bool = False) -> Dict[str, Any]:
+    """Создаёт платёж в ЮКассе через REST API с поддержкой рекуррентных платежей"""
     idempotence_key = str(uuid.uuid4())
     
     payment_data = {
@@ -112,6 +117,9 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
             ]
         }
     }
+    
+    if save_payment_method:
+        payment_data['save_payment_method'] = True
     
     if metadata:
         payment_data['metadata'] = metadata
@@ -159,7 +167,7 @@ def create_yookassa_payment(amount: float, description: str, return_url: str, me
         return {'error': f'Ошибка создания платежа: {str(e)}'}
 
 def get_payment_status(payment_id: str) -> Dict[str, Any]:
-    """Получает статус платежа из ЮКассы"""
+    """Получает статус платежа из ЮКассы с payment_method_id для рекуррентов"""
     auth_string = f'{YOOKASSA_SHOP_ID}:{YOOKASSA_SECRET_KEY}'
     auth_bytes = auth_string.encode('utf-8')
     auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
@@ -175,11 +183,13 @@ def get_payment_status(payment_id: str) -> Dict[str, Any]:
     try:
         response = urlopen(req)
         result = json.loads(response.read().decode('utf-8'))
+        payment_method = result.get('payment_method', {})
         return {
             'success': True,
             'status': result['status'],
             'paid': result.get('paid', False),
-            'payment_method': result.get('payment_method', {}).get('type')
+            'payment_method': payment_method.get('type'),
+            'payment_method_id': payment_method.get('id', '')
         }
     except Exception as e:
         return {'error': f'Ошибка проверки платежа: {str(e)}'}
@@ -211,7 +221,7 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
     user_email = get_user_email(user_id)
     print(f'[create_subscription] User email: {user_email}')
     
-    # Создаём платёж в ЮКассе
+    # Создаём платёж в ЮКассе с сохранением платёжного метода для рекуррентов
     print(f'[create_subscription] Creating YooKassa payment...')
     payment_result = create_yookassa_payment(
         plan['price'],
@@ -222,7 +232,8 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
             'user_id': user_id,
             'plan_type': plan_type,
             'user_email': user_email
-        }
+        },
+        save_payment_method=True
     )
     
     print(f'[create_subscription] YooKassa result: {payment_result}')
@@ -526,12 +537,21 @@ def check_payment_and_activate(payment_id: str) -> Dict[str, Any]:
             """
         )
         
-        # Если платёж успешен, активируем подписку
+        # Если платёж успешен, активируем подписку и сохраняем payment_method_id для рекуррентов
         if status_result['status'] == 'succeeded' and status_result['paid']:
+            payment_token = status_result.get('payment_method_id', '')
+            safe_payment_token = payment_token.replace("'", "''")
+            
             cur.execute(
                 f"""
                 UPDATE {SCHEMA}.subscriptions 
-                SET status = 'active', start_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                SET 
+                    status = 'active', 
+                    start_date = CURRENT_TIMESTAMP, 
+                    updated_at = CURRENT_TIMESTAMP,
+                    payment_token = '{safe_payment_token}',
+                    yookassa_payment_id = '{safe_payment_id}',
+                    last_payment_date = CURRENT_TIMESTAMP
                 WHERE id = '{payment["subscription_id"]}'
                 """
             )
