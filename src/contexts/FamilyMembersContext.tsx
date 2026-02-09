@@ -17,7 +17,7 @@ interface FamilyMember {
   age?: number;
   created_at: string;
   updated_at: string;
-  dreams?: any[];
+  dreams?: Array<{id: string; text: string; created_at: string}>;
   piggyBank?: number;
   achievements?: string[];
   responsibilities?: string[];
@@ -29,9 +29,9 @@ interface FamilyMembersContextType {
   loading: boolean;
   error: string | null;
   fetchMembers: (silent?: boolean) => Promise<void>;
-  addMember: (memberData: Partial<FamilyMember>) => Promise<any>;
-  updateMember: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<any>;
-  deleteMember: (memberId: string) => Promise<any>;
+  addMember: (memberData: Partial<FamilyMember>) => Promise<{success: boolean; member?: FamilyMember; error?: string}>;
+  updateMember: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<{success: boolean; error?: string}>;
+  deleteMember: (memberId: string) => Promise<{success: boolean; error?: string}>;
 }
 
 export const FamilyMembersContext = createContext<FamilyMembersContextType | undefined>(undefined);
@@ -71,7 +71,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       // Имитируем небольшую задержку загрузки
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      const convertedMembers = initialFamilyMembers.map((m: any) => ({
+      const convertedMembers = initialFamilyMembers.map((m: Partial<FamilyMember> & {photoUrl?: string; avatarType?: string}) => ({
         ...m,
         user_id: `demo_${m.id}`,
         avatar_type: 'emoji',
@@ -130,7 +130,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           localStorage.setItem('familyId', data.family_id);
         }
         
-        const convertedMembers = data.members.map((m: any) => ({
+        const convertedMembers = data.members.map((m: Partial<FamilyMember> & {photo_url?: string; avatar_type?: string}) => ({
           ...m,
           avatarType: m.avatar_type,
           photoUrl: m.photo_url,
@@ -175,7 +175,23 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
 
   const addMember = async (memberData: Partial<FamilyMember>) => {
     try {
-      const backendData: any = { ...memberData };
+      const familyId = localStorage.getItem('familyId');
+      if (familyId) {
+        try {
+          const limitsResponse = await fetch('https://functions.poehali.dev/b92c4b01-02db-4805-95d0-c79df5b10d1a', {
+            headers: { 'X-Family-Id': familyId }
+          });
+          const limitsData = await limitsResponse.json();
+          
+          if (!limitsData.limits.family_members.allowed) {
+            return { success: false, error: 'Лимит членов семьи исчерпан. Перейдите на Premium.' };
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const backendData: Record<string, unknown> = { ...memberData };
       if (memberData.photoUrl) {
         backendData.photo_url = memberData.photoUrl;
         delete backendData.photoUrl;
@@ -218,7 +234,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         return { success: false, error: 'Не указан ID члена семьи' };
       }
 
-      const backendData: any = { ...memberData };
+      const backendData: Record<string, unknown> = { ...memberData };
       
       // Конвертируем camelCase в snake_case для backend
       if (memberData.photoUrl) {
