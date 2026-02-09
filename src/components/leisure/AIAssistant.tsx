@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const LEISURE_AI_URL = 'https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5';
 
@@ -40,6 +43,11 @@ const AGE_GROUPS = [
 ];
 
 export function AIAssistant({ onAddPlace }: AIAssistantProps) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const familyId = localStorage.getItem('currentFamilyId') || null;
+  const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
+
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
@@ -49,8 +57,32 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
   const [budget, setBudget] = useState('средний');
 
   const handleGetRecommendations = async () => {
+    // Проверка лимитов
+    if (!aiRequestsAllowed) {
+      toast({
+        title: '⚠️ Лимит AI-запросов исчерпан',
+        description: isPremium 
+          ? 'Произошла ошибка. Обратитесь в поддержку.'
+          : `Вы использовали ${limits?.limits?.ai_requests?.used || 0} из ${limits?.limits?.ai_requests?.limit || 5} бесплатных запросов сегодня. Обновитесь до Premium!`,
+        variant: 'destructive',
+        action: !isPremium ? (
+          <Button 
+            size="sm" 
+            onClick={() => navigate('/pricing')}
+            className="bg-gradient-to-r from-purple-500 to-indigo-600"
+          >
+            Перейти на Premium
+          </Button>
+        ) : undefined
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      // Инкрементируем счётчик
+      await incrementUsage('ai_requests');
+
       const response = await fetch(LEISURE_AI_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

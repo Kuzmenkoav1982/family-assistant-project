@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface Place {
   name: string;
@@ -49,6 +52,11 @@ const INTERESTS_OPTIONS = [
 ];
 
 export default function ItineraryGenerator() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const familyId = localStorage.getItem('currentFamilyId') || null;
+  const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
+
   const [location, setLocation] = useState('');
   const [duration, setDuration] = useState('3');
   const [interests, setInterests] = useState<string[]>([]);
@@ -80,11 +88,35 @@ export default function ItineraryGenerator() {
       return;
     }
 
+    // Проверка лимитов
+    if (!aiRequestsAllowed) {
+      toast({
+        title: '⚠️ Лимит AI-запросов исчерпан',
+        description: isPremium 
+          ? 'Произошла ошибка. Обратитесь в поддержку.'
+          : `Вы использовали ${limits?.limits?.ai_requests?.used || 0} из ${limits?.limits?.ai_requests?.limit || 5} бесплатных запросов сегодня. Обновитесь до Premium!`,
+        variant: 'destructive',
+        action: !isPremium ? (
+          <Button 
+            size="sm" 
+            onClick={() => navigate('/pricing')}
+            className="bg-gradient-to-r from-purple-500 to-indigo-600"
+          >
+            Перейти на Premium
+          </Button>
+        ) : undefined
+      });
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setItinerary(null);
 
     try {
+      // Инкрементируем счётчик
+      await incrementUsage('ai_requests');
+
       const response = await fetch('https://functions.poehali.dev/b035a0b5-d08d-40dc-b958-c2676d5f848d', {
         method: 'POST',
         headers: {
@@ -116,13 +148,30 @@ export default function ItineraryGenerator() {
     <div className="container mx-auto p-4 max-w-6xl">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="Sparkles" size={24} />
-            Генератор маршрутов путешествий
-          </CardTitle>
-          <CardDescription>
-            Создайте персональный маршрут путешествия с помощью искусственного интеллекта
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="Sparkles" size={24} />
+                Генератор маршрутов путешествий
+              </CardTitle>
+              <CardDescription>
+                Создайте персональный маршрут путешествия с помощью искусственного интеллекта
+              </CardDescription>
+            </div>
+            {/* Индикатор лимитов */}
+            {!isPremium && limits && (
+              <Badge variant="outline" className="text-sm">
+                <Icon name="Zap" size={14} className="mr-1" />
+                {(limits.limits.ai_requests.limit || 5) - limits.limits.ai_requests.used} / {limits.limits.ai_requests.limit}
+              </Badge>
+            )}
+            {isPremium && (
+              <Badge className="bg-gradient-to-r from-purple-500 to-indigo-600 text-sm">
+                <Icon name="Crown" size={14} className="mr-1" />
+                Premium
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">

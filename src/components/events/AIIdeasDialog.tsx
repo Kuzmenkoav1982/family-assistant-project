@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { useNavigate } from 'react-router-dom';
 import func2url from '../../../backend/func2url.json';
 
 const API_URL = func2url['event-ai-ideas'];
@@ -42,6 +44,10 @@ function getUserId(): string {
 
 export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeasDialogProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const familyId = localStorage.getItem('currentFamilyId') || null;
+  const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
+
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState('');
   const [formData, setFormData] = useState({
@@ -60,10 +66,34 @@ export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeas
   };
 
   const handleGenerate = async () => {
+    // Проверка лимитов
+    if (!aiRequestsAllowed) {
+      toast({
+        title: '⚠️ Лимит AI-запросов исчерпан',
+        description: isPremium 
+          ? 'Произошла ошибка. Обратитесь в поддержку.'
+          : `Вы использовали ${limits?.limits?.ai_requests?.used || 0} из ${limits?.limits?.ai_requests?.limit || 5} бесплатных запросов сегодня. Обновитесь до Premium!`,
+        variant: 'destructive',
+        action: !isPremium ? (
+          <Button 
+            size="sm" 
+            onClick={() => { onOpenChange(false); navigate('/pricing'); }}
+            className="bg-gradient-to-r from-purple-500 to-indigo-600"
+          >
+            Перейти на Premium
+          </Button>
+        ) : undefined
+      });
+      return;
+    }
+
     setLoading(true);
     setIdeas('');
 
     try {
+      // Инкрементируем счётчик
+      await incrementUsage('ai_requests');
+
       const userId = getUserId();
       const authToken = localStorage.getItem('authToken');
 
