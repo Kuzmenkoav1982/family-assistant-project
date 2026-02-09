@@ -4,7 +4,7 @@ export interface WorkloadMetrics {
   activeTasks: number;
   completedToday: number;
   responsibilities: number;
-  todayEvents: number;
+  todayEvents: number; // Количество событий ТОЛЬКО на сегодня
   weekAchievements: number;
   workloadPercentage: number;
   workloadStatus: 'free' | 'busy' | 'overloaded';
@@ -67,11 +67,11 @@ export function calculateMemberWorkload(
   // Обязанности (из профиля)
   const responsibilities = member.responsibilities?.length || 0;
 
-  // События на сегодня и будущие (для виджета показываем все предстоящие)
+  // События ТОЛЬКО на сегодня (изменено с "сегодня и будущие" на "только сегодня")
   const filteredEvents = events.filter(event => {
     const eventDate = new Date(event.date);
     eventDate.setHours(0, 0, 0, 0);
-    const isTodayOrFuture = eventDate.getTime() >= today.getTime();
+    const isToday = eventDate.getTime() === today.getTime();  // ИЗМЕНЕНО: только сегодня
     
     // Проверяем: участник в participants/attendees или событие назначено на него (assignedTo)
     const isParticipant = event.participants?.includes(member.id) || 
@@ -82,20 +82,7 @@ export function calculateMemberWorkload(
                           event.assignedTo === member.name ||
                           event.assignedTo === 'all';  // Событие для всей семьи
     
-    const match = isTodayOrFuture && isParticipant;
-    
-    // DEBUG: Логируем для Анастасии
-    if (member.name === 'Анастасия' && match) {
-      console.log('[memberWorkload] Event matched for Анастасия:', {
-        id: event.id,
-        date: event.date,
-        assignedTo: event.assignedTo,
-        isTodayOrFuture,
-        isParticipant
-      });
-    }
-    
-    return match;
+    return isToday && isParticipant;  // ИЗМЕНЕНО: только события сегодня
   });
   
   const todayEvents = filteredEvents.length;
@@ -168,7 +155,7 @@ export function getWorkloadDescription(metrics: WorkloadMetrics): string {
   }
   
   if (metrics.todayEvents > 0) {
-    parts.push(`${metrics.todayEvents} ${getEventWord(metrics.todayEvents)}`);
+    parts.push(`${metrics.todayEvents} ${getEventWord(metrics.todayEvents)} сегодня`);
   }
 
   return parts.length > 0 ? parts.join(', ') : 'Нет активностей';

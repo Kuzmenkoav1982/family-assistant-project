@@ -269,7 +269,7 @@ const MemberCard = ({
                     <div className="flex flex-col items-center justify-center text-center">
                       <Icon name="Calendar" size={13} className="text-purple-500 mb-0.5" />
                       <span className="text-sm font-bold text-gray-900 leading-none">{metrics.todayEvents}</span>
-                      <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap mt-0.5">Событий</p>
+                      <p className="text-[9px] text-gray-500 leading-tight whitespace-nowrap mt-0.5">Сегодня</p>
                     </div>
                   )}
                   {widgetSettings.showWeekAchievements && (
