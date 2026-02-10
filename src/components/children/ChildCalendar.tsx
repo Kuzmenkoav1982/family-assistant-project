@@ -142,24 +142,26 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <Icon name="Calendar" size={20} />
             Личный календарь {child.name}
           </CardTitle>
-          <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+          <Button onClick={() => setShowAddDialog(true)} className="gap-2 w-full sm:w-auto whitespace-nowrap">
             <Icon name="Plus" size={16} />
-            Добавить событие
+            <span className="hidden sm:inline">Добавить событие</span>
+            <span className="sm:hidden">Добавить</span>
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Фильтры */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex gap-2">
             <Button
               variant={viewMode === 'upcoming' ? 'default' : 'outline'}
               size="sm"
+              className="flex-1 sm:flex-initial whitespace-nowrap"
               onClick={() => setViewMode('upcoming')}
             >
               Предстоящие
@@ -167,6 +169,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
             <Button
               variant={viewMode === 'month' ? 'default' : 'outline'}
               size="sm"
+              className="flex-1 sm:flex-initial whitespace-nowrap"
               onClick={() => setViewMode('month')}
             >
               Этот месяц
@@ -174,7 +177,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
           </div>
 
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Категория" />
             </SelectTrigger>
             <SelectContent>
@@ -189,7 +192,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
         </div>
 
         {/* Статистика */}
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
             const count = events.filter(e => e.category === key).length;
             return (

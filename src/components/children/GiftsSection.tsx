@@ -61,16 +61,17 @@ export function GiftsSection({ child }: { child: FamilyMember }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Icon name="Gift" size={24} />
               Предстоящие подарки
             </CardTitle>
             <Dialog open={newGiftDialog} onOpenChange={setNewGiftDialog}>
               <DialogTrigger asChild>
-                <Button className="gap-2 bg-gradient-to-r from-pink-600 to-purple-600">
+                <Button className="gap-2 bg-gradient-to-r from-pink-600 to-purple-600 w-full sm:w-auto whitespace-nowrap">
                   <Icon name="Plus" size={16} />
-                  Добавить подарок
+                  <span className="hidden sm:inline">Добавить подарок</span>
+                  <span className="sm:hidden">Добавить</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>

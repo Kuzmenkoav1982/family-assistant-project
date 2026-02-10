@@ -339,7 +339,7 @@ export function HealthSection({ child }: HealthSectionProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Icon name="Syringe" size={20} />
               Прививки
@@ -347,9 +347,10 @@ export function HealthSection({ child }: HealthSectionProps) {
             {canAddDoctor && (
               <Dialog open={newVaccinationDialog} onOpenChange={setNewVaccinationDialog}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="gap-2">
+                  <Button size="sm" className="gap-2 w-full sm:w-auto whitespace-nowrap">
                     <Icon name="Plus" size={16} />
-                    Добавить прививку
+                    <span className="hidden sm:inline">Добавить прививку</span>
+                    <span className="sm:hidden">Добавить</span>
                   </Button>
                 </DialogTrigger>
               <DialogContent>
@@ -425,27 +426,28 @@ export function HealthSection({ child }: HealthSectionProps) {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Icon name="Pill" size={20} />
               Лекарства
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="gap-2"
+                className="gap-2 flex-shrink-0"
                 onClick={() => setNotificationSettingsDialog(true)}
               >
                 <Icon name="Bell" size={16} />
-                Уведомления
+                <span className="hidden sm:inline">Уведомления</span>
                 {settings.enabled && <Badge variant="outline" className="ml-1 bg-green-50 text-green-700">ВКЛ</Badge>}
               </Button>
               <Dialog open={newMedicationDialog} onOpenChange={setNewMedicationDialog}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2 flex-1 sm:flex-initial whitespace-nowrap">
                   <Icon name="Plus" size={16} />
-                  Добавить лекарство
+                  <span className="hidden sm:inline">Добавить лекарство</span>
+                  <span className="sm:hidden">Добавить</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
@@ -839,16 +841,17 @@ export function HealthSection({ child }: HealthSectionProps) {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Icon name="Stethoscope" size={20} />
               План посещения врачей
             </CardTitle>
             <Dialog open={newDoctorVisitDialog} onOpenChange={setNewDoctorVisitDialog}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2 w-full sm:w-auto whitespace-nowrap">
                   <Icon name="Plus" size={16} />
-                  Добавить посещение
+                  <span className="hidden sm:inline">Добавить посещение</span>
+                  <span className="sm:hidden">Добавить</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -936,16 +939,17 @@ export function HealthSection({ child }: HealthSectionProps) {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Icon name="FileText" size={20} />
               Прикрепленные файлы ({healthDocuments.length})
             </CardTitle>
-            <label className="cursor-pointer">
-              <Button variant="outline" className="gap-2" disabled={uploading} type="button" asChild>
+            <label className="cursor-pointer w-full sm:w-auto">
+              <Button variant="outline" className="gap-2 w-full sm:w-auto whitespace-nowrap" disabled={uploading} type="button" asChild>
                 <span>
                   <Icon name="Upload" size={16} />
-                  {uploading ? `Загрузка ${progress}%` : 'Загрузить файл'}
+                  <span className="hidden sm:inline">{uploading ? `Загрузка ${progress}%` : 'Загрузить файл'}</span>
+                  <span className="sm:hidden">{uploading ? `${progress}%` : 'Загрузить'}</span>
                 </span>
               </Button>
               <input
