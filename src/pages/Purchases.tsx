@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ interface Purchase {
 }
 
 export default function Purchases() {
+  const navigate = useNavigate();
   const familyContext = useContext(FamilyMembersContext);
   const familyMembers = familyContext?.members || [];
   const familyId = familyContext?.familyId;
@@ -222,6 +224,14 @@ export default function Purchases() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/welcome')}
+              className="hover:bg-blue-100 -ml-2"
+            >
+              <Icon name="ArrowLeft" size={20} />
+            </Button>
             <Icon name="ShoppingBag" size={32} className="text-blue-600" />
             <div>
               <h1 className="text-3xl font-bold">План покупок</h1>
