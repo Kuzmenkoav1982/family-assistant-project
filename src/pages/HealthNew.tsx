@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -65,6 +66,9 @@ function HealthNew() {
   
   console.log('[HealthNew] Component mounted, isDemoMode:', isDemoMode, 'authToken:', !!authToken);
   
+  const familyContext = useContext(FamilyMembersContext);
+  const familyMembers = familyContext?.members || [];
+  
   const { profiles: apiProfiles, loading: profilesLoading, refetch: refetchProfiles } = useHealthProfiles();
   const { records: apiRecords, refetch: refetchRecords } = useHealthRecords(selectedProfile?.id);
   const { vaccinations: apiVaccinations, refetch: refetchVaccinations } = useVaccinations(selectedProfile?.id);
@@ -74,10 +78,35 @@ function HealthNew() {
   const { insurance: apiInsurance, refetch: refetchInsurance } = useInsurance(selectedProfile?.id);
   const { sessions: apiSessions, refetch: refetchTelemedicine } = useTelemedicine(selectedProfile?.id);
 
-  const profiles = useMemo(() => 
-    isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles,
-    [isDemoMode, authToken, apiProfiles]
-  );
+  const profiles = useMemo(() => {
+    if (isDemoMode && !authToken) return DEMO_HEALTH_PROFILES;
+    
+    // Объединяем членов семьи с существующими health profiles
+    const allProfiles = familyMembers.map(member => {
+      // Ищем существующий health profile для этого member
+      const existingProfile = apiProfiles.find(p => p.userName === member.name || p.id === member.id);
+      
+      if (existingProfile) {
+        return existingProfile;
+      }
+      
+      // Создаём временный профиль для члена семьи без health profile
+      return {
+        id: member.id,
+        userName: member.name,
+        userAge: member.age || 0,
+        bloodType: '',
+        rhFactor: '',
+        allergies: [],
+        chronicDiseases: [],
+        emergencyContacts: [],
+        privacy: 'parents' as const,
+        photoUrl: member.photo_url || undefined
+      };
+    });
+    
+    return allProfiles;
+  }, [isDemoMode, authToken, apiProfiles, familyMembers]);
   
   const records = useMemo(() => 
     isDemoMode && !authToken ? DEMO_HEALTH_RECORDS_NEW.filter(r => r.profileId === selectedProfile?.id) : apiRecords,
