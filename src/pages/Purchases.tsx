@@ -196,15 +196,38 @@ export default function Purchases() {
     }
   };
 
+  const totalAllSeasons = purchases
+    .filter(p => !p.purchased)
+    .filter(p => {
+      if (filterMember !== 'all') {
+        if (filterMember === 'family') return !p.member_id || p.member_id === 'family';
+        return p.member_id === filterMember;
+      }
+      return true;
+    })
+    .filter(p => {
+      if (filterCategory !== 'all') return p.category === filterCategory;
+      return true;
+    })
+    .reduce((sum, p) => sum + (p.estimated_cost || 0), 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <Icon name="ShoppingBag" size={32} className="text-blue-600" />
-          <div>
-            <h1 className="text-3xl font-bold">План покупок</h1>
-            <p className="text-gray-600">Планируйте покупки для всей семьи по сезонам</p>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <Icon name="ShoppingBag" size={32} className="text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-bold">План покупок</h1>
+              <p className="text-gray-600">Планируйте покупки для всей семьи по сезонам</p>
+            </div>
           </div>
+          {totalAllSeasons > 0 && (
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg">
+              <div className="text-sm font-medium opacity-90">Общая сумма запланировано</div>
+              <div className="text-2xl font-bold">{totalAllSeasons.toLocaleString()} ₽</div>
+            </div>
+          )}
         </div>
 
         <Card 
@@ -374,7 +397,7 @@ export default function Purchases() {
                               className="p-0 h-8 w-8"
                               onClick={() => handleTogglePurchased(item.id, item.purchased)}
                             >
-                              <Icon name="Circle" size={20} className="text-gray-400" />
+                              <Icon name="Square" size={20} className="text-gray-400" />
                             </Button>
                             
                             <div className="flex-1 min-w-0">
@@ -439,7 +462,7 @@ export default function Purchases() {
                               className="p-0 h-8 w-8"
                               onClick={() => handleTogglePurchased(item.id, item.purchased)}
                             >
-                              <Icon name="CheckCircle2" size={20} className="text-green-600" />
+                              <Icon name="CheckSquare" size={20} className="text-green-600" />
                             </Button>
                             
                             <div className="flex-1 min-w-0">
