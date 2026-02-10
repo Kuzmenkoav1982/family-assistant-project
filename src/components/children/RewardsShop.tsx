@@ -166,20 +166,20 @@ export function RewardsShop({ childId, balance }: RewardsShopProps) {
     <div className="space-y-6">
       {/* Баланс */}
       <Card className="bg-gradient-to-r from-yellow-100 via-yellow-50 to-orange-100 border-2 border-yellow-300">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-6xl">💰</div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Твой баланс</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-5xl font-bold text-yellow-600">{balance}</span>
-                  <span className="text-2xl text-gray-600">монет</span>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="text-4xl sm:text-6xl flex-shrink-0">💰</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Твой баланс</p>
+                <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                  <span className="text-3xl sm:text-5xl font-bold text-yellow-600">{balance}</span>
+                  <span className="text-lg sm:text-2xl text-gray-600">монет</span>
                 </div>
               </div>
             </div>
             {pendingPurchases.length > 0 && (
-              <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
+              <Badge className="bg-orange-500 text-white text-sm sm:text-lg px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
                 {pendingPurchases.length} покупок ожидают
               </Badge>
             )}
@@ -189,17 +189,18 @@ export function RewardsShop({ childId, balance }: RewardsShopProps) {
 
       {/* Магазин наград */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="ShoppingCart" size={20} className="text-purple-600" />
-              Магазин наград
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Icon name="ShoppingCart" size={20} className="text-purple-600 flex-shrink-0" />
+              <span className="truncate">Магазин наград</span>
             </CardTitle>
             <Dialog open={addRewardDialog} onOpenChange={setAddRewardDialog}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Icon name="Plus" size={16} />
-                  Добавить награду (Родители)
+                <Button variant="outline" size="sm" className="gap-1 whitespace-nowrap flex-shrink-0 text-xs sm:text-sm">
+                  <Icon name="Plus" size={14} className="sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Добавить награду (Родители)</span>
+                  <span className="inline sm:hidden">Добавить</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>

@@ -96,9 +96,10 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button size="sm">
+          <Button size="sm" className="whitespace-nowrap">
             <Icon name="Plus" size={14} />
-            Добавить запись
+            <span className="hidden sm:inline">Добавить запись</span>
+            <span className="inline sm:hidden">Добавить</span>
           </Button>
         )}
       </DialogTrigger>

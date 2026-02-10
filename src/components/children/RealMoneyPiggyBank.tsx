@@ -97,52 +97,52 @@ export function RealMoneyPiggyBank({ childId }: RealMoneyPiggyBankProps) {
     <div className="space-y-6">
       {/* Общий баланс */}
       <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <span className="text-4xl">💰</span>
-            <div>
-              <div className="text-2xl font-bold">Копилка настоящих денег</div>
-              <div className="text-sm font-normal text-gray-600">Учёт реальных средств</div>
+            <span className="text-3xl sm:text-4xl">💰</span>
+            <div className="min-w-0">
+              <div className="text-lg sm:text-2xl font-bold truncate">Копилка настоящих денег</div>
+              <div className="text-xs sm:text-sm font-normal text-gray-600">Учёт реальных средств</div>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6">
-            <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 shadow-2xl mb-4">
-              <span className="text-6xl">🏦</span>
+          <div className="text-center py-4 sm:py-6">
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 shadow-2xl mb-3 sm:mb-4">
+              <span className="text-5xl sm:text-6xl">🏦</span>
             </div>
-            <div className="text-6xl font-bold text-green-600 mb-2">
+            <div className="text-4xl sm:text-6xl font-bold text-green-600 mb-2">
               {balance} ₽
             </div>
-            <p className="text-lg text-gray-700 mb-6">
+            <p className="text-base sm:text-lg text-gray-700 mb-4 sm:mb-6 px-4">
               {balance === 0 && 'Начни копить! 💪'}
               {balance > 0 && balance < 1000 && 'Отличное начало! 🌟'}
               {balance >= 1000 && balance < 5000 && 'Здорово! Продолжай копить! 🎉'}
               {balance >= 5000 && 'Вау! Настоящий накопитель! 🏆'}
             </p>
 
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mb-6">
-              <div className="bg-white rounded-lg p-4 shadow-md">
-                <div className="text-3xl mb-2">💵</div>
-                <div className="text-sm text-gray-600">Получено</div>
-                <div className="text-xl font-bold text-green-600">{totalIncome} ₽</div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto mb-4 sm:mb-6 px-4">
+              <div className="bg-white rounded-lg p-3 sm:p-4 shadow-md">
+                <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💵</div>
+                <div className="text-xs sm:text-sm text-gray-600">Получено</div>
+                <div className="text-lg sm:text-xl font-bold text-green-600">{totalIncome} ₽</div>
               </div>
-              <div className="bg-white rounded-lg p-4 shadow-md">
-                <div className="text-3xl mb-2">💸</div>
-                <div className="text-sm text-gray-600">Потрачено</div>
-                <div className="text-xl font-bold text-red-600">{totalExpense} ₽</div>
+              <div className="bg-white rounded-lg p-3 sm:p-4 shadow-md">
+                <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💸</div>
+                <div className="text-xs sm:text-sm text-gray-600">Потрачено</div>
+                <div className="text-lg sm:text-xl font-bold text-red-600">{totalExpense} ₽</div>
               </div>
             </div>
 
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center w-full max-w-md mx-auto">
               <Dialog open={addDialog && transactionType === 'income'} onOpenChange={(open) => {
                 setAddDialog(open);
                 if (open) setTransactionType('income');
               }}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 bg-green-600 hover:bg-green-700">
-                    <Icon name="Plus" size={16} />
-                    Добавить поступление
+                  <Button className="gap-2 bg-green-600 hover:bg-green-700 flex-1 text-sm sm:text-base whitespace-nowrap">
+                    <Icon name="Plus" size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="truncate">Добавить поступление</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -193,9 +193,9 @@ export function RealMoneyPiggyBank({ childId }: RealMoneyPiggyBankProps) {
                 if (open) setTransactionType('expense');
               }}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <Icon name="Minus" size={16} />
-                    Добавить расход
+                  <Button variant="outline" className="gap-2 flex-1 text-sm sm:text-base whitespace-nowrap">
+                    <Icon name="Minus" size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="truncate">Добавить расход</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>

@@ -223,22 +223,24 @@ function HealthNew() {
 
       {selectedProfile && (
         <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="User" />
-                  Здоровье: {selectedProfile.userName}
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Icon name="User" className="flex-shrink-0" />
+                  <span className="truncate">Здоровье: {selectedProfile.userName}</span>
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {selectedProfile.privacy === 'private' && '🔒 Приватность: Только я'}
                   {selectedProfile.privacy === 'parents' && '👨‍👩‍👧 Приватность: Родители'}
                 </p>
               </div>
-              <AddHealthRecordDialog 
-                profileId={selectedProfile.id} 
-                onSuccess={() => refetchRecords()}
-              />
+              <div className="flex-shrink-0">
+                <AddHealthRecordDialog 
+                  profileId={selectedProfile.id} 
+                  onSuccess={() => refetchRecords()}
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
