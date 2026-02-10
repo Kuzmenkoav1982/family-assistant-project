@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { WhatIsFamilyHeader } from '@/components/family-policy/WhatIsFamilyHeader';
 import { FamilyDefinitions } from '@/components/family-policy/FamilyDefinitions';
 import { FamilyHistory } from '@/components/family-policy/FamilyHistory';
-import { CountryRatings } from '@/components/family-policy/CountryRatings';
 
 export default function WhatIsFamily() {
   const navigate = useNavigate();
@@ -13,7 +12,6 @@ export default function WhatIsFamily() {
         <WhatIsFamilyHeader onNavigateBack={() => navigate('/family-policy')} />
         <FamilyDefinitions />
         <FamilyHistory />
-        <CountryRatings />
       </div>
     </div>
   );
