@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { useFamilyMembers } from '@/contexts/FamilyMembersContext';
+import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 
 export default function Purchases() {
-  const { familyMembers } = useFamilyMembers();
+  const familyContext = useContext(FamilyMembersContext);
+  const familyMembers = familyContext?.members || [];
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentSeason, setCurrentSeason] = useState<'winter' | 'spring' | 'summer' | 'autumn'>('winter');
