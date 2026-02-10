@@ -452,7 +452,7 @@ export default function Purchases() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Icon name="CheckCircle2" size={24} className="text-green-600" />
+                      <Icon name="Check" size={24} className="text-green-600" />
                       Куплено
                       {completedTotal > 0 && (
                         <span className="text-sm font-normal text-gray-600 ml-2">
