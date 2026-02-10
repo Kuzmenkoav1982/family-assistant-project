@@ -274,7 +274,7 @@ export function MedicationsWidget() {
       <CardContent className="p-4">
         {pendingMedications.length === 0 ? (
           <div className="text-center py-4">
-            <Icon name="CheckCircle2" size={48} className="mx-auto text-green-500 mb-2" />
+            <Icon name="CheckSquare" size={48} className="mx-auto text-blue-500 mb-2" />
             <p className="font-medium text-gray-700">Все лекарства приняты! 🎉</p>
           </div>
         ) : (
