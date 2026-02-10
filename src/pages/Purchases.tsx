@@ -41,6 +41,8 @@ export default function Purchases() {
     priority: 'medium' as 'high' | 'medium' | 'low',
     member_id: ''
   });
+  const [filterMember, setFilterMember] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
 
   const seasonLabels = {
     winter: 'зиму',
@@ -145,7 +147,19 @@ export default function Purchases() {
   };
 
   const getSeasonPurchases = (season: string, purchased: boolean) => {
-    return purchases.filter(p => p.season === season && p.purchased === purchased);
+    let filtered = purchases.filter(p => p.season === season && p.purchased === purchased);
+    
+    if (filterMember !== 'all') {
+      filtered = filtered.filter(p => 
+        filterMember === 'family' ? (!p.member_id || p.member_id === 'family') : p.member_id === filterMember
+      );
+    }
+    
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter(p => p.category === filterCategory);
+    }
+    
+    return filtered;
   };
 
   const getSeasonTotal = (season: string, purchased: boolean) => {
@@ -156,8 +170,10 @@ export default function Purchases() {
   const getMemberName = (memberId?: string) => {
     if (!memberId || memberId === 'family') return 'Для всей семьи';
     const member = familyMembers.find(m => m.id === memberId);
-    return member ? `${member.avatar || '👤'} ${member.name}` : 'Неизвестно';
+    return member ? member.name : 'Неизвестно';
   };
+
+  const categories = ['Одежда', 'Обувь', 'Техника', 'Мебель', 'Спорт', 'Игрушки', 'Школьные принадлежности', 'Прочее'];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -224,6 +240,61 @@ export default function Purchases() {
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <Label className="text-sm font-medium mb-2 block">Фильтр по члену семьи</Label>
+              <Select value={filterMember} onValueChange={setFilterMember}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все</SelectItem>
+                  <SelectItem value="family">Для всей семьи</SelectItem>
+                  {familyMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[200px]">
+              <Label className="text-sm font-medium mb-2 block">Фильтр по категории</Label>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все категории</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(filterMember !== 'all' || filterCategory !== 'all') && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFilterMember('all');
+                    setFilterCategory('all');
+                  }}
+                  className="gap-2"
+                >
+                  <Icon name="X" size={16} />
+                  Сбросить
+                </Button>
+              </div>
+            )}
+          </div>
         </Card>
 
         <Tabs defaultValue="winter" className="space-y-6">
@@ -429,7 +500,7 @@ export default function Purchases() {
                     <SelectItem value="family">Для всей семьи</SelectItem>
                     {familyMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
-                        {member.avatar || '👤'} {member.name}
+                        {member.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -446,14 +517,11 @@ export default function Purchases() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Одежда">Одежда</SelectItem>
-                    <SelectItem value="Обувь">Обувь</SelectItem>
-                    <SelectItem value="Техника">Техника</SelectItem>
-                    <SelectItem value="Мебель">Мебель</SelectItem>
-                    <SelectItem value="Спорт">Спорт</SelectItem>
-                    <SelectItem value="Игрушки">Игрушки</SelectItem>
-                    <SelectItem value="Школьные принадлежности">Школьные принадлежности</SelectItem>
-                    <SelectItem value="Прочее">Прочее</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
