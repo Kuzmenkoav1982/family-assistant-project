@@ -59,25 +59,25 @@ export function ShoppingWidget() {
               <div
                 key={item.id}
                 className={`p-3 rounded-lg border-2 ${item.priority === 'urgent' ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'} hover:shadow transition-all`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleBought(item.id, item.bought);
-                }}
               >
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    checked={item.bought}
-                    onCheckedChange={() => toggleBought(item.id, item.bought)}
+                    checked={isDemoMode ? item.completed : item.bought}
+                    onCheckedChange={(checked) => {
+                      if (!isDemoMode) {
+                        toggleBought(item.id, !checked);
+                      }
+                    }}
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div className="flex-1">
-                    <p className={`font-semibold text-sm ${item.bought ? 'line-through text-gray-400' : ''}`}>
+                    <p className={`font-semibold text-sm ${(isDemoMode ? item.completed : item.bought) ? 'line-through text-gray-400' : ''}`}>
                       {item.name}
                       {item.quantity && <span className="text-gray-500 ml-1">({item.quantity})</span>}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className={`text-[10px] ${categoryColors[item.category] || categoryColors['Другое']}`}>
-                        <Icon name={(categoryIcons[item.category] || categoryIcons['Другое']) as any} size={10} className="mr-1" />
+                        <Icon name={categoryIcons[item.category] || categoryIcons['Другое']} size={10} className="mr-1" />
                         {item.category}
                       </Badge>
                       {item.priority === 'urgent' && (

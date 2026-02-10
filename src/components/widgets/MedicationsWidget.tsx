@@ -33,7 +33,7 @@ function getUserId(): string | null {
 
 export function MedicationsWidget() {
   const [todayMedications, setTodayMedications] = useState<MedicationReminder[]>([]);
-  const [medications, setMedications] = useState<any[]>([]);
+  const [medications, setMedications] = useState<Array<{id: string; name: string; dosage: string; active: boolean; reminders: Array<{id: string; time: string; enabled: boolean}>}>>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
@@ -62,7 +62,7 @@ export function MedicationsWidget() {
       }
 
       const fetchedMedications = await medsResponse.json();
-      const activeMeds = fetchedMedications.filter((m: any) => m.active);
+      const activeMeds = fetchedMedications.filter((m: {active: boolean}) => m.active);
       
       setMedications(activeMeds);
 
@@ -86,7 +86,7 @@ export function MedicationsWidget() {
             if (intakesResponse.ok) {
               const intakes = await intakesResponse.json();
               taken = intakes.some(
-                (intake: any) =>
+                (intake: {scheduledDate: string; scheduledTime: string; status: string}) =>
                   intake.scheduledDate === today &&
                   intake.scheduledTime === reminder.time &&
                   intake.status === 'taken'
@@ -226,6 +226,9 @@ export function MedicationsWidget() {
   const takenCount = todayMedications.filter(m => m.taken).length;
   const totalCount = todayMedications.length;
   const progress = (takenCount / totalCount) * 100;
+  
+  // Показываем только непринятые лекарства в виджете
+  const pendingMedications = todayMedications.filter(m => !m.taken);
 
   return (
     <Card className="overflow-hidden">
@@ -269,66 +272,55 @@ export function MedicationsWidget() {
         </div>
       </CardHeader>
       <CardContent className="p-4">
-        <div className="space-y-3">
-          {todayMedications.map((reminder) => (
-            <div
-              key={reminder.id}
-              className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                reminder.taken
-                  ? 'bg-green-50 dark:bg-green-950 border-green-200'
-                  : 'bg-white dark:bg-gray-900 border-gray-200 hover:border-blue-300'
-              }`}
-            >
-              <Checkbox
-                id={reminder.id}
-                checked={reminder.taken}
-                disabled={updating[reminder.id]}
-                onCheckedChange={(checked) => handleToggle(reminder, checked as boolean)}
-                className="h-5 w-5"
-              />
-              <div className="flex-1">
-                <label
-                  htmlFor={reminder.id}
-                  className="cursor-pointer block"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon name="Clock" size={14} className="text-muted-foreground" />
-                    <span className="font-medium text-sm">{reminder.time}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className={reminder.taken ? 'line-through text-muted-foreground' : 'font-medium'}>
-                      {reminder.medicationName}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {reminder.dosage}
-                  </p>
-                </label>
-              </div>
-              {reminder.taken && (
-                <Icon name="CheckCircle2" size={18} className="text-green-600" />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {takenCount < totalCount && (
-          <Button
-            variant="outline"
-            className="w-full mt-4"
-            onClick={handleMarkAll}
-          >
-            <Icon name="CheckCheck" size={16} className="mr-2" />
-            Отметить всё принятым
-          </Button>
-        )}
-
-        {takenCount === totalCount && (
-          <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg text-center">
-            <p className="text-sm font-medium text-green-700 dark:text-green-300 flex items-center justify-center gap-2">
-              <Icon name="PartyPopper" size={16} />
-              Все лекарства приняты!
-            </p>
+        {pendingMedications.length === 0 ? (
+          <div className="text-center py-4">
+            <Icon name="CheckCircle2" size={48} className="mx-auto text-green-500 mb-2" />
+            <p className="font-medium text-gray-700">Все лекарства приняты! 🎉</p>
           </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              {pendingMedications.map((reminder) => (
+                <div
+                  key={reminder.id}
+                  className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-gray-900 border-gray-200 hover:border-blue-300 transition-all"
+                >
+                  <Checkbox
+                    id={reminder.id}
+                    checked={reminder.taken}
+                    disabled={updating[reminder.id]}
+                    onCheckedChange={(checked) => handleToggle(reminder, checked as boolean)}
+                    className="h-5 w-5"
+                  />
+                  <div className="flex-1">
+                    <label
+                      htmlFor={reminder.id}
+                      className="cursor-pointer block"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon name="Clock" size={14} className="text-muted-foreground" />
+                        <span className="font-medium text-sm">{reminder.time}</span>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="font-medium">{reminder.medicationName}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {reminder.dosage}
+                      </p>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full mt-4"
+              onClick={handleMarkAll}
+            >
+              <Icon name="CheckCheck" size={16} className="mr-2" />
+              Отметить всё принятым
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>
