@@ -86,23 +86,9 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
     navigate(path);
   };
 
-  const openJivoChat = () => {
+  const openTelegramSupport = () => {
     onOpenChange(false);
-    
-    const jivoElements = document.querySelectorAll('jdiv[id^="jivo"], jdiv.jivo-iframe-container, #jivo-iframe-container, .__jivoMobileButton');
-    jivoElements.forEach((el: Element) => {
-      const htmlEl = el as HTMLElement;
-      htmlEl.style.display = 'block';
-      htmlEl.style.visibility = 'visible';
-      htmlEl.style.opacity = '1';
-      htmlEl.style.pointerEvents = 'auto';
-    });
-    
-    setTimeout(() => {
-      if (typeof window !== 'undefined' && (window as any).jivo_api) {
-        (window as any).jivo_api.open();
-      }
-    }, 100);
+    window.open('https://t.me/nash_dom_poddershka', '_blank');
   };
 
   return (
@@ -120,7 +106,7 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
                 <div className="flex items-center gap-2">
                   {currentRole.name}
                   <Badge className={currentRole.color}>
-                    <Icon name={currentRole.icon as any} size={14} className="mr-1" />
+                    <Icon name={currentRole.icon} size={14} className="mr-1" />
                     {selectedRole}
                   </Badge>
                 </div>
@@ -143,7 +129,7 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
                     className="h-auto py-3 flex flex-col items-start gap-1"
                   >
                     <div className="flex items-center gap-2">
-                      <Icon name={role.icon as any} size={16} />
+                      <Icon name={role.icon} size={16} />
                       <span className="text-xs font-semibold">{role.name}</span>
                     </div>
                   </Button>
@@ -176,14 +162,14 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
                 {selectedRole === 'helper' && (
                   <>
                     <Button
-                      onClick={openJivoChat}
+                      onClick={openTelegramSupport}
                       variant="outline"
-                      className="h-auto py-3 flex items-start gap-3 hover:border-orange-500 hover:bg-orange-50"
+                      className="h-auto py-3 flex items-start gap-3 hover:border-blue-500 hover:bg-blue-50"
                     >
-                      <Icon name="Headphones" size={20} className="text-orange-600 mt-1" />
+                      <Icon name="MessageCircle" size={20} className="text-blue-600 mt-1" />
                       <div className="text-left">
                         <div className="font-semibold text-sm">Техническая поддержка</div>
-                        <div className="text-xs text-gray-600">Напишите нам в чат</div>
+                        <div className="text-xs text-gray-600">Написать в Telegram</div>
                       </div>
                     </Button>
                     <Button

@@ -4,9 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import { openJivoChat } from '@/lib/jivo';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
+
+const openTelegramSupport = () => {
+  window.open('https://t.me/nash_dom_poddershka', '_blank');
+};
 
 const recentClicks = new Map<number, number>();
 
@@ -1063,7 +1066,7 @@ export default function Welcome() {
                   </li>
                   <li className="flex items-center gap-2 text-gray-300">
                     <Icon name="HelpCircle" size={16} />
-                    <button onClick={openJivoChat} className="hover:text-white transition-colors">
+                    <button onClick={openTelegramSupport} className="hover:text-white transition-colors">
                       Техподдержка
                     </button>
                   </li>

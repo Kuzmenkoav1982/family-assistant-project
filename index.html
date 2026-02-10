@@ -78,40 +78,6 @@
 </noscript>
 <!-- /Yandex.Metrika counter -->
 
-<!-- Jivo Chat - позиция слева внизу -->
-<script>
-  window.jivo_onLoadCallback = function(){
-    jivo_api.setContactInfo({ 
-      name: "Гость",
-      description: "Посетитель сайта"
-    });
-    
-    // Функция для показа/скрытия Jivo на мобильных
-    window.toggleJivoMobile = function(show) {
-      const jivoElements = document.querySelectorAll('jdiv');
-      jivoElements.forEach(el => {
-        if (show) {
-          el.style.display = 'block';
-          el.style.visibility = 'visible';
-          el.style.opacity = '1';
-        }
-      });
-    };
-  };
-</script>
-<script src="//code.jivo.ru/widget/kMoMrH0Kye" async></script>
-<style>
-  /* Скрытие Jivo на мобильных устройствах - открывается по кнопке */
-  @media (max-width: 768px) {
-    jdiv {
-      display: none !important;
-    }
-    /* Когда Jivo открыт вручную */
-    jdiv.jivo-mobile-visible {
-      display: block !important;
-    }
-  }
-</style>
-<!-- /Jivo Chat -->
+
 </body>
 </html>
