@@ -44,21 +44,22 @@ export function AIAnalysisCard({ analysis, title = 'ИИ-анализ докум
 
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-blue-900">
-            <Icon name="Sparkles" size={20} className="text-blue-600" />
-            {title}
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-blue-900 text-base sm:text-lg min-w-0 flex-1">
+            <Icon name="Sparkles" size={18} className="text-blue-600 flex-shrink-0 sm:w-5 sm:h-5" />
+            <span className="truncate">{title}</span>
           </CardTitle>
           {fileUrl && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleViewFile}
-              className="bg-white hover:bg-blue-50"
+              className="bg-white hover:bg-blue-50 whitespace-nowrap flex-shrink-0 text-xs sm:text-sm"
             >
-              <Icon name="Eye" size={14} />
-              Открыть файл
+              <Icon name="Eye" size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Открыть файл</span>
+              <span className="inline xs:hidden sm:hidden">Файл</span>
             </Button>
           )}
         </div>

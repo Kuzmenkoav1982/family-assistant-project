@@ -370,12 +370,14 @@ function HealthNew() {
               </TabsContent>
 
               <TabsContent value="history" className="space-y-4 pb-32">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Медицинская история</h3>
-                  <AddHealthRecordDialog 
-                    profileId={selectedProfile.id} 
-                    onSuccess={refetchRecords}
-                  />
+                <div className="flex items-start justify-between gap-2 mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold min-w-0 flex-1 truncate">Медицинская история</h3>
+                  <div className="flex-shrink-0">
+                    <AddHealthRecordDialog 
+                      profileId={selectedProfile.id} 
+                      onSuccess={refetchRecords}
+                    />
+                  </div>
                 </div>
                 {records
                   .map((record: any) => (
