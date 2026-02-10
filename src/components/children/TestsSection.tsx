@@ -114,12 +114,16 @@ export function TestsSection({
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите область" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {developmentAreas.map((area: any) => (
-                        <SelectItem key={area.id} value={area.id}>
-                          {getAreaIcon(area.area)} {getAreaName(area.area)}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="z-[9999]">
+                      {developmentAreas.length === 0 ? (
+                        <div className="p-2 text-sm text-gray-500">Сначала добавьте область развития</div>
+                      ) : (
+                        developmentAreas.map((area: any) => (
+                          <SelectItem key={area.id} value={area.id}>
+                            {getAreaIcon(area.area)} {getAreaName(area.area)}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

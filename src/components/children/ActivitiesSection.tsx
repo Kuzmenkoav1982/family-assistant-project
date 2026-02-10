@@ -131,12 +131,16 @@ export function ActivitiesSection({
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите область" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {developmentAreas.map((area: any) => (
-                        <SelectItem key={area.id} value={area.id}>
-                          {getAreaIcon(area.area)} {getAreaName(area.area)}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="z-[9999]">
+                      {developmentAreas.length === 0 ? (
+                        <div className="p-2 text-sm text-gray-500">Сначала добавьте область развития</div>
+                      ) : (
+                        developmentAreas.map((area: any) => (
+                          <SelectItem key={area.id} value={area.id}>
+                            {getAreaIcon(area.area)} {getAreaName(area.area)}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -149,7 +153,7 @@ export function ActivitiesSection({
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[9999]">
                       <SelectItem value="Секция">Секция</SelectItem>
                       <SelectItem value="Кружок">Кружок</SelectItem>
                       <SelectItem value="Репетитор">Репетитор</SelectItem>
@@ -191,7 +195,7 @@ export function ActivitiesSection({
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[9999]">
                       <SelectItem value="active">Активно</SelectItem>
                       <SelectItem value="planned">Запланировано</SelectItem>
                       <SelectItem value="completed">Завершено</SelectItem>
