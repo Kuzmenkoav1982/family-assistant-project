@@ -74,10 +74,11 @@ function HealthNew() {
   const { insurance: apiInsurance, refetch: refetchInsurance } = useInsurance(selectedProfile?.id);
   const { sessions: apiSessions, refetch: refetchTelemedicine } = useTelemedicine(selectedProfile?.id);
 
-  const profiles = useMemo(() => 
-    isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles,
-    [isDemoMode, authToken, apiProfiles]
-  );
+  const profiles = useMemo(() => {
+    const rawProfiles = isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles;
+    // Фильтруем осиротевшие профили (когда member удалён из семьи, но health profile остался)
+    return rawProfiles.filter(p => p.userName && p.userName !== 'Член семьи' && p.userAge > 0);
+  }, [isDemoMode, authToken, apiProfiles]);
   
   const records = useMemo(() => 
     isDemoMode && !authToken ? DEMO_HEALTH_RECORDS_NEW.filter(r => r.profileId === selectedProfile?.id) : apiRecords,
