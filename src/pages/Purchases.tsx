@@ -196,8 +196,7 @@ export default function Purchases() {
     }
   };
 
-  const totalAllSeasons = purchases
-    .filter(p => !p.purchased)
+  const filteredPurchases = purchases
     .filter(p => {
       if (filterMember !== 'all') {
         if (filterMember === 'family') return !p.member_id || p.member_id === 'family';
@@ -208,7 +207,14 @@ export default function Purchases() {
     .filter(p => {
       if (filterCategory !== 'all') return p.category === filterCategory;
       return true;
-    })
+    });
+
+  const totalPlanned = filteredPurchases
+    .filter(p => !p.purchased)
+    .reduce((sum, p) => sum + (p.estimated_cost || 0), 0);
+
+  const totalPurchased = filteredPurchases
+    .filter(p => p.purchased)
     .reduce((sum, p) => sum + (p.estimated_cost || 0), 0);
 
   return (
@@ -222,12 +228,20 @@ export default function Purchases() {
               <p className="text-gray-600">Планируйте покупки для всей семьи по сезонам</p>
             </div>
           </div>
-          {totalAllSeasons > 0 && (
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg">
-              <div className="text-sm font-medium opacity-90">Общая сумма запланировано</div>
-              <div className="text-2xl font-bold">{totalAllSeasons.toLocaleString()} ₽</div>
-            </div>
-          )}
+          <div className="flex gap-3 flex-wrap">
+            {totalPlanned > 0 && (
+              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl shadow-lg">
+                <div className="text-sm font-medium opacity-90">Запланировано</div>
+                <div className="text-2xl font-bold">{totalPlanned.toLocaleString()} ₽</div>
+              </div>
+            )}
+            {totalPurchased > 0 && (
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg">
+                <div className="text-sm font-medium opacity-90">Куплено</div>
+                <div className="text-2xl font-bold">{totalPurchased.toLocaleString()} ₽</div>
+              </div>
+            )}
+          </div>
         </div>
 
         <Card 
