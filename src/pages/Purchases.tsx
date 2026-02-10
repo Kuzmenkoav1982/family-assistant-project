@@ -227,7 +227,7 @@ export default function Purchases() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/welcome')}
+              onClick={() => navigate('/dashboard')}
               className="hover:bg-blue-100 -ml-2"
             >
               <Icon name="ArrowLeft" size={20} />
