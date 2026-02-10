@@ -257,55 +257,24 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Target" size={20} />
-                  Краткосрочные цели
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <input type="checkbox" className="mt-1" />
-                  <div className="flex-1">
-                    <p className="font-medium">Выучить таблицу умножения</p>
-                    <p className="text-sm text-gray-500">До 15 декабря</p>
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon name="Trophy" size={20} />
+                Последние достижения
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {child.achievements?.slice(0, 3).map((achievement, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-2 bg-yellow-50 rounded-lg">
+                  <div className="text-2xl">🏆</div>
+                  <span className="text-sm">{achievement}</span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <input type="checkbox" className="mt-1" />
-                  <div className="flex-1">
-                    <p className="font-medium">Записаться в секцию плавания</p>
-                    <p className="text-sm text-gray-500">До конца месяца</p>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full gap-2 mt-4">
-                  <Icon name="Plus" size={16} />
-                  Добавить цель
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon name="Trophy" size={20} />
-                  Последние достижения
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {child.achievements?.slice(0, 3).map((achievement, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-2 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl">🏆</div>
-                    <span className="text-sm">{achievement}</span>
-                  </div>
-                )) || (
-                  <p className="text-sm text-gray-500">Пока нет достижений</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              )) || (
+                <p className="text-sm text-gray-500">Пока нет достижений</p>
+              )}
+            </CardContent>
+          </Card>
 
           <ChildCalendar child={child} />
         </TabsContent>
