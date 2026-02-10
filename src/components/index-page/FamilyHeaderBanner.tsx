@@ -29,13 +29,19 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
       <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/75 to-white/65 backdrop-blur-[1px]"></div>
       <div className="relative h-full flex flex-col items-center justify-center px-6 pt-4 sm:pt-0">
         <div className="flex items-center justify-between w-full mb-2">
-          <div className="flex items-center gap-3 sm:gap-4 group">
-            <div className="relative">
+          <div className="flex items-center gap-4 sm:gap-6 group">
+            <div className="relative flex-shrink-0">
               <img 
                 src={familyLogo} 
                 alt={familyName}
-                className="w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 object-contain rounded-full transition-all group-hover:brightness-90"
-                style={{ border: 'none', outline: 'none' }}
+                className="w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full transition-all group-hover:brightness-90"
+                style={{ 
+                  border: 'none', 
+                  outline: 'none', 
+                  objectFit: 'cover',
+                  minWidth: '80px',
+                  minHeight: '80px'
+                }}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://cdn.poehali.dev/files/Логотип Наша Семья.JPG';
                 }}
