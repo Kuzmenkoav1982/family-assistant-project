@@ -28,6 +28,7 @@ interface FamilyMembersContextType {
   members: FamilyMember[];
   loading: boolean;
   error: string | null;
+  familyId: string | null;
   fetchMembers: (silent?: boolean) => Promise<void>;
   addMember: (memberData: Partial<FamilyMember>) => Promise<{success: boolean; member?: FamilyMember; error?: string}>;
   updateMember: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<{success: boolean; error?: string}>;
@@ -43,6 +44,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [familyId, setFamilyId] = useState<string | null>(() => localStorage.getItem('familyId'));
   const isFetchingRef = useRef(false);
   const hasInitialFetchRef = useRef(false);
   const dialogLockRef = useRef(dialogLock);
@@ -128,6 +130,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       if (data.success && data.members) {
         if (data.family_id) {
           localStorage.setItem('familyId', data.family_id);
+          setFamilyId(data.family_id);
         }
         
         const convertedMembers = data.members.map((m: Partial<FamilyMember> & {photo_url?: string; avatar_type?: string}) => ({
@@ -366,6 +369,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         members,
         loading,
         error,
+        familyId,
         fetchMembers,
         addMember,
         updateMember,
