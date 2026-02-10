@@ -1,0 +1,40 @@
+{
+  "tests": [
+    {
+      "name": "Get all purchases",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "test-family-123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "purchases": []
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create purchase",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "test-family-123"
+      },
+      "body": {
+        "name": "Зимняя куртка",
+        "season": "winter",
+        "category": "Одежда",
+        "estimated_cost": 5000,
+        "priority": "high",
+        "member_id": "member-456"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "name": "Зимняя куртка",
+        "season": "winter",
+        "category": "Одежда"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
