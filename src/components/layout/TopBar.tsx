@@ -39,7 +39,7 @@ export default function TopBar({
   const isDarkMode = currentTheme === 'dark';
 
   const openTelegramSupport = () => {
-    window.open('https://t.me/nash_dom_poddershka', '_blank');
+    window.open('https://t.me/Nasha7iya', '_blank');
   };
 
   const toggleDarkMode = () => {

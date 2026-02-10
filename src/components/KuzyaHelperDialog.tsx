@@ -88,7 +88,7 @@ export default function KuzyaHelperDialog({ open, onOpenChange }: KuzyaHelperDia
 
   const openTelegramSupport = () => {
     onOpenChange(false);
-    window.open('https://t.me/nash_dom_poddershka', '_blank');
+    window.open('https://t.me/Nasha7iya', '_blank');
   };
 
   return (

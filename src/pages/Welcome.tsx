@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
 const openTelegramSupport = () => {
-  window.open('https://t.me/nash_dom_poddershka', '_blank');
+  window.open('https://t.me/Nasha7iya', '_blank');
 };
 
 const recentClicks = new Map<number, number>();
