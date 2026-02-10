@@ -59,6 +59,7 @@ export function ShoppingWidget() {
               <div
                 key={item.id}
                 className={`p-3 rounded-lg border-2 ${item.priority === 'urgent' ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'} hover:shadow transition-all`}
+                onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center gap-3">
                   <Checkbox
@@ -68,7 +69,6 @@ export function ShoppingWidget() {
                         toggleBought(item.id, !checked);
                       }
                     }}
-                    onClick={(e) => e.stopPropagation()}
                   />
                   <div className="flex-1">
                     <p className={`font-semibold text-sm ${(isDemoMode ? item.completed : item.bought) ? 'line-through text-gray-400' : ''}`}>
