@@ -58,6 +58,7 @@ import FamilySettings from "./pages/FamilySettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTraffic from "./pages/AdminTraffic";
 import Recipes from "./pages/Recipes";
+import Purchases from "./pages/Purchases";
 import AIAssistant from "./pages/AIAssistant";
 import Development from "./pages/Development";
 import LifeRoad from "./pages/LifeRoad";
@@ -246,6 +247,7 @@ const App = () => {
                       <Route path="/shopping" element={<Shopping />} />
                       <Route path="/meals" element={<Meals />} />
                       <Route path="/calendar" element={<Calendar />} />
+                      <Route path="/purchases" element={<Purchases />} />
                       <Route path="/permissions" element={<PermissionsManagement />} />
                       <Route path="/community" element={<Community />} />
                       <Route path="/member/:memberId" element={<MemberProfile />} />

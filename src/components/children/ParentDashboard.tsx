@@ -9,9 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { HealthSection } from './HealthSection';
 import { DevelopmentSection } from './DevelopmentSection';
-import { SchoolSection } from './SchoolSection';
 import { GiftsSection } from './GiftsSection';
-import { PurchasesSection } from './PurchasesSection';
 import { SectionHelp } from './SectionHelp';
 import { DevelopmentAssessment } from './DevelopmentAssessment';
 import { ActivePlanSection } from './ActivePlanSection';
@@ -233,7 +231,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
       <AssessmentsArchive child={child} onPlanDeleted={fetchChildData} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="overview" className="gap-2">
             <Icon name="LayoutDashboard" size={16} />
             Обзор
@@ -246,13 +244,9 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
             <Icon name="TrendingUp" size={16} />
             Развитие
           </TabsTrigger>
-          <TabsTrigger value="school" className="gap-2">
-            <Icon name="GraduationCap" size={16} />
-            Школа
-          </TabsTrigger>
-          <TabsTrigger value="other" className="gap-2">
+          <TabsTrigger value="gifts" className="gap-2">
             <Icon name="Gift" size={16} />
-            Прочее
+            Подарки
           </TabsTrigger>
         </TabsList>
 
@@ -307,33 +301,18 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
           <DevelopmentSection child={child} />
         </TabsContent>
 
-        <TabsContent value="school" className="space-y-6">
-          <SectionHelp
-            emoji="📚"
-            title="Раздел Школа"
-            description="Отслеживайте успеваемость, домашние задания и достижения в учёбе"
-            tips={[
-              "Подключите интеграцию с электронным дневником",
-              "Отмечайте домашние задания и сроки сдачи",
-              "Анализируйте динамику оценок по предметам"
-            ]}
-          />
-          <SchoolSection child={child} />
-        </TabsContent>
-
-        <TabsContent value="other" className="space-y-6">
+        <TabsContent value="gifts" className="space-y-6">
           <SectionHelp
             emoji="🎁"
-            title="Раздел Подарки и Покупки"
-            description="Планируйте подарки на праздники и покупки для ребёнка по сезонам"
+            title="Раздел Подарки"
+            description="Планируйте подарки ребёнку на праздники и важные даты"
             tips={[
-              "Составьте список желаемых подарков на праздники",
-              "Планируйте покупки одежды и вещей по сезонам",
-              "Оценивайте бюджет и приоритеты покупок"
+              "Составьте список желаемых подарков на день рождения, Новый год и другие праздники",
+              "Отмечайте приоритеты и бюджет для каждого подарка",
+              "Следите за историей подаренных подарков"
             ]}
           />
           <GiftsSection child={child} />
-          <PurchasesSection child={child} />
         </TabsContent>
       </Tabs>
     </div>
