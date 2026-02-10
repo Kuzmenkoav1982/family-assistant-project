@@ -1,26 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
+import { InviteListCard } from './family-invite/InviteListCard';
+import { CreateInviteDialog } from './family-invite/CreateInviteDialog';
+import { JoinFamilyDialog } from './family-invite/JoinFamilyDialog';
+import { FamilySettingsCard } from './family-invite/FamilySettingsCard';
+import { FamilyMembersCard } from './family-invite/FamilyMembersCard';
 
 const INVITE_API = 'https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d';
-
-const RELATIONSHIPS = [
-  'Отец', 'Мать', 'Сын', 'Дочь',
-  'Муж', 'Жена', 
-  'Дедушка', 'Бабушка', 'Внук', 'Внучка',
-  'Брат', 'Сестра',
-  'Дядя', 'Тётя', 'Племянник', 'Племянница',
-  'Двоюродный брат', 'Двоюродная сестра',
-  'Другое'
-];
 
 const isValidImageUrl = (url: string): boolean => {
   if (!url) return true;
@@ -40,20 +28,34 @@ const isValidImageUrl = (url: string): boolean => {
   }
 };
 
+interface Invite {
+  id: string;
+  code: string;
+  max_uses: number;
+  uses_count: number;
+  days_valid: number;
+  created_at: string;
+  expires_at: string;
+  is_expired: boolean;
+  qr_code?: string;
+}
+
+interface Member {
+  id: string;
+  name: string;
+  role: string;
+  relationship?: string;
+  photo_url?: string;
+  avatar?: string;
+}
+
 export default function FamilyInviteManager() {
   const navigate = useNavigate();
-  const [invites, setInvites] = useState<any[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [newInvite, setNewInvite] = useState({ maxUses: 1, daysValid: 7 });
-  const [joinData, setJoinData] = useState({
-    inviteCode: '',
-    memberName: '',
-    relationship: '',
-    customRelationship: ''
-  });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [familyName, setFamilyName] = useState(() => {
     const userData = localStorage.getItem('userData');
     if (userData) {
@@ -118,7 +120,7 @@ export default function FamilyInviteManager() {
     }
   };
 
-  const createInvite = async () => {
+  const createInvite = async (newInvite: { maxUses: number; daysValid: number }) => {
     setIsLoading(true);
     try {
       const response = await fetch(INVITE_API, {
@@ -149,7 +151,12 @@ export default function FamilyInviteManager() {
     }
   };
 
-  const joinFamily = async (forceLeave = false) => {
+  const joinFamily = async (joinData: {
+    inviteCode: string;
+    memberName: string;
+    relationship: string;
+    customRelationship: string;
+  }, forceLeave = false) => {
     setIsLoading(true);
     try {
       const relationship = joinData.relationship === 'Другое' 
@@ -180,7 +187,7 @@ export default function FamilyInviteManager() {
         );
         
         if (confirmed) {
-          await joinFamily(true);
+          await joinFamily(joinData, true);
         } else {
           setIsLoading(false);
         }
@@ -466,382 +473,61 @@ export default function FamilyInviteManager() {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="Users" size={24} />
-            Приглашения в семью
-          </CardTitle>
-          <CardDescription>
-            Создавайте коды для приглашения родственников
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg overflow-hidden">
-            <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-purple-100 transition-colors">
-              <div className="flex items-center gap-2">
-                <Icon name="BookOpen" size={18} className="text-purple-600" />
-                <h4 className="font-semibold">📖 Инструкция: Как пригласить родственников?</h4>
-              </div>
-              <Icon 
-                name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                size={20} 
-                className="text-purple-600 transition-transform"
-              />
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <div className="p-4 pt-0 space-y-6">
-                <div className="bg-white rounded-lg p-4 border border-purple-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">1</div>
-                    <h5 className="font-bold text-lg">Создайте приглашение</h5>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-3">
-                    Нажмите кнопку "Создать приглашение" ниже. Вы получите уникальный код (например: ABC123) и QR-код.
-                  </p>
-                  <img 
-                    src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a6b6eab2-d66b-46a5-81aa-c9c159310e3e.jpg"
-                    alt="Экран с QR-кодом и кнопками отправки"
-                    className="w-full rounded-lg border-2 border-purple-200"
-                  />
-                </div>
+      <div className="flex items-center gap-2 mb-4">
+        <Button variant="ghost" onClick={() => navigate('/')}>
+          <Icon name="ArrowLeft" size={16} />
+          Назад
+        </Button>
+      </div>
 
-                <div className="bg-white rounded-lg p-4 border border-purple-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
-                    <h5 className="font-bold text-lg">Отправьте код родственнику</h5>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-3">
-                    Нажмите кнопку "Отправить ссылку" и выберите мессенджер (MAX, Telegram, WhatsApp, SMS). Родственник получит ссылку вида:
-                  </p>
-                  <div className="bg-gray-100 rounded p-2 mb-3 font-mono text-xs break-all">
-                    {window.location.origin}/join?code=ABC123
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    Ссылку можно отправить через любой удобный способ связи.
-                  </p>
-                </div>
+      <InviteListCard
+        invites={invites}
+        familyName={familyName}
+        isInstructionOpen={isInstructionOpen}
+        onInstructionToggle={setIsInstructionOpen}
+        onCopyCode={copyInviteCode}
+        onCopyLink={copyInviteLink}
+        onShare={shareInviteLink}
+        onShareViaTelegram={shareViaTelegram}
+        onShareViaMax={shareViaMax}
+        onDelete={deleteInvite}
+      />
 
-                <div className="bg-white rounded-lg p-4 border border-purple-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">3</div>
-                    <h5 className="font-bold text-lg">Родственник присоединяется</h5>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-3">
-                    По ссылке откроется форма, где нужно:
-                  </p>
-                  <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside mb-3">
-                    <li>Войти или зарегистрироваться</li>
-                    <li>Ввести своё имя</li>
-                    <li>Указать степень родства (Отец, Мать, Сын...)</li>
-                    <li>Нажать "Присоединиться"</li>
-                  </ul>
-                  <img 
-                    src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4519fbd0-e531-4f44-805f-d1e295f148ce.jpg"
-                    alt="Форма присоединения к семье"
-                    className="w-full rounded-lg border-2 border-purple-200"
-                  />
-                </div>
+      <div className="flex gap-2">
+        <CreateInviteDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          isLoading={isLoading}
+          onCreate={createInvite}
+        />
+        <JoinFamilyDialog
+          open={showJoinDialog}
+          onOpenChange={setShowJoinDialog}
+          isLoading={isLoading}
+          onJoin={(data) => joinFamily(data)}
+        />
+      </div>
 
-                <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="CheckCircle" size={20} className="text-green-600" />
-                    <h5 className="font-bold text-green-800">Готово!</h5>
-                  </div>
-                  <p className="text-sm text-green-800">
-                    Новый член семьи автоматически появится в вашем списке. Вы сможете видеть его профиль и добавлять совместные события.
-                  </p>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+      <FamilySettingsCard
+        familyName={familyName}
+        familyLogo={familyLogo}
+        isUpdating={isUpdatingFamily}
+        isUploading={isUploadingLogo}
+        isDragging={isDragging}
+        onFamilyNameChange={setFamilyName}
+        onFamilyLogoChange={setFamilyLogo}
+        onUpdate={updateFamilySettings}
+        onLogoUpload={handleLogoUpload}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      />
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button className="flex-1 w-full sm:w-auto">
-                <Icon name="Plus" className="mr-2" size={16} />
-                Создать приглашение
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Создать код приглашения</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Максимум использований</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={newInvite.maxUses}
-                    onChange={(e) => setNewInvite({ ...newInvite, maxUses: parseInt(e.target.value) })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Действителен (дней)</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={newInvite.daysValid}
-                    onChange={(e) => setNewInvite({ ...newInvite, daysValid: parseInt(e.target.value) })}
-                  />
-                </div>
-                <Button onClick={createInvite} disabled={isLoading} className="w-full">
-                  {isLoading ? 'Создание...' : 'Создать'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="flex-1 w-full sm:w-auto">
-                <Icon name="UserPlus" className="mr-2" size={16} />
-                Присоединиться
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Присоединиться к семье</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Код приглашения</Label>
-                  <Input
-                    placeholder="ABC12345"
-                    value={joinData.inviteCode}
-                    onChange={(e) => setJoinData({ ...joinData, inviteCode: e.target.value.toUpperCase() })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ваше имя</Label>
-                  <Input
-                    placeholder="Как вас называть?"
-                    value={joinData.memberName}
-                    onChange={(e) => setJoinData({ ...joinData, memberName: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Степень родства</Label>
-                  <Select 
-                    value={joinData.relationship} 
-                    onValueChange={(value) => setJoinData({ ...joinData, relationship: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RELATIONSHIPS.map((rel) => (
-                        <SelectItem key={rel} value={rel}>{rel}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {joinData.relationship === 'Другое' && (
-                  <div className="space-y-2">
-                    <Label>Укажите своё родство</Label>
-                    <Input
-                      placeholder="Опекун, Крёстный..."
-                      value={joinData.customRelationship}
-                      onChange={(e) => setJoinData({ ...joinData, customRelationship: e.target.value })}
-                    />
-                  </div>
-                )}
-                <Button 
-                  onClick={joinFamily} 
-                  disabled={isLoading || !joinData.inviteCode || !joinData.memberName || !joinData.relationship}
-                  className="w-full"
-                >
-                  {isLoading ? 'Присоединение...' : 'Присоединиться'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 space-y-3">
-          <h4 className="font-semibold flex items-center gap-2">
-            <Icon name="Lightbulb" size={18} className="text-blue-600" />
-            Быстрый старт
-          </h4>
-          <div className="grid md:grid-cols-2 gap-3 text-sm">
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">1</div>
-                <span className="font-semibold">Создать код</span>
-              </div>
-              <p className="text-xs text-gray-600">Нажмите "Создать приглашение" и получите код ABC12345</p>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">2</div>
-                <span className="font-semibold">Отправить ссылку</span>
-              </div>
-              <p className="text-xs text-gray-600">Нажмите "Отправить ссылку" и выберите мессенджер</p>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">3</div>
-                <span className="font-semibold">Родственник регистрируется</span>
-              </div>
-              <p className="text-xs text-gray-600">Он выбирает "Присоединиться к семье" при регистрации</p>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">4</div>
-                <span className="font-semibold">Готово!</span>
-              </div>
-              <p className="text-xs text-gray-600">Родственник появится в вашей семье автоматически</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="font-semibold text-sm flex items-center justify-between">
-            <span>Активные приглашения</span>
-            {invites.length > 0 && (
-              <Badge variant="secondary">{invites.length}</Badge>
-            )}
-          </h4>
-          {invites.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <Icon name="Users" size={48} className="mx-auto mb-3 text-gray-400" />
-              <p className="text-sm text-gray-500 mb-2">Нет активных приглашений</p>
-              <p className="text-xs text-gray-400">Создайте первое приглашение выше</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {invites.map((invite) => (
-                <div key={invite.id} className="border-2 border-purple-200 bg-purple-50 rounded-lg p-3 flex justify-between items-center hover:shadow-md transition-shadow">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-mono font-bold text-xl text-purple-700">{invite.invite_code}</p>
-                      {invite.uses_count >= invite.max_uses && (
-                        <Badge className="bg-gray-500 text-xs">Использовано</Badge>
-                      )}
-                    </div>
-                    <div className="flex gap-3 text-xs text-gray-600">
-                      <span>
-                        <Icon name="Users" size={12} className="inline mr-1" />
-                        {invite.uses_count} / {invite.max_uses}
-                      </span>
-                      <span>
-                        <Icon name="Calendar" size={12} className="inline mr-1" />
-                        До {new Date(invite.expires_at).toLocaleDateString('ru-RU')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => shareInviteLink(invite.invite_code)} 
-                      className="bg-purple-600 hover:bg-purple-700"
-                      title="Отправить ссылку через любой мессенджер"
-                    >
-                      <Icon name="Share2" size={14} className="mr-1" />
-                      Отправить ссылку
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => deleteInvite(invite.id)}
-                      title="Удалить приглашение"
-                    >
-                      <Icon name="Trash2" size={14} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="UserMinus" size={24} />
-            Управление членами семьи
-          </CardTitle>
-          <CardDescription>
-            Удаление ошибочно добавленных членов семьи (только для администратора)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={deleteAllDuplicates} 
-            disabled={isLoading}
-            variant="destructive"
-            className="w-full"
-          >
-            <Icon name="Trash2" className="mr-2" size={16} />
-            {isLoading ? 'Удаление...' : 'Удалить все дубликаты ([ДУБЛИКАТ - УДАЛИТЬ])'}
-          </Button>
-
-          {members.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <Icon name="Users" size={48} className="mx-auto mb-3 text-gray-400" />
-              <p className="text-sm text-gray-500">Нет членов семьи</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {members.map((member) => (
-                <div key={member.id} className="border-2 border-gray-200 bg-white rounded-lg p-3 flex justify-between items-center hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3">
-                    {member.photo_url ? (
-                      <img src={member.photo_url} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-2xl">
-                        {member.avatar || '👤'}
-                      </div>
-                    )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-lg">{member.name}</p>
-                        {member.access_role === 'admin' && (
-                          <Badge className="bg-red-100 text-red-800 text-xs">Администратор</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600">{member.role || member.relationship || 'Член семьи'}</p>
-                      {member.account_type === 'child_profile' && (
-                        <Badge variant="outline" className="text-xs mt-1">Детский профиль</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="destructive"
-                    onClick={() => deleteMember(member.id, member.name)}
-                    disabled={isLoading || member.access_role === 'admin'}
-                    title={member.access_role === 'admin' ? 'Нельзя удалить администратора' : 'Удалить члена семьи'}
-                  >
-                    <Icon name="Trash2" size={14} />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
-            <div className="flex items-start gap-2">
-              <Icon name="AlertTriangle" size={16} className="text-amber-600 mt-0.5" />
-              <div className="text-xs text-amber-800">
-                <p className="font-semibold mb-1">⚠️ Важно:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Администраторов удалить нельзя</li>
-                  <li>Удаление члена семьи необратимо</li>
-                  <li>Все данные члена семьи будут удалены</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <FamilyMembersCard
+        members={members}
+        onDeleteMember={deleteMember}
+        onDeleteAllDuplicates={deleteAllDuplicates}
+      />
     </div>
   );
 }
