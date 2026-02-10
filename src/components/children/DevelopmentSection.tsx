@@ -57,22 +57,6 @@ export function DevelopmentSection({ child }: { child: FamilyMember }) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <div className="text-3xl">🎯</div>
-            <div className="flex-1">
-              <CardTitle className="text-xl mb-2">Раздел Развитие</CardTitle>
-              <div className="text-sm text-gray-700 space-y-1">
-                <p>✓ Устанавливайте цели и отслеживайте прогресс</p>
-                <p>✓ Добавьте кружки, секции и их расписание</p>
-                <p>✓ Сохраняйте результаты тестов и конкурсов</p>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
       <DevelopmentAreas
         developmentAreas={developmentAreas}
         loading={loading}
