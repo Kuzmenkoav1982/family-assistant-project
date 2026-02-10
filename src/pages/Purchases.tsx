@@ -228,17 +228,17 @@ export default function Purchases() {
               <p className="text-gray-600">Планируйте покупки для всей семьи по сезонам</p>
             </div>
           </div>
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-4 flex-wrap">
             {totalPlanned > 0 && (
-              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl shadow-lg">
-                <div className="text-sm font-medium opacity-90">Запланировано</div>
-                <div className="text-2xl font-bold">{totalPlanned.toLocaleString()} ₽</div>
+              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl border-2 border-white/30 hover:scale-105 transition-transform">
+                <div className="text-xs font-semibold uppercase tracking-wider opacity-90 mb-1">Запланировано</div>
+                <div className="text-4xl font-extrabold">{totalPlanned.toLocaleString()} ₽</div>
               </div>
             )}
             {totalPurchased > 0 && (
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg">
-                <div className="text-sm font-medium opacity-90">Куплено</div>
-                <div className="text-2xl font-bold">{totalPurchased.toLocaleString()} ₽</div>
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl border-2 border-white/30 hover:scale-105 transition-transform">
+                <div className="text-xs font-semibold uppercase tracking-wider opacity-90 mb-1">Куплено</div>
+                <div className="text-4xl font-extrabold">{totalPurchased.toLocaleString()} ₽</div>
               </div>
             )}
           </div>
