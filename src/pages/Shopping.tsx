@@ -98,17 +98,17 @@ export default function Shopping() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <Button onClick={() => navigate('/')} variant="outline">
             <Icon name="ArrowLeft" className="mr-2" size={16} />
             Назад
           </Button>
-          <div className="flex gap-2">
-            <Badge variant="outline" className="bg-white">
+          <div className="flex gap-2 flex-wrap">
+            <Badge variant="outline" className="bg-white whitespace-nowrap">
               <Icon name="ShoppingCart" size={14} className="mr-1" />
               Активных: {activeCount}
             </Badge>
-            <Badge variant="outline" className="bg-green-100">
+            <Badge variant="outline" className="bg-green-100 whitespace-nowrap">
               <Icon name="CheckCircle" size={14} className="mr-1" />
               Куплено: {boughtCount}
             </Badge>
@@ -117,10 +117,11 @@ export default function Shopping() {
                 onClick={handleClearBought}
                 variant="outline"
                 size="sm"
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 whitespace-nowrap text-xs px-2"
               >
                 <Icon name="Trash2" size={14} className="mr-1" />
-                Очистить купленные
+                <span className="hidden sm:inline">Очистить купленные</span>
+                <span className="sm:hidden">Очистить</span>
               </Button>
             )}
           </div>

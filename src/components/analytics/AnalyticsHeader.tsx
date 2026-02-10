@@ -98,16 +98,17 @@ export function AnalyticsHeader({
 
       <Card className="bg-white/80 backdrop-blur-sm">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-2">
               <Icon name="Calendar" className="text-blue-600" size={20} />
               <span className="font-semibold text-gray-700">Период отображения:</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 variant={period === 'week' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onPeriodChange('week')}
+                className="text-xs px-3"
               >
                 Неделя
               </Button>
@@ -115,6 +116,7 @@ export function AnalyticsHeader({
                 variant={period === 'month' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onPeriodChange('month')}
+                className="text-xs px-3"
               >
                 Месяц
               </Button>
@@ -122,6 +124,7 @@ export function AnalyticsHeader({
                 variant={period === 'quarter' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onPeriodChange('quarter')}
+                className="text-xs px-3"
               >
                 Квартал
               </Button>
@@ -129,13 +132,16 @@ export function AnalyticsHeader({
                 variant={period === 'half-year' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onPeriodChange('half-year')}
+                className="text-xs px-3"
               >
-                Полугодие
+                <span className="hidden sm:inline">Полугодие</span>
+                <span className="sm:hidden">Полгода</span>
               </Button>
               <Button
                 variant={period === 'year' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onPeriodChange('year')}
+                className="text-xs px-3"
               >
                 Год
               </Button>
