@@ -80,24 +80,36 @@ export default function Purchases() {
     if (!familyId || !newItem.name.trim()) return;
     
     try {
+      const body = {
+        ...newItem,
+        season: currentSeason,
+        estimated_cost: newItem.estimated_cost ? parseInt(newItem.estimated_cost) : undefined,
+        member_id: newItem.member_id || undefined
+      };
+      
+      console.log('Отправка покупки:', body);
+      
       const response = await fetch(func2url.purchases, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': familyId
         },
-        body: JSON.stringify({
-          ...newItem,
-          season: currentSeason,
-          estimated_cost: newItem.estimated_cost ? parseInt(newItem.estimated_cost) : undefined,
-          member_id: newItem.member_id || undefined
-        })
+        body: JSON.stringify(body)
       });
       
+      console.log('Ответ сервера:', response.status, response.statusText);
+      
       if (response.ok) {
+        const data = await response.json();
+        console.log('Покупка добавлена:', data);
         await fetchPurchases();
         setIsDialogOpen(false);
         setNewItem({ name: '', category: 'Одежда', estimated_cost: '', priority: 'medium', member_id: '' });
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Ошибка от сервера:', errorData);
+        alert(`Ошибка: ${errorData.error || 'Не удалось добавить покупку'}`);
       }
     } catch (error) {
       console.error('Error adding purchase:', error);
