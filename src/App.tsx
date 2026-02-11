@@ -34,6 +34,7 @@ import LaunchPlan from "./pages/LaunchPlan";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import RefundPolicy from "./pages/RefundPolicy";
+import Documentation from "./pages/Documentation";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
@@ -297,6 +298,7 @@ const App = () => {
                       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
                       <Route path="/refund-policy" element={<RefundPolicy />} />
+                      <Route path="/documentation" element={<Documentation />} />
                       <Route path="/pricing" element={<Pricing />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/ideas" element={<IdeasBoard />} />
