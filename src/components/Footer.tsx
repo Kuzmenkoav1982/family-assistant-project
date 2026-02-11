@@ -149,7 +149,7 @@ export default function Footer() {
               </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-gray-700">
-              <p className="text-xs text-gray-400 mb-1">Кузьменко А.В.</p>
+              <p className="text-xs text-gray-400 mb-1">ИП Кузьменко А.В.</p>
               <p className="text-xs text-gray-400">ОГРНИП: 325774600908955</p>
               <p className="text-xs text-gray-400">ИНН: 231805728780</p>
             </div>
