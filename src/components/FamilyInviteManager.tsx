@@ -5,28 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { InviteListCard } from './family-invite/InviteListCard';
 import { CreateInviteDialog } from './family-invite/CreateInviteDialog';
 import { JoinFamilyDialog } from './family-invite/JoinFamilyDialog';
-import { FamilySettingsCard } from './family-invite/FamilySettingsCard';
 import { FamilyMembersCard } from './family-invite/FamilyMembersCard';
 
 const INVITE_API = 'https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d';
-
-const isValidImageUrl = (url: string): boolean => {
-  if (!url) return true;
-  try {
-    const parsed = new URL(url);
-    const pathname = parsed.pathname.toLowerCase();
-    return (
-      pathname.endsWith('.jpg') || 
-      pathname.endsWith('.jpeg') || 
-      pathname.endsWith('.png') || 
-      pathname.endsWith('.gif') || 
-      pathname.endsWith('.webp') ||
-      url.includes('cdn.poehali.dev')
-    );
-  } catch {
-    return false;
-  }
-};
 
 interface Invite {
   id: string;
@@ -68,21 +49,7 @@ export default function FamilyInviteManager() {
     }
     return 'Наша семья';
   });
-  const [familyLogo, setFamilyLogo] = useState(() => {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        return user.logo_url || '';
-      } catch {
-        return '';
-      }
-    }
-    return '';
-  });
-  const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
@@ -352,124 +319,7 @@ export default function FamilyInviteManager() {
     }
   };
 
-  const updateFamilySettings = async () => {
-    if (familyLogo && !isValidImageUrl(familyLogo)) {
-      alert('❌ Некорректный URL изображения. Убедитесь, что ссылка ведет напрямую на изображение (.jpg, .png, .gif) или загрузите файл.');
-      return;
-    }
 
-    setIsUpdatingFamily(true);
-    try {
-      const response = await fetch('https://functions.poehali.dev/db70be67-64af-4e9d-ab90-8485ed49c99f', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': getAuthToken()
-        },
-        body: JSON.stringify({
-          action: 'update_family',
-          family_name: familyName,
-          logo_url: familyLogo
-        })
-      });
-      const data = await response.json();
-      
-      if (data.success) {
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        userData.family_name = familyName;
-        userData.logo_url = familyLogo;
-        localStorage.setItem('userData', JSON.stringify(userData));
-        alert('✅ Настройки семьи обновлены!');
-        window.location.reload();
-      } else {
-        alert(`❌ ${data.error}`);
-      }
-    } catch (error) {
-      alert('❌ Ошибка обновления настроек');
-    } finally {
-      setIsUpdatingFamily(false);
-    }
-  };
-
-  const uploadLogoFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('❌ Пожалуйста, выберите изображение');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('❌ Размер файла не должен превышать 5 МБ');
-      return;
-    }
-
-    setIsUploadingLogo(true);
-    try {
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const base64 = (reader.result as string).split(',')[1];
-          resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const fileBase64 = await base64Promise;
-
-      const response = await fetch('https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': getAuthToken()
-        },
-        body: JSON.stringify({
-          file: fileBase64,
-          fileName: file.name,
-          folder: 'family-logos'
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.url) {
-        setFamilyLogo(data.url);
-        alert('✅ Логотип загружен! Не забудьте сохранить изменения.');
-      } else {
-        alert(`❌ ${data.error || 'Ошибка загрузки'}`);
-      }
-    } catch (error) {
-      alert('❌ Ошибка загрузки файла');
-      console.error(error);
-    } finally {
-      setIsUploadingLogo(false);
-    }
-  };
-
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    await uploadLogoFile(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      await uploadLogoFile(file);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -507,21 +357,6 @@ export default function FamilyInviteManager() {
           onJoin={(data) => joinFamily(data)}
         />
       </div>
-
-      <FamilySettingsCard
-        familyName={familyName}
-        familyLogo={familyLogo}
-        isUpdating={isUpdatingFamily}
-        isUploading={isUploadingLogo}
-        isDragging={isDragging}
-        onFamilyNameChange={setFamilyName}
-        onFamilyLogoChange={setFamilyLogo}
-        onUpdate={updateFamilySettings}
-        onLogoUpload={handleLogoUpload}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      />
 
       <FamilyMembersCard
         members={members}
