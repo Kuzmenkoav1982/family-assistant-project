@@ -138,6 +138,15 @@ export default function Footer() {
                   Возврат средств
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/documentation#about" 
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="BookOpen" size={16} />
+                  Документация
+                </Link>
+              </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-gray-700">
               <p className="text-xs text-gray-400 mb-1">Кузьменко А.В.</p>

@@ -27,7 +27,7 @@ export default function Documentation() {
               className="w-20 h-20 rounded-2xl shadow-lg"
             />
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Документация 7Я</h1>
+              <h1 className="text-4xl font-bold text-gray-900">Документация Наша Семья</h1>
               <p className="text-lg text-gray-600">Руководство по установке и эксплуатации</p>
             </div>
           </div>
@@ -72,15 +72,15 @@ export default function Documentation() {
           </h2>
           <div className="space-y-4 text-gray-700 leading-relaxed">
             <p className="text-lg">
-              <strong>7Я (Наша Семья)</strong> — это комплексное веб-приложение для управления семейной жизнью,
+              <strong>Наша Семья</strong> — это комплексное веб-приложение для управления семейной жизнью,
               объединяющее инструменты планирования, коммуникации и организации быта.
             </p>
             
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <h3 className="font-bold text-gray-900 mb-2">Основная информация:</h3>
               <ul className="space-y-2">
-                <li><strong>Наименование:</strong> 7Я (Наша Семья)</li>
-                <li><strong>Правообладатель:</strong> Кузьменко Анастасия Вячеславовна</li>
+                <li><strong>Наименование:</strong> Наша Семья</li>
+                <li><strong>Правообладатель:</strong> Кузьменко А.В.</li>
                 <li><strong>Версия:</strong> 2.0</li>
                 <li><strong>Тип ПО:</strong> Веб-приложение (Progressive Web Application)</li>
                 <li><strong>Платформа:</strong> Кроссплатформенное (работает в браузере)</li>
@@ -169,7 +169,7 @@ export default function Documentation() {
           </h2>
           <div className="space-y-6 text-gray-700">
             <p className="text-lg">
-              7Я — это веб-приложение, которое не требует традиционной установки.
+              Наша Семья — это веб-приложение, которое не требует традиционной установки.
               Приложение работает через браузер и может быть установлено как PWA (Progressive Web App).
             </p>
 
@@ -225,7 +225,7 @@ export default function Documentation() {
                     <li>Откройте Safari и перейдите на https://nasha-semiya.ru</li>
                     <li>Нажмите кнопку "Поделиться" (квадрат со стрелкой вверх)</li>
                     <li>Прокрутите вниз и выберите "На экран Домой"</li>
-                    <li>Введите название (по умолчанию "7Я")</li>
+                    <li>Введите название (по умолчанию "Наша Семья")</li>
                     <li>Нажмите "Добавить"</li>
                     <li>Приложение появится на главном экране</li>
                   </ol>
@@ -253,7 +253,7 @@ export default function Documentation() {
                   <h4 className="font-bold mb-2">macOS (Chrome/Edge):</h4>
                   <ol className="list-decimal list-inside space-y-2 ml-4">
                     <li>Откройте браузер и перейдите на https://nasha-semiya.ru</li>
-                    <li>Нажмите меню браузера → "Установить 7Я..."</li>
+                    <li>Нажмите меню браузера → "Установить Наша Семья..."</li>
                     <li>Подтвердите установку</li>
                     <li>Приложение появится в Dock и Launchpad</li>
                   </ol>
@@ -269,7 +269,7 @@ export default function Documentation() {
               <p className="mb-3">После установки и первого запуска приложения:</p>
               <ol className="list-decimal list-inside space-y-2 ml-4">
                 <li>При первом входе вам будет предложено пройти регистрацию</li>
-                <li>Укажите email и пароль или войдите через Telegram</li>
+                <li>Подтвердите email (если используете регистрацию через email)</li>
                 <li>Заполните базовую информацию о семье</li>
                 <li>Добавьте членов семьи и настройте профили</li>
                 <li>Ознакомьтесь с интерактивным туром по функциям (рекомендуется)</li>
@@ -360,7 +360,7 @@ export default function Documentation() {
                 <li>
                   <strong>Регистрация и вход</strong>
                   <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                    <li>Зарегистрируйтесь через email или Telegram</li>
+                    <li>Зарегистрируйтесь через email или Яндекс</li>
                     <li>Подтвердите email (если используете регистрацию через email)</li>
                   </ul>
                 </li>
@@ -687,7 +687,7 @@ export default function Documentation() {
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>В разделе "Новости" приложения</li>
                 <li>На нашем сайте nasha-semiya.ru</li>
-                <li>В Telegram-канале @nashsemiya_news</li>
+                <li>В Telegram-канале https://t.me/Nasha7iya</li>
               </ul>
             </div>
           </div>
@@ -695,9 +695,9 @@ export default function Documentation() {
 
         {/* Footer */}
         <div className="text-center text-gray-600 py-8">
-          <p className="mb-2">© 2024-2025 7Я (Наша Семья). Все права защищены.</p>
+          <p className="mb-2">© 2025-2026 Наша Семья. Все права защищены.</p>
           <p className="text-sm">
-            Правообладатель: Кузьменко Анастасия Вячеславовна
+            ИП Кузьменко А.В.
           </p>
           <p className="text-sm mt-2">
             Документация версии 2.0 от 11.02.2025
