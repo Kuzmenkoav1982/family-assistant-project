@@ -58,7 +58,7 @@ export function FirstLoginWelcome({ isFirstLogin, onClose }: FirstLoginWelcomePr
                 <p className="text-sm text-blue-800 mb-2">
                   Наведите курсор на логотип или название семьи вверху страницы — появится кнопка настроек.
                 </p>
-                <Link to="/family-settings">
+                <Link to="/settings">
                   <Button variant="outline" size="sm" className="border-blue-300 hover:bg-blue-100">
                     <Icon name="ExternalLink" size={14} className="mr-1" />
                     Перейти в настройки

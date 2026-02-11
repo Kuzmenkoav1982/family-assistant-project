@@ -55,7 +55,7 @@ import Children from "./pages/Children";
 import AssessmentReport from "./pages/AssessmentReport";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
-import FamilySettings from "./pages/FamilySettings";
+
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTraffic from "./pages/AdminTraffic";
 import Recipes from "./pages/Recipes";
@@ -282,7 +282,6 @@ const App = () => {
                       <Route path="/location-history" element={<LocationHistory />} />
                       <Route path="/analytics" element={<Analytics />} />
                       <Route path="/settings" element={<Settings />} />
-                      <Route path="/family-settings" element={<FamilySettings />} />
                       <Route path="/recipes" element={<Recipes />} />
                       <Route path="/nutrition" element={<Nutrition />} />
                       <Route path="/trips" element={<Trips />} />
