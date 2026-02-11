@@ -6,19 +6,32 @@ import { useNavigate } from 'react-router-dom';
 export default function Documentation() {
   const navigate = useNavigate();
 
+  const handleExportPDF = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="mb-4"
-          >
-            <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
-            На главную
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+            >
+              <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
+              На главную
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExportPDF}
+              className="print:hidden"
+            >
+              <Icon name="Download" className="w-4 h-4 mr-2" />
+              Экспорт в PDF
+            </Button>
+          </div>
           
           <div className="flex items-center gap-4 mb-4">
             <img 
@@ -80,7 +93,7 @@ export default function Documentation() {
               <h3 className="font-bold text-gray-900 mb-2">Основная информация:</h3>
               <ul className="space-y-2">
                 <li><strong>Наименование:</strong> Наша Семья</li>
-                <li><strong>Правообладатель:</strong> Кузьменко А.В.</li>
+                <li><strong>Правообладатель:</strong> ИП Кузьменко А.В.</li>
                 <li><strong>Версия:</strong> 2.0</li>
                 <li><strong>Тип ПО:</strong> Веб-приложение (Progressive Web Application)</li>
                 <li><strong>Платформа:</strong> Кроссплатформенное (работает в браузере)</li>
@@ -595,7 +608,10 @@ export default function Documentation() {
                 </p>
                 <p className="flex items-center gap-3">
                   <Icon name="Send" className="w-5 h-5 text-orange-600" />
-                  <strong>Telegram:</strong> @nashsemiya_support
+                  <strong>Telegram:</strong>{' '}
+                  <a href="https://t.me/Nasha7iya" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">
+                    https://t.me/Nasha7iya
+                  </a>
                 </p>
                 <p className="flex items-center gap-3">
                   <Icon name="Globe" className="w-5 h-5 text-orange-600" />
@@ -700,7 +716,7 @@ export default function Documentation() {
             ИП Кузьменко А.В.
           </p>
           <p className="text-sm mt-2">
-            Документация версии 2.0 от 11.02.2025
+            Документация версии 2.0 от 11.02.2026
           </p>
           <div className="flex gap-4 justify-center mt-4">
             <Button variant="outline" onClick={() => navigate('/privacy-policy')}>
