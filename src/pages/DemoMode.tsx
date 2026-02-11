@@ -227,9 +227,11 @@ export default function DemoMode() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-3 mb-6 animate-bounce-in">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center">
-                <Icon name="Sparkles" className="w-9 h-9 text-white" />
-              </div>
+              <img 
+                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/e75f76ea-1ecd-40ba-8c4b-9bec18c6513f.jpeg" 
+                alt="7Я логотип" 
+                className="w-24 h-24 rounded-3xl shadow-xl"
+              />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
               🎭 Добро пожаловать в демо-режим!
