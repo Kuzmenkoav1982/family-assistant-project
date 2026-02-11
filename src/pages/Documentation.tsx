@@ -23,7 +23,7 @@ export default function Documentation() {
           <div className="flex items-center gap-4 mb-4">
             <img 
               src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/e75f76ea-1ecd-40ba-8c4b-9bec18c6513f.jpeg" 
-              alt="7Я логотип" 
+              alt="Наша Семья логотип" 
               className="w-20 h-20 rounded-2xl shadow-lg"
             />
             <div>

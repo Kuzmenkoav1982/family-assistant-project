@@ -42,7 +42,7 @@ export function ConsentDialog({ open, onAccept, onDecline }: ConsentDialogProps)
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
             <p className="text-sm text-gray-700">
               <strong>Оператор персональных данных:</strong><br />
-              ИП Кузьменко Анастасия Вячеславовна<br />
+              ИП Кузьменко А.В.<br />
               ОГРНИП: 325774600908955, ИНН: 231805728780<br />
               Email: IP.KUZMENKO@YANDEX.RU
             </p>
