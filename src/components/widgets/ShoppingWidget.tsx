@@ -66,7 +66,7 @@ export function ShoppingWidget() {
                     checked={isDemoMode ? item.completed : item.bought}
                     onCheckedChange={(checked) => {
                       if (!isDemoMode) {
-                        toggleBought(item.id, !checked);
+                        toggleBought(item.id, !!checked);
                       }
                     }}
                   />
