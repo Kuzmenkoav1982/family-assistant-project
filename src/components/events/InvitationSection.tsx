@@ -262,9 +262,10 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
                 </Button>
               </div>
             ) : (
-              <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                <Icon name="Image" size={48} className="mx-auto text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground mb-4">Открытка не выбрана</p>
+              <div className="border-2 border-dashed rounded-lg p-8 text-center bg-gradient-to-br from-pink-50 to-purple-50">
+                <Icon name="Image" size={48} className="mx-auto text-pink-500 mb-3" />
+                <p className="text-lg font-semibold text-gray-900 mb-2">Загрузите фото для открытки</p>
+                <p className="text-sm text-muted-foreground">Нажмите кнопку ниже, чтобы выбрать изображение с устройства</p>
               </div>
             )}
 
