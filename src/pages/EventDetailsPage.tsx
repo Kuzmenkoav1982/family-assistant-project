@@ -797,19 +797,19 @@ export default function EventDetailsPage() {
         <TabsContent value="ideas" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <CardTitle className="flex items-center gap-2">
                   <Icon name="Lightbulb" className="text-yellow-500" />
                   ИИ Идеи и рекомендации
                 </CardTitle>
-                <Button onClick={() => setShowAIIdeas(true)}>
+                <Button onClick={() => setShowAIIdeas(true)} className="w-full md:w-auto">
                   <Icon name="Wand2" size={16} />
                   Генерировать идеи
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm md:text-base">
                 Используйте ИИ для генерации идей меню, декора, активностей и распределения бюджета
               </p>
             </CardContent>
