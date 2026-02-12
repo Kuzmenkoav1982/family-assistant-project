@@ -271,18 +271,8 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
             <div className="grid grid-cols-1 gap-2">
               <Button
                 variant="outline"
-                onClick={generateInvitationImage}
-                disabled={generatingImage || uploadingImage}
-                className="w-full"
-              >
-                <Icon name="Wand2" size={16} />
-                {generatingImage ? 'Генерирую...' : 'Сгенерировать открытку с ИИ'}
-              </Button>
-
-              <Button
-                variant="outline"
                 onClick={() => document.getElementById('file-upload')?.click()}
-                disabled={generatingImage || uploadingImage}
+                disabled={uploadingImage}
                 className="w-full"
               >
                 <Icon name="Upload" size={16} />
