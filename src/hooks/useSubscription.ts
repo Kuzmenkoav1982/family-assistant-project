@@ -49,9 +49,19 @@ export function useSubscription() {
   }, []);
 
   const hasAIAccess = subscription?.has_subscription && 
-    (subscription.plan === 'ai_assistant' || subscription.plan === 'full');
+    (subscription.plan === 'ai_assistant' || 
+     subscription.plan === 'full' ||
+     subscription.plan === 'premium_1m' ||
+     subscription.plan === 'premium_3m' ||
+     subscription.plan === 'premium_6m' ||
+     subscription.plan === 'premium_12m');
 
-  const hasFullAccess = subscription?.has_subscription && subscription.plan === 'full';
+  const hasFullAccess = subscription?.has_subscription && 
+    (subscription.plan === 'full' ||
+     subscription.plan === 'premium_1m' ||
+     subscription.plan === 'premium_3m' ||
+     subscription.plan === 'premium_6m' ||
+     subscription.plan === 'premium_12m');
 
   return {
     subscription,

@@ -204,7 +204,7 @@ const AIAssistantWidget = () => {
     if (!subscriptionLoading && !hasAIAccess) {
       toast({
         title: '🔒 Требуется подписка',
-        description: 'AI-помощник доступен с подпиской "AI-Помощник" или "Полный пакет"',
+        description: 'AI-помощник доступен только с подпиской Premium',
       });
       setTimeout(() => navigate('/pricing'), 2000);
       return;
@@ -252,7 +252,7 @@ const AIAssistantWidget = () => {
         if (error.error === 'subscription_required') {
           toast({
             title: '🔒 Требуется подписка',
-            description: 'Подписка неактивна. Подключите AI-помощника',
+            description: 'Подписка неактивна. Подключите Premium для доступа к AI',
           });
           setTimeout(() => navigate('/pricing'), 2000);
           return;

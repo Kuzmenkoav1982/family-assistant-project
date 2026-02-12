@@ -43,11 +43,9 @@ export default function SubscriptionSettings({
             <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border-2 border-green-300">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                    <Icon name="Check" className="text-white" size={24} />
-                  </div>
+                  <Icon name="CheckCircle" className="text-green-500" size={32} />
                   <div>
-                    <h3 className="text-xl font-bold text-green-900">Подписка активна</h3>
+                    <h3 className="text-xl font-bold text-green-900">Активная подписка</h3>
                     <p className="text-sm text-green-700">План: {subscription.plan_type}</p>
                   </div>
                 </div>

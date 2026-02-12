@@ -28,7 +28,7 @@ def check_subscription(family_id: str) -> bool:
             WHERE family_id = '{safe_family_id}'
             AND status = 'active'
             AND end_date > CURRENT_TIMESTAMP
-            AND plan_type IN ('ai_assistant', 'full')
+            AND plan_type IN ('ai_assistant', 'full', 'premium_1m', 'premium_3m', 'premium_6m', 'premium_12m')
             LIMIT 1
         """
         cursor.execute(query)

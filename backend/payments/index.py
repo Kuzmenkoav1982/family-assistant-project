@@ -701,7 +701,7 @@ def get_subscription_status(family_id: str) -> Dict[str, Any]:
         SELECT s.id, s.plan_type, s.status, s.amount, s.start_date, s.end_date, s.auto_renew,
                p.user_id, u.name as buyer_name, u.email as buyer_email, p.paid_at
         FROM {SCHEMA}.subscriptions s
-        LEFT JOIN {SCHEMA}.payments p ON p.subscription_id = s.id AND p.status = 'succeeded'
+        LEFT JOIN {SCHEMA}.payments p ON p.subscription_id = s.id AND p.status = 'paid'
         LEFT JOIN {SCHEMA}.users u ON u.id = p.user_id
         WHERE s.family_id = '{safe_family_id}' AND s.status = 'active' AND s.end_date > CURRENT_TIMESTAMP
         ORDER BY s.end_date DESC LIMIT 1
