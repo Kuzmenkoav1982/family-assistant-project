@@ -31,7 +31,7 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
         : '1';
       const authToken = localStorage.getItem('authToken');
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/events/${event.id}`, {
+      const response = await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac?id=${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -48,6 +48,8 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
         toast({ title: 'Сохранено', description: 'Приглашение обновлено' });
         setEditing(false);
         onUpdate();
+      } else {
+        throw new Error(`Server returned ${response.status}`);
       }
     } catch (error) {
       console.error('[InvitationSection] Save error:', error);
