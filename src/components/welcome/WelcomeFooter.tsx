@@ -62,7 +62,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
             <CardContent className="p-6">
               <div className="text-center mb-4">
                 <h4 className="text-2xl font-bold text-purple-600 mb-2">AI-Помощник</h4>
-                <div className="text-4xl font-bold text-purple-600">200 ₽</div>
+                <div className="text-4xl font-bold text-purple-600">299 ₽</div>
                 <p className="text-gray-500">в месяц</p>
               </div>
               <ul className="space-y-2 text-sm text-gray-700">
@@ -90,7 +90,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
             <CardContent className="p-6">
               <div className="text-center mb-4">
                 <h4 className="text-2xl font-bold text-orange-600 mb-2">Полный пакет</h4>
-                <div className="text-4xl font-bold text-orange-600">500 ₽</div>
+                <div className="text-4xl font-bold text-orange-600">799 ₽</div>
                 <p className="text-gray-500">в месяц</p>
                 <Badge className="mt-2 bg-orange-100 text-orange-700">Экономия 35%</Badge>
               </div>
