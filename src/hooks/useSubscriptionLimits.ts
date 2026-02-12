@@ -27,6 +27,7 @@ export function useSubscriptionLimits(familyId?: string | null) {
 
   const checkLimits = useCallback(async (type: 'ai_requests' | 'photos' | 'family_members' = 'ai_requests') => {
     if (!familyId) {
+      console.log('[useSubscriptionLimits] Family ID отсутствует');
       setError('Family ID отсутствует');
       setLoading(false);
       return null;
@@ -34,6 +35,7 @@ export function useSubscriptionLimits(familyId?: string | null) {
 
     try {
       setLoading(true);
+      console.log('[useSubscriptionLimits] Checking limits for family:', familyId);
       const response = await fetch(`${CHECK_LIMITS_API}?type=${type}`, {
         method: 'GET',
         headers: {
@@ -46,6 +48,7 @@ export function useSubscriptionLimits(familyId?: string | null) {
       }
 
       const data = await response.json();
+      console.log('[useSubscriptionLimits] Limits response:', data);
       setLimits(data);
       setError(null);
       return data;

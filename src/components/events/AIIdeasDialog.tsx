@@ -45,7 +45,22 @@ function getUserId(): string {
 export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeasDialogProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const familyId = localStorage.getItem('currentFamilyId') || null;
+  
+  // Получаем familyId из userData
+  const getFamilyId = () => {
+    try {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        return parsed.family_id || null;
+      }
+      return localStorage.getItem('currentFamilyId') || null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const familyId = getFamilyId();
   const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
 
   const [loading, setLoading] = useState(false);
@@ -68,10 +83,10 @@ export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeas
   const handleGenerate = async () => {
     // Логирование для отладки
     console.log('[AIIdeasDialog] Limits check:', {
+      familyId,
       aiRequestsAllowed,
       isPremium,
-      limits,
-      familyId
+      limits: JSON.stringify(limits, null, 2)
     });
 
     // Проверка лимитов
