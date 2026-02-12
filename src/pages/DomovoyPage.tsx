@@ -142,45 +142,7 @@ export default function DomovoyPage() {
           </CardContent>
         </Card>
 
-        {/* Role Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Briefcase" />
-              Роль Домового в семье
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Выберите, в какой роли Домовой будет помогать вашей семье
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {defaultRoles.map((role: AIAssistantRole) => (
-                <Button
-                  key={role.id}
-                  onClick={() => handleRoleClick(role)}
-                  variant={selectedRole?.id === role.id ? 'default' : 'outline'}
-                  className="h-auto py-3 px-4 flex flex-col items-start gap-1"
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    <span className="text-xl">{role.emoji}</span>
-                    <span className="font-semibold text-sm">{role.name}</span>
-                  </div>
-                  {selectedRole?.id === role.id && (
-                    <Icon name="Check" className="ml-auto" size={16} />
-                  )}
-                </Button>
-              ))}
-            </div>
-            {selectedRole && (
-              <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                <p className="text-sm">
-                  <strong>{selectedRole.emoji} {selectedRole.name}:</strong> {selectedRole.description}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
 
         {/* About Domovoy */}
         <Card>
