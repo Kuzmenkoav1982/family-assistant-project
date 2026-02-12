@@ -66,6 +66,14 @@ export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeas
   };
 
   const handleGenerate = async () => {
+    // Логирование для отладки
+    console.log('[AIIdeasDialog] Limits check:', {
+      aiRequestsAllowed,
+      isPremium,
+      limits,
+      familyId
+    });
+
     // Проверка лимитов
     if (!aiRequestsAllowed) {
       toast({

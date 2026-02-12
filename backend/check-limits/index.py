@@ -41,7 +41,7 @@ def handler(event: dict, context) -> dict:
                    su.photos_used, su.family_members_count
             FROM t_p5815085_family_assistant_pro.subscriptions s
             LEFT JOIN t_p5815085_family_assistant_pro.subscription_usage su ON s.family_id = su.family_id
-            WHERE s.family_id = %s AND s.status = 'active'
+            WHERE s.family_id = %s AND s.status = 'active' AND s.end_date > CURRENT_TIMESTAMP
             ORDER BY s.end_date DESC LIMIT 1
         """, (family_id,))
         
@@ -66,7 +66,7 @@ def handler(event: dict, context) -> dict:
             }
         
         plan_type = subscription['plan_type']
-        is_premium = plan_type.startswith('premium_')
+        is_premium = plan_type.startswith('premium_') or plan_type in ('ai_assistant', 'full')
         
         if subscription.get('ai_requests_reset_date') and str(subscription['ai_requests_reset_date']) < str(date.today()):
             cur.execute("""
