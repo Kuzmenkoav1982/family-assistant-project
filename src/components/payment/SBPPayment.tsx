@@ -18,7 +18,7 @@ export function SBPPayment({ amount, description = 'Оплата подписк�
   const handlePayment = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/payment-sbp', {
+      const response = await fetch('https://functions.poehali.dev/c6530a3b-947b-4cca-976d-430c9b91ee4a', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
