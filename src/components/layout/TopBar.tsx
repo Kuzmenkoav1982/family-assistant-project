@@ -15,6 +15,7 @@ interface TopBarProps {
   isVisible: boolean;
   currentLanguage: LanguageCode;
   currentTheme: string;
+  showMenuHint?: boolean;
   onLogout: () => void;
   onVisibilityChange: (visible: boolean) => void;
   onLanguageChange: (lang: string) => void;
@@ -27,6 +28,7 @@ export default function TopBar({
   isVisible,
   currentLanguage,
   currentTheme,
+  showMenuHint,
   onLogout,
   onVisibilityChange,
   onLanguageChange,
@@ -72,15 +74,29 @@ export default function TopBar({
       <div className="px-4 py-1.5 flex items-center justify-between max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-3">
           {onMenuClick && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMenuClick}
-              className="h-9 w-9 p-0 md:hidden"
-              title="Меню"
-            >
-              <Icon name="Menu" size={18} />
-            </Button>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMenuClick}
+                className="h-9 w-9 p-0"
+                title="Меню"
+              >
+                <Icon name="Menu" size={18} />
+              </Button>
+              {showMenuHint && (
+                <>
+                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-orange-500" />
+                  </span>
+                  <div className="absolute top-full left-0 mt-2 whitespace-nowrap bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl z-50 animate-bounce">
+                    <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45" />
+                    Все разделы здесь
+                  </div>
+                </>
+              )}
+            </div>
           )}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <Icon name="User" size={18} className="text-blue-600 dark:text-blue-400" />

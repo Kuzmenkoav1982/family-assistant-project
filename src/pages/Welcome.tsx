@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WelcomeHeader from '@/components/welcome/WelcomeHeader';
 import WelcomeHero from '@/components/welcome/WelcomeHero';
+import WelcomePromo from '@/components/welcome/WelcomePromo';
 import WelcomeSections from '@/components/welcome/WelcomeSections';
 import WelcomeFooter from '@/components/welcome/WelcomeFooter';
 import { sections, trackSectionClick } from '@/components/welcome/welcome-data';
@@ -93,6 +94,8 @@ export default function Welcome() {
       
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeHero isLoggedIn={isLoggedIn} />
+
+        <WelcomePromo />
 
         <WelcomeSections
           sections={sections}

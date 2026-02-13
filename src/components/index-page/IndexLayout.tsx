@@ -7,6 +7,7 @@ import type { ThemeType } from '@/types/family.types';
 interface IndexLayoutProps {
   isTopBarVisible: boolean;
   isLeftMenuVisible: boolean;
+  showMenuHint?: boolean;
   currentLanguage: LanguageCode;
   currentTheme: ThemeType;
   themeClasses: {
@@ -25,6 +26,7 @@ interface IndexLayoutProps {
 export function IndexLayout({
   isTopBarVisible,
   isLeftMenuVisible,
+  showMenuHint,
   currentLanguage,
   currentTheme,
   themeClasses,
@@ -51,6 +53,7 @@ export function IndexLayout({
         onLanguageChange={onLanguageChange}
         onThemeChange={onThemeChange}
         onResetDemo={onResetDemo}
+        showMenuHint={showMenuHint}
         onMenuClick={() => onLeftMenuVisibilityChange(true)}
       />
 

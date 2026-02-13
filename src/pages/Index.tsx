@@ -367,11 +367,32 @@ export default function Index({ onLogout }: IndexProps) {
   });
 
   const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(false);
+  const [showSidebarHint, setShowSidebarHint] = useState(false);
   const [autoHideLeftMenu, setAutoHideLeftMenu] = useState(() => {
     return localStorage.getItem('autoHideLeftMenu') === 'true';
   });
   const [activeSection, setActiveSection] = useState<string>('family');
   const [showInDevelopment, setShowInDevelopment] = useState(false);
+
+  useEffect(() => {
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    const hasSeenSidebarHint = localStorage.getItem('hasSeenSidebarHint');
+    if (isDemoMode && !hasSeenSidebarHint) {
+      const openTimer = setTimeout(() => {
+        setIsLeftMenuVisible(true);
+        setShowSidebarHint(true);
+      }, 1500);
+      const closeTimer = setTimeout(() => {
+        setIsLeftMenuVisible(false);
+        setShowSidebarHint(false);
+        localStorage.setItem('hasSeenSidebarHint', 'true');
+      }, 5500);
+      return () => {
+        clearTimeout(openTimer);
+        clearTimeout(closeTimer);
+      };
+    }
+  }, []);
 
   // Read section from URL params
   useEffect(() => {
@@ -1294,6 +1315,7 @@ export default function Index({ onLogout }: IndexProps) {
       <IndexLayout
         isTopBarVisible={isTopBarVisible}
         isLeftMenuVisible={isLeftMenuVisible}
+        showMenuHint={showSidebarHint}
         currentLanguage={currentLanguage}
         currentTheme={currentTheme}
         themeClasses={themeClasses}
