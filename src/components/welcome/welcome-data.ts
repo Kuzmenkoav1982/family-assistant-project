@@ -63,10 +63,11 @@ export const sections = [
     icon: 'Users',
     color: 'from-blue-500 to-cyan-500',
     carousel: [
-      'https://cdn.poehali.dev/files/98335cb4-cd33-4984-a62a-b41c0f395a08.JPG',
-      'https://cdn.poehali.dev/files/38ccde3a-5dda-40f6-868d-59641e6fbd84.JPG',
-      'https://cdn.poehali.dev/files/cd388084-2bb8-4726-9d4f-e6b9906a68cf.JPG',
-      'https://cdn.poehali.dev/files/c62cde5c-4c3b-489b-a629-2dbcc8791ef1.JPG'
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5bc14b3e-fc4b-485b-8d50-fe25bfbd03f7.jpeg',
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/cc65f0ee-0861-4cf5-b293-acc3d5ed4899.jpeg',
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5c0b57fe-0b26-4652-8d97-31d4616c5822.jpeg',
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/3a7a3154-b3c8-4c27-bfb0-7905dd1e370d.jpeg',
+      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/a9dc6c8c-8fd6-4da4-a3b9-fb364ed66bbd.jpeg'
     ]
   },
   {
