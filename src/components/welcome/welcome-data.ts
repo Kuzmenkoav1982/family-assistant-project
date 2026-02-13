@@ -175,10 +175,11 @@ export const sections = [
     icon: 'Plane',
     color: 'from-sky-500 to-blue-500',
     carousel: [
-      'https://cdn.poehali.dev/files/277c51a1-a9e8-412e-8461-870329ab06a5.JPG',
-      'https://cdn.poehali.dev/files/11260244-b6a9-4ae5-a198-7a94f5aef95b.JPG',
-      'https://cdn.poehali.dev/files/fc5d76f8-86dd-4fc2-883e-f27f7cb81cda.JPG',
-      'https://cdn.poehali.dev/files/0df4e9df-c5dd-46f3-8b28-f51b36af2fb7.JPG'
+      'https://cdn.poehali.dev/files/0582417f-99a4-4ef9-8cdb-b217f917c580.JPG',
+      'https://cdn.poehali.dev/files/a16279af-d927-4f0e-9939-a557350bc135.JPG',
+      'https://cdn.poehali.dev/files/1b0574fc-9118-40a4-af74-fb993700d7f5.JPG',
+      'https://cdn.poehali.dev/files/5482ffc4-a4fc-4418-bb23-80eee93d2914.JPG',
+      'https://cdn.poehali.dev/files/694f6d78-137b-4099-ba75-a66d9028323c.JPG'
     ]
   },
   {
