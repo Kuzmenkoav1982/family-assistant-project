@@ -226,8 +226,9 @@ export const sections = [
     icon: 'Vote',
     color: 'from-indigo-500 to-purple-500',
     carousel: [
-      'https://cdn.poehali.dev/files/24f04b36-2a74-4ff4-9ac1-c01b55b99a20.JPG',
-      'https://cdn.poehali.dev/files/bd2976e0-e6b9-4e31-8b9a-87068e15a4d5.JPG'
+      'https://cdn.poehali.dev/files/c3335419-caa2-4cb3-84cb-a0646a8ae1b5.JPG',
+      'https://cdn.poehali.dev/files/cbacb206-1183-4328-9b5c-01997fc0071d.JPG',
+      'https://cdn.poehali.dev/files/db76095f-c361-48ad-9117-bafb39415d69.JPG'
     ]
   },
   {
