@@ -231,13 +231,13 @@ export const sections = [
     ]
   },
   {
-    title: 'Доска идей',
-    description: 'Собирайте идеи и планы всей семьёй',
-    icon: 'Lightbulb',
-    color: 'from-yellow-500 to-orange-500',
+    title: 'Аналитика семьи',
+    description: 'Отслеживайте активность и развитие вашей семьи',
+    icon: 'BarChart3',
+    color: 'from-blue-500 to-indigo-500',
     carousel: [
-      'https://cdn.poehali.dev/files/9a0d2ab8-32e0-496d-90d1-45d9ceff59fe.JPG',
-      'https://cdn.poehali.dev/files/6ea9a1f7-14a7-42de-a851-fe4c4d956f5c.JPG'
+      'https://cdn.poehali.dev/files/45edbfae-0c23-4281-af65-9752527e307d.JPG',
+      'https://cdn.poehali.dev/files/b451c8cb-7ddd-49a4-9141-b2b19a336e7b.JPG'
     ]
   }
 ];
