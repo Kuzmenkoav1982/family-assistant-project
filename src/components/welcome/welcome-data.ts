@@ -197,14 +197,16 @@ export const sections = [
     ]
   },
   {
-    title: 'Отдых и досуг',
+    title: 'Досуг',
     description: 'Идеи для семейного досуга с фотоальбомами',
     icon: 'Camera',
     color: 'from-cyan-500 to-blue-500',
     carousel: [
-      'https://cdn.poehali.dev/files/c3bc1a6a-4a11-418e-b076-e8bdf84cd9ad.JPG',
-      'https://cdn.poehali.dev/files/a4af1b77-3cf4-42af-894f-f65419ac4dca.JPG',
-      'https://cdn.poehali.dev/files/6dcf09ba-2094-4e5b-b903-b97afbbcd89e.JPG'
+      'https://cdn.poehali.dev/files/e8e0677a-8c32-4920-9a09-d8e8e6bb7bb8.JPG',
+      'https://cdn.poehali.dev/files/ad15b7c8-0df6-4d82-8056-74e6859d4968.JPG',
+      'https://cdn.poehali.dev/files/8dc5460e-1911-4954-a7a2-a398d896804e.JPG',
+      'https://cdn.poehali.dev/files/b36ee5f6-205b-47f6-9946-d7b8bcf0078e.JPG',
+      'https://cdn.poehali.dev/files/458269c5-eb45-4a6c-935e-f29a6f0c9f7a.JPG'
     ]
   },
   {
