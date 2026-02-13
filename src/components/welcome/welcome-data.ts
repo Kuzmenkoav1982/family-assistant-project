@@ -133,7 +133,7 @@ export const sections = [
     ]
   },
   {
-    title: 'Семейные ценности',
+    title: 'Семейные традиции',
     description: 'Семейные традиции и история вашей семьи',
     icon: 'Heart',
     color: 'from-pink-500 to-rose-500',
