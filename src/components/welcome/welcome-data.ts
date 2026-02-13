@@ -188,9 +188,12 @@ export const sections = [
     icon: 'PartyPopper',
     color: 'from-fuchsia-500 to-pink-500',
     carousel: [
-      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/0126619e-2085-4784-bb60-9179334a3042.png',
-      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/17b9a49c-f5aa-417c-803e-c89a6ddf28b3.JPG',
-      'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/ca10b38f-e8c0-4a05-af41-af2f67c1aeea.JPG'
+      'https://cdn.poehali.dev/files/82f3423a-c07a-42aa-8c61-352693867ee2.JPG',
+      'https://cdn.poehali.dev/files/4584e773-c8bc-46a6-a8e4-ad4d7616a249.JPG',
+      'https://cdn.poehali.dev/files/74a81832-f1dc-40e5-9bfc-b1d454e089cc.JPG',
+      'https://cdn.poehali.dev/files/53261ab2-61f6-4bf9-b7e0-8ed58adc8b21.JPG',
+      'https://cdn.poehali.dev/files/4a965bb2-b631-45b2-9cd5-6aefc2d9ea66.JPG',
+      'https://cdn.poehali.dev/files/07d5f106-3bad-4910-9a50-7719d01301e9.JPG'
     ]
   },
   {
