@@ -210,14 +210,13 @@ export const sections = [
     ]
   },
   {
-    title: 'Геолокация',
+    title: 'Семейный маячок',
     description: 'Отслеживание местоположения членов семьи в реальном времени',
     icon: 'MapPin',
     color: 'from-red-500 to-orange-500',
     carousel: [
-      'https://cdn.poehali.dev/files/f9fa55c1-0ded-43ab-8cfe-2d5a6ecfbbb4.png',
-      'https://cdn.poehali.dev/files/e4cf628f-df99-4d08-8207-6b5d831e1a3b.png',
-      'https://cdn.poehali.dev/files/7f47fe6b-2e6a-4d67-9aff-4e9e768e2b0f.JPG'
+      'https://cdn.poehali.dev/files/23702ba3-b4c9-4066-8fa1-20f23c556cb5.JPG',
+      'https://cdn.poehali.dev/files/7d32d8ec-64b3-4304-acd4-bfaa7d5e7087.JPG'
     ]
   },
   {
