@@ -137,9 +137,7 @@ export default function WelcomeSections({
                   <img
                     src={section.carousel[carouselIndexes[index] || 0]}
                     alt={`${section.title} - Слайд ${(carouselIndexes[index] || 0) + 1}`}
-                    className="w-full h-full object-cover transition-opacity duration-500"
-                    loading="lazy"
-                    decoding="async"
+                    className="w-full h-full object-contain transition-opacity duration-500"
                   />
                   <button
                     onClick={(e) => {
