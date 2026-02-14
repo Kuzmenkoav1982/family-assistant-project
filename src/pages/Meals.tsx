@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { MealDialog } from '@/components/meals/MealDialog';
@@ -300,6 +300,7 @@ export default function Meals() {
             onDeleteMeal={deleteMeal}
             daysOfWeek={DAYS_OF_WEEK}
             mealTypes={MEAL_TYPES}
+            onQuickAddMeal={handleQuickAddMeal}
           />
         ) : (
           <MealsWeekView

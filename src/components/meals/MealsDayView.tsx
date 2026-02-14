@@ -1,8 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MealCard } from '@/components/meals/MealCard';
 
 interface MealPlan {
   id: string;
@@ -16,6 +15,12 @@ interface MealPlan {
   emoji?: string;
 }
 
+const MEAL_TYPES_ORDER: { value: MealPlan['mealType']; label: string; emoji: string }[] = [
+  { value: 'breakfast', label: 'Завтрак', emoji: '🍳' },
+  { value: 'lunch', label: 'Обед', emoji: '🍽️' },
+  { value: 'dinner', label: 'Ужин', emoji: '🍷' }
+];
+
 interface MealsDayViewProps {
   selectedDay: string;
   onDayChange: (day: string) => void;
@@ -25,13 +30,8 @@ interface MealsDayViewProps {
   onDeleteMeal: (id: string) => void;
   daysOfWeek: { value: string; label: string }[];
   mealTypes: { value: string; label: string; emoji: string }[];
+  onQuickAddMeal?: (day: string, mealType: MealPlan['mealType']) => void;
 }
-
-const MEAL_TYPE_LABELS: Record<string, string> = {
-  breakfast: 'Завтрак',
-  lunch: 'Обед',
-  dinner: 'Ужин'
-};
 
 export function MealsDayView({
   selectedDay,
@@ -41,97 +41,74 @@ export function MealsDayView({
   onEditMeal,
   onDeleteMeal,
   daysOfWeek,
-  mealTypes
+  onQuickAddMeal
 }: MealsDayViewProps) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="Calendar" size={24} />
-            День: {selectedDayLabel}
-          </CardTitle>
-          <Select value={selectedDay} onValueChange={onDayChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {daysOfWeek.map(day => (
-                <SelectItem key={day.value} value={day.value}>
-                  {day.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {mealTypes.map(type => {
-            const meals = mealsForSelectedDay.filter(m => m.mealType === type.value);
-            return (
-              <div key={type.value}>
-                <h3 className="font-semibold mb-3 flex items-center gap-2 text-lg">
-                  <span>{type.emoji}</span>
-                  {MEAL_TYPE_LABELS[type.value]}
-                </h3>
-                {meals.length > 0 ? (
-                  <div className="space-y-2">
-                    {meals.map(meal => (
-                      <Card key={meal.id} className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-2xl">{meal.emoji || type.emoji}</span>
-                                <h4 className="font-semibold text-lg">{meal.dishName}</h4>
-                              </div>
-                              {meal.description && (
-                                <p className="text-sm text-gray-600 mb-2">{meal.description}</p>
-                              )}
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs">
-                                  <Icon name="User" size={12} className="mr-1" />
-                                  {meal.addedByName}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  <Icon name="Clock" size={12} className="mr-1" />
-                                  {new Date(meal.addedAt).toLocaleDateString('ru-RU')}
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => onEditMeal(meal)}
-                              >
-                                <Icon name="Edit" size={16} />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => onDeleteMeal(meal.id)}
-                              >
-                                <Icon name="Trash2" size={16} />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="flex items-center gap-2 font-semibold">
+          <Icon name="Calendar" size={20} />
+          День: {selectedDayLabel}
+        </h3>
+        <Select value={selectedDay} onValueChange={onDayChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {daysOfWeek.map(day => (
+              <SelectItem key={day.value} value={day.value}>
+                {day.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-4">
+        {MEAL_TYPES_ORDER.map(mealType => {
+          const meals = mealsForSelectedDay.filter(m => m.mealType === mealType.value);
+          return (
+            <div key={mealType.value}>
+              {meals.length > 0 ? (
+                <div className="space-y-2">
+                  {meals.map(meal => (
+                    <MealCard
+                      key={meal.id}
+                      meal={meal}
+                      onEdit={onEditMeal}
+                      onDelete={onDeleteMeal}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-colors"
+                  onClick={() => onQuickAddMeal?.(selectedDay, mealType.value)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-lg">{mealType.emoji}</span>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-400 border-2 border-dashed rounded-lg">
-                    <Icon name="UtensilsCrossed" size={32} className="mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Блюд не добавлено</p>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-400">{mealType.label} не добавлен</p>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+                  <Icon name="Plus" size={16} className="text-gray-400" />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {onQuickAddMeal && (
+        <Button
+          variant="outline"
+          className="w-full border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
+          onClick={() => onQuickAddMeal(selectedDay, 'breakfast')}
+        >
+          <Icon name="Plus" size={16} className="mr-2" />
+          Добавить блюдо
+        </Button>
+      )}
+    </div>
   );
 }

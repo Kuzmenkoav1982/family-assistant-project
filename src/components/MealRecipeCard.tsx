@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import ImageLightbox from '@/components/ImageLightbox';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 
@@ -38,6 +39,7 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
   const [loadingRecipe, setLoadingRecipe] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [loadingPhoto, setLoadingPhoto] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const bgColor = meal.type === 'breakfast' ? 'bg-amber-100' :
     meal.type === 'lunch' ? 'bg-green-100' :
@@ -150,6 +152,7 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
   };
 
   return (
+    <>
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div
@@ -208,7 +211,12 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
         {expanded && (
           <div className="border-t px-4 py-3 space-y-3 bg-gray-50/50">
             {photoUrl && (
-              <img src={photoUrl} alt={meal.name} className="w-full h-40 object-cover rounded-lg" />
+              <img
+                src={photoUrl}
+                alt={meal.name}
+                className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
+              />
             )}
 
             {meal.ingredients && meal.ingredients.length > 0 && (
@@ -280,5 +288,15 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
         )}
       </CardContent>
     </Card>
+
+    {photoUrl && (
+      <ImageLightbox
+        src={photoUrl}
+        alt={meal.name}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
+    )}
+    </>
   );
 }
