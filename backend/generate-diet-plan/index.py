@@ -85,15 +85,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         ]
     }
 
+    print(f"[generate-diet-plan] Calling YandexGPT, folder={folder_id}, model=yandexgpt/latest")
     response = requests.post(url, headers=headers, json=payload, timeout=120)
+    print(f"[generate-diet-plan] YandexGPT status={response.status_code}")
 
     if response.status_code != 200:
+        print(f"[generate-diet-plan] YandexGPT error: {response.text[:500]}")
         return {
             'statusCode': 502,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},
             'body': json.dumps({
                 'error': 'Ошибка YandexGPT',
-                'details': response.text
+                'details': response.text[:500],
+                'status': response.status_code
             }),
             'isBase64Encoded': False
         }

@@ -161,7 +161,8 @@ export default function DietQuiz() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || 'Ошибка генерации');
+        console.error('[DietQuiz] API error:', result);
+        setError(result.details ? `${result.error}: ${result.details}` : (result.error || 'Ошибка генерации'));
         return;
       }
 
