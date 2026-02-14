@@ -1,4 +1,5 @@
 {
+  "family-wallet": "https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238",
   "diet-sync": "https://functions.poehali.dev/c94d9639-d8fc-4838-a865-1c01c18f3f25",
   "diet-progress": "https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54",
   "generate-diet-plan": "https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a",

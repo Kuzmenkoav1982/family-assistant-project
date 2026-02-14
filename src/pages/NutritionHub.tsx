@@ -88,6 +88,17 @@ const subSections: SubSection[] = [
     gradient: 'from-cyan-500 to-sky-600',
     ready: true,
   },
+  {
+    id: 'wallet',
+    title: 'Семейный кошелёк',
+    description: 'Баланс для ИИ-сервисов: генерация диет, фото, рецептов',
+    icon: 'Wallet',
+    path: '/wallet',
+    gradient: 'from-emerald-500 to-green-600',
+    badge: 'Новое',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
+  },
 ];
 
 export default function NutritionHub() {

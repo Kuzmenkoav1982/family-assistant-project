@@ -79,6 +79,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     quiz_data = body.get('quizData', {})
     program_data = body.get('programData', {})
+    med_tables = body.get('medTables', [])
 
     if not quiz_data and not program_data:
         return respond(400, {'error': 'Данные анкеты не переданы'})
@@ -86,7 +87,7 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     if program_data:
         prompt = build_program_prompt(program_data)
     else:
-        prompt = build_prompt(quiz_data)
+        prompt = build_prompt(quiz_data, med_tables)
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completionAsync'
     headers = {
@@ -586,7 +587,7 @@ def build_program_prompt(data: Dict[str, Any]) -> str:
 Рассчитай порции на {servings} чел."""
 
 
-def build_prompt(data: Dict[str, Any]) -> str:
+def build_prompt(data: Dict[str, Any], med_tables: list = None) -> str:
     gender_map = {'male': 'мужчина', 'female': 'женщина'}
     activity_map = {
         'sedentary': 'малоподвижный',
@@ -623,6 +624,19 @@ def build_prompt(data: Dict[str, Any]) -> str:
     wake_time = data.get('wake_time', '07:00')
     sleep_time = data.get('sleep_time', '23:00')
 
+    med_section = ''
+    if med_tables:
+        for t in med_tables:
+            table_name = t.get('table', '')
+            forbidden = ', '.join(t.get('forbidden', []))
+            principles = '\n'.join(f'  - {p}' for p in t.get('principles', []))
+            med_section += f"""
+ВАЖНО! Применяется медицинский {table_name} (гибридный режим):
+  Запрещённые продукты: {forbidden}
+  Принципы:
+{principles}
+"""
+
     return f"""Составь план питания на 7 дней для человека:
 - Пол: {gender}, возраст: {age} лет
 - Рост: {height} см, вес: {weight} кг, цель: {target} кг
@@ -636,7 +650,7 @@ def build_prompt(data: Dict[str, Any]) -> str:
 - Сложность блюд: {complexity}
 - Макс. время готовки: {cooking_time} минут
 - Подъём: {wake_time}, отбой: {sleep_time}
-
+{med_section}
 Верни ТОЛЬКО JSON (без markdown, без ```):
 {{
   "daily_calories": число,
@@ -667,7 +681,8 @@ def build_prompt(data: Dict[str, Any]) -> str:
 
 Каждый день должен содержать 4 приёма: breakfast, lunch, dinner, snack.
 Калорийность должна соответствовать цели (похудение/набор/поддержание).
-Учти все заболевания, аллергии и предпочтения. Блюда должны быть разнообразными каждый день."""
+Учти все заболевания, аллергии и предпочтения. Блюда должны быть разнообразными каждый день.
+{"СТРОГО соблюдай ограничения медицинских столов! Ни одно запрещённое блюдо/продукт не должно попасть в план." if med_tables else ""}"""
 
 
 def parse_plan(text: str) -> Optional[Dict[str, Any]]:

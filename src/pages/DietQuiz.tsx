@@ -14,6 +14,8 @@ import MealRecipeCard from '@/components/MealRecipeCard';
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
 const DIET_PROGRESS_API = 'https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54';
+const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
+const AI_DIET_COST = 5;
 
 interface MealPlan {
   type: string;
@@ -92,6 +94,52 @@ const diseaseOptions = [
   'Заболевания почек', 'Заболевания печени', 'Целиакия',
 ];
 
+interface MedTableHint {
+  table: string;
+  name: string;
+  slug: string;
+  forbidden: string[];
+  principles: string[];
+}
+
+const diseaseMedTables: Record<string, MedTableHint> = {
+  'Гастрит': {
+    table: 'Стол №1', name: 'Лечебная диета при гастрите', slug: 'stol-1',
+    forbidden: ['жареное', 'острое', 'копчёное', 'маринады', 'газировка', 'алкоголь', 'грибы', 'бобовые', 'кислые фрукты'],
+    principles: ['Пища на пару или варёная', 'Дробное питание 5-6 раз', 'Температура блюд 15-65°C'],
+  },
+  'Язва желудка': {
+    table: 'Стол №1', name: 'Лечебная диета при язве', slug: 'stol-1',
+    forbidden: ['жареное', 'острое', 'копчёное', 'маринады', 'газировка', 'алкоголь', 'грибы', 'бобовые', 'кислые фрукты'],
+    principles: ['Щадящее питание', 'Исключение грубой клетчатки', 'Дробное питание 5-6 раз'],
+  },
+  'Панкреатит': {
+    table: 'Стол №5', name: 'Лечебная диета при панкреатите', slug: 'stol-5',
+    forbidden: ['жирное мясо', 'сало', 'жареное', 'острое', 'копчёности', 'грибы', 'бобовые', 'шоколад', 'алкоголь'],
+    principles: ['Ограничение жиров до 70-80 г/сутки', 'Дробное питание 5-6 раз', 'Пища в тёплом виде'],
+  },
+  'Холецистит': {
+    table: 'Стол №5', name: 'Лечебная диета при холецистите', slug: 'stol-5',
+    forbidden: ['жирное мясо', 'сало', 'субпродукты', 'жареное', 'острое', 'копчёности', 'грибы', 'шоколад', 'алкоголь'],
+    principles: ['Варка, запекание, тушение', 'Дробное питание', 'Обильное питьё 1.5-2 л воды'],
+  },
+  'Заболевания печени': {
+    table: 'Стол №5', name: 'Лечебная диета при болезнях печени', slug: 'stol-5',
+    forbidden: ['жирное мясо', 'сало', 'субпродукты', 'жареное', 'острое', 'копчёности', 'грибы', 'алкоголь'],
+    principles: ['Щадящая термообработка', 'Ограничение жиров', 'Дробное питание'],
+  },
+  'Сахарный диабет 1 типа': {
+    table: 'Стол №9', name: 'Диета при диабете', slug: 'stol-9',
+    forbidden: ['сахар', 'конфеты', 'шоколад', 'мёд', 'варенье', 'белый хлеб', 'сдоба', 'рис', 'манка', 'виноград', 'бананы'],
+    principles: ['Контроль гликемического индекса', 'Равномерное распределение углеводов', 'Подсчёт хлебных единиц'],
+  },
+  'Сахарный диабет 2 типа': {
+    table: 'Стол №9', name: 'Диета при диабете', slug: 'stol-9',
+    forbidden: ['сахар', 'конфеты', 'шоколад', 'мёд', 'варенье', 'белый хлеб', 'сдоба', 'рис', 'манка', 'виноград', 'бананы'],
+    principles: ['Контроль гликемического индекса', 'Дробное питание 5-6 раз', 'Замена сахара на сахарозаменители'],
+  },
+};
+
 const allergyOptions = [
   'Глютен', 'Лактоза', 'Орехи', 'Арахис', 'Яйца',
   'Рыба', 'Морепродукты', 'Соя', 'Цитрусовые', 'Мёд',
@@ -128,6 +176,17 @@ export default function DietQuiz() {
   const [savedPlanId, setSavedPlanId] = useState<number | null>(null);
 
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  const detectedTables = (() => {
+    const tables = new Map<string, MedTableHint>();
+    for (const disease of data.chronic_diseases) {
+      const hint = diseaseMedTables[disease];
+      if (hint && !tables.has(hint.table)) {
+        tables.set(hint.table, hint);
+      }
+    }
+    return Array.from(tables.values());
+  })();
 
   const update = (field: keyof QuizData, value: string | boolean | string[]) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -189,17 +248,48 @@ export default function DietQuiz() {
     setError('Генерация заняла слишком много времени. Попробуйте ещё раз.');
   };
 
+  const spendWallet = async (amount: number, reason: string, description: string) => {
+    const authToken = localStorage.getItem('authToken') || '';
+    try {
+      const res = await fetch(WALLET_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+        body: JSON.stringify({ action: 'spend', amount, reason, description }),
+      });
+      const json = await res.json();
+      return json;
+    } catch {
+      return { error: 'Ошибка проверки баланса' };
+    }
+  };
+
   const handleSubmit = async () => {
     setIsGenerating(true);
     setError(null);
     setRawText(null);
     localStorage.setItem('dietQuizData', JSON.stringify(data));
 
+    const walletResult = await spendWallet(AI_DIET_COST, 'ai_diet_plan', 'ИИ-диета по анкете');
+    if (walletResult.error) {
+      setError(walletResult.balance !== undefined
+        ? `Недостаточно средств. Баланс: ${walletResult.balance} руб, нужно: ${AI_DIET_COST} руб. Пополните кошелёк.`
+        : walletResult.error);
+      setIsGenerating(false);
+      return;
+    }
+
     try {
       const response = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizData: data }),
+        body: JSON.stringify({
+          quizData: data,
+          medTables: detectedTables.map(t => ({
+            table: t.table,
+            forbidden: t.forbidden,
+            principles: t.principles,
+          })),
+        }),
       });
 
       const result = await response.json();
@@ -399,6 +489,31 @@ export default function DietQuiz() {
                 ))}
               </div>
             </div>
+            {detectedTables.length > 0 && (
+              <Card className="bg-blue-50 border-blue-200 animate-fade-in">
+                <CardContent className="p-3">
+                  <div className="flex items-start gap-2">
+                    <Icon name="HeartPulse" size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">
+                        Гибридный режим: {detectedTables.map(t => t.table).join(' + ')}
+                      </p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        ИИ автоматически учтёт ограничения {detectedTables.length > 1 ? 'медицинских столов' : 'медицинского стола'}: исключит запрещённые продукты и подберёт щадящие блюда.
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {detectedTables.flatMap(t => t.forbidden.slice(0, 4)).map((f, i) => (
+                          <Badge key={i} variant="secondary" className="text-[10px] bg-red-100 text-red-700">
+                            {f}
+                          </Badge>
+                        ))}
+                        <Badge variant="secondary" className="text-[10px]">...</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <div>
               <Label className="text-sm font-bold mb-2 block">Аллергии и непереносимость</Label>
               <div className="flex flex-wrap gap-2">
@@ -609,6 +724,24 @@ export default function DietQuiz() {
               </CardContent>
             </Card>
 
+            {detectedTables.length > 0 && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Icon name="HeartPulse" size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-bold text-blue-900 mb-1">
+                        Гибридный режим: {detectedTables.map(t => t.table).join(' + ')}
+                      </p>
+                      <p className="text-blue-800">
+                        ИИ автоматически учтёт ограничения медицинских столов при составлении плана. Запрещённые продукты будут исключены.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="bg-amber-50 border-amber-200">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -812,10 +945,22 @@ export default function DietQuiz() {
               <p className="text-sm text-red-800">{error}</p>
             </CardContent>
           </Card>
-          <Button className="w-full bg-gradient-to-r from-violet-500 to-purple-600" onClick={() => { setError(null); handleSubmit(); }}>
-            <Icon name="RefreshCw" size={16} className="mr-2" />
-            Попробовать снова
-          </Button>
+          {error.includes('Недостаточно средств') ? (
+            <div className="space-y-2">
+              <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600" onClick={() => navigate('/wallet')}>
+                <Icon name="Wallet" size={16} className="mr-2" />
+                Пополнить кошелёк
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => { setError(null); setCurrentStep(4); }}>
+                Назад к анкете
+              </Button>
+            </div>
+          ) : (
+            <Button className="w-full bg-gradient-to-r from-violet-500 to-purple-600" onClick={() => { setError(null); handleSubmit(); }}>
+              <Icon name="RefreshCw" size={16} className="mr-2" />
+              Попробовать снова
+            </Button>
+          )}
         </div>
       </div>
     );

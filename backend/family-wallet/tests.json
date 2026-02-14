@@ -1,0 +1,26 @@
+{
+  "tests": [
+    {
+      "name": "Get balance",
+      "method": "GET",
+      "path": "/?action=balance",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get history",
+      "method": "GET",
+      "path": "/?action=history",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

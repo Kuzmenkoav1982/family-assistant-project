@@ -12,6 +12,8 @@ import MealRecipeCard from '@/components/MealRecipeCard';
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
 const DIET_PROGRESS_API = 'https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54';
+const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
+const AI_DIET_COST = 5;
 
 interface MealPlan {
   type: string;
@@ -194,10 +196,33 @@ export default function DietMiniQuiz() {
     setError('Генерация заняла слишком много времени. Попробуйте ещё раз.');
   };
 
+  const spendWallet = async (amount: number, reason: string, description: string) => {
+    const authToken = localStorage.getItem('authToken') || '';
+    try {
+      const res = await fetch(WALLET_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+        body: JSON.stringify({ action: 'spend', amount, reason, description }),
+      });
+      return await res.json();
+    } catch {
+      return { error: 'Ошибка проверки баланса' };
+    }
+  };
+
   const handleSubmit = async () => {
     setIsGenerating(true);
     setError(null);
     setRawText(null);
+
+    const walletResult = await spendWallet(AI_DIET_COST, 'ai_diet_plan', `Генерация плана: ${programName}`);
+    if (walletResult.error) {
+      setError(walletResult.balance !== undefined
+        ? `Недостаточно средств. Баланс: ${walletResult.balance} руб, нужно: ${AI_DIET_COST} руб. Пополните кошелёк.`
+        : walletResult.error);
+      setIsGenerating(false);
+      return;
+    }
 
     try {
       const response = await fetch(DIET_PLAN_API_URL, {
@@ -636,10 +661,22 @@ export default function DietMiniQuiz() {
               <p className="text-sm text-red-800">{error}</p>
             </CardContent>
           </Card>
-          <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600" onClick={() => { setError(null); handleSubmit(); }}>
-            <Icon name="RefreshCw" size={16} className="mr-2" />
-            Попробовать снова
-          </Button>
+          {error.includes('Недостаточно средств') ? (
+            <div className="space-y-2">
+              <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600" onClick={() => navigate('/wallet')}>
+                <Icon name="Wallet" size={16} className="mr-2" />
+                Пополнить кошелёк
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => { setError(null); setStep(2); }}>
+                Назад к анкете
+              </Button>
+            </div>
+          ) : (
+            <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600" onClick={() => { setError(null); handleSubmit(); }}>
+              <Icon name="RefreshCw" size={16} className="mr-2" />
+              Попробовать снова
+            </Button>
+          )}
         </div>
       </div>
     );
