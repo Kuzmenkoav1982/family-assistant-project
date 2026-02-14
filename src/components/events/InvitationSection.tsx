@@ -61,25 +61,55 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
     }
   };
 
+  const DIET_API = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
+
+  const pollGreeting = async (operationId: string) => {
+    const maxAttempts = 24;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      try {
+        const res = await fetch(DIET_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'check_greeting', operationId }),
+        });
+        const data = await res.json();
+        if (data.status === 'processing') continue;
+        if (data.status === 'done' && data.imageUrl) {
+          setPreviewImage(data.imageUrl);
+          toast({ title: 'Готово!', description: 'Открытка сгенерирована' });
+          return;
+        }
+        if (data.status === 'error') {
+          toast({ title: 'Ошибка', description: data.error || 'Не удалось сгенерировать', variant: 'destructive' });
+          return;
+        }
+      } catch {
+        toast({ title: 'Ошибка', description: 'Ошибка соединения', variant: 'destructive' });
+        return;
+      }
+    }
+    toast({ title: 'Таймаут', description: 'Генерация заняла слишком много времени', variant: 'destructive' });
+  };
+
   const generateInvitationImage = async () => {
     setGeneratingImage(true);
     try {
-      const prompt = `Beautiful invitation card for ${event.title}, ${
-        event.theme ? `theme: ${event.theme}, ` : ''
-      }elegant design, festive, celebration, high quality`;
-
-      const response = await fetch('https://functions.poehali.dev/02eb0e6d-e5ae-4444-bc5a-777f33a1b3cb', {
+      const response = await fetch(DIET_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({
+          action: 'greeting_photo',
+          eventTitle: event.title,
+          theme: event.theme || '',
+        })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setPreviewImage(data.url);
-        toast({ title: 'Готово!', description: 'Открытка сгенерирована' });
+      const result = await response.json();
+      if (result.status === 'started' && result.operationId) {
+        await pollGreeting(result.operationId);
       } else {
-        throw new Error('Failed to generate image');
+        throw new Error(result.error || 'Unexpected response');
       }
     } catch (error) {
       console.error('[InvitationSection] Generate error:', error);
@@ -272,6 +302,19 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
             )}
 
             <div className="grid grid-cols-1 gap-2">
+              <Button
+                onClick={generateInvitationImage}
+                disabled={generatingImage}
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+              >
+                <Icon name="Sparkles" size={16} />
+                {generatingImage ? 'Генерирую открытку...' : 'Сгенерировать ИИ-открытку'}
+              </Button>
+              {generatingImage && (
+                <p className="text-xs text-center text-muted-foreground animate-pulse">
+                  Обычно это занимает 15-30 секунд
+                </p>
+              )}
               <Button
                 variant="outline"
                 onClick={() => document.getElementById('file-upload')?.click()}

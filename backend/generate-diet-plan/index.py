@@ -61,6 +61,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if action == 'check_photo':
         return handle_photo_check(api_key, body)
 
+    if action == 'greeting_photo':
+        return handle_greeting_start(api_key, folder_id, body)
+
+    if action == 'check_greeting':
+        return handle_photo_check(api_key, body)
+
     if action == 'recipe_from_products':
         return handle_products_start(api_key, folder_id, body)
 
@@ -359,6 +365,39 @@ def handle_photo_check(api_key: str, body: Dict) -> Dict[str, Any]:
             'status': 'done',
             'imageUrl': f'data:image/png;base64,{image_b64[:100000]}'
         })
+
+
+def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
+    event_title = body.get('eventTitle', '')
+    theme = body.get('theme', '')
+    style = body.get('style', 'elegant')
+
+    if not event_title:
+        return respond(400, {'error': 'Название события не передано'})
+
+    art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
+
+    theme_hint = f', тема: {theme}' if theme else ''
+    prompt = f'Красивая праздничная открытка-приглашение на событие "{event_title}"{theme_hint}. Яркий {style} дизайн, праздничная атмосфера, цветы, декоративные элементы, тёплые тона, без текста на изображении, высокое качество.'
+
+    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
+    headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
+    payload = {
+        'modelUri': f'art://{folder_id}/yandex-art/latest',
+        'generationOptions': {'seed': 42},
+        'messages': [{'weight': 1, 'text': prompt}]
+    }
+
+    print(f"[greeting] Starting greeting card generation for: {event_title}")
+    response = requests.post(url, headers=headers, json=payload, timeout=25)
+    print(f"[greeting] Start status={response.status_code}")
+
+    if response.status_code != 200:
+        print(f"[greeting] Error: {response.text[:300]}")
+        return respond(502, {'error': 'Ошибка генерации открытки'})
+
+    result = response.json()
+    return respond(200, {'success': True, 'status': 'started', 'operationId': result.get('id', '')})
 
 
 def handle_products_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
