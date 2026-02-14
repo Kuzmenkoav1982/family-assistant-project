@@ -85,7 +85,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         ]
     }
 
-    print(f"[generate-diet-plan] Calling YandexGPT, folder={folder_id}, model=yandexgpt/latest")
+    print(f"[generate-diet-plan] Calling YandexGPT, folder={folder_id}")
     response = requests.post(url, headers=headers, json=payload, timeout=120)
     print(f"[generate-diet-plan] YandexGPT status={response.status_code}")
 
