@@ -100,13 +100,35 @@ export default function FamilyWallet() {
     const status = searchParams.get('status');
     if (status === 'success') {
       setShowSuccess(true);
-      setTimeout(() => {
-        fetchData();
-        setShowSuccess(false);
-      }, 3000);
       window.history.replaceState({}, '', '/wallet');
+      const lastPaymentId = localStorage.getItem('lastWalletPaymentId');
+      if (lastPaymentId) {
+        localStorage.removeItem('lastWalletPaymentId');
+        let attempts = 0;
+        const verify = async () => {
+          attempts++;
+          try {
+            const res = await fetch(PAYMENTS_API, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+              body: JSON.stringify({ action: 'verify_wallet_payment', payment_id: lastPaymentId }),
+            });
+            const json = await res.json();
+            if (json.credited || json.already_credited) {
+              fetchData();
+              return;
+            }
+          } catch { /* retry */ }
+          if (attempts < 6) setTimeout(verify, 3000);
+          else fetchData();
+        };
+        verify();
+      } else {
+        setTimeout(fetchData, 2000);
+      }
+      setTimeout(() => setShowSuccess(false), 5000);
     }
-  }, [searchParams, fetchData]);
+  }, [searchParams, fetchData, authToken]);
 
   const handleTopup = async () => {
     const amount = parseFloat(topupAmount);
@@ -128,6 +150,7 @@ export default function FamilyWallet() {
       });
       const json = await res.json();
       if (json.success && json.payment_url) {
+        if (json.payment_id) localStorage.setItem('lastWalletPaymentId', json.payment_id);
         window.location.href = json.payment_url;
       } else {
         toast({ title: json.error || 'Ошибка создания платежа', variant: 'destructive' });

@@ -653,6 +653,42 @@ def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, An
         return {'received': True, 'error': str(e)}
 
 
+def verify_and_credit_wallet(payment_id: str, family_id: str, user_id: str) -> Dict[str, Any]:
+    """Проверяет статус платежа в ЮКассе и зачисляет, если оплачен"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    safe_payment_id = payment_id.replace("'", "''")
+    cur.execute(
+        f"SELECT status, amount FROM {SCHEMA}.payments WHERE payment_id = '{safe_payment_id}'"
+    )
+    payment = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    if not payment:
+        return {'error': 'Платёж не найден'}
+    
+    if payment['status'] == 'paid':
+        return {'already_credited': True, 'amount': float(payment['amount'])}
+    
+    yoo_status = get_payment_status(payment_id)
+    if not yoo_status.get('success'):
+        return {'error': 'Не удалось проверить статус платежа'}
+    
+    if not yoo_status.get('paid'):
+        return {'status': yoo_status.get('status', 'unknown'), 'paid': False}
+    
+    amount = float(payment['amount'])
+    result = handle_wallet_topup_webhook(payment_id, {
+        'family_id': family_id,
+        'user_id': user_id,
+        'amount': str(amount),
+    })
+    
+    return {'credited': True, 'amount': amount, 'result': result}
+
+
 def handle_webhook(body: dict) -> Dict[str, Any]:
     """Обрабатывает webhook от ЮКассы о статусе платежа"""
     event_type = body.get('event')
@@ -1114,6 +1150,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'payment_id': payment_result['payment_id'],
                         'amount': amount_val
                     })
+                }
+            
+            elif action == 'verify_wallet_payment':
+                payment_id = body.get('payment_id')
+                if not payment_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'payment_id обязателен'})
+                    }
+                result = verify_and_credit_wallet(payment_id, family_id, user_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps(result, default=str)
                 }
             
             # Проверить статус платежа

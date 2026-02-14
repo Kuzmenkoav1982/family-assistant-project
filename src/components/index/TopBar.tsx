@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import type { LanguageCode, ThemeType } from '@/types/family.types';
 import { themes } from '@/config/themes';
 import { languageOptions } from '@/translations';
+
+const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
 
 interface TopBarProps {
   isVisible: boolean;
@@ -53,6 +56,21 @@ export function TopBar({
   setShowTopPanelSettings
 }: TopBarProps) {
   const navigate = useNavigate();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+
+  const fetchBalance = useCallback(() => {
+    if (!authToken) return;
+    fetch(`${WALLET_API}?action=balance`, { headers: { 'X-Auth-Token': authToken } })
+      .then(r => r.json())
+      .then(j => { if (j.balance !== undefined) setWalletBalance(j.balance); })
+      .catch(() => {});
+  }, [authToken]);
+
+  useEffect(() => {
+    fetchBalance();
+    const iv = setInterval(fetchBalance, 60000);
+    return () => clearInterval(iv);
+  }, [fetchBalance]);
 
   return (
     <>
@@ -123,6 +141,19 @@ export function TopBar({
               >
                 <Icon name="RotateCcw" size={18} />
                 <span className="text-sm hidden md:inline">Сбросить</span>
+              </Button>
+            )}
+            
+            {authToken && walletBalance !== null && (
+              <Button
+                onClick={() => navigate('/wallet')}
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 px-3 border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                title="Семейный кошелёк"
+              >
+                <Icon name="Wallet" size={16} />
+                <span className="text-sm font-medium">{walletBalance.toFixed(0)} р</span>
               </Button>
             )}
             

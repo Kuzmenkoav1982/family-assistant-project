@@ -97,7 +97,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
         { id: 'diet-ai', label: 'ИИ-Диета', icon: 'Brain', path: '/nutrition/diet' },
         { id: 'diet-preset', label: 'Готовые режимы', icon: 'ListChecks', path: '/nutrition/programs' },
-        { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products', inDev: true },
+        { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products' },
         { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
         { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
         { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' }
