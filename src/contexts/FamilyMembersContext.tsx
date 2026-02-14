@@ -52,6 +52,37 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
+  const getMemberSortPriority = (member: FamilyMember, currentUserMemberId?: string): number => {
+    if (currentUserMemberId && member.id === currentUserMemberId) return 0;
+    const role = (member.role || '').toLowerCase();
+    const rel = (member.relationship || '').toLowerCase();
+    if (role === 'владелец') return 1;
+    if (['жена', 'муж', 'супруга', 'супруг'].some(r => role.includes(r) || rel.includes(r))) return 2;
+    if (['сын', 'дочь', 'ребёнок', 'ребенок'].some(r => role.includes(r) || rel.includes(r))) return 3;
+    if (['бабушка', 'дедушка'].some(r => role.includes(r) || rel.includes(r))) return 4;
+    return 5;
+  };
+
+  const sortMembers = (members: FamilyMember[]): FamilyMember[] => {
+    let currentUserMemberId: string | undefined;
+    try {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        currentUserMemberId = parsed.member_id;
+      }
+    } catch { /* ignore */ }
+
+    return [...members].sort((a, b) => {
+      const priorityA = getMemberSortPriority(a, currentUserMemberId);
+      const priorityB = getMemberSortPriority(b, currentUserMemberId);
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return dateA - dateB;
+    });
+  };
+
   const fetchMembers = useCallback(async (silent = false) => {
     if (isFetchingRef.current) {
       return;
@@ -91,9 +122,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         permissions: {}
       }));
       
-      // Стабильная сортировка по ID для предсказуемого порядка
-      const sortedMembers = [...convertedMembers].sort((a, b) => a.id.localeCompare(b.id));
-      setMembers(sortedMembers);
+      setMembers(sortMembers(convertedMembers));
       setError(null);
       setLoading(false);
       isFetchingRef.current = false;
@@ -146,14 +175,8 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           moodStatus: m.moodStatus || null
         }));
         
-        // Стабильная сортировка по created_at для предсказуемого порядка
-        const sortedMembers = [...convertedMembers].sort((a, b) => {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
-          return dateA - dateB; // Сначала старые (кто раньше создан)
-        });
-        
-        console.log('[FamilyMembersContext] Setting members:', sortedMembers.length);
+        const sortedMembers = sortMembers(convertedMembers);
+        console.log('[FamilyMembersContext] Setting members:', sortedMembers.length, sortedMembers.map(m => m.name));
         setMembers(sortedMembers);
         setError(null);
       } else {
