@@ -26,7 +26,7 @@ const subSections: SubSection[] = [
     gradient: 'from-violet-500 to-purple-600',
     badge: 'ИИ',
     badgeColor: 'bg-violet-100 text-violet-700',
-    ready: false,
+    ready: true,
   },
   {
     id: 'diet-preset',
@@ -37,7 +37,7 @@ const subSections: SubSection[] = [
     gradient: 'from-emerald-500 to-teal-600',
     badge: '6 программ',
     badgeColor: 'bg-emerald-100 text-emerald-700',
-    ready: false,
+    ready: true,
   },
   {
     id: 'recipe-from-products',
