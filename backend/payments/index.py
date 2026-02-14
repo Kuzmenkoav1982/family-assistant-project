@@ -655,6 +655,7 @@ def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, An
 
 def verify_and_credit_wallet(payment_id: str, family_id: str, user_id: str) -> Dict[str, Any]:
     """Проверяет статус платежа в ЮКассе и зачисляет, если оплачен"""
+    print(f'[VERIFY_CREDIT] Start: payment_id={payment_id}')
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -667,25 +668,32 @@ def verify_and_credit_wallet(payment_id: str, family_id: str, user_id: str) -> D
     conn.close()
     
     if not payment:
+        print(f'[VERIFY_CREDIT] Payment not found in DB')
         return {'error': 'Платёж не найден'}
+    
+    print(f'[VERIFY_CREDIT] DB status={payment["status"]}, amount={payment["amount"]}')
     
     if payment['status'] == 'paid':
         return {'already_credited': True, 'amount': float(payment['amount'])}
     
     yoo_status = get_payment_status(payment_id)
+    print(f'[VERIFY_CREDIT] YooKassa status: {yoo_status}')
+    
     if not yoo_status.get('success'):
-        return {'error': 'Не удалось проверить статус платежа'}
+        return {'error': 'Не удалось проверить статус платежа', 'details': str(yoo_status)}
     
     if not yoo_status.get('paid'):
         return {'status': yoo_status.get('status', 'unknown'), 'paid': False}
     
     amount = float(payment['amount'])
+    print(f'[VERIFY_CREDIT] Payment confirmed! Crediting {amount} rub')
     result = handle_wallet_topup_webhook(payment_id, {
         'family_id': family_id,
         'user_id': user_id,
         'amount': str(amount),
     })
     
+    print(f'[VERIFY_CREDIT] Credit result: {result}')
     return {'credited': True, 'amount': amount, 'result': result}
 
 
@@ -1154,6 +1162,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             elif action == 'verify_wallet_payment':
                 payment_id = body.get('payment_id')
+                print(f'[VERIFY_WALLET] payment_id={payment_id}, family_id={family_id}, user_id={user_id}')
                 if not payment_id:
                     return {
                         'statusCode': 400,
@@ -1161,6 +1170,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'payment_id обязателен'})
                     }
                 result = verify_and_credit_wallet(payment_id, family_id, user_id)
+                print(f'[VERIFY_WALLET] result={result}')
                 return {
                     'statusCode': 200,
                     'headers': headers,
