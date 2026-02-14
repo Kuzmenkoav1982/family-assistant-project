@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import MealRecipeCard from '@/components/MealRecipeCard';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
@@ -490,53 +491,7 @@ export default function DietMiniQuiz() {
           {currentDay && (
             <div className="space-y-3">
               {currentDay.meals.map((meal, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="flex items-stretch">
-                      <div className={`w-14 flex items-center justify-center flex-shrink-0 ${
-                        meal.type === 'breakfast' ? 'bg-amber-100' :
-                        meal.type === 'lunch' ? 'bg-green-100' :
-                        meal.type === 'dinner' ? 'bg-blue-100' : 'bg-purple-100'
-                      }`}>
-                        <span className="text-2xl">{meal.emoji || '🍽'}</span>
-                      </div>
-                      <div className="flex-1 p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {mealTypeNames[meal.type] || meal.type}
-                          </Badge>
-                          {meal.time && (
-                            <span className="text-[10px] text-muted-foreground">{meal.time}</span>
-                          )}
-                          {meal.cooking_time_min > 0 && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                              <Icon name="Clock" size={10} /> {meal.cooking_time_min} мин
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-sm">{meal.name}</h3>
-                        {meal.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{meal.description}</p>
-                        )}
-                        <div className="flex gap-3 mt-2 text-[10px]">
-                          <span className="text-green-700 font-medium">{meal.calories} ккал</span>
-                          <span className="text-blue-600">Б: {meal.protein}г</span>
-                          <span className="text-amber-600">Ж: {meal.fats}г</span>
-                          <span className="text-orange-600">У: {meal.carbs}г</span>
-                        </div>
-                        {meal.ingredients && meal.ingredients.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {meal.ingredients.map((ing, j) => (
-                              <Badge key={j} variant="secondary" className="text-[10px] px-1.5 py-0 bg-gray-50">
-                                {ing}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <MealRecipeCard key={i} meal={meal} accentColor="emerald" />
               ))}
             </div>
           )}
@@ -544,7 +499,7 @@ export default function DietMiniQuiz() {
           {saved ? (
             <Card className="bg-green-50 border-green-300">
               <CardContent className="p-4 text-center">
-                <Icon name="CheckCircle" size={32} className="text-green-600 mx-auto mb-2" />
+                <Icon name="Check" size={32} className="text-green-600 mx-auto mb-2" />
                 <p className="font-bold text-green-800">План сохранён в меню на неделю!</p>
                 <Button className="mt-3 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => navigate('/meals')}>
                   <Icon name="CalendarDays" size={16} className="mr-2" />

@@ -49,6 +49,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if action == 'check':
         return handle_check(api_key, body)
 
+    if action == 'recipe':
+        return handle_recipe_start(api_key, folder_id, body)
+
+    if action == 'check_recipe':
+        return handle_recipe_check(api_key, body)
+
+    if action == 'generate_photo':
+        return handle_photo_start(api_key, folder_id, body)
+
+    if action == 'check_photo':
+        return handle_photo_check(api_key, body)
+
     return handle_start(api_key, folder_id, body)
 
 
@@ -166,6 +178,181 @@ def handle_check(api_key: str, body: Dict) -> Dict[str, Any]:
         'status': 'done',
         'plan': plan
     })
+
+
+def handle_recipe_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
+    dish_name = body.get('dishName', '')
+    ingredients = body.get('ingredients', [])
+
+    if not dish_name:
+        return respond(400, {'error': 'Название блюда не передано'})
+
+    ing_text = ', '.join(ingredients) if ingredients else 'не указаны'
+
+    prompt = f"""Напиши пошаговый рецепт приготовления блюда "{dish_name}".
+Ингредиенты: {ing_text}
+
+Верни ТОЛЬКО JSON-массив строк (каждая строка — один шаг приготовления, без нумерации):
+["Шаг 1 текст", "Шаг 2 текст", ...]
+
+Количество шагов: 4-8. Кратко и понятно. Без markdown."""
+
+    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completionAsync'
+    headers = {'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'}
+    payload = {
+        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+        'completionOptions': {'stream': False, 'temperature': 0.3, 'maxTokens': 1500},
+        'messages': [
+            {'role': 'system', 'text': 'Ты шеф-повар. Пиши рецепты кратко и чётко. Отвечай ТОЛЬКО JSON-массивом строк.'},
+            {'role': 'user', 'text': prompt}
+        ]
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=25)
+    if response.status_code != 200:
+        return respond(502, {'error': 'Ошибка YandexGPT'})
+
+    result = response.json()
+    return respond(200, {'success': True, 'status': 'started', 'operationId': result.get('id', '')})
+
+
+def handle_recipe_check(api_key: str, body: Dict) -> Dict[str, Any]:
+    operation_id = body.get('operationId', '')
+    if not operation_id:
+        return respond(400, {'error': 'operationId не передан'})
+
+    url = f'https://operation.api.cloud.yandex.net/operations/{operation_id}'
+    headers = {'Authorization': f'Api-Key {api_key}'}
+    response = requests.get(url, headers=headers, timeout=25)
+
+    if response.status_code != 200:
+        return respond(502, {'error': 'Ошибка проверки'})
+
+    result = response.json()
+    if not result.get('done', False):
+        return respond(200, {'success': True, 'status': 'processing'})
+
+    if 'error' in result:
+        return respond(200, {'success': False, 'status': 'error', 'error': result['error'].get('message', '')})
+
+    ai_text = result.get('response', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+
+    recipe = parse_recipe(ai_text)
+    return respond(200, {'success': True, 'status': 'done', 'recipe': recipe})
+
+
+def parse_recipe(text: str) -> list:
+    cleaned = text.strip()
+    if cleaned.startswith('```'):
+        lines = cleaned.split('\n')
+        lines = lines[1:] if lines[0].startswith('```') else lines
+        if lines and lines[-1].strip() == '```':
+            lines = lines[:-1]
+        cleaned = '\n'.join(lines)
+
+    start = cleaned.find('[')
+    end = cleaned.rfind(']')
+    if start != -1 and end != -1:
+        try:
+            arr = json.loads(cleaned[start:end + 1])
+            if isinstance(arr, list):
+                return [str(s) for s in arr]
+        except json.JSONDecodeError:
+            pass
+
+    return [line.strip().lstrip('0123456789.-) ') for line in cleaned.split('\n') if line.strip() and len(line.strip()) > 5]
+
+
+def handle_photo_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
+    dish_name = body.get('dishName', '')
+    description = body.get('description', '')
+
+    if not dish_name:
+        return respond(400, {'error': 'Название блюда не передано'})
+
+    art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
+
+    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
+    headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
+    payload = {
+        'modelUri': f'art://{folder_id}/yandex-art/latest',
+        'generationOptions': {'seed': 42},
+        'messages': [
+            {
+                'weight': 1,
+                'text': f'Фотореалистичное изображение блюда "{dish_name}". {description}. Красивая подача на тарелке, вид сверху, профессиональная фуд-фотография, тёплое освещение.'
+            }
+        ]
+    }
+
+    print(f"[generate-diet-plan] Starting photo generation for: {dish_name}")
+    response = requests.post(url, headers=headers, json=payload, timeout=25)
+    print(f"[generate-diet-plan] Photo start status={response.status_code}")
+
+    if response.status_code != 200:
+        print(f"[generate-diet-plan] Photo error: {response.text[:300]}")
+        return respond(502, {'error': 'Ошибка генерации фото'})
+
+    result = response.json()
+    return respond(200, {'success': True, 'status': 'started', 'operationId': result.get('id', '')})
+
+
+def handle_photo_check(api_key: str, body: Dict) -> Dict[str, Any]:
+    operation_id = body.get('operationId', '')
+    if not operation_id:
+        return respond(400, {'error': 'operationId не передан'})
+
+    art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
+
+    url = f'https://operation.api.cloud.yandex.net/operations/{operation_id}'
+    headers = {'Authorization': f'Api-Key {art_api_key}'}
+    response = requests.get(url, headers=headers, timeout=25)
+
+    if response.status_code != 200:
+        return respond(502, {'error': 'Ошибка проверки фото'})
+
+    result = response.json()
+    if not result.get('done', False):
+        return respond(200, {'success': True, 'status': 'processing'})
+
+    if 'error' in result:
+        return respond(200, {'success': False, 'status': 'error', 'error': result['error'].get('message', '')})
+
+    import base64
+
+    image_b64 = result.get('response', {}).get('image', '')
+    if not image_b64:
+        return respond(200, {'success': False, 'status': 'error', 'error': 'Изображение не получено'})
+
+    try:
+        import boto3
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
+        )
+
+        import hashlib
+        file_hash = hashlib.md5(image_b64[:100].encode()).hexdigest()[:12]
+        key = f'diet-photos/{file_hash}.png'
+
+        s3.put_object(
+            Bucket='files',
+            Key=key,
+            Body=base64.b64decode(image_b64),
+            ContentType='image/png'
+        )
+
+        cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+        return respond(200, {'success': True, 'status': 'done', 'imageUrl': cdn_url})
+    except Exception as e:
+        print(f"[generate-diet-plan] S3 upload error: {e}")
+        return respond(200, {
+            'success': True,
+            'status': 'done',
+            'imageUrl': f'data:image/png;base64,{image_b64[:100000]}'
+        })
 
 
 def build_program_prompt(data: Dict[str, Any]) -> str:

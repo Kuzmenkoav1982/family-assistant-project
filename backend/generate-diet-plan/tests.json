@@ -31,6 +31,24 @@
       "expectedStatus": 400,
       "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Recipe without dish name",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "recipe"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Photo without dish name",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "generate_photo"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
     }
   ]
 }

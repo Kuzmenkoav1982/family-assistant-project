@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import MealRecipeCard from '@/components/MealRecipeCard';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
@@ -63,6 +64,7 @@ interface QuizData {
   cooking_time_max: string;
   gym_frequency: string;
   activity_type: string;
+  target_timeframe: string;
 }
 
 const initialData: QuizData = {
@@ -71,7 +73,7 @@ const initialData: QuizData = {
   work_schedule: '', wake_time: '07:00', sleep_time: '23:00',
   medications: [], chronic_diseases: [], allergies: [], disliked_foods: [],
   diet_type: '', cuisine_preferences: [], budget: '', cooking_complexity: '',
-  cooking_time_max: '', gym_frequency: '', activity_type: '',
+  cooking_time_max: '', gym_frequency: '', activity_type: '', target_timeframe: '',
 };
 
 const steps = [
@@ -79,7 +81,7 @@ const steps = [
   { id: 'health', title: 'Здоровье', icon: 'HeartPulse', description: 'Болезни, аллергии, лекарства' },
   { id: 'lifestyle', title: 'Образ жизни', icon: 'Activity', description: 'Режим, активность, привычки' },
   { id: 'food', title: 'Предпочтения', icon: 'ChefHat', description: 'Кухня, бюджет, сложность' },
-  { id: 'summary', title: 'Итого', icon: 'CheckCircle', description: 'Проверка и запуск' },
+  { id: 'summary', title: 'Итого', icon: 'SquareCheck', description: 'Проверка и запуск' },
 ];
 
 const diseaseOptions = [
@@ -303,6 +305,21 @@ export default function DietQuiz() {
                 <Input type="number" placeholder="70" value={data.target_weight_kg} onChange={(e) => update('target_weight_kg', e.target.value)} />
               </div>
             </div>
+            {data.target_weight_kg && data.current_weight_kg && parseFloat(data.target_weight_kg) !== parseFloat(data.current_weight_kg) && (
+              <div>
+                <Label>За какое время хотите достичь цели?</Label>
+                <Select value={data.target_timeframe} onValueChange={(v) => update('target_timeframe', v)}>
+                  <SelectTrigger><SelectValue placeholder="Выберите срок" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1month">1 месяц</SelectItem>
+                    <SelectItem value="3months">3 месяца</SelectItem>
+                    <SelectItem value="6months">6 месяцев</SelectItem>
+                    <SelectItem value="1year">1 год</SelectItem>
+                    <SelectItem value="no_rush">Без спешки</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {data.height_cm && data.current_weight_kg && (
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="p-3">
@@ -311,7 +328,7 @@ export default function DietQuiz() {
                     <span>ИМТ: <strong>{(parseFloat(data.current_weight_kg) / Math.pow(parseFloat(data.height_cm) / 100, 2)).toFixed(1)}</strong></span>
                     {data.target_weight_kg && (
                       <span className="text-muted-foreground ml-2">
-                        Цель: снизить на {(parseFloat(data.current_weight_kg) - parseFloat(data.target_weight_kg)).toFixed(1)} кг
+                        Цель: {parseFloat(data.current_weight_kg) > parseFloat(data.target_weight_kg) ? 'снизить' : 'набрать'} на {Math.abs(parseFloat(data.current_weight_kg) - parseFloat(data.target_weight_kg)).toFixed(1)} кг
                       </span>
                     )}
                   </div>
@@ -642,53 +659,7 @@ export default function DietQuiz() {
           {currentDay && (
             <div className="space-y-3">
               {currentDay.meals.map((meal, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="flex items-stretch">
-                      <div className={`w-14 flex items-center justify-center flex-shrink-0 ${
-                        meal.type === 'breakfast' ? 'bg-amber-100' :
-                        meal.type === 'lunch' ? 'bg-green-100' :
-                        meal.type === 'dinner' ? 'bg-blue-100' : 'bg-purple-100'
-                      }`}>
-                        <span className="text-2xl">{meal.emoji || '🍽'}</span>
-                      </div>
-                      <div className="flex-1 p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {mealTypeNames[meal.type] || meal.type}
-                          </Badge>
-                          {meal.time && (
-                            <span className="text-[10px] text-muted-foreground">{meal.time}</span>
-                          )}
-                          {meal.cooking_time_min > 0 && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                              <Icon name="Clock" size={10} /> {meal.cooking_time_min} мин
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-sm">{meal.name}</h3>
-                        {meal.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{meal.description}</p>
-                        )}
-                        <div className="flex gap-3 mt-2 text-[10px]">
-                          <span className="text-green-700 font-medium">{meal.calories} ккал</span>
-                          <span className="text-blue-600">Б: {meal.protein}г</span>
-                          <span className="text-amber-600">Ж: {meal.fats}г</span>
-                          <span className="text-orange-600">У: {meal.carbs}г</span>
-                        </div>
-                        {meal.ingredients && meal.ingredients.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {meal.ingredients.map((ing, j) => (
-                              <Badge key={j} variant="secondary" className="text-[10px] px-1.5 py-0 bg-gray-50">
-                                {ing}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <MealRecipeCard key={i} meal={meal} accentColor="green" />
               ))}
             </div>
           )}
@@ -696,7 +667,7 @@ export default function DietQuiz() {
           {saved ? (
             <Card className="bg-green-50 border-green-300">
               <CardContent className="p-4 text-center">
-                <Icon name="CheckCircle" size={32} className="text-green-600 mx-auto mb-2" />
+                <Icon name="Check" size={32} className="text-green-600 mx-auto mb-2" />
                 <p className="font-bold text-green-800">План сохранён в меню на неделю!</p>
                 <Button className="mt-3 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => navigate('/meals')}>
                   <Icon name="CalendarDays" size={16} className="mr-2" />
@@ -826,7 +797,7 @@ export default function DietQuiz() {
                   : 'bg-gray-100 text-gray-400'
               }`}
             >
-              <Icon name={i < currentStep ? 'CheckCircle' : step.icon} size={14} />
+              <Icon name={i < currentStep ? 'SquareCheck' : step.icon} size={14} />
               {step.title}
             </button>
           ))}
