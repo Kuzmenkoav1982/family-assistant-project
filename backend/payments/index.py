@@ -653,6 +653,29 @@ def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, An
         return {'received': True, 'error': str(e)}
 
 
+def get_pending_wallet_payments(family_id: str) -> list:
+    """Возвращает список pending платежей кошелька для семьи"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    safe_family_id = family_id.replace("'", "''")
+    cur.execute(
+        f"""
+        SELECT payment_id, amount, created_at FROM {SCHEMA}.payments
+        WHERE family_id = '{safe_family_id}'
+          AND status = 'pending'
+          AND subscription_id IS NULL
+          AND description LIKE 'Пополнение кошелька%%'
+          AND created_at > NOW() - INTERVAL '24 hours'
+        ORDER BY created_at DESC
+        LIMIT 5
+        """
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [{'payment_id': r['payment_id'], 'amount': float(r['amount']), 'created_at': str(r['created_at'])} for r in rows]
+
+
 def verify_and_credit_wallet(payment_id: str, family_id: str, user_id: str) -> Dict[str, Any]:
     """Проверяет статус платежа в ЮКассе и зачисляет, если оплачен"""
     print(f'[VERIFY_CREDIT] Start: payment_id={payment_id}')
@@ -1175,6 +1198,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps(result, default=str)
+                }
+            
+            elif action == 'verify_pending_wallet':
+                print(f'[VERIFY_PENDING] family_id={family_id}, user_id={user_id}')
+                pending = get_pending_wallet_payments(family_id)
+                print(f'[VERIFY_PENDING] Found {len(pending)} pending payments')
+                credited = []
+                for p in pending:
+                    res = verify_and_credit_wallet(p['payment_id'], family_id, user_id)
+                    print(f'[VERIFY_PENDING] {p["payment_id"]}: {res}')
+                    if res.get('credited') or res.get('already_credited'):
+                        credited.append({'payment_id': p['payment_id'], 'amount': res.get('amount', 0)})
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'pending_count': len(pending), 'credited': credited}, default=str)
                 }
             
             # Проверить статус платежа

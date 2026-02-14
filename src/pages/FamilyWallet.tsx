@@ -97,6 +97,26 @@ export default function FamilyWallet() {
   }, [fetchData]);
 
   useEffect(() => {
+    if (!authToken) return;
+    const verifyPending = async () => {
+      try {
+        const res = await fetch(PAYMENTS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+          body: JSON.stringify({ action: 'verify_pending_wallet' }),
+        });
+        const json = await res.json();
+        if (json.credited && json.credited.length > 0) {
+          const total = json.credited.reduce((s: number, c: { amount: number }) => s + c.amount, 0);
+          toast({ title: `Зачислено ${total.toFixed(0)} руб на баланс` });
+          fetchData();
+        }
+      } catch { /* silent */ }
+    };
+    verifyPending();
+  }, [authToken, fetchData, toast]);
+
+  useEffect(() => {
     const status = searchParams.get('status');
     if (status === 'success') {
       setShowSuccess(true);
