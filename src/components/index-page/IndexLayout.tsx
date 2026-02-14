@@ -20,6 +20,7 @@ interface IndexLayoutProps {
   onLanguageChange: (lang: LanguageCode) => void;
   onThemeChange: (theme: ThemeType) => void;
   onResetDemo: () => void;
+  onHintDismiss?: () => void;
   children: React.ReactNode;
 }
 
@@ -36,6 +37,7 @@ export function IndexLayout({
   onLanguageChange,
   onThemeChange,
   onResetDemo,
+  onHintDismiss,
   children,
 }: IndexLayoutProps) {
   return (
@@ -54,7 +56,10 @@ export function IndexLayout({
         onThemeChange={onThemeChange}
         onResetDemo={onResetDemo}
         showMenuHint={showMenuHint}
-        onMenuClick={() => onLeftMenuVisibilityChange(true)}
+        onMenuClick={() => {
+          onLeftMenuVisibilityChange(true);
+          if (onHintDismiss) onHintDismiss();
+        }}
       />
 
       {!isTopBarVisible && (

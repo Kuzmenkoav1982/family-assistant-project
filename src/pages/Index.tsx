@@ -380,12 +380,10 @@ export default function Index({ onLogout }: IndexProps) {
     if (isDemoMode && !hasSeenSidebarHint) {
       const openTimer = setTimeout(() => {
         setIsLeftMenuVisible(true);
-        setShowSidebarHint(true);
       }, 1500);
       const closeTimer = setTimeout(() => {
         setIsLeftMenuVisible(false);
-        setShowSidebarHint(false);
-        localStorage.setItem('hasSeenSidebarHint', 'true');
+        setShowSidebarHint(true);
       }, 5500);
       return () => {
         clearTimeout(openTimer);
@@ -1325,6 +1323,10 @@ export default function Index({ onLogout }: IndexProps) {
         onLanguageChange={handleLanguageChange}
         onThemeChange={handleThemeChange}
         onResetDemo={handleLogoutLocal}
+        onHintDismiss={() => {
+          setShowSidebarHint(false);
+          localStorage.setItem('hasSeenSidebarHint', 'true');
+        }}
       >
 
 
