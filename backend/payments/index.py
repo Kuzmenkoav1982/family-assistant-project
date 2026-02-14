@@ -576,6 +576,83 @@ def check_payment_and_activate(payment_id: str) -> Dict[str, Any]:
         conn.close()
         return {'error': str(e)}
 
+def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, Any]:
+    """Зачисляет средства на семейный кошелёк после успешной оплаты"""
+    family_id = metadata.get('family_id', '')
+    user_id = metadata.get('user_id', '')
+    amount = float(metadata.get('amount', 0))
+    
+    if not family_id or not amount:
+        print(f'[WALLET_WEBHOOK] Missing family_id or amount')
+        return {'received': True, 'error': 'missing data'}
+    
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    try:
+        safe_family_id = family_id.replace("'", "''")
+        safe_user_id = user_id.replace("'", "''")
+        safe_payment_id = payment_id.replace("'", "''")
+        
+        # Обновляем платёж
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.payments 
+            SET status = 'paid', paid_at = CURRENT_TIMESTAMP, payment_method = 'yookassa'
+            WHERE payment_id = '{safe_payment_id}'
+            """
+        )
+        
+        # Создаём или находим кошелёк
+        cur.execute(
+            f"SELECT id FROM {SCHEMA}.family_wallet WHERE family_id = '{safe_family_id}'"
+        )
+        wallet = cur.fetchone()
+        
+        if not wallet:
+            cur.execute(
+                f"""
+                INSERT INTO {SCHEMA}.family_wallet (family_id, balance_rub)
+                VALUES ('{safe_family_id}', 0)
+                RETURNING id
+                """
+            )
+            wallet = cur.fetchone()
+        
+        wallet_id = wallet['id']
+        
+        # Зачисляем на баланс
+        cur.execute(
+            f"""
+            UPDATE {SCHEMA}.family_wallet 
+            SET balance_rub = balance_rub + {amount}, updated_at = NOW()
+            WHERE id = {wallet_id}
+            """
+        )
+        
+        # Записываем транзакцию
+        cur.execute(
+            f"""
+            INSERT INTO {SCHEMA}.wallet_transactions 
+            (wallet_id, type, amount_rub, reason, description, user_id)
+            VALUES ({wallet_id}, 'topup', {amount}, 'topup', 'Оплата через ЮKassa', '{safe_user_id}')
+            """
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        print(f'[WALLET_WEBHOOK] Success! +{amount} rub for family {family_id}')
+        return {'received': True, 'activated': True, 'amount': amount}
+    except Exception as e:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        print(f'[WALLET_WEBHOOK] Error: {str(e)}')
+        return {'received': True, 'error': str(e)}
+
+
 def handle_webhook(body: dict) -> Dict[str, Any]:
     """Обрабатывает webhook от ЮКассы о статусе платежа"""
     event_type = body.get('event')
@@ -611,6 +688,11 @@ def handle_webhook(body: dict) -> Dict[str, Any]:
     if event_type != 'payment.succeeded' or not payment_id:
         print(f'[WEBHOOK] Skipping event (not payment.succeeded or no payment_id)')
         return {'received': True}
+    
+    # Обработка пополнения кошелька
+    if metadata.get('type') == 'wallet_topup':
+        print(f'[WEBHOOK] Wallet topup detected!')
+        return handle_wallet_topup_webhook(payment_id, metadata)
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -954,6 +1036,83 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'success': True,
                         'payment_url': payment_result['confirmation_url'],
                         'payment_id': payment_result['payment_id']
+                    })
+                }
+            
+            # Пополнение семейного кошелька
+            elif action == 'wallet_topup':
+                amount = body.get('amount')
+                return_url = body.get('return_url', 'https://nasha-semiya.ru/wallet?status=success')
+                payment_method = body.get('payment_method')
+                
+                if not amount or float(amount) < 50:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'Минимальная сумма пополнения — 50 руб'})
+                    }
+                
+                if float(amount) > 100000:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'Максимальная сумма — 100 000 руб'})
+                    }
+                
+                amount_val = float(amount)
+                user_email = get_user_email(user_id)
+                
+                payment_result = create_yookassa_payment(
+                    amount_val,
+                    f"Пополнение семейного кошелька — {int(amount_val)} руб",
+                    return_url,
+                    metadata={
+                        'family_id': family_id,
+                        'user_id': user_id,
+                        'type': 'wallet_topup',
+                        'amount': str(amount_val),
+                        'user_email': user_email
+                    },
+                    payment_method=payment_method
+                )
+                
+                if 'error' in payment_result:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps(payment_result)
+                    }
+                
+                conn = get_db_connection()
+                cur = conn.cursor()
+                try:
+                    safe_user_id = user_id.replace("'", "''")
+                    safe_payment_id = payment_result['payment_id'].replace("'", "''")
+                    safe_family_id = family_id.replace("'", "''")
+                    cur.execute(
+                        f"""
+                        INSERT INTO {SCHEMA}.payments
+                        (subscription_id, family_id, user_id, amount, payment_id, status, description)
+                        VALUES (NULL, '{safe_family_id}', '{safe_user_id}', {amount_val}, '{safe_payment_id}', 'pending', 'Пополнение кошелька {int(amount_val)} руб')
+                        """
+                    )
+                    conn.commit()
+                    cur.close()
+                    conn.close()
+                except Exception as e:
+                    conn.rollback()
+                    cur.close()
+                    conn.close()
+                    print(f'[ERROR] Failed to save wallet payment: {str(e)}')
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'success': True,
+                        'payment_url': payment_result['confirmation_url'],
+                        'payment_id': payment_result['payment_id'],
+                        'amount': amount_val
                     })
                 }
             

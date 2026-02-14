@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-const API_URL = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
+const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
+const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
 interface Transaction {
   id: number;
@@ -48,6 +48,7 @@ const reasonIcons: Record<string, string> = {
 
 export default function FamilyWallet() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
@@ -61,23 +62,20 @@ export default function FamilyWallet() {
 
   const [showTopup, setShowTopup] = useState(false);
   const [topupAmount, setTopupAmount] = useState('');
-  const [topupNote, setTopupNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'sbp'>('card');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
 
   const authToken = localStorage.getItem('authToken') || '';
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-Auth-Token': authToken,
-  };
 
   const fetchData = useCallback(async () => {
     try {
       const [balRes, histRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}?action=balance`, { headers: { 'X-Auth-Token': authToken } }),
-        fetch(`${API_URL}?action=history&limit=30`, { headers: { 'X-Auth-Token': authToken } }),
-        fetch(`${API_URL}?action=stats`, { headers: { 'X-Auth-Token': authToken } }),
+        fetch(`${WALLET_API}?action=balance`, { headers: { 'X-Auth-Token': authToken } }),
+        fetch(`${WALLET_API}?action=history&limit=30`, { headers: { 'X-Auth-Token': authToken } }),
+        fetch(`${WALLET_API}?action=stats`, { headers: { 'X-Auth-Token': authToken } }),
       ]);
 
       const balData = await balRes.json();
@@ -98,28 +96,41 @@ export default function FamilyWallet() {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      setShowSuccess(true);
+      setTimeout(() => {
+        fetchData();
+        setShowSuccess(false);
+      }, 3000);
+      window.history.replaceState({}, '', '/wallet');
+    }
+  }, [searchParams, fetchData]);
+
   const handleTopup = async () => {
-    if (!topupAmount || parseFloat(topupAmount) <= 0) return;
+    const amount = parseFloat(topupAmount);
+    if (!amount || amount < 50) {
+      toast({ title: 'Минимальная сумма: 50 руб', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(PAYMENTS_API, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
-          action: 'topup',
-          amount: parseFloat(topupAmount),
-          description: topupNote,
+          action: 'wallet_topup',
+          amount,
+          return_url: `${window.location.origin}/wallet?status=success`,
+          payment_method: paymentMethod === 'sbp' ? 'sbp' : undefined,
         }),
       });
       const json = await res.json();
-      if (json.success) {
-        toast({ title: json.message });
-        setShowTopup(false);
-        setTopupAmount('');
-        setTopupNote('');
-        fetchData();
+      if (json.success && json.payment_url) {
+        window.location.href = json.payment_url;
       } else {
-        toast({ title: json.error, variant: 'destructive' });
+        toast({ title: json.error || 'Ошибка создания платежа', variant: 'destructive' });
       }
     } catch {
       toast({ title: 'Ошибка соединения', variant: 'destructive' });
@@ -154,6 +165,20 @@ export default function FamilyWallet() {
             <p className="text-xs text-muted-foreground">Баланс для ИИ-сервисов</p>
           </div>
         </div>
+
+        {showSuccess && (
+          <Card className="border-green-300 bg-green-50 animate-fade-in">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <Icon name="Check" size={24} className="text-green-600" />
+              </div>
+              <div>
+                <p className="font-bold text-green-800">Оплата прошла успешно!</p>
+                <p className="text-sm text-green-700">Средства скоро поступят на баланс</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 border-0 text-white overflow-hidden relative">
           <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
@@ -193,11 +218,11 @@ export default function FamilyWallet() {
                 Пополнить баланс
               </h3>
               <div>
-                <Label>Сумма (руб)</Label>
+                <Label>Сумма (руб), минимум 50</Label>
                 <Input
                   type="number"
                   step="1"
-                  min="1"
+                  min="50"
                   placeholder="500"
                   value={topupAmount}
                   onChange={e => setTopupAmount(e.target.value)}
@@ -216,27 +241,57 @@ export default function FamilyWallet() {
                   </Button>
                 ))}
               </div>
+
               <div>
-                <Label>Комментарий (необязательно)</Label>
-                <Textarea
-                  placeholder="Например: пополнение за месяц"
-                  value={topupNote}
-                  onChange={e => setTopupNote(e.target.value)}
-                  rows={2}
-                />
+                <Label className="text-sm mb-2 block">Способ оплаты</Label>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={paymentMethod === 'card' ? 'default' : 'outline'}
+                    className={paymentMethod === 'card' ? 'bg-emerald-600' : ''}
+                    onClick={() => setPaymentMethod('card')}
+                  >
+                    <Icon name="CreditCard" size={14} className="mr-1" />
+                    Картой
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={paymentMethod === 'sbp' ? 'default' : 'outline'}
+                    className={paymentMethod === 'sbp' ? 'bg-emerald-600' : ''}
+                    onClick={() => setPaymentMethod('sbp')}
+                  >
+                    <Icon name="Smartphone" size={14} className="mr-1" />
+                    СБП
+                  </Button>
+                </div>
               </div>
+
               <div className="flex gap-2">
                 <Button
                   onClick={handleTopup}
-                  disabled={!topupAmount || parseFloat(topupAmount) <= 0 || submitting}
-                  className="bg-emerald-600"
+                  disabled={!topupAmount || parseFloat(topupAmount) < 50 || submitting}
+                  className="bg-emerald-600 flex-1"
                 >
-                  {submitting ? 'Пополняю...' : 'Пополнить'}
+                  {submitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Переход к оплате...
+                    </div>
+                  ) : (
+                    <>
+                      <Icon name="Lock" size={14} className="mr-1" />
+                      Оплатить {topupAmount ? `${topupAmount} руб` : ''}
+                    </>
+                  )}
                 </Button>
                 <Button variant="outline" onClick={() => setShowTopup(false)}>
                   Отмена
                 </Button>
               </div>
+
+              <p className="text-[10px] text-muted-foreground text-center">
+                Безопасная оплата через ЮKassa. После оплаты средства поступят автоматически.
+              </p>
             </CardContent>
           </Card>
         )}
