@@ -145,6 +145,45 @@ export default function DietQuiz() {
     }
   };
 
+  const pollOperation = async (operationId: string) => {
+    const maxAttempts = 30;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+
+      try {
+        const res = await fetch(DIET_PLAN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'check', operationId }),
+        });
+        const data = await res.json();
+
+        if (data.status === 'processing') continue;
+
+        if (data.status === 'done') {
+          if (data.plan) {
+            setGeneratedPlan(data.plan);
+            localStorage.setItem('dietPlan', JSON.stringify(data.plan));
+          } else if (data.rawText) {
+            setRawText(data.rawText);
+          } else {
+            setError('ИИ не смог сгенерировать план. Попробуйте ещё раз.');
+          }
+          return;
+        }
+
+        if (data.status === 'error') {
+          setError(data.error || 'Ошибка генерации');
+          return;
+        }
+      } catch {
+        setError('Ошибка соединения при проверке статуса.');
+        return;
+      }
+    }
+    setError('Генерация заняла слишком много времени. Попробуйте ещё раз.');
+  };
+
   const handleSubmit = async () => {
     setIsGenerating(true);
     setError(null);
@@ -166,15 +205,12 @@ export default function DietQuiz() {
         return;
       }
 
-      if (result.plan) {
-        setGeneratedPlan(result.plan);
-        localStorage.setItem('dietPlan', JSON.stringify(result.plan));
-      } else if (result.rawText) {
-        setRawText(result.rawText);
+      if (result.status === 'started' && result.operationId) {
+        await pollOperation(result.operationId);
       } else {
-        setError('ИИ не смог сгенерировать план. Попробуйте ещё раз.');
+        setError('Неожиданный ответ сервера');
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка соединения. Проверьте интернет и попробуйте снова.');
     } finally {
       setIsGenerating(false);

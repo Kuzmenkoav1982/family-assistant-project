@@ -1,6 +1,6 @@
 """
-Генерация персонального плана питания на неделю через YandexGPT.
-Принимает данные анкеты пользователя и возвращает план с блюдами на 7 дней.
+Генерация персонального плана питания через YandexGPT (асинхронный режим).
+Два действия: start — запускает генерацию, check — проверяет результат.
 """
 
 import json
@@ -9,69 +9,73 @@ import requests
 from typing import Dict, Any, Optional
 
 
-def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Генерация персонального плана питания на неделю через YandexGPT"""
-    method = event.get('httpMethod', 'POST')
+CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-User-Id',
+    'Access-Control-Max-Age': '86400'
+}
 
-    cors_headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-User-Id',
-        'Access-Control-Max-Age': '86400'
+
+def respond(status: int, body: Any) -> Dict[str, Any]:
+    return {
+        'statusCode': status,
+        'headers': {**CORS, 'Content-Type': 'application/json'},
+        'body': json.dumps(body, ensure_ascii=False) if isinstance(body, dict) else body,
+        'isBase64Encoded': False
     }
 
+
+def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Генерация плана питания через YandexGPT (async: start + check)"""
+    method = event.get('httpMethod', 'POST')
+
     if method == 'OPTIONS':
-        return {'statusCode': 200, 'headers': cors_headers, 'body': '', 'isBase64Encoded': False}
+        return {'statusCode': 200, 'headers': CORS, 'body': '', 'isBase64Encoded': False}
 
     if method != 'POST':
-        return {
-            'statusCode': 405,
-            'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Method not allowed'}),
-            'isBase64Encoded': False
-        }
+        return respond(405, {'error': 'Method not allowed'})
 
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
     folder_id = os.environ.get('YANDEX_FOLDER_ID')
 
     if not api_key or not folder_id:
-        return {
-            'statusCode': 500,
-            'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'API ключи не настроены'}),
-            'isBase64Encoded': False
-        }
+        return respond(500, {'error': 'API ключи не настроены'})
 
     raw_body = event.get('body') or '{}'
     body = json.loads(raw_body)
+    action = body.get('action', 'start')
+
+    if action == 'check':
+        return handle_check(api_key, body)
+
+    return handle_start(api_key, folder_id, body)
+
+
+def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     quiz_data = body.get('quizData', {})
     program_data = body.get('programData', {})
 
     if not quiz_data and not program_data:
-        return {
-            'statusCode': 400,
-            'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Данные анкеты не переданы'}),
-            'isBase64Encoded': False
-        }
+        return respond(400, {'error': 'Данные анкеты не переданы'})
 
     if program_data:
         prompt = build_program_prompt(program_data)
     else:
         prompt = build_prompt(quiz_data)
 
-    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion'
+    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completionAsync'
     headers = {
         'Authorization': f'Api-Key {api_key}',
         'Content-Type': 'application/json'
     }
 
     payload = {
-        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+        'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
         'completionOptions': {
             'stream': False,
-            'temperature': 0.3,
-            'maxTokens': 6000
+            'temperature': 0.4,
+            'maxTokens': 8000
         },
         'messages': [
             {
@@ -85,50 +89,83 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         ]
     }
 
-    print(f"[generate-diet-plan] Calling YandexGPT, folder={folder_id}")
-    response = requests.post(url, headers=headers, json=payload, timeout=120)
-    print(f"[generate-diet-plan] YandexGPT status={response.status_code}")
+    print(f"[generate-diet-plan] Starting async generation, folder={folder_id}")
+    response = requests.post(url, headers=headers, json=payload, timeout=25)
+    print(f"[generate-diet-plan] Async start status={response.status_code}")
 
     if response.status_code != 200:
-        print(f"[generate-diet-plan] YandexGPT error: {response.text[:500]}")
-        return {
-            'statusCode': 502,
-            'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({
-                'error': 'Ошибка YandexGPT',
-                'details': response.text[:500],
-                'status': response.status_code
-            }),
-            'isBase64Encoded': False
-        }
+        print(f"[generate-diet-plan] Error: {response.text[:500]}")
+        return respond(502, {
+            'error': 'Ошибка YandexGPT',
+            'details': response.text[:500],
+            'status': response.status_code
+        })
 
     result = response.json()
-    ai_text = result.get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+    operation_id = result.get('id', '')
+    print(f"[generate-diet-plan] Operation started: {operation_id}")
+
+    return respond(200, {
+        'success': True,
+        'status': 'started',
+        'operationId': operation_id
+    })
+
+
+def handle_check(api_key: str, body: Dict) -> Dict[str, Any]:
+    operation_id = body.get('operationId', '')
+    if not operation_id:
+        return respond(400, {'error': 'operationId не передан'})
+
+    url = f'https://operation.api.cloud.yandex.net/operations/{operation_id}'
+    headers = {'Authorization': f'Api-Key {api_key}'}
+
+    print(f"[generate-diet-plan] Checking operation: {operation_id}")
+    response = requests.get(url, headers=headers, timeout=25)
+    print(f"[generate-diet-plan] Check status={response.status_code}")
+
+    if response.status_code != 200:
+        return respond(502, {
+            'error': 'Ошибка проверки статуса',
+            'details': response.text[:500]
+        })
+
+    result = response.json()
+    done = result.get('done', False)
+
+    if not done:
+        return respond(200, {
+            'success': True,
+            'status': 'processing'
+        })
+
+    if 'error' in result:
+        return respond(200, {
+            'success': False,
+            'status': 'error',
+            'error': result['error'].get('message', 'Ошибка генерации')
+        })
+
+    ai_response = result.get('response', {})
+    alternatives = ai_response.get('alternatives', [])
+    ai_text = alternatives[0].get('message', {}).get('text', '') if alternatives else ''
 
     plan = parse_plan(ai_text)
 
     if not plan:
-        return {
-            'statusCode': 200,
-            'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({
-                'success': True,
-                'plan': None,
-                'rawText': ai_text,
-                'message': 'План сгенерирован, но не удалось разобрать JSON. Показываем текст.'
-            }, ensure_ascii=False),
-            'isBase64Encoded': False
-        }
-
-    return {
-        'statusCode': 200,
-        'headers': {**cors_headers, 'Content-Type': 'application/json'},
-        'body': json.dumps({
+        return respond(200, {
             'success': True,
-            'plan': plan
-        }, ensure_ascii=False),
-        'isBase64Encoded': False
-    }
+            'status': 'done',
+            'plan': None,
+            'rawText': ai_text,
+            'message': 'План сгенерирован, но не удалось разобрать JSON.'
+        })
+
+    return respond(200, {
+        'success': True,
+        'status': 'done',
+        'plan': plan
+    })
 
 
 def build_program_prompt(data: Dict[str, Any]) -> str:
@@ -144,7 +181,6 @@ def build_program_prompt(data: Dict[str, Any]) -> str:
     }
 
     program_name = data.get('program_name', 'Стандартное питание')
-    program_slug = data.get('program_slug', '')
     servings = data.get('servings_count', '1')
     budget = budget_map.get(data.get('budget', ''), data.get('budget', ''))
     complexity = complexity_map.get(data.get('cooking_complexity', ''), data.get('cooking_complexity', ''))
