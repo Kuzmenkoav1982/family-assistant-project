@@ -89,6 +89,10 @@ def handler(event, context):
             return handle_sos(user_id, body)
         elif action == 'motivation':
             return generate_motivation(user_id, body)
+        elif action == 'analyze_progress':
+            return analyze_progress(user_id, body)
+        elif action == 'adjust_plan':
+            return adjust_plan(user_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -616,5 +620,204 @@ def generate_motivation(user_id, body):
     except Exception as e:
         print(f"[diet-progress] AI motivation error: {e}")
         return get_motivation(user_id, plan_id if isinstance(plan_id, int) else None, time_of_day)
+    finally:
+        conn.close()
+
+
+def analyze_progress(user_id, body):
+    plan_id = body.get('plan_id')
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+
+        if not plan_id:
+            cur.execute("""
+                SELECT id FROM diet_plans WHERE user_id = %d AND status = 'active'
+                ORDER BY created_at DESC LIMIT 1
+            """ % user_id)
+            row = cur.fetchone()
+            if not row:
+                return respond(200, {'has_analysis': False, 'message': 'Нет активного плана'})
+            plan_id = row[0]
+
+        cur.execute("""
+            SELECT start_date, end_date, duration_days, target_weight_loss_kg,
+                   target_calories_daily, daily_water_ml, daily_steps
+            FROM diet_plans WHERE id = %d AND user_id = %d
+        """ % (int(plan_id), user_id))
+        plan = cur.fetchone()
+        if not plan:
+            return respond(404, {'error': 'План не найден'})
+
+        start_date, end_date, duration, target_loss, target_cal, water, steps = plan
+
+        cur.execute("""
+            SELECT weight_kg, measured_at FROM diet_weight_log
+            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at ASC
+        """ % (user_id, int(plan_id)))
+        weights = cur.fetchall()
+
+        if len(weights) < 2:
+            return respond(200, {
+                'has_analysis': False,
+                'message': 'Нужно минимум 2 записи веса для анализа'
+            })
+
+        first_w = float(weights[0][0])
+        last_w = float(weights[-1][0])
+        actual_loss = round(first_w - last_w, 2)
+        days_elapsed = (date.today() - start_date).days
+        days_elapsed = max(days_elapsed, 1)
+
+        weekly_loss_actual = round(actual_loss / (days_elapsed / 7), 2) if days_elapsed >= 3 else 0
+
+        if target_loss and target_loss > 0:
+            expected_loss = round(float(target_loss) * (days_elapsed / duration), 2) if duration > 0 else 0
+        else:
+            expected_loss = round(0.5 * (days_elapsed / 7), 2)
+
+        cur.execute("""
+            SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d AND completed = TRUE
+        """ % int(plan_id))
+        done_meals = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d" % int(plan_id))
+        total_meals = cur.fetchone()[0]
+        adherence = round(done_meals / total_meals * 100) if total_meals > 0 else 0
+
+        cur.execute("""
+            SELECT COUNT(*) FROM diet_sos_requests
+            WHERE user_id = %d AND plan_id = %d
+        """ % (user_id, int(plan_id)))
+        sos_count = cur.fetchone()[0]
+
+        cur.execute("""
+            SELECT wellbeing FROM diet_weight_log
+            WHERE user_id = %d AND plan_id = %d AND wellbeing IS NOT NULL AND wellbeing != ''
+            ORDER BY measured_at DESC LIMIT 5
+        """ % (user_id, int(plan_id)))
+        recent_wellbeing = [r[0] for r in cur.fetchall()]
+
+        recommendation = 'keep'
+        cal_adjustment = 0
+        reason = ''
+        advice = ''
+
+        if weekly_loss_actual > 1.5:
+            recommendation = 'ease'
+            cal_adjustment = 200
+            reason = 'Слишком быстрое снижение веса (более 1.5 кг/нед)'
+            advice = 'Рекомендую увеличить калорийность на 200 ккал. Резкое похудение вредит здоровью и приводит к потере мышц.'
+        elif weekly_loss_actual > 1.0 and sos_count >= 2:
+            recommendation = 'ease'
+            cal_adjustment = 150
+            reason = 'Быстрое снижение + частые SOS-запросы'
+            advice = 'Темп хороший, но вам тяжело. Добавлю 150 ккал для комфорта — результат сохранится.'
+        elif actual_loss < 0 and days_elapsed >= 7:
+            recommendation = 'intensify'
+            cal_adjustment = -150
+            reason = 'Вес не снижается более 7 дней'
+            advice = 'Результата пока нет. Снизим калорийность на 150 ккал и добавим активности.'
+        elif 0 <= actual_loss < expected_loss * 0.5 and days_elapsed >= 10:
+            recommendation = 'intensify'
+            cal_adjustment = -100
+            reason = 'Прогресс значительно ниже ожидаемого'
+            advice = 'Снижение идёт медленнее плана. Небольшое уменьшение калорий поможет ускориться.'
+        elif adherence < 50 and days_elapsed >= 5:
+            recommendation = 'ease'
+            cal_adjustment = 100
+            reason = 'Низкая приверженность плану (%d%%)' % adherence
+            advice = 'Вы пропускаете много приёмов пищи. Возможно, план слишком строгий — смягчим его.'
+        elif sos_count >= 3:
+            recommendation = 'ease'
+            cal_adjustment = 150
+            reason = 'Много SOS-запросов (%d)' % sos_count
+            advice = 'Диета даётся тяжело. Смягчу план, чтобы вы не бросили — лучше медленнее, но стабильно.'
+        else:
+            reason = 'Прогресс в норме'
+            advice = 'Всё идёт по плану! Продолжайте в том же духе.'
+
+        new_calories = target_cal + cal_adjustment if cal_adjustment else target_cal
+
+        return respond(200, {
+            'has_analysis': True,
+            'plan_id': plan_id,
+            'days_elapsed': days_elapsed,
+            'actual_loss_kg': actual_loss,
+            'expected_loss_kg': expected_loss,
+            'weekly_loss_kg': weekly_loss_actual,
+            'adherence_pct': adherence,
+            'sos_count': sos_count,
+            'current_calories': target_cal,
+            'recommendation': recommendation,
+            'cal_adjustment': cal_adjustment,
+            'new_calories': new_calories,
+            'reason': reason,
+            'advice': advice,
+            'recent_wellbeing': recent_wellbeing
+        })
+    finally:
+        conn.close()
+
+
+def adjust_plan(user_id, body):
+    plan_id = body.get('plan_id')
+    new_calories = body.get('new_calories')
+
+    if not plan_id or not new_calories:
+        return respond(400, {'error': 'plan_id и new_calories обязательны'})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT id FROM diet_plans WHERE id = %d AND user_id = %d AND status = 'active'
+        """ % (int(plan_id), user_id))
+        if not cur.fetchone():
+            return respond(403, {'error': 'План не найден или неактивен'})
+
+        cur.execute("""
+            UPDATE diet_plans SET target_calories_daily = %d
+            WHERE id = %d
+        """ % (int(new_calories), int(plan_id)))
+
+        remaining_dates = []
+        cur.execute("""
+            SELECT DISTINCT meal_date FROM diet_meals
+            WHERE plan_id = %d AND meal_date >= '%s' AND completed = FALSE
+            ORDER BY meal_date
+        """ % (int(plan_id), str(date.today())))
+        remaining_dates = [r[0] for r in cur.fetchall()]
+
+        if remaining_dates:
+            cur.execute("""
+                SELECT id, calories FROM diet_meals
+                WHERE plan_id = %d AND meal_date >= '%s' AND completed = FALSE
+            """ % (int(plan_id), str(date.today())))
+            meals = cur.fetchall()
+            if meals:
+                cur.execute("""
+                    SELECT SUM(calories) FROM diet_meals
+                    WHERE plan_id = %d AND meal_date = '%s'
+                """ % (int(plan_id), str(remaining_dates[0])))
+                day_total = cur.fetchone()[0] or 1
+                ratio = int(new_calories) / day_total if day_total > 0 else 1
+
+                ratio = max(0.7, min(1.4, ratio))
+
+                for meal_id, cal in meals:
+                    adj_cal = max(50, round(cal * ratio))
+                    cur.execute("""
+                        UPDATE diet_meals SET calories = %d
+                        WHERE id = %d
+                    """ % (adj_cal, meal_id))
+
+        conn.commit()
+        return respond(200, {
+            'success': True,
+            'new_calories': int(new_calories),
+            'meals_adjusted': len(remaining_dates) if remaining_dates else 0,
+            'message': 'План скорректирован!'
+        })
     finally:
         conn.close()
