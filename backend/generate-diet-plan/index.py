@@ -67,11 +67,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
 
     payload = {
-        'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
         'completionOptions': {
             'stream': False,
-            'temperature': 0.4,
-            'maxTokens': 8000
+            'temperature': 0.3,
+            'maxTokens': 6000
         },
         'messages': [
             {
