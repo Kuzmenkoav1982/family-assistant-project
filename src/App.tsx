@@ -71,6 +71,7 @@ import NutritionHub from "./pages/NutritionHub";
 import DietQuiz from "./pages/DietQuiz";
 import DietProgramCatalog from "./pages/DietProgramCatalog";
 import DietMiniQuiz from "./pages/DietMiniQuiz";
+import RecipeFromProducts from "./pages/RecipeFromProducts";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
@@ -292,7 +293,7 @@ const App = () => {
                       <Route path="/nutrition/diet" element={<DietQuiz />} />
                       <Route path="/nutrition/programs" element={<DietProgramCatalog />} />
                       <Route path="/nutrition/programs/:slug/quiz" element={<DietMiniQuiz />} />
-                      <Route path="/nutrition/recipe-from-products" element={<NutritionHub />} />
+                      <Route path="/nutrition/recipe-from-products" element={<RecipeFromProducts />} />
                       <Route path="/trips" element={<Trips />} />
                       <Route path="/trips/:id" element={<TripDetails />} />
                       <Route path="/trips/wishlist" element={<TripWishlist />} />

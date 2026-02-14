@@ -49,6 +49,24 @@
       "expectedStatus": 400,
       "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Products without list",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "recipe_from_products"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Check products without operationId",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "check_products"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
     }
   ]
 }

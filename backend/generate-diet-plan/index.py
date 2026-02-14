@@ -61,6 +61,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if action == 'check_photo':
         return handle_photo_check(api_key, body)
 
+    if action == 'recipe_from_products':
+        return handle_products_start(api_key, folder_id, body)
+
+    if action == 'check_products':
+        return handle_products_check(api_key, body)
+
     return handle_start(api_key, folder_id, body)
 
 
@@ -353,6 +359,121 @@ def handle_photo_check(api_key: str, body: Dict) -> Dict[str, Any]:
             'status': 'done',
             'imageUrl': f'data:image/png;base64,{image_b64[:100000]}'
         })
+
+
+def handle_products_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
+    products = body.get('products', [])
+    meal_type = body.get('mealType', '')
+    people_count = body.get('peopleCount', 2)
+    preferences = body.get('preferences', '')
+
+    if not products:
+        return respond(400, {'error': 'Список продуктов не передан'})
+
+    products_text = ', '.join(products)
+    meal_hint = f'\nТип приёма пищи: {meal_type}.' if meal_type else ''
+    pref_hint = f'\nПредпочтения: {preferences}.' if preferences else ''
+
+    prompt = f"""У меня есть следующие продукты: {products_text}.{meal_hint}{pref_hint}
+Количество порций: {people_count}.
+
+Предложи 3 блюда, которые можно приготовить из этих продуктов (можно использовать базовые приправы: соль, перец, масло).
+
+Верни ТОЛЬКО JSON (без markdown, без ```):
+{{
+  "dishes": [
+    {{
+      "name": "Название блюда",
+      "description": "Краткое описание в 1 предложении",
+      "cooking_time_min": число,
+      "calories_per_serving": число,
+      "difficulty": "easy" или "medium" или "hard",
+      "used_products": ["продукт1", "продукт2"],
+      "extra_products": ["доп. продукт если нужен"],
+      "emoji": "подходящий эмодзи",
+      "ingredients": ["продукт — 100г", "продукт — 50г"],
+      "steps": ["Шаг 1", "Шаг 2", "Шаг 3"]
+    }}
+  ]
+}}
+
+Блюда должны быть разнообразными, реалистичными и вкусными. Указывай граммовки. Шагов: 4-7 на блюдо."""
+
+    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completionAsync'
+    headers = {'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'}
+    payload = {
+        'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+        'completionOptions': {'stream': False, 'temperature': 0.5, 'maxTokens': 4000},
+        'messages': [
+            {'role': 'system', 'text': 'Ты опытный шеф-повар. Предлагай вкусные и простые блюда из имеющихся продуктов. Отвечай ТОЛЬКО валидным JSON.'},
+            {'role': 'user', 'text': prompt}
+        ]
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=25)
+    if response.status_code != 200:
+        print(f"[products] Error: {response.text[:300]}")
+        return respond(502, {'error': 'Ошибка YandexGPT'})
+
+    result = response.json()
+    return respond(200, {'success': True, 'status': 'started', 'operationId': result.get('id', '')})
+
+
+def handle_products_check(api_key: str, body: Dict) -> Dict[str, Any]:
+    operation_id = body.get('operationId', '')
+    if not operation_id:
+        return respond(400, {'error': 'operationId не передан'})
+
+    url = f'https://operation.api.cloud.yandex.net/operations/{operation_id}'
+    headers = {'Authorization': f'Api-Key {api_key}'}
+    response = requests.get(url, headers=headers, timeout=25)
+
+    if response.status_code != 200:
+        return respond(502, {'error': 'Ошибка проверки'})
+
+    result = response.json()
+    if not result.get('done', False):
+        return respond(200, {'success': True, 'status': 'processing'})
+
+    if 'error' in result:
+        return respond(200, {'success': False, 'status': 'error', 'error': result['error'].get('message', '')})
+
+    ai_text = result.get('response', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+
+    dishes = parse_dishes(ai_text)
+    return respond(200, {'success': True, 'status': 'done', 'dishes': dishes})
+
+
+def parse_dishes(text: str) -> list:
+    cleaned = text.strip()
+    if cleaned.startswith('```'):
+        lines = cleaned.split('\n')
+        lines = lines[1:] if lines[0].startswith('```') else lines
+        if lines and lines[-1].strip() == '```':
+            lines = lines[:-1]
+        cleaned = '\n'.join(lines)
+
+    start = cleaned.find('{')
+    end = cleaned.rfind('}')
+    if start != -1 and end != -1:
+        try:
+            data = json.loads(cleaned[start:end + 1])
+            if isinstance(data, dict) and 'dishes' in data:
+                return data['dishes']
+        except json.JSONDecodeError:
+            pass
+
+    start_arr = cleaned.find('[')
+    end_arr = cleaned.rfind(']')
+    if start_arr != -1 and end_arr != -1:
+        try:
+            arr = json.loads(cleaned[start_arr:end_arr + 1])
+            if isinstance(arr, list):
+                return arr
+        except json.JSONDecodeError:
+            pass
+
+    return []
 
 
 def build_program_prompt(data: Dict[str, Any]) -> str:

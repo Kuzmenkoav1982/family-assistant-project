@@ -48,7 +48,7 @@ const subSections: SubSection[] = [
     gradient: 'from-orange-500 to-amber-600',
     badge: 'ИИ',
     badgeColor: 'bg-orange-100 text-orange-700',
-    ready: false,
+    ready: true,
   },
   {
     id: 'nutrition-tracker',
