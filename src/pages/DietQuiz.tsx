@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
+const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
 
 interface MealPlan {
   type: string;
@@ -119,6 +120,8 @@ export default function DietQuiz() {
   const [rawText, setRawText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -174,6 +177,57 @@ export default function DietQuiz() {
       setError('Ошибка соединения. Проверьте интернет и попробуйте снова.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const dayNameToValue: Record<string, string> = {
+    'Понедельник': 'monday', 'Вторник': 'tuesday', 'Среда': 'wednesday',
+    'Четверг': 'thursday', 'Пятница': 'friday', 'Суббота': 'saturday', 'Воскресенье': 'sunday',
+  };
+
+  const handleSaveToMenu = async (clearExisting: boolean) => {
+    if (!generatedPlan) return;
+    setIsSaving(true);
+
+    const meals: Array<Record<string, string>> = [];
+    for (const day of generatedPlan.days) {
+      const dayValue = dayNameToValue[day.day] || day.day.toLowerCase();
+      for (const meal of day.meals) {
+        meals.push({
+          day: dayValue,
+          mealType: meal.type,
+          dishName: meal.name,
+          description: `${meal.description || ''} (${meal.calories} ккал, Б:${meal.protein} Ж:${meal.fats} У:${meal.carbs})`,
+          emoji: meal.emoji || '🍽',
+        });
+      }
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(MEAL_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': authToken || '',
+        },
+        body: JSON.stringify({
+          action: 'bulk_add',
+          meals,
+          clearExisting,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSaved(true);
+      } else {
+        alert(result.error || 'Ошибка сохранения');
+      }
+    } catch {
+      alert('Ошибка соединения');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -602,16 +656,56 @@ export default function DietQuiz() {
             </div>
           )}
 
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => { setGeneratedPlan(null); setCurrentStep(4); }}>
-              <Icon name="RefreshCw" size={16} className="mr-2" />
-              Новая анкета
-            </Button>
-            <Button className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => navigate('/nutrition')}>
-              <Icon name="ArrowRight" size={16} className="mr-2" />
-              К питанию
-            </Button>
-          </div>
+          {saved ? (
+            <Card className="bg-green-50 border-green-300">
+              <CardContent className="p-4 text-center">
+                <Icon name="CheckCircle" size={32} className="text-green-600 mx-auto mb-2" />
+                <p className="font-bold text-green-800">План сохранён в меню на неделю!</p>
+                <Button className="mt-3 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => navigate('/meals')}>
+                  <Icon name="CalendarDays" size={16} className="mr-2" />
+                  Открыть меню
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              <Button
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                disabled={isSaving}
+                onClick={() => handleSaveToMenu(true)}
+              >
+                {isSaving ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Сохраняю...
+                  </div>
+                ) : (
+                  <>
+                    <Icon name="CalendarDays" size={16} className="mr-2" />
+                    Заменить меню на неделю
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={isSaving}
+                onClick={() => handleSaveToMenu(false)}
+              >
+                <Icon name="Plus" size={16} className="mr-2" />
+                Добавить к текущему меню
+              </Button>
+              <div className="flex gap-3">
+                <Button variant="ghost" className="flex-1 text-sm" onClick={() => { setGeneratedPlan(null); setSaved(false); setCurrentStep(4); }}>
+                  <Icon name="RefreshCw" size={14} className="mr-1" />
+                  Заново
+                </Button>
+                <Button variant="ghost" className="flex-1 text-sm" onClick={() => navigate('/nutrition')}>
+                  К питанию
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -173,6 +173,71 @@ def update_meal_plan(meal_id: str, family_id: str, data: Dict[str, Any]) -> Dict
         conn.close()
         return {'error': str(e)}
 
+def bulk_add_meal_plans(family_id: str, meals: List[Dict[str, Any]], added_by: str, added_by_name: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    added = 0
+    
+    try:
+        for m in meals:
+            query = f"""
+                INSERT INTO {SCHEMA}.family_meal_plans
+                (family_id, day, meal_type, dish_name, description, emoji, added_by, added_by_name)
+                VALUES (
+                    {escape_string(family_id)},
+                    {escape_string(m.get('day'))},
+                    {escape_string(m.get('mealType'))},
+                    {escape_string(m.get('dishName'))},
+                    {escape_string(m.get('description'))},
+                    {escape_string(m.get('emoji'))},
+                    {escape_string(added_by)},
+                    {escape_string(added_by_name)}
+                )
+            """
+            cur.execute(query)
+            added += 1
+        
+        cur.close()
+        conn.close()
+        return {'success': True, 'added': added}
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
+
+def clear_meal_plans(family_id: str) -> Dict[str, Any]:
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        query = f"DELETE FROM {SCHEMA}.family_meal_plans WHERE family_id = {escape_string(family_id)}"
+        cur.execute(query)
+        cur.close()
+        conn.close()
+        return {'success': True}
+    except Exception as e:
+        cur.close()
+        conn.close()
+        return {'error': str(e)}
+
+
+def get_user_name(user_id: str) -> str:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    query = f"""
+        SELECT name FROM {SCHEMA}.family_members 
+        WHERE user_id::text = {escape_string(user_id)} LIMIT 1
+    """
+    cur.execute(query)
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    return row['name'] if row and row.get('name') else 'ИИ-Диетолог'
+
+
 def delete_meal_plan(meal_id: str, family_id: str) -> Dict[str, Any]:
     """Удалить блюдо из меню"""
     conn = get_db_connection()
@@ -275,6 +340,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 result = delete_meal_plan(meal_id, family_id)
                 status_code = 200 if 'success' in result else 400
+            elif action == 'bulk_add':
+                meals_list = body.get('meals', [])
+                if not meals_list:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'Список блюд пуст'}),
+                        'isBase64Encoded': False
+                    }
+                user_name = get_user_name(user_id)
+                if body.get('clearExisting'):
+                    clear_meal_plans(family_id)
+                result = bulk_add_meal_plans(family_id, meals_list, user_id, user_name)
+                status_code = 201 if 'success' in result else 400
             else:
                 return {
                     'statusCode': 400,
