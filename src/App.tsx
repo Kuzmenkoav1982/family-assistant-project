@@ -67,6 +67,7 @@ import FamilyManagement from "./pages/FamilyManagement";
 import InDevelopmentList from "./pages/InDevelopmentList";
 import FamilyInvite from "./pages/FamilyInvite";
 import Nutrition from "./pages/Nutrition";
+import NutritionHub from "./pages/NutritionHub";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
@@ -283,7 +284,11 @@ const App = () => {
                       <Route path="/analytics" element={<Analytics />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/recipes" element={<Recipes />} />
-                      <Route path="/nutrition" element={<Nutrition />} />
+                      <Route path="/nutrition" element={<NutritionHub />} />
+                      <Route path="/nutrition/tracker" element={<Nutrition />} />
+                      <Route path="/nutrition/diet" element={<NutritionHub />} />
+                      <Route path="/nutrition/programs" element={<NutritionHub />} />
+                      <Route path="/nutrition/recipe-from-products" element={<NutritionHub />} />
                       <Route path="/trips" element={<Trips />} />
                       <Route path="/trips/:id" element={<TripDetails />} />
                       <Route path="/trips/wishlist" element={<TripWishlist />} />

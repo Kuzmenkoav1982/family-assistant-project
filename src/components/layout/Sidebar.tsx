@@ -90,14 +90,25 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       ]
     },
     {
+      id: 'nutrition',
+      title: '🥗 ПИТАНИЕ',
+      icon: 'Apple',
+      items: [
+        { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
+        { id: 'diet-ai', label: 'ИИ-Диета', icon: 'Brain', path: '/nutrition/diet', inDev: true },
+        { id: 'diet-preset', label: 'Готовые режимы', icon: 'ListChecks', path: '/nutrition/programs', inDev: true },
+        { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products', inDev: true },
+        { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
+        { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
+        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' }
+      ]
+    },
+    {
       id: 'household',
       title: '🏠 БЫТ И ХОЗЯЙСТВО',
       icon: 'Home',
       items: [
         { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', path: '/shopping' },
-        { id: 'recipes', label: 'Рецепты', icon: 'ChefHat', path: '/recipes' },
-        { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
-        { id: 'nutrition', label: 'Питание', icon: 'Apple', path: '/nutrition' },
         { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' }
       ]
     },
@@ -153,9 +164,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
 
   const isActive = (item: MenuItem) => {
     if (!item.path) return false;
-    // Compare full path including query params
     const currentFullPath = location.pathname + location.search;
-    return currentFullPath === item.path;
+    if (currentFullPath === item.path) return true;
+    if (item.path.startsWith('/nutrition') && item.id === 'nutrition-hub' && location.pathname === '/nutrition') return true;
+    return false;
   };
 
 
