@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +51,23 @@ export default function TopBar({
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
+
+  const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+
+  const fetchBalance = useCallback(() => {
+    if (!authToken) return;
+    fetch(`${WALLET_API}?action=balance`, { headers: { 'X-Auth-Token': authToken } })
+      .then(r => r.json())
+      .then(j => { if (j.balance !== undefined) setWalletBalance(j.balance); })
+      .catch(() => {});
+  }, [authToken]);
+
+  useEffect(() => {
+    fetchBalance();
+    const iv = setInterval(fetchBalance, 60000);
+    return () => clearInterval(iv);
+  }, [fetchBalance]);
   
   const getUserName = () => {
     try {
@@ -105,6 +122,20 @@ export default function TopBar({
             </span>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          {isAuthenticated && walletBalance !== null && (
+            <Button
+              onClick={() => navigate('/wallet')}
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              title="Семейный кошелёк"
+            >
+              <Icon name="Wallet" size={14} />
+              <span className="text-xs font-medium">{walletBalance.toFixed(0)} р</span>
+            </Button>
+          )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -170,6 +201,7 @@ export default function TopBar({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
 
       {isVisible && (
