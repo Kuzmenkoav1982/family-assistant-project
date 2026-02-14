@@ -10,6 +10,35 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
+const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
+
+interface MealPlan {
+  type: string;
+  time: string;
+  name: string;
+  description: string;
+  calories: number;
+  protein: number;
+  fats: number;
+  carbs: number;
+  ingredients: string[];
+  cooking_time_min: number;
+  emoji: string;
+}
+
+interface DayPlan {
+  day: string;
+  meals: MealPlan[];
+}
+
+interface GeneratedPlan {
+  daily_calories: number;
+  daily_protein: number;
+  daily_fats: number;
+  daily_carbs: number;
+  days: DayPlan[];
+}
+
 interface QuizData {
   height_cm: string;
   current_weight_kg: string;
@@ -74,10 +103,22 @@ const dislikedOptions = [
   'Субпродукты', 'Баклажаны', 'Брокколи', 'Творог', 'Каша',
 ];
 
+const mealTypeNames: Record<string, string> = {
+  breakfast: 'Завтрак',
+  lunch: 'Обед',
+  dinner: 'Ужин',
+  snack: 'Перекус',
+};
+
 export default function DietQuiz() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<QuizData>(initialData);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
+  const [rawText, setRawText] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState(0);
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -101,9 +142,39 @@ export default function DietQuiz() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setIsGenerating(true);
+    setError(null);
+    setRawText(null);
     localStorage.setItem('dietQuizData', JSON.stringify(data));
-    navigate('/nutrition');
+
+    try {
+      const response = await fetch(DIET_PLAN_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizData: data }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || 'Ошибка генерации');
+        return;
+      }
+
+      if (result.plan) {
+        setGeneratedPlan(result.plan);
+        localStorage.setItem('dietPlan', JSON.stringify(result.plan));
+      } else if (result.rawText) {
+        setRawText(result.rawText);
+      } else {
+        setError('ИИ не смог сгенерировать план. Попробуйте ещё раз.');
+      }
+    } catch (err) {
+      setError('Ошибка соединения. Проверьте интернет и попробуйте снова.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const renderStep = () => {
@@ -402,6 +473,198 @@ export default function DietQuiz() {
         );
     }
   };
+
+  if (isGenerating) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-white flex items-center justify-center">
+        <div className="text-center max-w-sm mx-auto p-6">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center animate-pulse">
+            <Icon name="Brain" size={36} className="text-white" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">ИИ составляет план</h2>
+          <p className="text-muted-foreground text-sm mb-4">Анализирую ваши данные и подбираю блюда на 7 дней...</p>
+          <div className="flex justify-center gap-1">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="w-3 h-3 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">Обычно занимает 30-60 секунд</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (generatedPlan) {
+    const currentDay = generatedPlan.days[selectedDay];
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white pb-24">
+        <div className="max-w-2xl mx-auto p-4 space-y-5">
+          <div className="flex items-center gap-3 pt-2">
+            <Button variant="ghost" size="sm" onClick={() => { setGeneratedPlan(null); setCurrentStep(4); }}>
+              <Icon name="ArrowLeft" size={18} />
+            </Button>
+            <div>
+              <h1 className="text-lg font-bold">Ваш план питания</h1>
+              <p className="text-xs text-muted-foreground">Персональный на 7 дней</p>
+            </div>
+          </div>
+
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-4 gap-3 text-center">
+                <div>
+                  <div className="text-lg font-bold text-green-700">{generatedPlan.daily_calories}</div>
+                  <div className="text-[10px] text-muted-foreground">ккал/день</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-blue-600">{generatedPlan.daily_protein}г</div>
+                  <div className="text-[10px] text-muted-foreground">белки</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-amber-600">{generatedPlan.daily_fats}г</div>
+                  <div className="text-[10px] text-muted-foreground">жиры</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-orange-600">{generatedPlan.daily_carbs}г</div>
+                  <div className="text-[10px] text-muted-foreground">углеводы</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            {generatedPlan.days.map((day, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedDay(i)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                  i === selectedDay
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {day.day}
+              </button>
+            ))}
+          </div>
+
+          {currentDay && (
+            <div className="space-y-3">
+              {currentDay.meals.map((meal, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex items-stretch">
+                      <div className={`w-14 flex items-center justify-center flex-shrink-0 ${
+                        meal.type === 'breakfast' ? 'bg-amber-100' :
+                        meal.type === 'lunch' ? 'bg-green-100' :
+                        meal.type === 'dinner' ? 'bg-blue-100' : 'bg-purple-100'
+                      }`}>
+                        <span className="text-2xl">{meal.emoji || '🍽'}</span>
+                      </div>
+                      <div className="flex-1 p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {mealTypeNames[meal.type] || meal.type}
+                          </Badge>
+                          {meal.time && (
+                            <span className="text-[10px] text-muted-foreground">{meal.time}</span>
+                          )}
+                          {meal.cooking_time_min > 0 && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                              <Icon name="Clock" size={10} /> {meal.cooking_time_min} мин
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-sm">{meal.name}</h3>
+                        {meal.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{meal.description}</p>
+                        )}
+                        <div className="flex gap-3 mt-2 text-[10px]">
+                          <span className="text-green-700 font-medium">{meal.calories} ккал</span>
+                          <span className="text-blue-600">Б: {meal.protein}г</span>
+                          <span className="text-amber-600">Ж: {meal.fats}г</span>
+                          <span className="text-orange-600">У: {meal.carbs}г</span>
+                        </div>
+                        {meal.ingredients && meal.ingredients.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {meal.ingredients.map((ing, j) => (
+                              <Badge key={j} variant="secondary" className="text-[10px] px-1.5 py-0 bg-gray-50">
+                                {ing}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => { setGeneratedPlan(null); setCurrentStep(4); }}>
+              <Icon name="RefreshCw" size={16} className="mr-2" />
+              Новая анкета
+            </Button>
+            <Button className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => navigate('/nutrition')}>
+              <Icon name="ArrowRight" size={16} className="mr-2" />
+              К питанию
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (rawText) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-white pb-24">
+        <div className="max-w-2xl mx-auto p-4 space-y-5">
+          <div className="flex items-center gap-3 pt-2">
+            <Button variant="ghost" size="sm" onClick={() => { setRawText(null); setCurrentStep(4); }}>
+              <Icon name="ArrowLeft" size={18} />
+            </Button>
+            <h1 className="text-lg font-bold">Рекомендации ИИ</h1>
+          </div>
+          <Card>
+            <CardContent className="p-5">
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">{rawText}</div>
+            </CardContent>
+          </Card>
+          <Button className="w-full" onClick={() => { setRawText(null); setCurrentStep(4); }}>
+            <Icon name="RefreshCw" size={16} className="mr-2" />
+            Попробовать снова
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-red-50 via-white to-white pb-24">
+        <div className="max-w-2xl mx-auto p-4 space-y-5">
+          <div className="flex items-center gap-3 pt-2">
+            <Button variant="ghost" size="sm" onClick={() => { setError(null); setCurrentStep(4); }}>
+              <Icon name="ArrowLeft" size={18} />
+            </Button>
+            <h1 className="text-lg font-bold">Ошибка</h1>
+          </div>
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-5 text-center">
+              <Icon name="AlertTriangle" size={40} className="text-red-500 mx-auto mb-3" />
+              <p className="text-sm text-red-800">{error}</p>
+            </CardContent>
+          </Card>
+          <Button className="w-full bg-gradient-to-r from-violet-500 to-purple-600" onClick={() => { setError(null); handleSubmit(); }}>
+            <Icon name="RefreshCw" size={16} className="mr-2" />
+            Попробовать снова
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-white pb-24">
