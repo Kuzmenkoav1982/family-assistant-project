@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -139,12 +139,23 @@ export default function DietMiniQuiz() {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savedPlanId, setSavedPlanId] = useState<number | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   const programName = programNames[slug || ''] || 'Программа';
   const emoji = programEmoji[slug || ''] || '🍽️';
   const details = programDetails[slug || ''];
   const totalSteps = 3;
   const progress = ((step + 1) / totalSteps) * 100;
+
+  useEffect(() => {
+    if (step === 2) {
+      const authToken = localStorage.getItem('authToken') || '';
+      fetch(`${WALLET_API}?action=balance`, { headers: { 'X-Auth-Token': authToken } })
+        .then(r => r.json())
+        .then(j => setWalletBalance(j.balance ?? null))
+        .catch(() => {});
+    }
+  }, [step]);
 
   const update = (field: keyof MiniQuizData, value: string | string[]) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -449,6 +460,28 @@ export default function DietMiniQuiz() {
                 ))}
               </div>
             </div>
+
+            {walletBalance !== null && (
+              <Card className={`border ${walletBalance >= AI_DIET_COST ? 'border-emerald-200 bg-emerald-50' : 'border-red-300 bg-red-50'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Icon name="Wallet" size={20} className={walletBalance >= AI_DIET_COST ? 'text-emerald-600' : 'text-red-500'} />
+                    <div className="flex-1 text-sm">
+                      <p className="font-medium">
+                        Баланс: <strong>{walletBalance.toFixed(0)} руб</strong>
+                        <span className="text-muted-foreground ml-1">(нужно {AI_DIET_COST} руб)</span>
+                      </p>
+                    </div>
+                    {walletBalance < AI_DIET_COST && (
+                      <Button size="sm" className="bg-emerald-600" onClick={() => navigate('/wallet')}>
+                        <Icon name="Plus" size={14} className="mr-1" />
+                        Пополнить
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="bg-emerald-50 border-emerald-200 mt-4">
               <CardContent className="p-4">
