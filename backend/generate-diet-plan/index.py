@@ -45,8 +45,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     raw_body = event.get('body') or '{}'
     body = json.loads(raw_body)
     quiz_data = body.get('quizData', {})
+    program_data = body.get('programData', {})
 
-    if not quiz_data:
+    if not quiz_data and not program_data:
         return {
             'statusCode': 400,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},
@@ -54,7 +55,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
 
-    prompt = build_prompt(quiz_data)
+    if program_data:
+        prompt = build_program_prompt(program_data)
+    else:
+        prompt = build_prompt(quiz_data)
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion'
     headers = {
@@ -121,6 +125,78 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }, ensure_ascii=False),
         'isBase64Encoded': False
     }
+
+
+def build_program_prompt(data: Dict[str, Any]) -> str:
+    budget_map = {
+        'economy': 'экономный (до 500 руб/день)',
+        'medium': 'средний (500-1000 руб/день)',
+        'premium': 'без ограничений'
+    }
+    complexity_map = {
+        'simple': 'простые (до 5 ингредиентов)',
+        'medium': 'средней сложности',
+        'complex': 'любой сложности'
+    }
+
+    program_name = data.get('program_name', 'Стандартное питание')
+    program_slug = data.get('program_slug', '')
+    servings = data.get('servings_count', '1')
+    budget = budget_map.get(data.get('budget', ''), data.get('budget', ''))
+    complexity = complexity_map.get(data.get('cooking_complexity', ''), data.get('cooking_complexity', ''))
+    cooking_time = data.get('cooking_time_max', '30')
+    disliked = ', '.join(data.get('disliked_foods', [])) or 'нет'
+    allowed = ', '.join(data.get('allowed_foods', []))
+    forbidden = ', '.join(data.get('forbidden_foods', []))
+    principles = '\n'.join(f'- {p}' for p in data.get('principles', []))
+
+    return f"""Составь план питания на 7 дней по программе "{program_name}".
+
+Правила программы:
+{principles}
+
+Разрешённые продукты: {allowed}
+Запрещённые продукты: {forbidden}
+
+Дополнительные параметры:
+- Порций на каждое блюдо: {servings} чел.
+- Бюджет: {budget}
+- Сложность блюд: {complexity}
+- Макс. время готовки: {cooking_time} минут
+- Нелюбимые продукты: {disliked}
+
+Верни ТОЛЬКО JSON (без markdown, без ```):
+{{
+  "daily_calories": число,
+  "daily_protein": число,
+  "daily_fats": число,
+  "daily_carbs": число,
+  "days": [
+    {{
+      "day": "Понедельник",
+      "meals": [
+        {{
+          "type": "breakfast",
+          "time": "08:00",
+          "name": "Название блюда",
+          "description": "Краткое описание",
+          "calories": число,
+          "protein": число,
+          "fats": число,
+          "carbs": число,
+          "ingredients": ["продукт 1 — 100г", "продукт 2 — 50г"],
+          "cooking_time_min": число,
+          "emoji": "подходящий эмодзи"
+        }}
+      ]
+    }}
+  ]
+}}
+
+Каждый день должен содержать 4 приёма: breakfast, lunch, dinner, snack.
+Строго соблюдай правила программы "{program_name}".
+Блюда должны быть разнообразными каждый день. Указывай граммовки в ингредиентах.
+Рассчитай порции на {servings} чел."""
 
 
 def build_prompt(data: Dict[str, Any]) -> str:
