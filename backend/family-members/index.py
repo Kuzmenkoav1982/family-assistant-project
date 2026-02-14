@@ -397,10 +397,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             members = get_family_members(family_id)
             print(f"[DEBUG handler] Got {len(members)} members")
             
+            current_member_id = None
+            for m in members:
+                if str(m.get('user_id', '')) == user_id:
+                    current_member_id = str(m['id'])
+                    break
+            
             return {
                 'statusCode': 200,
                 'headers': headers,
-                'body': json.dumps({'success': True, 'family_id': family_id, 'members': members}, default=str),
+                'body': json.dumps({'success': True, 'family_id': family_id, 'current_member_id': current_member_id, 'members': members}, default=str),
                 'isBase64Encoded': False
             }
         

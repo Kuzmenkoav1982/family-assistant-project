@@ -63,15 +63,17 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     return 5;
   };
 
-  const sortMembers = (members: FamilyMember[]): FamilyMember[] => {
-    let currentUserMemberId: string | undefined;
-    try {
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        currentUserMemberId = parsed.member_id;
-      }
-    } catch { /* ignore */ }
+  const sortMembers = (members: FamilyMember[], apiCurrentMemberId?: string): FamilyMember[] => {
+    let currentUserMemberId = apiCurrentMemberId;
+    if (!currentUserMemberId) {
+      try {
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          currentUserMemberId = parsed.member_id;
+        }
+      } catch { /* ignore */ }
+    }
 
     return [...members].sort((a, b) => {
       const priorityA = getMemberSortPriority(a, currentUserMemberId);
@@ -166,7 +168,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           ...m,
           avatarType: m.avatar_type,
           photoUrl: m.photo_url,
-          // Убеждаемся что данные из profile_data доступны в корневом объекте
           achievements: m.achievements || [],
           responsibilities: m.responsibilities || [],
           foodPreferences: m.foodPreferences || { favorites: [], dislikes: [] },
@@ -175,8 +176,8 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           moodStatus: m.moodStatus || null
         }));
         
-        const sortedMembers = sortMembers(convertedMembers);
-        console.log('[FamilyMembersContext] Setting members:', sortedMembers.length, sortedMembers.map(m => m.name));
+        const sortedMembers = sortMembers(convertedMembers, data.current_member_id);
+        console.log('[FamilyMembersContext] Setting members:', sortedMembers.length, sortedMembers.map((m: FamilyMember) => m.name), 'currentMember:', data.current_member_id);
         setMembers(sortedMembers);
         setError(null);
       } else {
