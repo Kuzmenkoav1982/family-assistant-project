@@ -1,4 +1,6 @@
 {
+  "diet-sync": "https://functions.poehali.dev/c94d9639-d8fc-4838-a865-1c01c18f3f25",
+  "diet-progress": "https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54",
   "generate-diet-plan": "https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a",
   "purchases": "https://functions.poehali.dev/0d32bb8d-aa96-48bd-b021-14c14f5379a6",
   "payment-sbp": "https://functions.poehali.dev/c6530a3b-947b-4cca-976d-430c9b91ee4a",

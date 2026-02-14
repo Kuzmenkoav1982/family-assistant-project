@@ -1,0 +1,27 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET without auth",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST without auth",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "log_weight", "weight_kg": 75},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

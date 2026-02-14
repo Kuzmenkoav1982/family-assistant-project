@@ -13,6 +13,7 @@ import MealRecipeCard from '@/components/MealRecipeCard';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
+const DIET_PROGRESS_API = 'https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54';
 
 interface MealPlan {
   type: string;
@@ -124,6 +125,7 @@ export default function DietQuiz() {
   const [selectedDay, setSelectedDay] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedPlanId, setSavedPlanId] = useState<number | null>(null);
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -166,6 +168,7 @@ export default function DietQuiz() {
           if (data.plan) {
             setGeneratedPlan(data.plan);
             localStorage.setItem('dietPlan', JSON.stringify(data.plan));
+            savePlanToDB(data.plan);
           } else if (data.rawText) {
             setRawText(data.rawText);
           } else {
@@ -216,6 +219,46 @@ export default function DietQuiz() {
       setError('Ошибка соединения. Проверьте интернет и попробуйте снова.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const savePlanToDB = async (plan: GeneratedPlan) => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const allMeals: Array<Record<string, unknown>> = [];
+      for (const day of plan.days) {
+        for (const meal of day.meals) {
+          allMeals.push({
+            day: day.day,
+            type: meal.type,
+            time: meal.time,
+            name: meal.name,
+            description: meal.description,
+            calories: meal.calories,
+            protein: meal.protein,
+            fats: meal.fats,
+            carbs: meal.carbs,
+          });
+        }
+      }
+      const res = await fetch(DIET_PROGRESS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken || '' },
+        body: JSON.stringify({
+          action: 'save_plan',
+          plan_type: 'ai_personal',
+          plan: { daily_calories: plan.daily_calories },
+          quiz_data: data,
+          meals: allMeals,
+        }),
+      });
+      const result = await res.json();
+      if (result.success && result.plan_id) {
+        setSavedPlanId(result.plan_id);
+        console.log('[DietQuiz] Plan saved to DB, id:', result.plan_id);
+      }
+    } catch (e) {
+      console.error('[DietQuiz] Failed to save plan to DB:', e);
     }
   };
 
@@ -703,6 +746,16 @@ export default function DietQuiz() {
                 <Icon name="Plus" size={16} className="mr-2" />
                 Добавить к текущему меню
               </Button>
+              {savedPlanId && (
+                <Button
+                  variant="outline"
+                  className="w-full border-violet-300 text-violet-700 hover:bg-violet-50"
+                  onClick={() => navigate('/nutrition/progress')}
+                >
+                  <Icon name="TrendingUp" size={16} className="mr-2" />
+                  Отслеживать прогресс
+                </Button>
+              )}
               <div className="flex gap-3">
                 <Button variant="ghost" className="flex-1 text-sm" onClick={() => { setGeneratedPlan(null); setSaved(false); setCurrentStep(4); }}>
                   <Icon name="RefreshCw" size={14} className="mr-1" />

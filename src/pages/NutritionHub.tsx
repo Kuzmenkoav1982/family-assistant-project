@@ -51,6 +51,17 @@ const subSections: SubSection[] = [
     ready: true,
   },
   {
+    id: 'diet-progress',
+    title: 'Прогресс диеты',
+    description: 'Трекинг веса, мотивация от ИИ, график изменений, кнопка SOS',
+    icon: 'TrendingUp',
+    path: '/nutrition/progress',
+    gradient: 'from-rose-500 to-pink-600',
+    badge: 'Новое',
+    badgeColor: 'bg-rose-100 text-rose-700',
+    ready: true,
+  },
+  {
     id: 'nutrition-tracker',
     title: 'Счётчик БЖУ',
     description: 'Дневник питания с подсчётом калорий, белков, жиров и углеводов',

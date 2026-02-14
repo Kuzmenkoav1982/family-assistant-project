@@ -72,6 +72,7 @@ import DietQuiz from "./pages/DietQuiz";
 import DietProgramCatalog from "./pages/DietProgramCatalog";
 import DietMiniQuiz from "./pages/DietMiniQuiz";
 import RecipeFromProducts from "./pages/RecipeFromProducts";
+import DietProgress from "./pages/DietProgress";
 import Trips from "./pages/Trips";
 import TripDetails from "./pages/TripDetails";
 import TripWishlist from "./pages/TripWishlist";
@@ -294,6 +295,7 @@ const App = () => {
                       <Route path="/nutrition/programs" element={<DietProgramCatalog />} />
                       <Route path="/nutrition/programs/:slug/quiz" element={<DietMiniQuiz />} />
                       <Route path="/nutrition/recipe-from-products" element={<RecipeFromProducts />} />
+                      <Route path="/nutrition/progress" element={<DietProgress />} />
                       <Route path="/trips" element={<Trips />} />
                       <Route path="/trips/:id" element={<TripDetails />} />
                       <Route path="/trips/wishlist" element={<TripWishlist />} />
