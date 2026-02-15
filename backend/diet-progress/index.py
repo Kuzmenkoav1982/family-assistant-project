@@ -502,17 +502,51 @@ def handle_sos(user_id, body):
         """ % (str(user_id), int(plan_id), reason.replace("'", "''")[:50], comment.replace("'", "''")[:500]))
         conn.commit()
 
-        responses = {
-            'strong_hunger': 'Сильный голод — это сигнал, что организм перестраивается. Выпей стакан тёплой воды и съешь горсть орехов или яблоко. Завтра я добавлю тебе +200 ккал — будет легче!',
-            'weakness': 'Упадок сил может быть связан с недостатком углеводов. Сделай завтра более лёгкий день — добавлю порцию каши. Если слабость сильная, обратись к врачу.',
-            'psychological': 'Это нормально — диета требует силы воли. Ты уже столько прошёл! Давай сделаем завтра «день комфорта» — включу твои любимые продукты в рацион.',
-            'want_to_quit': 'Не сдавайся! Каждый день приближает тебя к цели. Давай смягчим план на следующую неделю — уменьшим ограничения, чтобы было комфортнее.',
-            'other': 'Я рядом и помогу! Расскажи подробнее, что случилось, и мы найдём решение вместе.'
+        reason_labels = {
+            'strong_hunger': 'Сильный голод',
+            'weakness': 'Упадок сил',
+            'psychological': 'Психологически тяжело',
+            'want_to_quit': 'Хочу бросить диету',
         }
+
+        ctx = get_diet_context(cur, user_id, plan_id)
+        stats = get_progress_stats(cur, user_id, plan_id) if ctx else None
+
+        days_on = (date.today() - ctx['start_date']).days + 1 if ctx else 1
+
+        system = """Ты заботливый персональный диетолог. Человек на диете просит помощи — ему сейчас плохо.
+Твоя задача: поддержать, дать конкретный совет, помочь не сдаться.
+Говори на «ты», тепло, как друг. 3-5 предложений. Без смайликов."""
+
+        user_prompt = f"""Человек на диете нажал кнопку SOS.
+Причина: {reason_labels.get(reason, reason)}
+{f'Комментарий: {comment}' if comment else ''}
+
+Контекст:
+- День диеты: {days_on} из {ctx['duration'] if ctx else '?'}
+- Сброшено: {stats['lost'] if stats else 0} кг
+- Соблюдение: {round(stats['done'] / stats['total'] * 100) if stats and stats['total'] > 0 else 0}%
+- Калории/день: {ctx['calories'] if ctx else '?'} ккал
+- Последнее самочувствие: {stats['wellbeing'] if stats and stats['wellbeing'] else 'не указано'}
+
+Дай конкретный совет именно по этой причине. Если голод — что съесть прямо сейчас. Если слабость — что делать. Если хочет бросить — напомни результаты и мотивируй."""
+
+        ai_text = call_yandex_gpt(system, user_prompt, temperature=0.6, max_tokens=500)
+
+        fallback_responses = {
+            'strong_hunger': 'Сильный голод — это сигнал, что организм перестраивается. Выпей стакан тёплой воды и съешь горсть орехов или яблоко. Это пройдёт!',
+            'weakness': 'Упадок сил может быть от недостатка углеводов. Съешь банан или порцию каши. Если слабость сильная — обратись к врачу.',
+            'psychological': 'Это нормально — диета требует силы воли. Ты уже столько прошёл! Сделай глубокий вдох и вспомни, зачем ты начал.',
+            'want_to_quit': 'Не сдавайся! Каждый день приближает тебя к цели. Ты уже продержался — это уже победа.',
+            'other': 'Я рядом и помогу! Не переживай, вместе справимся.'
+        }
+
+        message = ai_text if ai_text else fallback_responses.get(reason, fallback_responses['other'])
 
         return respond(200, {
             'success': True,
-            'message': responses.get(reason, responses['other']),
+            'message': message,
+            'ai': bool(ai_text),
             'suggestion': 'rest_day' if reason in ('strong_hunger', 'weakness', 'psychological') else 'soften_diet'
         })
     finally:
@@ -618,78 +652,128 @@ def wallet_spend(user_id, amount, reason, description):
         conn.close()
 
 
+def call_yandex_gpt(system_prompt, user_prompt, temperature=0.7, max_tokens=400):
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    if not api_key or not folder_id:
+        return None
+
+    url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion'
+    payload = {
+        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+        'completionOptions': {'stream': False, 'temperature': temperature, 'maxTokens': max_tokens},
+        'messages': [
+            {'role': 'system', 'text': system_prompt},
+            {'role': 'user', 'text': user_prompt}
+        ]
+    }
+    resp = requests.post(url, headers={'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'}, json=payload, timeout=15)
+    if resp.status_code == 200:
+        return resp.json().get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+    return None
+
+
+def get_diet_context(cur, user_id, plan_id):
+    if not plan_id:
+        cur.execute("""
+            SELECT id, start_date, target_weight_loss_kg, target_calories_daily, plan_type, duration_days
+            FROM diet_plans WHERE user_id = '%s' AND status = 'active'
+            ORDER BY created_at DESC LIMIT 1
+        """ % str(user_id))
+        row = cur.fetchone()
+        if not row:
+            return None
+        return {'plan_id': row[0], 'start_date': row[1], 'target_loss': float(row[2]) if row[2] else None, 'calories': row[3], 'plan_type': row[4], 'duration': row[5]}
+
+    cur.execute("""
+        SELECT id, start_date, target_weight_loss_kg, target_calories_daily, plan_type, duration_days
+        FROM diet_plans WHERE id = %d
+    """ % int(plan_id))
+    row = cur.fetchone()
+    if not row:
+        return None
+    return {'plan_id': row[0], 'start_date': row[1], 'target_loss': float(row[2]) if row[2] else None, 'calories': row[3], 'plan_type': row[4], 'duration': row[5]}
+
+
+def get_progress_stats(cur, user_id, plan_id):
+    cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC LIMIT 1" % (str(user_id), int(plan_id)))
+    first_w = cur.fetchone()
+    cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1" % (str(user_id), int(plan_id)))
+    last_w = cur.fetchone()
+    lost = round(float(first_w[0]) - float(last_w[0]), 1) if first_w and last_w else 0
+
+    cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d AND completed = TRUE" % int(plan_id))
+    done = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d" % int(plan_id))
+    total = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d AND meal_date = '%s' AND completed = TRUE" % (int(plan_id), date.today().isoformat()))
+    today_done = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d AND meal_date = '%s'" % (int(plan_id), date.today().isoformat()))
+    today_total = cur.fetchone()[0]
+
+    cur.execute("SELECT wellbeing FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1" % (str(user_id), int(plan_id)))
+    wb = cur.fetchone()
+
+    return {
+        'lost': lost,
+        'start_weight': float(first_w[0]) if first_w else None,
+        'current_weight': float(last_w[0]) if last_w else None,
+        'done': done,
+        'total': total,
+        'today_done': today_done,
+        'today_total': today_total,
+        'wellbeing': wb[0] if wb else None
+    }
+
+
 def generate_motivation(user_id, body):
     plan_id = body.get('plan_id')
     time_of_day = body.get('time', 'morning')
 
-    api_key = os.environ.get('YANDEX_GPT_API_KEY')
-    folder_id = os.environ.get('YANDEX_FOLDER_ID')
-
-    if not api_key or not folder_id:
-        return get_motivation(user_id, plan_id, time_of_day)
-
-    spend_result = wallet_spend(user_id, 1, 'ai_motivation', 'Мотивация от ИИ')
-    if spend_result.get('error') == 'insufficient_funds':
-        return get_motivation(user_id, plan_id, time_of_day)
-
     conn = get_db()
     try:
         cur = conn.cursor()
-        if not plan_id:
-            cur.execute("""
-                SELECT id, start_date, target_weight_loss_kg, target_calories_daily
-                FROM diet_plans WHERE user_id = '%s' AND status = 'active'
-                ORDER BY created_at DESC LIMIT 1
-            """ % str(user_id))
-            row = cur.fetchone()
-            if not row:
-                return respond(200, {'message': 'Начните диету — и я буду вас поддерживать каждый день!'})
-            plan_id, start, target_loss, cals = row
-        else:
-            cur.execute("SELECT start_date, target_weight_loss_kg, target_calories_daily FROM diet_plans WHERE id = %d" % int(plan_id))
-            row = cur.fetchone()
-            start, target_loss, cals = row
+        ctx = get_diet_context(cur, user_id, plan_id)
+        if not ctx:
+            return respond(200, {'message': 'Начните диету — и я буду вас поддерживать каждый день!'})
 
-        days_on = (date.today() - start).days + 1
+        plan_id = ctx['plan_id']
+        days_on = (date.today() - ctx['start_date']).days + 1
+        stats = get_progress_stats(cur, user_id, plan_id)
 
-        cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC LIMIT 1" % (str(user_id), int(plan_id)))
-        first_w = cur.fetchone()
-        cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1" % (str(user_id), int(plan_id)))
-        last_w = cur.fetchone()
-        lost = round(float(first_w[0]) - float(last_w[0]), 1) if first_w and last_w else 0
-
-        cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d AND completed = TRUE" % int(plan_id))
-        done = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d" % int(plan_id))
-        total = cur.fetchone()[0]
-
+        adherence = round(stats['done'] / stats['total'] * 100) if stats['total'] > 0 else 0
         time_label = "утреннее" if time_of_day == "morning" else "вечернее"
-        prompt = f"""Напиши короткое {time_label} мотивационное сообщение для человека на диете.
-День диеты: {days_on}. Сброшено: {lost} кг. Выполнено приёмов пищи: {done} из {total}.
-Цель: сбросить {float(target_loss) if target_loss else 'N/A'} кг.
-Сообщение должно быть тёплым, поддерживающим, на русском языке, 2-3 предложения. Без смайликов."""
 
-        url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion'
-        headers_gpt = {'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'}
-        payload = {
-            'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
-            'completionOptions': {'stream': False, 'temperature': 0.7, 'maxTokens': 300},
-            'messages': [
-                {'role': 'system', 'text': 'Ты заботливый тренер-мотиватор. Пиши кратко и тепло.'},
-                {'role': 'user', 'text': prompt}
-            ]
-        }
+        user_prompt = f"""Напиши персональное {time_label} мотивационное сообщение.
 
-        resp = requests.post(url, headers=headers_gpt, json=payload, timeout=15)
-        if resp.status_code == 200:
-            ai_text = resp.json().get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
-            if ai_text:
-                cur.execute("""
-                    INSERT INTO diet_motivation_log (user_id, plan_id, message_type, message_text)
-                    VALUES ('%s', %d, '%s', '%s')
-                """ % (str(user_id), int(plan_id), time_of_day, ai_text.replace("'", "''")))
-                conn.commit()
-                return respond(200, {'message': ai_text, 'day': days_on, 'weight_lost': lost, 'ai': True})
+Контекст:
+- День диеты: {days_on} из {ctx['duration'] or 7}
+- Сброшено: {stats['lost']} кг (цель: {ctx['target_loss'] or 'не указана'} кг)
+- Соблюдение плана: {adherence}% ({stats['done']} из {stats['total']} приёмов пищи)
+- Сегодня съедено: {stats['today_done']} из {stats['today_total']} приёмов
+- Самочувствие: {stats['wellbeing'] or 'не указано'}
+- Калории/день: {ctx['calories']} ккал
+
+Правила:
+- 2-4 предложения, тёплый и поддерживающий тон
+- Обращайся на «ты»
+- Если прогресс хороший — похвали конкретно за достижение
+- Если сложно — поддержи, напомни зачем начал
+- {'Утром: задай настрой на день, упомяни план питания' if time_of_day == 'morning' else 'Вечером: подведи итог дня, похвали за усилия, пожелай спокойной ночи'}
+- Не используй смайлики и эмодзи"""
+
+        system = "Ты персональный тренер-диетолог. Говоришь тепло, как друг. Знаешь конкретные данные пользователя и опираешься на них."
+
+        ai_text = call_yandex_gpt(system, user_prompt, temperature=0.8)
+
+        if ai_text:
+            cur.execute("""
+                INSERT INTO diet_motivation_log (user_id, plan_id, message_type, message_text)
+                VALUES ('%s', %d, '%s', '%s')
+            """ % (str(user_id), int(plan_id), time_of_day, ai_text.replace("'", "''")))
+            conn.commit()
+            return respond(200, {'message': ai_text, 'day': days_on, 'weight_lost': stats['lost'], 'ai': True})
 
         return get_motivation(user_id, plan_id, time_of_day)
     except Exception as e:

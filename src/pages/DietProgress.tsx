@@ -144,6 +144,17 @@ export default function DietProgress() {
     fetchDashboard();
   }, [fetchDashboard]);
 
+  useEffect(() => {
+    if (data?.has_plan && !motivation && !loadingMotivation) {
+      const lastMotivation = sessionStorage.getItem('diet_motivation_ts');
+      const now = Date.now();
+      if (!lastMotivation || now - parseInt(lastMotivation) > 3600000) {
+        handleMotivation();
+        sessionStorage.setItem('diet_motivation_ts', String(now));
+      }
+    }
+  }, [data?.has_plan]);
+
   const handleLogWeight = async () => {
     if (!newWeight || !data?.plan) return;
     setSavingWeight(true);
