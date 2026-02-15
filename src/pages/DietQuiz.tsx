@@ -68,6 +68,7 @@ interface QuizData {
   gym_frequency: string;
   activity_type: string;
   target_timeframe: string;
+  duration_days: string;
 }
 
 const initialData: QuizData = {
@@ -77,6 +78,7 @@ const initialData: QuizData = {
   medications: [], chronic_diseases: [], allergies: [], disliked_foods: [],
   diet_type: '', cuisine_preferences: [], budget: '', cooking_complexity: '',
   cooking_time_max: '', gym_frequency: '', activity_type: '', target_timeframe: '',
+  duration_days: '7',
 };
 
 const steps = [
@@ -287,6 +289,7 @@ export default function DietQuiz() {
         headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           quizData: data,
+          duration_days: parseInt(data.duration_days) || 7,
           medTables: detectedTables.map(t => ({
             table: t.table,
             forbidden: t.forbidden,
@@ -773,13 +776,39 @@ export default function DietQuiz() {
               </Card>
             )}
 
+            <Card className="border-violet-200">
+              <CardContent className="p-4">
+                <Label className="text-sm font-bold mb-3 block">Длительность плана</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: '7', label: '7 дней', desc: 'Пробный' },
+                    { value: '14', label: '14 дней', desc: 'Оптимальный' },
+                    { value: '30', label: '30 дней', desc: 'Полный курс' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`p-3 rounded-lg border-2 text-center transition-all ${
+                        data.duration_days === opt.value
+                          ? 'border-violet-500 bg-violet-50'
+                          : 'border-gray-200 hover:border-violet-300'
+                      }`}
+                      onClick={() => update('duration_days', opt.value)}
+                    >
+                      <div className="text-lg font-bold">{opt.label}</div>
+                      <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="bg-amber-50 border-amber-200">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <Icon name="Sparkles" size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-bold text-amber-900 mb-1">Что произойдёт дальше?</p>
-                    <p className="text-amber-800">ИИ проанализирует ваши данные и составит персональный план питания на 7 дней с рецептами, расписанием и рекомендациями.</p>
+                    <p className="text-amber-800">ИИ проанализирует ваши данные и составит персональный план питания на {data.duration_days} дней с рецептами, расписанием и рекомендациями.</p>
                   </div>
                 </div>
               </CardContent>
@@ -797,7 +826,7 @@ export default function DietQuiz() {
             <Icon name="Brain" size={36} className="text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2">ИИ составляет план</h2>
-          <p className="text-muted-foreground text-sm mb-4">Анализирую ваши данные и подбираю блюда на 7 дней...</p>
+          <p className="text-muted-foreground text-sm mb-4">Анализирую ваши данные и подбираю блюда на {data.duration_days} дней...</p>
           <div className="flex justify-center gap-1">
             {[0, 1, 2].map(i => (
               <div key={i} className="w-3 h-3 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />

@@ -99,6 +99,7 @@ interface MiniQuizData {
   cooking_complexity: string;
   cooking_time_max: string;
   disliked_foods: string[];
+  duration_days: string;
 }
 
 const dislikedOptions = [
@@ -129,6 +130,7 @@ export default function DietMiniQuiz() {
     cooking_complexity: '',
     cooking_time_max: '',
     disliked_foods: [],
+    duration_days: '7',
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -232,6 +234,7 @@ export default function DietMiniQuiz() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
+          duration_days: parseInt(data.duration_days) || 7,
           programData: {
             program_slug: slug,
             program_name: programName,
@@ -481,6 +484,30 @@ export default function DietMiniQuiz() {
               </Card>
             )}
 
+            <div>
+              <Label className="text-sm font-bold mb-3 block">Длительность плана</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: '7', label: '7 дней', desc: 'Пробный' },
+                  { value: '14', label: '14 дней', desc: 'Оптимальный' },
+                  { value: '30', label: '30 дней', desc: 'Полный курс' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      data.duration_days === opt.value
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-gray-200 hover:border-emerald-300'
+                    }`}
+                    onClick={() => update('duration_days', opt.value)}
+                  >
+                    <div className="text-lg font-bold">{opt.label}</div>
+                    <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <Card className="bg-emerald-50 border-emerald-200 mt-4">
               <CardContent className="p-4">
                 <h4 className="font-bold text-emerald-900 mb-2 flex items-center gap-2">
@@ -489,6 +516,7 @@ export default function DietMiniQuiz() {
                 </h4>
                 <div className="text-sm text-emerald-800 space-y-1">
                   <p>Программа: <strong>{programName}</strong></p>
+                  <p>Длительность: <strong>{data.duration_days} дней</strong></p>
                   <p>Порций: <strong>{data.servings_count}</strong></p>
                   <p>Бюджет: <strong>{data.budget === 'economy' ? 'Экономный' : data.budget === 'medium' ? 'Средний' : 'Не ограничен'}</strong></p>
                   <p>Сложность: <strong>{data.cooking_complexity === 'simple' ? 'Простые' : data.cooking_complexity === 'medium' ? 'Средние' : 'Любые'}</strong></p>
@@ -511,7 +539,7 @@ export default function DietMiniQuiz() {
             <span className="text-4xl">{emoji}</span>
           </div>
           <h2 className="text-xl font-bold mb-2">ИИ составляет план</h2>
-          <p className="text-muted-foreground text-sm mb-4">Генерирую меню по программе «{programName}» на 7 дней...</p>
+          <p className="text-muted-foreground text-sm mb-4">Генерирую меню по программе «{programName}» на {data.duration_days} дней...</p>
           <div className="flex justify-center gap-1">
             {[0, 1, 2].map(i => (
               <div key={i} className="w-3 h-3 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />

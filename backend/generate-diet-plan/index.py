@@ -186,14 +186,17 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     quiz_data = body.get('quizData', {})
     program_data = body.get('programData', {})
     med_tables = body.get('medTables', [])
+    duration_days = int(body.get('duration_days', 7))
+    if duration_days not in (7, 14, 30):
+        duration_days = 7
 
     if not quiz_data and not program_data:
         return respond(400, {'error': 'Данные анкеты не переданы'})
 
     if program_data:
-        prompt = build_program_prompt(program_data)
+        prompt = build_program_prompt(program_data, duration_days)
     else:
-        prompt = build_prompt(quiz_data, med_tables)
+        prompt = build_prompt(quiz_data, med_tables, duration_days)
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completionAsync'
     headers = {
@@ -206,7 +209,7 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
         'completionOptions': {
             'stream': False,
             'temperature': 0.4,
-            'maxTokens': 8000
+            'maxTokens': 16000 if duration_days > 7 else 8000
         },
         'messages': [
             {
@@ -622,7 +625,7 @@ def parse_dishes(text: str) -> list:
     return []
 
 
-def build_program_prompt(data: Dict[str, Any]) -> str:
+def build_program_prompt(data: Dict[str, Any], duration_days: int = 7) -> str:
     budget_map = {
         'economy': 'экономный (до 500 руб/день)',
         'medium': 'средний (500-1000 руб/день)',
@@ -644,7 +647,7 @@ def build_program_prompt(data: Dict[str, Any]) -> str:
     forbidden = ', '.join(data.get('forbidden_foods', []))
     principles = '\n'.join(f'- {p}' for p in data.get('principles', []))
 
-    return f"""Составь план питания на 7 дней по программе "{program_name}".
+    return f"""Составь план питания на {duration_days} дней по программе "{program_name}".
 
 Правила программы:
 {principles}
@@ -667,7 +670,7 @@ def build_program_prompt(data: Dict[str, Any]) -> str:
   "daily_carbs": число,
   "days": [
     {{
-      "day": "Понедельник",
+      "day": "День 1",
       "meals": [
         {{
           "type": "breakfast",
@@ -687,13 +690,14 @@ def build_program_prompt(data: Dict[str, Any]) -> str:
   ]
 }}
 
+Всего {duration_days} дней. Каждый день обозначай как "День N" (День 1, День 2, ..., День {duration_days}).
 Каждый день должен содержать 4 приёма: breakfast, lunch, dinner, snack.
 Строго соблюдай правила программы "{program_name}".
 Блюда должны быть разнообразными каждый день. Указывай граммовки в ингредиентах.
 Рассчитай порции на {servings} чел."""
 
 
-def build_prompt(data: Dict[str, Any], med_tables: list = None) -> str:
+def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: int = 7) -> str:
     gender_map = {'male': 'мужчина', 'female': 'женщина'}
     activity_map = {
         'sedentary': 'малоподвижный',
@@ -743,7 +747,7 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None) -> str:
 {principles}
 """
 
-    return f"""Составь план питания на 7 дней для человека:
+    return f"""Составь план питания на {duration_days} дней для человека:
 - Пол: {gender}, возраст: {age} лет
 - Рост: {height} см, вес: {weight} кг, цель: {target} кг
 - Активность: {activity}
@@ -765,7 +769,7 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None) -> str:
   "daily_carbs": число,
   "days": [
     {{
-      "day": "Понедельник",
+      "day": "День 1",
       "meals": [
         {{
           "type": "breakfast",
@@ -785,6 +789,7 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None) -> str:
   ]
 }}
 
+Всего {duration_days} дней. Каждый день обозначай как "День N" (День 1, День 2, ..., День {duration_days}).
 Каждый день должен содержать 4 приёма: breakfast, lunch, dinner, snack.
 Калорийность должна соответствовать цели (похудение/набор/поддержание).
 Учти все заболевания, аллергии и предпочтения. Блюда должны быть разнообразными каждый день.
