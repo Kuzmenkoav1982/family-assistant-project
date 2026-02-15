@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import NutritionHubInstructions from '@/components/nutrition/NutritionHubInstructions';
 
 interface SubSection {
   id: string;
@@ -133,6 +134,8 @@ export default function NutritionHub() {
             </div>
           </div>
         </div>
+
+        <NutritionHubInstructions />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {subSections.map((section) => (

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import WalletInstructions from '@/components/wallet/WalletInstructions';
 
 const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
@@ -98,6 +99,8 @@ export default function FamilyWallet() {
 
   useEffect(() => {
     if (!authToken) return;
+    const status = searchParams.get('status');
+    if (status === 'success') return;
     const verifyPending = async () => {
       try {
         const res = await fetch(PAYMENTS_API, {
@@ -114,7 +117,7 @@ export default function FamilyWallet() {
       } catch { /* silent */ }
     };
     verifyPending();
-  }, [authToken, fetchData, toast]);
+  }, [authToken, fetchData, toast, searchParams]);
 
   useEffect(() => {
     const status = searchParams.get('status');
@@ -208,6 +211,8 @@ export default function FamilyWallet() {
             <p className="text-xs text-muted-foreground">Баланс для ИИ-сервисов</p>
           </div>
         </div>
+
+        <WalletInstructions />
 
         {showSuccess && (
           <Card className="border-green-300 bg-green-50 animate-fade-in">

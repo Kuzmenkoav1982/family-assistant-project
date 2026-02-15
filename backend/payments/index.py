@@ -577,7 +577,7 @@ def check_payment_and_activate(payment_id: str) -> Dict[str, Any]:
         return {'error': str(e)}
 
 def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, Any]:
-    """Зачисляет средства на семейный кошелёк после успешной оплаты"""
+    """Зачисляет средства на семейный кошелёк после успешной оплаты (атомарно, без дублей)"""
     family_id = metadata.get('family_id', '')
     user_id = metadata.get('user_id', '')
     amount = float(metadata.get('amount', 0))
@@ -594,16 +594,22 @@ def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, An
         safe_user_id = user_id.replace("'", "''")
         safe_payment_id = payment_id.replace("'", "''")
         
-        # Обновляем платёж
         cur.execute(
             f"""
             UPDATE {SCHEMA}.payments 
             SET status = 'paid', paid_at = CURRENT_TIMESTAMP, payment_method = 'yookassa'
-            WHERE payment_id = '{safe_payment_id}'
+            WHERE payment_id = '{safe_payment_id}' AND status != 'paid'
             """
         )
+        rows_updated = cur.rowcount
         
-        # Создаём или находим кошелёк
+        if rows_updated == 0:
+            conn.rollback()
+            cur.close()
+            conn.close()
+            print(f'[WALLET_WEBHOOK] Already paid or not found: {payment_id}')
+            return {'already_credited': True, 'amount': amount}
+        
         cur.execute(
             f"SELECT id FROM {SCHEMA}.family_wallet WHERE family_id = '{safe_family_id}'"
         )
@@ -621,7 +627,6 @@ def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, An
         
         wallet_id = wallet['id']
         
-        # Зачисляем на баланс
         cur.execute(
             f"""
             UPDATE {SCHEMA}.family_wallet 
@@ -630,7 +635,6 @@ def handle_wallet_topup_webhook(payment_id: str, metadata: dict) -> Dict[str, An
             """
         )
         
-        # Записываем транзакцию
         cur.execute(
             f"""
             INSERT INTO {SCHEMA}.wallet_transactions 
