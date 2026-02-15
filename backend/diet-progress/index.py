@@ -107,9 +107,9 @@ def get_dashboard(user_id):
                    target_weight_loss_kg, target_calories_daily, status,
                    daily_water_ml, daily_steps, exercise_recommendation,
                    program_id, created_at
-            FROM diet_plans WHERE user_id = %d AND status = 'active'
+            FROM diet_plans WHERE user_id = '%s' AND status = 'active'
             ORDER BY created_at DESC LIMIT 1
-        """ % user_id)
+        """ % str(user_id))
         plan_row = cur.fetchone()
 
         if not plan_row:
@@ -128,9 +128,9 @@ def get_dashboard(user_id):
 
         cur.execute("""
             SELECT weight_kg, wellbeing, measured_at
-            FROM diet_weight_log WHERE user_id = %d AND plan_id = %d
+            FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d
             ORDER BY measured_at ASC
-        """ % (user_id, plan_id))
+        """ % (str(user_id), plan_id))
         weight_log = [
             {'weight_kg': float(r[0]), 'wellbeing': r[1], 'measured_at': str(r[2])}
             for r in cur.fetchall()
@@ -167,15 +167,15 @@ def get_dashboard(user_id):
 
         cur.execute("""
             SELECT weight_kg FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at DESC LIMIT 1
-        """ % (user_id, plan_id))
+            WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1
+        """ % (str(user_id), plan_id))
         last_w = cur.fetchone()
         last_weight = float(last_w[0]) if last_w else None
 
         cur.execute("""
             SELECT weight_kg FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at ASC LIMIT 1
-        """ % (user_id, plan_id))
+            WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC LIMIT 1
+        """ % (str(user_id), plan_id))
         first_w = cur.fetchone()
         start_weight = float(first_w[0]) if first_w else None
 
@@ -183,8 +183,8 @@ def get_dashboard(user_id):
 
         cur.execute("""
             SELECT measured_at FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at DESC LIMIT 1
-        """ % (user_id, plan_id))
+            WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1
+        """ % (str(user_id), plan_id))
         last_log = cur.fetchone()
         days_since_log = (datetime.now() - last_log[0]).days if last_log else 999
 
@@ -215,7 +215,7 @@ def get_weight_history(user_id, plan_id):
     conn = get_db()
     try:
         cur = conn.cursor()
-        query = "SELECT weight_kg, wellbeing, measured_at FROM diet_weight_log WHERE user_id = %d" % user_id
+        query = "SELECT weight_kg, wellbeing, measured_at FROM diet_weight_log WHERE user_id = '%s'" % str(user_id)
         if plan_id:
             query += " AND plan_id = %s" % int(plan_id)
         query += " ORDER BY measured_at ASC"
@@ -234,15 +234,15 @@ def get_plan(user_id, plan_id):
             cur.execute("""
                 SELECT id, plan_type, start_date, end_date, duration_days,
                        target_weight_loss_kg, target_calories_daily, status
-                FROM diet_plans WHERE id = %d AND user_id = %d
-            """ % (int(plan_id), user_id))
+                FROM diet_plans WHERE id = %d AND user_id = '%s'
+            """ % (int(plan_id), str(user_id)))
         else:
             cur.execute("""
                 SELECT id, plan_type, start_date, end_date, duration_days,
                        target_weight_loss_kg, target_calories_daily, status
-                FROM diet_plans WHERE user_id = %d AND status = 'active'
+                FROM diet_plans WHERE user_id = '%s' AND status = 'active'
                 ORDER BY created_at DESC LIMIT 1
-            """ % user_id)
+            """ % str(user_id))
         row = cur.fetchone()
         if not row:
             return respond(404, {'error': 'План не найден'})
@@ -285,8 +285,8 @@ def get_plans(user_id):
         cur.execute("""
             SELECT id, plan_type, start_date, end_date, duration_days,
                    target_weight_loss_kg, target_calories_daily, status, created_at
-            FROM diet_plans WHERE user_id = %d ORDER BY created_at DESC
-        """ % user_id)
+            FROM diet_plans WHERE user_id = '%s' ORDER BY created_at DESC
+        """ % str(user_id))
         plans = [
             {
                 'id': r[0], 'plan_type': r[1], 'start_date': str(r[2]),
@@ -316,13 +316,13 @@ def log_weight(user_id, body):
         if plan_id:
             cur.execute("""
                 INSERT INTO diet_weight_log (user_id, plan_id, weight_kg, wellbeing)
-                VALUES (%d, %d, %s, '%s')
-            """ % (user_id, int(plan_id), float(weight), str(wellbeing).replace("'", "''")))
+                VALUES ('%s', %d, %s, '%s')
+            """ % (str(user_id), int(plan_id), float(weight), str(wellbeing).replace("'", "''")))
         else:
             cur.execute("""
                 INSERT INTO diet_weight_log (user_id, weight_kg, wellbeing)
-                VALUES (%d, %s, '%s')
-            """ % (user_id, float(weight), str(wellbeing).replace("'", "''")))
+                VALUES ('%s', %s, '%s')
+            """ % (str(user_id), float(weight), str(wellbeing).replace("'", "''")))
         conn.commit()
         return respond(200, {'success': True})
     finally:
@@ -345,8 +345,8 @@ def save_plan(user_id, body):
 
         cur.execute("""
             UPDATE diet_plans SET status = 'completed'
-            WHERE user_id = %d AND status = 'active'
-        """ % user_id)
+            WHERE user_id = '%s' AND status = 'active'
+        """ % str(user_id))
 
         duration = len(set(m.get('day', '') for m in meals_data if m.get('day')))
         if duration == 0:
@@ -368,9 +368,9 @@ def save_plan(user_id, body):
         cur.execute("""
             INSERT INTO diet_plans (user_id, plan_type, start_date, end_date, duration_days,
                 target_weight_loss_kg, target_calories_daily, program_id, status)
-            VALUES (%d, '%s', '%s', '%s', %d, %s, %d, %s, 'active')
+            VALUES ('%s', '%s', '%s', '%s', %d, %s, %d, %s, 'active')
             RETURNING id
-        """ % (user_id, plan_type.replace("'", ""), str(start), str(end), duration,
+        """ % (str(user_id), plan_type.replace("'", ""), str(start), str(end), duration,
                target_sql, int(daily_cal), program_sql))
         plan_id = cur.fetchone()[0]
 
@@ -440,8 +440,8 @@ def save_plan(user_id, body):
                 w = float(quiz_data['current_weight_kg'])
                 cur.execute("""
                     INSERT INTO diet_weight_log (user_id, plan_id, weight_kg, wellbeing)
-                    VALUES (%d, %d, %s, 'Начало диеты')
-                """ % (user_id, plan_id, w))
+                    VALUES ('%s', %d, %s, 'Начало диеты')
+                """ % (str(user_id), plan_id, w))
             except (ValueError, TypeError):
                 pass
 
@@ -464,8 +464,8 @@ def mark_meal(user_id, body):
         cur.execute("""
             SELECT dm.id FROM diet_meals dm
             JOIN diet_plans dp ON dm.plan_id = dp.id
-            WHERE dm.id = %d AND dp.user_id = %d
-        """ % (int(meal_id), user_id))
+            WHERE dm.id = %d AND dp.user_id = '%s'
+        """ % (int(meal_id), str(user_id)))
         if not cur.fetchone():
             return respond(403, {'error': 'Нет доступа'})
 
@@ -498,8 +498,8 @@ def handle_sos(user_id, body):
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO diet_sos_requests (user_id, plan_id, reason, user_comment)
-            VALUES (%d, %d, '%s', '%s')
-        """ % (user_id, int(plan_id), reason.replace("'", "''")[:50], comment.replace("'", "''")[:500]))
+            VALUES ('%s', %d, '%s', '%s')
+        """ % (str(user_id), int(plan_id), reason.replace("'", "''")[:50], comment.replace("'", "''")[:500]))
         conn.commit()
 
         responses = {
@@ -526,9 +526,9 @@ def get_motivation(user_id, plan_id, time_of_day):
 
         if not plan_id:
             cur.execute("""
-                SELECT id FROM diet_plans WHERE user_id = %d AND status = 'active'
+                SELECT id FROM diet_plans WHERE user_id = '%s' AND status = 'active'
                 ORDER BY created_at DESC LIMIT 1
-            """ % user_id)
+            """ % str(user_id))
             row = cur.fetchone()
             if not row:
                 return respond(200, {'message': 'Начните диету, чтобы получать мотивационные сообщения!'})
@@ -540,13 +540,13 @@ def get_motivation(user_id, plan_id, time_of_day):
 
         cur.execute("""
             SELECT weight_kg FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at ASC LIMIT 1
-        """ % (user_id, int(plan_id)))
+            WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC LIMIT 1
+        """ % (str(user_id), int(plan_id)))
         first = cur.fetchone()
         cur.execute("""
             SELECT weight_kg FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at DESC LIMIT 1
-        """ % (user_id, int(plan_id)))
+            WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1
+        """ % (str(user_id), int(plan_id)))
         last = cur.fetchone()
 
         lost = round(float(first[0]) - float(last[0]), 1) if first and last else 0
@@ -570,8 +570,8 @@ def get_motivation(user_id, plan_id, time_of_day):
 
         cur.execute("""
             INSERT INTO diet_motivation_log (user_id, plan_id, message_type, message_text)
-            VALUES (%d, %d, '%s', '%s')
-        """ % (user_id, int(plan_id), time_of_day, msg.replace("'", "''")))
+            VALUES ('%s', %d, '%s', '%s')
+        """ % (str(user_id), int(plan_id), time_of_day, msg.replace("'", "''")))
         conn.commit()
 
         return respond(200, {'message': msg, 'day': days_on_diet, 'weight_lost': lost})
@@ -638,9 +638,9 @@ def generate_motivation(user_id, body):
         if not plan_id:
             cur.execute("""
                 SELECT id, start_date, target_weight_loss_kg, target_calories_daily
-                FROM diet_plans WHERE user_id = %d AND status = 'active'
+                FROM diet_plans WHERE user_id = '%s' AND status = 'active'
                 ORDER BY created_at DESC LIMIT 1
-            """ % user_id)
+            """ % str(user_id))
             row = cur.fetchone()
             if not row:
                 return respond(200, {'message': 'Начните диету — и я буду вас поддерживать каждый день!'})
@@ -652,9 +652,9 @@ def generate_motivation(user_id, body):
 
         days_on = (date.today() - start).days + 1
 
-        cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = %d AND plan_id = %d ORDER BY measured_at ASC LIMIT 1" % (user_id, int(plan_id)))
+        cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC LIMIT 1" % (str(user_id), int(plan_id)))
         first_w = cur.fetchone()
-        cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = %d AND plan_id = %d ORDER BY measured_at DESC LIMIT 1" % (user_id, int(plan_id)))
+        cur.execute("SELECT weight_kg FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at DESC LIMIT 1" % (str(user_id), int(plan_id)))
         last_w = cur.fetchone()
         lost = round(float(first_w[0]) - float(last_w[0]), 1) if first_w and last_w else 0
 
@@ -686,8 +686,8 @@ def generate_motivation(user_id, body):
             if ai_text:
                 cur.execute("""
                     INSERT INTO diet_motivation_log (user_id, plan_id, message_type, message_text)
-                    VALUES (%d, %d, '%s', '%s')
-                """ % (user_id, int(plan_id), time_of_day, ai_text.replace("'", "''")))
+                    VALUES ('%s', %d, '%s', '%s')
+                """ % (str(user_id), int(plan_id), time_of_day, ai_text.replace("'", "''")))
                 conn.commit()
                 return respond(200, {'message': ai_text, 'day': days_on, 'weight_lost': lost, 'ai': True})
 
@@ -707,9 +707,9 @@ def analyze_progress(user_id, body):
 
         if not plan_id:
             cur.execute("""
-                SELECT id FROM diet_plans WHERE user_id = %d AND status = 'active'
+                SELECT id FROM diet_plans WHERE user_id = '%s' AND status = 'active'
                 ORDER BY created_at DESC LIMIT 1
-            """ % user_id)
+            """ % str(user_id))
             row = cur.fetchone()
             if not row:
                 return respond(200, {'has_analysis': False, 'message': 'Нет активного плана'})
@@ -718,8 +718,8 @@ def analyze_progress(user_id, body):
         cur.execute("""
             SELECT start_date, end_date, duration_days, target_weight_loss_kg,
                    target_calories_daily, daily_water_ml, daily_steps
-            FROM diet_plans WHERE id = %d AND user_id = %d
-        """ % (int(plan_id), user_id))
+            FROM diet_plans WHERE id = %d AND user_id = '%s'
+        """ % (int(plan_id), str(user_id)))
         plan = cur.fetchone()
         if not plan:
             return respond(404, {'error': 'План не найден'})
@@ -728,8 +728,8 @@ def analyze_progress(user_id, body):
 
         cur.execute("""
             SELECT weight_kg, measured_at FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d ORDER BY measured_at ASC
-        """ % (user_id, int(plan_id)))
+            WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC
+        """ % (str(user_id), int(plan_id)))
         weights = cur.fetchall()
 
         if len(weights) < 2:
@@ -761,15 +761,15 @@ def analyze_progress(user_id, body):
 
         cur.execute("""
             SELECT COUNT(*) FROM diet_sos_requests
-            WHERE user_id = %d AND plan_id = %d
-        """ % (user_id, int(plan_id)))
+            WHERE user_id = '%s' AND plan_id = %d
+        """ % (str(user_id), int(plan_id)))
         sos_count = cur.fetchone()[0]
 
         cur.execute("""
             SELECT wellbeing FROM diet_weight_log
-            WHERE user_id = %d AND plan_id = %d AND wellbeing IS NOT NULL AND wellbeing != ''
+            WHERE user_id = '%s' AND plan_id = %d AND wellbeing IS NOT NULL AND wellbeing != ''
             ORDER BY measured_at DESC LIMIT 5
-        """ % (user_id, int(plan_id)))
+        """ % (str(user_id), int(plan_id)))
         recent_wellbeing = [r[0] for r in cur.fetchall()]
 
         recommendation = 'keep'
@@ -846,8 +846,8 @@ def adjust_plan(user_id, body):
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT id FROM diet_plans WHERE id = %d AND user_id = %d AND status = 'active'
-        """ % (int(plan_id), user_id))
+            SELECT id FROM diet_plans WHERE id = %d AND user_id = '%s' AND status = 'active'
+        """ % (int(plan_id), str(user_id)))
         if not cur.fetchone():
             return respond(403, {'error': 'План не найден или неактивен'})
 
