@@ -14,7 +14,6 @@ def escape_sql_string(value: Any) -> str:
     return str(value).replace("'", "''")
 
 def send_push_notification(subscription_data: dict, title: str, message: str, vapid_private_key: str) -> bool:
-    """Отправка push-уведомления"""
     try:
         webpush(
             subscription_info=subscription_data,
@@ -35,6 +34,23 @@ def send_push_notification(subscription_data: dict, title: str, message: str, va
         return False
     except Exception as e:
         print(f"[ERROR] Unexpected error: {str(e)}")
+        return False
+
+
+def send_telegram_message(chat_id: int, title: str, message: str) -> bool:
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    if not bot_token or not chat_id:
+        return False
+    try:
+        text = f"*{title}*\n{message}"
+        resp = requests.post(
+            f'https://api.telegram.org/bot{bot_token}/sendMessage',
+            json={'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'},
+            timeout=10
+        )
+        return resp.status_code == 200 and resp.json().get('ok', False)
+    except Exception as e:
+        print(f"[ERROR] Telegram send failed: {e}")
         return False
 
 def check_important_dates(cur, family_id: str) -> List[Dict[str, str]]:
@@ -619,12 +635,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             all_notifications.extend(check_medication_schedule(cur, family_id))
             all_notifications.extend(check_urgent_tasks(cur, family_id))
             
+            telegram_chat_ids = []
             try:
-                cur.execute(f"SELECT user_id FROM t_p5815085_family_assistant_pro.family_members WHERE family_id = '{escape_sql_string(family_id)}'")
+                cur.execute(f"SELECT fm.user_id, u.telegram_chat_id FROM t_p5815085_family_assistant_pro.family_members fm JOIN t_p5815085_family_assistant_pro.users u ON fm.user_id = u.id WHERE fm.family_id = '{escape_sql_string(family_id)}'")
                 family_users = cur.fetchall()
                 for user in family_users:
-                    all_notifications.extend(check_leisure_activities(cur, user['user_id']))
-                    all_notifications.extend(check_diet_notifications(cur, user['user_id']))
+                    all_notifications.extend(check_leisure_activities(cur, str(user['user_id'])))
+                    all_notifications.extend(check_diet_notifications(cur, str(user['user_id'])))
+                    if user.get('telegram_chat_id'):
+                        telegram_chat_ids.append(user['telegram_chat_id'])
             except:
                 pass
             all_notifications.extend(check_urgent_shopping(cur, family_id))
@@ -634,17 +653,27 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             print(f"[INFO] Found {len(all_notifications)} notifications for family {family_id}")
             
-            for notification in all_notifications[:3]:
-                success = send_push_notification(
+            for notification in all_notifications[:5]:
+                push_ok = send_push_notification(
                     subscription_data,
                     notification['title'],
                     notification['message'],
                     vapid_private_key
                 )
                 
-                if success:
+                tg_ok = False
+                for chat_id in telegram_chat_ids:
+                    if send_telegram_message(chat_id, notification['title'], notification['message']):
+                        tg_ok = True
+                
+                if push_ok or tg_ok:
                     total_sent += 1
-                    print(f"[SUCCESS] Sent: {notification['title']}")
+                    channels = []
+                    if push_ok:
+                        channels.append('push')
+                    if tg_ok:
+                        channels.append('telegram')
+                    print(f"[SUCCESS] Sent via {'+'.join(channels)}: {notification['title']}")
                 else:
                     total_failed += 1
                     print(f"[FAILED] Could not send: {notification['title']}")
