@@ -335,6 +335,7 @@ export default function DietQuiz() {
             protein: meal.protein,
             fats: meal.fats,
             carbs: meal.carbs,
+            ingredients: meal.ingredients || [],
           });
         }
       }

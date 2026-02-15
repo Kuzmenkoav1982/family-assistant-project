@@ -400,8 +400,40 @@ def save_plan(user_id, body):
                 INSERT INTO diet_meals (plan_id, day_number, meal_date, meal_type, meal_time,
                     title, recipe, calories, protein_g, fat_g, carbs_g)
                 VALUES (%d, %d, '%s', '%s', '%s', '%s', '%s', %d, %s, %s, %s)
+                RETURNING id
             """ % (plan_id, day_num, str(meal_date), mtype[:20], mtime[:5],
                    title[:255], recipe, cal, prot, fat, carb))
+            meal_id = cur.fetchone()[0]
+
+            ingredients_raw = meal.get('ingredients', [])
+            if ingredients_raw and isinstance(ingredients_raw, list):
+                for ing_str in ingredients_raw:
+                    ing_str = str(ing_str).strip()
+                    if not ing_str:
+                        continue
+                    ing_name = ing_str
+                    ing_amount = 0
+                    ing_unit = 'шт'
+                    for sep in [' — ', ' - ', ' – ', ': ']:
+                        idx = ing_str.find(sep)
+                        if idx > 0:
+                            ing_name = ing_str[:idx].strip()
+                            qty_part = ing_str[idx + len(sep):].strip()
+                            import re
+                            m = re.match(r'([\d.,]+)\s*(.*)', qty_part)
+                            if m:
+                                try:
+                                    ing_amount = float(m.group(1).replace(',', '.'))
+                                except ValueError:
+                                    ing_amount = 0
+                                ing_unit = m.group(2).strip() or 'г'
+                            else:
+                                ing_unit = qty_part or 'шт'
+                            break
+                    cur.execute("""
+                        INSERT INTO diet_meal_ingredients (meal_id, ingredient_name, amount, unit)
+                        VALUES (%d, '%s', %s, '%s')
+                    """ % (meal_id, ing_name.replace("'", "''")[:255], ing_amount, ing_unit.replace("'", "''")[:20]))
 
         if quiz_data.get('current_weight_kg'):
             try:

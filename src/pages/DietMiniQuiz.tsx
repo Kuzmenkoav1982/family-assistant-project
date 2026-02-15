@@ -281,6 +281,7 @@ export default function DietMiniQuiz() {
             name: meal.name, description: meal.description,
             calories: meal.calories, protein: meal.protein,
             fats: meal.fats, carbs: meal.carbs,
+            ingredients: meal.ingredients || [],
           });
         }
       }

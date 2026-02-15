@@ -152,29 +152,40 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
 
   const addToShopping = async () => {
     const ingredients = meal.ingredients || [];
-    if (ingredients.length === 0) {
-      alert('У этого блюда нет списка ингредиентов. Сначала сгенерируйте диету через ИИ.');
-      return;
-    }
     setAddingShopping(true);
     const authToken = localStorage.getItem('authToken') || '';
     let addedCount = 0;
     try {
-      for (const raw of ingredients) {
-        const { name, quantity } = parseIngredient(raw);
-        if (!name) continue;
+      if (ingredients.length > 0) {
+        for (const raw of ingredients) {
+          const { name, quantity } = parseIngredient(raw);
+          if (!name) continue;
+          await fetch(SHOPPING_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+            body: JSON.stringify({
+              name,
+              category: 'Продукты',
+              quantity,
+              priority: 'normal',
+              notes: `Для блюда: ${meal.dishName}`
+            }),
+          });
+          addedCount++;
+        }
+      } else {
         await fetch(SHOPPING_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
           body: JSON.stringify({
-            name,
+            name: `Продукты для: ${meal.dishName}`,
             category: 'Продукты',
-            quantity,
+            quantity: '',
             priority: 'normal',
-            notes: `Для блюда: ${meal.dishName}`
+            notes: 'Ингредиенты не указаны, уточните состав'
           }),
         });
-        addedCount++;
+        addedCount = 1;
       }
       setAddedToShopping(true);
       setShoppingCount(addedCount);
@@ -306,21 +317,19 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                     )}
                   </Button>
                 )}
-                {meal.ingredients && meal.ingredients.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={`text-xs h-8 ${addedToShopping ? 'text-green-600 border-green-300 bg-green-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}`}
-                    onClick={(e) => { e.stopPropagation(); addToShopping(); }}
-                    disabled={addingShopping || addedToShopping}
-                  >
-                    {addingShopping ? (
-                      <><div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-1" />Добавляю...</>
-                    ) : (
-                      <><Icon name={addedToShopping ? 'Check' : 'ShoppingCart'} size={14} className="mr-1" />{addedToShopping ? `${shoppingCount} продуктов` : 'В покупки'}</>
-                    )}
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`text-xs h-8 ${addedToShopping ? 'text-green-600 border-green-300 bg-green-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}`}
+                  onClick={(e) => { e.stopPropagation(); addToShopping(); }}
+                  disabled={addingShopping || addedToShopping}
+                >
+                  {addingShopping ? (
+                    <><div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-1" />Добавляю...</>
+                  ) : (
+                    <><Icon name={addedToShopping ? 'Check' : 'ShoppingCart'} size={14} className="mr-1" />{addedToShopping ? `${shoppingCount} продуктов` : 'В покупки'}</>
+                  )}
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

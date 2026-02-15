@@ -264,18 +264,21 @@ export default function Meals() {
 
   const handleAddDayToShopping = async (day: string) => {
     const dayMeals = getMealsForDay(day);
+    if (dayMeals.length === 0) {
+      alert('На этот день нет блюд.');
+      return;
+    }
     const allIngredients: { name: string; quantity: string; dishName: string }[] = [];
+    const mealsWithoutIngredients: string[] = [];
     for (const meal of dayMeals) {
       if (meal.ingredients && meal.ingredients.length > 0) {
         for (const raw of meal.ingredients) {
           const { name, quantity } = parseIngredient(raw);
           if (name) allIngredients.push({ name, quantity, dishName: meal.dishName });
         }
+      } else {
+        mealsWithoutIngredients.push(meal.dishName);
       }
-    }
-    if (allIngredients.length === 0) {
-      alert('У блюд на этот день нет ингредиентов. Сначала сгенерируйте диету через ИИ.');
-      return;
     }
     const authToken = localStorage.getItem('authToken') || '';
     let added = 0;
@@ -295,8 +298,24 @@ export default function Meals() {
         added++;
       } catch { /* continue */ }
     }
+    for (const dishName of mealsWithoutIngredients) {
+      try {
+        await fetch(SHOPPING_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+          body: JSON.stringify({
+            name: `Продукты для: ${dishName}`,
+            category: 'Продукты',
+            quantity: '',
+            priority: 'normal',
+            notes: 'Ингредиенты не указаны, уточните состав'
+          }),
+        });
+        added++;
+      } catch { /* continue */ }
+    }
     const dayLabel = DAYS_OF_WEEK.find(d => d.value === day)?.label || day;
-    alert(`Добавлено ${added} продуктов в покупки на ${dayLabel}`);
+    alert(`Добавлено ${added} позиций в покупки на ${dayLabel}`);
   };
 
   return (
