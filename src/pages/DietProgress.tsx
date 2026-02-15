@@ -121,6 +121,15 @@ export default function DietProgress() {
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
 
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [notifSettings, setNotifSettings] = useState<Array<{
+    type: string; label: string; enabled: boolean;
+    time_value: string | null; interval_minutes: number | null;
+    channel: string; quiet_start: string; quiet_end: string;
+  }>>([]);
+  const [loadingNotif, setLoadingNotif] = useState(false);
+  const [savingNotif, setSavingNotif] = useState(false);
+
   const authToken = localStorage.getItem('authToken') || '';
 
   const headers = {
@@ -286,6 +295,40 @@ export default function DietProgress() {
       }
     } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
     finally { setAdjusting(false); }
+  };
+
+  const fetchNotifSettings = async () => {
+    setLoadingNotif(true);
+    try {
+      const res = await fetch(`${API_URL}?action=notification_settings`, { headers: { 'X-Auth-Token': authToken } });
+      const json = await res.json();
+      if (json.settings) setNotifSettings(json.settings);
+    } catch { /* skip */ }
+    finally { setLoadingNotif(false); }
+  };
+
+  const saveNotifSettings = async () => {
+    setSavingNotif(true);
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST', headers,
+        body: JSON.stringify({ action: 'save_notification_settings', settings: notifSettings }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: 'Настройки сохранены' });
+        setShowNotifSettings(false);
+      }
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+    finally { setSavingNotif(false); }
+  };
+
+  const toggleNotif = (type: string) => {
+    setNotifSettings(prev => prev.map(s => s.type === type ? { ...s, enabled: !s.enabled } : s));
+  };
+
+  const updateNotifTime = (type: string, time: string) => {
+    setNotifSettings(prev => prev.map(s => s.type === type ? { ...s, time_value: time } : s));
   };
 
   if (loading) {
@@ -738,6 +781,102 @@ export default function DietProgress() {
               )}
             </CardContent>
           </Card>
+        )}
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2 text-sm">
+                <Icon name="Bell" size={16} className="text-violet-600" />
+                Уведомления
+              </h3>
+              <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setShowNotifSettings(true); fetchNotifSettings(); }}>
+                <Icon name="Settings" size={12} className="mr-1" />
+                Настроить
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {showNotifSettings && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+            <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Icon name="Bell" size={20} className="text-violet-600" />
+                    Уведомления диеты
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => setShowNotifSettings(false)}>
+                    <Icon name="X" size={18} />
+                  </Button>
+                </div>
+
+                {loadingNotif ? (
+                  <div className="flex justify-center py-8">
+                    <div className="w-8 h-8 border-3 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {notifSettings.map(s => {
+                      const icons: Record<string, string> = {
+                        weight_reminder: 'Scale', meal_reminder: 'UtensilsCrossed', water_reminder: 'Droplets',
+                        motivation: 'Sparkles', weekly_report: 'BarChart3', sos_followup: 'Heart', plan_ending: 'Flag',
+                      };
+                      return (
+                        <div key={s.type} className={`p-3 rounded-lg border transition-all ${s.enabled ? 'bg-violet-50/50 border-violet-200' : 'bg-gray-50 border-gray-200'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Icon name={icons[s.type] || 'Bell'} size={16} className={s.enabled ? 'text-violet-600' : 'text-gray-400'} />
+                              <span className="text-sm font-medium">{s.label}</span>
+                            </div>
+                            <button
+                              className={`w-10 h-5 rounded-full transition-colors relative ${s.enabled ? 'bg-violet-500' : 'bg-gray-300'}`}
+                              onClick={() => toggleNotif(s.type)}
+                            >
+                              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${s.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
+                          {s.enabled && s.time_value !== undefined && s.type !== 'meal_reminder' && s.type !== 'sos_followup' && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">Время:</span>
+                              <input
+                                type="time"
+                                className="text-xs border rounded px-2 py-1 w-24"
+                                value={s.time_value || ''}
+                                onChange={e => updateNotifTime(s.type, e.target.value)}
+                              />
+                            </div>
+                          )}
+                          {s.enabled && s.type === 'water_reminder' && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">Каждые:</span>
+                              <select
+                                className="text-xs border rounded px-2 py-1"
+                                value={s.interval_minutes || 120}
+                                onChange={e => setNotifSettings(prev => prev.map(x => x.type === s.type ? { ...x, interval_minutes: parseInt(e.target.value) } : x))}
+                              >
+                                <option value={60}>1 час</option>
+                                <option value={90}>1.5 часа</option>
+                                <option value={120}>2 часа</option>
+                                <option value={180}>3 часа</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    <div className="pt-2">
+                      <Button className="w-full bg-violet-600" onClick={saveNotifSettings} disabled={savingNotif}>
+                        {savingNotif ? 'Сохраняю...' : 'Сохранить настройки'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {showSOS && (

@@ -73,6 +73,8 @@ def handler(event, context):
         elif action == 'motivation':
             time_of_day = params.get('time', 'morning')
             return get_motivation(user_id, plan_id, time_of_day)
+        elif action == 'notification_settings':
+            return get_notification_settings(user_id)
 
     if method == 'POST':
         raw = event.get('body') or '{}'
@@ -93,6 +95,8 @@ def handler(event, context):
             return analyze_progress(user_id, body)
         elif action == 'adjust_plan':
             return adjust_plan(user_id, body)
+        elif action == 'save_notification_settings':
+            return save_notification_settings(user_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -978,5 +982,104 @@ def adjust_plan(user_id, body):
             'meals_adjusted': len(remaining_dates) if remaining_dates else 0,
             'message': 'План скорректирован!'
         })
+    finally:
+        conn.close()
+
+
+NOTIFICATION_TYPES = {
+    'weight_reminder': {'label': 'Напоминание взвеситься', 'default_time': '08:00'},
+    'meal_reminder': {'label': 'Напоминание о приёме пищи', 'default_time': None},
+    'water_reminder': {'label': 'Напоминание пить воду', 'default_interval': 120},
+    'motivation': {'label': 'Мотивация от ИИ', 'default_time': '09:00'},
+    'weekly_report': {'label': 'Еженедельный отчёт', 'default_time': '20:00'},
+    'sos_followup': {'label': 'Проверка после SOS', 'default_time': None},
+    'plan_ending': {'label': 'Окончание плана', 'default_time': '10:00'},
+}
+
+
+def get_notification_settings(user_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT notification_type, enabled, time_value, interval_minutes, channel, quiet_start, quiet_end
+            FROM nutrition_notification_settings WHERE user_id = '%s'
+        """ % str(user_id))
+        rows = cur.fetchall()
+
+        saved = {}
+        for r in rows:
+            saved[r[0]] = {
+                'type': r[0],
+                'enabled': r[1],
+                'time_value': r[2],
+                'interval_minutes': r[3],
+                'channel': r[4],
+                'quiet_start': r[5],
+                'quiet_end': r[6],
+            }
+
+        settings = []
+        for ntype, info in NOTIFICATION_TYPES.items():
+            if ntype in saved:
+                s = saved[ntype]
+                s['label'] = info['label']
+                settings.append(s)
+            else:
+                settings.append({
+                    'type': ntype,
+                    'label': info['label'],
+                    'enabled': True,
+                    'time_value': info.get('default_time'),
+                    'interval_minutes': info.get('default_interval'),
+                    'channel': 'push',
+                    'quiet_start': '22:00',
+                    'quiet_end': '07:00',
+                })
+
+        return respond(200, {'settings': settings})
+    finally:
+        conn.close()
+
+
+def save_notification_settings(user_id, body):
+    settings = body.get('settings', [])
+    if not settings:
+        return respond(400, {'error': 'settings обязательны'})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        for s in settings:
+            ntype = s.get('type', '')
+            if ntype not in NOTIFICATION_TYPES:
+                continue
+            enabled = s.get('enabled', True)
+            time_val = s.get('time_value')
+            interval = s.get('interval_minutes')
+            channel = s.get('channel', 'push')
+            quiet_start = s.get('quiet_start', '22:00')
+            quiet_end = s.get('quiet_end', '07:00')
+
+            time_sql = "'%s'" % time_val.replace("'", "")[:5] if time_val else 'NULL'
+            interval_sql = str(int(interval)) if interval else 'NULL'
+            channel_safe = channel.replace("'", "")[:20]
+            qs = quiet_start.replace("'", "")[:5] if quiet_start else '22:00'
+            qe = quiet_end.replace("'", "")[:5] if quiet_end else '07:00'
+
+            cur.execute("""
+                INSERT INTO nutrition_notification_settings
+                    (user_id, notification_type, enabled, time_value, interval_minutes, channel, quiet_start, quiet_end, updated_at)
+                VALUES ('%s', '%s', %s, %s, %s, '%s', '%s', '%s', NOW())
+                ON CONFLICT (user_id, notification_type)
+                DO UPDATE SET enabled = %s, time_value = %s, interval_minutes = %s, channel = '%s',
+                    quiet_start = '%s', quiet_end = '%s', updated_at = NOW()
+            """ % (
+                str(user_id), ntype, str(enabled).upper(), time_sql, interval_sql, channel_safe, qs, qe,
+                str(enabled).upper(), time_sql, interval_sql, channel_safe, qs, qe
+            ))
+
+        conn.commit()
+        return respond(200, {'success': True, 'message': 'Настройки сохранены'})
     finally:
         conn.close()

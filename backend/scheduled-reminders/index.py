@@ -327,14 +327,67 @@ def call_yandex_gpt_lite(system_prompt: str, user_prompt: str) -> str:
     return ''
 
 
-def check_diet_motivation(cur, user_id: str) -> List[Dict[str, str]]:
+def get_user_diet_settings(cur, user_id: str, schema: str) -> dict:
+    user_id_safe = escape_sql_string(user_id)
+    settings = {}
+    try:
+        cur.execute(f"""
+            SELECT notification_type, enabled, time_value, interval_minutes, quiet_start, quiet_end
+            FROM {schema}.nutrition_notification_settings
+            WHERE user_id = '{user_id_safe}'
+        """)
+        for r in cur.fetchall():
+            settings[r['notification_type']] = r
+    except:
+        pass
+    return settings
+
+
+def is_in_quiet_hours(quiet_start: str, quiet_end: str) -> bool:
+    now = datetime.now().strftime('%H:%M')
+    if quiet_start <= quiet_end:
+        return quiet_start <= now <= quiet_end
+    return now >= quiet_start or now <= quiet_end
+
+
+def is_setting_enabled(settings: dict, ntype: str) -> bool:
+    if ntype in settings:
+        return settings[ntype]['enabled']
+    return True
+
+
+def is_time_match(settings: dict, ntype: str, default_time: str, window_min: int = 15) -> bool:
+    target = default_time
+    if ntype in settings and settings[ntype].get('time_value'):
+        target = settings[ntype]['time_value']
+    if not target:
+        return True
+    now = datetime.now()
+    try:
+        h, m = map(int, target.split(':'))
+        target_dt = now.replace(hour=h, minute=m, second=0)
+        diff = abs((now - target_dt).total_seconds())
+        return diff <= window_min * 60
+    except:
+        return True
+
+
+def check_diet_notifications(cur, user_id: str) -> List[Dict[str, str]]:
     notifications = []
     user_id_safe = escape_sql_string(user_id)
     schema = 't_p5815085_family_assistant_pro'
 
     try:
+        settings = get_user_diet_settings(cur, user_id, schema)
+
+        qs = settings.get('motivation', {}).get('quiet_start', '22:00') or '22:00'
+        qe = settings.get('motivation', {}).get('quiet_end', '07:00') or '07:00'
+        if is_in_quiet_hours(qs, qe):
+            return notifications
+
         cur.execute(f"""
-            SELECT id, start_date, duration_days, target_weight_loss_kg, target_calories_daily, plan_type
+            SELECT id, start_date, end_date, duration_days, target_weight_loss_kg,
+                   target_calories_daily, plan_type, daily_water_ml, daily_steps
             FROM {schema}.diet_plans
             WHERE user_id = '{user_id_safe}' AND status = 'active'
             ORDER BY created_at DESC LIMIT 1
@@ -346,18 +399,7 @@ def check_diet_motivation(cur, user_id: str) -> List[Dict[str, str]]:
         plan_id = plan['id']
         days_on = (date.today() - plan['start_date']).days + 1
         duration = plan['duration_days'] or 7
-
-        if days_on > duration:
-            return notifications
-
-        cur.execute(f"""
-            SELECT COUNT(*) as cnt FROM {schema}.diet_motivation_log
-            WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
-            AND created_at::date = CURRENT_DATE
-        """)
-        already_sent = cur.fetchone()
-        if already_sent and already_sent['cnt'] > 0:
-            return notifications
+        days_remaining = max(0, (plan['end_date'] - date.today()).days)
 
         cur.execute(f"SELECT weight_kg FROM {schema}.diet_weight_log WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} ORDER BY measured_at ASC LIMIT 1")
         first_w = cur.fetchone()
@@ -371,35 +413,150 @@ def check_diet_motivation(cur, user_id: str) -> List[Dict[str, str]]:
         total = cur.fetchone()['cnt']
         adherence = round(done / total * 100) if total > 0 else 0
 
-        hour = datetime.now().hour
-        time_label = "утреннее" if hour < 14 else "вечернее"
-        time_of_day = "morning" if hour < 14 else "evening"
+        # 1. Weight reminder
+        if is_setting_enabled(settings, 'weight_reminder') and is_time_match(settings, 'weight_reminder', '08:00'):
+            cur.execute(f"""
+                SELECT COUNT(*) as cnt FROM {schema}.diet_weight_log
+                WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} AND measured_at::date = CURRENT_DATE
+            """)
+            if cur.fetchone()['cnt'] == 0:
+                hour = datetime.now().hour
+                if hour < 12:
+                    notifications.append({'title': 'Взвешивание', 'message': f'День {days_on} — самое время взвеситься! Отслеживание веса помогает видеть прогресс.'})
+                elif hour >= 18:
+                    cur.execute(f"""
+                        SELECT measured_at FROM {schema}.diet_weight_log
+                        WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
+                        ORDER BY measured_at DESC LIMIT 1
+                    """)
+                    last_log = cur.fetchone()
+                    days_since = (datetime.now() - last_log['measured_at']).days if last_log else 999
+                    if days_since >= 2:
+                        notifications.append({'title': 'Не забудь взвеситься!', 'message': f'Ты не вносил вес уже {days_since} дня. Запиши — это займёт 10 секунд.'})
 
-        system = "Ты заботливый тренер-диетолог. Пиши тепло и кратко, 1-2 предложения. Без смайликов."
-        user_prompt = f"""Напиши короткое {time_label} мотивационное push-уведомление для человека на диете.
+        # 2. Meal reminder
+        if is_setting_enabled(settings, 'meal_reminder'):
+            now_time = datetime.now().strftime('%H:%M')
+            cur.execute(f"""
+                SELECT id, meal_type, meal_time, title FROM {schema}.diet_meals
+                WHERE plan_id = {plan_id} AND meal_date = '{date.today().isoformat()}'
+                AND completed = FALSE
+                ORDER BY meal_time
+            """)
+            upcoming_meals = cur.fetchall()
+            for meal in upcoming_meals:
+                meal_time_str = str(meal['meal_time'])[:5]
+                try:
+                    mh, mm = map(int, meal_time_str.split(':'))
+                    meal_dt = datetime.now().replace(hour=mh, minute=mm, second=0)
+                    diff_minutes = (meal_dt - datetime.now()).total_seconds() / 60
+                    if 0 <= diff_minutes <= 15:
+                        type_labels = {'breakfast': 'Завтрак', 'lunch': 'Обед', 'dinner': 'Ужин', 'snack': 'Перекус'}
+                        label = type_labels.get(meal['meal_type'], 'Приём пищи')
+                        notifications.append({'title': f'{label} в {meal_time_str}', 'message': meal['title']})
+                        break
+                    elif -30 <= diff_minutes < -15:
+                        notifications.append({'title': 'Пропущен приём пищи?', 'message': f'По плану был «{meal["title"]}» в {meal_time_str}. Не забудь отметить!'})
+                        break
+                except:
+                    pass
+
+        # 3. Water reminder
+        if is_setting_enabled(settings, 'water_reminder') and plan.get('daily_water_ml'):
+            interval = 120
+            if 'water_reminder' in settings and settings['water_reminder'].get('interval_minutes'):
+                interval = settings['water_reminder']['interval_minutes']
+            now_min = datetime.now().hour * 60 + datetime.now().minute
+            if now_min >= 480 and now_min % interval < 15:
+                water_l = round(plan['daily_water_ml'] / 1000, 1)
+                notifications.append({'title': 'Время попить воды', 'message': f'Не забывай пить воду — твоя норма {water_l} л в день.'})
+
+        # 4. Motivation (AI)
+        if is_setting_enabled(settings, 'motivation') and is_time_match(settings, 'motivation', '09:00'):
+            cur.execute(f"""
+                SELECT COUNT(*) as cnt FROM {schema}.diet_motivation_log
+                WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
+                AND created_at::date = CURRENT_DATE
+            """)
+            if cur.fetchone()['cnt'] == 0:
+                hour = datetime.now().hour
+                time_label = "утреннее" if hour < 14 else "вечернее"
+                time_of_day = "morning" if hour < 14 else "evening"
+
+                system = "Ты заботливый тренер-диетолог. Пиши тепло и кратко, 1-2 предложения. Без смайликов."
+                user_prompt = f"""Напиши короткое {time_label} мотивационное push-уведомление для человека на диете.
 День: {days_on} из {duration}. Сброшено: {lost} кг. Соблюдение: {adherence}%.
 {'Утро — задай настрой.' if time_of_day == 'morning' else 'Вечер — похвали за день.'}"""
 
-        ai_text = call_yandex_gpt_lite(system, user_prompt)
+                ai_text = call_yandex_gpt_lite(system, user_prompt)
+                if not ai_text:
+                    if time_of_day == 'morning':
+                        ai_text = f"День {days_on} твоей диеты! " + (f"Уже -{lost} кг — продолжай!" if lost > 0 else "Каждый день приближает к цели!")
+                    else:
+                        ai_text = f"День {days_on} позади! " + (f"Ты сбросил {lost} кг — молодец!" if lost > 0 else "Отдыхай, завтра продолжим!")
 
-        if not ai_text:
-            if time_of_day == 'morning':
-                ai_text = f"День {days_on} твоей диеты! " + (f"Уже -{lost} кг — продолжай в том же духе!" if lost > 0 else "Каждый день приближает к цели!")
-            else:
-                ai_text = f"День {days_on} позади! " + (f"Ты уже сбросил {lost} кг — молодец!" if lost > 0 else "Отдыхай, завтра продолжим!")
+                cur.execute(f"""
+                    INSERT INTO {schema}.diet_motivation_log (user_id, plan_id, message_type, message_text)
+                    VALUES ('{user_id_safe}', {plan_id}, '{time_of_day}', '{escape_sql_string(ai_text)}')
+                """)
+                notifications.append({'title': f'Диета — день {days_on}', 'message': ai_text})
 
-        cur.execute(f"""
-            INSERT INTO {schema}.diet_motivation_log (user_id, plan_id, message_type, message_text)
-            VALUES ('{user_id_safe}', {plan_id}, '{time_of_day}', '{escape_sql_string(ai_text)}')
-        """)
+        # 5. Weekly report
+        if is_setting_enabled(settings, 'weekly_report') and days_on > 1 and days_on % 7 == 0:
+            if is_time_match(settings, 'weekly_report', '20:00'):
+                week_num = days_on // 7
+                msg = f'Неделя {week_num} завершена! Сброшено {lost} кг, выполнено {adherence}% плана.'
+                if lost > 0:
+                    msg += ' Отличный прогресс!'
+                notifications.append({'title': f'Итоги недели {week_num}', 'message': msg})
 
-        notifications.append({
-            'title': 'Диета — день %d' % days_on,
-            'message': ai_text
-        })
+        # 6. SOS followup
+        if is_setting_enabled(settings, 'sos_followup'):
+            cur.execute(f"""
+                SELECT id, reason, created_at FROM {schema}.diet_sos_requests
+                WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
+                AND created_at > NOW() - INTERVAL '3 hours'
+                AND created_at < NOW() - INTERVAL '2 hours'
+                ORDER BY created_at DESC LIMIT 1
+            """)
+            recent_sos = cur.fetchone()
+            if recent_sos:
+                notifications.append({
+                    'title': 'Как ты себя чувствуешь?',
+                    'message': 'Прошло 2 часа после твоего обращения. Надеюсь, стало легче! Ты справишься.'
+                })
+
+            if recent_sos and recent_sos.get('reason') == 'want_to_quit':
+                cur.execute(f"""
+                    SELECT COUNT(*) as cnt FROM {schema}.diet_sos_requests
+                    WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
+                    AND reason = 'want_to_quit' AND created_at > NOW() - INTERVAL '3 days'
+                """)
+                quit_count = cur.fetchone()['cnt']
+                if quit_count >= 1 and is_time_match(settings, 'sos_followup', '10:00', 30):
+                    ai_text = call_yandex_gpt_lite(
+                        "Ты заботливый тренер. Человек хотел бросить диету. Поддержи его. 1-2 предложения.",
+                        f"День {days_on}, сброшено {lost} кг. Напиши тёплое поддерживающее сообщение."
+                    )
+                    if not ai_text:
+                        ai_text = 'Я знаю, бывает тяжело. Но ты уже столько прошёл! Каждый день — маленькая победа.'
+                    notifications.append({'title': 'Ты не один!', 'message': ai_text})
+
+        # 7. Plan ending
+        if is_setting_enabled(settings, 'plan_ending'):
+            if days_remaining == 1:
+                notifications.append({
+                    'title': 'Завтра финиш!',
+                    'message': f'Твой план завершается завтра. Сброшено {lost} кг — ты молодец! Подготовлю итоговый отчёт.'
+                })
+            elif days_remaining == 0:
+                notifications.append({
+                    'title': 'План завершён!',
+                    'message': f'Поздравляю! {duration} дней диеты позади. Результат: {lost} кг. Хочешь продолжить?'
+                })
 
     except Exception as e:
-        print(f"[ERROR] Diet motivation check failed: {e}")
+        print(f"[ERROR] Diet notifications check failed: {e}")
 
     return notifications
 
@@ -467,7 +624,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 family_users = cur.fetchall()
                 for user in family_users:
                     all_notifications.extend(check_leisure_activities(cur, user['user_id']))
-                    all_notifications.extend(check_diet_motivation(cur, user['user_id']))
+                    all_notifications.extend(check_diet_notifications(cur, user['user_id']))
             except:
                 pass
             all_notifications.extend(check_urgent_shopping(cur, family_id))
