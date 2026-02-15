@@ -287,10 +287,10 @@ export default function DietProgress() {
 
   if (!data?.has_plan) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-white pb-24">
-        <div className="max-w-2xl mx-auto p-4 space-y-6">
-          <div className="flex items-center gap-3 pt-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/nutrition')}>
+      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="max-w-2xl mx-auto px-4 py-4 space-y-6" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9" onClick={() => navigate('/nutrition')}>
               <Icon name="ArrowLeft" size={18} />
             </Button>
             <h1 className="text-lg font-bold">Прогресс диеты</h1>
@@ -327,22 +327,22 @@ export default function DietProgress() {
   const range = maxW - minW || 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
+      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
 
-        <div className="flex items-center gap-3 pt-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/nutrition')}>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9" onClick={() => navigate('/nutrition')}>
             <Icon name="ArrowLeft" size={18} />
           </Button>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold">Прогресс диеты</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold truncate">Прогресс диеты</h1>
             <p className="text-xs text-muted-foreground">
               День {stats?.days_elapsed || 0} из {plan?.duration_days || 0}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setShowSOS(true)} className="border-red-200 text-red-600 hover:bg-red-50">
+          <Button variant="outline" size="sm" className="shrink-0 border-red-200 text-red-600 hover:bg-red-50" onClick={() => setShowSOS(true)}>
             <Icon name="LifeBuoy" size={16} />
-            SOS
+            <span className="hidden xs:inline ml-1">SOS</span>
           </Button>
         </div>
 
@@ -362,39 +362,39 @@ export default function DietProgress() {
         )}
 
         {stats && (
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-              <CardContent className="p-3 text-center">
-                <div className="text-2xl font-bold text-green-700">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 overflow-hidden">
+              <CardContent className="p-2.5 sm:p-3 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-green-700 truncate">
                   {stats.weight_lost > 0 ? `-${stats.weight_lost}` : stats.weight_lost} кг
                 </div>
-                <div className="text-xs text-green-600">сброшено</div>
+                <div className="text-[11px] sm:text-xs text-green-600">сброшено</div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-              <CardContent className="p-3 text-center">
-                <div className="text-2xl font-bold text-blue-700">{stats.adherence_pct}%</div>
-                <div className="text-xs text-blue-600">план выполнен</div>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 overflow-hidden">
+              <CardContent className="p-2.5 sm:p-3 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-blue-700 truncate">{stats.adherence_pct}%</div>
+                <div className="text-[11px] sm:text-xs text-blue-600">план выполнен</div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
-              <CardContent className="p-3 text-center">
-                <div className="text-2xl font-bold text-violet-700">{stats.last_weight || '—'}</div>
-                <div className="text-xs text-violet-600">текущий вес, кг</div>
+            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 overflow-hidden">
+              <CardContent className="p-2.5 sm:p-3 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-violet-700 truncate">{stats.last_weight || '—'}</div>
+                <div className="text-[11px] sm:text-xs text-violet-600">текущий вес, кг</div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
-              <CardContent className="p-3 text-center">
-                <div className="text-2xl font-bold text-amber-700">{stats.days_remaining}</div>
-                <div className="text-xs text-amber-600">дней осталось</div>
+            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 overflow-hidden">
+              <CardContent className="p-2.5 sm:p-3 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-amber-700 truncate">{stats.days_remaining}</div>
+                <div className="text-[11px] sm:text-xs text-amber-600">дней осталось</div>
               </CardContent>
             </Card>
           </div>
         )}
 
         {stats && (
-          <div>
-            <div className="flex items-center justify-between mb-1">
+          <div className="overflow-hidden">
+            <div className="flex items-center justify-between mb-1 px-0.5">
               <span className="text-xs text-muted-foreground">День {stats.days_elapsed}</span>
               <span className="text-xs text-muted-foreground">День {plan?.duration_days}</span>
             </div>
@@ -512,33 +512,41 @@ export default function DietProgress() {
                 Нужно минимум 2 записи для графика
               </div>
             ) : (
-              <div className="relative h-40">
-                <svg viewBox={`0 0 ${weightChartData.length * 60} 160`} className="w-full h-full" preserveAspectRatio="none">
-                  <polyline
-                    fill="none"
-                    stroke="rgb(124, 58, 237)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={weightChartData.map((d, i) => `${i * 60 + 30},${150 - ((d.weight - minW) / range) * 130}`).join(' ')}
-                  />
-                  {weightChartData.map((d, i) => (
-                    <g key={i}>
-                      <circle cx={i * 60 + 30} cy={150 - ((d.weight - minW) / range) * 130} r="5" fill="rgb(124, 58, 237)" />
-                      <text
-                        x={i * 60 + 30}
-                        y={150 - ((d.weight - minW) / range) * 130 - 10}
-                        textAnchor="middle"
-                        className="text-[10px] fill-gray-600"
-                      >
-                        {d.weight}
-                      </text>
-                      <text x={i * 60 + 30} y={158} textAnchor="middle" className="text-[8px] fill-gray-400">
-                        {d.date}
-                      </text>
-                    </g>
-                  ))}
-                </svg>
+              <div className="overflow-x-auto -mx-4 px-4">
+                <div style={{ minWidth: Math.max(weightChartData.length * 70, 200) }} className="relative h-44">
+                  <svg
+                    viewBox={`0 0 ${Math.max(weightChartData.length * 70, 200)} 176`}
+                    className="w-full h-full"
+                    preserveAspectRatio="xMidYMid meet"
+                  >
+                    <defs>
+                      <linearGradient id="weightLine" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="rgb(139, 92, 246)" />
+                        <stop offset="100%" stopColor="rgb(124, 58, 237)" />
+                      </linearGradient>
+                    </defs>
+                    <polyline
+                      fill="none"
+                      stroke="url(#weightLine)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      points={weightChartData.map((d, i) => `${i * 70 + 35},${140 - ((d.weight - minW) / range) * 110}`).join(' ')}
+                    />
+                    {weightChartData.map((d, i) => {
+                      const cx = i * 70 + 35;
+                      const cy = 140 - ((d.weight - minW) / range) * 110;
+                      return (
+                        <g key={i}>
+                          <circle cx={cx} cy={cy} r="6" fill="white" stroke="rgb(124, 58, 237)" strokeWidth="2.5" />
+                          <circle cx={cx} cy={cy} r="2.5" fill="rgb(124, 58, 237)" />
+                          <text x={cx} y={cy - 14} textAnchor="middle" fontSize="12" fontWeight="600" fill="#4b5563">{d.weight}</text>
+                          <text x={cx} y={168} textAnchor="middle" fontSize="11" fill="#9ca3af">{d.date}</text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
               </div>
             )}
           </CardContent>
@@ -605,10 +613,10 @@ export default function DietProgress() {
                   <Icon name="UtensilsCrossed" size={18} className="text-green-600" />
                   Сегодня
                 </h3>
-                <Button size="sm" variant="outline" className="text-xs h-7"
+                <Button size="sm" variant="outline" className="text-xs h-7 shrink-0"
                   onClick={() => handleAddToShopping(today_meals.filter(m => !m.completed).map(m => m.id))}>
                   <Icon name="ShoppingCart" size={12} className="mr-1" />
-                  Всё в покупки
+                  <span className="hidden sm:inline">Всё в </span>покупки
                 </Button>
               </div>
               <div className="space-y-2">
@@ -690,8 +698,8 @@ export default function DietProgress() {
         )}
 
         {showSOS && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4">
-            <Card className="w-full max-w-md border-red-200">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+            <Card className="w-full max-w-md border-red-200 max-h-[85vh] overflow-y-auto">
               <CardContent className="p-5 space-y-4">
                 {sosResponse ? (
                   <>
