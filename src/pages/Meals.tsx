@@ -12,6 +12,7 @@ import { MealsWeekView } from '@/components/meals/MealsWeekView';
 import { DEMO_MEAL_PLANS } from '@/data/demoMeals';
 
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
+const SHOPPING_API = 'https://functions.poehali.dev/3f85241b-6c17-4d3d-a5f2-99b3af90af1b';
 
 interface MealPlan {
   id: string;
@@ -23,6 +24,7 @@ interface MealPlan {
   addedByName: string;
   addedAt: string;
   emoji?: string;
+  ingredients?: string[];
 }
 
 const DAYS_OF_WEEK = [
@@ -82,16 +84,17 @@ export default function Meals() {
       });
       const data = await response.json();
       if (data.success && data.meals) {
-        setMealPlans(data.meals.map((m: any) => ({
-          id: m.id,
-          day: m.day,
-          mealType: m.meal_type,
-          dishName: m.dish_name,
-          description: m.description,
-          emoji: m.emoji,
-          addedBy: m.added_by,
-          addedByName: m.added_by_name,
-          addedAt: m.created_at
+        setMealPlans(data.meals.map((m: Record<string, unknown>) => ({
+          id: m.id as string,
+          day: m.day as string,
+          mealType: m.meal_type as MealPlan['mealType'],
+          dishName: m.dish_name as string,
+          description: m.description as string | undefined,
+          emoji: m.emoji as string | undefined,
+          addedBy: m.added_by as string,
+          addedByName: m.added_by_name as string,
+          addedAt: m.created_at as string,
+          ingredients: (m.ingredients as string[] | null) || [],
         })));
       }
     } catch (error) {
@@ -249,6 +252,53 @@ export default function Meals() {
     setIsDialogOpen(true);
   };
 
+  const parseIngredient = (raw: string): { name: string; quantity: string } => {
+    const cleaned = raw.replace(/^\d+[.)]\s*/, '').trim();
+    const separators = [' — ', ' - ', ' – ', ': '];
+    for (const sep of separators) {
+      const idx = cleaned.indexOf(sep);
+      if (idx > 0) return { name: cleaned.slice(0, idx).trim(), quantity: cleaned.slice(idx + sep.length).trim() };
+    }
+    return { name: cleaned, quantity: '' };
+  };
+
+  const handleAddDayToShopping = async (day: string) => {
+    const dayMeals = getMealsForDay(day);
+    const allIngredients: { name: string; quantity: string; dishName: string }[] = [];
+    for (const meal of dayMeals) {
+      if (meal.ingredients && meal.ingredients.length > 0) {
+        for (const raw of meal.ingredients) {
+          const { name, quantity } = parseIngredient(raw);
+          if (name) allIngredients.push({ name, quantity, dishName: meal.dishName });
+        }
+      }
+    }
+    if (allIngredients.length === 0) {
+      alert('У блюд на этот день нет ингредиентов. Сначала сгенерируйте диету через ИИ.');
+      return;
+    }
+    const authToken = localStorage.getItem('authToken') || '';
+    let added = 0;
+    for (const ing of allIngredients) {
+      try {
+        await fetch(SHOPPING_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+          body: JSON.stringify({
+            name: ing.name,
+            category: 'Продукты',
+            quantity: ing.quantity,
+            priority: 'normal',
+            notes: `Для блюда: ${ing.dishName}`
+          }),
+        });
+        added++;
+      } catch { /* continue */ }
+    }
+    const dayLabel = DAYS_OF_WEEK.find(d => d.value === day)?.label || day;
+    alert(`Добавлено ${added} продуктов в покупки на ${dayLabel}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -302,6 +352,7 @@ export default function Meals() {
             daysOfWeek={DAYS_OF_WEEK}
             mealTypes={MEAL_TYPES}
             onQuickAddMeal={handleQuickAddMeal}
+            onAddDayToShopping={handleAddDayToShopping}
           />
         ) : (
           <MealsWeekView
@@ -310,6 +361,7 @@ export default function Meals() {
             onQuickAddMeal={handleQuickAddMeal}
             onEditMeal={handleEditMeal}
             onDeleteMeal={deleteMeal}
+            onAddDayToShopping={handleAddDayToShopping}
           />
         )}
 

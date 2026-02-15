@@ -66,7 +66,7 @@ def get_meal_plans(family_id: str) -> List[Dict[str, Any]]:
         SELECT 
             id::text, family_id::text, day, meal_type, dish_name, 
             description, emoji, added_by::text, added_by_name, 
-            created_at, updated_at
+            ingredients, created_at, updated_at
         FROM {SCHEMA}.family_meal_plans
         WHERE family_id = {escape_string(family_id)}
         ORDER BY 
@@ -99,9 +99,15 @@ def add_meal_plan(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
+        ingredients = data.get('ingredients')
+        ing_sql = 'NULL'
+        if ingredients and isinstance(ingredients, list) and len(ingredients) > 0:
+            ing_items = ', '.join(escape_string(i) for i in ingredients)
+            ing_sql = f"ARRAY[{ing_items}]"
+
         query = f"""
             INSERT INTO {SCHEMA}.family_meal_plans
-            (family_id, day, meal_type, dish_name, description, emoji, added_by, added_by_name)
+            (family_id, day, meal_type, dish_name, description, emoji, added_by, added_by_name, ingredients)
             VALUES (
                 {escape_string(family_id)},
                 {escape_string(data.get('day'))},
@@ -110,10 +116,11 @@ def add_meal_plan(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 {escape_string(data.get('description'))},
                 {escape_string(data.get('emoji'))},
                 {escape_string(data.get('addedBy'))},
-                {escape_string(data.get('addedByName'))}
+                {escape_string(data.get('addedByName'))},
+                {ing_sql}
             )
             RETURNING id::text, family_id::text, day, meal_type, dish_name, 
-                      description, emoji, added_by::text, added_by_name, created_at, updated_at
+                      description, emoji, added_by::text, added_by_name, ingredients, created_at, updated_at
         """
         cur.execute(query)
         meal = dict(cur.fetchone())
@@ -180,9 +187,15 @@ def bulk_add_meal_plans(family_id: str, meals: List[Dict[str, Any]], added_by: s
     
     try:
         for m in meals:
+            ingredients = m.get('ingredients')
+            ing_sql = 'NULL'
+            if ingredients and isinstance(ingredients, list) and len(ingredients) > 0:
+                ing_items = ', '.join(escape_string(i) for i in ingredients)
+                ing_sql = f"ARRAY[{ing_items}]"
+
             query = f"""
                 INSERT INTO {SCHEMA}.family_meal_plans
-                (family_id, day, meal_type, dish_name, description, emoji, added_by, added_by_name)
+                (family_id, day, meal_type, dish_name, description, emoji, added_by, added_by_name, ingredients)
                 VALUES (
                     {escape_string(family_id)},
                     {escape_string(m.get('day'))},
@@ -191,7 +204,8 @@ def bulk_add_meal_plans(family_id: str, meals: List[Dict[str, Any]], added_by: s
                     {escape_string(m.get('description'))},
                     {escape_string(m.get('emoji'))},
                     {escape_string(added_by)},
-                    {escape_string(added_by_name)}
+                    {escape_string(added_by_name)},
+                    {ing_sql}
                 )
             """
             cur.execute(query)

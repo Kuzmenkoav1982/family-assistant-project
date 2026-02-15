@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { MealCard } from '@/components/meals/MealCard';
 
@@ -13,6 +14,7 @@ interface MealPlan {
   addedByName: string;
   addedAt: string;
   emoji?: string;
+  ingredients?: string[];
 }
 
 const MEAL_TYPES: { value: MealPlan['mealType']; label: string; emoji: string }[] = [
@@ -27,6 +29,7 @@ interface MealsWeekViewProps {
   onQuickAddMeal: (day: string, mealType: MealPlan['mealType']) => void;
   onEditMeal: (meal: MealPlan) => void;
   onDeleteMeal: (id: string) => void;
+  onAddDayToShopping?: (day: string) => void;
 }
 
 export function MealsWeekView({
@@ -34,7 +37,8 @@ export function MealsWeekView({
   getMealsByType,
   onQuickAddMeal,
   onEditMeal,
-  onDeleteMeal
+  onDeleteMeal,
+  onAddDayToShopping
 }: MealsWeekViewProps) {
   const [activeDay, setActiveDay] = useState(daysOfWeek[0]?.value || 'monday');
 
@@ -108,14 +112,33 @@ export function MealsWeekView({
         })}
       </div>
 
-      <Button
-        variant="outline"
-        className="w-full border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
-        onClick={() => onQuickAddMeal(activeDay, 'breakfast')}
-      >
-        <Icon name="Plus" size={16} className="mr-2" />
-        Добавить блюдо на {activeDayLabel.toLowerCase()}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
+          onClick={() => onQuickAddMeal(activeDay, 'breakfast')}
+        >
+          <Icon name="Plus" size={16} className="mr-2" />
+          Добавить блюдо
+        </Button>
+        {onAddDayToShopping && (() => {
+          const dayIngCount = MEAL_TYPES.reduce((acc, t) => {
+            const meals = getMealsByType(activeDay, t.value);
+            return acc + meals.reduce((s, m) => s + (m.ingredients?.length || 0), 0);
+          }, 0);
+          return dayIngCount > 0 ? (
+            <Button
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+              onClick={() => onAddDayToShopping(activeDay)}
+            >
+              <Icon name="ShoppingCart" size={16} className="mr-2" />
+              В покупки
+              <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">{dayIngCount}</Badge>
+            </Button>
+          ) : null;
+        })()}
+      </div>
     </div>
   );
 }

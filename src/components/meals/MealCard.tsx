@@ -18,6 +18,7 @@ interface MealPlan {
   addedByName: string;
   addedAt: string;
   emoji?: string;
+  ingredients?: string[];
 }
 
 const MEAL_TYPE_LABELS: Record<string, string> = {
@@ -53,6 +54,7 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [addedToShopping, setAddedToShopping] = useState(false);
   const [addingShopping, setAddingShopping] = useState(false);
+  const [shoppingCount, setShoppingCount] = useState(0);
 
   const bgColor = MEAL_TYPE_BG[meal.mealType] || 'bg-gray-100';
 
@@ -134,22 +136,48 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
     return action === 'check_recipe' ? ['Рецепт генерируется слишком долго. Попробуйте позже.'] : null;
   };
 
+  const parseIngredient = (raw: string): { name: string; quantity: string } => {
+    const cleaned = raw.replace(/^\d+[.)]\s*/, '').trim();
+    const separators = [' — ', ' - ', ' – ', ': '];
+    for (const sep of separators) {
+      const idx = cleaned.indexOf(sep);
+      if (idx > 0) {
+        return { name: cleaned.slice(0, idx).trim(), quantity: cleaned.slice(idx + sep.length).trim() };
+      }
+    }
+    const match = cleaned.match(/^(.+?)\s+(\d+\s*(?:г|гр|кг|мл|л|шт|ст\.?\s*л|ч\.?\s*л|пучок|зубчик|щепотк)\.?\s*.*)$/i);
+    if (match) return { name: match[1].trim(), quantity: match[2].trim() };
+    return { name: cleaned, quantity: '' };
+  };
+
   const addToShopping = async () => {
+    const ingredients = meal.ingredients || [];
+    if (ingredients.length === 0) {
+      alert('У этого блюда нет списка ингредиентов. Сначала сгенерируйте диету через ИИ.');
+      return;
+    }
     setAddingShopping(true);
     const authToken = localStorage.getItem('authToken') || '';
+    let addedCount = 0;
     try {
-      await fetch(SHOPPING_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
-        body: JSON.stringify({
-          name: meal.dishName,
-          category: 'Продукты',
-          quantity: '',
-          priority: 'normal',
-          notes: meal.description || ''
-        }),
-      });
+      for (const raw of ingredients) {
+        const { name, quantity } = parseIngredient(raw);
+        if (!name) continue;
+        await fetch(SHOPPING_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+          body: JSON.stringify({
+            name,
+            category: 'Продукты',
+            quantity,
+            priority: 'normal',
+            notes: `Для блюда: ${meal.dishName}`
+          }),
+        });
+        addedCount++;
+      }
       setAddedToShopping(true);
+      setShoppingCount(addedCount);
     } catch {
       alert('Ошибка добавления в покупки');
     } finally {
@@ -214,6 +242,22 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                 />
               )}
 
+              {meal.ingredients && meal.ingredients.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold mb-2 flex items-center gap-1.5">
+                    <Icon name="ShoppingBasket" size={14} />
+                    Ингредиенты ({meal.ingredients.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {meal.ingredients.map((ing, j) => (
+                      <Badge key={j} variant="secondary" className="text-[10px] px-2 py-0.5">
+                        {ing}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <h4 className="text-xs font-bold mb-2 flex items-center gap-1.5">
                   <Icon name="ChefHat" size={14} />
@@ -262,16 +306,21 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                     )}
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={`text-xs h-8 ${addedToShopping ? 'text-green-600 border-green-300 bg-green-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}`}
-                  onClick={(e) => { e.stopPropagation(); addToShopping(); }}
-                  disabled={addingShopping || addedToShopping}
-                >
-                  <Icon name={addedToShopping ? 'Check' : 'ShoppingCart'} size={14} className="mr-1" />
-                  {addedToShopping ? 'Добавлено' : 'В покупки'}
-                </Button>
+                {meal.ingredients && meal.ingredients.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`text-xs h-8 ${addedToShopping ? 'text-green-600 border-green-300 bg-green-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}`}
+                    onClick={(e) => { e.stopPropagation(); addToShopping(); }}
+                    disabled={addingShopping || addedToShopping}
+                  >
+                    {addingShopping ? (
+                      <><div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-1" />Добавляю...</>
+                    ) : (
+                      <><Icon name={addedToShopping ? 'Check' : 'ShoppingCart'} size={14} className="mr-1" />{addedToShopping ? `${shoppingCount} продуктов` : 'В покупки'}</>
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"

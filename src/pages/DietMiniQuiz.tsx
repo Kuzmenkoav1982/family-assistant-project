@@ -306,7 +306,7 @@ export default function DietMiniQuiz() {
     if (!generatedPlan) return;
     setIsSaving(true);
 
-    const meals: Array<Record<string, string>> = [];
+    const meals: Array<Record<string, unknown>> = [];
     for (const day of generatedPlan.days) {
       const dayValue = dayNameToValue[day.day] || day.day.toLowerCase();
       for (const meal of day.meals) {
@@ -316,6 +316,7 @@ export default function DietMiniQuiz() {
           dishName: meal.name,
           description: `${meal.description || ''} (${meal.calories} ккал, Б:${meal.protein} Ж:${meal.fats} У:${meal.carbs})`,
           emoji: meal.emoji || '🍽',
+          ingredients: meal.ingredients || [],
         });
       }
     }

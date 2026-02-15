@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MealCard } from '@/components/meals/MealCard';
@@ -13,6 +14,7 @@ interface MealPlan {
   addedByName: string;
   addedAt: string;
   emoji?: string;
+  ingredients?: string[];
 }
 
 const MEAL_TYPES_ORDER: { value: MealPlan['mealType']; label: string; emoji: string }[] = [
@@ -31,6 +33,7 @@ interface MealsDayViewProps {
   daysOfWeek: { value: string; label: string }[];
   mealTypes: { value: string; label: string; emoji: string }[];
   onQuickAddMeal?: (day: string, mealType: MealPlan['mealType']) => void;
+  onAddDayToShopping?: (day: string) => void;
 }
 
 export function MealsDayView({
@@ -41,7 +44,8 @@ export function MealsDayView({
   onEditMeal,
   onDeleteMeal,
   daysOfWeek,
-  onQuickAddMeal
+  onQuickAddMeal,
+  onAddDayToShopping
 }: MealsDayViewProps) {
   return (
     <div className="space-y-4">
@@ -99,16 +103,32 @@ export function MealsDayView({
         })}
       </div>
 
-      {onQuickAddMeal && (
-        <Button
-          variant="outline"
-          className="w-full border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
-          onClick={() => onQuickAddMeal(selectedDay, 'breakfast')}
-        >
-          <Icon name="Plus" size={16} className="mr-2" />
-          Добавить блюдо
-        </Button>
-      )}
+      <div className="flex gap-2">
+        {onQuickAddMeal && (
+          <Button
+            variant="outline"
+            className="flex-1 border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
+            onClick={() => onQuickAddMeal(selectedDay, 'breakfast')}
+          >
+            <Icon name="Plus" size={16} className="mr-2" />
+            Добавить блюдо
+          </Button>
+        )}
+        {onAddDayToShopping && (() => {
+          const ingCount = mealsForSelectedDay.reduce((s, m) => s + (m.ingredients?.length || 0), 0);
+          return ingCount > 0 ? (
+            <Button
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+              onClick={() => onAddDayToShopping(selectedDay)}
+            >
+              <Icon name="ShoppingCart" size={16} className="mr-2" />
+              В покупки
+              <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">{ingCount}</Badge>
+            </Button>
+          ) : null;
+        })()}
+      </div>
     </div>
   );
 }
