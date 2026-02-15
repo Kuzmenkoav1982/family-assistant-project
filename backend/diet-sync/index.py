@@ -42,12 +42,25 @@ def get_user_info(event):
         if not row:
             return None, None
         user_id = row[0]
-        cur.execute("SELECT family_id FROM users WHERE id = %d" % user_id)
+        cur.execute("SELECT family_id FROM users WHERE id = '%s'" % str(user_id).replace("'", "''"))
         fam_row = cur.fetchone()
         family_id = fam_row[0] if fam_row else None
         return user_id, family_id
     finally:
         conn.close()
+
+
+def get_food_diary_user_id(conn, uuid_user_id):
+    """Получить числовой user_id для food_diary по UUID.
+    food_diary.user_id — integer, а auth использует UUID.
+    Ищем существующий маппинг или создаём запись в food_diary с user_id=1 (legacy)."""
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM food_diary WHERE notes LIKE '%%uuid:%s%%' LIMIT 1" % str(uuid_user_id).replace("'", "''"))
+    row = cur.fetchone()
+    if row:
+        cur.execute("SELECT user_id FROM food_diary WHERE id = %d" % row[0])
+        return cur.fetchone()[0]
+    return 1
 
 
 def handler(event, context):
@@ -91,8 +104,8 @@ def save_recipe(user_id, family_id, body):
                    dp.plan_type, dp.program_id
             FROM diet_meals dm
             JOIN diet_plans dp ON dm.plan_id = dp.id
-            WHERE dm.id = %d AND dp.user_id = %d
-        """ % (int(meal_id), user_id))
+            WHERE dm.id = %d AND dp.user_id = '%s'
+        """ % (int(meal_id), str(user_id).replace("'", "''")))
         row = cur.fetchone()
         if not row:
             return respond(404, {'error': 'Блюдо не найдено'})
@@ -153,8 +166,8 @@ def add_to_shopping(user_id, family_id, body):
         cur.execute("""
             SELECT dm.id FROM diet_meals dm
             JOIN diet_plans dp ON dm.plan_id = dp.id
-            WHERE dm.id IN (%s) AND dp.user_id = %d
-        """ % (ids_str, user_id))
+            WHERE dm.id IN (%s) AND dp.user_id = '%s'
+        """ % (ids_str, str(user_id).replace("'", "''")))
         valid_ids = [r[0] for r in cur.fetchall()]
 
         if not valid_ids:
@@ -224,8 +237,8 @@ def log_meal_bju(user_id, body):
             SELECT dm.title, dm.meal_type, dm.calories, dm.protein_g, dm.fat_g, dm.carbs_g
             FROM diet_meals dm
             JOIN diet_plans dp ON dm.plan_id = dp.id
-            WHERE dm.id = %d AND dp.user_id = %d
-        """ % (int(meal_id), user_id))
+            WHERE dm.id = %d AND dp.user_id = '%s'
+        """ % (int(meal_id), str(user_id).replace("'", "''")))
         row = cur.fetchone()
         if not row:
             return respond(404, {'error': 'Блюдо не найдено'})
@@ -238,11 +251,13 @@ def log_meal_bju(user_id, body):
         }
         fd_type = meal_type_map.get(meal_type, 'lunch')
 
+        fd_user_id = get_food_diary_user_id(conn, user_id)
+
         cur.execute("""
             INSERT INTO food_diary (user_id, date, meal_type, product_name, amount, calories, protein, fats, carbs, notes)
             VALUES (%d, '%s', '%s', '%s', 1, %s, %s, %s, %s, 'Из плана диеты')
         """ % (
-            user_id,
+            fd_user_id,
             date.today().isoformat(),
             fd_type,
             title.replace("'", "''")[:255],
@@ -281,9 +296,9 @@ def save_week_menu(user_id, body):
                    dm.protein_g, dm.fat_g, dm.carbs_g
             FROM diet_meals dm
             JOIN diet_plans dp ON dm.plan_id = dp.id
-            WHERE dm.plan_id = %d AND dp.user_id = %d
+            WHERE dm.plan_id = %d AND dp.user_id = '%s'
             ORDER BY dm.day_number, dm.meal_time
-        """ % (int(plan_id), user_id))
+        """ % (int(plan_id), str(user_id).replace("'", "''")))
         meals = cur.fetchall()
 
         if not meals:
@@ -292,11 +307,11 @@ def save_week_menu(user_id, body):
         day_map = {1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday',
                    5: 'friday', 6: 'saturday', 7: 'sunday'}
 
-        cur.execute("SELECT token FROM sessions WHERE user_id = %d AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1" % user_id)
+        cur.execute("SELECT token FROM sessions WHERE user_id = '%s' AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1" % str(user_id).replace("'", "''"))
         token_row = cur.fetchone()
         auth_token = token_row[0] if token_row else ''
 
-        cur.execute("SELECT family_id FROM users WHERE id = %d" % user_id)
+        cur.execute("SELECT family_id FROM users WHERE id = '%s'" % str(user_id).replace("'", "''"))
         fam_row = cur.fetchone()
         fam_id = fam_row[0] if fam_row else None
 
@@ -309,12 +324,12 @@ def save_week_menu(user_id, body):
             description = f'{title}. {cal} ккал, Б:{prot} Ж:{fat} У:{carbs}'
             cur.execute("""
                 INSERT INTO family_meal_plans (family_id, day, meal_type, dish_name, description, emoji, created_by)
-                VALUES (%d, '%s', '%s', '%s', '%s', '🍽', %d)
+                VALUES (%d, '%s', '%s', '%s', '%s', '🍽', '%s')
             """ % (
                 int(fam_id), day_name, mtype[:20],
                 title.replace("'", "''")[:255],
                 description.replace("'", "''")[:500],
-                user_id,
+                str(user_id),
             ))
             added += 1
 

@@ -42,25 +42,8 @@ export function NutritionWidget() {
 
   const loadNutritionData = async () => {
     try {
-      // Try multiple sources for user ID
-      let userId = 1; // Default fallback
-      
-      // First try authUser
-      const authUserStr = localStorage.getItem('authUser');
-      if (authUserStr) {
-        try {
-          const authUser = JSON.parse(authUserStr);
-          userId = authUser.member_id || authUser.id || userId;
-          console.log('[NutritionWidget] Using authUser ID:', userId);
-        } catch (e) {
-          console.error('[NutritionWidget] Failed to parse authUser:', e);
-        }
-      } else {
-        console.log('[NutritionWidget] No authUser found, using default ID:', userId);
-      }
-      
       const today = new Date().toISOString().split('T')[0];
-      const url = `${NUTRITION_API_URL}/?action=analytics&user_id=${userId}&date=${today}`;
+      const url = `${NUTRITION_API_URL}/?action=analytics&user_id=all&date=${today}`;
       
       console.log('[NutritionWidget] Fetching:', url);
 
