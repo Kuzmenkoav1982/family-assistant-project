@@ -42,7 +42,7 @@ def get_user_info(event):
         if not row:
             return None, None
         user_id = row[0]
-        cur.execute("SELECT family_id FROM users WHERE id = '%s'" % str(user_id).replace("'", "''"))
+        cur.execute("SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1" % str(user_id).replace("'", "''"))
         fam_row = cur.fetchone()
         family_id = fam_row[0] if fam_row else None
         return user_id, family_id
@@ -311,7 +311,7 @@ def save_week_menu(user_id, body):
         token_row = cur.fetchone()
         auth_token = token_row[0] if token_row else ''
 
-        cur.execute("SELECT family_id FROM users WHERE id = '%s'" % str(user_id).replace("'", "''"))
+        cur.execute("SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1" % str(user_id).replace("'", "''"))
         fam_row = cur.fetchone()
         fam_id = fam_row[0] if fam_row else None
 
