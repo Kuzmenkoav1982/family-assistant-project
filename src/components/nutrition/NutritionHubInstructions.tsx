@@ -29,8 +29,9 @@ export default function NutritionHubInstructions() {
                   <div>
                     <p className="font-medium mb-1 text-sm">Что здесь есть?</p>
                     <p className="text-xs leading-relaxed">
-                      Полный контроль питания семьи: персональные ИИ-диеты, готовые программы (кето, веган, медицинские столы), 
-                      счётчик калорий, рецепты из ваших продуктов и трекинг прогресса.
+                      Полный контроль питания семьи: персональные ИИ-диеты на 7/14/30 дней, готовые программы (кето, веган, медицинские столы), 
+                      трекинг прогресса с графиками веса, ИИ-мотивация, отслеживание активности и шагов, SOS-поддержка, 
+                      рецепты из ваших продуктов и интеграция с разделом Здоровье.
                     </p>
                   </div>
 
@@ -39,19 +40,23 @@ export default function NutritionHubInstructions() {
                     <div className="space-y-1.5 text-xs">
                       <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
                         <p className="font-medium">1. ИИ-Диета по данным</p>
-                        <p className="text-[11px] text-green-700">Заполните анкету о здоровье и целях — ИИ составит план питания на неделю</p>
+                        <p className="text-[11px] text-green-700">Заполните анкету о здоровье и целях — ИИ составит персональный план на 7, 14 или 30 дней</p>
                       </div>
                       <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
                         <p className="font-medium">2. Готовые режимы питания</p>
                         <p className="text-[11px] text-green-700">6 проверенных программ: Стол 1, 5, 9, Кето, Веган, Облегчённое</p>
                       </div>
                       <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
-                        <p className="font-medium">3. Рецепт из продуктов</p>
+                        <p className="font-medium">3. Прогресс диеты</p>
+                        <p className="text-[11px] text-green-700">Трекинг веса, стрик, ИИ-мотивация, SOS-кнопка, анализ прогресса, активность, итоговый отчёт</p>
+                      </div>
+                      <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
+                        <p className="font-medium">4. Рецепт из продуктов</p>
                         <p className="text-[11px] text-green-700">Укажите что есть дома — ИИ предложит варианты с рецептами</p>
                       </div>
                       <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
-                        <p className="font-medium">4. Прогресс диеты</p>
-                        <p className="text-[11px] text-green-700">Трекинг веса, графики, SOS-кнопка и мотивация от ИИ</p>
+                        <p className="font-medium">5. Уведомления</p>
+                        <p className="text-[11px] text-green-700">7 типов напоминаний: вес, приёмы пищи, вода, мотивация, отчёты, SOS и завершение плана</p>
                       </div>
                     </div>
                   </div>
@@ -60,7 +65,7 @@ export default function NutritionHubInstructions() {
                     <p className="font-medium text-xs mb-0.5">Стоимость ИИ-сервисов</p>
                     <p className="text-[11px]">
                       Генерация диеты — 17 руб, фото блюда — 7 руб, рецепт из продуктов — 5 руб. 
-                      Оплата из семейного кошелька.
+                      ИИ-мотивация и SOS-поддержка — бесплатно. Оплата из семейного кошелька.
                     </p>
                   </div>
 
