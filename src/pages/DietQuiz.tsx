@@ -348,7 +348,12 @@ export default function DietQuiz() {
         body: JSON.stringify({
           action: 'save_plan',
           plan_type: 'ai_personal',
-          plan: { daily_calories: plan.daily_calories },
+          plan: {
+            daily_calories: plan.daily_calories,
+            daily_water_ml: (plan as Record<string, unknown>).daily_water_ml || null,
+            daily_steps: (plan as Record<string, unknown>).daily_steps || null,
+            exercise_recommendation: (plan as Record<string, unknown>).exercise_recommendation || null,
+          },
           quiz_data: data,
           meals: allMeals,
         }),

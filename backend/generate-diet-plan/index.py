@@ -668,6 +668,9 @@ def build_program_prompt(data: Dict[str, Any], duration_days: int = 7) -> str:
   "daily_protein": число,
   "daily_fats": число,
   "daily_carbs": число,
+  "daily_water_ml": число (рекомендуемый объём воды в мл),
+  "daily_steps": число (рекомендуемое количество шагов),
+  "exercise_recommendation": "Текст рекомендации по физической активности (2-3 предложения)",
   "days": [
     {{
       "day": "День 1",
@@ -694,7 +697,8 @@ def build_program_prompt(data: Dict[str, Any], duration_days: int = 7) -> str:
 Каждый день должен содержать 4 приёма: breakfast, lunch, dinner, snack.
 Строго соблюдай правила программы "{program_name}".
 Блюда должны быть разнообразными каждый день. Указывай граммовки в ингредиентах.
-Рассчитай порции на {servings} чел."""
+Рассчитай порции на {servings} чел.
+Рассчитай daily_water_ml, daily_steps и exercise_recommendation подходящие для данной программы."""
 
 
 def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: int = 7) -> str:
@@ -767,6 +771,9 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
   "daily_protein": число,
   "daily_fats": число,
   "daily_carbs": число,
+  "daily_water_ml": число (рекомендуемый объём воды в мл),
+  "daily_steps": число (рекомендуемое количество шагов),
+  "exercise_recommendation": "Текст рекомендации по физической активности (2-3 предложения: какие упражнения, сколько раз в неделю, продолжительность)",
   "days": [
     {{
       "day": "День 1",
@@ -794,6 +801,7 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
 Калорийность должна соответствовать цели (похудение/набор/поддержание).
 Учти все заболевания, аллергии и предпочтения. Блюда должны быть разнообразными каждый день.
 Указывай граммовки в ингредиентах (формат: "продукт — 100г").
+Рассчитай daily_water_ml, daily_steps и exercise_recommendation с учётом пола, веса, возраста и уровня активности.
 {"СТРОГО соблюдай ограничения медицинских столов! Ни одно запрещённое блюдо/продукт не должно попасть в план." if med_tables else ""}"""
 
 

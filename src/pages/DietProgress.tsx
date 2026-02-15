@@ -105,6 +105,14 @@ export default function DietProgress() {
   const [markingMeal, setMarkingMeal] = useState<number | null>(null);
   const [mealMenu, setMealMenu] = useState<number | null>(null);
 
+  const [showActivity, setShowActivity] = useState(false);
+  const [actSteps, setActSteps] = useState('');
+  const [actType, setActType] = useState('');
+  const [actDuration, setActDuration] = useState('');
+  const [actNote, setActNote] = useState('');
+  const [savingActivity, setSavingActivity] = useState(false);
+  const [todayActivity, setTodayActivity] = useState<{ steps: number; exercise_type: string; exercise_duration_min: number; exercise_note: string; calories_burned: number } | null>(null);
+
   const [analysis, setAnalysis] = useState<{
     has_analysis: boolean;
     recommendation: string;
@@ -296,6 +304,56 @@ export default function DietProgress() {
     } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
     finally { setAdjusting(false); }
   };
+
+  const fetchTodayActivity = async () => {
+    try {
+      const res = await fetch(`${API_URL}?action=today_activity`, { headers: { 'X-Auth-Token': authToken } });
+      const json = await res.json();
+      if (json.activity) {
+        setTodayActivity(json.activity);
+        setActSteps(String(json.activity.steps || ''));
+        setActType(json.activity.exercise_type || '');
+        setActDuration(String(json.activity.exercise_duration_min || ''));
+        setActNote(json.activity.exercise_note || '');
+      }
+    } catch { /* skip */ }
+  };
+
+  const handleSaveActivity = async () => {
+    setSavingActivity(true);
+    try {
+      const estimatedCalories = Math.round((parseInt(actSteps) || 0) * 0.04 + (parseInt(actDuration) || 0) * 7);
+      const res = await fetch(API_URL, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          action: 'log_activity',
+          plan_id: data?.plan?.id,
+          steps: parseInt(actSteps) || 0,
+          exercise_type: actType,
+          exercise_duration_min: parseInt(actDuration) || 0,
+          exercise_note: actNote,
+          calories_burned: estimatedCalories,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: 'Активность записана!' });
+        setTodayActivity({
+          steps: parseInt(actSteps) || 0,
+          exercise_type: actType,
+          exercise_duration_min: parseInt(actDuration) || 0,
+          exercise_note: actNote,
+          calories_burned: estimatedCalories,
+        });
+        setShowActivity(false);
+      }
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+    finally { setSavingActivity(false); }
+  };
+
+  useEffect(() => {
+    if (data?.has_plan) fetchTodayActivity();
+  }, [data?.has_plan]);
 
   const fetchNotifSettings = async () => {
     setLoadingNotif(true);
@@ -759,28 +817,102 @@ export default function DietProgress() {
           </Card>
         )}
 
-        {plan?.exercise_recommendation && (
+        {(plan?.exercise_recommendation || plan?.daily_steps) && (
           <Card className="bg-blue-50/50 border-blue-200">
             <CardContent className="p-4">
-              <h3 className="font-bold mb-2 flex items-center gap-2 text-blue-900">
-                <Icon name="Footprints" size={18} className="text-blue-600" />
-                Рекомендации
-              </h3>
-              <p className="text-sm text-blue-800">{plan.exercise_recommendation}</p>
-              {plan.daily_steps && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-blue-700">
-                  <Icon name="Footprints" size={14} />
-                  <span>{plan.daily_steps.toLocaleString()} шагов/день</span>
-                </div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-bold flex items-center gap-2 text-blue-900">
+                  <Icon name="Footprints" size={18} className="text-blue-600" />
+                  Активность
+                </h3>
+                <Button size="sm" variant="outline" className="text-xs h-7 border-blue-300 text-blue-700" onClick={() => setShowActivity(true)}>
+                  <Icon name="Plus" size={12} className="mr-1" />
+                  {todayActivity ? 'Обновить' : 'Записать'}
+                </Button>
+              </div>
+              {plan.exercise_recommendation && (
+                <p className="text-sm text-blue-800 mb-2">{plan.exercise_recommendation}</p>
               )}
+              <div className="grid grid-cols-3 gap-2">
+                {plan.daily_steps && (
+                  <div className="text-center p-2 rounded-lg bg-white/70">
+                    <div className="text-lg font-bold text-blue-700">{todayActivity?.steps?.toLocaleString() || 0}</div>
+                    <div className="text-[10px] text-muted-foreground">/ {plan.daily_steps.toLocaleString()} шагов</div>
+                    <Progress value={Math.min(100, ((todayActivity?.steps || 0) / plan.daily_steps) * 100)} className="h-1 mt-1" />
+                  </div>
+                )}
+                <div className="text-center p-2 rounded-lg bg-white/70">
+                  <div className="text-lg font-bold text-blue-700">{todayActivity?.exercise_duration_min || 0}</div>
+                  <div className="text-[10px] text-muted-foreground">мин тренировки</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-white/70">
+                  <div className="text-lg font-bold text-orange-600">{todayActivity?.calories_burned || 0}</div>
+                  <div className="text-[10px] text-muted-foreground">ккал сожжено</div>
+                </div>
+              </div>
               {plan.daily_water_ml && (
-                <div className="mt-1 flex items-center gap-2 text-sm text-blue-700">
+                <div className="mt-2 flex items-center gap-2 text-sm text-blue-700">
                   <Icon name="Droplets" size={14} />
                   <span>{(plan.daily_water_ml / 1000).toFixed(1)} л воды/день</span>
                 </div>
               )}
             </CardContent>
           </Card>
+        )}
+
+        {showActivity && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+            <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Icon name="Footprints" size={20} className="text-blue-600" />
+                    Активность сегодня
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => setShowActivity(false)}>
+                    <Icon name="X" size={18} />
+                  </Button>
+                </div>
+                <div>
+                  <Label className="text-sm">Шаги</Label>
+                  <Input type="number" placeholder="0" value={actSteps} onChange={e => setActSteps(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-sm">Тип тренировки</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-1">
+                    {[
+                      { id: 'walking', label: 'Ходьба', icon: '🚶' },
+                      { id: 'running', label: 'Бег', icon: '🏃' },
+                      { id: 'gym', label: 'Зал', icon: '🏋️' },
+                      { id: 'cycling', label: 'Вело', icon: '🚴' },
+                      { id: 'swimming', label: 'Плавание', icon: '🏊' },
+                      { id: 'yoga', label: 'Йога', icon: '🧘' },
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        className={`p-2 rounded-lg border text-center text-xs transition-all ${actType === t.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                        onClick={() => setActType(t.id)}
+                      >
+                        <div className="text-lg">{t.icon}</div>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm">Продолжительность (мин)</Label>
+                  <Input type="number" placeholder="0" value={actDuration} onChange={e => setActDuration(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-sm">Заметка (необязательно)</Label>
+                  <Textarea rows={2} placeholder="Как прошла тренировка..." value={actNote} onChange={e => setActNote(e.target.value)} />
+                </div>
+                <Button className="w-full bg-blue-600" onClick={handleSaveActivity} disabled={savingActivity}>
+                  {savingActivity ? 'Сохраняю...' : 'Сохранить активность'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         <Card>

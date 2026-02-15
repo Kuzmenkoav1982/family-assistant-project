@@ -75,6 +75,8 @@ def handler(event, context):
             return get_motivation(user_id, plan_id, time_of_day)
         elif action == 'notification_settings':
             return get_notification_settings(user_id)
+        elif action == 'today_activity':
+            return get_today_activity(user_id, plan_id)
 
     if method == 'POST':
         raw = event.get('body') or '{}'
@@ -97,6 +99,8 @@ def handler(event, context):
             return adjust_plan(user_id, body)
         elif action == 'save_notification_settings':
             return save_notification_settings(user_id, body)
+        elif action == 'log_activity':
+            return log_activity(user_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -359,6 +363,10 @@ def save_plan(user_id, body):
         end = start + timedelta(days=duration - 1)
 
         daily_cal = plan_data.get('daily_calories', 1800)
+        daily_water = plan_data.get('daily_water_ml')
+        daily_steps = plan_data.get('daily_steps')
+        exercise_rec = plan_data.get('exercise_recommendation')
+
         target_loss = None
         if quiz_data.get('current_weight_kg') and quiz_data.get('target_weight_kg'):
             try:
@@ -368,14 +376,18 @@ def save_plan(user_id, body):
 
         program_sql = "NULL" if not program_id else str(int(program_id))
         target_sql = "NULL" if not target_loss else str(target_loss)
+        water_sql = str(int(daily_water)) if daily_water else "NULL"
+        steps_sql = str(int(daily_steps)) if daily_steps else "NULL"
+        exercise_sql = "'%s'" % str(exercise_rec).replace("'", "''") if exercise_rec else "NULL"
 
         cur.execute("""
             INSERT INTO diet_plans (user_id, plan_type, start_date, end_date, duration_days,
-                target_weight_loss_kg, target_calories_daily, program_id, status)
-            VALUES ('%s', '%s', '%s', '%s', %d, %s, %d, %s, 'active')
+                target_weight_loss_kg, target_calories_daily, program_id, status,
+                daily_water_ml, daily_steps, exercise_recommendation)
+            VALUES ('%s', '%s', '%s', '%s', %d, %s, %d, %s, 'active', %s, %s, %s)
             RETURNING id
         """ % (str(user_id), plan_type.replace("'", ""), str(start), str(end), duration,
-               target_sql, int(daily_cal), program_sql))
+               target_sql, int(daily_cal), program_sql, water_sql, steps_sql, exercise_sql))
         plan_id = cur.fetchone()[0]
 
         day_names = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -1081,5 +1093,77 @@ def save_notification_settings(user_id, body):
 
         conn.commit()
         return respond(200, {'success': True, 'message': 'Настройки сохранены'})
+    finally:
+        conn.close()
+
+
+def get_today_activity(user_id, plan_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        if not plan_id:
+            cur.execute("""
+                SELECT id FROM diet_plans WHERE user_id = '%s' AND status = 'active'
+                ORDER BY created_at DESC LIMIT 1
+            """ % str(user_id))
+            row = cur.fetchone()
+            if not row:
+                return respond(200, {'activity': None})
+            plan_id = row[0]
+
+        cur.execute("""
+            SELECT steps, exercise_type, exercise_duration_min, exercise_note, calories_burned
+            FROM diet_activity_log
+            WHERE user_id = '%s' AND plan_id = %d AND log_date = CURRENT_DATE
+        """ % (str(user_id), int(plan_id)))
+        row = cur.fetchone()
+        if not row:
+            return respond(200, {'activity': None})
+
+        return respond(200, {'activity': {
+            'steps': row[0], 'exercise_type': row[1],
+            'exercise_duration_min': row[2], 'exercise_note': row[3],
+            'calories_burned': row[4]
+        }})
+    finally:
+        conn.close()
+
+
+def log_activity(user_id, body):
+    plan_id = body.get('plan_id')
+    steps = body.get('steps', 0)
+    exercise_type = body.get('exercise_type', '')
+    exercise_duration = body.get('exercise_duration_min', 0)
+    exercise_note = body.get('exercise_note', '')
+    calories_burned = body.get('calories_burned', 0)
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        if not plan_id:
+            cur.execute("""
+                SELECT id FROM diet_plans WHERE user_id = '%s' AND status = 'active'
+                ORDER BY created_at DESC LIMIT 1
+            """ % str(user_id))
+            row = cur.fetchone()
+            if not row:
+                return respond(400, {'error': 'Нет активного плана'})
+            plan_id = row[0]
+
+        ex_type_safe = exercise_type.replace("'", "''")[:100] if exercise_type else ''
+        ex_note_safe = exercise_note.replace("'", "''")[:500] if exercise_note else ''
+
+        cur.execute("""
+            INSERT INTO diet_activity_log (user_id, plan_id, log_date, steps, exercise_type, exercise_duration_min, exercise_note, calories_burned)
+            VALUES ('%s', %d, CURRENT_DATE, %d, '%s', %d, '%s', %d)
+            ON CONFLICT (user_id, plan_id, log_date)
+            DO UPDATE SET steps = %d, exercise_type = '%s', exercise_duration_min = %d,
+                exercise_note = '%s', calories_burned = %d
+        """ % (
+            str(user_id), int(plan_id), int(steps), ex_type_safe, int(exercise_duration), ex_note_safe, int(calories_burned),
+            int(steps), ex_type_safe, int(exercise_duration), ex_note_safe, int(calories_burned)
+        ))
+        conn.commit()
+        return respond(200, {'success': True, 'message': 'Активность записана'})
     finally:
         conn.close()

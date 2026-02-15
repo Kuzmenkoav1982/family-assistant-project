@@ -293,7 +293,12 @@ export default function DietMiniQuiz() {
         headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken || '' },
         body: JSON.stringify({
           action: 'save_plan', plan_type: 'preset_program',
-          plan: { daily_calories: plan.daily_calories },
+          plan: {
+            daily_calories: plan.daily_calories,
+            daily_water_ml: (plan as Record<string, unknown>).daily_water_ml || null,
+            daily_steps: (plan as Record<string, unknown>).daily_steps || null,
+            exercise_recommendation: (plan as Record<string, unknown>).exercise_recommendation || null,
+          },
           quiz_data: {}, meals: allMeals,
         }),
       });
