@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime, timedelta
+import requests
+from datetime import datetime, date, timedelta
 from typing import Dict, Any, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -300,10 +301,113 @@ def check_leisure_activities(cur, user_id: str) -> List[Dict[str, str]]:
     
     return notifications
 
+def call_yandex_gpt_lite(system_prompt: str, user_prompt: str) -> str:
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    if not api_key or not folder_id:
+        return ''
+    payload = {
+        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+        'completionOptions': {'stream': False, 'temperature': 0.8, 'maxTokens': 200},
+        'messages': [
+            {'role': 'system', 'text': system_prompt},
+            {'role': 'user', 'text': user_prompt}
+        ]
+    }
+    try:
+        resp = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'},
+            json=payload, timeout=15
+        )
+        if resp.status_code == 200:
+            return resp.json().get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+    except Exception as e:
+        print(f"[ERROR] YandexGPT call failed: {e}")
+    return ''
+
+
+def check_diet_motivation(cur, user_id: str) -> List[Dict[str, str]]:
+    notifications = []
+    user_id_safe = escape_sql_string(user_id)
+    schema = 't_p5815085_family_assistant_pro'
+
+    try:
+        cur.execute(f"""
+            SELECT id, start_date, duration_days, target_weight_loss_kg, target_calories_daily, plan_type
+            FROM {schema}.diet_plans
+            WHERE user_id = '{user_id_safe}' AND status = 'active'
+            ORDER BY created_at DESC LIMIT 1
+        """)
+        plan = cur.fetchone()
+        if not plan:
+            return notifications
+
+        plan_id = plan['id']
+        days_on = (date.today() - plan['start_date']).days + 1
+        duration = plan['duration_days'] or 7
+
+        if days_on > duration:
+            return notifications
+
+        cur.execute(f"""
+            SELECT COUNT(*) as cnt FROM {schema}.diet_motivation_log
+            WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
+            AND created_at::date = CURRENT_DATE
+        """)
+        already_sent = cur.fetchone()
+        if already_sent and already_sent['cnt'] > 0:
+            return notifications
+
+        cur.execute(f"SELECT weight_kg FROM {schema}.diet_weight_log WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} ORDER BY measured_at ASC LIMIT 1")
+        first_w = cur.fetchone()
+        cur.execute(f"SELECT weight_kg FROM {schema}.diet_weight_log WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} ORDER BY measured_at DESC LIMIT 1")
+        last_w = cur.fetchone()
+        lost = round(float(first_w['weight_kg']) - float(last_w['weight_kg']), 1) if first_w and last_w else 0
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM {schema}.diet_meals WHERE plan_id = {plan_id} AND completed = TRUE")
+        done = cur.fetchone()['cnt']
+        cur.execute(f"SELECT COUNT(*) as cnt FROM {schema}.diet_meals WHERE plan_id = {plan_id}")
+        total = cur.fetchone()['cnt']
+        adherence = round(done / total * 100) if total > 0 else 0
+
+        hour = datetime.now().hour
+        time_label = "утреннее" if hour < 14 else "вечернее"
+        time_of_day = "morning" if hour < 14 else "evening"
+
+        system = "Ты заботливый тренер-диетолог. Пиши тепло и кратко, 1-2 предложения. Без смайликов."
+        user_prompt = f"""Напиши короткое {time_label} мотивационное push-уведомление для человека на диете.
+День: {days_on} из {duration}. Сброшено: {lost} кг. Соблюдение: {adherence}%.
+{'Утро — задай настрой.' if time_of_day == 'morning' else 'Вечер — похвали за день.'}"""
+
+        ai_text = call_yandex_gpt_lite(system, user_prompt)
+
+        if not ai_text:
+            if time_of_day == 'morning':
+                ai_text = f"День {days_on} твоей диеты! " + (f"Уже -{lost} кг — продолжай в том же духе!" if lost > 0 else "Каждый день приближает к цели!")
+            else:
+                ai_text = f"День {days_on} позади! " + (f"Ты уже сбросил {lost} кг — молодец!" if lost > 0 else "Отдыхай, завтра продолжим!")
+
+        cur.execute(f"""
+            INSERT INTO {schema}.diet_motivation_log (user_id, plan_id, message_type, message_text)
+            VALUES ('{user_id_safe}', {plan_id}, '{time_of_day}', '{escape_sql_string(ai_text)}')
+        """)
+
+        notifications.append({
+            'title': 'Диета — день %d' % days_on,
+            'message': ai_text
+        })
+
+    except Exception as e:
+        print(f"[ERROR] Diet motivation check failed: {e}")
+
+    return notifications
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Функция для автоматической отправки напоминаний по расписанию
-    Проверяет важные даты, события, задачи и отправляет push-уведомления
+    Проверяет важные даты, события, задачи, диету и отправляет push-уведомления
     """
     try:
         print("[INFO] Starting scheduled reminders check...")
@@ -358,20 +462,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             all_notifications.extend(check_medication_schedule(cur, family_id))
             all_notifications.extend(check_urgent_tasks(cur, family_id))
             
-            # Добавляем проверку досуговых активностей для каждого пользователя семьи
             try:
                 cur.execute(f"SELECT user_id FROM t_p5815085_family_assistant_pro.family_members WHERE family_id = '{escape_sql_string(family_id)}'")
                 family_users = cur.fetchall()
                 for user in family_users:
                     all_notifications.extend(check_leisure_activities(cur, user['user_id']))
+                    all_notifications.extend(check_diet_motivation(cur, user['user_id']))
             except:
                 pass
             all_notifications.extend(check_urgent_shopping(cur, family_id))
             all_notifications.extend(check_new_votings(cur, family_id))
             
+            conn.commit()
+            
             print(f"[INFO] Found {len(all_notifications)} notifications for family {family_id}")
             
-            # Отправляем уведомления (максимум 3 за раз, чтобы не спамить)
             for notification in all_notifications[:3]:
                 success = send_push_notification(
                     subscription_data,
