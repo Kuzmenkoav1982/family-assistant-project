@@ -101,9 +101,10 @@ export default function RecipeFromProducts() {
     setExpandedDish(null);
 
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const res = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'recipe_from_products',
           products,
@@ -114,7 +115,9 @@ export default function RecipeFromProducts() {
       });
       const data = await res.json();
 
-      if (data.status === 'started' && data.operationId) {
+      if (res.status === 402 || data.error === 'insufficient_funds') {
+        setError(`Недостаточно средств на балансе. ${data.message || 'Пополните кошелёк.'}`);
+      } else if (data.status === 'started' && data.operationId) {
         const result = await pollOperation(data.operationId);
         if (result && result.length > 0) {
           setDishes(result);
@@ -136,15 +139,17 @@ export default function RecipeFromProducts() {
     setLoadingPhotos(prev => ({ ...prev, [idx]: true }));
 
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const res = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'generate_photo',
           dishName: dish.name,
           description: dish.description,
         }),
       });
+      if (res.status === 402) { setLoadingPhotos(prev => ({ ...prev, [idx]: false })); return; }
       const data = await res.json();
 
       if (data.status === 'started' && data.operationId) {

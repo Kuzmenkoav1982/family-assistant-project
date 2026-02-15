@@ -50,9 +50,10 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
     setLoadingRecipe(true);
 
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const res = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'recipe',
           dishName: meal.name,
@@ -61,7 +62,9 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
       });
       const data = await res.json();
 
-      if (data.status === 'started' && data.operationId) {
+      if (res.status === 402) {
+        setRecipe(['Недостаточно средств на балансе. Пополните кошелёк.']);
+      } else if (data.status === 'started' && data.operationId) {
         const steps = await pollRecipe(data.operationId);
         if (steps) setRecipe(steps);
       } else if (data.recipe) {
@@ -99,15 +102,17 @@ export default function MealRecipeCard({ meal, accentColor = 'green' }: Props) {
     setLoadingPhoto(true);
 
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const res = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'generate_photo',
           dishName: meal.name,
           description: meal.description,
         }),
       });
+      if (res.status === 402) return;
       const data = await res.json();
 
       if (data.status === 'started' && data.operationId) {

@@ -95,15 +95,22 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
   const generateInvitationImage = async () => {
     setGeneratingImage(true);
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const response = await fetch(DIET_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'greeting_photo',
           eventTitle: event.title,
           theme: event.theme || '',
         })
       });
+
+      if (response.status === 402) {
+        toast({ title: 'Недостаточно средств', description: 'Пополните кошелёк для генерации открытки', variant: 'destructive' });
+        setGeneratingImage(false);
+        return;
+      }
 
       const result = await response.json();
       if (result.status === 'started' && result.operationId) {

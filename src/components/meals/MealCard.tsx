@@ -57,15 +57,17 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
     if (recipe) return;
     setLoadingRecipe(true);
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const res = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'recipe',
           dishName: meal.dishName,
           ingredients: [],
         }),
       });
+      if (res.status === 402) { setRecipe(['Недостаточно средств. Пополните кошелёк.']); return; }
       const data = await res.json();
       if (data.status === 'started' && data.operationId) {
         const steps = await pollResult(data.operationId, 'check_recipe', 'recipe');
@@ -84,15 +86,17 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
     if (photoUrl || loadingPhoto) return;
     setLoadingPhoto(true);
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const res = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'generate_photo',
           dishName: meal.dishName,
           description: meal.description || '',
         }),
       });
+      if (res.status === 402) return;
       const data = await res.json();
       if (data.status === 'started' && data.operationId) {
         const url = await pollResult(data.operationId, 'check_photo', 'imageUrl');

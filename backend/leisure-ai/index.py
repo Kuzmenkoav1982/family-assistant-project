@@ -1,19 +1,75 @@
 import json
 import os
 import requests
+import psycopg2
 from typing import Optional
+
+
+def get_db():
+    return psycopg2.connect(os.environ['DATABASE_URL'])
+
+
+def get_user_and_family(event):
+    hdrs = event.get('headers', {})
+    token = hdrs.get('X-Auth-Token') or hdrs.get('x-auth-token', '')
+    if not token:
+        return None, None
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT s.user_id FROM sessions s WHERE s.token = '%s' AND s.expires_at > NOW()"
+            % token.replace("'", "''")
+        )
+        row = cur.fetchone()
+        if not row:
+            return None, None
+        user_id = row[0]
+        cur.execute(
+            "SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1" % str(user_id)
+        )
+        fm = cur.fetchone()
+        return user_id, fm[0] if fm else None
+    finally:
+        conn.close()
+
+
+def wallet_spend(user_id, family_id, amount, reason, description):
+    if not family_id:
+        return {'error': 'no_family'}
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % str(family_id)
+        )
+        row = cur.fetchone()
+        if not row:
+            return {'error': 'insufficient_funds', 'balance': 0, 'required': amount}
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute(
+            "UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d"
+            % (amount, wallet_id)
+        )
+        cur.execute("""
+            INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id)
+            VALUES (%d, 'spend', %s, '%s', '%s', '%s')
+        """ % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
 
 def handler(event: dict, context) -> dict:
     '''ИИ-помощник для поиска и рекомендации мест для семейного досуга'''
     
-    # Логируем входящий запрос для отладки
     print(f"[INFO] Request method: {event.get('httpMethod')}")
-    print(f"[INFO] Request body: {event.get('body', 'no-body')[:200]}")
-    print(f"[INFO] Request origin: {event.get('headers', {}).get('origin', 'no-origin')}")
     
     method = event.get('httpMethod', 'GET')
     
-    # Расширенные CORS заголовки
     headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -38,6 +94,20 @@ def handler(event: dict, context) -> dict:
             
             if action == 'recommend':
                 print(f"[INFO] Action: recommend")
+                user_id, family_id = get_user_and_family(event)
+                if user_id and family_id:
+                    spend_result = wallet_spend(user_id, family_id, 1, 'ai_recommendation', 'Рекомендации ИИ')
+                    if spend_result.get('error') == 'insufficient_funds':
+                        return {
+                            'statusCode': 402,
+                            'headers': headers,
+                            'body': json.dumps({
+                                'error': 'insufficient_funds',
+                                'message': f'Недостаточно средств. Нужно 1 руб',
+                                'balance': spend_result.get('balance', 0)
+                            }),
+                            'isBase64Encoded': False
+                        }
                 return handle_recommend(body, headers)
             elif action == 'search_places':
                 print(f"[INFO] Action: search_places, query={body.get('query')}, city={body.get('city')}")

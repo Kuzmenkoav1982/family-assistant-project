@@ -547,6 +547,45 @@ def get_motivation(user_id, plan_id, time_of_day):
         conn.close()
 
 
+def wallet_spend(user_id, amount, reason, description):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1" % str(user_id)
+        )
+        fm = cur.fetchone()
+        if not fm:
+            return {'error': 'no_family'}
+        family_id = fm[0]
+        cur.execute(
+            "SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % str(family_id)
+        )
+        row = cur.fetchone()
+        if not row:
+            cur.execute(
+                "INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub"
+                % str(family_id)
+            )
+            row = cur.fetchone()
+            conn.commit()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute(
+            "UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d"
+            % (amount, wallet_id)
+        )
+        cur.execute("""
+            INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id)
+            VALUES (%d, 'spend', %s, '%s', '%s', '%s')
+        """ % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
+
 def generate_motivation(user_id, body):
     plan_id = body.get('plan_id')
     time_of_day = body.get('time', 'morning')
@@ -555,6 +594,10 @@ def generate_motivation(user_id, body):
     folder_id = os.environ.get('YANDEX_FOLDER_ID')
 
     if not api_key or not folder_id:
+        return get_motivation(user_id, plan_id, time_of_day)
+
+    spend_result = wallet_spend(user_id, 1, 'ai_motivation', 'Мотивация от ИИ')
+    if spend_result.get('error') == 'insufficient_funds':
         return get_motivation(user_id, plan_id, time_of_day)
 
     conn = get_db()

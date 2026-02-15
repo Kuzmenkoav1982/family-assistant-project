@@ -15,7 +15,6 @@ const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434
 const MEAL_API = 'https://functions.poehali.dev/aabe67a3-cf0b-409f-8fa8-f3dac3c02223';
 const DIET_PROGRESS_API = 'https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54';
 const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
-const AI_DIET_COST = 5;
 
 interface MealPlan {
   type: string;
@@ -280,19 +279,11 @@ export default function DietQuiz() {
     setRawText(null);
     localStorage.setItem('dietQuizData', JSON.stringify(data));
 
-    const walletResult = await spendWallet(AI_DIET_COST, 'ai_diet_plan', 'ИИ-диета по анкете');
-    if (walletResult.error) {
-      setError(walletResult.balance !== undefined
-        ? `Недостаточно средств. Баланс: ${walletResult.balance} руб, нужно: ${AI_DIET_COST} руб. Пополните кошелёк.`
-        : walletResult.error);
-      setIsGenerating(false);
-      return;
-    }
-
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const response = await fetch(DIET_PLAN_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           quizData: data,
           medTables: detectedTables.map(t => ({
@@ -307,7 +298,11 @@ export default function DietQuiz() {
 
       if (!response.ok) {
         console.error('[DietQuiz] API error:', result);
-        setError(result.details ? `${result.error}: ${result.details}` : (result.error || 'Ошибка генерации'));
+        if (response.status === 402 || result.error === 'insufficient_funds') {
+          setError(`Недостаточно средств на балансе. ${result.message || 'Пополните кошелёк.'}`);
+        } else {
+          setError(result.details ? `${result.error}: ${result.details}` : (result.error || 'Ошибка генерации'));
+        }
         return;
       }
 

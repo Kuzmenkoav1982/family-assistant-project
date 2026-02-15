@@ -1,11 +1,13 @@
 """
 Генерация персонального плана питания через YandexGPT (асинхронный режим).
 Два действия: start — запускает генерацию, check — проверяет результат.
+Списание с семейного кошелька при каждой генерации.
 """
 
 import json
 import os
 import requests
+import psycopg2
 from typing import Dict, Any, Optional
 
 
@@ -14,6 +16,30 @@ CORS = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-User-Id',
     'Access-Control-Max-Age': '86400'
+}
+
+PRICES = {
+    'start': 15,
+    'recipe': 1,
+    'generate_photo': 3,
+    'greeting_photo': 5,
+    'recipe_from_products': 3,
+}
+
+REASON_MAP = {
+    'start': 'ai_diet_plan',
+    'recipe': 'ai_recipe',
+    'generate_photo': 'ai_photo',
+    'greeting_photo': 'ai_greeting',
+    'recipe_from_products': 'ai_recipe',
+}
+
+DESC_MAP = {
+    'start': 'ИИ-диета',
+    'recipe': 'Рецепт ИИ',
+    'generate_photo': 'Фото блюда ИИ',
+    'greeting_photo': 'ИИ-открытка',
+    'recipe_from_products': 'Рецепт из продуктов',
 }
 
 
@@ -26,8 +52,72 @@ def respond(status: int, body: Any) -> Dict[str, Any]:
     }
 
 
+def get_db():
+    return psycopg2.connect(os.environ['DATABASE_URL'])
+
+
+def get_user_and_family(event):
+    headers = event.get('headers', {})
+    token = headers.get('X-Auth-Token') or headers.get('x-auth-token', '')
+    if not token:
+        return None, None
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT s.user_id FROM sessions s WHERE s.token = '%s' AND s.expires_at > NOW()"
+            % token.replace("'", "''")
+        )
+        row = cur.fetchone()
+        if not row:
+            return None, None
+        user_id = row[0]
+        cur.execute(
+            "SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1"
+            % str(user_id)
+        )
+        fm = cur.fetchone()
+        return user_id, fm[0] if fm else None
+    finally:
+        conn.close()
+
+
+def wallet_spend(user_id, family_id, amount, reason, description):
+    if not family_id:
+        return {'error': 'no_family'}
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % str(family_id)
+        )
+        row = cur.fetchone()
+        if not row:
+            cur.execute(
+                "INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub"
+                % str(family_id)
+            )
+            row = cur.fetchone()
+            conn.commit()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute(
+            "UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d"
+            % (amount, wallet_id)
+        )
+        cur.execute("""
+            INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id)
+            VALUES (%d, 'spend', %s, '%s', '%s', '%s')
+        """ % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Генерация плана питания через YandexGPT (async: start + check)"""
+    """Генерация плана питания через YandexGPT (async: start + check) с оплатой из кошелька"""
     method = event.get('httpMethod', 'POST')
 
     if method == 'OPTIONS':
@@ -46,32 +136,48 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body = json.loads(raw_body)
     action = body.get('action', 'start')
 
-    if action == 'check':
-        return handle_check(api_key, body)
+    check_actions = ('check', 'check_recipe', 'check_photo', 'check_greeting', 'check_products')
+    if action in check_actions:
+        if action == 'check':
+            return handle_check(api_key, body)
+        if action == 'check_recipe':
+            return handle_recipe_check(api_key, body)
+        if action == 'check_photo':
+            return handle_photo_check(api_key, body)
+        if action == 'check_greeting':
+            return handle_photo_check(api_key, body)
+        if action == 'check_products':
+            return handle_products_check(api_key, body)
+
+    price = PRICES.get(action)
+    if price:
+        user_id, family_id = get_user_and_family(event)
+        if not user_id:
+            return respond(401, {'error': 'Не авторизован'})
+        spend_result = wallet_spend(
+            user_id, family_id, price,
+            REASON_MAP.get(action, 'ai_other'),
+            DESC_MAP.get(action, 'ИИ-генерация')
+        )
+        if 'error' in spend_result:
+            if spend_result['error'] == 'insufficient_funds':
+                return respond(402, {
+                    'error': 'insufficient_funds',
+                    'message': f'Недостаточно средств. Нужно {price} руб, на балансе {spend_result.get("balance", 0):.0f} руб',
+                    'balance': spend_result.get('balance', 0),
+                    'required': price
+                })
+            return respond(400, {'error': spend_result['error']})
+        print(f"[wallet] Charged {price} rub for {action}, new balance: {spend_result.get('new_balance')}")
 
     if action == 'recipe':
         return handle_recipe_start(api_key, folder_id, body)
-
-    if action == 'check_recipe':
-        return handle_recipe_check(api_key, body)
-
     if action == 'generate_photo':
         return handle_photo_start(api_key, folder_id, body)
-
-    if action == 'check_photo':
-        return handle_photo_check(api_key, body)
-
     if action == 'greeting_photo':
         return handle_greeting_start(api_key, folder_id, body)
-
-    if action == 'check_greeting':
-        return handle_photo_check(api_key, body)
-
     if action == 'recipe_from_products':
         return handle_products_start(api_key, folder_id, body)
-
-    if action == 'check_products':
-        return handle_products_check(api_key, body)
 
     return handle_start(api_key, folder_id, body)
 
