@@ -202,31 +202,7 @@ export default function NutritionHub() {
           ))}
         </div>
 
-        <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center flex-shrink-0">
-                <Icon name="Sparkles" size={24} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-green-900 mb-1">
-                  Как это работает?
-                </h3>
-                <div className="space-y-1 text-sm text-green-800">
-                  <p>
-                    <strong>ИИ-Диета</strong> — заполните анкету, и искусственный интеллект составит персональный план питания с учётом здоровья и целей.
-                  </p>
-                  <p>
-                    <strong>Готовые режимы</strong> — выберите проверенную программу (медицинские столы, веган, кето) и получите меню на каждый день.
-                  </p>
-                  <p>
-                    <strong>Рецепт из продуктов</strong> — назовите что есть в холодильнике, а ИИ предложит варианты блюд.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );
