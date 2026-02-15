@@ -322,8 +322,16 @@ export default function DietProgress() {
     weight: w.weight_kg,
   }));
 
-  const minW = weightChartData.length > 0 ? Math.min(...weightChartData.map(d => d.weight)) - 1 : 60;
-  const maxW = weightChartData.length > 0 ? Math.max(...weightChartData.map(d => d.weight)) + 1 : 100;
+  const targetWeight = stats?.start_weight && plan?.target_weight_loss_kg
+    ? stats.start_weight - plan.target_weight_loss_kg
+    : null;
+
+  const allWeights = [
+    ...weightChartData.map(d => d.weight),
+    ...(targetWeight ? [targetWeight] : []),
+  ];
+  const minW = allWeights.length > 0 ? Math.min(...allWeights) - 1 : 60;
+  const maxW = allWeights.length > 0 ? Math.max(...allWeights) + 1 : 100;
   const range = maxW - minW || 1;
 
   return (
@@ -525,6 +533,30 @@ export default function DietProgress() {
                         <stop offset="100%" stopColor="rgb(124, 58, 237)" />
                       </linearGradient>
                     </defs>
+                    {targetWeight && (
+                      <>
+                        <line
+                          x1="0"
+                          y1={140 - ((targetWeight - minW) / range) * 110}
+                          x2={Math.max(weightChartData.length * 70, 200)}
+                          y2={140 - ((targetWeight - minW) / range) * 110}
+                          stroke="rgb(34, 197, 94)"
+                          strokeWidth="1.5"
+                          strokeDasharray="6 4"
+                          opacity="0.7"
+                        />
+                        <text
+                          x={Math.max(weightChartData.length * 70, 200) - 5}
+                          y={140 - ((targetWeight - minW) / range) * 110 - 6}
+                          textAnchor="end"
+                          fontSize="10"
+                          fontWeight="500"
+                          fill="rgb(22, 163, 74)"
+                        >
+                          Цель: {targetWeight} кг
+                        </text>
+                      </>
+                    )}
                     <polyline
                       fill="none"
                       stroke="url(#weightLine)"
