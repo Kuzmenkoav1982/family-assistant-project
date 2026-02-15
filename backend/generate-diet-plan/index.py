@@ -19,11 +19,11 @@ CORS = {
 }
 
 PRICES = {
-    'start': 15,
-    'recipe': 1,
-    'generate_photo': 3,
-    'greeting_photo': 5,
-    'recipe_from_products': 3,
+    'start': 17,
+    'recipe': 2,
+    'generate_photo': 7,
+    'greeting_photo': 7,
+    'recipe_from_products': 5,
 }
 
 REASON_MAP = {

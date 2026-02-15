@@ -96,14 +96,14 @@ def handler(event: dict, context) -> dict:
                 print(f"[INFO] Action: recommend")
                 user_id, family_id = get_user_and_family(event)
                 if user_id and family_id:
-                    spend_result = wallet_spend(user_id, family_id, 1, 'ai_recommendation', 'Рекомендации ИИ')
+                    spend_result = wallet_spend(user_id, family_id, 4, 'ai_recommendation', 'Рекомендации ИИ')
                     if spend_result.get('error') == 'insufficient_funds':
                         return {
                             'statusCode': 402,
                             'headers': headers,
                             'body': json.dumps({
                                 'error': 'insufficient_funds',
-                                'message': f'Недостаточно средств. Нужно 1 руб',
+                                'message': f'Недостаточно средств. Нужно 4 руб',
                                 'balance': spend_result.get('balance', 0)
                             }),
                             'isBase64Encoded': False

@@ -39,23 +39,27 @@ export default function WalletInstructions() {
                     <div className="grid grid-cols-2 gap-1.5 text-xs">
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
                         <Icon name="Brain" size={14} className="text-violet-500" />
-                        <span>ИИ-диета ~15 руб</span>
+                        <span>ИИ-диета — 17 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
                         <Icon name="Image" size={14} className="text-blue-500" />
-                        <span>Фото блюда ~3 руб</span>
+                        <span>Фото блюда — 7 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
                         <Icon name="ChefHat" size={14} className="text-orange-500" />
-                        <span>Рецепт ИИ ~3 руб</span>
+                        <span>Рецепт из продуктов — 5 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
                         <Icon name="Gift" size={14} className="text-pink-500" />
-                        <span>ИИ-открытка ~5 руб</span>
+                        <span>ИИ-открытка — 7 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
-                        <Icon name="Sparkles" size={14} className="text-amber-500" />
-                        <span>Мотивация ИИ ~1 руб</span>
+                        <Icon name="BookOpen" size={14} className="text-amber-500" />
+                        <span>Рецепт (короткий) — 2 руб</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
+                        <Icon name="MapPin" size={14} className="text-emerald-500" />
+                        <span>Рекомендации досуга — 4 руб</span>
                       </div>
                     </div>
                   </div>

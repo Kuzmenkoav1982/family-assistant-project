@@ -59,7 +59,7 @@ export default function NutritionHubInstructions() {
                   <div className="bg-white/50 p-2 rounded-lg">
                     <p className="font-medium text-xs mb-0.5">Стоимость ИИ-сервисов</p>
                     <p className="text-[11px]">
-                      Генерация диеты ~15 руб, фото блюда ~3 руб, рецепт ~3 руб. 
+                      Генерация диеты — 17 руб, фото блюда — 7 руб, рецепт из продуктов — 5 руб. 
                       Оплата из семейного кошелька.
                     </p>
                   </div>

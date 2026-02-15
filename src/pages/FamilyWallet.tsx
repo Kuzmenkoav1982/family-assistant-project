@@ -354,11 +354,12 @@ export default function FamilyWallet() {
                 </h3>
                 <div className="space-y-2 text-sm">
                   {[
-                    { icon: 'Brain', label: 'Генерация ИИ-диеты', cost: '~5 руб' },
-                    { icon: 'Image', label: 'Фото блюда от ИИ', cost: '~3 руб' },
-                    { icon: 'ChefHat', label: 'Рецепт из продуктов', cost: '~3 руб' },
-                    { icon: 'Gift', label: 'ИИ-открытка', cost: '~5 руб' },
-                    { icon: 'Sparkles', label: 'Мотивация от ИИ', cost: '~1 руб' },
+                    { icon: 'Brain', label: 'Генерация ИИ-диеты', cost: '17 руб' },
+                    { icon: 'Image', label: 'Фото блюда от ИИ', cost: '7 руб' },
+                    { icon: 'ChefHat', label: 'Рецепт из продуктов', cost: '5 руб' },
+                    { icon: 'Gift', label: 'ИИ-открытка', cost: '7 руб' },
+                    { icon: 'BookOpen', label: 'Рецепт (короткий)', cost: '2 руб' },
+                    { icon: 'MapPin', label: 'Рекомендации досуга', cost: '4 руб' },
                   ].map(item => (
                     <div key={item.label} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
                       <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
