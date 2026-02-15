@@ -77,6 +77,8 @@ def handler(event, context):
             return get_notification_settings(user_id)
         elif action == 'today_activity':
             return get_today_activity(user_id, plan_id)
+        elif action == 'final_report':
+            return get_final_report(user_id, plan_id)
 
     if method == 'POST':
         raw = event.get('body') or '{}'
@@ -101,6 +103,10 @@ def handler(event, context):
             return save_notification_settings(user_id, body)
         elif action == 'log_activity':
             return log_activity(user_id, body)
+        elif action == 'finish_plan':
+            return finish_plan(user_id, body)
+        elif action == 'extend_plan':
+            return extend_plan(user_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -196,6 +202,38 @@ def get_dashboard(user_id):
         last_log = cur.fetchone()
         days_since_log = (datetime.now() - last_log[0]).days if last_log else 999
 
+        streak = 0
+        cur.execute("""
+            SELECT DISTINCT meal_date FROM diet_meals
+            WHERE plan_id = %d AND completed = TRUE ORDER BY meal_date DESC
+        """ % plan_id)
+        completed_dates = [r[0] for r in cur.fetchall()]
+        if completed_dates:
+            check_date = date.today()
+            for d in completed_dates:
+                if d == check_date or d == check_date - timedelta(days=1):
+                    streak += 1
+                    check_date = d - timedelta(days=1)
+                else:
+                    break
+
+        is_plateau = False
+        if len(weight_log) >= 5:
+            last_5 = [w['weight_kg'] for w in weight_log[-5:]]
+            weight_range = max(last_5) - min(last_5)
+            if weight_range < 0.5 and days_elapsed >= 7:
+                is_plateau = True
+
+        tip = None
+        if is_plateau:
+            tip = {'type': 'plateau', 'title': 'Плато — это нормально!', 'text': 'Вес стоит на месте несколько дней. Это обычный этап: организм перестраивается. Попробуй изменить тренировки или увеличить потребление воды. Результат скоро вернётся!'}
+        elif days_elapsed == 1:
+            tip = {'type': 'start', 'title': 'Первый день!', 'text': 'Самое сложное — начать. Ты уже это сделал! Следуй плану и записывай вес каждый день.'}
+        elif days_elapsed == 3:
+            tip = {'type': 'sugar', 'title': 'Тяга к сладкому?', 'text': 'На 2-4 день часто хочется сладкого — организм привыкает к новому режиму. Это пройдёт! Пей воду и ешь фрукты.'}
+        elif weight_lost > 0 and days_elapsed >= 7:
+            tip = {'type': 'success', 'title': 'Ты на верном пути!', 'text': f'Уже -{weight_lost} кг за {days_elapsed} дней. Продолжай в том же духе!'}
+
         stats = {
             'days_elapsed': days_elapsed,
             'days_remaining': days_remaining,
@@ -205,7 +243,9 @@ def get_dashboard(user_id):
             'weight_lost': weight_lost,
             'start_weight': start_weight,
             'last_weight': last_weight,
-            'days_since_log': days_since_log
+            'days_since_log': days_since_log,
+            'streak': streak,
+            'is_plateau': is_plateau,
         }
 
         return respond(200, {
@@ -213,7 +253,8 @@ def get_dashboard(user_id):
             'plan': plan,
             'weight_log': weight_log,
             'today_meals': today_meals,
-            'stats': stats
+            'stats': stats,
+            'tip': tip
         })
     finally:
         conn.close()
@@ -331,6 +372,22 @@ def log_weight(user_id, body):
                 INSERT INTO diet_weight_log (user_id, weight_kg, wellbeing)
                 VALUES ('%s', %s, '%s')
             """ % (str(user_id), float(weight), str(wellbeing).replace("'", "''")))
+
+        try:
+            cur.execute("""
+                SELECT id FROM health_profiles WHERE user_id = '%s' LIMIT 1
+            """ % str(user_id))
+            hp = cur.fetchone()
+            if hp:
+                import uuid
+                record_id = str(uuid.uuid4())
+                cur.execute("""
+                    INSERT INTO vital_records (id, profile_id, type, value, unit, date, time, notes)
+                    VALUES ('%s', '%s', 'weight', '%s', 'кг', CURRENT_DATE, CURRENT_TIME, '%s')
+                """ % (record_id, hp[0], str(float(weight)), ('Из диеты. ' + str(wellbeing)).replace("'", "''")[:500]))
+        except Exception as e:
+            print(f"[diet-progress] Sync weight to health error: {e}")
+
         conn.commit()
         return respond(200, {'success': True})
     finally:
@@ -1165,5 +1222,212 @@ def log_activity(user_id, body):
         ))
         conn.commit()
         return respond(200, {'success': True, 'message': 'Активность записана'})
+    finally:
+        conn.close()
+
+
+def get_final_report(user_id, plan_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        if not plan_id:
+            cur.execute("""
+                SELECT id FROM diet_plans WHERE user_id = '%s' AND status IN ('active', 'completed')
+                ORDER BY created_at DESC LIMIT 1
+            """ % str(user_id))
+            row = cur.fetchone()
+            if not row:
+                return respond(404, {'error': 'План не найден'})
+            plan_id = row[0]
+
+        cur.execute("""
+            SELECT plan_type, start_date, end_date, duration_days,
+                   target_weight_loss_kg, target_calories_daily, status,
+                   daily_water_ml, daily_steps, exercise_recommendation
+            FROM diet_plans WHERE id = %d AND user_id = '%s'
+        """ % (int(plan_id), str(user_id)))
+        plan = cur.fetchone()
+        if not plan:
+            return respond(404, {'error': 'План не найден'})
+
+        start_date, end_date, duration = plan[1], plan[2], plan[3]
+        target_loss = float(plan[4]) if plan[4] else 0
+        target_cal = plan[5]
+        plan_status = plan[6]
+
+        cur.execute("SELECT weight_kg, measured_at FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d ORDER BY measured_at ASC" % (str(user_id), int(plan_id)))
+        weights = cur.fetchall()
+        start_weight = float(weights[0][0]) if weights else None
+        end_weight = float(weights[-1][0]) if weights else None
+        actual_loss = round(start_weight - end_weight, 1) if start_weight and end_weight else 0
+        goal_pct = round(actual_loss / target_loss * 100) if target_loss > 0 else 0
+
+        cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d AND completed = TRUE" % int(plan_id))
+        meals_done = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM diet_meals WHERE plan_id = %d" % int(plan_id))
+        meals_total = cur.fetchone()[0]
+        adherence = round(meals_done / meals_total * 100) if meals_total > 0 else 0
+
+        cur.execute("SELECT COUNT(*) FROM diet_sos_requests WHERE user_id = '%s' AND plan_id = %d" % (str(user_id), int(plan_id)))
+        sos_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COALESCE(SUM(steps), 0), COALESCE(SUM(exercise_duration_min), 0), COALESCE(SUM(calories_burned), 0) FROM diet_activity_log WHERE user_id = '%s' AND plan_id = %d" % (str(user_id), int(plan_id)))
+        act = cur.fetchone()
+        total_steps = act[0]
+        total_exercise_min = act[1]
+        total_cal_burned = act[2]
+
+        days_active = (date.today() - start_date).days if plan_status == 'active' else (end_date - start_date).days
+        days_active = max(days_active, 1)
+
+        avg_daily_steps = round(total_steps / days_active) if days_active > 0 else 0
+
+        weight_trend = []
+        for w in weights:
+            weight_trend.append({'weight': float(w[0]), 'date': str(w[1])[:10]})
+
+        cur.execute("SELECT COUNT(DISTINCT log_date) FROM diet_weight_log WHERE user_id = '%s' AND plan_id = %d" % (str(user_id), int(plan_id)))
+        weigh_in_days = cur.fetchone()[0]
+
+        streak = 0
+        cur.execute("""
+            SELECT DISTINCT meal_date FROM diet_meals
+            WHERE plan_id = %d AND completed = TRUE
+            ORDER BY meal_date DESC
+        """ % int(plan_id))
+        completed_dates = [r[0] for r in cur.fetchall()]
+        if completed_dates:
+            check_date = date.today()
+            for d in completed_dates:
+                if d == check_date or d == check_date - timedelta(days=1):
+                    streak += 1
+                    check_date = d - timedelta(days=1)
+                else:
+                    break
+
+        system = "Ты персональный диетолог. Напиши краткий итог диеты: что получилось, что улучшить, рекомендации на будущее. 3-5 предложений, тепло и поддерживающе."
+        user_prompt = f"""Итоги диеты:
+- Длительность: {days_active} дней из {duration}
+- Сброшено: {actual_loss} кг (цель: {target_loss} кг, {goal_pct}%)
+- Соблюдение плана: {adherence}%
+- SOS-обращения: {sos_count}
+- Средние шаги/день: {avg_daily_steps}
+- Тренировок: {total_exercise_min} мин всего"""
+
+        ai_summary = call_yandex_gpt(system, user_prompt, temperature=0.7, max_tokens=500)
+        if not ai_summary:
+            if actual_loss > 0:
+                ai_summary = f'За {days_active} дней ты сбросил {actual_loss} кг — это отличный результат! Соблюдение плана {adherence}% показывает твою дисциплину. Рекомендую перейти в режим стабилизации, чтобы закрепить результат.'
+            else:
+                ai_summary = f'Ты продержался {days_active} дней — это уже достижение! Даже если вес пока не снизился, организм перестроился. Рекомендую продолжить с небольшими корректировками.'
+
+        stabilization_calories = target_cal + 200 if target_cal else 1800
+
+        return respond(200, {
+            'report': {
+                'days_active': days_active,
+                'duration': duration,
+                'start_weight': start_weight,
+                'end_weight': end_weight,
+                'actual_loss': actual_loss,
+                'target_loss': target_loss,
+                'goal_pct': min(goal_pct, 100),
+                'adherence': adherence,
+                'meals_done': meals_done,
+                'meals_total': meals_total,
+                'sos_count': sos_count,
+                'total_steps': total_steps,
+                'total_exercise_min': total_exercise_min,
+                'total_cal_burned': total_cal_burned,
+                'avg_daily_steps': avg_daily_steps,
+                'weigh_in_days': weigh_in_days,
+                'streak': streak,
+                'weight_trend': weight_trend,
+                'ai_summary': ai_summary,
+                'stabilization_calories': stabilization_calories,
+                'plan_status': plan_status,
+            }
+        })
+    finally:
+        conn.close()
+
+
+def finish_plan(user_id, body):
+    plan_id = body.get('plan_id')
+    if not plan_id:
+        return respond(400, {'error': 'plan_id обязателен'})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id FROM diet_plans WHERE id = %d AND user_id = '%s' AND status = 'active'
+        """ % (int(plan_id), str(user_id)))
+        if not cur.fetchone():
+            return respond(404, {'error': 'Активный план не найден'})
+
+        cur.execute("""
+            UPDATE diet_plans SET status = 'completed', end_date = CURRENT_DATE
+            WHERE id = %d
+        """ % int(plan_id))
+        conn.commit()
+        return respond(200, {'success': True, 'message': 'План завершён'})
+    finally:
+        conn.close()
+
+
+def extend_plan(user_id, body):
+    plan_id = body.get('plan_id')
+    extra_days = body.get('extra_days', 7)
+    if not plan_id:
+        return respond(400, {'error': 'plan_id обязателен'})
+
+    if extra_days not in (7, 14, 30):
+        extra_days = 7
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, end_date, duration_days, target_calories_daily
+            FROM diet_plans WHERE id = %d AND user_id = '%s' AND status = 'active'
+        """ % (int(plan_id), str(user_id)))
+        plan = cur.fetchone()
+        if not plan:
+            return respond(404, {'error': 'Активный план не найден'})
+
+        old_end = plan[1]
+        old_duration = plan[2]
+        calories = plan[3]
+        new_end = old_end + timedelta(days=extra_days)
+        new_duration = old_duration + extra_days
+
+        cur.execute("""
+            UPDATE diet_plans SET end_date = '%s', duration_days = %d
+            WHERE id = %d
+        """ % (str(new_end), new_duration, int(plan_id)))
+
+        type_times = {'breakfast': '08:00', 'lunch': '13:00', 'dinner': '19:00', 'snack': '16:00'}
+        meal_types = ['breakfast', 'lunch', 'dinner', 'snack']
+        cal_per_meal = {'breakfast': round(calories * 0.25), 'lunch': round(calories * 0.35), 'dinner': round(calories * 0.25), 'snack': round(calories * 0.15)}
+
+        for d in range(extra_days):
+            meal_date = old_end + timedelta(days=d + 1)
+            day_num = old_duration + d + 1
+            for mt in meal_types:
+                cur.execute("""
+                    INSERT INTO diet_meals (plan_id, day_number, meal_date, meal_type, meal_time,
+                        title, recipe, calories, protein_g, fat_g, carbs_g)
+                    VALUES (%d, %d, '%s', '%s', '%s', 'Свободный выбор', 'Выберите блюдо на %d ккал', %d, 0, 0, 0)
+                """ % (int(plan_id), day_num, str(meal_date), mt, type_times[mt], cal_per_meal[mt], cal_per_meal[mt]))
+
+        conn.commit()
+        return respond(200, {
+            'success': True,
+            'new_end_date': str(new_end),
+            'new_duration': new_duration,
+            'meals_added': extra_days * 4,
+            'message': f'План продлён на {extra_days} дней (до {new_end.strftime("%d.%m.%Y")})'
+        })
     finally:
         conn.close()

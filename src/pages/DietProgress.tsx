@@ -44,6 +44,8 @@ interface DashboardStats {
   start_weight: number | null;
   last_weight: number | null;
   days_since_log: number;
+  streak: number;
+  is_plateau: boolean;
 }
 
 interface DashboardPlan {
@@ -66,6 +68,7 @@ interface DashboardData {
   weight_log: WeightEntry[];
   today_meals: TodayMeal[];
   stats: DashboardStats | null;
+  tip: { type: string; title: string; text: string } | null;
 }
 
 const mealTypeLabels: Record<string, string> = {
@@ -104,6 +107,12 @@ export default function DietProgress() {
 
   const [markingMeal, setMarkingMeal] = useState<number | null>(null);
   const [mealMenu, setMealMenu] = useState<number | null>(null);
+
+  const [showFinalReport, setShowFinalReport] = useState(false);
+  const [finalReport, setFinalReport] = useState<Record<string, unknown> | null>(null);
+  const [loadingReport, setLoadingReport] = useState(false);
+  const [extending, setExtending] = useState(false);
+  const [finishing, setFinishing] = useState(false);
 
   const [showActivity, setShowActivity] = useState(false);
   const [actSteps, setActSteps] = useState('');
@@ -351,6 +360,51 @@ export default function DietProgress() {
     finally { setSavingActivity(false); }
   };
 
+  const handleFinalReport = async () => {
+    setLoadingReport(true);
+    setShowFinalReport(true);
+    try {
+      const res = await fetch(`${API_URL}?action=final_report&plan_id=${data?.plan?.id}`, { headers: { 'X-Auth-Token': authToken } });
+      const json = await res.json();
+      if (json.report) setFinalReport(json.report);
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+    finally { setLoadingReport(false); }
+  };
+
+  const handleFinishPlan = async () => {
+    setFinishing(true);
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST', headers,
+        body: JSON.stringify({ action: 'finish_plan', plan_id: data?.plan?.id }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: 'План завершён!' });
+        fetchDashboard();
+        setShowFinalReport(false);
+      }
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+    finally { setFinishing(false); }
+  };
+
+  const handleExtendPlan = async (days: number) => {
+    setExtending(true);
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST', headers,
+        body: JSON.stringify({ action: 'extend_plan', plan_id: data?.plan?.id, extra_days: days }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: json.message });
+        fetchDashboard();
+        setShowFinalReport(false);
+      }
+    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
+    finally { setExtending(false); }
+  };
+
   useEffect(() => {
     if (data?.has_plan) fetchTodayActivity();
   }, [data?.has_plan]);
@@ -505,11 +559,28 @@ export default function DietProgress() {
             </Card>
             <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 overflow-hidden">
               <CardContent className="p-2.5 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-amber-700 truncate">{stats.days_remaining}</div>
-                <div className="text-[11px] sm:text-xs text-amber-600">дней осталось</div>
+                <div className="text-xl sm:text-2xl font-bold text-amber-700 truncate">{stats.streak || 0}</div>
+                <div className="text-[11px] sm:text-xs text-amber-600">дней стрик</div>
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {data.tip && (
+          <Card className={`border ${
+            data.tip.type === 'plateau' ? 'border-amber-200 bg-amber-50/50' :
+            data.tip.type === 'sugar' ? 'border-pink-200 bg-pink-50/50' :
+            data.tip.type === 'success' ? 'border-green-200 bg-green-50/50' :
+            'border-blue-200 bg-blue-50/50'
+          }`}>
+            <CardContent className="p-3">
+              <h4 className="text-sm font-bold mb-1 flex items-center gap-2">
+                <Icon name={data.tip.type === 'plateau' ? 'TrendingUp' : data.tip.type === 'sugar' ? 'Candy' : data.tip.type === 'success' ? 'Trophy' : 'Lightbulb'} size={16} />
+                {data.tip.title}
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">{data.tip.text}</p>
+            </CardContent>
+          </Card>
         )}
 
         {stats && (
@@ -915,20 +986,55 @@ export default function DietProgress() {
           </div>
         )}
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold flex items-center gap-2 text-sm">
-                <Icon name="Bell" size={16} className="text-violet-600" />
-                Уведомления
+        {stats && stats.days_remaining <= 3 && stats.days_remaining >= 0 && (
+          <Card className="border-2 border-amber-300 bg-amber-50/50">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-amber-900 flex items-center gap-2 mb-2">
+                <Icon name="Flag" size={18} className="text-amber-600" />
+                {stats.days_remaining === 0 ? 'План завершается сегодня!' : `До конца плана: ${stats.days_remaining} дн.`}
               </h3>
-              <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setShowNotifSettings(true); fetchNotifSettings(); }}>
-                <Icon name="Settings" size={12} className="mr-1" />
-                Настроить
+              <p className="text-sm text-amber-800 mb-3">
+                {stats.days_remaining === 0
+                  ? 'Посмотрите итоговый отчёт и решите, что дальше — продлить или закрепить результат.'
+                  : 'Скоро финиш! Можно посмотреть промежуточные результаты.'}
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" className="bg-amber-600" onClick={handleFinalReport}>
+                  <Icon name="BarChart3" size={14} className="mr-1" />
+                  Итоговый отчёт
+                </Button>
+                <Button size="sm" variant="outline" className="border-amber-400" onClick={() => handleExtendPlan(7)} disabled={extending}>
+                  <Icon name="Plus" size={14} className="mr-1" />
+                  +7 дней
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex gap-2">
+          <Card className="flex-1">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold flex items-center gap-2 text-sm">
+                  <Icon name="Bell" size={16} className="text-violet-600" />
+                  Уведомления
+                </h3>
+                <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setShowNotifSettings(true); fetchNotifSettings(); }}>
+                  <Icon name="Settings" size={12} className="mr-1" />
+                  Настроить
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shrink-0">
+            <CardContent className="p-4">
+              <Button size="sm" variant="ghost" className="text-xs h-auto py-0" onClick={handleFinalReport}>
+                <Icon name="FileText" size={16} className="text-muted-foreground" />
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {showNotifSettings && (
           <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
@@ -1005,6 +1111,104 @@ export default function DietProgress() {
                       </Button>
                     </div>
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {showFinalReport && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+            <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Icon name="Trophy" size={20} className="text-amber-500" />
+                    Итоги диеты
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => setShowFinalReport(false)}>
+                    <Icon name="X" size={18} />
+                  </Button>
+                </div>
+
+                {loadingReport ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : finalReport ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-3 rounded-xl bg-gradient-to-b from-green-50 to-green-100 border border-green-200">
+                        <div className="text-2xl font-bold text-green-700">{String(finalReport.actual_loss)} кг</div>
+                        <div className="text-xs text-green-600">сброшено</div>
+                        {Number(finalReport.target_loss) > 0 && (
+                          <div className="text-[10px] text-muted-foreground mt-1">цель: {String(finalReport.target_loss)} кг ({String(finalReport.goal_pct)}%)</div>
+                        )}
+                      </div>
+                      <div className="text-center p-3 rounded-xl bg-gradient-to-b from-violet-50 to-violet-100 border border-violet-200">
+                        <div className="text-2xl font-bold text-violet-700">{String(finalReport.adherence)}%</div>
+                        <div className="text-xs text-violet-600">соблюдение плана</div>
+                        <div className="text-[10px] text-muted-foreground mt-1">{String(finalReport.meals_done)} из {String(finalReport.meals_total)} приёмов</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="text-center p-2 rounded-lg bg-blue-50 border border-blue-200">
+                        <div className="text-lg font-bold text-blue-700">{String(finalReport.days_active)}</div>
+                        <div className="text-[10px] text-muted-foreground">дней</div>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-orange-50 border border-orange-200">
+                        <div className="text-lg font-bold text-orange-700">{Number(finalReport.total_steps).toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">шагов</div>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-red-50 border border-red-200">
+                        <div className="text-lg font-bold text-red-600">{String(finalReport.total_cal_burned)}</div>
+                        <div className="text-[10px] text-muted-foreground">ккал сожжено</div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 text-center">
+                      <div className="flex-1 p-2 rounded-lg bg-gray-50">
+                        <div className="text-sm font-bold">{String(finalReport.streak)}</div>
+                        <div className="text-[10px] text-muted-foreground">дней стрик</div>
+                      </div>
+                      <div className="flex-1 p-2 rounded-lg bg-gray-50">
+                        <div className="text-sm font-bold">{String(finalReport.weigh_in_days)}</div>
+                        <div className="text-[10px] text-muted-foreground">дней взвешивания</div>
+                      </div>
+                      <div className="flex-1 p-2 rounded-lg bg-gray-50">
+                        <div className="text-sm font-bold">{String(finalReport.sos_count)}</div>
+                        <div className="text-[10px] text-muted-foreground">SOS</div>
+                      </div>
+                    </div>
+
+                    {finalReport.ai_summary && (
+                      <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                        <p className="text-sm leading-relaxed">{String(finalReport.ai_summary)}</p>
+                      </div>
+                    )}
+
+                    {finalReport.plan_status === 'active' && (
+                      <div className="space-y-2 pt-2">
+                        <p className="text-xs text-muted-foreground text-center font-medium">Что дальше?</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[7, 14, 30].map(d => (
+                            <Button key={d} size="sm" variant="outline" className="text-xs" disabled={extending} onClick={() => handleExtendPlan(d)}>
+                              +{d} дней
+                            </Button>
+                          ))}
+                        </div>
+                        <Button className="w-full bg-green-600" size="sm" onClick={handleFinishPlan} disabled={finishing}>
+                          {finishing ? 'Завершаю...' : 'Завершить и закрепить'}
+                        </Button>
+                        <p className="text-[10px] text-muted-foreground text-center">
+                          Стабилизация: +200 ккал/день ({String(finalReport.stabilization_calories)} ккал) для закрепления результата
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">Не удалось загрузить отчёт</p>
                 )}
               </CardContent>
             </Card>
