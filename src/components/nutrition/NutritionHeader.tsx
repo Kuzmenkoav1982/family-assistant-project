@@ -33,10 +33,10 @@ export function NutritionHeader({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Icon name="Apple" className="text-green-600" size={36} />
-            Питание
+            <Icon name="Calculator" className="text-blue-600" size={36} />
+            Счётчик БЖУ
           </h1>
-          <p className="text-gray-600 mt-1">Анализ и контроль питания семьи</p>
+          <p className="text-gray-600 mt-1">Дневник питания с подсчётом калорий и нутриентов</p>
         </div>
         <Button onClick={() => navigate('/')} variant="outline">
           <Icon name="ArrowLeft" className="mr-2" size={16} />
@@ -51,7 +51,7 @@ export function NutritionHeader({
             <div className="flex-1">
               <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
                 <h3 className="font-semibold text-green-900 text-lg">
-                  Как пользоваться разделом Питание
+                  Как пользоваться Счётчиком БЖУ
                 </h3>
                 <Icon 
                   name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
@@ -63,10 +63,10 @@ export function NutritionHeader({
                 <AlertDescription className="text-green-800">
                   <div className="space-y-4">
                     <div>
-                      <p className="font-medium mb-2">🍎 Для чего нужен раздел Питание?</p>
+                      <p className="font-medium mb-2">🍎 Для чего нужен Счётчик БЖУ?</p>
                       <p className="text-sm">
-                        Раздел помогает отслеживать питание всей семьи: калории, белки, жиры, углеводы. 
-                        Вы видите, сколько съели сегодня и сколько осталось до дневной нормы.
+                        Счётчик помогает вести дневник питания: записывайте что съели за день, 
+                        а система автоматически подсчитает калории, белки, жиры и углеводы.
                       </p>
                     </div>
 
@@ -91,10 +91,10 @@ export function NutritionHeader({
                     </div>
 
                     <div>
-                      <p className="font-medium mb-2">🤖 Кузя-диетолог в помощь!</p>
+                      <p className="font-medium mb-2">📊 Контроль нормы</p>
                       <p className="text-sm">
-                        Нажмите "Спросить Кузю-диетолога" — он проанализирует ваш рацион, 
-                        подскажет сколько калорий в блюде и предложит здоровые альтернативы.
+                        Вверху отображается прогресс по калориям и БЖУ за день. 
+                        Зелёный — всё в норме, жёлтый — приближаетесь к лимиту, красный — превышение.
                       </p>
                     </div>
 
