@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 import ImageLightbox from '@/components/ImageLightbox';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
+const SHOPPING_API_URL = 'https://functions.poehali.dev/3f85241b-6c17-4d3d-a5f2-99b3af90af1b';
 
 interface MealPlan {
   id: string;
@@ -50,6 +51,8 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [loadingPhoto, setLoadingPhoto] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [addedToShopping, setAddedToShopping] = useState(false);
+  const [addingShopping, setAddingShopping] = useState(false);
 
   const bgColor = MEAL_TYPE_BG[meal.mealType] || 'bg-gray-100';
 
@@ -129,6 +132,29 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
       }
     }
     return action === 'check_recipe' ? ['Рецепт генерируется слишком долго. Попробуйте позже.'] : null;
+  };
+
+  const addToShopping = async () => {
+    setAddingShopping(true);
+    const authToken = localStorage.getItem('authToken') || '';
+    try {
+      await fetch(SHOPPING_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+        body: JSON.stringify({
+          name: meal.dishName,
+          category: 'Продукты',
+          quantity: '',
+          priority: 'normal',
+          notes: meal.description || ''
+        }),
+      });
+      setAddedToShopping(true);
+    } catch {
+      alert('Ошибка добавления в покупки');
+    } finally {
+      setAddingShopping(false);
+    }
   };
 
   const handleExpand = () => {
@@ -239,11 +265,21 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                 <Button
                   variant="outline"
                   size="sm"
+                  className={`text-xs h-8 ${addedToShopping ? 'text-green-600 border-green-300 bg-green-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}`}
+                  onClick={(e) => { e.stopPropagation(); addToShopping(); }}
+                  disabled={addingShopping || addedToShopping}
+                >
+                  <Icon name={addedToShopping ? 'Check' : 'ShoppingCart'} size={14} className="mr-1" />
+                  {addedToShopping ? 'Добавлено' : 'В покупки'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="text-xs h-8"
                   onClick={(e) => { e.stopPropagation(); onEdit(meal); }}
                 >
                   <Icon name="Edit2" size={14} className="mr-1" />
-                  Редактировать
+                  Изменить
                 </Button>
                 <Button
                   variant="outline"
@@ -251,8 +287,7 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                   className="text-xs h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                   onClick={(e) => { e.stopPropagation(); onDelete(meal.id); }}
                 >
-                  <Icon name="Trash2" size={14} className="mr-1" />
-                  Удалить
+                  <Icon name="Trash2" size={14} />
                 </Button>
               </div>
             </div>

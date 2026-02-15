@@ -461,7 +461,7 @@ export default function DietMiniQuiz() {
               <Card className={`border ${walletBalance >= AI_DIET_COST ? 'border-emerald-200 bg-emerald-50' : 'border-red-300 bg-red-50'}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <Icon name="CheckCircle" size={20} className={walletBalance >= AI_DIET_COST ? 'text-emerald-600' : 'text-red-500'} />
+                    <Icon name="Wallet" size={20} className={walletBalance >= AI_DIET_COST ? 'text-emerald-600' : 'text-red-500'} />
                     <div className="flex-1 text-sm">
                       <p className="font-medium">
                         Баланс: <strong>{walletBalance.toFixed(0)} руб</strong>

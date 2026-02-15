@@ -253,7 +253,8 @@ export default function Meals() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <MealsHeader
-          onNavigateBack={() => navigate('/')}
+          onNavigateBack={() => navigate('/nutrition')}
+          onNavigateHome={() => navigate('/')}
           selectedAuthor={selectedAuthor}
           onAuthorChange={setSelectedAuthor}
           totalMeals={mealPlans.length}
@@ -321,24 +322,7 @@ export default function Meals() {
           handleAddMeal={handleAddMeal}
         />
 
-        <Button 
-          className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg"
-          size="lg"
-          onClick={() => {
-            setEditingMeal(null);
-            setNewMeal({
-              day: 'monday',
-              mealType: 'breakfast',
-              dishName: '',
-              description: '',
-              emoji: '🍳'
-            });
-            setIsDialogOpen(true);
-          }}
-        >
-          <Icon name="Plus" className="mr-2" size={20} />
-          Добавить блюдо
-        </Button>
+
       </div>
     </div>
   );

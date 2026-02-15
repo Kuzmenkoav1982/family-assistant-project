@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface MealsHeaderProps {
   onNavigateBack: () => void;
+  onNavigateHome?: () => void;
   selectedAuthor: string;
   onAuthorChange: (value: string) => void;
   totalMeals: number;
@@ -19,6 +20,7 @@ interface MealsHeaderProps {
 
 export function MealsHeader({
   onNavigateBack,
+  onNavigateHome,
   selectedAuthor,
   onAuthorChange,
   totalMeals,
@@ -30,10 +32,17 @@ export function MealsHeader({
   return (
     <>
       <div className="flex items-center justify-between">
-        <Button onClick={onNavigateBack} variant="outline">
-          <Icon name="ArrowLeft" className="mr-2" size={16} />
-          Назад
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={onNavigateBack} variant="outline">
+            <Icon name="ArrowLeft" className="mr-2" size={16} />
+            Питание
+          </Button>
+          {onNavigateHome && (
+            <Button onClick={onNavigateHome} variant="outline" size="icon">
+              <Icon name="Home" size={16} />
+            </Button>
+          )}
+        </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="bg-white">
             <Icon name="UtensilsCrossed" size={14} className="mr-1" />
