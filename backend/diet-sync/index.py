@@ -37,13 +37,15 @@ def get_user_info(event):
     conn = get_db()
     try:
         cur = conn.cursor()
-        cur.execute("""
-            SELECT s.user_id, u.family_id FROM sessions s
-            JOIN users u ON s.user_id = u.id
-            WHERE s.token = '%s' AND s.expires_at > NOW()
-        """ % token.replace("'", "''"))
+        cur.execute("SELECT user_id FROM sessions WHERE token = '%s' AND expires_at > NOW()" % token.replace("'", "''"))
         row = cur.fetchone()
-        return (row[0], row[1]) if row else (None, None)
+        if not row:
+            return None, None
+        user_id = row[0]
+        cur.execute("SELECT family_id FROM users WHERE id = %d" % user_id)
+        fam_row = cur.fetchone()
+        family_id = fam_row[0] if fam_row else None
+        return user_id, family_id
     finally:
         conn.close()
 
