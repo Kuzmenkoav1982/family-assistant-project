@@ -23,6 +23,7 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
   const [generatingImage, setGeneratingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState(event.invitationImageUrl || '');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageWishes, setImageWishes] = useState('');
 
   const handleSave = async () => {
     try {
@@ -103,6 +104,7 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
           action: 'greeting_photo',
           eventTitle: event.title,
           theme: event.theme || '',
+          wishes: imageWishes || '',
         })
       });
 
@@ -243,11 +245,52 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
           ) : (
             <div className="space-y-4">
               {event.invitationImageUrl && (
-                <img
-                  src={event.invitationImageUrl}
-                  alt="Invitation"
-                  className="w-full rounded-lg border"
-                />
+                <div className="relative group">
+                  <img
+                    src={event.invitationImageUrl}
+                    alt="Invitation"
+                    className="w-full rounded-lg border"
+                  />
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="bg-white/90 hover:bg-white shadow-sm"
+                      onClick={() => setEditing(true)}
+                    >
+                      <Icon name="RefreshCw" size={14} />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="bg-white/90 hover:bg-red-50 shadow-sm text-red-500"
+                      onClick={async () => {
+                        setPreviewImage('');
+                        try {
+                          const userId = localStorage.getItem('userData')
+                            ? JSON.parse(localStorage.getItem('userData')!).member_id
+                            : '1';
+                          const authToken = localStorage.getItem('authToken');
+                          await fetch(`https://functions.poehali.dev/79f31a73-5361-4721-96ff-71bfd28f43ac?id=${event.id}`, {
+                            method: 'PUT',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'X-User-Id': userId,
+                              ...(authToken && { Authorization: `Bearer ${authToken}` })
+                            },
+                            body: JSON.stringify({ invitationImageUrl: '' })
+                          });
+                          toast({ title: 'Удалено', description: 'Открытка удалена' });
+                          onUpdate();
+                        } catch {
+                          toast({ title: 'Ошибка', description: 'Не удалось удалить', variant: 'destructive' });
+                        }
+                      }}
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
+                  </div>
+                </div>
               )}
               {event.invitationText && (
                 <div className="p-4 bg-accent rounded-lg">
@@ -308,6 +351,18 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
               </div>
             )}
 
+            <div>
+              <Label htmlFor="image-wishes">Пожелания к открытке</Label>
+              <Textarea
+                id="image-wishes"
+                value={imageWishes}
+                onChange={(e) => setImageWishes(e.target.value)}
+                rows={2}
+                placeholder="Например: зимняя тема, снежинки, голубые тона..."
+                className="text-sm"
+              />
+            </div>
+
             <div className="grid grid-cols-1 gap-2">
               <Button
                 onClick={generateInvitationImage}
@@ -315,7 +370,7 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
                 className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
               >
                 <Icon name="Sparkles" size={16} />
-                {generatingImage ? 'Генерирую открытку...' : 'Сгенерировать ИИ-открытку'}
+                {generatingImage ? 'Генерирую открытку...' : 'Сгенерировать ИИ-открытку (7 руб)'}
               </Button>
               {generatingImage && (
                 <p className="text-xs text-center text-muted-foreground animate-pulse">

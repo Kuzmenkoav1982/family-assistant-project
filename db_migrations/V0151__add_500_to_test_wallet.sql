@@ -1,0 +1,1 @@
+UPDATE family_wallet SET balance_rub = balance_rub + 500 WHERE family_id = 'ca92a40b-8e92-4709-9dca-54f52f86d364';

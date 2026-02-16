@@ -481,6 +481,7 @@ def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str,
     event_title = body.get('eventTitle', '')
     theme = body.get('theme', '')
     style = body.get('style', 'elegant')
+    wishes = body.get('wishes', '')
 
     if not event_title:
         return respond(400, {'error': 'Название события не передано'})
@@ -488,7 +489,8 @@ def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str,
     art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
 
     theme_hint = f', тема: {theme}' if theme else ''
-    prompt = f'Красивая праздничная открытка-приглашение на событие "{event_title}"{theme_hint}. Яркий {style} дизайн, праздничная атмосфера, цветы, декоративные элементы, тёплые тона, без текста на изображении, высокое качество.'
+    wishes_hint = f', {wishes}' if wishes else ''
+    prompt = f'Красивая праздничная открытка-приглашение на событие "{event_title}"{theme_hint}{wishes_hint}. Яркий {style} дизайн, праздничная атмосфера, цветы, декоративные элементы, тёплые тона, без текста на изображении, высокое качество.'
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
     headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
