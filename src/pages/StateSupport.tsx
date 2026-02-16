@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import SectionHero from '@/components/ui/section-hero';
 
 interface SupportMeasure {
   id: string;
@@ -299,28 +300,12 @@ export default function StateSupport() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 lg:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <Button onClick={() => navigate('/')} variant="outline">
-            <Icon name="ArrowLeft" className="mr-2" size={16} />
-            Назад
-          </Button>
-        </div>
-
-        <Card className="border-2 border-blue-200">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-4 rounded-full">
-                <Icon name="HandHeart" size={48} />
-              </div>
-            </div>
-            <CardTitle className="text-3xl md:text-4xl font-bold">
-              Государственная поддержка семей
-            </CardTitle>
-            <CardDescription className="text-lg mt-2">
-              Меры поддержки от государства РФ для семей с детьми
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <SectionHero
+          title="Господдержка семей"
+          subtitle="Меры поддержки от государства РФ для семей с детьми"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6cfbf071-8a12-494d-90e2-93c37aaa217c.jpg"
+          backPath="/state-hub"
+        />
 
         <Card>
           <CardContent className="pt-6">

@@ -15,6 +15,7 @@ interface MenuSection {
   title: string;
   icon: string;
   items: MenuItem[];
+  hubPath?: string;
 }
 
 interface MenuItem {
@@ -53,6 +54,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'family',
       title: '🏠 СЕМЬЯ',
       icon: 'Users',
+      hubPath: '/family-hub',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
         { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
@@ -71,6 +73,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'values',
       title: '💖 ЦЕННОСТИ И КУЛЬТУРА',
       icon: 'Heart',
+      hubPath: '/values-hub',
       items: [
         { id: 'values', label: 'Ценности', icon: 'Heart', path: '/?section=values' },
         { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/?section=traditions' },
@@ -81,6 +84,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'planning',
       title: '🎯 ПЛАНИРОВАНИЕ',
       icon: 'Target',
+      hubPath: '/planning-hub',
       items: [
         { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
         { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/?section=tasks' },
@@ -93,6 +97,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'nutrition',
       title: '🥗 ПИТАНИЕ',
       icon: 'Apple',
+      hubPath: '/nutrition',
       items: [
         { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
         { id: 'diet-ai', label: 'ИИ-Диета', icon: 'Brain', path: '/nutrition/diet' },
@@ -107,6 +112,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'household',
       title: '🏠 БЫТ И ХОЗЯЙСТВО',
       icon: 'Home',
+      hubPath: '/household-hub',
       items: [
         { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', path: '/shopping' },
         { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' }
@@ -126,6 +132,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'development',
       title: '💬 РАЗВИТИЕ',
       icon: 'Brain',
+      hubPath: '/development-hub',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
       ]
@@ -134,6 +141,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'family-state',
       title: '🏛️ СЕМЬЯ И ГОСУДАРСТВО',
       icon: 'Landmark',
+      hubPath: '/state-hub',
       items: [
         { id: 'what-is-family', label: 'Что такое семья', icon: 'Users', path: '/what-is-family' },
         { id: 'family-code', label: 'Семейный кодекс РФ', icon: 'Scale', path: '/family-code' },
@@ -227,18 +235,32 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
               open={openSections.includes(section.id)}
               onOpenChange={() => toggleSection(section.id)}
             >
-              <CollapsibleTrigger asChild>
-                <button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                    {section.title}
-                  </span>
-                  <Icon 
-                    name={openSections.includes(section.id) ? "ChevronDown" : "ChevronRight"} 
-                    size={14} 
-                    className="text-gray-500"
-                  />
-                </button>
-              </CollapsibleTrigger>
+              <div className="flex items-center gap-1">
+                <CollapsibleTrigger asChild>
+                  <button className="flex-1 flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
+                      {section.title}
+                    </span>
+                    <Icon 
+                      name={openSections.includes(section.id) ? "ChevronDown" : "ChevronRight"} 
+                      size={14} 
+                      className="text-gray-500"
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                {section.hubPath && (
+                  <button
+                    onClick={() => {
+                      navigate(section.hubPath!);
+                      onVisibilityChange(false);
+                    }}
+                    className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                    title={`Открыть ${section.title}`}
+                  >
+                    <Icon name="ExternalLink" size={14} className="text-blue-500" />
+                  </button>
+                )}
+              </div>
               
               <CollapsibleContent className="space-y-1 mt-1">
                 {section.items.map((item) => (

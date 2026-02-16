@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 
 interface PolicyDirection {
   id: string;
@@ -192,28 +193,12 @@ export default function FamilyPolicy() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 p-4 lg:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <Button onClick={() => navigate('/')} variant="outline">
-            <Icon name="ArrowLeft" className="mr-2" size={16} />
-            Назад
-          </Button>
-        </div>
-
-        <Card className="border-2 border-purple-200">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-full">
-                <Icon name="Flag" size={48} />
-              </div>
-            </div>
-            <CardTitle className="text-3xl md:text-4xl font-bold">
-              Семейная политика России
-            </CardTitle>
-            <CardDescription className="text-lg mt-2">
-              Стратегические направления поддержки семей со стороны государства
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <SectionHero
+          title="Семейная политика"
+          subtitle="Стратегические направления поддержки семей со стороны государства"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6cfbf071-8a12-494d-90e2-93c37aaa217c.jpg"
+          backPath="/state-hub"
+        />
 
         <Card className="bg-gradient-to-r from-red-50 to-blue-50">
           <CardHeader>

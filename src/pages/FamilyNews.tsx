@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 
 interface NewsItem {
   id: string;
@@ -161,28 +162,12 @@ export default function FamilyNews() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 p-4 lg:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <Button onClick={() => navigate('/')} variant="outline">
-            <Icon name="ArrowLeft" className="mr-2" size={16} />
-            Назад
-          </Button>
-        </div>
-
-        <Card className="border-2 border-orange-200">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-full">
-                <Icon name="Newspaper" size={48} />
-              </div>
-            </div>
-            <CardTitle className="text-3xl md:text-4xl font-bold">
-              Новости семейной политики
-            </CardTitle>
-            <CardDescription className="text-lg mt-2">
-              Актуальные инициативы Президента и Правительства РФ в поддержку семей
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <SectionHero
+          title="Новости и инициативы"
+          subtitle="Актуальные новости семейного законодательства и политики"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6cfbf071-8a12-494d-90e2-93c37aaa217c.jpg"
+          backPath="/state-hub"
+        />
 
         <Card className="bg-gradient-to-r from-red-50 to-orange-50">
           <CardContent className="pt-6">
