@@ -16,6 +16,7 @@ export default function VotingPage() {
           title="Голосования"
           subtitle="Семейные решения демократично"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7db4e4eb-f20a-44c7-81de-270d03d22da1.jpg"
+          backPath="/household-hub"
         />
 
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>

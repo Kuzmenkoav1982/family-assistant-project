@@ -546,6 +546,7 @@ export default function Leisure() {
           title="Досуг"
           subtitle="Места и активности для всей семьи"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2c0380fb-216f-44aa-b638-31181b895672.jpg"
+          backPath="/leisure-hub"
         />
 
         <div className="flex flex-col sm:flex-row gap-2">

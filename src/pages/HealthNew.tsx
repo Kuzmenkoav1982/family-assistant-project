@@ -139,6 +139,7 @@ function HealthNew() {
             title="Здоровье семьи"
             subtitle="Медкарты, прививки, лекарства и врачи"
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3582e086-831d-4801-9879-c46e56603a26.jpg"
+            backPath="/health-hub"
           />
           <Card>
             <CardContent className="py-8 text-center">
@@ -173,6 +174,7 @@ function HealthNew() {
           title="Здоровье семьи"
           subtitle="Медкарты, прививки, лекарства и врачи"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3582e086-831d-4801-9879-c46e56603a26.jpg"
+          backPath="/health-hub"
         />
 
         <HealthInstructions />

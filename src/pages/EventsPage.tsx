@@ -125,6 +125,7 @@ export default function EventsPage() {
             title="Праздники"
             subtitle="Организуйте семейные торжества"
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c75655ba-70fa-4bd9-948b-5601b8c82b24.jpg"
+            backPath="/leisure-hub"
           />
           <div className="flex justify-center py-12">
             <Icon name="Loader2" size={32} className="animate-spin text-gray-400" />
@@ -141,6 +142,7 @@ export default function EventsPage() {
           title="Праздники"
           subtitle="Организуйте семейные торжества"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c75655ba-70fa-4bd9-948b-5601b8c82b24.jpg"
+          backPath="/leisure-hub"
           rightAction={
             <Button
               onClick={() => navigate('/events/create')}

@@ -227,7 +227,7 @@ export default function Purchases() {
           title="План покупок"
           subtitle="Планирование покупок по сезонам"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/568145f3-6907-4927-bdd4-f10b4f58054b.jpg"
-          backPath="/household-hub"
+          backPath="/planning-hub"
         />
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">

@@ -95,6 +95,7 @@ export default function Shopping() {
           title="Покупки"
           subtitle={`Активных: ${activeCount} • Куплено: ${boughtCount}`}
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a0559aa1-893a-44e6-84ca-315aec043fd9.jpg"
+          backPath="/household-hub"
           rightAction={
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>

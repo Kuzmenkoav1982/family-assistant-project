@@ -268,7 +268,7 @@ export default function Analytics() {
           title="Аналитика"
           subtitle="Статистика семейной жизни"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/da6c71d4-ec37-479f-b5ad-08a52eadbe94.jpg"
-          backPath="/"
+          backPath="/planning-hub"
         />
         <AnalyticsHeader
           isInstructionOpen={isInstructionOpen}
