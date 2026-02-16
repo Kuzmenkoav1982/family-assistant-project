@@ -65,6 +65,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'health',
       title: '💊 ЗДОРОВЬЕ',
       icon: 'HeartPulse',
+      hubPath: '/health-hub',
       items: [
         { id: 'health', label: 'Здоровье семьи', icon: 'HeartPulse', path: '/health' }
       ]
@@ -122,6 +123,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       id: 'leisure',
       title: '🌍 ПУТЕШЕСТВИЯ И ДОСУГ',
       icon: 'Plane',
+      hubPath: '/leisure-hub',
       items: [
         { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' },
         { id: 'leisure', label: 'Досуг', icon: 'MapPin', path: '/leisure' },

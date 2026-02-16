@@ -107,6 +107,8 @@ import PlanningHub from "./pages/PlanningHub";
 import HouseholdHub from "./pages/HouseholdHub";
 import DevelopmentHub from "./pages/DevelopmentHub";
 import StateHub from "./pages/StateHub";
+import HealthHub from "./pages/HealthHub";
+import LeisureHub from "./pages/LeisureHub";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
@@ -334,6 +336,8 @@ const App = () => {
                       <Route path="/household-hub" element={<HouseholdHub />} />
                       <Route path="/development-hub" element={<DevelopmentHub />} />
                       <Route path="/state-hub" element={<StateHub />} />
+                      <Route path="/health-hub" element={<HealthHub />} />
+                      <Route path="/leisure-hub" element={<LeisureHub />} />
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
                       
                       <Route path="*" element={<NotFound />} />
