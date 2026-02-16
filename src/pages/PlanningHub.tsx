@@ -22,7 +22,7 @@ const subSections: SubSection[] = [
     title: 'Цели семьи',
     description: 'Общие семейные цели с отслеживанием прогресса',
     icon: 'Target',
-    path: '/?section=goals',
+    path: '/goals',
     gradient: 'from-indigo-500 to-blue-600',
     ready: true,
   },

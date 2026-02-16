@@ -303,7 +303,7 @@ export default function StateSupport() {
         <SectionHero
           title="Господдержка семей"
           subtitle="Меры поддержки от государства РФ для семей с детьми"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/126eb1fc-4b71-4f1c-87fd-fa88beb6d32d.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/837fd184-7adf-4cfa-9e10-87a2c24fc6f9.jpg"
           backPath="/state-hub"
         />
 

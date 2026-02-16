@@ -112,6 +112,7 @@ import LeisureHub from "./pages/LeisureHub";
 import Values from "./pages/Values";
 import Culture from "./pages/Culture";
 import Tasks from "./pages/Tasks";
+import Goals from "./pages/Goals";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
@@ -344,6 +345,7 @@ const App = () => {
                       <Route path="/values" element={<Values />} />
                       <Route path="/culture" element={<Culture />} />
                       <Route path="/tasks" element={<Tasks />} />
+                      <Route path="/goals" element={<Goals />} />
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
                       
                       <Route path="*" element={<NotFound />} />
