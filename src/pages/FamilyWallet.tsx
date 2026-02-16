@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useToast } from '@/hooks/use-toast';
 import WalletInstructions from '@/components/wallet/WalletInstructions';
 
@@ -202,15 +203,12 @@ export default function FamilyWallet() {
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
 
-        <div className="flex items-center gap-3 pt-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold">Семейный кошелёк</h1>
-            <p className="text-xs text-muted-foreground">Баланс для ИИ-сервисов</p>
-          </div>
-        </div>
+        <SectionHero
+          title="Семейный кошелёк"
+          subtitle="Баланс для ИИ-сервисов"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b500a1d4-8384-41cc-8a43-8eb7210924e8.jpg"
+          backPath="/nutrition"
+        />
 
         <WalletInstructions />
 
