@@ -22,6 +22,7 @@ import { ReminderNotifications } from '@/components/calendar/ReminderNotificatio
 import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
 import { CalendarAI } from '@/components/calendar/CalendarAI';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 
 type ViewMode = 'month' | 'week';
 
@@ -534,8 +535,14 @@ export default function Calendar() {
   const upcomingReminders = getUpcomingReminders();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Календарь"
+          subtitle="Семейные события и планирование"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7bc63316-22c3-45cf-aa32-cecaefd28f16.jpg"
+          backPath="/planning-hub"
+        />
         <div className="flex flex-col gap-4">
           <CalendarHeader
             currentDate={currentDate}

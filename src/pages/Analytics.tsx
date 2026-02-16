@@ -7,6 +7,7 @@ import { AnalyticsStatsCards } from '@/components/analytics/AnalyticsStatsCards'
 import { AnalyticsContentTabs } from '@/components/analytics/AnalyticsContentTabs';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 
 type Period = 'week' | 'month' | 'quarter' | 'half-year' | 'year';
@@ -261,8 +262,14 @@ export default function Analytics() {
   const hasData = activeMembers > 0 || totalTasks > 0 || calendarEvents.length > 0 || blogPosts.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-indigo-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Аналитика"
+          subtitle="Статистика семейной жизни"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/da6c71d4-ec37-479f-b5ad-08a52eadbe94.jpg"
+          backPath="/"
+        />
         <AnalyticsHeader
           isInstructionOpen={isInstructionOpen}
           onInstructionToggle={setIsInstructionOpen}

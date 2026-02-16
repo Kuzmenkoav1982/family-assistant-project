@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { toast } from 'sonner';
@@ -326,8 +327,14 @@ export default function Development() {
   ) : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-purple-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Развитие"
+          subtitle="Тесты и аналитика семьи"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e4667014-5724-4d78-990b-c7d187f4618d.jpg"
+          backPath="/development-hub"
+        />
         <DevelopmentHeader
           onNavigateBack={() => navigate('/')}
           testsCount={DEVELOPMENT_TESTS.length}

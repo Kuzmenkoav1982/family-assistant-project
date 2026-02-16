@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FamilyMember {
@@ -504,28 +505,14 @@ export default function FamilyTracker() {
   }, [map]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Заголовок */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/')}
-              className="rounded-full"
-            >
-              <Icon name="Home" size={24} />
-            </Button>
-            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white">
-              <Icon name="MapPin" size={24} />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">Семейный маячок</h1>
-              <p className="text-gray-600">Отслеживайте местоположение членов семьи в реальном времени</p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Семейный маячок"
+          subtitle="Местоположение членов семьи"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1f86cef7-8734-493e-bef6-12ac69e8a4b8.jpg"
+          backPath="/family-hub"
+        />
 
         {/* Сворачиваемая инструкция */}
         <Card className="shadow-md bg-blue-50 border-blue-200">

@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import Footer from '@/components/Footer';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { ParentDashboard } from '@/components/children/ParentDashboard';
@@ -120,7 +121,7 @@ export default function Children() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50/30 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
           <p className="text-gray-600">Загрузка профилей детей...</p>
@@ -131,19 +132,14 @@ export default function Children() {
 
   if (!children || children.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              className="gap-2"
-            >
-              <Icon name="ArrowLeft" size={20} />
-              Назад
-            </Button>
-          </div>
-
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50/30 to-white pb-24">
+        <div className="max-w-5xl mx-auto p-4 space-y-6">
+          <SectionHero
+            title="Дети"
+            subtitle="Развитие и контроль"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c284ef36-f2eb-45cb-95cc-7e8f735dbd0d.jpg"
+            backPath="/family-hub"
+          />
           <Card className="max-w-2xl mx-auto text-center py-12">
             <CardContent className="space-y-6">
               <div className="text-6xl mb-4">👶</div>
@@ -170,18 +166,15 @@ export default function Children() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="gap-2"
-          >
-            <Icon name="ArrowLeft" size={20} />
-            Назад
-          </Button>
-
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Дети"
+          subtitle="Развитие и контроль"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c284ef36-f2eb-45cb-95cc-7e8f735dbd0d.jpg"
+          backPath="/family-hub"
+        />
+        <div className="flex items-center justify-end mb-4">
           {isParent && (
             <div className="flex gap-2 z-50 flex-wrap justify-end">
               <Button
