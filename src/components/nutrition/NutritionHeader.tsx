@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
-import { useNavigate } from 'react-router-dom';
 
 interface FamilyMember {
   id: string;
@@ -26,24 +25,8 @@ export function NutritionHeader({
   isInstructionOpen,
   onInstructionToggle
 }: NutritionHeaderProps) {
-  const navigate = useNavigate();
-
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Icon name="Calculator" className="text-blue-600" size={36} />
-            Счётчик БЖУ
-          </h1>
-          <p className="text-gray-600 mt-1">Дневник питания с подсчётом калорий и нутриентов</p>
-        </div>
-        <Button onClick={() => navigate('/')} variant="outline">
-          <Icon name="ArrowLeft" className="mr-2" size={16} />
-          Назад
-        </Button>
-      </div>
-
       <Collapsible open={isInstructionOpen} onOpenChange={onInstructionToggle}>
         <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
           <div className="flex items-start gap-3">

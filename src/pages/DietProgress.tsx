@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = 'https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54';
@@ -455,12 +456,12 @@ export default function DietProgress() {
     return (
       <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-6" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9" onClick={() => navigate('/nutrition')}>
-              <Icon name="ArrowLeft" size={18} />
-            </Button>
-            <h1 className="text-lg font-bold">Прогресс диеты</h1>
-          </div>
+          <SectionHero
+            title="Прогресс диеты"
+            subtitle="Отслеживание результатов и мотивация"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg"
+            backPath="/nutrition"
+          />
           <Card className="border-2 border-dashed border-violet-200">
             <CardContent className="p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet-100 flex items-center justify-center">
@@ -504,21 +505,18 @@ export default function DietProgress() {
     <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
 
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9" onClick={() => navigate('/nutrition')}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold truncate">Прогресс диеты</h1>
-            <p className="text-xs text-muted-foreground">
-              День {stats?.days_elapsed || 0} из {plan?.duration_days || 0}
-            </p>
-          </div>
-          <Button variant="outline" size="sm" className="shrink-0 border-red-200 text-red-600 hover:bg-red-50" onClick={() => setShowSOS(true)}>
-            <Icon name="LifeBuoy" size={16} />
-            <span className="hidden xs:inline ml-1">SOS</span>
-          </Button>
-        </div>
+        <SectionHero
+          title="Прогресс диеты"
+          subtitle={`День ${stats?.days_elapsed || 0} из ${plan?.duration_days || 0}`}
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg"
+          backPath="/nutrition"
+          rightAction={
+            <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 bg-white/80" onClick={() => setShowSOS(true)}>
+              <Icon name="LifeBuoy" size={16} />
+              <span className="ml-1">SOS</span>
+            </Button>
+          }
+        />
 
         {stats && stats.days_since_log >= 3 && (
           <Card className="border-amber-300 bg-amber-50">

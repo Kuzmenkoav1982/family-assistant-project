@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useToast } from '@/hooks/use-toast';
 import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR, useStorageStats } from '@/hooks/useRecipes';
 import type { Recipe, RecipeCategory, CuisineType, DifficultyLevel } from '@/types/recipe.types';
@@ -316,20 +317,15 @@ export default function Recipes() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <SectionHero
+          title="Рецепты"
+          subtitle="Ваша семейная кулинарная книга"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/262a96a0-e48f-4449-a8bd-326f5cfb3657.jpg"
+          backPath="/nutrition"
+        />
+
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button onClick={() => navigate('/')} variant="outline" size="sm">
-              <Icon name="ArrowLeft" size={16} className="mr-2" />
-              Назад
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                <Icon name="ChefHat" className="text-orange-600" size={32} />
-                Рецепты
-              </h1>
-              <p className="text-gray-600 mt-1">Ваша семейная кулинарная книга</p>
-            </div>
-          </div>
+          <div />
           <div className="flex flex-col items-end gap-2">
             <Button onClick={() => setIsAddDialogOpen(true)} className="bg-orange-600 hover:bg-orange-700">
               <Plus className="mr-2" size={20} />

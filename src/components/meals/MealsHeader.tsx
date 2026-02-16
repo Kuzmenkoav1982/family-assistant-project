@@ -31,29 +31,6 @@ export function MealsHeader({
 }: MealsHeaderProps) {
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <Button onClick={onNavigateBack} variant="outline">
-            <Icon name="ArrowLeft" className="mr-2" size={16} />
-            Питание
-          </Button>
-          {onNavigateHome && (
-            <Button onClick={onNavigateHome} variant="outline" size="icon">
-              <Icon name="Home" size={16} />
-            </Button>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="bg-white">
-            <Icon name="UtensilsCrossed" size={14} className="mr-1" />
-            {selectedAuthor === 'all' 
-              ? `Блюд на неделю: ${totalMeals}`
-              : `Блюд автора: ${filteredMealsCount}`
-            }
-          </Badge>
-        </div>
-      </div>
-
       <Collapsible open={isInstructionOpen} onOpenChange={onInstructionToggle}>
         <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
           <div className="flex items-start gap-3">

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 
 interface DietProgram {
   id: number;
@@ -131,15 +132,12 @@ export default function DietProgramCatalog() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="max-w-4xl mx-auto p-4 space-y-5">
-        <div className="flex items-center gap-3 pt-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/nutrition')}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Готовые режимы питания</h1>
-            <p className="text-sm text-muted-foreground">Выберите программу и получите план</p>
-          </div>
-        </div>
+        <SectionHero
+          title="Готовые режимы питания"
+          subtitle="Выберите программу и получите план"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/62fbca40-b16c-44ff-a3d4-53a5dfc288ea.jpg"
+          backPath="/nutrition"
+        />
 
         <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
           <TabsList className="w-full">

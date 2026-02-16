@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { NutritionHeader } from '@/components/nutrition/NutritionHeader';
+import SectionHero from '@/components/ui/section-hero';
 import { NutritionStats } from '@/components/nutrition/NutritionStats';
 import { AddMealDialog, type NewEntry } from '@/components/nutrition/AddMealDialog';
 import { FoodDiaryTable, type FoodDiaryEntry } from '@/components/nutrition/FoodDiaryTable';
@@ -290,6 +291,13 @@ export default function Nutrition() {
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white p-4 pb-24">
       <div className="max-w-6xl mx-auto space-y-6">
         
+        <SectionHero
+          title="Счётчик БЖУ"
+          subtitle="Дневник питания с подсчётом калорий и нутриентов"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3783739b-09dd-451c-9fac-a95c55db2792.jpg"
+          backPath="/nutrition"
+        />
+
         <NutritionHeader
           members={members}
           selectedMemberId={selectedMemberId}
