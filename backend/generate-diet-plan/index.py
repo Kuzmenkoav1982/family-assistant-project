@@ -386,6 +386,7 @@ def parse_recipe(text: str) -> list:
 
 
 def handle_photo_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
+    import random
     dish_name = body.get('dishName', '')
     description = body.get('description', '')
 
@@ -398,7 +399,7 @@ def handle_photo_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, An
     headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
     payload = {
         'modelUri': f'art://{folder_id}/yandex-art/latest',
-        'generationOptions': {'seed': 42},
+        'generationOptions': {'seed': random.randint(1, 1000000)},
         'messages': [
             {
                 'weight': 1,
@@ -478,6 +479,7 @@ def handle_photo_check(api_key: str, body: Dict) -> Dict[str, Any]:
 
 
 def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
+    import random
     event_title = body.get('eventTitle', '')
     theme = body.get('theme', '')
     style = body.get('style', 'elegant')
@@ -488,19 +490,21 @@ def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str,
 
     art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
 
-    theme_hint = f', тема: {theme}' if theme else ''
-    wishes_hint = f', {wishes}' if wishes else ''
-    prompt = f'Красивая праздничная открытка-приглашение на событие "{event_title}"{theme_hint}{wishes_hint}. Яркий {style} дизайн, праздничная атмосфера, цветы, декоративные элементы, тёплые тона, без текста на изображении, высокое качество.'
+    theme_hint = f', тема оформления: {theme}' if theme else ''
+    if wishes:
+        prompt = f'{wishes}. Праздничная открытка-приглашение на "{event_title}"{theme_hint}. {style} дизайн, без текста на изображении, высокое качество.'
+    else:
+        prompt = f'Красивая праздничная открытка-приглашение на событие "{event_title}"{theme_hint}. Яркий {style} дизайн, праздничная атмосфера, цветы, декоративные элементы, тёплые тона, без текста на изображении, высокое качество.'
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
     headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
     payload = {
         'modelUri': f'art://{folder_id}/yandex-art/latest',
-        'generationOptions': {'seed': 42},
+        'generationOptions': {'seed': random.randint(1, 1000000)},
         'messages': [{'weight': 1, 'text': prompt}]
     }
 
-    print(f"[greeting] Starting greeting card generation for: {event_title}")
+    print(f"[greeting] Starting greeting card generation for: {event_title}, prompt: {prompt[:200]}")
     response = requests.post(url, headers=headers, json=payload, timeout=25)
     print(f"[greeting] Start status={response.status_code}")
 
