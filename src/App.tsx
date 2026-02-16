@@ -101,6 +101,11 @@ import FamilyTracker from "./pages/FamilyTracker";
 import LocationHistory from "./pages/LocationHistory";
 import DebugAuth from "./pages/DebugAuth";
 import Onboarding from "./pages/Onboarding";
+import FamilyHub from "./pages/FamilyHub";
+import ValuesHub from "./pages/ValuesHub";
+import PlanningHub from "./pages/PlanningHub";
+import HouseholdHub from "./pages/HouseholdHub";
+import DevelopmentHub from "./pages/DevelopmentHub";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
@@ -322,6 +327,11 @@ const App = () => {
                       <Route path="/domovoy" element={<DomovoyPage />} />
                       <Route path="/services" element={<TelegramServices />} />
                       <Route path="/debug-auth" element={<DebugAuth />} />
+                      <Route path="/family-hub" element={<FamilyHub />} />
+                      <Route path="/values-hub" element={<ValuesHub />} />
+                      <Route path="/planning-hub" element={<PlanningHub />} />
+                      <Route path="/household-hub" element={<HouseholdHub />} />
+                      <Route path="/development-hub" element={<DevelopmentHub />} />
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
                       
                       <Route path="*" element={<NotFound />} />
