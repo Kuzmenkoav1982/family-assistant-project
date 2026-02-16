@@ -76,8 +76,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       icon: 'Heart',
       hubPath: '/values-hub',
       items: [
-        { id: 'values', label: 'Ценности', icon: 'Heart', path: '/?section=values' },
-        { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/?section=traditions' },
+        { id: 'values', label: 'Ценности', icon: 'Heart', path: '/values' },
+        { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/culture' },
         { id: 'house-rules', label: 'Правила дома', icon: 'FileText', path: '/rules' }
       ]
     },
@@ -88,7 +88,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/planning-hub',
       items: [
         { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
-        { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/?section=tasks' },
+        { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/tasks' },
         { id: 'calendar', label: 'Календарь', icon: 'Calendar', path: '/calendar' },
         { id: 'purchases', label: 'План покупок', icon: 'ShoppingBag', path: '/purchases' },
         { id: 'analytics', label: 'Аналитика', icon: 'BarChart3', path: '/analytics' }

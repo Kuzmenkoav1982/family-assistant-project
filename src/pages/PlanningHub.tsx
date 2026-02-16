@@ -31,7 +31,7 @@ const subSections: SubSection[] = [
     title: 'Задачи',
     description: 'Распределение задач между членами семьи',
     icon: 'CheckSquare',
-    path: '/?section=tasks',
+    path: '/tasks',
     gradient: 'from-emerald-500 to-teal-600',
     ready: true,
   },
