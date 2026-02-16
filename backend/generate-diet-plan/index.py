@@ -209,7 +209,7 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
         'completionOptions': {
             'stream': False,
             'temperature': 0.4,
-            'maxTokens': 16000 if duration_days > 7 else 8000
+            'maxTokens': 32000 if duration_days >= 30 else 16000 if duration_days > 7 else 8000
         },
         'messages': [
             {
@@ -806,6 +806,7 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
 
 
 def parse_plan(text: str) -> Optional[Dict[str, Any]]:
+    import re
     cleaned = text.strip()
     if cleaned.startswith('```'):
         lines = cleaned.split('\n')
@@ -815,46 +816,101 @@ def parse_plan(text: str) -> Optional[Dict[str, Any]]:
         cleaned = '\n'.join(lines)
 
     start = cleaned.find('{')
-    end = cleaned.rfind('}')
-    if start == -1 or end == -1:
+    if start == -1:
         return None
+    end = cleaned.rfind('}')
+    if end == -1:
+        json_str = cleaned[start:]
+    else:
+        json_str = cleaned[start:end + 1]
 
-    json_str = cleaned[start:end + 1]
-
-    try:
-        return json.loads(json_str)
-    except json.JSONDecodeError:
-        pass
-
-    import re
     fixed = re.sub(r',\s*([}\]])', r'\1', json_str)
+
     try:
         result = json.loads(fixed)
-        if isinstance(result, dict) and 'days' in result:
-            print("[parse_plan] Fixed trailing commas in JSON")
+        if isinstance(result, dict):
             return result
     except json.JSONDecodeError:
         pass
 
-    try:
-        last_valid = json_str.rfind('}')
-        bracket_count = 0
-        for i, c in enumerate(json_str):
-            if c == '{':
-                bracket_count += 1
-            elif c == '}':
-                bracket_count -= 1
-                if bracket_count == 0:
-                    last_valid = i
-                    break
-        truncated = json_str[:last_valid + 1]
-        truncated = re.sub(r',\s*([}\]])', r'\1', truncated)
-        result = json.loads(truncated)
-        if isinstance(result, dict) and 'days' in result:
-            print("[parse_plan] Parsed truncated JSON successfully")
-            return result
-    except (json.JSONDecodeError, ValueError):
-        pass
+    plan = _recover_truncated_plan(fixed)
+    if plan:
+        print(f"[parse_plan] Recovered truncated plan with {len(plan.get('days', []))} days")
+        return plan
 
     print(f"[parse_plan] Failed to parse plan, text length={len(text)}, first 200 chars: {text[:200]}")
     return None
+
+
+def _recover_truncated_plan(text: str) -> Optional[Dict[str, Any]]:
+    import re
+    result = {}
+
+    for field in ('daily_calories', 'daily_protein', 'daily_fats', 'daily_carbs', 'daily_water_ml', 'daily_steps'):
+        m = re.search(rf'"{field}"\s*:\s*(\d+)', text)
+        if m:
+            result[field] = int(m.group(1))
+
+    m = re.search(r'"exercise_recommendation"\s*:\s*"([^"]*)"', text)
+    if m:
+        result['exercise_recommendation'] = m.group(1)
+
+    if 'daily_calories' not in result:
+        return None
+
+    days_match = re.search(r'"days"\s*:\s*\[', text)
+    if not days_match:
+        return None
+
+    days_text = text[days_match.end():]
+    days = []
+    day_pattern = re.compile(r'"day"\s*:\s*"([^"]*)"')
+    meal_block_re = re.compile(
+        r'\{\s*'
+        r'"type"\s*:\s*"([^"]*)"\s*,\s*'
+        r'"time"\s*:\s*"([^"]*)"\s*,\s*'
+        r'"name"\s*:\s*"([^"]*)"\s*,\s*'
+        r'"description"\s*:\s*"([^"]*)"\s*,\s*'
+        r'"calories"\s*:\s*(\d+)\s*,\s*'
+        r'"protein"\s*:\s*(\d+)\s*,\s*'
+        r'"fats"\s*:\s*(\d+)\s*,\s*'
+        r'"carbs"\s*:\s*(\d+)\s*,\s*'
+        r'"ingredients"\s*:\s*\[([^\]]*)\]\s*,\s*'
+        r'"cooking_time_min"\s*:\s*(\d+)\s*,\s*'
+        r'"emoji"\s*:\s*"([^"]*)"'
+    )
+
+    day_splits = list(day_pattern.finditer(days_text))
+
+    for idx, dm in enumerate(day_splits):
+        day_name = dm.group(1)
+        start_pos = dm.end()
+        end_pos = day_splits[idx + 1].start() if idx + 1 < len(day_splits) else len(days_text)
+        day_chunk = days_text[start_pos:end_pos]
+
+        meals = []
+        for mm in meal_block_re.finditer(day_chunk):
+            raw_ings = mm.group(9)
+            ingredients = [s.strip().strip('"') for s in raw_ings.split('",') if s.strip().strip('"')]
+            meals.append({
+                'type': mm.group(1),
+                'time': mm.group(2),
+                'name': mm.group(3),
+                'description': mm.group(4),
+                'calories': int(mm.group(5)),
+                'protein': int(mm.group(6)),
+                'fats': int(mm.group(7)),
+                'carbs': int(mm.group(8)),
+                'ingredients': ingredients,
+                'cooking_time_min': int(mm.group(10)),
+                'emoji': mm.group(11),
+            })
+
+        if meals:
+            days.append({'day': day_name, 'meals': meals})
+
+    if not days:
+        return None
+
+    result['days'] = days
+    return result
