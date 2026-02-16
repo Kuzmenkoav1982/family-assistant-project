@@ -35,44 +35,7 @@ const subSections: SubSection[] = [
     gradient: 'from-blue-500 to-indigo-600',
     ready: true,
   },
-  {
-    id: 'garage',
-    title: 'Гараж',
-    description: 'Учёт автомобилей, ТО, страховки и расходы',
-    icon: 'Car',
-    path: '/garage',
-    gradient: 'from-slate-500 to-gray-600',
-    ready: true,
-  },
-  {
-    id: 'pets',
-    title: 'Питомцы',
-    description: 'Уход за домашними животными, визиты к ветеринару',
-    icon: 'PawPrint',
-    path: '/pets',
-    gradient: 'from-amber-500 to-yellow-600',
-    ready: true,
-  },
-  {
-    id: 'domovoy',
-    title: 'Домовой',
-    description: 'ИИ-помощник для решения бытовых вопросов',
-    icon: 'Bot',
-    path: '/domovoy',
-    gradient: 'from-violet-500 to-purple-600',
-    badge: 'ИИ',
-    badgeColor: 'bg-violet-100 text-violet-700',
-    ready: true,
-  },
-  {
-    id: 'ideas',
-    title: 'Доска идей',
-    description: 'Собирайте и обсуждайте семейные идеи и предложения',
-    icon: 'Lightbulb',
-    path: '/ideas',
-    gradient: 'from-emerald-500 to-teal-600',
-    ready: true,
-  },
+
 ];
 
 export default function HouseholdHub() {

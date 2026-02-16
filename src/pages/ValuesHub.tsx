@@ -35,15 +35,7 @@ const subSections: SubSection[] = [
     gradient: 'from-amber-500 to-orange-600',
     ready: true,
   },
-  {
-    id: 'faith',
-    title: 'Вера и духовность',
-    description: 'Духовные практики и религиозные традиции семьи',
-    icon: 'Church',
-    path: '/faith',
-    gradient: 'from-violet-500 to-purple-600',
-    ready: true,
-  },
+
   {
     id: 'rules',
     title: 'Правила дома',

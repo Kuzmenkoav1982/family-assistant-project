@@ -46,35 +46,7 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-emerald-100 text-emerald-700',
     ready: true,
   },
-  {
-    id: 'tree',
-    title: 'Родословное древо',
-    description: 'Генеалогическое древо семьи с историей поколений',
-    icon: 'GitBranch',
-    path: '/tree',
-    gradient: 'from-amber-500 to-orange-600',
-    ready: true,
-  },
-  {
-    id: 'psychologist',
-    title: 'Семейный психолог',
-    description: 'ИИ-психолог для решения семейных вопросов',
-    icon: 'Brain',
-    path: '/psychologist',
-    gradient: 'from-violet-500 to-purple-600',
-    badge: 'ИИ',
-    badgeColor: 'bg-violet-100 text-violet-700',
-    ready: true,
-  },
-  {
-    id: 'invite',
-    title: 'Пригласить в семью',
-    description: 'Отправьте приглашение новому члену семьи',
-    icon: 'UserPlus',
-    path: '/family-invite',
-    gradient: 'from-cyan-500 to-sky-600',
-    ready: true,
-  },
+
 ];
 
 export default function FamilyHub() {

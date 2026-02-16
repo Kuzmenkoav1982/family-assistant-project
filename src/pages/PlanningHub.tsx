@@ -64,15 +64,7 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-violet-100 text-violet-700',
     ready: true,
   },
-  {
-    id: 'finance',
-    title: 'Финансы',
-    description: 'Бюджет семьи, доходы, расходы и накопления',
-    icon: 'Wallet',
-    path: '/finance',
-    gradient: 'from-green-500 to-emerald-600',
-    ready: true,
-  },
+
 ];
 
 export default function PlanningHub() {
