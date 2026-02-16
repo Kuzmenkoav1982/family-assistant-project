@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { 
   DEMO_HEALTH_PROFILES,
   DEMO_HEALTH_RECORDS_NEW,
@@ -132,20 +133,21 @@ function HealthNew() {
 
   if (profilesLoading && !isDemoMode) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="Heart" className="text-rose-500" />
-              Здоровье семьи
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Загружаем данные о здоровье...
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-rose-50 via-pink-50/30 to-white pb-24">
+        <div className="max-w-5xl mx-auto p-4 space-y-6">
+          <SectionHero
+            title="Здоровье семьи"
+            subtitle="Медкарты, прививки, лекарства и врачи"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3582e086-831d-4801-9879-c46e56603a26.jpg"
+          />
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">
+                Загружаем данные о здоровье...
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -165,24 +167,15 @@ function HealthNew() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
-      <Button
-        variant="ghost"
-        onClick={() => navigate('/')}
-        className="mb-2 md:mb-4"
-      >
-        <Icon name="ArrowLeft" size={16} className="mr-2" />
-        Назад
-      </Button>
-      
-      <div className="flex flex-col gap-3">
-        <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-          <Icon name="Heart" className="text-rose-500" size={28} />
-          Здоровье семьи
-        </h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-pink-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Здоровье семьи"
+          subtitle="Медкарты, прививки, лекарства и врачи"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3582e086-831d-4801-9879-c46e56603a26.jpg"
+        />
 
-      <HealthInstructions />
+        <HealthInstructions />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {profiles.map((profile) => {
@@ -915,6 +908,7 @@ function HealthNew() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
