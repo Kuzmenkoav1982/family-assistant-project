@@ -660,7 +660,7 @@ export default function DietMiniQuiz() {
               <h1 className="text-lg font-bold flex items-center gap-2">
                 <span>{emoji}</span> {programName}
               </h1>
-              <p className="text-xs text-muted-foreground">План на 7 дней, {data.servings_count} чел.</p>
+              <p className="text-xs text-muted-foreground">План на {generatedPlan.days.length} дней, {data.servings_count} чел.</p>
             </div>
           </div>
 
