@@ -1796,7 +1796,7 @@ export default function Index({ onLogout }: IndexProps) {
                           return true;
                         })
                         .map((event, index) => (
-                          <div key={event.id} className={`p-4 rounded-lg ${event.color} animate-fade-in`} style={{ animationDelay: `${index * 0.1}s` }}>
+                          <div key={event.id} className={`p-4 rounded-lg ${event.color || 'bg-blue-50'} animate-fade-in`} style={{ animationDelay: `${index * 0.1}s` }}>
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <h4 className="font-bold text-lg">{event.title}</h4>

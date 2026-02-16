@@ -153,7 +153,7 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
               todayEvents.map((event) => (
                 <div
                   key={event.id}
-                  className={`p-3 rounded-lg ${event.color} border-2 hover:shadow-md transition-all`}
+                  className={`p-3 rounded-lg ${event.color || 'bg-blue-50'} border-2 hover:shadow-md transition-all`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-start justify-between gap-2">
