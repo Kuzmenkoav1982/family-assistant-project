@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import NutritionHubInstructions from '@/components/nutrition/NutritionHubInstructions';
 
 interface SubSection {
@@ -108,32 +108,11 @@ export default function NutritionHub() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <div className="relative -mx-4 -mt-4 mb-2 rounded-b-2xl overflow-hidden">
-          <img
-            src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/332a580b-fc76-4272-8503-b220098c2419.jpg"
-            alt="Питание"
-            className="w-full h-44 object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="text-white hover:bg-white/20 mb-1"
-            >
-              <Icon name="ArrowLeft" size={18} />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-white drop-shadow-lg">
-                Питание
-              </h1>
-              <p className="text-sm text-white/80">
-                Полный контроль питания семьи
-              </p>
-            </div>
-          </div>
-        </div>
+        <SectionHero
+          title="Питание"
+          subtitle="Полный контроль питания семьи"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/332a580b-fc76-4272-8503-b220098c2419.jpg"
+        />
 
         <NutritionHubInstructions />
 

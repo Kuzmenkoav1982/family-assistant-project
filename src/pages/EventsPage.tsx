@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyEvent } from '@/types/events';
 import func2url from '../../backend/func2url.json';
@@ -118,54 +119,40 @@ export default function EventsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon name="PartyPopper" className="text-pink-500" />
-              Праздники
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Загружаем праздники...</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-pink-50 via-rose-50/30 to-white pb-24">
+        <div className="max-w-5xl mx-auto p-4">
+          <SectionHero
+            title="Праздники"
+            subtitle="Организуйте семейные торжества"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c75655ba-70fa-4bd9-948b-5601b8c82b24.jpg"
+          />
+          <div className="flex justify-center py-12">
+            <Icon name="Loader2" size={32} className="animate-spin text-gray-400" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
-      {/* Mobile Header with Back Button */}
-      <div className="flex items-center gap-3 md:hidden">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-          <Icon name="ArrowLeft" size={20} />
-        </Button>
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Icon name="PartyPopper" className="text-pink-500" size={24} />
-          Праздники семьи
-        </h1>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden md:flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Icon name="PartyPopper" className="text-pink-500" size={32} />
-          Праздники семьи
-        </h1>
-        <Button onClick={() => navigate('/events/create')}>
-          <Icon name="Plus" size={16} />
-          Создать праздник
-        </Button>
-      </div>
-
-      {/* Mobile Create Button */}
-      <div className="md:hidden">
-        <Button onClick={() => navigate('/events/create')} className="w-full">
-          <Icon name="Plus" size={16} />
-          Создать праздник
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-rose-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Праздники"
+          subtitle="Организуйте семейные торжества"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c75655ba-70fa-4bd9-948b-5601b8c82b24.jpg"
+          rightAction={
+            <Button
+              onClick={() => navigate('/events/create')}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+            >
+              <Icon name="Plus" size={16} />
+              <span className="ml-1 text-sm">Создать</span>
+            </Button>
+          }
+        />
 
       {upcomingEvents.length === 0 && pastEvents.length === 0 && (
         <Card>
@@ -342,6 +329,7 @@ export default function EventsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

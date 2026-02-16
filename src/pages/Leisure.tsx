@@ -21,6 +21,7 @@ import { RouteGenerator } from '@/components/leisure/RouteGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { useDemoMode } from '@/contexts/DemoModeContext';
+import SectionHero from '@/components/ui/section-hero';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -539,148 +540,66 @@ export default function Leisure() {
   const counts = getTabCounts();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-24">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          {/* Инструкция */}
-          {isInstructionOpen && (
-            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Icon name="Info" size={20} className="text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Как пользоваться разделом Досуг</h3>
-                </div>
-                <button onClick={() => setIsInstructionOpen(false)} className="text-gray-400 hover:text-gray-600">
-                  <Icon name="X" size={20} />
-                </button>
-              </div>
-              <div className="space-y-2 text-sm text-gray-700">
-                <p><strong>📍 Добавление:</strong> Используйте кнопки AI-помощник, Поиск мест или просто "Добавить" для создания активностей</p>
-                <p><strong>📅 Календарь:</strong> Перетаскивайте активности на даты для планирования. Drag & drop работает прямо в календаре!</p>
-                <p><strong>🗓️ Общий календарь:</strong> Включите чекбокс "Показать в общем календаре" когда точно решили куда идти</p>
-                <p><strong>🏷️ Статусы:</strong> "Хочу посетить" (Wish List) → "Запланировано" (с датой) → "Посещено" (с оценкой)</p>
-                <p><strong>🚗 Маршрут:</strong> Кнопка "Построить маршрут" создаст план на день с временем в пути</p>
-                <p><strong>📊 Статистика:</strong> Смотрите траты, посещённые места и рейтинги по категориям</p>
-                <button
-                  onClick={() => navigate('/instructions?section=leisure')}
-                  className="mt-3 text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                >
-                  Подробная инструкция
-                  <Icon name="ExternalLink" size={14} />
-                </button>
-              </div>
-            </div>
-          )}
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-4">
+        <SectionHero
+          title="Досуг"
+          subtitle="Места и активности для всей семьи"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2c0380fb-216f-44aa-b638-31181b895672.jpg"
+        />
 
-          <div className="mb-4">
-            {/* Заголовок и инструкция */}
-            <div className="flex items-center gap-2 mb-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-                className="p-2"
-              >
-                <Icon name="Home" size={18} />
-              </Button>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Досуг</h1>
-                <p className="text-xs sm:text-sm text-gray-500">Места и активности</p>
-              </div>
-              <button
-                onClick={() => setIsInstructionOpen(!isInstructionOpen)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-2"
-                title="Показать инструкцию"
-              >
-                <Icon name="HelpCircle" size={18} />
-              </button>
-            </div>
-
-            {/* Кнопки действий - компактно на мобильных */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2 flex-wrap sm:flex-1">
-                <RouteGenerator activities={allActivities} />
-                <AIAssistant onAddPlace={handleAddFromAI} />
-                <PlaceSearch onSelectPlace={handleAddFromSearch} />
-              </div>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 flex-shrink-0">
-                <Icon name="Plus" size={20} />
-                <span>Добавить</span>
-              </Button>
-            </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex gap-2 flex-wrap sm:flex-1">
+            <RouteGenerator activities={allActivities} />
+            <AIAssistant onAddPlace={handleAddFromAI} />
+            <PlaceSearch onSelectPlace={handleAddFromSearch} />
           </div>
-
-          {/* View Mode - прокручиваемые табы */}
-          <div className="mb-4 -mx-4 px-4 overflow-x-auto">
-            <div className="flex gap-2 min-w-max">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="whitespace-nowrap"
-              >
-                <Icon name="Grid3x3" size={16} className="sm:mr-2" />
-                <span className="hidden sm:inline">Сетка</span>
-              </Button>
-              <Button
-                variant={viewMode === 'map' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('map')}
-                className="whitespace-nowrap"
-              >
-                <Icon name="Map" size={16} className="sm:mr-2" />
-                <span className="hidden sm:inline">Карта</span>
-              </Button>
-              <Button
-                variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('calendar')}
-                className="whitespace-nowrap"
-              >
-                <Icon name="Calendar" size={16} className="sm:mr-2" />
-                <span className="hidden sm:inline">Календарь</span>
-              </Button>
-              <Button
-                variant={viewMode === 'stats' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('stats')}
-                className="whitespace-nowrap"
-              >
-                <Icon name="BarChart3" size={16} className="sm:mr-2" />
-                <span className="hidden sm:inline">Статистика</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Tabs - прокручиваемые */}
-          <div className="-mx-4 px-4 overflow-x-auto pb-2">
-            <div className="flex gap-2 min-w-max">
-              {TABS_CONFIG.map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => setActiveTab(tab.value)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                    activeTab === tab.value
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon name={tab.icon} size={16} />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                  <Badge variant="secondary" className="ml-1">
-                    {counts[tab.value as keyof typeof counts] || 0}
-                  </Badge>
-                </button>
-              ))}
-            </div>
-          </div>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 flex-shrink-0">
+            <Icon name="Plus" size={20} />
+            <span>Добавить</span>
+          </Button>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {[
+            { value: 'grid', icon: 'Grid3x3', label: 'Сетка' },
+            { value: 'map', icon: 'Map', label: 'Карта' },
+            { value: 'calendar', icon: 'Calendar', label: 'Календарь' },
+            { value: 'stats', icon: 'BarChart3', label: 'Статистика' },
+          ].map(mode => (
+            <Button
+              key={mode.value}
+              variant={viewMode === mode.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode(mode.value as typeof viewMode)}
+              className="whitespace-nowrap"
+            >
+              <Icon name={mode.icon} size={16} className="sm:mr-1" />
+              <span className="hidden sm:inline">{mode.label}</span>
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {TABS_CONFIG.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap text-sm transition-colors ${
+                activeTab === tab.value
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border'
+              }`}
+            >
+              <Icon name={tab.icon} size={14} />
+              {tab.label}
+              <Badge variant="secondary" className="ml-1 text-[10px] px-1.5">
+                {counts[tab.value as keyof typeof counts] || 0}
+              </Badge>
+            </button>
+          ))}
+        </div>
+
         {/* Tag Filter */}
         {getAllTags().length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">

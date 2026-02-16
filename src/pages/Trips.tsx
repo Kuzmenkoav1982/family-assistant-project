@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TripsHeader } from '@/components/trips/TripsHeader';
 import { TripsList } from '@/components/trips/TripsList';
 import { CreateTripDialog } from '@/components/trips/CreateTripDialog';
 import { EditTripDialog } from '@/components/trips/EditTripDialog';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { detectCurrencyByCountry } from '@/data/currencies';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
@@ -34,7 +35,6 @@ export default function Trips() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
-  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTrip, setNewTrip] = useState({
     title: '',
@@ -299,23 +299,52 @@ export default function Trips() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-20">
-      <TripsHeader
-        activeTab={activeTab}
-        isInstructionOpen={isInstructionOpen}
-        onTabChange={setActiveTab}
-        onInstructionToggle={setIsInstructionOpen}
-        onNavigateBack={() => navigate('/')}
-        onNavigateToWishlist={() => navigate('/trips/wishlist')}
-        getTabCount={getTabCount}
-      />
+  const TABS = [
+    { value: 'all', label: 'Все' },
+    { value: 'planning', label: 'Планируем' },
+    { value: 'completed', label: 'Завершено' },
+    { value: 'archived', label: 'Архив' },
+  ];
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-sky-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Путешествия"
+          subtitle="Планируйте незабываемые поездки"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f7561c5b-e8e8-4ad0-bc38-e2a099d2e324.jpg"
+          rightAction={
+            <Button
+              onClick={() => navigate('/trips/wishlist')}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+            >
+              <Icon name="Star" size={16} />
+              <span className="ml-1 text-sm">Wish List</span>
+            </Button>
+          }
+        />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full bg-white/80 backdrop-blur">
+            {TABS.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value} className="flex-1 text-xs sm:text-sm">
+                {tab.label}
+                {getTabCount(tab.value) > 0 && (
+                  <span className="ml-1 text-[10px] bg-gray-200 rounded-full px-1.5">
+                    {getTabCount(tab.value)}
+                  </span>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
         {activeTab === 'all' && trips.length === 0 && !loading && (
           <ItineraryGenerator />
         )}
-        
+
         <TripsList
           trips={trips}
           loading={loading}
@@ -344,7 +373,6 @@ export default function Trips() {
         onUpdateTrip={handleUpdateTrip}
       />
 
-      {/* FAB кнопка "Добавить поездку" */}
       <Button
         className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg bg-orange-500 hover:bg-orange-600"
         size="icon"
