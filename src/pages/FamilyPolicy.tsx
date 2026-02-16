@@ -196,7 +196,7 @@ export default function FamilyPolicy() {
         <SectionHero
           title="Семейная политика"
           subtitle="Стратегические направления поддержки семей со стороны государства"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6cfbf071-8a12-494d-90e2-93c37aaa217c.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/126eb1fc-4b71-4f1c-87fd-fa88beb6d32d.jpg"
           backPath="/state-hub"
         />
 
