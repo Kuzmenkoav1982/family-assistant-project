@@ -824,4 +824,37 @@ def parse_plan(text: str) -> Optional[Dict[str, Any]]:
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
-        return None
+        pass
+
+    import re
+    fixed = re.sub(r',\s*([}\]])', r'\1', json_str)
+    try:
+        result = json.loads(fixed)
+        if isinstance(result, dict) and 'days' in result:
+            print("[parse_plan] Fixed trailing commas in JSON")
+            return result
+    except json.JSONDecodeError:
+        pass
+
+    try:
+        last_valid = json_str.rfind('}')
+        bracket_count = 0
+        for i, c in enumerate(json_str):
+            if c == '{':
+                bracket_count += 1
+            elif c == '}':
+                bracket_count -= 1
+                if bracket_count == 0:
+                    last_valid = i
+                    break
+        truncated = json_str[:last_valid + 1]
+        truncated = re.sub(r',\s*([}\]])', r'\1', truncated)
+        result = json.loads(truncated)
+        if isinstance(result, dict) and 'days' in result:
+            print("[parse_plan] Parsed truncated JSON successfully")
+            return result
+    except (json.JSONDecodeError, ValueError):
+        pass
+
+    print(f"[parse_plan] Failed to parse plan, text length={len(text)}, first 200 chars: {text[:200]}")
+    return None

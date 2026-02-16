@@ -170,6 +170,31 @@ export default function DietMiniQuiz() {
     update('disliked_foods', updated);
   };
 
+  const tryParseRawPlan = (text: string): GeneratedPlan | null => {
+    try {
+      let jsonStr = text.trim();
+      const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) jsonStr = jsonMatch[1].trim();
+      
+      if (!jsonStr.startsWith('{')) {
+        const braceIdx = jsonStr.indexOf('{');
+        if (braceIdx !== -1) jsonStr = jsonStr.substring(braceIdx);
+      }
+      const lastBrace = jsonStr.lastIndexOf('}');
+      if (lastBrace !== -1 && lastBrace < jsonStr.length - 1) {
+        jsonStr = jsonStr.substring(0, lastBrace + 1);
+      }
+
+      const parsed = JSON.parse(jsonStr);
+      if (parsed.daily_calories && parsed.days && Array.isArray(parsed.days) && parsed.days.length > 0) {
+        return parsed as GeneratedPlan;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   const pollOperation = async (operationId: string) => {
     const maxAttempts = 30;
     for (let i = 0; i < maxAttempts; i++) {
@@ -190,7 +215,13 @@ export default function DietMiniQuiz() {
             setGeneratedPlan(data.plan);
             savePlanToDB(data.plan);
           } else if (data.rawText) {
-            setRawText(data.rawText);
+            const parsed = tryParseRawPlan(data.rawText);
+            if (parsed) {
+              setGeneratedPlan(parsed);
+              savePlanToDB(parsed);
+            } else {
+              setRawText(data.rawText);
+            }
           } else {
             setError('ИИ не смог сгенерировать план. Попробуйте ещё раз.');
           }
@@ -686,6 +717,126 @@ export default function DietMiniQuiz() {
   }
 
   if (rawText) {
+    const renderFormattedRawText = () => {
+      const text = rawText.trim();
+      try {
+        let jsonStr = text;
+        const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch) jsonStr = jsonMatch[1].trim();
+        if (!jsonStr.startsWith('{')) {
+          const braceIdx = jsonStr.indexOf('{');
+          if (braceIdx !== -1) jsonStr = jsonStr.substring(braceIdx);
+        }
+        const lastBrace = jsonStr.lastIndexOf('}');
+        if (lastBrace !== -1) jsonStr = jsonStr.substring(0, lastBrace + 1);
+        
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.days && Array.isArray(parsed.days)) {
+          return (
+            <div className="space-y-6">
+              {parsed.daily_calories && (
+                <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-4 gap-3 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-emerald-700">{parsed.daily_calories}</div>
+                        <div className="text-[10px] text-muted-foreground">ккал/день</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-blue-600">{parsed.daily_protein || '—'}г</div>
+                        <div className="text-[10px] text-muted-foreground">белки</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-amber-600">{parsed.daily_fats || '—'}г</div>
+                        <div className="text-[10px] text-muted-foreground">жиры</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-orange-600">{parsed.daily_carbs || '—'}г</div>
+                        <div className="text-[10px] text-muted-foreground">углеводы</div>
+                      </div>
+                    </div>
+                    {parsed.daily_water_ml && (
+                      <div className="text-center mt-2 text-sm text-muted-foreground">
+                        💧 {parsed.daily_water_ml} мл воды • 🚶 {parsed.daily_steps || 10000} шагов
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {parsed.exercise_recommendation && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardContent className="p-3">
+                    <p className="text-sm text-blue-800 flex items-start gap-2">
+                      <span className="text-lg">🏃</span>
+                      {parsed.exercise_recommendation}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {parsed.days.map((day: Record<string, unknown>, dayIdx: number) => (
+                <div key={dayIdx}>
+                  <h3 className="font-bold text-base mb-3 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+                      {dayIdx + 1}
+                    </span>
+                    {String(day.day || `День ${dayIdx + 1}`)}
+                  </h3>
+                  <div className="space-y-2">
+                    {Array.isArray(day.meals) && day.meals.map((meal: Record<string, unknown>, mealIdx: number) => {
+                      const mealTypeName = mealTypeNames[String(meal.type)] || String(meal.type || 'Приём пищи');
+                      return (
+                        <Card key={mealIdx} className="overflow-hidden">
+                          <CardContent className="p-3">
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">{String(meal.emoji || '🍽️')}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="outline" className="text-[10px] px-1.5">{mealTypeName}</Badge>
+                                  {meal.time && <span className="text-[10px] text-muted-foreground">{String(meal.time)}</span>}
+                                  {meal.cooking_time_min && (
+                                    <span className="text-[10px] text-muted-foreground">⏱ {String(meal.cooking_time_min)} мин</span>
+                                  )}
+                                </div>
+                                <p className="font-medium text-sm">{String(meal.name || '')}</p>
+                                {meal.description && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">{String(meal.description)}</p>
+                                )}
+                                <div className="flex gap-3 mt-2 text-[11px]">
+                                  <span className="text-emerald-600 font-medium">{String(meal.calories || 0)} ккал</span>
+                                  <span className="text-blue-600">Б: {String(meal.protein || 0)}г</span>
+                                  <span className="text-amber-600">Ж: {String(meal.fats || 0)}г</span>
+                                  <span className="text-orange-600">У: {String(meal.carbs || 0)}г</span>
+                                </div>
+                                {Array.isArray(meal.ingredients) && meal.ingredients.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-1">
+                                    {meal.ingredients.map((ing: string, ingIdx: number) => (
+                                      <Badge key={ingIdx} variant="secondary" className="text-[10px] font-normal">{ing}</Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+      } catch {
+        // fallback
+      }
+      
+      return (
+        <div className="whitespace-pre-wrap text-sm leading-relaxed">{text}</div>
+      );
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
         <div className="max-w-2xl mx-auto p-4 space-y-5">
@@ -693,17 +844,30 @@ export default function DietMiniQuiz() {
             <Button variant="ghost" size="sm" onClick={() => { setRawText(null); setStep(2); }}>
               <Icon name="ArrowLeft" size={18} />
             </Button>
-            <h1 className="text-lg font-bold">Рекомендации ИИ — {programName}</h1>
+            <h1 className="text-lg font-bold flex items-center gap-2">
+              <span>{emoji}</span> Рекомендации ИИ — {programName}
+            </h1>
           </div>
-          <Card>
-            <CardContent className="p-5">
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">{rawText}</div>
-            </CardContent>
-          </Card>
-          <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600" onClick={() => { setRawText(null); handleSubmit(); }}>
-            <Icon name="RefreshCw" size={16} className="mr-2" />
-            Попробовать снова
-          </Button>
+          {renderFormattedRawText()}
+          <div className="space-y-2">
+            <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600" onClick={() => {
+              const parsed = tryParseRawPlan(rawText);
+              if (parsed) {
+                setGeneratedPlan(parsed);
+                setRawText(null);
+                savePlanToDB(parsed);
+              } else {
+                setRawText(null);
+                handleSubmit();
+              }
+            }}>
+              <Icon name="RefreshCw" size={16} className="mr-2" />
+              Сгенерировать заново
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => navigate('/nutrition/programs')}>
+              Вернуться к программам
+            </Button>
+          </div>
         </div>
       </div>
     );
