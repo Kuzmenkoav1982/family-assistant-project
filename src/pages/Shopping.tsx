@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,14 +9,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import SectionHero from '@/components/ui/section-hero';
 import { useShopping } from '@/hooks/useShopping';
 import { useNotifications } from '@/hooks/useNotifications';
 
 const CATEGORIES = [
-  { value: 'Продукты', label: '🥛 Продукты', icon: 'ShoppingBasket' },
-  { value: 'Хозтовары', label: '🧴 Хозтовары', icon: 'Home' },
-  { value: 'Одежда', label: '👕 Одежда', icon: 'Shirt' },
-  { value: 'Другое', label: '📦 Другое', icon: 'Package' }
+  { value: 'Продукты', label: '🥛 Продукты', icon: 'ShoppingBasket', gradient: 'from-green-500 to-emerald-600' },
+  { value: 'Хозтовары', label: '🧴 Хозтовары', icon: 'Home', gradient: 'from-blue-500 to-sky-600' },
+  { value: 'Одежда', label: '👕 Одежда', icon: 'Shirt', gradient: 'from-pink-500 to-rose-600' },
+  { value: 'Другое', label: '📦 Другое', icon: 'Package', gradient: 'from-gray-500 to-slate-600' }
 ];
 
 export default function Shopping() {
@@ -37,24 +38,16 @@ export default function Shopping() {
 
   const handleAddItem = async () => {
     if (!newItem.name.trim()) return;
-
     await createItem({
       name: newItem.name,
       category: newItem.category,
       quantity: newItem.quantity,
       priority: newItem.priority
     });
-    
     if (newItem.priority === 'urgent') {
       notifyUrgentShopping(newItem.name);
     }
-    
-    setNewItem({
-      name: '',
-      category: 'Продукты',
-      quantity: '',
-      priority: 'normal'
-    });
+    setNewItem({ name: '', category: 'Продукты', quantity: '', priority: 'normal' });
     setIsDialogOpen(false);
   };
 
@@ -86,7 +79,7 @@ export default function Shopping() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
           <p className="text-lg text-gray-600">Загрузка списка покупок...</p>
@@ -96,129 +89,101 @@ export default function Shopping() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <Button onClick={() => navigate('/')} variant="outline">
-            <Icon name="ArrowLeft" className="mr-2" size={16} />
-            Назад
-          </Button>
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline" className="bg-white whitespace-nowrap">
-              <Icon name="ShoppingCart" size={14} className="mr-1" />
-              Активных: {activeCount}
-            </Badge>
-            <Badge variant="outline" className="bg-green-100 whitespace-nowrap">
-              <Icon name="CheckCircle" size={14} className="mr-1" />
-              Куплено: {boughtCount}
-            </Badge>
-            {boughtCount > 0 && (
-              <Button
-                onClick={handleClearBought}
-                variant="outline"
-                size="sm"
-                className="text-red-600 hover:text-red-700 whitespace-nowrap text-xs px-2"
-              >
-                <Icon name="Trash2" size={14} className="mr-1" />
-                <span className="hidden sm:inline">Очистить купленные</span>
-                <span className="sm:hidden">Очистить</span>
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Инструкция */}
-        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
-          <Alert className="bg-gradient-to-r from-teal-50 to-teal-100 border-2 border-teal-300 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="flex items-start gap-3">
-              <div className="bg-teal-500 rounded-full p-2 shadow-md">
-                <Icon name="Info" className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group hover:opacity-80 transition-opacity">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-teal-900 text-lg">
-                      Как вести список покупок
-                    </h3>
-                    <span className="text-xs bg-teal-200 text-teal-800 px-2 py-1 rounded-full font-medium">Инструкция</span>
+    <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white pb-24">
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SectionHero
+          title="Покупки"
+          subtitle={`Активных: ${activeCount} • Куплено: ${boughtCount}`}
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a0559aa1-893a-44e6-84ca-315aec043fd9.jpg"
+          rightAction={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="bg-white/90 text-green-700 hover:bg-white shadow-lg">
+                  <Icon name="Plus" size={16} className="mr-1" />
+                  Добавить
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Добавить товар в список</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Название</label>
+                    <Input
+                      placeholder="Молоко, хлеб..."
+                      value={newItem.name}
+                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                    />
                   </div>
-                  <Icon 
-                    name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-                    className="h-6 w-6 text-teal-600 transition-transform group-hover:scale-110" 
-                  />
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Категория</label>
+                    <Select
+                      value={newItem.category}
+                      onValueChange={(value: string) => setNewItem({ ...newItem, category: value })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Количество (опционально)</label>
+                    <Input
+                      placeholder="2 литра, 1 кг..."
+                      value={newItem.quantity}
+                      onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Приоритет</label>
+                    <Select
+                      value={newItem.priority}
+                      onValueChange={(value: 'urgent' | 'normal' | 'low') => setNewItem({ ...newItem, priority: value })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Обычный</SelectItem>
+                        <SelectItem value="urgent">Срочно</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleAddItem} className="w-full bg-green-600 hover:bg-green-700">
+                    <Icon name="Plus" size={18} className="mr-2" />
+                    Добавить
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          }
+        />
+
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <div className="flex items-start gap-3">
+              <Icon name="ShoppingCart" className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-green-900 text-sm">Как вести список покупок</h3>
+                  <Icon name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} className="h-5 w-5 text-green-600 transition-transform group-hover:scale-110" />
                 </CollapsibleTrigger>
-                
                 <CollapsibleContent className="mt-3 space-y-3">
-                  <AlertDescription className="text-teal-800">
-                    <div className="space-y-4">
-                      <div>
-                        <p className="font-medium mb-2">🛒 Для чего нужен список покупок?</p>
-                        <p className="text-sm">
-                          Список покупок помогает не забыть нужные товары в магазине и экономит время. 
-                          Все члены семьи могут добавлять товары, а кто идёт за покупками — видит полный список.
-                        </p>
+                  <AlertDescription className="text-green-800">
+                    <div className="space-y-2 text-xs">
+                      <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
+                        <p className="font-medium">1. Добавьте товар</p>
+                        <p className="text-[11px] text-green-700">Название, категория, количество, приоритет</p>
                       </div>
-
-                      <div>
-                        <p className="font-medium mb-2">✨ Возможности раздела</p>
-                        <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li><strong>Категории товаров:</strong> Продукты, хозтовары, одежда, другое</li>
-                          <li><strong>Приоритеты:</strong> Отмечайте срочные покупки (ургентно, обычно, несрочно)</li>
-                          <li><strong>Количество:</strong> Указывайте количество (например, "2 литра", "5 штук")</li>
-                          <li><strong>Отметка купленных:</strong> Отмечайте товары галочкой в магазине</li>
-                          <li><strong>Фильтры:</strong> Просматривайте только активные или купленные товары</li>
-                          <li><strong>Совместный доступ:</strong> Вся семья видит и редактирует список</li>
-                        </ul>
+                      <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
+                        <p className="font-medium">2. В магазине — отмечайте купленное</p>
+                        <p className="text-[11px] text-green-700">Нажимайте на кружок слева от товара</p>
                       </div>
-
-                      <div>
-                        <p className="font-medium mb-2">📝 Как добавить товар?</p>
-                        <ol className="text-sm space-y-1 list-decimal list-inside">
-                          <li>Нажмите кнопку <strong>"Добавить товар"</strong></li>
-                          <li>Введите название товара (например, "Молоко")</li>
-                          <li>Выберите категорию (продукты, хозтовары и т.д.)</li>
-                          <li>Укажите количество (опционально)</li>
-                          <li>Выберите приоритет (срочно, обычно, несрочно)</li>
-                          <li>Нажмите "Добавить" — товар появится в списке</li>
-                        </ol>
-                      </div>
-
-                      <div>
-                        <p className="font-medium mb-2">🛋️ В магазине</p>
-                        <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li>Откройте список на телефоне</li>
-                          <li>Нажимайте на товар чтобы отметить как купленный</li>
-                          <li>Купленные товары автоматически переходят в низ списка</li>
-                          <li>После покупок можно очистить список от купленных</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <p className="font-medium mb-2">🎯 Полезные советы</p>
-                        <ul className="text-sm space-y-1 list-disc list-inside">
-                          <li><strong>Группируйте по категориям:</strong> Так удобнее ходить по магазину (сначала продукты, потом хозтовары)</li>
-                          <li><strong>Используйте приоритеты:</strong> Срочные товары отмечены красным — купите их в первую очередь</li>
-                          <li><strong>Добавляйте сразу:</strong> Закончилось что-то дома — сразу добавьте в список</li>
-                          <li><strong>Связь с меню:</strong> Смотрите недельное меню в "Питании" и добавляйте нужные продукты</li>
-                          <li><strong>Делегируйте:</strong> Отправьте кого-то за покупками — он увидит актуальный список</li>
-                        </ul>
-                      </div>
-
-                      <div className="pt-2 border-t border-teal-200">
-                        <p className="text-sm italic">
-                          💡 <strong>Совет:</strong> Привыкните добавлять товары сразу, как только заметили что они закончились. 
-                          Это займёт 5 секунд, но сэкономит часы потом!
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-teal-200">
-                        <Button
-                          variant="link"
-                          onClick={() => navigate('/instructions')}
-                          className="text-teal-600 hover:underline p-0 h-auto text-sm"
-                        >
-                          📖 <strong>Подробнее:</strong> Полная инструкция
-                        </Button>
+                      <div className="p-1.5 bg-white/60 rounded border-l-3 border-green-500">
+                        <p className="font-medium">3. Очистите купленные</p>
+                        <p className="text-[11px] text-green-700">Купленные товары можно удалить одной кнопкой</p>
                       </div>
                     </div>
                   </AlertDescription>
@@ -228,135 +193,70 @@ export default function Shopping() {
           </Alert>
         </Collapsible>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Icon name="ShoppingCart" size={28} />
-                Список покупок
-              </CardTitle>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    <Icon name="Plus" size={18} className="mr-2" />
-                    Добавить товар
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Добавить товар в список</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 pt-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Название</label>
-                      <Input
-                        placeholder="Молоко, хлеб..."
-                        value={newItem.name}
-                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {CATEGORIES.map(cat => {
+            const count = items.filter(i => i.category === cat.value && !i.bought).length;
+            return (
+              <Card
+                key={cat.value}
+                className={`cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden ${
+                  filterCategory === cat.value ? 'ring-2 ring-green-500' : ''
+                }`}
+                onClick={() => setFilterCategory(filterCategory === cat.value ? 'all' : cat.value)}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-stretch">
+                    <div className={`w-14 min-h-full bg-gradient-to-br ${cat.gradient} flex items-center justify-center flex-shrink-0`}>
+                      <Icon name={cat.icon} size={22} className="text-white drop-shadow-sm" />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Категория</label>
-                      <Select
-                        value={newItem.category}
-                        onValueChange={(value: string) =>
-                          setNewItem({ ...newItem, category: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.map(cat => (
-                            <SelectItem key={cat.value} value={cat.value}>
-                              {cat.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex-1 p-3">
+                      <h3 className="font-bold text-sm">{cat.label.split(' ')[1]}</h3>
+                      <p className="text-xs text-muted-foreground">{count} товаров</p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Количество (опционально)</label>
-                      <Input
-                        placeholder="2 литра, 1 кг..."
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Приоритет</label>
-                      <Select
-                        value={newItem.priority}
-                        onValueChange={(value: 'urgent' | 'normal' | 'low') =>
-                          setNewItem({ ...newItem, priority: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="normal">Обычный</SelectItem>
-                          <SelectItem value="urgent">Срочно</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button onClick={handleAddItem} className="w-full bg-green-600 hover:bg-green-700">
-                      <Icon name="Plus" size={18} className="mr-2" />
-                      Добавить
-                    </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => setFilterStatus('all')}
-                variant={filterStatus === 'all' ? 'default' : 'outline'}
-                size="sm"
-              >
-                Все ({items.length})
-              </Button>
-              <Button
-                onClick={() => setFilterStatus('active')}
-                variant={filterStatus === 'active' ? 'default' : 'outline'}
-                size="sm"
-              >
-                Активные ({activeCount})
-              </Button>
-              <Button
-                onClick={() => setFilterStatus('bought')}
-                variant={filterStatus === 'bought' ? 'default' : 'outline'}
-                size="sm"
-              >
-                Куплено ({boughtCount})
-              </Button>
-              <div className="w-px bg-border mx-2" />
-              {CATEGORIES.map(cat => (
-                <Button
-                  key={cat.value}
-                  onClick={() => setFilterCategory(filterCategory === cat.value ? 'all' : cat.value)}
-                  variant={filterCategory === cat.value ? 'default' : 'outline'}
-                  size="sm"
-                >
-                  {cat.label.split(' ')[0]}
-                </Button>
-              ))}
-            </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => setFilterStatus('all')}
+            variant={filterStatus === 'all' ? 'default' : 'outline'}
+            size="sm"
+          >
+            Все ({items.length})
+          </Button>
+          <Button
+            onClick={() => setFilterStatus('active')}
+            variant={filterStatus === 'active' ? 'default' : 'outline'}
+            size="sm"
+          >
+            Активные ({activeCount})
+          </Button>
+          <Button
+            onClick={() => setFilterStatus('bought')}
+            variant={filterStatus === 'bought' ? 'default' : 'outline'}
+            size="sm"
+          >
+            Куплено ({boughtCount})
+          </Button>
+          {boughtCount > 0 && (
+            <Button onClick={handleClearBought} variant="outline" size="sm" className="text-red-600 hover:text-red-700 ml-auto">
+              <Icon name="Trash2" size={14} className="mr-1" />
+              Очистить купленные
+            </Button>
+          )}
+        </div>
+
+        <Card>
+          <CardContent className="p-4">
             {filteredItems.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Icon name="ShoppingCart" size={48} className="mx-auto mb-4 opacity-50" />
-                <p>Список покупок пуст</p>
-                <Button
-                  onClick={() => setIsDialogOpen(true)}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  Добавить первый товар
-                </Button>
+                <p className="font-medium">Список покупок пуст</p>
+                <p className="text-sm mt-1">Добавьте первый товар кнопкой вверху</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -365,10 +265,8 @@ export default function Shopping() {
                   return (
                     <div
                       key={item.id}
-                      className={`flex items-center gap-3 p-4 border rounded-lg transition-all ${
-                        item.bought
-                          ? 'bg-green-50 border-green-200 opacity-70'
-                          : 'bg-white hover:shadow-md'
+                      className={`flex items-center gap-3 p-3 border rounded-lg transition-all ${
+                        item.bought ? 'bg-green-50 border-green-200 opacity-70' : 'bg-white hover:shadow-md'
                       }`}
                     >
                       <Button
@@ -383,16 +281,13 @@ export default function Shopping() {
                           <Icon name="Circle" size={24} className="text-gray-400" />
                         )}
                       </Button>
-                      
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h4 className={`font-medium ${item.bought ? 'line-through text-gray-500' : ''}`}>
                             {item.name}
                           </h4>
                           {item.quantity && (
-                            <Badge variant="secondary" className="text-xs">
-                              {item.quantity}
-                            </Badge>
+                            <Badge variant="secondary" className="text-xs">{item.quantity}</Badge>
                           )}
                           {item.priority === 'urgent' && !item.bought && (
                             <Badge variant="destructive" className="text-xs">
@@ -400,25 +295,17 @@ export default function Shopping() {
                               Срочно
                             </Badge>
                           )}
-                          <Badge variant="outline" className="text-xs">
-                            {category?.label.split(' ')[0]}
-                          </Badge>
+                          <Badge variant="outline" className="text-xs">{category?.label.split(' ')[0]}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Добавил: {item.added_by_name} • {new Date(item.created_at).toLocaleString('ru-RU', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
+                          {item.added_by_name} • {new Date(item.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-
                       <Button
                         onClick={() => handleDeleteItem(item.id)}
                         variant="ghost"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
                       >
                         <Icon name="Trash2" size={18} />
                       </Button>
