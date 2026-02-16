@@ -129,7 +129,7 @@ export default function FamilyRules() {
         <SectionHero
           title="Правила дома"
           subtitle="Семейный кодекс и договорённости"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b284834f-6e68-41e4-add2-39d2e87c75ec.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/75a69a6f-13ec-4fc0-ba7d-1b516fcf851e.jpg"
           backPath="/values-hub"
         />
 

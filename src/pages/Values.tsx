@@ -49,7 +49,7 @@ export default function Values() {
         <SectionHero
           title="Ценности семьи"
           subtitle="Определите и храните главные ценности вашей семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b4b1c0a2-e30f-44a4-b827-f86677171eb8.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/df85b066-cf22-4568-b389-dc1784223582.jpg"
           backPath="/values-hub"
         />
 

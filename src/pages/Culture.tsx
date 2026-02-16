@@ -76,7 +76,7 @@ export default function Culture() {
         <SectionHero
           title="Традиции и культура"
           subtitle="Национальные традиции, обычаи и культурное наследие"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/962f5a91-1d42-4aab-852d-a46bb1f5888e.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0401359d-d55d-4d29-89b0-22856cfb46d1.jpg"
           backPath="/values-hub"
         />
 
