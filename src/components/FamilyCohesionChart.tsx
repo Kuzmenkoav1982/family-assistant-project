@@ -2,6 +2,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, Tooltip } from 'recharts';
+import { Component, type ReactNode } from 'react';
+
+class ChartErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Не удалось отобразить график</div>;
+    }
+    return this.props.children;
+  }
+}
 import type { FamilyMember, Task } from '@/types/family.types';
 import { calculateFamilyCohesion, calculateFamilyRank } from '@/utils/cohesionCalculator';
 
@@ -78,28 +90,38 @@ export function FamilyCohesionChart({
         </CardHeader>
         <CardContent>
           <div className="h-[300px] md:h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="#d1d5db" />
-                <PolarAngleAxis 
-                  dataKey="category" 
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#9ca3af' }} />
-                <Radar
-                  name="Уровень"
-                  dataKey="score"
-                  stroke="#8b5cf6"
-                  fill="#8b5cf6"
-                  fillOpacity={0.6}
-                />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'white', border: '2px solid #8b5cf6', borderRadius: '8px' }}
-                  formatter={(value: number) => [`${value} баллов`, 'Уровень']}
-                />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
+            <ChartErrorBoundary>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="#d1d5db" />
+                  <PolarAngleAxis 
+                    dataKey="category" 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#9ca3af' }} />
+                  <Radar
+                    name="Уровень"
+                    dataKey="score"
+                    stroke="#8b5cf6"
+                    fill="#8b5cf6"
+                    fillOpacity={0.6}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload || !payload.length) return null;
+                      const data = payload[0];
+                      return (
+                        <div style={{ backgroundColor: 'white', border: '2px solid #8b5cf6', borderRadius: '8px', padding: '8px 12px' }}>
+                          <p style={{ fontWeight: 600, marginBottom: 4 }}>{label}</p>
+                          <p style={{ color: '#8b5cf6' }}>{data?.value ?? 0} баллов</p>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            </ChartErrorBoundary>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
@@ -113,7 +135,7 @@ export function FamilyCohesionChart({
                 >
                   <div className="flex items-center gap-2">
                     <div className="bg-white p-2 rounded-lg">
-                      <Icon name={metric.icon as any} size={20} className="text-purple-600" />
+                      <Icon name={metric.icon} size={20} className="text-purple-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground truncate">{metric.category}</p>
