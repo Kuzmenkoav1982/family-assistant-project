@@ -14,7 +14,7 @@ const DEFAULT_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4
 
 export default function HomeHero({ familyName, familyLogo, syncing }: HomeHeroProps) {
   return (
-    <div className="relative -mx-4 lg:-mx-8 mb-6 rounded-2xl overflow-hidden">
+    <div className="relative -mx-4 mb-4 rounded-b-2xl overflow-hidden">
       <img
         src={DEFAULT_BG}
         alt={familyName}

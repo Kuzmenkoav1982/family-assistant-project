@@ -1317,7 +1317,7 @@ export default function Index({ onLogout }: IndexProps) {
 
 
 
-        <div className="max-w-5xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8 pb-24" style={{ paddingTop: '4rem' }}>
+        <div className="max-w-5xl mx-auto space-y-4 animate-fade-in p-4 pb-24" style={{ paddingTop: '4rem' }}>
         <HomeHero 
           familyName={familyName}
           familyLogo={familyLogo}
@@ -1528,13 +1528,13 @@ export default function Index({ onLogout }: IndexProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden">
+          <div className="lg:col-span-2 min-w-0">
             <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
 
               <TabsContent value="cohesion">
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-[5px]">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-[5px]">
                     <Card key="stat-points" className="animate-fade-in hover:shadow-lg transition-all border-l-4 border-l-orange-500" style={{ animationDelay: '0.1s' }}>
                       <CardHeader>
                         <div className="flex flex-row items-center justify-between pb-2">
@@ -1661,22 +1661,12 @@ export default function Index({ onLogout }: IndexProps) {
 
               <TabsContent value="family">
                 {isWidgetEnabled('family-members') && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Icon name="Users" />
-                        Профили членов семьи
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <FamilyMembersGrid 
-                        members={familyMembers}
-                        onMemberClick={(member) => navigate(`/member/${member.id}`)}
-                        tasks={tasks}
-                        events={calendarEvents}
-                      />
-                    </CardContent>
-                  </Card>
+                  <FamilyMembersGrid 
+                    members={familyMembers}
+                    onMemberClick={(member) => navigate(`/member/${member.id}`)}
+                    tasks={tasks}
+                    events={calendarEvents}
+                  />
                 )}
               </TabsContent>
 
@@ -2989,7 +2979,7 @@ export default function Index({ onLogout }: IndexProps) {
             </Tabs>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 min-w-0">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Виджеты</h3>
               <Button

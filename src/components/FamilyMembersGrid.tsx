@@ -158,30 +158,30 @@ const MemberCard = ({
     style={{ animationDelay: `${index * 0.1}s` }}
     onClick={onClick}
   >
-            <CardContent className="p-5">
-              <div className="flex items-start gap-4">
-                <div className="relative">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-start gap-3">
+                <div className="relative flex-shrink-0">
                   {member.photoUrl ? (
                     <LazyImage 
                       src={member.photoUrl} 
                       alt={member.name}
-                      className="w-20 h-20 rounded-full object-cover border-3 border-purple-300 group-hover:border-purple-500 transition-colors"
-                      wrapperClassName="w-20 h-20 rounded-full"
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-purple-300 group-hover:border-purple-500 transition-colors"
+                      wrapperClassName="w-14 h-14 sm:w-16 sm:h-16 rounded-full"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-4xl border-3 border-purple-300 group-hover:border-purple-500 transition-colors">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-3xl border-2 border-purple-300 group-hover:border-purple-500 transition-colors">
                       {member.avatar}
                     </div>
                   )}
                   {member.moodStatus && (
-                    <div className="absolute -bottom-1 -right-1 text-2xl bg-white rounded-full border-2 border-white" title={member.moodStatus.label}>
+                    <div className="absolute -bottom-1 -right-1 text-lg bg-white rounded-full border-2 border-white" title={member.moodStatus.label}>
                       {member.moodStatus.emoji}
                     </div>
                   )}
                 </div>
                 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg mb-1 truncate group-hover:text-purple-600 transition-colors">{member.name}</h3>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <h3 className="font-bold text-sm sm:text-base mb-1 truncate group-hover:text-purple-600 transition-colors">{member.name}</h3>
                   
                   {(widgetSettings.showAge && member.age) || (widgetSettings.showRole && member.role) ? (
                     <p className="text-sm text-muted-foreground mb-2">
@@ -403,8 +403,7 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events =
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div className="flex-1" />
+      <div className="flex items-center justify-end mb-2">
         <WidgetSettingsDialog />
       </div>
       
@@ -439,7 +438,7 @@ export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events =
         </Alert>
       </Collapsible>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {members.map((member, index) => (
           <MemberCard 
             key={member.id}

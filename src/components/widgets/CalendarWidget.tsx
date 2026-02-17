@@ -68,14 +68,14 @@ export function CalendarWidget({ calendarEvents }: CalendarWidgetProps) {
       style={{ animationDelay: '0.5s' }}
       onClick={() => navigate('/calendar')}
     >
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Icon name="Calendar" size={24} />
+      <CardHeader className="p-4">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Icon name="Calendar" size={20} />
             Календарь
           </CardTitle>
-          <Badge variant="secondary" className="bg-purple-600 text-white">
-            {monthEvents.length} событий в месяце
+          <Badge variant="secondary" className="bg-purple-600 text-white text-[10px] px-2 py-0.5 flex-shrink-0">
+            {monthEvents.length} в месяце
           </Badge>
         </div>
         

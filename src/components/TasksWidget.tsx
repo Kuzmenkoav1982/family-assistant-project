@@ -91,13 +91,13 @@ export function TasksWidget() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 p-4">
+        <CardTitle className="flex items-center gap-2 text-base">
           <Icon name="CheckSquare" size={20} />
-          Задачи семьи
+          Задачи
         </CardTitle>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs flex items-center justify-center">
+          <Badge variant="secondary" className="text-[10px] flex items-center justify-center px-2 py-0.5">
             <span className="leading-none">{completedCount} выполнено</span>
           </Badge>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
