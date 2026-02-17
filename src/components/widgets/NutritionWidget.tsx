@@ -45,18 +45,11 @@ export function NutritionWidget() {
       const today = new Date().toISOString().split('T')[0];
       const url = `${NUTRITION_API_URL}/?action=analytics&user_id=all&date=${today}`;
       
-      console.log('[NutritionWidget] Fetching:', url);
-
       const response = await fetch(url);
-      console.log('[NutritionWidget] Response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('[NutritionWidget] Received data:', data);
         setNutritionData(data);
-      } else {
-        const errorText = await response.text();
-        console.error('[NutritionWidget] Response not OK:', response.status, errorText);
       }
     } catch (error) {
       console.error('[NutritionWidget] Error loading data:', error);

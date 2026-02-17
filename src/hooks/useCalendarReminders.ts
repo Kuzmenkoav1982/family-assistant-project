@@ -48,7 +48,7 @@ export function useCalendarReminders() {
             const eventDate = new Date(event.date);
             notifyCalendarEvent(event.title, eventDate.toLocaleDateString('ru-RU'), false);
             localStorage.setItem(notificationKey, 'true');
-            console.log(`[CalendarReminder] Sent notification for "${event.title}" at ${currentTime}`);
+            
           }
           return;
         }
@@ -59,7 +59,7 @@ export function useCalendarReminders() {
             const eventDate = new Date(event.date);
             notifyCalendarEvent(event.title, eventDate.toLocaleDateString('ru-RU'), false);
             localStorage.setItem(notificationKey, 'true');
-            console.log(`[CalendarReminder] Sent notification for "${event.title}" (no time)`);
+            
           }
           return;
         }
@@ -73,7 +73,7 @@ export function useCalendarReminders() {
         if (reminderStr === todayStr && !alreadyNotified) {
           notifyCalendarEvent(event.title, eventDate.toLocaleDateString('ru-RU'), false);
           localStorage.setItem(notificationKey, 'true');
-          console.log(`[CalendarReminder] Sent notification for "${event.title}" (${event.reminderDays} days before)`);
+          
         }
       });
 

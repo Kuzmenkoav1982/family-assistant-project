@@ -39,14 +39,11 @@ export function useFamilyMembers() {
 
   const fetchMembers = useCallback(async (silent = false) => {
     if (isFetchingRef.current) {
-      console.log('[useFamilyMembers] Fetch already in progress, skipping');
       return;
     }
 
     isFetchingRef.current = true;
     const token = getAuthToken();
-    console.log('[DEBUG useFamilyMembers] Starting fetch, token:', token ? 'EXISTS' : 'MISSING');
-    console.log('[DEBUG useFamilyMembers] API URL:', FAMILY_MEMBERS_API);
     
     try {
       if (!silent) {
@@ -59,27 +56,17 @@ export function useFamilyMembers() {
         }
       });
 
-      console.log('[DEBUG useFamilyMembers] Response status:', response.status);
-      console.log('[DEBUG useFamilyMembers] Response ok:', response.ok);
-
       if (!response.ok) {
         throw new Error('Ошибка загрузки членов семьи');
       }
 
       const data = await response.json();
-      console.log('[DEBUG useFamilyMembers] Response data:', data);
-      console.log('[DEBUG useFamilyMembers] data.success:', data.success);
-      console.log('[DEBUG useFamilyMembers] data.family_id:', data.family_id);
-      console.log('[DEBUG useFamilyMembers] data.members:', data.members);
       
       if (data.success && data.members) {
-        // Сохраняем family_id в localStorage для использования в других компонентах
         if (data.family_id) {
           localStorage.setItem('familyId', data.family_id);
-          console.log('[DEBUG useFamilyMembers] Saved familyId to localStorage:', data.family_id);
         }
         
-        // Конвертируем snake_case в camelCase для frontend
         const convertedMembers = data.members.map((m: any) => ({
           ...m,
           avatarType: m.avatar_type,
@@ -88,7 +75,6 @@ export function useFamilyMembers() {
           birthTime: m.birth_time,
           account_type: m.account_type || (m.user_id ? 'full' : 'child_profile')
         }));
-        console.log('[DEBUG useFamilyMembers] Converted members:', convertedMembers);
         setMembers(convertedMembers);
         setError(null);
       } else {

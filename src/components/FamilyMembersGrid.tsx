@@ -346,16 +346,6 @@ const MemberCard = ({
 export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events = [], onAssignTask }: FamilyMembersGridProps) {
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   
-  console.log('[FamilyMembersGrid] Received props:', {
-    membersCount: members.length,
-    tasksCount: tasks.length,
-    eventsCount: events.length,
-    sampleTask: tasks[0],
-    sampleEvent: events[0],
-    allTasks: tasks.slice(0, 3),
-    memberIds: members.map(m => ({ id: m.id, name: m.name }))
-  });
-
   if (members.length > 50) {
     return (
       <div className="space-y-4">

@@ -125,40 +125,31 @@ export default function Index({ onLogout }: IndexProps) {
       const savedFamilyLogo = localStorage.getItem('familyLogo');
       
       if (savedFamilyName) {
-        console.log('[DEBUG Index] Using saved familyName:', savedFamilyName);
         setFamilyName(savedFamilyName);
       }
       
       if (savedFamilyLogo) {
-        console.log('[DEBUG Index] Using saved familyLogo:', savedFamilyLogo);
         setFamilyLogo(savedFamilyLogo);
       }
       
-      // Если прямых ключей нет, пробуем получить из userData
       const userData = localStorage.getItem('userData');
       const hasSeenWelcome = localStorage.getItem('hasSeenFirstLoginWelcome');
       
       if (userData) {
         try {
           const user = JSON.parse(userData);
-          console.log('[DEBUG Index] userData from localStorage:', user);
-          
-          // Проверяем, настроена ли семья (есть название и логотип)
           const hasFamilySetup = user.family_name && user.logo_url;
           
-          // Показываем приветствие только при первом входе И если семья еще не настроена
           if (!hasSeenWelcome && !hasFamilySetup && !savedFamilyName) {
             setShowFirstLoginWelcome(true);
             localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
           }
           
           if (!savedFamilyName && user.family_name) {
-            console.log('[DEBUG Index] Setting family name from userData:', user.family_name);
             setFamilyName(user.family_name);
           }
           
           if (!savedFamilyLogo && user.logo_url) {
-            console.log('[DEBUG Index] Setting logo URL from userData:', user.logo_url);
             setFamilyLogo(user.logo_url);
           }
         } catch (e) {

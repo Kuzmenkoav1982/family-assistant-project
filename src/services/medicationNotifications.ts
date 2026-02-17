@@ -31,7 +31,7 @@ class MedicationNotificationService {
   private lastCheck = '';
 
   start() {
-    console.log('[MedicationNotifications] Service started');
+    
     
     // Проверяем каждую минуту
     this.checkInterval = window.setInterval(() => {
@@ -43,7 +43,7 @@ class MedicationNotificationService {
   }
 
   stop() {
-    console.log('[MedicationNotifications] Service stopped');
+    
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
@@ -54,13 +54,13 @@ class MedicationNotificationService {
     try {
       const settings = this.getSettings();
       if (!settings.enabled) {
-        console.log('[MedicationNotifications] Notifications disabled in settings');
+        
         return;
       }
 
       const permission = this.checkPermission();
       if (permission !== 'granted') {
-        console.log('[MedicationNotifications] Notification permission not granted:', permission);
+        
         return;
       }
 
@@ -71,16 +71,16 @@ class MedicationNotificationService {
       if (this.lastCheck === currentMinute) return;
       this.lastCheck = currentMinute;
 
-      console.log('[MedicationNotifications] Checking reminders at', currentMinute);
+      
 
       // Загружаем активные лекарства
       const medications = await this.loadMedications();
       if (!medications || medications.length === 0) {
-        console.log('[MedicationNotifications] No active medications found');
+        
         return;
       }
 
-      console.log(`[MedicationNotifications] Found ${medications.length} active medications`);
+      
 
       // Проверяем каждое напоминание
       for (const medication of medications) {
@@ -95,7 +95,7 @@ class MedicationNotificationService {
           if (this.notifiedReminders.has(notificationKey)) continue;
 
           if (this.shouldNotify(reminder.time, settings.minutesBefore, now)) {
-            console.log(`[MedicationNotifications] Showing notification for ${medication.name} at ${reminder.time}`);
+            
             await this.showNotification(medication.name, medication.dosage, reminder.time, settings);
             this.notifiedReminders.add(notificationKey);
           }

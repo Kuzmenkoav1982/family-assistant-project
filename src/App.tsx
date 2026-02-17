@@ -134,14 +134,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         const token = storage.getItem('authToken');
         const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
-        console.log('[ProtectedRoute] Checking auth, token exists:', !!token, ', demo mode:', isDemoMode);
-        
         const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                       (window.navigator as any).standalone === true;
-        
-        if (isPWA && !token) {
-          console.log('[ProtectedRoute] PWA mode detected, no token found');
-        }
         
         setIsAuthenticated(!!token || isDemoMode);
       } catch (error) {

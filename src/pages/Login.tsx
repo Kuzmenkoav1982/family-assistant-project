@@ -32,7 +32,6 @@ export default function Login() {
   useEffect(() => {
     const existingToken = storage.getItem('authToken');
     if (existingToken && !searchParams.get('token')) {
-      console.log('[DEBUG Login] Already authorized, redirecting to /');
       window.location.href = '/';
       return;
     }
@@ -52,10 +51,8 @@ export default function Login() {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        console.log('[DEBUG Login] Saving token and user to storage');
-        const tokenSaved = storage.setItem('authToken', token);
-        const userSaved = storage.setItem('userData', JSON.stringify(user));
-        console.log('[DEBUG Login] Token saved:', tokenSaved, 'User saved:', userSaved);
+        storage.setItem('authToken', token);
+        storage.setItem('userData', JSON.stringify(user));
         
         // Небольшая задержка, чтобы storage точно успел записаться
         setTimeout(() => {

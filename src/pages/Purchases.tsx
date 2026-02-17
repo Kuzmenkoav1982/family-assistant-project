@@ -90,8 +90,6 @@ export default function Purchases() {
         member_id: newItem.member_id || undefined
       };
       
-      console.log('Отправка покупки:', body);
-      
       const response = await fetch(func2url.purchases, {
         method: 'POST',
         headers: {
@@ -101,11 +99,8 @@ export default function Purchases() {
         body: JSON.stringify(body)
       });
       
-      console.log('Ответ сервера:', response.status, response.statusText);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('Покупка добавлена:', data);
         await fetchPurchases();
         setIsDialogOpen(false);
         setNewItem({ name: '', category: 'Одежда', estimated_cost: '', priority: 'medium', member_id: '' });

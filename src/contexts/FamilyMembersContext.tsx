@@ -98,7 +98,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     
     if (isDemoMode && !authToken) {
       // В демо-режиме используем моковые данные
-      console.log('[FamilyMembersContext] Demo mode active, using mock data');
+      
       if (!silent) {
         setLoading(true);
       }
@@ -151,12 +151,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       }
 
       const data = await response.json();
-      console.log('[FamilyMembersContext] API response:', { 
-        success: data.success, 
-        membersCount: data.members?.length,
-        family_id: data.family_id,
-        error: data.error 
-      });
+      
       
       if (data.success && data.members) {
         if (data.family_id) {
@@ -177,7 +172,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         }));
         
         const sortedMembers = sortMembers(convertedMembers, data.current_member_id);
-        console.log('[FamilyMembersContext] Setting members:', sortedMembers.length, sortedMembers.map((m: FamilyMember) => m.name), 'currentMember:', data.current_member_id);
+        
         setMembers(sortedMembers);
         setError(null);
       } else {

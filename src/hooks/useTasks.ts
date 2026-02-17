@@ -112,7 +112,6 @@ export function useTasks() {
 
   const createTask = async (taskData: Partial<Task>) => {
     try {
-      console.log('[useTasks] Creating task with data:', taskData);
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -122,9 +121,7 @@ export function useTasks() {
         body: JSON.stringify(taskData)
       });
       
-      console.log('[useTasks] Response status:', response.status);
       const data = await response.json();
-      console.log('[useTasks] Response data:', data);
       
       if (response.ok) {
         setTasks(prev => [data.task, ...prev]);
@@ -148,7 +145,7 @@ export function useTasks() {
                 exclude_user_id: currentUserId
               })
             });
-            console.log('[useTasks] Notification response:', notifResponse.status, await notifResponse.text());
+            await notifResponse.text();
           } catch (err) {
             console.error('[useTasks] Failed to send notification:', err);
           }

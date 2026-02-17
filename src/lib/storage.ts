@@ -21,7 +21,7 @@ class StorageManager {
 
   constructor() {
     this.useLocalStorage = isLocalStorageAvailable();
-    console.log('[StorageManager] Using localStorage:', this.useLocalStorage);
+    
   }
 
   setItem(key: string, value: string): boolean {
