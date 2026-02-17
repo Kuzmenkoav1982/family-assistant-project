@@ -88,12 +88,12 @@ export default function BottomBar({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/recipes')}
+              onClick={() => navigate('/leisure-hub')}
               className="text-white hover:bg-white/20 whitespace-nowrap"
-              title="Рецепты"
+              title="Путешествия"
             >
-              <Icon name="ChefHat" size={18} />
-              <span className="ml-1 text-xs hidden sm:inline">Рецепты</span>
+              <Icon name="Plane" size={18} />
+              <span className="ml-1 text-xs hidden sm:inline">Путешествия</span>
             </Button>
 
             <Button
@@ -121,12 +121,12 @@ export default function BottomBar({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/analytics')}
+              onClick={() => navigate('/planning-hub')}
               className="text-white hover:bg-white/20 whitespace-nowrap"
-              title="Аналитика"
+              title="Планирование"
             >
-              <Icon name="BarChart3" size={18} />
-              <span className="ml-1 text-xs hidden sm:inline">Аналитика</span>
+              <Icon name="Target" size={18} />
+              <span className="ml-1 text-xs hidden sm:inline">Планирование</span>
             </Button>
 
             {displaySections.filter(section => 

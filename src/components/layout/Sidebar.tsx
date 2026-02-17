@@ -250,31 +250,43 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                 open={isOpen}
                 onOpenChange={() => toggleSection(section.id)}
               >
-                <div className={`flex items-center gap-0 rounded-xl transition-colors ${active ? section.accentBg : ''}`}>
-                  <button
-                    className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    onClick={() => {
-                      if (section.hubPath) {
-                        navigate(section.hubPath);
+                <div className={`flex items-center rounded-xl transition-colors ${active ? section.accentBg : 'hover:bg-gray-50 dark:hover:bg-gray-800/30'}`}>
+                  {section.hubPath ? (
+                    <button
+                      className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl hover:bg-gray-100/80 dark:hover:bg-gray-700/40 transition-colors group"
+                      onClick={() => {
+                        navigate(section.hubPath!);
                         onVisibilityChange(false);
-                      } else {
-                        toggleSection(section.id);
-                      }
-                    }}
-                  >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? section.accentBg : 'bg-gray-100 dark:bg-gray-800'}`}>
-                      <Icon name={section.icon} size={15} className={section.iconColor} />
-                    </div>
-                    <span className={`text-[13px] font-semibold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                      {section.title}
-                    </span>
-                  </button>
+                      }}
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? section.accentBg : 'bg-gray-100 dark:bg-gray-800'}`}>
+                        <Icon name={section.icon} size={15} className={section.iconColor} />
+                      </div>
+                      <span className={`text-[13px] font-semibold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                        {section.title}
+                      </span>
+                      <Icon name="ArrowRight" size={12} className="text-gray-300 dark:text-gray-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ) : (
+                    <button
+                      className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl transition-colors"
+                      onClick={() => toggleSection(section.id)}
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? section.accentBg : 'bg-gray-100 dark:bg-gray-800'}`}>
+                        <Icon name={section.icon} size={15} className={section.iconColor} />
+                      </div>
+                      <span className={`text-[13px] font-semibold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                        {section.title}
+                      </span>
+                    </button>
+                  )}
+                  <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
                   <CollapsibleTrigger asChild>
-                    <button className="px-2.5 py-2.5 rounded-r-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <button className="px-3 py-2.5 rounded-r-xl hover:bg-gray-100/80 dark:hover:bg-gray-700/40 transition-colors" title="Разделы">
                       <Icon 
                         name={isOpen ? "ChevronDown" : "ChevronRight"} 
                         size={14} 
-                        className="text-gray-400"
+                        className={`transition-colors ${isOpen ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}
                       />
                     </button>
                   </CollapsibleTrigger>
