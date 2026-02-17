@@ -26,25 +26,6 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            <a
-              href="https://t.me/Nasha7iya"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-500 flex items-center justify-center transition-colors"
-              title="Telegram"
-            >
-              <Icon name="Send" size={16} />
-            </a>
-            <a
-              href="https://max.ru/id231805288780_biz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-500 flex items-center justify-center transition-colors"
-              title="MAX"
-            >
-              <Icon name="MessageCircle" size={16} />
-            </a>
-            
             <Button
               onClick={() => {
                 localStorage.removeItem('authToken');
