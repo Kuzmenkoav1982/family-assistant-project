@@ -10,7 +10,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="pt-24 sm:pt-20 pb-16">
+    <div className="pt-20 sm:pt-24 pb-16">
       <div className="max-w-4xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-full px-4 py-1.5 mb-6">
           <Icon name="Sparkles" size={14} className="text-orange-500" />
@@ -19,7 +19,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.1] font-[Montserrat] text-gray-900">
           Управляйте семьёй
           <br />
-          <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">как настоящей командой</span>
+          как настоящей командой
         </h2>
         <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 font-[Rubik]">
           Задачи, питание, здоровье, развитие детей, AI-ассистент — всё в одном месте

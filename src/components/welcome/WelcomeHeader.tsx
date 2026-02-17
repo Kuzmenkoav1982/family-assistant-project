@@ -14,9 +14,11 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex-shrink-0 w-9 h-9 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md shadow-orange-200/50">
-              <Icon name="Home" className="text-white" size={18} />
-            </div>
+            <img
+              src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG"
+              alt="Наша Семья"
+              className="flex-shrink-0 w-9 h-9 rounded-xl object-cover shadow-md"
+            />
             <div className="min-w-0">
               <h1 className="text-sm sm:text-lg font-bold text-gray-900 font-[Montserrat]">
                 Наша Семья
