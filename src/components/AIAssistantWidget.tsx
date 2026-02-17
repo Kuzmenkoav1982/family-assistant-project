@@ -33,6 +33,7 @@ interface Message {
 const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -451,7 +452,7 @@ const AIAssistantWidget = () => {
       {isOpen && (
         <div 
           style={window.innerWidth >= 768 ? { left: `${position.x}px`, top: `${position.y}px` } : {}}
-          className={`fixed z-50 bg-white shadow-2xl border-2 border-orange-300 flex flex-col ${
+          className={`fixed z-50 bg-white shadow-2xl border border-gray-200 flex flex-col ${
             isMinimized 
               ? 'w-80 h-16 bottom-6 right-6 rounded-2xl' 
               : 'w-full h-full md:w-96 md:h-[600px] md:rounded-2xl ' +
@@ -460,17 +461,17 @@ const AIAssistantWidget = () => {
         >
           {/* Header */}
           <div 
-            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 md:rounded-t-2xl md:cursor-grab md:active:cursor-grabbing select-none"
+            className="bg-white border-b border-gray-100 md:rounded-t-2xl md:cursor-grab md:active:cursor-grabbing select-none flex-shrink-0"
             onMouseDown={(e) => {
               if (window.innerWidth >= 768) {
                 handleMouseDown(e);
               }
             }}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-3 min-w-0">
                 {assistantType === 'domovoy' ? (
-                  <div className="relative bg-white overflow-hidden border-2 border-white/50 rounded-2xl w-14 h-[70px]">
+                  <div className="relative bg-white overflow-hidden border-2 border-orange-300 rounded-xl w-10 h-12 flex-shrink-0">
                     <img 
                       src={getRoleInfo(kuzyaRole).image}
                       alt={getRoleInfo(kuzyaRole).name}
@@ -481,170 +482,114 @@ const AIAssistantWidget = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl border-2 border-white/50">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg flex-shrink-0">
                     🤖
                   </div>
                 )}
-                <div>
-                  <h3 className="font-bold">
-                    {assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')} — AI Помощник
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-gray-900 truncate">
+                    {assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')}
                   </h3>
-                  <p className="text-xs opacity-90">Всегда на связи</p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-1 text-xs text-orange-600 hover:text-orange-700 transition-colors">
+                        <span>{getRoleInfo(kuzyaRole).icon}</span>
+                        <span className="font-medium">{getRoleInfo(kuzyaRole).name}</span>
+                        <Icon name="ChevronDown" size={12} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-64" align="start">
+                      <DropdownMenuLabel>
+                        {assistantType === 'domovoy' ? 'Роль Домового' : 'Роль ассистента'}
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {[
+                        { role: 'family-assistant', emoji: '🏡', name: 'Семейный помощник', desc: 'Универсальный помощник' },
+                        { role: 'cook', emoji: '🍳', name: 'Повар', desc: 'Рецепты и кулинария' },
+                        { role: 'organizer', emoji: '📋', name: 'Организатор', desc: 'Планирование задач' },
+                        { role: 'child-educator', emoji: '👶', name: 'Воспитатель', desc: 'Советы по детям' },
+                        { role: 'financial-advisor', emoji: '💰', name: 'Финансовый советник', desc: 'Бюджет и экономия' },
+                        { role: 'psychologist', emoji: '🧠', name: 'Психолог', desc: 'Отношения в семье' },
+                        { role: 'fitness-trainer', emoji: '💪', name: 'Фитнес-тренер', desc: 'Здоровье и спорт' },
+                        { role: 'travel-planner', emoji: '✈️', name: 'Тревел-планер', desc: 'Организация поездок' },
+                        { role: 'astrologer', emoji: '🔮', name: 'Астролог', desc: 'Гороскопы и прогнозы' },
+                      ].map((r) => (
+                        <DropdownMenuItem key={r.role} onClick={() => handleRoleChange(r.role)}>
+                          <span className="mr-2">{r.emoji}</span>
+                          <div>
+                            <div className="font-medium">{r.name}</div>
+                            <div className="text-xs text-gray-500">{r.desc}</div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => setIsMenuExpanded(!isMenuExpanded)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Меню"
+                >
+                  <Icon name="MoreHorizontal" size={16} className="text-gray-500" />
+                </button>
                 <button
                   onClick={() => setIsMinimized(!isMinimized)}
-                  className="hover:bg-white/20 p-1 rounded"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                  {isMinimized ? <Maximize2 className="w-4 h-4 text-gray-500" /> : <Minimize2 className="w-4 h-4 text-gray-500" />}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="hover:bg-white/20 p-1 rounded"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4 text-gray-500" />
                 </button>
               </div>
             </div>
             
-            {/* Индикатор роли с дропдауном */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center justify-between transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{getRoleInfo(kuzyaRole).icon}</span>
-                    <div className="text-left">
-                      <div className="text-sm font-semibold">{getRoleInfo(kuzyaRole).name}</div>
-                      <div className="text-xs opacity-80">{getRoleInfo(kuzyaRole).description}</div>
-                    </div>
-                  </div>
-                  <Icon name="ChevronDown" size={16} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="start">
-                <DropdownMenuLabel>
-                  {assistantType === 'domovoy' ? 'Роль Домового в семье' : 'Выберите роль ассистента'}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleRoleChange('family-assistant')}>
-                  <span className="mr-2">🏡</span>
-                  <div>
-                    <div className="font-medium">Семейный помощник</div>
-                    <div className="text-xs text-gray-500">Универсальный помощник</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('cook')}>
-                  <span className="mr-2">🍳</span>
-                  <div>
-                    <div className="font-medium">Повар</div>
-                    <div className="text-xs text-gray-500">Рецепты и кулинария</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('organizer')}>
-                  <span className="mr-2">📋</span>
-                  <div>
-                    <div className="font-medium">Организатор</div>
-                    <div className="text-xs text-gray-500">Планирование задач</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('child-educator')}>
-                  <span className="mr-2">👶</span>
-                  <div>
-                    <div className="font-medium">Воспитатель</div>
-                    <div className="text-xs text-gray-500">Советы по детям</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('financial-advisor')}>
-                  <span className="mr-2">💰</span>
-                  <div>
-                    <div className="font-medium">Финансовый советник</div>
-                    <div className="text-xs text-gray-500">Бюджет и экономия</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('psychologist')}>
-                  <span className="mr-2">🧠</span>
-                  <div>
-                    <div className="font-medium">Психолог</div>
-                    <div className="text-xs text-gray-500">Отношения в семье</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('fitness-trainer')}>
-                  <span className="mr-2">💪</span>
-                  <div>
-                    <div className="font-medium">Фитнес-тренер</div>
-                    <div className="text-xs text-gray-500">Здоровье и спорт</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('travel-planner')}>
-                  <span className="mr-2">✈️</span>
-                  <div>
-                    <div className="font-medium">Тревел-планер</div>
-                    <div className="text-xs text-gray-500">Организация поездок</div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleRoleChange('astrologer')}>
-                  <span className="mr-2">🔮</span>
-                  <div>
-                    <div className="font-medium">Астролог</div>
-                    <div className="text-xs text-gray-500">Консультации по астрологии</div>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Дополнительные кнопки */}
-            <div className="mt-3 space-y-2">
-              <button
-                onClick={() => window.location.href = 'https://family-assistant-project--preview.poehali.dev/domovoy'}
-                className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
-              >
-                <span className="text-lg">📖</span>
-                <div>
-                  <div className="text-sm font-semibold">Узнать больше о Домовом</div>
-                  <div className="text-xs opacity-80">Подробная информация</div>
+            {/* Сворачиваемое меню */}
+            {isMenuExpanded && (
+              <div className="px-3 pb-3 border-t border-gray-50">
+                <div className="grid grid-cols-2 gap-1.5 pt-2">
+                  <button
+                    onClick={() => { window.location.href = '/domovoy'; setIsMenuExpanded(false); }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="text-sm">📖</span>
+                    <span className="text-xs font-medium text-gray-700">О Домовом</span>
+                  </button>
+                  <button
+                    onClick={() => { setShowAstrologyDialog(true); setIsMenuExpanded(false); }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="text-sm">🌙</span>
+                    <span className="text-xs font-medium text-gray-700">Прогнозы</span>
+                  </button>
+                  <button
+                    onClick={() => { setShowDonationDialog(true); setIsMenuExpanded(false); }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                  >
+                    <span className="text-sm">🎁</span>
+                    <span className="text-xs font-medium text-orange-700">Угостить</span>
+                  </button>
+                  <button
+                    onClick={() => { handleResetPosition(); setIsMenuExpanded(false); }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="text-sm">📍</span>
+                    <span className="text-xs font-medium text-gray-700">Сброс позиции</span>
+                  </button>
                 </div>
-              </button>
-              
-              <button
-                onClick={() => setShowAstrologyDialog(true)}
-                className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
-              >
-                <span className="text-lg">🌙</span>
-                <div>
-                  <div className="text-sm font-semibold">Астрологические прогнозы Домового</div>
-                  <div className="text-xs opacity-80">Гороскопы и прогнозы</div>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setShowDonationDialog(true)}
-                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left shadow-lg"
-              >
-                <span className="text-lg">🎁</span>
-                <div>
-                  <div className="text-sm font-semibold text-white">Угостить Домового</div>
-                  <div className="text-xs text-white/90">Прокачать мудрость</div>
-                </div>
-              </button>
-              
-              <button
-                onClick={handleResetPosition}
-                className="w-full bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 flex items-center gap-2 transition-colors text-left"
-              >
-                <span className="text-lg">📍</span>
-                <div>
-                  <div className="text-sm font-semibold">Сбросить позицию</div>
-                  <div className="text-xs opacity-80">Вернуть в угол экрана</div>
-                </div>
-              </button>
-            </div>
+              </div>
+            )}
           </div>
 
           {!isMinimized && (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-orange-50/30 to-white">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
@@ -670,7 +615,7 @@ const AIAssistantWidget = () => {
                         <button
                           key={index}
                           onClick={() => handleQuickAction(action.query)}
-                          className="bg-white hover:bg-orange-50 p-3 rounded-lg text-left border-2 border-orange-200 hover:border-orange-400 transition-all"
+                          className="bg-white hover:bg-gray-50 p-3 rounded-xl text-left border border-gray-200 hover:border-orange-300 transition-all"
                         >
                           <div className="text-2xl mb-1">{action.icon}</div>
                           <div className="text-xs font-medium text-gray-700">{action.text}</div>
@@ -715,8 +660,8 @@ const AIAssistantWidget = () => {
                           <div
                             className={`inline-block px-3 py-2 rounded-2xl text-sm ${
                               message.role === 'user'
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-white text-gray-800 border-2 border-orange-200'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-50 text-gray-800 border border-gray-200'
                             }`}
                           >
                             <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -740,7 +685,7 @@ const AIAssistantWidget = () => {
                             🤖
                           </div>
                         )}
-                        <div className="bg-white border-2 border-orange-200 rounded-2xl px-3 py-2">
+                        <div className="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2">
                           <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
                         </div>
                       </div>
@@ -751,20 +696,20 @@ const AIAssistantWidget = () => {
               </div>
 
               {/* Input */}
-              <div className="p-3 bg-white border-t-2 border-orange-200 md:rounded-b-2xl flex-shrink-0">
+              <div className="p-3 bg-white border-t border-gray-100 md:rounded-b-2xl flex-shrink-0">
                 <div className="flex gap-2">
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Напишите сообщение..."
-                    className="flex-1 min-h-[44px] max-h-[80px] resize-none text-sm border-2 border-orange-200 focus:border-orange-400 text-base"
+                    className="flex-1 min-h-[44px] max-h-[80px] resize-none text-sm border border-gray-200 focus:border-orange-400 rounded-xl text-base"
                     disabled={isLoading}
                   />
                   <Button
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isLoading}
-                    className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 self-end"
+                    className="bg-orange-500 hover:bg-orange-600 self-end rounded-xl"
                     size="icon"
                   >
                     {isLoading ? (
