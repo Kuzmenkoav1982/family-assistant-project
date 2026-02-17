@@ -602,8 +602,8 @@ const AIAssistantWidget = () => {
                         onContextMenu={(e) => e.preventDefault()}
                       />
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-4xl border-4 border-blue-400 mx-auto mb-4">
-                        🤖
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-400 mx-auto mb-4">
+                        <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
                       </div>
                     )}
                     <h3 className="font-bold text-gray-800 mb-2">
@@ -647,8 +647,8 @@ const AIAssistantWidget = () => {
                               onContextMenu={(e) => e.preventDefault()}
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg border-2 border-blue-400">
-                              🤖
+                            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-400">
+                              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
                             </div>
                           )}
                         </div>
@@ -681,8 +681,8 @@ const AIAssistantWidget = () => {
                             onContextMenu={(e) => e.preventDefault()}
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg border-2 border-blue-400">
-                            🤖
+                          <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-400">
+                            <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
                           </div>
                         )}
                         <div className="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2">
@@ -745,7 +745,7 @@ const AIAssistantWidget = () => {
           className={`fixed z-50 shadow-2xl border-4 flex items-center justify-center transition-none overflow-hidden ${
             assistantType === 'domovoy' 
               ? 'bg-white hover:bg-amber-50 border-orange-400 rounded-2xl' 
-              : 'bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-blue-400 text-3xl rounded-full'
+              : 'border-blue-400 rounded-full'
           } ${isButtonDragging ? 'scale-110' : 'hover:scale-105 animate-bounce-subtle'}`}
         >
           {assistantType === 'domovoy' ? (
@@ -758,7 +758,7 @@ const AIAssistantWidget = () => {
               onContextMenu={(e) => e.preventDefault()}
             />
           ) : (
-            '🤖'
+            <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover pointer-events-none" draggable={false} onContextMenu={(e) => e.preventDefault()} />
           )}
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
         </button>
