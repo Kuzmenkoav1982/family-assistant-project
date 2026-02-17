@@ -72,7 +72,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'values',
-      title: 'Ценности и культура',
+      title: 'Ценности',
       icon: 'Heart',
       iconColor: 'text-pink-600',
       accentBg: 'bg-pink-50 dark:bg-pink-950/40',
@@ -117,7 +117,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'household',
-      title: 'Быт и хозяйство',
+      title: 'Быт',
       icon: 'Home',
       iconColor: 'text-amber-600',
       accentBg: 'bg-amber-50 dark:bg-amber-950/40',
@@ -129,7 +129,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'leisure',
-      title: 'Путешествия и досуг',
+      title: 'Путешествия',
       icon: 'Plane',
       iconColor: 'text-sky-600',
       accentBg: 'bg-sky-50 dark:bg-sky-950/40',
@@ -153,7 +153,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'family-state',
-      title: 'Семья и государство',
+      title: 'Госуслуги',
       icon: 'Landmark',
       iconColor: 'text-slate-600',
       accentBg: 'bg-slate-50 dark:bg-slate-800/40',
