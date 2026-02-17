@@ -52,7 +52,13 @@ export function GoalCard({
   onToggleCheckpoint,
   onAddCheckpoint
 }: GoalCardProps) {
-  const categoryInfo = categoryLabels[goal.category];
+  const defaultCategory = { label: 'Другое', icon: 'Star', color: 'bg-gray-100 text-gray-700 border-gray-300' };
+  const defaultPriority = { label: 'Средний', color: 'bg-blue-100 text-blue-600' };
+  const defaultStatus = { label: 'Планирование', color: 'bg-gray-100 text-gray-700', icon: 'FileText' };
+
+  const categoryInfo = (goal.category && categoryLabels[goal.category as keyof typeof categoryLabels]) || defaultCategory;
+  const priorityInfo = (goal.priority && priorityLabels[goal.priority as keyof typeof priorityLabels]) || defaultPriority;
+  const statusInfo = (goal.status && statusLabels[goal.status as keyof typeof statusLabels]) || defaultStatus;
   
   const calculateDaysLeft = (targetDate: string) => {
     const now = new Date();
@@ -61,8 +67,9 @@ export function GoalCard({
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  const daysLeft = calculateDaysLeft(goal.targetDate);
-  const isOverdue = daysLeft < 0 && goal.status !== 'completed';
+  const targetDate = goal.targetDate || goal.deadline || '';
+  const daysLeft = targetDate ? calculateDaysLeft(targetDate) : 0;
+  const isOverdue = daysLeft < 0 && (goal.status || 'planning') !== 'completed';
   const isExpanded = selectedGoalId === goal.id;
 
   return (
@@ -77,9 +84,9 @@ export function GoalCard({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <CardTitle className="text-xl">{goal.title}</CardTitle>
-              <Badge className={statusLabels[goal.status].color}>
-                <Icon name={statusLabels[goal.status].icon} size={12} className="mr-1" />
-                {statusLabels[goal.status].label}
+              <Badge className={statusInfo.color}>
+                <Icon name={statusInfo.icon} size={12} className="mr-1" />
+                {statusInfo.label}
               </Badge>
             </div>
             <p className="text-sm text-gray-600">{goal.description}</p>
@@ -89,8 +96,8 @@ export function GoalCard({
                 <Icon name={categoryInfo.icon} size={12} className="mr-1" />
                 {categoryInfo.label}
               </Badge>
-              <Badge className={priorityLabels[goal.priority].color}>
-                {priorityLabels[goal.priority].label}
+              <Badge className={priorityInfo.color}>
+                {priorityInfo.label}
               </Badge>
               {isOverdue ? (
                 <Badge className="bg-red-100 text-red-700">
@@ -201,7 +208,7 @@ export function GoalCard({
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold flex items-center gap-2">
                   <Icon name="CheckSquare" size={18} />
-                  Контрольные точки ({goal.checkpoints.filter(cp => cp.completed).length}/{goal.checkpoints.length})
+                  Контрольные точки ({(goal.checkpoints || []).filter(cp => cp.completed).length}/{(goal.checkpoints || []).length})
                 </h4>
                 <Button
                   variant="outline"
@@ -212,9 +219,9 @@ export function GoalCard({
                   Добавить
                 </Button>
               </div>
-              {goal.checkpoints.length > 0 ? (
+              {(goal.checkpoints || []).length > 0 ? (
                 <div className="space-y-2">
-                  {goal.checkpoints.map((checkpoint) => (
+                  {(goal.checkpoints || []).map((checkpoint) => (
                     <div 
                       key={checkpoint.id}
                       className={`p-3 rounded-lg border-2 transition-all ${
@@ -271,7 +278,7 @@ export function GoalCard({
                 Подсказки от ИИ
               </h4>
               <div className="space-y-2">
-                {goal.aiSuggestions.map((suggestion) => {
+                {(goal.aiSuggestions || []).map((suggestion) => {
                   const suggestionStyles = {
                     tip: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'Lightbulb', iconColor: 'text-blue-600' },
                     warning: { bg: 'bg-yellow-50', border: 'border-yellow-200', icon: 'AlertTriangle', iconColor: 'text-yellow-600' },

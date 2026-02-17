@@ -25,7 +25,20 @@ export default function Goals() {
     const saved = localStorage.getItem('familyGoals');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((g: Record<string, unknown>) => ({
+            ...g,
+            checkpoints: g.checkpoints || [],
+            aiSuggestions: g.aiSuggestions || [],
+            status: g.status || 'planning',
+            priority: g.priority || 'medium',
+            category: g.category || 'other',
+            targetDate: g.targetDate || g.deadline || new Date().toISOString(),
+            startDate: g.startDate || g.createdAt || new Date().toISOString(),
+            progress: g.progress || 0,
+          }));
+        }
       } catch {
         return initialFamilyGoals;
       }

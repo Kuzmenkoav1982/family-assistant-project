@@ -39,7 +39,7 @@ export function GoalsSection({
     const goal = goals.find(g => g.id === goalId);
     if (!goal) return;
 
-    const updatedCheckpoints = goal.checkpoints.map(cp => 
+    const updatedCheckpoints = (goal.checkpoints || []).map(cp => 
       cp.id === checkpointId 
         ? { ...cp, completed: !cp.completed, completedDate: !cp.completed ? new Date().toISOString() : undefined }
         : cp
@@ -68,7 +68,7 @@ export function GoalsSection({
       completed: false
     };
 
-    const updatedCheckpoints = [...goal.checkpoints, newCheckpoint];
+    const updatedCheckpoints = [...(goal.checkpoints || []), newCheckpoint];
     onUpdateGoal?.(selectedGoalForCheckpoint, { checkpoints: updatedCheckpoints });
 
     setNewCheckpointData({ title: '', description: '', dueDate: '' });
