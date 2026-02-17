@@ -123,6 +123,11 @@ export default function Purchases() {
   const handleTogglePurchased = async (id: number, purchased: boolean) => {
     if (!familyId) return;
     
+    const newState = !purchased;
+    setPurchases(prev => prev.map(p => 
+      p.id === id ? { ...p, purchased: newState, purchase_date: newState ? new Date().toISOString().split('T')[0] : undefined } : p
+    ));
+    
     try {
       const response = await fetch(`${func2url.purchases}?id=${id}`, {
         method: 'PUT',
@@ -131,16 +136,21 @@ export default function Purchases() {
           'X-User-Id': familyId
         },
         body: JSON.stringify({
-          purchased: !purchased,
-          purchase_date: !purchased ? new Date().toISOString().split('T')[0] : undefined
+          purchased: newState,
+          purchase_date: newState ? new Date().toISOString().split('T')[0] : undefined
         })
       });
       
-      if (response.ok) {
-        await fetchPurchases();
+      if (!response.ok) {
+        setPurchases(prev => prev.map(p => 
+          p.id === id ? { ...p, purchased, purchase_date: purchased ? p.purchase_date : undefined } : p
+        ));
       }
     } catch (error) {
       console.error('Error toggling purchase:', error);
+      setPurchases(prev => prev.map(p => 
+        p.id === id ? { ...p, purchased, purchase_date: purchased ? p.purchase_date : undefined } : p
+      ));
     }
   };
 

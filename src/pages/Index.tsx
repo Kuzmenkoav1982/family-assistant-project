@@ -108,10 +108,6 @@ export default function Index({ onLogout }: IndexProps) {
   
   const authToken = localStorage.getItem('authToken');
   const authUser = localStorage.getItem('userData');
-  console.log('Index: authToken =', authToken ? 'EXISTS' : 'NULL');
-  console.log('Index: authUser =', authUser);
-  console.log('Index: familyMembersRaw =', familyMembersRaw);
-  console.log('Index: membersLoading =', membersLoading);
 
   const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];

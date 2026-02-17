@@ -116,7 +116,33 @@ export function useShopping() {
   };
 
   const toggleBought = async (itemId: string, bought: boolean) => {
-    await updateItem(itemId, { bought });
+    setItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, bought } : item
+    ));
+    
+    try {
+      const token = getAuthToken();
+      if (!token) return;
+
+      const response = await fetch(SHOPPING_API_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({ id: itemId, bought })
+      });
+
+      if (!response.ok) {
+        setItems(prev => prev.map(item => 
+          item.id === itemId ? { ...item, bought: !bought } : item
+        ));
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (err: any) {
+      console.error('[useShopping] Error toggling bought:', err);
+      setError(err.message);
+    }
   };
 
   const deleteItem = async (itemId: string) => {
