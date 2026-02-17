@@ -49,14 +49,15 @@ def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        query = """
+        safe_family_id = family_id.replace("'", "''")
+        query = f"""
             SELECT role, content 
-            FROM chat_messages 
-            WHERE family_id::text = %s 
+            FROM {SCHEMA}.chat_messages 
+            WHERE family_id::text = '{safe_family_id}' 
             ORDER BY created_at DESC 
-            LIMIT %s
+            LIMIT {int(limit)}
         """
-        cursor.execute(query, (family_id, limit))
+        cursor.execute(query)
         rows = cursor.fetchall()
         
         cursor.close()
@@ -82,11 +83,15 @@ def save_message(family_id: str, user_id: Optional[int], role: str, content: str
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        query = """
-            INSERT INTO chat_messages (family_id, sender_id, role, content, type, created_at)
-            VALUES (%s::uuid, %s, %s, %s, 'text', NOW())
+        safe_family_id = family_id.replace("'", "''")
+        safe_role = role.replace("'", "''")
+        safe_content = content.replace("'", "''")
+        user_id_val = f"'{str(user_id)}'" if user_id else "NULL"
+        query = f"""
+            INSERT INTO {SCHEMA}.chat_messages (family_id, sender_id, role, content, type, created_at)
+            VALUES ('{safe_family_id}'::uuid, {user_id_val}, '{safe_role}', '{safe_content}', 'text', NOW())
         """
-        cursor.execute(query, (family_id, user_id, role, content))
+        cursor.execute(query)
         
         conn.commit()
         cursor.close()

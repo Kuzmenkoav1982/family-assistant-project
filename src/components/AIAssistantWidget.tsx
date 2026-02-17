@@ -452,11 +452,11 @@ const AIAssistantWidget = () => {
       {isOpen && (
         <div 
           style={window.innerWidth >= 768 ? { left: `${position.x}px`, top: `${position.y}px` } : {}}
-          className={`fixed z-50 bg-white shadow-2xl border border-gray-200 flex flex-col ${
+          className={`fixed z-40 bg-white shadow-2xl border border-gray-200 flex flex-col ${
             isMinimized 
               ? 'w-80 h-16 bottom-6 right-6 rounded-2xl' 
-              : 'w-full h-[100dvh] md:w-96 md:h-[600px] md:rounded-2xl ' +
-                'top-0 left-0 md:top-auto md:left-auto md:max-h-[calc(100vh-100px)]'
+              : 'w-full h-[calc(100dvh-4rem)] md:w-96 md:h-[600px] md:rounded-2xl ' +
+                'top-16 left-0 md:top-auto md:left-auto md:max-h-[calc(100vh-100px)]'
           }`}
         >
           {/* Header */}
@@ -468,7 +468,7 @@ const AIAssistantWidget = () => {
               }
             }}
           >
-            <div className="flex items-center justify-between px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3 min-w-0">
                 {assistantType === 'domovoy' ? (
                   <div className="relative bg-white overflow-hidden border-2 border-orange-300 rounded-xl w-10 h-12 flex-shrink-0">
@@ -542,9 +542,9 @@ const AIAssistantWidget = () => {
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-red-50 active:bg-red-100 transition-colors"
                 >
-                  <X className="w-4 h-4 text-gray-500" />
+                  <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
             </div>

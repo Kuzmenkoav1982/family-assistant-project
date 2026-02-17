@@ -11,7 +11,6 @@
   "child-calendar": "https://functions.poehali.dev/260f9790-e5f9-44ce-bcad-05e33cf98c21",
   "calendar-export": "https://functions.poehali.dev/04b2f702-d5f7-492c-9293-9c2858d1927e",
   "upload-medical-file": "https://functions.poehali.dev/73c11cc1-551e-410a-ab30-bf99187ee674",
-  "ai-assistant": "https://functions.poehali.dev/15f21880-ac01-4af7-a026-7726c14e6f6e",
   "password-reset": "https://functions.poehali.dev/645e6866-ea8f-4f6d-9989-8be4df31e13c",
   "user-management": "https://functions.poehali.dev/33a587c5-918b-4c88-b183-5dd551fc2283",
   "welcome-analytics": "https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22",
