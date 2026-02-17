@@ -107,7 +107,7 @@ export function LeftMenu({
             <button
               key={section.id}
               onClick={() => {
-                console.log('Left menu clicked:', section.id);
+
                 if (section.id === 'psychologist') {
                   navigate('/psychologist');
                 } else if (section.id === 'rules-section') {

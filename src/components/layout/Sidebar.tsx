@@ -237,12 +237,24 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
               open={openSections.includes(section.id)}
               onOpenChange={() => toggleSection(section.id)}
             >
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0">
+                <button
+                  className="flex-1 flex items-center p-2 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  onClick={() => {
+                    if (section.hubPath) {
+                      navigate(section.hubPath);
+                      onVisibilityChange(false);
+                    } else {
+                      toggleSection(section.id);
+                    }
+                  }}
+                >
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
+                    {section.title}
+                  </span>
+                </button>
                 <CollapsibleTrigger asChild>
-                  <button className="flex-1 flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      {section.title}
-                    </span>
+                  <button className="p-2 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <Icon 
                       name={openSections.includes(section.id) ? "ChevronDown" : "ChevronRight"} 
                       size={14} 
@@ -250,18 +262,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                     />
                   </button>
                 </CollapsibleTrigger>
-                {section.hubPath && (
-                  <button
-                    onClick={() => {
-                      navigate(section.hubPath!);
-                      onVisibilityChange(false);
-                    }}
-                    className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-                    title={`Открыть ${section.title}`}
-                  >
-                    <Icon name="ExternalLink" size={14} className="text-blue-500" />
-                  </button>
-                )}
               </div>
               
               <CollapsibleContent className="space-y-1 mt-1">
