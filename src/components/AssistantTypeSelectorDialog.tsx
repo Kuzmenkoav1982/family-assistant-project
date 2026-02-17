@@ -105,7 +105,7 @@ export default function AssistantTypeSelectorDialog({
             onClick={() => setSelectedType('neutral')}
           >
             <div className="flex items-start gap-4">
-              <img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-12 h-12 rounded-full flex-shrink-0" />
+              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI Ассистент" className="w-12 h-12 rounded-full flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
                   Нейтральный AI-ассистент

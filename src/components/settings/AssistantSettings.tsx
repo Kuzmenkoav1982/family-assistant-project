@@ -66,7 +66,7 @@ export default function AssistantSettings() {
             {assistantType === 'domovoy' ? (
               <img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-8 h-8 rounded-full" />
             ) : (
-              <img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-8 h-8 rounded-full" />
+              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI Ассистент" className="w-8 h-8 rounded-full" />
             )}
             Мой AI-ассистент
           </CardTitle>
@@ -83,7 +83,7 @@ export default function AssistantSettings() {
                   {assistantType === 'domovoy' ? (
                     <><img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-6 h-6 rounded-full" /> Домовой</>
                   ) : (
-                    <><img src="https://cdn.poehali.dev/files/AI-ассистент.jpeg" alt="AI Ассистент" className="w-6 h-6 rounded-full" /> Нейтральный AI</>
+                    <><img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI Ассистент" className="w-6 h-6 rounded-full" /> Нейтральный AI</>
                   )}
                   {assistantType === 'domovoy' && assistantLevel > 1 && (
                     <Badge className="bg-amber-500">

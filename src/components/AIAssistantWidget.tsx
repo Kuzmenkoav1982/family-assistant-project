@@ -418,8 +418,8 @@ const AIAssistantWidget = () => {
                   />
                 </div>
               ) : (
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl border-4 border-blue-400 flex-shrink-0">
-                  🤖
+                <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-blue-400 flex-shrink-0">
+                  <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
                 </div>
               )}
               <div>
@@ -482,8 +482,8 @@ const AIAssistantWidget = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-lg flex-shrink-0">
-                    🤖
+                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
+                    <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div className="min-w-0">
