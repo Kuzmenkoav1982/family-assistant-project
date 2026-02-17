@@ -97,7 +97,7 @@ export default function AssistantTypeSelectorDialog({ open, onOpenChange }: Prop
             }`}
           >
             <div className="flex items-start gap-3 md:gap-4">
-              <img src="https://cdn.poehali.dev/files/Домовой.jpeg" alt="Домовой" className="w-12 h-12 md:w-16 md:h-16 rounded-full flex-shrink-0" />
+              <img src="https://cdn.poehali.dev/files/Семейный помощник.png" alt="Домовой" className="w-12 h-12 md:w-16 md:h-16 rounded-full flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <h3 className="text-base md:text-xl font-bold mb-1 md:mb-2">Домовой - хранитель очага</h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-2 md:mb-3">
