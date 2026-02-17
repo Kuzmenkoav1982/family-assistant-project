@@ -114,6 +114,7 @@ import Culture from "./pages/Culture";
 import Tasks from "./pages/Tasks";
 import Goals from "./pages/Goals";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
+import GlobalBottomBar from "@/components/GlobalBottomBar";
 import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -228,6 +229,7 @@ const App = () => {
                     <PWAInstallPrompt />
                     <AIAssistantWidget />
                     <DemoModeIndicator />
+                    <GlobalBottomBar />
                     <Routes>
                       <Route path="/shared/event/:token" element={<SharedEventPage />} />
                       <Route path="/welcome" element={<Welcome />} />

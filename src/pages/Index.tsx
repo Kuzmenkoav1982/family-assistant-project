@@ -64,7 +64,7 @@ import { getTranslation, languageOptions, type LanguageCode } from '@/translatio
 import SettingsDropdown from '@/components/SettingsDropdown';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { FamilyCohesionChart } from '@/components/FamilyCohesionChart';
-import BottomBar from '@/components/BottomBar';
+// BottomBar now global — see GlobalBottomBar in App.tsx
 import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import { WelcomeScreen } from '@/components/index-page/WelcomeScreen';
 import { IndexLayout } from '@/components/index-page/IndexLayout';
@@ -3039,18 +3039,7 @@ export default function Index({ onLogout }: IndexProps) {
         </DialogContent>
       </Dialog>
 
-      <BottomBar
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        autoHide={autoHideBottomBar}
-        onAutoHideChange={handleAutoHideBottomBarChange}
-        isVisible={isBottomBarVisible}
-        onVisibilityChange={setIsBottomBarVisible}
-        availableSections={availableSections}
-        selectedSections={bottomBarSections}
-        onSectionsChange={handleBottomBarSectionsChange}
-        onKuzyaClick={() => setShowKuzyaDialog(true)}
-      />
+      {/* GlobalBottomBar now rendered in App.tsx for all pages */}
 
       <PanelSettings
         title="Настройки верхней панели"
