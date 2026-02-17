@@ -16,7 +16,6 @@ import { useFamilyData } from '@/hooks/useFamilyData';
 import { ChildEducation } from '@/components/ChildEducation';
 import { ClickChamomile } from '@/components/ClickChamomile';
 import Footer from '@/components/Footer';
-import { getDailyMotto } from '@/utils/dailyMottos';
 import WidgetSettings from '@/components/WidgetSettings';
 import type { WidgetConfig } from '@/components/WidgetSettings';
 import type {
@@ -70,7 +69,7 @@ import FamilyMemberSwitcher from '@/components/FamilyMemberSwitcher';
 import { WelcomeScreen } from '@/components/index-page/WelcomeScreen';
 import { IndexLayout } from '@/components/index-page/IndexLayout';
 import { IndexDialogs } from '@/components/index-page/IndexDialogs';
-import { FamilyHeaderBanner } from '@/components/index-page/FamilyHeaderBanner';
+import HomeHero from '@/components/index-page/HomeHero';
 import { ComplaintBook } from '@/components/ComplaintBook';
 import AIAssistantDialog from '@/components/AIAssistantDialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
@@ -1272,10 +1271,10 @@ export default function Index({ onLogout }: IndexProps) {
 
   if (membersLoading || tasksLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 via-white to-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Загрузка данных семьи...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Загрузка данных семьи...</p>
         </div>
       </div>
     );
@@ -1327,8 +1326,8 @@ export default function Index({ onLogout }: IndexProps) {
 
 
 
-        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8" style={{ paddingTop: '4rem' }}>
-        <FamilyHeaderBanner 
+        <div className="max-w-5xl mx-auto space-y-6 animate-fade-in p-4 lg:p-8 pb-24" style={{ paddingTop: '4rem' }}>
+        <HomeHero 
           familyName={familyName}
           familyLogo={familyLogo}
           syncing={syncing}
@@ -1527,42 +1526,20 @@ export default function Index({ onLogout }: IndexProps) {
           </DialogContent>
         </Dialog>
 
-        <header className="text-center mb-8 relative -mx-4 lg:-mx-8 py-6 rounded-2xl overflow-hidden" style={{
-            backgroundImage: 'url(https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/99031d20-2ea8-4a39-a89e-1ebe098b6ba4.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/85 to-white/80 backdrop-blur-[1px]"></div>
-          <div className="relative">
-          <div className="flex items-center justify-center gap-4 mb-3">
-            <h1 className={`${themeClasses.headingFont} text-3xl lg:text-4xl font-bold bg-gradient-to-r ${themeClasses.primaryGradient.replace('bg-gradient-to-r ', '')} bg-clip-text text-transparent mt-2 animate-fade-in`}>
-              {getSectionTitle(activeSection)}
-            </h1>
+        {activeSection !== 'family' && (
+          <div className="bg-white/80 rounded-xl border px-5 py-3 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <Icon name={menuSections.find(s => s.id === activeSection)?.icon || 'Home'} size={18} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">{getSectionTitle(activeSection)}</h2>
+            </div>
           </div>
-          
-          <p className="text-lg lg:text-xl text-gray-700 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            {activeSection === 'tasks' && 'Управление задачами семьи'}
-            {activeSection === 'family' && 'Просмотр и редактирование профилей всех членов семьи'}
-            {activeSection === 'goals' && 'Долгосрочное планирование и контроль целей'}
-            {activeSection === 'cohesion' && 'Анализ сплочённости и рейтинг семьи'}
-            {activeSection === 'children' && 'Развитие и достижения детей'}
-            {activeSection === 'values' && 'Семейные ценности и принципы'}
-            {activeSection === 'traditions' && 'Традиции и ритуалы'}
-            {activeSection === 'blog' && 'Семейный блог и истории'}
-            {activeSection === 'album' && 'Фотоальбом семьи'}
-            {activeSection === 'tree' && 'Генеалогическое древо'}
-            {activeSection === 'chat' && 'Семейный чат'}
-            {activeSection === 'rules' && 'Правила и договоренности'}
-            {activeSection === 'complaints' && 'Разрешение семейных конфликтов'}
-            {activeSection === 'about' && 'Миссия проекта'}
-            {activeSection === 'shopping' && 'Список покупок семьи'}
-          </p>
-          </div>
-        </header>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
+            <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
 
               <TabsContent value="cohesion">
                 <div className="space-y-6">
@@ -3021,59 +2998,46 @@ export default function Index({ onLogout }: IndexProps) {
             </Tabs>
           </div>
 
-          <div className="space-y-6">
-            <div className="flex justify-end">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Виджеты</h3>
               <Button
                 onClick={() => setShowWidgetSettings(true)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="gap-2"
+                className="gap-1.5 text-muted-foreground hover:text-foreground h-7 text-xs"
               >
-                <Icon name="Settings" size={16} />
-                Настроить виджеты
+                <Icon name="SlidersHorizontal" size={14} />
+                Настроить
               </Button>
             </div>
             
             {isWidgetEnabled('calendar') && (
-              <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                <CalendarWidget calendarEvents={calendarEvents || []} />
-              </div>
+              <CalendarWidget calendarEvents={calendarEvents || []} />
             )}
 
             {isWidgetEnabled('tasks') && (
-              <div className="animate-fade-in" style={{ animationDelay: '0.65s' }}>
-                <TasksWidget />
-              </div>
+              <TasksWidget />
             )}
 
             {isWidgetEnabled('shopping') && (
-              <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                <ShoppingWidget />
-              </div>
+              <ShoppingWidget />
             )}
 
             {isWidgetEnabled('voting') && (
-              <div className="animate-fade-in" style={{ animationDelay: '0.95s' }}>
-                <VotingWidget />
-              </div>
+              <VotingWidget />
             )}
 
             {isWidgetEnabled('nutrition') && (
-              <div className="animate-fade-in" style={{ animationDelay: '1.1s' }}>
-                <NutritionWidget />
-              </div>
+              <NutritionWidget />
             )}
 
             {isWidgetEnabled('weekly-menu') && (
-              <div className="animate-fade-in" style={{ animationDelay: '1.25s' }}>
-                <WeeklyMenuWidget />
-              </div>
+              <WeeklyMenuWidget />
             )}
 
             {isWidgetEnabled('medications') && (
-              <div className="animate-fade-in" style={{ animationDelay: '1.4s' }}>
-                <MedicationsWidget />
-              </div>
+              <MedicationsWidget />
             )}
 
           </div>
