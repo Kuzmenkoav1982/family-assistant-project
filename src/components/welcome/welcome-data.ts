@@ -158,6 +158,54 @@ export const sections = [
     ]
   },
   {
+    title: 'Питание',
+    description: 'Полноценный центр управления питанием всей семьи',
+    icon: 'Apple',
+    color: 'from-emerald-500 to-green-500',
+    securitySlides: [
+      {
+        title: 'Умное меню на неделю',
+        subtitle: 'AI составляет сбалансированное меню для всей семьи с учётом предпочтений и аллергий',
+        features: [
+          { icon: 'Calendar', title: 'Автоматическое планирование', description: 'Меню на 7 дней за 30 секунд' },
+          { icon: 'Users', title: 'Для всей семьи', description: 'Учитывает возраст и потребности каждого' },
+          { icon: 'ShoppingCart', title: 'Список покупок', description: 'Автоматически из меню — ничего не забудете' },
+          { icon: 'RefreshCw', title: 'Замена блюд', description: 'Не нравится — замените одним нажатием' }
+        ]
+      },
+      {
+        title: 'ИИ-Диетолог',
+        subtitle: 'Персональный AI-диетолог анализирует питание и даёт рекомендации',
+        features: [
+          { icon: 'Brain', title: 'Анализ рациона', description: 'AI оценивает баланс БЖУ и витаминов' },
+          { icon: 'Target', title: 'Персональные цели', description: 'Похудение, набор массы, здоровое питание' },
+          { icon: 'AlertCircle', title: 'Аллергии и ограничения', description: 'Учитывает все противопоказания' },
+          { icon: 'TrendingUp', title: 'Прогресс', description: 'Отслеживание динамики питания' }
+        ]
+      },
+      {
+        title: 'Счётчик БЖУ и калорий',
+        subtitle: 'Точный подсчёт нутриентов с базой из 10 000+ продуктов',
+        features: [
+          { icon: 'Calculator', title: 'Быстрый ввод', description: 'Добавляйте продукты за секунды' },
+          { icon: 'PieChart', title: 'Баланс БЖУ', description: 'Наглядные графики белков, жиров и углеводов' },
+          { icon: 'Flame', title: 'Калории', description: 'Точный подсчёт с учётом приготовления' },
+          { icon: 'History', title: 'История питания', description: 'Анализ за день, неделю, месяц' }
+        ]
+      },
+      {
+        title: 'Рецепты и программы питания',
+        subtitle: 'Готовые рецепты, режимы питания и генерация блюд из ваших продуктов',
+        features: [
+          { icon: 'ChefHat', title: 'Рецепт из продуктов', description: 'Скажите что в холодильнике — AI предложит блюдо' },
+          { icon: 'BookOpen', title: 'База рецептов', description: 'Проверенные семейные рецепты с фото' },
+          { icon: 'ListChecks', title: 'Готовые программы', description: 'Кето, ПП, детское питание, вегетарианство' },
+          { icon: 'Star', title: 'Избранное', description: 'Сохраняйте любимые рецепты семьи' }
+        ]
+      }
+    ]
+  },
+  {
     title: 'Здоровье',
     description: 'Медкарты, прививки, врачи, анализы всей семьи',
     icon: 'Activity',

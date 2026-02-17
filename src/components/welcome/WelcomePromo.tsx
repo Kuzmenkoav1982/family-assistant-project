@@ -5,43 +5,37 @@ const promoFeatures = [
     icon: 'Brain',
     title: 'AI-ассистент Домовой',
     description: '9 ролей: повар, психолог, финансист, педагог — ваш персональный помощник',
-    gradient: 'from-violet-500 to-purple-600',
-    bg: 'bg-violet-50'
+    gradient: 'from-violet-500 to-purple-600'
   },
   {
     icon: 'Users',
     title: 'Вся семья в одном месте',
     description: 'Профили, задачи, баллы и достижения для каждого члена семьи',
-    gradient: 'from-blue-500 to-cyan-500',
-    bg: 'bg-blue-50'
+    gradient: 'from-blue-500 to-cyan-500'
   },
   {
     icon: 'ShieldCheck',
     title: 'Защита данных',
     description: 'Шифрование военного уровня, соответствие 152-ФЗ',
-    gradient: 'from-emerald-500 to-teal-500',
-    bg: 'bg-emerald-50'
+    gradient: 'from-emerald-500 to-teal-500'
   },
   {
     icon: 'Heart',
     title: 'Семейные ценности',
     description: 'Традиции, мечты, копилки, голосования — всё, что сближает',
-    gradient: 'from-pink-500 to-rose-500',
-    bg: 'bg-pink-50'
+    gradient: 'from-pink-500 to-rose-500'
   },
   {
-    icon: 'Calendar',
-    title: 'Планирование',
-    description: 'Календарь, меню на неделю, списки покупок, путешествия',
-    gradient: 'from-orange-500 to-amber-500',
-    bg: 'bg-orange-50'
+    icon: 'Apple',
+    title: 'Питание и здоровье',
+    description: 'Меню на неделю, ИИ-диетолог, счётчик БЖУ, рецепты',
+    gradient: 'from-emerald-500 to-green-500'
   },
   {
     icon: 'TrendingUp',
     title: 'Развитие детей',
     description: 'ИИ-оценка, планы развития, геймификация для детей 0-12 лет',
-    gradient: 'from-red-500 to-orange-500',
-    bg: 'bg-red-50'
+    gradient: 'from-orange-500 to-amber-500'
   }
 ];
 
@@ -67,7 +61,7 @@ export default function WelcomePromo() {
               <Icon name="Sparkles" size={18} className="text-yellow-300" />
               <span className="text-sm font-semibold">Единственная платформа для всей семьи</span>
             </div>
-            <h3 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
+            <h3 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight font-[Montserrat]">
               Почему 
               <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent"> «Наша Семья» </span>
               — это то, что вам нужно?
@@ -82,9 +76,9 @@ export default function WelcomePromo() {
             {promoFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] border border-white/10"
+                className="group bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] border border-white/10"
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 shadow-lg group-hover:shadow-xl transition-shadow`}>
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 shadow-lg group-hover:shadow-xl transition-shadow`}>
                   <Icon name={feature.icon} size={24} className="text-white" />
                 </div>
                 <h4 className="font-bold text-lg mb-1">{feature.title}</h4>
@@ -95,7 +89,7 @@ export default function WelcomePromo() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-xl py-4 px-3">
+              <div key={index} className="text-center bg-white/10 backdrop-blur-md rounded-2xl py-4 px-3">
                 <div className="text-2xl lg:text-3xl font-bold text-yellow-300">{stat.value}</div>
                 <div className="text-xs text-white/60 mt-1">{stat.label}</div>
               </div>

@@ -62,9 +62,9 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="flex flex-col gap-1 relative">
-              <div className="flex items-center gap-2">
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 bg-clip-text text-transparent">
+            <div className="flex flex-col gap-1 relative min-w-0 flex-1">
+              <div className="flex items-start gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 bg-clip-text text-transparent leading-tight break-words">
                   {familyName}
                 </h1>
                 <TooltipProvider>

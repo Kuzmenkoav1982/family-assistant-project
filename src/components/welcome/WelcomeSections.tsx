@@ -42,15 +42,16 @@ export default function WelcomeSections({
 }: SectionProps) {
   return (
     <div className="mb-16">
-      <h3 className="text-3xl font-bold text-center mb-8 text-gray-800">
+      <h3 className="text-3xl font-bold text-center mb-3 text-gray-900 font-[Montserrat]">
         Основные разделы платформы
       </h3>
+      <p className="text-center text-gray-500 mb-8 max-w-2xl mx-auto">Листайте карусели — внутри скриншоты реальных функций приложения</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sections.map((section, index) => (
           <Card
             key={index}
             onClick={() => trackSectionClick(index, section.title)}
-            className="overflow-hidden border-2 hover:border-purple-300 hover:shadow-2xl transition-all duration-300 animate-fade-in group cursor-pointer"
+            className="overflow-hidden border border-gray-100 hover:border-orange-200 hover:shadow-xl shadow-sm transition-all duration-300 animate-fade-in group cursor-pointer rounded-2xl"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="relative h-64 overflow-hidden">
@@ -197,18 +198,18 @@ export default function WelcomeSections({
                 </div>
               ) : null}
             </div>
-            <CardContent className="p-6">
+            <CardContent className="p-5">
               <div className="flex items-start gap-3 mb-3">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${section.color} shadow-lg`}>
-                  <Icon name={section.icon} className="text-white" size={24} />
+                <div className={`p-2.5 rounded-xl bg-gradient-to-br ${section.color} shadow-md flex-shrink-0`}>
+                  <Icon name={section.icon} className="text-white" size={20} />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-xl mb-1 text-gray-800">{section.title}</h4>
-                  <p className="text-sm text-gray-600">{section.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-lg mb-0.5 text-gray-900">{section.title}</h4>
+                  <p className="text-sm text-gray-500 leading-snug">{section.description}</p>
                 </div>
               </div>
-              <Badge className={`bg-gradient-to-r ${section.color} text-white`}>
-                {section.carousel ? `${section.carousel.length} скриншота` : section.securitySlides ? `${section.securitySlides.length} слайдов` : 'Доступно'}
+              <Badge variant="secondary" className="bg-gray-100 text-gray-600 font-medium text-xs">
+                {section.carousel ? `${section.carousel.length} скриншотов` : section.securitySlides ? `${section.securitySlides.length} слайдов` : 'Доступно'}
               </Badge>
             </CardContent>
           </Card>

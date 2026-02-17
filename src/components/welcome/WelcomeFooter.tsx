@@ -196,12 +196,12 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
   return (
     <div className="space-y-16">
       {/* Тарифы */}
-      <div className="mt-16 bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl shadow-2xl p-8 lg:p-12">
+      <div className="mt-16 bg-gray-50 rounded-3xl p-8 lg:p-12">
         <div className="text-center mb-10">
-          <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 text-lg">
+          <Badge className="mb-4 bg-orange-100 text-orange-700 border-orange-200 px-4 py-1.5 text-sm font-semibold">
             Тарифы и цены
           </Badge>
-          <h3 className="text-3xl lg:text-4xl font-bold text-gray-800">
+          <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 font-[Montserrat]">
             Выберите подходящий тариф
           </h3>
         </div>
@@ -254,7 +254,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
           <Button
             onClick={() => navigate('/pricing')}
             size="lg"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-xl"
+            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-xl rounded-2xl"
           >
             <Icon name="Zap" size={22} className="mr-3" />
             Все тарифы
@@ -305,12 +305,12 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
       </Dialog>
 
       {/* PWA */}
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-8 border-2 border-blue-200">
+      <div className="bg-gray-50 rounded-3xl p-8">
         <div className="text-center mb-8">
-          <Badge className="mb-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 text-lg">
+          <Badge className="mb-4 bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 text-sm font-semibold">
             Мобильное приложение
           </Badge>
-          <h3 className="text-3xl font-bold mb-4">Установите PWA-версию</h3>
+          <h3 className="text-3xl font-bold mb-4 font-[Montserrat] text-gray-900">Установите PWA-версию</h3>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Работает как обычное мобильное приложение с офлайн-режимом и push-уведомлениями
           </p>
@@ -378,12 +378,12 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
       </div>
 
       {/* Поддержка */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8 border-2 border-green-200">
+      <div className="bg-gray-50 rounded-3xl p-8">
         <div className="text-center">
-          <Badge className="mb-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 text-lg">
+          <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200 px-4 py-1.5 text-sm font-semibold">
             Помощь и поддержка
           </Badge>
-          <h3 className="text-3xl font-bold mb-4">Нужна помощь?</h3>
+          <h3 className="text-3xl font-bold mb-4 font-[Montserrat] text-gray-900">Нужна помощь?</h3>
           <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
             Наша команда всегда готова помочь вам. Свяжитесь с нами любым удобным способом
           </p>
@@ -415,10 +415,10 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
           © {new Date().getFullYear()} Наша Семья. Все права защищены.
         </p>
         <div className="flex justify-center gap-6 mt-4">
-          <a href="/terms" className="text-sm hover:text-purple-600 transition-colors">
+          <a href="/terms" className="text-sm hover:text-orange-600 transition-colors">
             Условия использования
           </a>
-          <a href="/privacy" className="text-sm hover:text-purple-600 transition-colors">
+          <a href="/privacy" className="text-sm hover:text-orange-600 transition-colors">
             Политика конфиденциальности
           </a>
         </div>
