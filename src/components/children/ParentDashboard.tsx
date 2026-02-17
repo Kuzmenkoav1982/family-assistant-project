@@ -288,16 +288,6 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
         </TabsContent>
 
         <TabsContent value="development" className="space-y-6">
-          <SectionHelp
-            emoji="🎯"
-            title="Раздел Развитие"
-            description="Планируйте развитие ребёнка в разных областях: спорт, творчество, образование, soft skills"
-            tips={[
-              "Установите цели и отслеживайте прогресс",
-              "Добавьте кружки, секции и их расписание",
-              "Сохраняйте результаты тестов и конкурсов"
-            ]}
-          />
           <DevelopmentSection child={child} />
         </TabsContent>
 
