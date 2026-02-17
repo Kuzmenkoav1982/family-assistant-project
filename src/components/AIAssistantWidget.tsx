@@ -455,7 +455,7 @@ const AIAssistantWidget = () => {
           className={`fixed z-50 bg-white shadow-2xl border border-gray-200 flex flex-col ${
             isMinimized 
               ? 'w-80 h-16 bottom-6 right-6 rounded-2xl' 
-              : 'w-full h-full md:w-96 md:h-[600px] md:rounded-2xl ' +
+              : 'w-full h-[100dvh] md:w-96 md:h-[600px] md:rounded-2xl ' +
                 'top-0 left-0 md:top-auto md:left-auto md:max-h-[calc(100vh-100px)]'
           }`}
         >
@@ -468,7 +468,7 @@ const AIAssistantWidget = () => {
               }
             }}
           >
-            <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center justify-between px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
               <div className="flex items-center gap-3 min-w-0">
                 {assistantType === 'domovoy' ? (
                   <div className="relative bg-white overflow-hidden border-2 border-orange-300 rounded-xl w-10 h-12 flex-shrink-0">
@@ -696,7 +696,7 @@ const AIAssistantWidget = () => {
               </div>
 
               {/* Input */}
-              <div className="p-3 bg-white border-t border-gray-100 md:rounded-b-2xl flex-shrink-0">
+              <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-gray-100 md:rounded-b-2xl flex-shrink-0">
                 <div className="flex gap-2">
                   <Textarea
                     value={input}
