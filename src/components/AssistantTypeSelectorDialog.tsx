@@ -155,7 +155,9 @@ export default function AssistantTypeSelectorDialog({
             onClick={() => setSelectedType('domovoy')}
           >
             <div className="flex items-start gap-4">
-              <img src="https://cdn.poehali.dev/files/Семейный помощник.png" alt="Домовой" className="w-12 h-12 rounded-full flex-shrink-0" />
+              <div className="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden">
+                <img src="https://cdn.poehali.dev/files/Семейный помощник.png" alt="Домовой" className="w-full h-full object-cover object-top scale-[1.8] origin-top" />
+              </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
                   Домовой - хранитель очага
