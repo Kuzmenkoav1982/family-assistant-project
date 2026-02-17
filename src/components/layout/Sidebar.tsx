@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
-import SettingsMenu from '@/components/SettingsMenu';
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,6 +12,8 @@ interface MenuSection {
   id: string;
   title: string;
   icon: string;
+  iconColor: string;
+  accentBg: string;
   items: MenuItem[];
   hubPath?: string;
 }
@@ -35,8 +35,6 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-
-  
   const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (sectionId: string) => {
@@ -47,13 +45,13 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     );
   };
 
-
-
   const menuSections: MenuSection[] = [
     {
       id: 'family',
-      title: '🏠 СЕМЬЯ',
+      title: 'Семья',
       icon: 'Users',
+      iconColor: 'text-blue-600',
+      accentBg: 'bg-blue-50 dark:bg-blue-950/40',
       hubPath: '/family-hub',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
@@ -63,8 +61,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'health',
-      title: '💊 ЗДОРОВЬЕ',
+      title: 'Здоровье',
       icon: 'HeartPulse',
+      iconColor: 'text-rose-600',
+      accentBg: 'bg-rose-50 dark:bg-rose-950/40',
       hubPath: '/health-hub',
       items: [
         { id: 'health', label: 'Здоровье семьи', icon: 'HeartPulse', path: '/health' }
@@ -72,8 +72,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'values',
-      title: '💖 ЦЕННОСТИ И КУЛЬТУРА',
+      title: 'Ценности и культура',
       icon: 'Heart',
+      iconColor: 'text-pink-600',
+      accentBg: 'bg-pink-50 dark:bg-pink-950/40',
       hubPath: '/values-hub',
       items: [
         { id: 'values', label: 'Ценности', icon: 'Heart', path: '/values' },
@@ -83,8 +85,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'planning',
-      title: '🎯 ПЛАНИРОВАНИЕ',
+      title: 'Планирование',
       icon: 'Target',
+      iconColor: 'text-indigo-600',
+      accentBg: 'bg-indigo-50 dark:bg-indigo-950/40',
       hubPath: '/planning-hub',
       items: [
         { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
@@ -96,8 +100,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'nutrition',
-      title: '🥗 ПИТАНИЕ',
+      title: 'Питание',
       icon: 'Apple',
+      iconColor: 'text-emerald-600',
+      accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
       hubPath: '/nutrition',
       items: [
         { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
@@ -111,8 +117,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'household',
-      title: '🏠 БЫТ И ХОЗЯЙСТВО',
+      title: 'Быт и хозяйство',
       icon: 'Home',
+      iconColor: 'text-amber-600',
+      accentBg: 'bg-amber-50 dark:bg-amber-950/40',
       hubPath: '/household-hub',
       items: [
         { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', path: '/shopping' },
@@ -121,8 +129,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'leisure',
-      title: '🌍 ПУТЕШЕСТВИЯ И ДОСУГ',
+      title: 'Путешествия и досуг',
       icon: 'Plane',
+      iconColor: 'text-sky-600',
+      accentBg: 'bg-sky-50 dark:bg-sky-950/40',
       hubPath: '/leisure-hub',
       items: [
         { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' },
@@ -132,8 +142,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'development',
-      title: '💬 РАЗВИТИЕ',
+      title: 'Развитие',
       icon: 'Brain',
+      iconColor: 'text-violet-600',
+      accentBg: 'bg-violet-50 dark:bg-violet-950/40',
       hubPath: '/development-hub',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
@@ -141,8 +153,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'family-state',
-      title: '🏛️ СЕМЬЯ И ГОСУДАРСТВО',
+      title: 'Семья и государство',
       icon: 'Landmark',
+      iconColor: 'text-slate-600',
+      accentBg: 'bg-slate-50 dark:bg-slate-800/40',
       hubPath: '/state-hub',
       items: [
         { id: 'what-is-family', label: 'Что такое семья', icon: 'Users', path: '/what-is-family' },
@@ -154,8 +168,10 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'in-dev',
-      title: '🔧 В РАЗРАБОТКЕ',
+      title: 'В разработке',
       icon: 'Wrench',
+      iconColor: 'text-gray-500',
+      accentBg: 'bg-gray-50 dark:bg-gray-800/40',
       items: [
         { id: 'in-development-list', label: 'В разработке', icon: 'Construction', path: '/in-development' }
       ]
@@ -168,7 +184,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     } else if (item.path) {
       navigate(item.path);
     }
-    // Always close sidebar after navigation
     onVisibilityChange(false);
   };
 
@@ -180,11 +195,13 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     return false;
   };
 
-
+  const isSectionActive = (section: MenuSection) => {
+    if (section.hubPath && location.pathname === section.hubPath) return true;
+    return section.items.some(item => isActive(item));
+  };
 
   return (
     <>
-      {/* Backdrop for mobile */}
       {isVisible && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
@@ -194,102 +211,108 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       )}
       
       <div 
-        className={`fixed left-0 top-16 bottom-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg transition-transform duration-300 overflow-y-auto ${
+        className={`fixed left-0 top-16 bottom-0 z-40 bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 overflow-y-auto ${
           isVisible ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ width: '280px' }}
       >
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <Button
-              variant="ghost"
-              size="sm"
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between gap-2">
+            <button
               onClick={() => {
                 navigate('/settings');
                 onVisibilityChange(false);
               }}
-              className="flex-1 justify-start gap-2 h-9 px-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 hover:from-blue-100 hover:to-purple-100"
-              title="Настройки"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 hover:from-blue-100 hover:to-purple-100 transition-colors flex-1"
             >
-              <Icon name="Settings" size={18} />
-              <span className="font-medium">Настройки</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                <Icon name="Settings" size={14} className="text-white" />
+              </div>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Настройки</span>
+            </button>
+            <button
               onClick={() => onVisibilityChange(false)}
-              className="h-9 w-9 p-0"
-              title="Закрыть меню"
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <Icon name="X" size={18} />
-            </Button>
+              <Icon name="X" size={18} className="text-gray-400" />
+            </button>
           </div>
-          <h3 className="text-sm font-semibold flex items-center gap-2 mt-2">
-            <Icon name="Menu" size={16} />
-            Разделы
-          </h3>
         </div>
 
-        <div className="p-3 space-y-2">
-          {menuSections.map((section) => (
-            <Collapsible
-              key={section.id}
-              open={openSections.includes(section.id)}
-              onOpenChange={() => toggleSection(section.id)}
-            >
-              <div className="flex items-center gap-0">
-                <button
-                  className="flex-1 flex items-center p-2 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  onClick={() => {
-                    if (section.hubPath) {
-                      navigate(section.hubPath);
-                      onVisibilityChange(false);
-                    } else {
-                      toggleSection(section.id);
-                    }
-                  }}
-                >
-                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                    {section.title}
-                  </span>
-                </button>
-                <CollapsibleTrigger asChild>
-                  <button className="p-2 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <Icon 
-                      name={openSections.includes(section.id) ? "ChevronDown" : "ChevronRight"} 
-                      size={14} 
-                      className="text-gray-500"
-                    />
-                  </button>
-                </CollapsibleTrigger>
-              </div>
-              
-              <CollapsibleContent className="space-y-1 mt-1">
-                {section.items.map((item) => (
+        <div className="p-3 space-y-1">
+          {menuSections.map((section) => {
+            const isOpen = openSections.includes(section.id);
+            const active = isSectionActive(section);
+
+            return (
+              <Collapsible
+                key={section.id}
+                open={isOpen}
+                onOpenChange={() => toggleSection(section.id)}
+              >
+                <div className={`flex items-center gap-0 rounded-xl transition-colors ${active ? section.accentBg : ''}`}>
                   <button
-                    key={item.id}
-                    onClick={() => handleItemClick(item)}
-                    disabled={item.inDev}
-                    className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all ${
-                      isActive(item)
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                        : item.inDev
-                        ? 'opacity-50 cursor-not-allowed'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
+                    className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    onClick={() => {
+                      if (section.hubPath) {
+                        navigate(section.hubPath);
+                        onVisibilityChange(false);
+                      } else {
+                        toggleSection(section.id);
+                      }
+                    }}
                   >
-                    <Icon name={item.icon as any} size={16} />
-                    <span className="text-sm flex-1 text-left">{item.label}</span>
-                    {item.inDev && (
-                      <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded">
-                        DEV
-                      </span>
-                    )}
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? section.accentBg : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      <Icon name={section.icon} size={15} className={section.iconColor} />
+                    </div>
+                    <span className={`text-[13px] font-semibold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                      {section.title}
+                    </span>
                   </button>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
+                  <CollapsibleTrigger asChild>
+                    <button className="px-2.5 py-2.5 rounded-r-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <Icon 
+                        name={isOpen ? "ChevronDown" : "ChevronRight"} 
+                        size={14} 
+                        className="text-gray-400"
+                      />
+                    </button>
+                  </CollapsibleTrigger>
+                </div>
+                
+                <CollapsibleContent className="mt-0.5 ml-5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-800 pl-3">
+                  {section.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleItemClick(item)}
+                      disabled={item.inDev}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${
+                        isActive(item)
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                          : item.inDev
+                          ? 'opacity-40 cursor-not-allowed'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      <Icon name={item.icon} size={15} className={isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'} />
+                      <span className="text-[13px]">{item.label}</span>
+                      {item.inDev && (
+                        <span className="text-[9px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded-full ml-auto">
+                          DEV
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
+        </div>
+
+        <div className="p-4 mt-2 border-t border-gray-100 dark:border-gray-800">
+          <p className="text-[11px] text-gray-400 text-center">
+            Наша Семья · v1.0
+          </p>
         </div>
       </div>
 
