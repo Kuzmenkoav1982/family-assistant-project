@@ -127,21 +127,27 @@ def check_important_dates(cur, family_id: str) -> List[Dict[str, str]]:
 def check_calendar_events(cur, family_id: str) -> List[Dict[str, str]]:
     notifications = []
     family_id_safe = escape_sql_string(family_id)
+    now = datetime.now()
+    current_time = now.strftime('%H:%M')
+    future_time = (now + timedelta(hours=1)).strftime('%H:%M')
     
     try:
         query = f"""
-            SELECT title, start_date, end_date, description 
+            SELECT title, date, time 
             FROM {SCHEMA}.calendar_events 
             WHERE family_id = '{family_id_safe}' 
-            AND start_date BETWEEN NOW() AND NOW() + INTERVAL '1 hour'
-            ORDER BY start_date 
+            AND date = CURRENT_DATE
+            AND time IS NOT NULL AND time != ''
+            AND time >= '{current_time}' AND time <= '{future_time}'
+            AND (completed = false OR completed IS NULL)
+            ORDER BY time 
             LIMIT 3
         """
         cur.execute(query)
         upcoming_events = cur.fetchall()
         
         for event in upcoming_events:
-            time_str = event['start_date'].strftime('%H:%M')
+            time_str = event['time'] or ''
             notifications.append({
                 'title': f"Скоро событие в {time_str} от Наша Семья",
                 'message': f"{event['title']}"
@@ -151,18 +157,19 @@ def check_calendar_events(cur, family_id: str) -> List[Dict[str, str]]:
     
     try:
         query = f"""
-            SELECT title, start_date 
+            SELECT title, date, time 
             FROM {SCHEMA}.calendar_events 
             WHERE family_id = '{family_id_safe}' 
-            AND start_date::date = CURRENT_DATE + INTERVAL '1 day'
-            ORDER BY start_date 
+            AND date = CURRENT_DATE + INTERVAL '1 day'
+            AND (completed = false OR completed IS NULL)
+            ORDER BY time 
             LIMIT 3
         """
         cur.execute(query)
         tomorrow_events = cur.fetchall()
         
         for event in tomorrow_events:
-            time_str = event['start_date'].strftime('%H:%M')
+            time_str = event['time'] or 'весь день'
             notifications.append({
                 'title': f"Завтра: {event['title']} от Наша Семья",
                 'message': f"Запланировано на {time_str}"
