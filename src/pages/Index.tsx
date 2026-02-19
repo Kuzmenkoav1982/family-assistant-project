@@ -346,7 +346,7 @@ export default function Index({ onLogout }: IndexProps) {
     return true;
   });
   const [welcomeText, setWelcomeText] = useState('Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций.');
-  const [isTopBarVisible, setIsTopBarVisible] = useState(true);
+  const [isTopBarVisible] = useState(true);
   const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
     // Временно отключаем автоскрытие для проверки зелёной кнопки
     return false;
@@ -1297,22 +1297,8 @@ export default function Index({ onLogout }: IndexProps) {
       />
 
       <IndexLayout
-        isTopBarVisible={isTopBarVisible}
-        isLeftMenuVisible={isLeftMenuVisible}
-        showMenuHint={showSidebarHint}
-        currentLanguage={currentLanguage}
         currentTheme={currentTheme}
         themeClasses={themeClasses}
-        onTopBarVisibilityChange={setIsTopBarVisible}
-        onLeftMenuVisibilityChange={setIsLeftMenuVisible}
-        onLogout={handleLogout}
-        onLanguageChange={handleLanguageChange}
-        onThemeChange={handleThemeChange}
-        onResetDemo={handleLogoutLocal}
-        onHintDismiss={() => {
-          setShowSidebarHint(false);
-          localStorage.setItem('hasSeenSidebarHint', 'true');
-        }}
       >
 
 
