@@ -119,8 +119,8 @@ def cleanup_inactive_users() -> int:
     return deleted_users
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Запуск очистки данных"""
-    method = event.get('httpMethod', 'POST')
+    """Запуск очистки данных — GET/POST, токен через ?token= или X-Admin-Token"""
+    method = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
         return {
@@ -136,8 +136,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
-        # Проверка административного токена (для безопасности)
-        admin_token = event.get('headers', {}).get('X-Admin-Token', '')
+        # Проверка административного токена (через заголовок или query-параметр для крона)
+        admin_token = (
+            event.get('headers', {}).get('X-Admin-Token', '') or
+            (event.get('queryStringParameters') or {}).get('token', '')
+        )
         expected_token = os.environ.get('ADMIN_TOKEN', 'change-me')
         
         if admin_token != expected_token:
