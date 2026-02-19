@@ -117,6 +117,7 @@ import AIAssistantWidget from "@/components/AIAssistantWidget";
 import GlobalTopBar from "@/components/GlobalTopBar";
 import GlobalSidebar from "@/components/GlobalSidebar";
 import GlobalBottomBar from "@/components/GlobalBottomBar";
+import PageWrapper from "@/components/PageWrapper";
 import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
@@ -234,6 +235,7 @@ const App = () => {
                     <GlobalTopBar />
                     <GlobalSidebar />
                     <GlobalBottomBar />
+                    <PageWrapper>
                     <Routes>
                       <Route path="/shared/event/:token" element={<SharedEventPage />} />
                       <Route path="/welcome" element={<Welcome />} />
@@ -350,6 +352,7 @@ const App = () => {
                       
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    </PageWrapper>
                   </BrowserRouter>
                 </TooltipProvider>
               </AIAssistantProvider>

@@ -1303,7 +1303,7 @@ export default function Index({ onLogout }: IndexProps) {
 
 
 
-        <div className="max-w-5xl mx-auto space-y-4 animate-fade-in p-4 pb-24" style={{ paddingTop: '4rem' }}>
+        <div className="max-w-5xl mx-auto space-y-4 animate-fade-in p-4 pb-24">
         <HomeHero 
           familyName={familyName}
           familyLogo={familyLogo}
