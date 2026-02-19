@@ -2,6 +2,7 @@
 Автоматическая очистка устаревших данных согласно политике хранения
 
 Удаляет:
+- Истёкшие сессии пользователей
 - Логи безопасности старше 1 года
 - Геолокации старше 30 дней
 - Данные неактивных пользователей (>3 года без активности)
@@ -23,6 +24,16 @@ def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = True
     return conn
+
+def cleanup_expired_sessions() -> int:
+    """Удаление истёкших сессий"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {SCHEMA}.sessions WHERE expires_at < NOW()")
+    deleted_count = cur.rowcount
+    cur.close()
+    conn.close()
+    return deleted_count
 
 def cleanup_security_logs() -> int:
     """Удаление логов старше 1 года"""
@@ -141,6 +152,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         # Выполняем очистку
+        sessions_deleted = cleanup_expired_sessions()
         logs_deleted = cleanup_security_logs()
         locations_deleted = cleanup_old_locations()
         users_deleted = cleanup_inactive_users()
@@ -149,6 +161,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'success': True,
             'timestamp': datetime.now().isoformat(),
             'deleted': {
+                'expired_sessions': sessions_deleted,
                 'security_logs': logs_deleted,
                 'locations': locations_deleted,
                 'inactive_users': users_deleted

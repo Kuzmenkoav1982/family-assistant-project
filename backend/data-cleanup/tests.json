@@ -1,10 +1,11 @@
 {
   "tests": [
     {
-      "name": "Cleanup without admin token",
+      "name": "Cleanup without admin token returns 401",
       "method": "POST",
       "path": "/",
       "expectedStatus": 401,
+      "expectedBody": {"error": "Unauthorized"},
       "bodyMatcher": "partial"
     },
     {
