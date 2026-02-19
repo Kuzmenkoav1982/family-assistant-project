@@ -1,12 +1,12 @@
 {
   "tests": [
     {
-      "name": "Test scheduled reminders execution",
+      "name": "Test forbidden without secret",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
+      "expectedStatus": 403,
       "expectedBody": {
-        "success": true
+        "error": "Forbidden"
       },
       "bodyMatcher": "partial"
     }

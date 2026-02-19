@@ -157,7 +157,7 @@ class MedicationNotificationService {
     if (saved) {
       return JSON.parse(saved);
     }
-    return { enabled: false, soundEnabled: true, minutesBefore: 15 };
+    return { enabled: true, soundEnabled: true, minutesBefore: 15 };
   }
 
   private checkPermission(): NotificationPermission {
