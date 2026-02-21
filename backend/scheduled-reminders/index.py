@@ -70,9 +70,10 @@ def send_max_message(chat_id: int, title: str, message: str) -> bool:
     if not bot_token or not chat_id:
         return False
     try:
-        text = f"*{title}*\n{message}"
+        text = f"{title}\n{message}"
         resp = requests.post(
-            f'https://botapi.max.ru/messages?access_token={bot_token}',
+            'https://platform-api.max.ru/messages',
+            headers={'Authorization': bot_token, 'Content-Type': 'application/json'},
             json={'chat_id': chat_id, 'text': text},
             timeout=10
         )

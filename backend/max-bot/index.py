@@ -1,6 +1,6 @@
 """
-MAX Bot API — отправка сообщений пользователям и в канал через MAX Platform API
-Args: event с httpMethod, body с action/text/chat_id
+MAX Bot API — приём вебхуков и отправка уведомлений через platform-api.max.ru
+Args: event с httpMethod, body
 Returns: JSON с результатом
 """
 
@@ -12,7 +12,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 MAX_BOT_TOKEN = os.environ.get('MAX_BOT_TOKEN')
-MAX_API_BASE = 'https://botapi.max.ru'
+MAX_API_BASE = 'https://platform-api.max.ru'
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 CORS_HEADERS = {
@@ -21,15 +21,22 @@ CORS_HEADERS = {
 }
 
 
+def max_api_headers():
+    return {
+        'Authorization': MAX_BOT_TOKEN,
+        'Content-Type': 'application/json'
+    }
+
+
 def max_api_request(method: str, endpoint: str, payload: dict = None) -> Dict[str, Any]:
     if not MAX_BOT_TOKEN:
         return {'ok': False, 'error': 'MAX_BOT_TOKEN не настроен'}
-    url = f'{MAX_API_BASE}{endpoint}?access_token={MAX_BOT_TOKEN}'
+    url = f'{MAX_API_BASE}{endpoint}'
     try:
         if method == 'GET':
-            resp = requests.get(url, timeout=10)
+            resp = requests.get(url, headers=max_api_headers(), timeout=10)
         else:
-            resp = requests.post(url, json=payload, timeout=10)
+            resp = requests.post(url, headers=max_api_headers(), json=payload, timeout=10)
         data = resp.json()
         return {'ok': resp.status_code == 200, 'data': data, 'status': resp.status_code}
     except Exception as e:
@@ -43,47 +50,41 @@ def send_message(chat_id: int, text: str) -> Dict[str, Any]:
     })
 
 
-def send_message_to_channel(text: str) -> Dict[str, Any]:
-    if not MAX_BOT_TOKEN:
-        return {'ok': False, 'error': 'MAX_BOT_TOKEN не настроен'}
-    url = f'{MAX_API_BASE}/messages?access_token={MAX_BOT_TOKEN}'
-    try:
-        resp = requests.post(url, json={'chat_id': None, 'text': text}, timeout=10)
-        return {'ok': resp.status_code == 200, 'data': resp.json()}
-    except Exception as e:
-        return {'ok': False, 'error': str(e)}
-
-
 def handle_webhook(body: dict) -> Dict[str, Any]:
     update_type = body.get('update_type')
-    
+
+    if update_type == 'bot_started':
+        chat_id = body.get('chat_id')
+        user = body.get('user', {})
+        payload = body.get('payload')
+
+        if payload and chat_id:
+            linked = link_max_account(payload, chat_id)
+            if linked:
+                send_message(chat_id, 'Аккаунт привязан! Теперь вы будете получать уведомления от «Наша Семья» здесь в MAX.')
+                return {'ok': True, 'action': 'linked'}
+            else:
+                send_message(chat_id, 'Не удалось привязать аккаунт. Попробуйте ещё раз через приложение.')
+                return {'ok': True, 'action': 'link_failed'}
+
+        send_message(chat_id, 'Привет! Я бот «Наша Семья».\n\nЧтобы получать уведомления, привяжите аккаунт в приложении:\nНастройки → Уведомления → Подключить MAX')
+        return {'ok': True, 'action': 'welcome'}
+
     if update_type == 'message_created':
         message = body.get('message', {})
         sender = message.get('sender', {})
         chat_id = message.get('recipient', {}).get('chat_id')
-        user_id_max = sender.get('user_id')
-        text = message.get('body', {}).get('text', '')
+        text = (message.get('body', {}).get('text', '') or '').strip().lower()
 
-        if text.strip().lower() in ['/start', 'привет', 'начать']:
-            link_code = None
-            parts = text.strip().split()
-            if len(parts) > 1:
-                link_code = parts[1]
-
-            if link_code and chat_id:
-                linked = link_max_account(link_code, chat_id)
-                if linked:
-                    send_message(chat_id, 'Аккаунт привязан! Теперь вы будете получать уведомления от «Наша Семья» здесь.')
-                    return {'ok': True, 'action': 'linked'}
-
-            send_message(chat_id, 'Привет! Я бот «Наша Семья». Чтобы получать уведомления, привяжите аккаунт в приложении (Настройки → Уведомления → MAX).')
-            return {'ok': True, 'action': 'welcome'}
-
-        if text.strip().lower() in ['/stop', 'стоп', 'отписаться']:
+        if text in ['/stop', 'стоп', 'отписаться']:
             if chat_id:
                 unlink_max_account(chat_id)
-                send_message(chat_id, 'Уведомления отключены. Напишите /start чтобы подключить снова.')
+                send_message(chat_id, 'Уведомления отключены. Нажмите «Начать» чтобы подключить снова.')
             return {'ok': True, 'action': 'unlinked'}
+
+        if text in ['/help', 'помощь']:
+            send_message(chat_id, 'Я отправляю уведомления из приложения «Наша Семья»:\n- Напоминания о событиях\n- Лекарства\n- Питание и диета\n- Задачи и покупки\n\nКоманды:\n/stop — отключить уведомления\n/help — эта справка')
+            return {'ok': True, 'action': 'help'}
 
     return {'ok': True, 'action': 'ignored'}
 
@@ -128,7 +129,7 @@ def unlink_max_account(max_chat_id: int) -> bool:
 
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     """
-    MAX Bot API — приём вебхуков и отправка сообщений.
+    MAX Bot — приём вебхуков и управление уведомлениями через мессенджер MAX.
     POST / — вебхук от MAX
     POST /?action=send — отправить сообщение (admin)
     GET /?action=info — инфо о боте
@@ -162,6 +163,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         except Exception as e:
+            print(f"[ERROR] Webhook processing: {e}")
             return {
                 'statusCode': 200,
                 'headers': CORS_HEADERS,
@@ -182,17 +184,14 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         body = json.loads(event.get('body', '{}'))
         chat_id = body.get('chat_id')
         text = body.get('text', '')
-        if not text:
+        if not text or not chat_id:
             return {
                 'statusCode': 400,
                 'headers': CORS_HEADERS,
-                'body': json.dumps({'error': 'Текст обязателен'}),
+                'body': json.dumps({'error': 'chat_id и text обязательны'}),
                 'isBase64Encoded': False
             }
-        if chat_id:
-            result = send_message(int(chat_id), text)
-        else:
-            result = send_message_to_channel(text)
+        result = send_message(int(chat_id), text)
         return {
             'statusCode': 200 if result.get('ok') else 500,
             'headers': CORS_HEADERS,
