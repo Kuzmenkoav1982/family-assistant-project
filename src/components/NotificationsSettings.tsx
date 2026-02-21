@@ -68,8 +68,8 @@ export function NotificationsSettings() {
   };
 
   const maxBotLink = currentUser?.id
-    ? `https://max.ru/id231805288780_biz?start=${currentUser.id}`
-    : 'https://max.ru/id231805288780_biz';
+    ? `https://max.ru/id231805288780_bot?start=${currentUser.id}`
+    : 'https://max.ru/id231805288780_bot';
 
   const handleCheckReminders = async () => {
     setIsCheckingReminders(true);
