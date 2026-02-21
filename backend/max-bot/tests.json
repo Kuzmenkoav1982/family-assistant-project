@@ -9,6 +9,16 @@
       "bodyMatcher": "exact"
     },
     {
+      "name": "GET default returns ok",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Send message without admin token",
       "method": "POST",
       "path": "/?action=send",
@@ -19,16 +29,6 @@
       "expectedStatus": 401,
       "expectedBody": {
         "error": "string"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Get channel stats",
-      "method": "GET",
-      "path": "/?action=stats",
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": "boolean"
       },
       "bodyMatcher": "partial"
     }

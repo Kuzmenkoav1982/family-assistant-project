@@ -65,6 +65,23 @@ def send_push_notification(subscription_data: dict, title: str, message: str, va
         return False
 
 
+def send_max_message(chat_id: int, title: str, message: str) -> bool:
+    bot_token = os.environ.get('MAX_BOT_TOKEN')
+    if not bot_token or not chat_id:
+        return False
+    try:
+        text = f"*{title}*\n{message}"
+        resp = requests.post(
+            f'https://botapi.max.ru/messages?access_token={bot_token}',
+            json={'chat_id': chat_id, 'text': text},
+            timeout=10
+        )
+        return resp.status_code == 200
+    except Exception as e:
+        print(f"[ERROR] MAX send failed: {e}")
+        return False
+
+
 def send_telegram_message(chat_id: int, title: str, message: str) -> bool:
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     if not bot_token or not chat_id:
@@ -681,6 +698,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         total_failed = 0
         
         telegram_cache = {}
+        max_cache = {}
         
         for sub in subscriptions:
             family_id = sub['family_id']
@@ -693,16 +711,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if family_id not in telegram_cache:
                 telegram_cache[family_id] = []
+                max_cache[family_id] = []
                 try:
                     cur.execute(f"""
-                        SELECT u.telegram_chat_id FROM {SCHEMA}.family_members fm 
+                        SELECT u.telegram_chat_id, u.max_chat_id FROM {SCHEMA}.family_members fm 
                         JOIN {SCHEMA}.users u ON fm.user_id = u.id 
                         WHERE fm.family_id = '{escape_sql_string(family_id)}' 
-                        AND u.telegram_chat_id IS NOT NULL
+                        AND (u.telegram_chat_id IS NOT NULL OR u.max_chat_id IS NOT NULL)
                     """)
                     for row in cur.fetchall():
                         if row.get('telegram_chat_id'):
                             telegram_cache[family_id].append(row['telegram_chat_id'])
+                        if row.get('max_chat_id'):
+                            max_cache[family_id].append(row['max_chat_id'])
                 except:
                     pass
             
@@ -725,7 +746,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     if send_telegram_message(chat_id, notification['title'], notification['message']):
                         tg_ok = True
                 
-                if push_ok or tg_ok:
+                max_ok = False
+                for chat_id in max_cache.get(family_id, []):
+                    if send_max_message(chat_id, notification['title'], notification['message']):
+                        max_ok = True
+                
+                if push_ok or tg_ok or max_ok:
                     mark_as_sent(cur, conn, family_id, n_hash, notification['title'])
                     total_sent += 1
                     channels = []
@@ -733,6 +759,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         channels.append('push')
                     if tg_ok:
                         channels.append('telegram')
+                    if max_ok:
+                        channels.append('max')
                     print(f"[SUCCESS] Sent via {'+'.join(channels)}: {notification['title']}")
                 else:
                     total_failed += 1
