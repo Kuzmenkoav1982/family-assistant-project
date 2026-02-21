@@ -401,7 +401,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         elif action == 'get_max_status':
-            token = event.get('headers', {}).get('X-Auth-Token', '')
+            h = event.get('headers', {})
+            token = h.get('X-Auth-Token') or h.get('x-auth-token') or ''
             user_id = verify_token(token)
             if not user_id:
                 return {
@@ -423,7 +424,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
 
         elif action == 'disconnect_max':
-            token = event.get('headers', {}).get('X-Auth-Token', '')
+            h = event.get('headers', {})
+            token = h.get('X-Auth-Token') or h.get('x-auth-token') or ''
             user_id = verify_token(token)
             if not user_id:
                 return {

@@ -13,6 +13,7 @@
   "calendar-export": "https://functions.poehali.dev/04b2f702-d5f7-492c-9293-9c2858d1927e",
   "upload-medical-file": "https://functions.poehali.dev/73c11cc1-551e-410a-ab30-bf99187ee674",
   "password-reset": "https://functions.poehali.dev/645e6866-ea8f-4f6d-9989-8be4df31e13c",
+  "user-management": "https://functions.poehali.dev/33a587c5-918b-4c88-b183-5dd551fc2283",
   "welcome-analytics": "https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22",
   "health-medication-reminders": "https://functions.poehali.dev/5403c012-6b78-423d-97b9-aebad8f83edb",
   "generate-itinerary": "https://functions.poehali.dev/b035a0b5-d08d-40dc-b958-c2676d5f848d",
