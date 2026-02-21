@@ -400,6 +400,49 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps(result)
             }
         
+        elif action == 'get_max_status':
+            token = event.get('headers', {}).get('X-Auth-Token', '')
+            user_id = verify_token(token)
+            if not user_id:
+                return {
+                    'statusCode': 401,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Требуется авторизация'})
+                }
+            conn = get_db_connection()
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute(f"SELECT max_chat_id FROM {SCHEMA}.users WHERE id = %s", (user_id,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            connected = bool(row and row.get('max_chat_id'))
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'success': True, 'connected': connected, 'user_id': user_id})
+            }
+
+        elif action == 'disconnect_max':
+            token = event.get('headers', {}).get('X-Auth-Token', '')
+            user_id = verify_token(token)
+            if not user_id:
+                return {
+                    'statusCode': 401,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Требуется авторизация'})
+                }
+            conn = get_db_connection()
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute(f"UPDATE {SCHEMA}.users SET max_chat_id = NULL WHERE id = %s", (user_id,))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'success': True, 'message': 'MAX отключён'})
+            }
+
         elif action == 'update_family':
             token = event.get('headers', {}).get('X-Auth-Token', '')
             user_id = verify_token(token)

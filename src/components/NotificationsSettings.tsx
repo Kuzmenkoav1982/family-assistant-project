@@ -4,9 +4,10 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import func2url from '../../backend/func2url.json';
 import { NotificationTypeSettings } from './NotificationTypeSettings';
+import { useAuth } from '@/lib/auth-context';
 
 export function NotificationsSettings() {
   const {
@@ -21,8 +22,54 @@ export function NotificationsSettings() {
     isIOSPWA
   } = usePushNotifications();
 
+  const { currentUser } = useAuth();
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [isCheckingReminders, setIsCheckingReminders] = useState(false);
+  const [maxConnected, setMaxConnected] = useState<boolean | null>(null);
+  const [maxLoading, setMaxLoading] = useState(false);
+
+  useEffect(() => {
+    checkMaxStatus();
+  }, []);
+
+  const checkMaxStatus = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    try {
+      const resp = await fetch(func2url['user-management'], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
+        body: JSON.stringify({ action: 'get_max_status' })
+      });
+      const data = await resp.json();
+      if (data.success) setMaxConnected(data.connected);
+    } catch { /* ignore */ }
+  };
+
+  const handleDisconnectMax = async () => {
+    setMaxLoading(true);
+    const token = localStorage.getItem('authToken');
+    try {
+      const resp = await fetch(func2url['user-management'], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token || '' },
+        body: JSON.stringify({ action: 'disconnect_max' })
+      });
+      const data = await resp.json();
+      if (data.success) {
+        setMaxConnected(false);
+        alert('MAX отключён. Уведомления больше не будут приходить в мессенджер.');
+      }
+    } catch {
+      alert('Ошибка при отключении MAX');
+    } finally {
+      setMaxLoading(false);
+    }
+  };
+
+  const maxBotLink = currentUser?.id
+    ? `https://max.ru/id231805288780_biz?start=${currentUser.id}`
+    : 'https://max.ru/id231805288780_biz';
 
   const handleCheckReminders = async () => {
     setIsCheckingReminders(true);
@@ -314,6 +361,94 @@ export function NotificationsSettings() {
             </div>
           </div>
         )}
+
+        <div className="p-4 bg-gradient-to-br from-sky-50 to-blue-50 rounded-lg border border-sky-200">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center">
+              <Icon name="MessageCircle" size={20} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-semibold text-gray-900">Уведомления в MAX</h4>
+                {maxConnected === true && (
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Icon name="CheckCircle2" size={12} className="mr-1" />
+                    Подключён
+                  </Badge>
+                )}
+                {maxConnected === false && (
+                  <Badge variant="outline" className="bg-gray-50 text-gray-500 border-gray-200">
+                    Не подключён
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">
+                Получайте все уведомления в мессенджере MAX
+              </p>
+            </div>
+          </div>
+
+          {maxConnected ? (
+            <div className="space-y-3">
+              <div className="p-3 bg-white rounded-lg border border-sky-100">
+                <p className="text-sm text-gray-700 flex items-start gap-2">
+                  <Icon name="CheckCircle2" size={16} className="text-green-600 flex-shrink-0 mt-0.5" />
+                  Бот подключён. Уведомления приходят в MAX автоматически.
+                </p>
+              </div>
+              <Button
+                onClick={handleDisconnectMax}
+                disabled={maxLoading}
+                variant="outline"
+                size="sm"
+                className="gap-2 border-red-200 text-red-600 hover:bg-red-50"
+              >
+                {maxLoading ? (
+                  <Icon name="Loader2" size={14} className="animate-spin" />
+                ) : (
+                  <Icon name="Unlink" size={14} />
+                )}
+                Отключить MAX
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="bg-sky-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                  <p className="text-sm text-gray-700">Нажмите кнопку ниже — откроется бот в MAX</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="bg-sky-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                  <p className="text-sm text-gray-700">Нажмите «Начать» в боте</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="bg-sky-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                  <p className="text-sm text-gray-700">Готово — уведомления будут приходить в MAX</p>
+                </div>
+              </div>
+              <Button
+                asChild
+                className="w-full gap-2 bg-sky-500 hover:bg-sky-600 text-white"
+              >
+                <a href={maxBotLink} target="_blank" rel="noopener noreferrer">
+                  <Icon name="MessageCircle" size={18} />
+                  Подключить MAX
+                  <Icon name="ExternalLink" size={14} />
+                </a>
+              </Button>
+              <Button
+                onClick={checkMaxStatus}
+                variant="ghost"
+                size="sm"
+                className="w-full gap-2 text-sky-600"
+              >
+                <Icon name="RefreshCw" size={14} />
+                Проверить подключение
+              </Button>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
