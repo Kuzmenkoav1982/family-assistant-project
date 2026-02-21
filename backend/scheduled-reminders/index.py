@@ -599,6 +599,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         headers.get('X-Cron-Secret') or 
         headers.get('x-cron-secret') or 
         params.get('secret') or 
+        params.get('token') or
         ''
     )
     

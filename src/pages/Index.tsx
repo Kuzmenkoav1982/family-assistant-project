@@ -79,6 +79,7 @@ import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
 import { useSubscriptionReminder } from '@/hooks/useSubscriptionReminder';
 import { useCalendarReminders } from '@/hooks/useCalendarReminders';
+import { useDietReminders } from '@/hooks/useDietReminders';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { TasksWidget } from '@/components/TasksWidget';
@@ -114,6 +115,7 @@ export default function Index({ onLogout }: IndexProps) {
   useBirthdayReminders();
   useSubscriptionReminder();
   useCalendarReminders();
+  useDietReminders();
   
   const [familyName, setFamilyName] = useState('Наша Семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG');
