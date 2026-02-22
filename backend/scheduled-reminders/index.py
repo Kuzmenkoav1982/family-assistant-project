@@ -72,12 +72,12 @@ def send_max_message(chat_id: int, title: str, message: str) -> bool:
     try:
         text = f"{title}\n{message}"
         resp = requests.post(
-            f'https://platform-api.max.ru/messages?chat_id={chat_id}',
-            headers={'Authorization': bot_token, 'Content-Type': 'application/json'},
+            f'https://platform-api.max.ru/messages?access_token={bot_token}&chat_id={chat_id}',
+            headers={'Content-Type': 'application/json'},
             json={'text': text},
             timeout=10
         )
-        print(f"[DEBUG] MAX API response: status={resp.status_code}, body={resp.text[:200]}")
+        print(f"[DEBUG] MAX API response: status={resp.status_code}, body={resp.text[:500]}")
         return resp.status_code == 200
     except Exception as e:
         print(f"[ERROR] MAX send failed: {e}")

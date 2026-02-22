@@ -21,23 +21,19 @@ CORS_HEADERS = {
 }
 
 
-def max_api_headers():
-    return {
-        'Authorization': MAX_BOT_TOKEN,
-        'Content-Type': 'application/json'
-    }
-
-
 def max_api_request(method: str, endpoint: str, payload: dict = None) -> Dict[str, Any]:
     if not MAX_BOT_TOKEN:
         return {'ok': False, 'error': 'MAX_BOT_TOKEN не настроен'}
-    url = f'{MAX_API_BASE}{endpoint}'
+    separator = '&' if '?' in endpoint else '?'
+    url = f'{MAX_API_BASE}{endpoint}{separator}access_token={MAX_BOT_TOKEN}'
     try:
+        headers = {'Content-Type': 'application/json'}
         if method == 'GET':
-            resp = requests.get(url, headers=max_api_headers(), timeout=10)
+            resp = requests.get(url, headers=headers, timeout=10)
         else:
-            resp = requests.post(url, headers=max_api_headers(), json=payload, timeout=10)
+            resp = requests.post(url, headers=headers, json=payload, timeout=10)
         data = resp.json()
+        print(f"[DEBUG] MAX API {method} {endpoint}: status={resp.status_code}")
         return {'ok': resp.status_code == 200, 'data': data, 'status': resp.status_code}
     except Exception as e:
         return {'ok': False, 'error': str(e)}
