@@ -44,8 +44,7 @@ def max_api_request(method: str, endpoint: str, payload: dict = None) -> Dict[st
 
 
 def send_message(chat_id: int, text: str) -> Dict[str, Any]:
-    return max_api_request('POST', '/messages', {
-        'chat_id': chat_id,
+    return max_api_request('POST', f'/messages?chat_id={chat_id}', {
         'text': text
     })
 

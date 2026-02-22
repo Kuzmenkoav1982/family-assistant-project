@@ -72,11 +72,12 @@ def send_max_message(chat_id: int, title: str, message: str) -> bool:
     try:
         text = f"{title}\n{message}"
         resp = requests.post(
-            'https://platform-api.max.ru/messages',
+            f'https://platform-api.max.ru/messages?chat_id={chat_id}',
             headers={'Authorization': bot_token, 'Content-Type': 'application/json'},
-            json={'chat_id': chat_id, 'text': text},
+            json={'text': text},
             timeout=10
         )
+        print(f"[DEBUG] MAX API response: status={resp.status_code}, body={resp.text[:200]}")
         return resp.status_code == 200
     except Exception as e:
         print(f"[ERROR] MAX send failed: {e}")
@@ -208,12 +209,11 @@ def check_medication_schedule(cur, family_id: str) -> List[Dict[str, str]]:
         SELECT 
             cms.time,
             cm.name as medication_name,
-            cm.child_name,
-            cms.dosage
+            cm.dosage,
+            cm.member_id
         FROM {SCHEMA}.children_medication_schedule cms
         JOIN {SCHEMA}.children_medications cm ON cms.medication_id = cm.id
-        WHERE cm.family_id = '{family_id_safe}'
-        AND cms.is_active = true
+        WHERE cms.taken = false
         AND cms.time BETWEEN '{current_time}' AND '{future_time}'
     """
     
@@ -222,10 +222,11 @@ def check_medication_schedule(cur, family_id: str) -> List[Dict[str, str]]:
         upcoming_meds = cur.fetchall()
         
         for med in upcoming_meds:
-            time_str = med['time'].strftime('%H:%M')
+            time_str = med['time'].strftime('%H:%M') if hasattr(med['time'], 'strftime') else str(med['time'])[:5]
+            dosage_str = f" ({med['dosage']})" if med.get('dosage') else ""
             notifications.append({
-                'title': f"Лекарство для {med['child_name']} от Наша Семья",
-                'message': f"{med['medication_name']} ({med['dosage']}) в {time_str}"
+                'title': f"Время лекарства от Наша Семья",
+                'message': f"{med['medication_name']}{dosage_str} в {time_str}"
             })
     except Exception as e:
         print(f"[ERROR] Medication check failed: {str(e)}")
@@ -537,28 +538,25 @@ def check_health_medications(cur, user_id: str) -> List[Dict[str, str]]:
     
     try:
         cur.execute(f"""
-            SELECT m.id, m.name, m.dosage, m.time_of_day, hp.user_name
-            FROM {SCHEMA}.health_medications m
+            SELECT m.id, m.name, m.dosage, mr.time as reminder_time
+            FROM {SCHEMA}.medications m
             JOIN {SCHEMA}.health_profiles hp ON m.profile_id = hp.id
-            WHERE m.is_active = true
-            AND m.time_of_day IS NOT NULL
+            JOIN {SCHEMA}.medication_reminders mr ON mr.medication_id = m.id
+            WHERE m.active = true
+            AND mr.enabled = true
             AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
             AND hp.user_id = '{user_id_safe}'
+            AND mr.time BETWEEN '{window_start}' AND '{window_end}'
         """)
         medications = cur.fetchall()
         
         for med in medications:
-            time_of_day = med['time_of_day']
-            if not time_of_day:
-                continue
-            
-            times = parse_time_of_day(time_of_day)
-            for t in times:
-                if window_start <= t <= window_end:
-                    notifications.append({
-                        'title': f"Время лекарства от Наша Семья",
-                        'message': f"{med['name']} ({med['dosage']}) для {med['user_name']} в {t.strftime('%H:%M')}"
-                    })
+            time_str = med['reminder_time'].strftime('%H:%M') if hasattr(med['reminder_time'], 'strftime') else str(med['reminder_time'])[:5]
+            dosage_str = f" ({med['dosage']})" if med.get('dosage') else ""
+            notifications.append({
+                'title': f"Время лекарства от Наша Семья",
+                'message': f"{med['name']}{dosage_str} в {time_str}"
+            })
     except Exception as e:
         print(f"[ERROR] Health medications check failed: {e}")
     
