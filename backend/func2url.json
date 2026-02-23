@@ -1,4 +1,5 @@
 {
+  "notifications-api": "https://functions.poehali.dev/f14eb855-6711-434b-8856-a1939851ef25",
   "ai-assistant": "https://functions.poehali.dev/c0645bee-6667-43ad-9eef-9295acd117fd",
   "family-wallet": "https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238",
   "diet-sync": "https://functions.poehali.dev/c94d9639-d8fc-4838-a865-1c01c18f3f25",

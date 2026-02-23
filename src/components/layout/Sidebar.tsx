@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useNotificationCenter } from '@/hooks/useNotificationCenter';
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,6 +36,7 @@ interface SidebarProps {
 export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { unreadCount } = useNotificationCenter();
   const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (sectionId: string) => {
@@ -237,6 +239,24 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
               <Icon name="X" size={18} className="text-gray-400" />
             </button>
           </div>
+          <button
+            onClick={() => { navigate('/notifications'); onVisibilityChange(false); }}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
+              location.pathname === '/notifications'
+                ? 'bg-orange-50 dark:bg-orange-950/40'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-lg bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center">
+              <Icon name="Bell" size={15} className="text-orange-500" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Уведомления</span>
+            {unreadCount > 0 && (
+              <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[11px] font-bold px-1.5">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
         </div>
 
         <div className="p-3 space-y-1">

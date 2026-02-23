@@ -28,8 +28,12 @@ if ('serviceWorker' in navigator) {
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
       })
-      .catch(() => {
-        // SW registration failed
-      });
+      .catch(() => {});
+  });
+
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'NAVIGATE' && event.data.url) {
+      window.location.href = event.data.url;
+    }
   });
 }

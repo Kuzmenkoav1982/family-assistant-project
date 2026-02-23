@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
+import { useNotificationCenter } from '@/hooks/useNotificationCenter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,7 @@ export default function GlobalTopBar() {
   });
 
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const { unreadCount } = useNotificationCenter();
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
@@ -139,6 +141,19 @@ export default function GlobalTopBar() {
           </div>
 
           <div className="flex items-center gap-1.5">
+            {isAuthenticated && (
+              <button
+                onClick={() => navigate('/notifications')}
+                className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <Icon name="Bell" size={18} className="text-gray-500" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
             {isAuthenticated && walletBalance !== null && (
               <button
                 onClick={() => navigate('/wallet')}

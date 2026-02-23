@@ -88,6 +88,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import InvestorDeck from "./pages/InvestorDeck";
 import AdminSubscriptions from "./pages/AdminSubscriptions";
 import IdeasBoard from "./pages/IdeasBoard";
+import Notifications from "./pages/Notifications";
 import AdminDomovoy from "./pages/AdminDomovoy";
 import DomovoyPage from "./pages/DomovoyPage";
 import AliceIntegration from "./pages/AliceIntegration";
@@ -348,6 +349,7 @@ const App = () => {
                       <Route path="/culture" element={<Culture />} />
                       <Route path="/tasks" element={<Tasks />} />
                       <Route path="/goals" element={<Goals />} />
+                      <Route path="/notifications" element={<Notifications />} />
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
                       
                       <Route path="*" element={<NotFound />} />

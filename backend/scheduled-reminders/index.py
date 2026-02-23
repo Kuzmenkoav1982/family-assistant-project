@@ -1,3 +1,5 @@
+"""Единый крон уведомлений — проверяет ВСЕ источники, сохраняет в notifications, отправляет push/MAX"""
+
 import json
 import os
 import hashlib
@@ -9,82 +11,79 @@ from psycopg2.extras import RealDictCursor
 from pywebpush import webpush, WebPushException
 
 SCHEMA = 't_p5815085_family_assistant_pro'
+APP_URL = 'https://family-assistant-project.poehali.dev'
 
-def escape_sql_string(value: Any) -> str:
-    if value is None:
+def escape(v: Any) -> str:
+    if v is None:
         return 'NULL'
-    return str(value).replace("'", "''")
+    return str(v).replace("'", "''")
 
-def make_notification_hash(title: str, message: str) -> str:
-    today = date.today().isoformat()
-    raw = f"{today}:{title}:{message}"
+def make_hash(title: str, message: str) -> str:
+    raw = f"{date.today().isoformat()}:{title}:{message}"
     return hashlib.md5(raw.encode()).hexdigest()
 
-def is_already_sent(cur, family_id: str, notification_hash: str) -> bool:
+def is_already_sent(cur, family_id: str, h: str) -> bool:
     cur.execute(f"""
         SELECT id FROM {SCHEMA}.sent_notifications 
-        WHERE family_id = '{escape_sql_string(family_id)}' 
-        AND notification_hash = '{escape_sql_string(notification_hash)}'
+        WHERE family_id = '{escape(family_id)}' AND notification_hash = '{escape(h)}'
         AND sent_at > NOW() - INTERVAL '6 hours'
     """)
     return cur.fetchone() is not None
 
-def mark_as_sent(cur, conn, family_id: str, notification_hash: str, title: str):
+def mark_sent(cur, conn, family_id: str, h: str, title: str):
     cur.execute(f"""
         INSERT INTO {SCHEMA}.sent_notifications (family_id, notification_hash, title)
-        VALUES ('{escape_sql_string(family_id)}', '{escape_sql_string(notification_hash)}', '{escape_sql_string(title)}')
+        VALUES ('{escape(family_id)}', '{escape(h)}', '{escape(title)}')
         ON CONFLICT (family_id, notification_hash) DO NOTHING
     """)
     conn.commit()
 
-def cleanup_old_sent(cur, conn):
+def cleanup_old(cur, conn):
     cur.execute(f"DELETE FROM {SCHEMA}.sent_notifications WHERE sent_at < NOW() - INTERVAL '24 hours'")
     conn.commit()
 
-def send_push_notification(subscription_data: dict, title: str, message: str, vapid_private_key: str) -> bool:
+def save_notification(cur, conn, user_id: str, family_id: str, n_type: str, title: str, message: str, target_url: str, channel: str = 'push'):
+    cur.execute(f"""
+        INSERT INTO {SCHEMA}.notifications (user_id, family_id, type, title, message, target_url, channel, status, sent_at, created_at)
+        VALUES ('{escape(user_id)}'::uuid, '{escape(family_id)}', '{escape(n_type)}', '{escape(title)}', '{escape(message)}', '{escape(target_url)}', '{escape(channel)}', 'sent', NOW(), NOW())
+    """)
+    conn.commit()
+
+def send_push(sub_data: dict, title: str, message: str, target_url: str, vapid_key: str) -> bool:
     try:
         webpush(
-            subscription_info=subscription_data,
-            data=json.dumps({
-                'title': title,
-                'body': message,
-                'icon': '/icon-192.png',
-                'url': '/'
-            }),
-            vapid_private_key=vapid_private_key,
-            vapid_claims={
-                'sub': 'mailto:support@family-assistant.app'
-            }
+            subscription_info=sub_data,
+            data=json.dumps({'title': title, 'body': message, 'icon': '/icon-192.png', 'url': target_url}),
+            vapid_private_key=vapid_key,
+            vapid_claims={'sub': 'mailto:support@family-assistant.app'}
         )
         return True
     except WebPushException as e:
-        print(f"[ERROR] WebPush failed: {str(e)}")
+        print(f"[ERROR] WebPush: {e}")
         return False
     except Exception as e:
-        print(f"[ERROR] Unexpected error: {str(e)}")
+        print(f"[ERROR] Push unexpected: {e}")
         return False
 
-
-def send_max_message(chat_id: int, title: str, message: str) -> bool:
+def send_max(chat_id: int, title: str, message: str, target_url: str) -> bool:
     bot_token = os.environ.get('MAX_BOT_TOKEN')
     if not bot_token or not chat_id:
         return False
     try:
-        text = f"{title}\n{message}"
+        full_url = f"{APP_URL}{target_url}"
+        text = f"{title}\n{message}\n\n{full_url}"
         resp = requests.post(
             f'https://platform-api.max.ru/messages?access_token={bot_token}&chat_id={chat_id}',
             headers={'Content-Type': 'application/json'},
             json={'text': text},
             timeout=10
         )
-        print(f"[DEBUG] MAX API response: status={resp.status_code}, body={resp.text[:500]}")
         return resp.status_code == 200
     except Exception as e:
-        print(f"[ERROR] MAX send failed: {e}")
+        print(f"[ERROR] MAX: {e}")
         return False
 
-
-def send_telegram_message(chat_id: int, title: str, message: str) -> bool:
+def send_telegram(chat_id: int, title: str, message: str) -> bool:
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     if not bot_token or not chat_id:
         return False
@@ -97,300 +96,244 @@ def send_telegram_message(chat_id: int, title: str, message: str) -> bool:
         )
         return resp.status_code == 200 and resp.json().get('ok', False)
     except Exception as e:
-        print(f"[ERROR] Telegram send failed: {e}")
+        print(f"[ERROR] Telegram: {e}")
         return False
 
-def check_important_dates(cur, family_id: str) -> List[Dict[str, str]]:
+
+# === ПРОВЕРКИ ИСТОЧНИКОВ ===
+
+def check_important_dates(cur, family_id: str) -> List[Dict]:
     notifications = []
-    family_id_safe = escape_sql_string(family_id)
-    
+    fid = escape(family_id)
     try:
-        query = f"""
-            SELECT title, date, type 
-            FROM {SCHEMA}.important_dates 
-            WHERE family_id = '{family_id_safe}' 
-            AND date = CURRENT_DATE + INTERVAL '1 day'
-        """
-        cur.execute(query)
-        tomorrow_dates = cur.fetchall()
-        
-        for date_info in tomorrow_dates:
+        cur.execute(f"""
+            SELECT title, date, type FROM {SCHEMA}.important_dates 
+            WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '1 day'
+        """)
+        for d in cur.fetchall():
             notifications.append({
-                'title': f"Завтра: {date_info['title']} от Наша Семья",
-                'message': f"Не забудьте поздравить!"
+                'type': 'birthday', 'target_url': '/calendar',
+                'title': f"Завтра: {d['title']}",
+                'message': 'Не забудьте поздравить!'
             })
     except Exception as e:
-        print(f"[ERROR] Important dates check failed: {str(e)}")
-    
+        print(f"[ERROR] Important dates: {e}")
+
     try:
-        query = f"""
-            SELECT name, created_at::date as birthday 
-            FROM {SCHEMA}.family_members 
-            WHERE family_id = '{family_id_safe}'
+        cur.execute(f"""
+            SELECT name FROM {SCHEMA}.family_members 
+            WHERE family_id = '{fid}'
             AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE + INTERVAL '1 day')
             AND EXTRACT(DAY FROM created_at) = EXTRACT(DAY FROM CURRENT_DATE + INTERVAL '1 day')
-        """
-        cur.execute(query)
-        birthdays = cur.fetchall()
-        
-        for member in birthdays:
+        """)
+        for m in cur.fetchall():
             notifications.append({
-                'title': f"День рождения {member['name']} от Наша Семья",
-                'message': f"Завтра день рождения! Подготовьте поздравление"
+                'type': 'birthday', 'target_url': '/calendar',
+                'title': f"День рождения {m['name']}",
+                'message': 'Завтра день рождения! Подготовьте поздравление'
             })
     except Exception as e:
-        print(f"[ERROR] Birthday check failed: {str(e)}")
-    
+        print(f"[ERROR] Birthdays: {e}")
     return notifications
 
-def check_calendar_events(cur, family_id: str) -> List[Dict[str, str]]:
+def check_calendar(cur, family_id: str) -> List[Dict]:
     notifications = []
-    family_id_safe = escape_sql_string(family_id)
+    fid = escape(family_id)
     now = datetime.now()
-    current_time = now.strftime('%H:%M')
-    future_time = (now + timedelta(hours=1)).strftime('%H:%M')
-    
+    cur_t = now.strftime('%H:%M')
+    fut_t = (now + timedelta(hours=1)).strftime('%H:%M')
+
     try:
-        query = f"""
-            SELECT title, date, time 
-            FROM {SCHEMA}.calendar_events 
-            WHERE family_id = '{family_id_safe}' 
-            AND date = CURRENT_DATE
+        cur.execute(f"""
+            SELECT title, date, time FROM {SCHEMA}.calendar_events 
+            WHERE family_id = '{fid}' AND date = CURRENT_DATE
             AND time IS NOT NULL AND time != ''
-            AND time >= '{current_time}' AND time <= '{future_time}'
+            AND time >= '{cur_t}' AND time <= '{fut_t}'
             AND (completed = false OR completed IS NULL)
-            ORDER BY time 
-            LIMIT 3
-        """
-        cur.execute(query)
-        upcoming_events = cur.fetchall()
-        
-        for event in upcoming_events:
-            time_str = event['time'] or ''
+            ORDER BY time LIMIT 3
+        """)
+        for e in cur.fetchall():
             notifications.append({
-                'title': f"Скоро событие в {time_str} от Наша Семья",
-                'message': f"{event['title']}"
+                'type': 'calendar', 'target_url': '/calendar',
+                'title': f"Скоро событие в {e['time'] or ''}",
+                'message': e['title']
             })
     except Exception as e:
-        print(f"[ERROR] Upcoming events check failed: {str(e)}")
-    
+        print(f"[ERROR] Calendar upcoming: {e}")
+
     try:
-        query = f"""
-            SELECT title, date, time 
-            FROM {SCHEMA}.calendar_events 
-            WHERE family_id = '{family_id_safe}' 
-            AND date = CURRENT_DATE + INTERVAL '1 day'
+        cur.execute(f"""
+            SELECT title, date, time FROM {SCHEMA}.calendar_events 
+            WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '1 day'
             AND (completed = false OR completed IS NULL)
-            ORDER BY time 
-            LIMIT 3
-        """
-        cur.execute(query)
-        tomorrow_events = cur.fetchall()
-        
-        for event in tomorrow_events:
-            time_str = event['time'] or 'весь день'
+            ORDER BY time LIMIT 3
+        """)
+        for e in cur.fetchall():
             notifications.append({
-                'title': f"Завтра: {event['title']} от Наша Семья",
-                'message': f"Запланировано на {time_str}"
+                'type': 'calendar', 'target_url': '/calendar',
+                'title': f"Завтра: {e['title']}",
+                'message': f"Запланировано на {e['time'] or 'весь день'}"
             })
     except Exception as e:
-        print(f"[ERROR] Tomorrow events check failed: {str(e)}")
-    
+        print(f"[ERROR] Calendar tomorrow: {e}")
     return notifications
 
-def check_medication_schedule(cur, family_id: str) -> List[Dict[str, str]]:
+def check_medications_children(cur, family_id: str) -> List[Dict]:
     notifications = []
-    family_id_safe = escape_sql_string(family_id)
-    
-    current_time = datetime.now().time()
-    future_time = (datetime.now() + timedelta(minutes=30)).time()
-    
-    query = f"""
-        SELECT 
-            cms.time,
-            cm.name as medication_name,
-            cm.dosage,
-            cm.member_id
-        FROM {SCHEMA}.children_medication_schedule cms
-        JOIN {SCHEMA}.children_medications cm ON cms.medication_id = cm.id
-        WHERE cms.taken = false
-        AND cms.time BETWEEN '{current_time}' AND '{future_time}'
-    """
-    
+    now = datetime.now()
+    t_start = (now - timedelta(minutes=5)).time()
+    t_end = (now + timedelta(minutes=30)).time()
+
     try:
-        cur.execute(query)
-        upcoming_meds = cur.fetchall()
-        
-        for med in upcoming_meds:
-            time_str = med['time'].strftime('%H:%M') if hasattr(med['time'], 'strftime') else str(med['time'])[:5]
-            dosage_str = f" ({med['dosage']})" if med.get('dosage') else ""
+        cur.execute(f"""
+            SELECT cms.time, cm.name, cm.dosage
+            FROM {SCHEMA}.children_medication_schedule cms
+            JOIN {SCHEMA}.children_medications cm ON cms.medication_id = cm.id
+            WHERE cms.taken = false AND cms.time BETWEEN '{t_start}' AND '{t_end}'
+        """)
+        for med in cur.fetchall():
+            ts = med['time'].strftime('%H:%M') if hasattr(med['time'], 'strftime') else str(med['time'])[:5]
+            dose = f" ({med['dosage']})" if med.get('dosage') else ""
             notifications.append({
-                'title': f"Время лекарства от Наша Семья",
-                'message': f"{med['medication_name']}{dosage_str} в {time_str}"
+                'type': 'medication', 'target_url': '/health/medications',
+                'title': 'Время лекарства',
+                'message': f"{med['name']}{dose} в {ts}"
             })
     except Exception as e:
-        print(f"[ERROR] Medication check failed: {str(e)}")
-    
+        print(f"[ERROR] Children meds: {e}")
     return notifications
 
-def check_urgent_tasks(cur, family_id: str) -> List[Dict[str, str]]:
+def check_health_medications(cur, user_id: str) -> List[Dict]:
     notifications = []
-    family_id_safe = escape_sql_string(family_id)
-    
+    uid = escape(user_id)
+    now = datetime.now()
+    t_start = (now - timedelta(minutes=5)).time()
+    t_end = (now + timedelta(minutes=30)).time()
+
     try:
-        query = f"""
-            SELECT title, deadline, priority FROM {SCHEMA}.tasks_v2 
-            WHERE family_id = '{family_id_safe}' 
-            AND completed = FALSE
-            AND (deadline < NOW() OR priority = 'high')
+        cur.execute(f"""
+            SELECT m.name, m.dosage, mr.time as reminder_time
+            FROM {SCHEMA}.medications m
+            JOIN {SCHEMA}.health_profiles hp ON m.profile_id = hp.id
+            JOIN {SCHEMA}.medication_reminders mr ON mr.medication_id = m.id
+            WHERE m.active = true AND mr.enabled = true
+            AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
+            AND hp.user_id = '{uid}'
+            AND mr.time BETWEEN '{t_start}' AND '{t_end}'
+        """)
+        for med in cur.fetchall():
+            ts = med['reminder_time'].strftime('%H:%M') if hasattr(med['reminder_time'], 'strftime') else str(med['reminder_time'])[:5]
+            dose = f" ({med['dosage']})" if med.get('dosage') else ""
+            notifications.append({
+                'type': 'medication', 'target_url': '/health/medications',
+                'title': 'Время лекарства',
+                'message': f"{med['name']}{dose} в {ts}"
+            })
+    except Exception as e:
+        print(f"[ERROR] Health meds: {e}")
+    return notifications
+
+def check_tasks(cur, family_id: str) -> List[Dict]:
+    notifications = []
+    fid = escape(family_id)
+    try:
+        cur.execute(f"""
+            SELECT title, priority, deadline FROM {SCHEMA}.tasks 
+            WHERE family_id = '{fid}' AND status != 'done'
+            AND (priority = 'high' OR (deadline IS NOT NULL AND deadline < NOW() + INTERVAL '2 hours'))
             LIMIT 3
-        """
-        cur.execute(query)
-        urgent_tasks = cur.fetchall()
-        
-        for task in urgent_tasks:
-            if task['deadline'] and task['deadline'] < datetime.now():
+        """)
+        for t in cur.fetchall():
+            if t.get('deadline') and t['deadline'] < datetime.now():
                 notifications.append({
-                    'title': f"Просрочена задача от Наша Семья",
-                    'message': f"{task['title']}"
+                    'type': 'task', 'target_url': '/tasks',
+                    'title': 'Просрочена задача',
+                    'message': t['title']
                 })
-            elif task['priority'] == 'high':
+            elif t.get('priority') == 'high':
                 notifications.append({
-                    'title': f"Срочная задача от Наша Семья",
-                    'message': f"{task['title']}"
+                    'type': 'task', 'target_url': '/tasks',
+                    'title': 'Срочная задача',
+                    'message': t['title']
                 })
     except Exception as e:
-        print(f"[ERROR] Tasks check failed: {str(e)}")
-    
+        print(f"[ERROR] Tasks: {e}")
     return notifications
 
-def check_urgent_shopping(cur, family_id: str) -> List[Dict[str, str]]:
+def check_shopping(cur, family_id: str) -> List[Dict]:
     notifications = []
-    family_id_safe = escape_sql_string(family_id)
-    
+    fid = escape(family_id)
     try:
-        query = f"""
+        cur.execute(f"""
             SELECT name FROM {SCHEMA}.shopping_items_v2 
-            WHERE family_id = '{family_id_safe}' 
-            AND priority = 'urgent'
-            AND bought = FALSE
-            LIMIT 3
-        """
-        cur.execute(query)
-        urgent_items = cur.fetchall()
-        
-        if urgent_items:
-            items_list = ', '.join([item['name'] for item in urgent_items])
+            WHERE family_id = '{fid}' AND priority = 'urgent' AND bought = FALSE LIMIT 3
+        """)
+        items = cur.fetchall()
+        if items:
+            names = ', '.join([i['name'] for i in items])
             notifications.append({
-                'title': f"Срочные покупки от Наша Семья",
-                'message': f"Нужно купить: {items_list}"
+                'type': 'shopping', 'target_url': '/shopping',
+                'title': 'Срочные покупки',
+                'message': f"Нужно купить: {names}"
             })
     except Exception as e:
-        print(f"[ERROR] Shopping check failed: {str(e)}")
-    
+        print(f"[ERROR] Shopping: {e}")
     return notifications
 
-def check_new_votings(cur, family_id: str) -> List[Dict[str, str]]:
+def check_votings(cur, family_id: str) -> List[Dict]:
     notifications = []
-    family_id_safe = escape_sql_string(family_id)
-    
+    fid = escape(family_id)
     try:
-        query = f"""
+        cur.execute(f"""
             SELECT v.title, COUNT(vt.id) as total_votes 
             FROM {SCHEMA}.votings v
             LEFT JOIN {SCHEMA}.votes vt ON v.id = vt.voting_id
-            WHERE v.family_id = '{family_id_safe}' 
-            AND v.end_date > NOW()
+            WHERE v.family_id = '{fid}' AND v.end_date > NOW()
             AND v.created_at > NOW() - INTERVAL '24 hours'
-            GROUP BY v.id, v.title
-            HAVING COUNT(vt.id) < 3
-            LIMIT 2
-        """
-        cur.execute(query)
-        new_votings = cur.fetchall()
-        
-        for voting in new_votings:
+            GROUP BY v.id, v.title HAVING COUNT(vt.id) < 3 LIMIT 2
+        """)
+        for v in cur.fetchall():
             notifications.append({
-                'title': f"Проголосуйте от Наша Семья",
-                'message': f"{voting['title']}"
+                'type': 'voting', 'target_url': '/votings',
+                'title': 'Проголосуйте',
+                'message': v['title']
             })
     except Exception as e:
-        print(f"[ERROR] Votings check failed: {str(e)}")
-    
+        print(f"[ERROR] Votings: {e}")
     return notifications
 
-
-def check_leisure_activities(cur, user_id: str) -> List[Dict[str, str]]:
+def check_leisure(cur, user_id: str) -> List[Dict]:
     notifications = []
-    user_id_safe = escape_sql_string(user_id)
-    
+    uid = escape(user_id)
     try:
-        query = f"""
-            SELECT title, date, time, location
-            FROM {SCHEMA}.leisure_activities
-            WHERE user_id = '{user_id_safe}'
-            AND status = 'planned'
+        cur.execute(f"""
+            SELECT id, title, date, time, location FROM {SCHEMA}.leisure_activities
+            WHERE user_id = '{uid}' AND status = 'planned'
             AND reminder_datetime IS NOT NULL
             AND reminder_datetime BETWEEN NOW() AND NOW() + INTERVAL '10 minutes'
-            AND (reminder_sent = FALSE OR reminder_sent IS NULL)
-            LIMIT 3
-        """
-        cur.execute(query)
-        upcoming_activities = cur.fetchall()
-        
-        for activity in upcoming_activities:
-            time_str = activity['time'] if activity['time'] else ''
-            location_str = f" ({activity['location']})" if activity['location'] else ''
+            AND (reminder_sent = FALSE OR reminder_sent IS NULL) LIMIT 3
+        """)
+        for a in cur.fetchall():
+            loc = f" ({a['location']})" if a.get('location') else ""
             notifications.append({
-                'title': f"Скоро: {activity['title']} от Наша Семья",
-                'message': f"{time_str}{location_str}",
-                'activity_id': activity.get('id')
+                'type': 'leisure', 'target_url': '/leisure',
+                'title': f"Скоро: {a['title']}",
+                'message': f"{a['time'] or ''}{loc}"
             })
-            
-            if activity.get('id'):
-                cur.execute(
-                    f"UPDATE {SCHEMA}.leisure_activities SET reminder_sent = TRUE WHERE id = {activity['id']}"
-                )
-                
+            if a.get('id'):
+                cur.execute(f"UPDATE {SCHEMA}.leisure_activities SET reminder_sent = TRUE WHERE id = {a['id']}")
     except Exception as e:
-        print(f"[ERROR] Leisure activities check failed: {str(e)}")
-    
+        print(f"[ERROR] Leisure: {e}")
     return notifications
 
-def call_yandex_gpt_lite(system_prompt: str, user_prompt: str) -> str:
-    api_key = os.environ.get('YANDEX_GPT_API_KEY')
-    folder_id = os.environ.get('YANDEX_FOLDER_ID')
-    if not api_key or not folder_id:
-        return ''
-    payload = {
-        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
-        'completionOptions': {'stream': False, 'temperature': 0.8, 'maxTokens': 200},
-        'messages': [
-            {'role': 'system', 'text': system_prompt},
-            {'role': 'user', 'text': user_prompt}
-        ]
-    }
-    try:
-        resp = requests.post(
-            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
-            headers={'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'},
-            json=payload, timeout=15
-        )
-        if resp.status_code == 200:
-            return resp.json().get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
-    except Exception as e:
-        print(f"[ERROR] YandexGPT call failed: {e}")
-    return ''
 
-
-def get_user_diet_settings(cur, user_id: str) -> dict:
-    user_id_safe = escape_sql_string(user_id)
+def get_diet_settings(cur, user_id: str) -> dict:
+    uid = escape(user_id)
     settings = {}
     try:
         cur.execute(f"""
             SELECT notification_type, enabled, time_value, interval_minutes, quiet_start, quiet_end
-            FROM {SCHEMA}.nutrition_notification_settings
-            WHERE user_id = '{user_id_safe}'
+            FROM {SCHEMA}.nutrition_notification_settings WHERE user_id = '{uid}'
         """)
         for r in cur.fetchall():
             settings[r['notification_type']] = r
@@ -398,22 +341,19 @@ def get_user_diet_settings(cur, user_id: str) -> dict:
         pass
     return settings
 
-
-def is_in_quiet_hours(quiet_start: str, quiet_end: str) -> bool:
+def is_quiet(qs: str, qe: str) -> bool:
     now = datetime.now().strftime('%H:%M')
-    if quiet_start <= quiet_end:
-        return quiet_start <= now <= quiet_end
-    return now >= quiet_start or now <= quiet_end
+    if qs <= qe:
+        return qs <= now <= qe
+    return now >= qs or now <= qe
 
-
-def is_setting_enabled(settings: dict, ntype: str) -> bool:
+def setting_enabled(settings: dict, ntype: str) -> bool:
     if ntype in settings:
         return settings[ntype]['enabled']
     return True
 
-
-def is_time_match(settings: dict, ntype: str, default_time: str, window_min: int = 15) -> bool:
-    target = default_time
+def time_match(settings: dict, ntype: str, default: str, window: int = 15) -> bool:
+    target = default
     if ntype in settings and settings[ntype].get('time_value'):
         target = settings[ntype]['time_value']
     if not target:
@@ -421,30 +361,25 @@ def is_time_match(settings: dict, ntype: str, default_time: str, window_min: int
     now = datetime.now()
     try:
         h, m = map(int, target.split(':'))
-        target_dt = now.replace(hour=h, minute=m, second=0)
-        diff = abs((now - target_dt).total_seconds())
-        return diff <= window_min * 60
+        t_dt = now.replace(hour=h, minute=m, second=0)
+        return abs((now - t_dt).total_seconds()) <= window * 60
     except:
         return True
 
-
-def check_diet_notifications(cur, user_id: str) -> List[Dict[str, str]]:
+def check_diet(cur, user_id: str) -> List[Dict]:
     notifications = []
-    user_id_safe = escape_sql_string(user_id)
-
+    uid = escape(user_id)
     try:
-        settings = get_user_diet_settings(cur, user_id)
-
+        settings = get_diet_settings(cur, user_id)
         qs = settings.get('motivation', {}).get('quiet_start', '22:00') or '22:00'
         qe = settings.get('motivation', {}).get('quiet_end', '07:00') or '07:00'
-        if is_in_quiet_hours(qs, qe):
+        if is_quiet(qs, qe):
             return notifications
 
         cur.execute(f"""
-            SELECT id, start_date, end_date, duration_days, target_weight_loss_kg,
-                   target_calories_daily, plan_type, daily_water_ml, daily_steps
+            SELECT id, start_date, end_date, duration_days, target_calories_daily, daily_water_ml
             FROM {SCHEMA}.diet_plans
-            WHERE user_id = '{user_id_safe}' AND status = 'active'
+            WHERE user_id = '{uid}' AND status = 'active'
             ORDER BY created_at DESC LIMIT 1
         """)
         plan = cur.fetchone()
@@ -452,148 +387,119 @@ def check_diet_notifications(cur, user_id: str) -> List[Dict[str, str]]:
             return notifications
 
         plan_id = plan['id']
-        days_on = (date.today() - plan['start_date']).days + 1
-        duration = plan['duration_days'] or 7
-        days_remaining = max(0, (plan['end_date'] - date.today()).days)
 
-        cur.execute(f"SELECT weight_kg FROM {SCHEMA}.diet_weight_log WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} ORDER BY measured_at ASC LIMIT 1")
-        first_w = cur.fetchone()
-        cur.execute(f"SELECT weight_kg FROM {SCHEMA}.diet_weight_log WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} ORDER BY measured_at DESC LIMIT 1")
-        last_w = cur.fetchone()
-        lost = round(float(first_w['weight_kg']) - float(last_w['weight_kg']), 1) if first_w and last_w else 0
-
-        cur.execute(f"SELECT COUNT(*) as cnt FROM {SCHEMA}.diet_meals WHERE plan_id = {plan_id} AND completed = TRUE")
-        done = cur.fetchone()['cnt']
-        cur.execute(f"SELECT COUNT(*) as cnt FROM {SCHEMA}.diet_meals WHERE plan_id = {plan_id}")
-        total = cur.fetchone()['cnt']
-        adherence = round(done / total * 100) if total > 0 else 0
-
-        if is_setting_enabled(settings, 'weight_reminder') and is_time_match(settings, 'weight_reminder', '08:00'):
+        if setting_enabled(settings, 'weight_reminder') and time_match(settings, 'weight_reminder', '08:00'):
             cur.execute(f"""
                 SELECT COUNT(*) as cnt FROM {SCHEMA}.diet_weight_log
-                WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} AND measured_at::date = CURRENT_DATE
+                WHERE user_id = '{uid}' AND plan_id = {plan_id} AND measured_at::date = CURRENT_DATE
             """)
             if cur.fetchone()['cnt'] == 0:
-                hour = datetime.now().hour
-                if hour < 12:
-                    notifications.append({'title': 'Взвешивание от Наша Семья', 'message': f'День {days_on} — самое время взвеситься!'})
-                elif hour >= 18:
-                    cur.execute(f"""
-                        SELECT measured_at FROM {SCHEMA}.diet_weight_log
-                        WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id}
-                        ORDER BY measured_at DESC LIMIT 1
-                    """)
-                    last_entry = cur.fetchone()
-                    if last_entry:
-                        days_since = (datetime.now() - last_entry['measured_at']).days
-                        if days_since >= 2:
-                            notifications.append({'title': 'Не забудьте взвеситься от Наша Семья', 'message': f'Последнее взвешивание {days_since} дней назад.'})
+                notifications.append({
+                    'type': 'diet', 'target_url': '/diet',
+                    'title': 'Взвешивание',
+                    'message': 'Не забудьте записать утренний вес'
+                })
 
-        if is_setting_enabled(settings, 'water_reminder') and is_time_match(settings, 'water_reminder', '10:00', 120):
-            target_water = plan.get('daily_water_ml', 2000) or 2000
+        if setting_enabled(settings, 'meal_reminder') and time_match(settings, 'meal_reminder', '12:00'):
             cur.execute(f"""
-                SELECT COALESCE(SUM(amount_ml), 0) as total
-                FROM {SCHEMA}.diet_water_log
-                WHERE user_id = '{user_id_safe}' AND plan_id = {plan_id} AND logged_at::date = CURRENT_DATE
+                SELECT COUNT(*) as cnt FROM {SCHEMA}.diet_meals
+                WHERE plan_id = {plan_id} AND completed = FALSE AND date = CURRENT_DATE
             """)
-            water_today = cur.fetchone()['total']
-            pct = round(water_today / target_water * 100) if target_water > 0 else 0
-            if pct < 50:
-                remaining = target_water - water_today
-                notifications.append({'title': 'Пора попить воды от Наша Семья', 'message': f'Выпито {water_today} мл из {target_water} мл. Осталось {remaining} мл.'})
+            r = cur.fetchone()
+            if r and r['cnt'] > 0:
+                notifications.append({
+                    'type': 'diet', 'target_url': '/diet',
+                    'title': 'Приём пищи',
+                    'message': f"Осталось {r['cnt']} приёмов пищи сегодня"
+                })
 
-        if is_setting_enabled(settings, 'meal_reminder') and is_time_match(settings, 'meal_reminder', '12:00', 60):
-            cur.execute(f"""
-                SELECT meal_type FROM {SCHEMA}.diet_meals
-                WHERE plan_id = {plan_id} AND day_number = {days_on} AND completed = FALSE
-            """)
-            pending_meals = cur.fetchall()
-            if pending_meals:
-                meals_str = ', '.join([m['meal_type'] for m in pending_meals[:3]])
-                notifications.append({'title': 'Время поесть от Наша Семья', 'message': f'Не отмечено: {meals_str}. Следуйте плану!'})
-
-        if is_setting_enabled(settings, 'motivation'):
-            if days_on == 3 and lost > 0:
-                notifications.append({'title': 'Отличное начало от Наша Семья', 'message': f'3-й день диеты. Уже -{lost} кг! Продолжайте!'})
-            elif days_on == 7:
-                notifications.append({'title': 'Неделя диеты от Наша Семья', 'message': f'Результат: {lost} кг за неделю.'})
-            elif days_on == duration // 2:
-                notifications.append({'title': 'Половина пути от Наша Семья', 'message': f'Осталось {days_remaining} дней. Результат: {lost} кг.'})
-            elif days_remaining == 0:
-                notifications.append({'title': 'План завершён от Наша Семья', 'message': f'{duration} дней диеты позади. Результат: {lost} кг.'})
+        if setting_enabled(settings, 'water_reminder') and time_match(settings, 'water_reminder', '14:00'):
+            notifications.append({
+                'type': 'diet', 'target_url': '/diet',
+                'title': 'Вода',
+                'message': 'Не забывайте пить воду!'
+            })
 
     except Exception as e:
-        print(f"[ERROR] Diet notifications check failed: {e}")
-
+        print(f"[ERROR] Diet: {e}")
     return notifications
 
 
-def check_health_medications(cur, user_id: str) -> List[Dict[str, str]]:
+def check_geofences(cur) -> List[Dict]:
     notifications = []
-    user_id_safe = escape_sql_string(user_id)
-    
-    current_time = datetime.now().time()
-    window_start = (datetime.now() - timedelta(minutes=5)).time()
-    window_end = (datetime.now() + timedelta(minutes=30)).time()
-    
     try:
         cur.execute(f"""
-            SELECT m.id, m.name, m.dosage, mr.time as reminder_time
-            FROM {SCHEMA}.medications m
-            JOIN {SCHEMA}.health_profiles hp ON m.profile_id = hp.id
-            JOIN {SCHEMA}.medication_reminders mr ON mr.medication_id = m.id
-            WHERE m.active = true
-            AND mr.enabled = true
-            AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
-            AND hp.user_id = '{user_id_safe}'
-            AND mr.time BETWEEN '{window_start}' AND '{window_end}'
+            SELECT ge.id, ge.member_id, g.name as zone_name, g.family_id
+            FROM {SCHEMA}.geofence_events ge
+            JOIN {SCHEMA}.geofences g ON ge.geofence_id = g.id
+            WHERE ge.event_type = 'exit'
+            AND ge.timestamp > NOW() - INTERVAL '10 minutes'
+            AND (ge.notified = FALSE OR ge.notified IS NULL)
         """)
-        medications = cur.fetchall()
-        
-        for med in medications:
-            time_str = med['reminder_time'].strftime('%H:%M') if hasattr(med['reminder_time'], 'strftime') else str(med['reminder_time'])[:5]
-            dosage_str = f" ({med['dosage']})" if med.get('dosage') else ""
+        for ev in cur.fetchall():
             notifications.append({
-                'title': f"Время лекарства от Наша Семья",
-                'message': f"{med['name']}{dosage_str} в {time_str}"
+                'type': 'geofence', 'target_url': '/family-tracker',
+                'title': f"Выход из зоны",
+                'message': f"Покинул зону \"{ev['zone_name']}\"",
+                'family_id': ev['family_id'],
+                'geofence_event_id': ev['id']
             })
     except Exception as e:
-        print(f"[ERROR] Health medications check failed: {e}")
-    
+        print(f"[ERROR] Geofences: {e}")
     return notifications
 
 
-def parse_time_of_day(time_of_day: str) -> list:
-    time_map = {
-        'утро': ['08:00'],
-        'день': ['14:00'],
-        'вечер': ['20:00'],
-        'утро+вечер': ['08:00', '20:00'],
-        'утро+день+вечер': ['08:00', '14:00', '20:00'],
-    }
-    
-    times = []
-    time_strings = time_map.get(time_of_day, [time_of_day] if ':' in str(time_of_day) else [])
-    
-    for ts in time_strings:
-        try:
-            parts = ts.strip().split(':')
-            from datetime import time as dt_time
-            times.append(dt_time(int(parts[0]), int(parts[1])))
-        except:
-            pass
-    
-    return times
+def check_subscriptions(cur) -> List[Dict]:
+    notifications = []
+    try:
+        cur.execute(f"""
+            SELECT s.id as sub_id, s.plan_type, s.end_date, f.id as family_id,
+                   u.id as user_id, u.name as user_name
+            FROM {SCHEMA}.subscriptions s
+            JOIN {SCHEMA}.families f ON s.family_id = f.id
+            JOIN {SCHEMA}.family_members fm ON f.id = fm.family_id AND fm.role = 'owner'
+            JOIN {SCHEMA}.users u ON fm.user_id = u.id
+            WHERE s.status = 'active'
+            AND s.end_date > CURRENT_TIMESTAMP
+            AND s.end_date <= CURRENT_TIMESTAMP + INTERVAL '7 days'
+        """)
+        plan_names = {'basic': 'Базовый', 'standard': 'Семейный', 'premium': 'Премиум'}
+
+        for s in cur.fetchall():
+            days_left = (s['end_date'] - datetime.now()).days
+            if days_left not in [7, 3, 1]:
+                continue
+
+            sub_id = str(s['sub_id'])
+            ntype = f"expiring_{days_left}days"
+
+            cur.execute(f"""
+                SELECT COUNT(*) as cnt FROM {SCHEMA}.subscription_notifications_log
+                WHERE subscription_id = '{escape(sub_id)}' AND notification_type = '{ntype}'
+            """)
+            if cur.fetchone()['cnt'] > 0:
+                continue
+
+            plan_display = plan_names.get(s['plan_type'], s['plan_type'])
+            notifications.append({
+                'type': 'subscription', 'target_url': '/pricing',
+                'title': 'Подписка заканчивается',
+                'message': f"Подписка \"{plan_display}\" истекает через {days_left} дн.",
+                'user_id': str(s['user_id']),
+                'family_id': str(s['family_id']),
+                'sub_id': sub_id,
+                'ntype': ntype,
+                'days_left': days_left
+            })
+    except Exception as e:
+        print(f"[ERROR] Subscriptions: {e}")
+    return notifications
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """
-    Автоматическая отправка напоминаний по расписанию.
-    Вызывается крон-сервисом каждые 5 минут.
-    Защищён секретным ключом CRON_SECRET.
-    """
+    """Единый крон уведомлений — проверяет все источники каждые 5 минут"""
     method = event.get('httpMethod', 'GET')
-    
+
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -603,195 +509,204 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-Cron-Secret',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': '',
-            'isBase64Encoded': False
+            'body': '', 'isBase64Encoded': False
         }
-    
+
     headers = event.get('headers', {})
     params = event.get('queryStringParameters', {}) or {}
-    
+
     cron_secret = os.environ.get('CRON_SECRET', '')
-    provided_secret = (
-        headers.get('X-Cron-Secret') or 
-        headers.get('x-cron-secret') or 
-        params.get('secret') or 
-        params.get('token') or
-        ''
-    )
-    
-    if not cron_secret or provided_secret != cron_secret:
+    provided = headers.get('X-Cron-Secret') or headers.get('x-cron-secret') or params.get('secret') or params.get('token') or ''
+
+    if not cron_secret or provided != cron_secret:
         return {
             'statusCode': 403,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Forbidden'}),
-            'isBase64Encoded': False
+            'body': json.dumps({'error': 'Forbidden'}), 'isBase64Encoded': False
         }
-    
+
     try:
-        print("[INFO] Starting scheduled reminders check...")
-        
+        print("[INFO] Starting unified notification check...")
         dsn = os.environ.get('DATABASE_URL')
-        vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
-        
-        if not dsn or not vapid_private_key:
+        vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
+
+        if not dsn or not vapid_key:
             return {
                 'statusCode': 500,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Missing configuration'}),
-                'isBase64Encoded': False
+                'body': json.dumps({'error': 'Missing config'}), 'isBase64Encoded': False
             }
-        
+
         conn = psycopg2.connect(dsn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        cleanup_old_sent(cur, conn)
-        
-        try:
-            cur.execute(f"""
-                SELECT DISTINCT ps.family_id, ps.user_id, ps.subscription_data
-                FROM {SCHEMA}.push_subscriptions ps
-                WHERE ps.subscription_data IS NOT NULL
-            """)
-            subscriptions = cur.fetchall()
-        except Exception as e:
-            print(f"[ERROR] Failed to fetch subscriptions: {str(e)}")
-            cur.close()
-            conn.close()
-            return {
-                'statusCode': 500,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': False, 'error': f'Database error: {str(e)}'}),
-                'isBase64Encoded': False
-            }
-        
+        cleanup_old(cur, conn)
+
+        cur.execute(f"""
+            SELECT DISTINCT ps.family_id, ps.user_id, ps.subscription_data, ps.notification_settings
+            FROM {SCHEMA}.push_subscriptions ps WHERE ps.subscription_data IS NOT NULL
+        """)
+        subscriptions = cur.fetchall()
         print(f"[INFO] Found {len(subscriptions)} push subscriptions")
-        
-        families_processed = set()
-        family_notifications = {}
-        
+
+        family_notifs = {}
+        user_notifs = {}
+
         for sub in subscriptions:
-            family_id = sub['family_id']
-            user_id = str(sub.get('user_id', ''))
-            
-            if family_id not in family_notifications:
-                family_notifications[family_id] = []
-                
-                family_notifications[family_id].extend(check_important_dates(cur, family_id))
-                family_notifications[family_id].extend(check_calendar_events(cur, family_id))
-                family_notifications[family_id].extend(check_medication_schedule(cur, family_id))
-                family_notifications[family_id].extend(check_urgent_tasks(cur, family_id))
-                family_notifications[family_id].extend(check_urgent_shopping(cur, family_id))
-                family_notifications[family_id].extend(check_new_votings(cur, family_id))
-            
-            if user_id:
-                family_notifications.setdefault(f"{family_id}:{user_id}", [])
-                if not family_notifications[f"{family_id}:{user_id}"]:
-                    family_notifications[f"{family_id}:{user_id}"].extend(check_leisure_activities(cur, user_id))
-                    family_notifications[f"{family_id}:{user_id}"].extend(check_diet_notifications(cur, user_id))
-                    family_notifications[f"{family_id}:{user_id}"].extend(check_health_medications(cur, user_id))
-        
+            fid = sub['family_id']
+            uid = str(sub.get('user_id', ''))
+
+            if fid not in family_notifs:
+                family_notifs[fid] = []
+                family_notifs[fid].extend(check_important_dates(cur, fid))
+                family_notifs[fid].extend(check_calendar(cur, fid))
+                family_notifs[fid].extend(check_medications_children(cur, fid))
+                family_notifs[fid].extend(check_tasks(cur, fid))
+                family_notifs[fid].extend(check_shopping(cur, fid))
+                family_notifs[fid].extend(check_votings(cur, fid))
+
+            if uid and uid not in user_notifs:
+                user_notifs[uid] = []
+                user_notifs[uid].extend(check_leisure(cur, uid))
+                user_notifs[uid].extend(check_diet(cur, uid))
+                user_notifs[uid].extend(check_health_medications(cur, uid))
+
+        geo_notifs = check_geofences(cur)
+        sub_notifs = check_subscriptions(cur)
         conn.commit()
-        
+
+        telegram_cache = {}
+        max_cache = {}
         total_sent = 0
         total_skipped = 0
         total_failed = 0
-        
-        telegram_cache = {}
-        max_cache = {}
-        
+
         for sub in subscriptions:
-            family_id = sub['family_id']
-            user_id = str(sub.get('user_id', ''))
-            subscription_data = sub['subscription_data']
-            
-            all_notifications = list(family_notifications.get(family_id, []))
-            if user_id:
-                all_notifications.extend(family_notifications.get(f"{family_id}:{user_id}", []))
-            
-            if family_id not in telegram_cache:
-                telegram_cache[family_id] = []
-                max_cache[family_id] = []
+            fid = sub['family_id']
+            uid = str(sub.get('user_id', ''))
+            sub_data = sub['subscription_data']
+            settings = sub.get('notification_settings') or {}
+
+            all_n = list(family_notifs.get(fid, []))
+            if uid:
+                all_n.extend(user_notifs.get(uid, []))
+
+            for gn in geo_notifs:
+                if gn.get('family_id') == fid:
+                    all_n.append(gn)
+
+            if fid not in telegram_cache:
+                telegram_cache[fid] = []
+                max_cache[fid] = []
                 try:
                     cur.execute(f"""
-                        SELECT u.telegram_chat_id, u.max_chat_id FROM {SCHEMA}.family_members fm 
-                        JOIN {SCHEMA}.users u ON fm.user_id = u.id 
-                        WHERE fm.family_id = '{escape_sql_string(family_id)}' 
+                        SELECT u.telegram_chat_id, u.max_chat_id FROM {SCHEMA}.family_members fm
+                        JOIN {SCHEMA}.users u ON fm.user_id = u.id
+                        WHERE fm.family_id = '{escape(fid)}'
                         AND (u.telegram_chat_id IS NOT NULL OR u.max_chat_id IS NOT NULL)
                     """)
                     for row in cur.fetchall():
                         if row.get('telegram_chat_id'):
-                            telegram_cache[family_id].append(row['telegram_chat_id'])
+                            telegram_cache[fid].append(row['telegram_chat_id'])
                         if row.get('max_chat_id'):
-                            max_cache[family_id].append(row['max_chat_id'])
+                            max_cache[fid].append(row['max_chat_id'])
                 except:
                     pass
-            
-            for notification in all_notifications[:5]:
-                n_hash = make_notification_hash(notification['title'], notification['message'])
-                
-                if is_already_sent(cur, family_id, n_hash):
+
+            for n in all_n[:8]:
+                n_type = n.get('type', 'general')
+                setting_key = {
+                    'medication': 'medications', 'calendar': 'calendar', 'task': 'tasks',
+                    'shopping': 'shopping', 'voting': 'votings', 'birthday': 'birthdays',
+                    'diet': 'diet', 'geofence': 'geofence', 'leisure': 'leisure',
+                    'subscription': 'subscription'
+                }.get(n_type, n_type)
+
+                if isinstance(settings, dict) and setting_key in settings:
+                    if not settings[setting_key]:
+                        continue
+
+                h = make_hash(n['title'], n['message'])
+                if is_already_sent(cur, fid, h):
                     total_skipped += 1
                     continue
-                
-                push_ok = send_push_notification(
-                    subscription_data,
-                    notification['title'],
-                    notification['message'],
-                    vapid_private_key
-                )
-                
-                tg_ok = False
-                for chat_id in telegram_cache.get(family_id, []):
-                    if send_telegram_message(chat_id, notification['title'], notification['message']):
-                        tg_ok = True
-                
-                max_ok = False
-                for chat_id in max_cache.get(family_id, []):
-                    if send_max_message(chat_id, notification['title'], notification['message']):
-                        max_ok = True
-                
-                if push_ok or tg_ok or max_ok:
-                    mark_as_sent(cur, conn, family_id, n_hash, notification['title'])
+
+                target_url = n.get('target_url', '/notifications')
+                title_full = f"{n['title']} от Наша Семья"
+
+                push_ok = send_push(sub_data, title_full, n['message'], target_url, vapid_key)
+
+                for chat_id in max_cache.get(fid, []):
+                    send_max(chat_id, title_full, n['message'], target_url)
+
+                for chat_id in telegram_cache.get(fid, []):
+                    send_telegram(chat_id, title_full, n['message'])
+
+                if push_ok:
                     total_sent += 1
-                    channels = []
-                    if push_ok:
-                        channels.append('push')
-                    if tg_ok:
-                        channels.append('telegram')
-                    if max_ok:
-                        channels.append('max')
-                    print(f"[SUCCESS] Sent via {'+'.join(channels)}: {notification['title']}")
+                    mark_sent(cur, conn, fid, h, n['title'])
+                    if uid:
+                        save_notification(cur, conn, uid, fid, n_type, n['title'], n['message'], target_url, 'push')
                 else:
                     total_failed += 1
-                    print(f"[FAILED] Could not send: {notification['title']}")
-        
+
+                if n.get('geofence_event_id'):
+                    try:
+                        cur.execute(f"UPDATE {SCHEMA}.geofence_events SET notified = TRUE WHERE id = {n['geofence_event_id']}")
+                        conn.commit()
+                    except:
+                        pass
+
+        for sn in sub_notifs:
+            h = make_hash(sn['title'], sn['message'])
+            target_url = sn.get('target_url', '/pricing')
+            title_full = f"{sn['title']} от Наша Семья"
+            sn_uid = sn.get('user_id', '')
+            sn_fid = sn.get('family_id', '')
+
+            for sub in subscriptions:
+                if str(sub.get('user_id', '')) == sn_uid:
+                    push_ok = send_push(sub['subscription_data'], title_full, sn['message'], target_url, vapid_key)
+                    if push_ok:
+                        total_sent += 1
+                    break
+
+            for chat_id in max_cache.get(sn_fid, []):
+                send_max(chat_id, title_full, sn['message'], target_url)
+
+            if sn_uid:
+                save_notification(cur, conn, sn_uid, sn_fid, 'subscription', sn['title'], sn['message'], target_url, 'push')
+
+            try:
+                cur.execute(f"""
+                    INSERT INTO {SCHEMA}.subscription_notifications_log
+                    (subscription_id, user_id, notification_type, channel, days_left)
+                    VALUES ('{escape(sn['sub_id'])}'::uuid, '{escape(sn_uid)}'::uuid, '{escape(sn['ntype'])}', 'push', {sn['days_left']})
+                    ON CONFLICT DO NOTHING
+                """)
+                conn.commit()
+            except Exception as e:
+                print(f"[ERROR] Sub log: {e}")
+
         cur.close()
         conn.close()
-        
-        print(f"[INFO] Completed: sent={total_sent}, skipped={total_skipped}, failed={total_failed}")
-        
+
+        print(f"[INFO] Done: sent={total_sent}, skipped={total_skipped}, failed={total_failed}")
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
-                'success': True,
-                'sent': total_sent,
-                'skipped': total_skipped,
-                'failed': total_failed,
-                'subscriptions': len(subscriptions),
-                'message': f'Processed reminders'
+                'success': True, 'sent': total_sent, 'skipped': total_skipped, 'failed': total_failed,
+                'subscriptions_checked': len(sub_notifs)
             }),
             'isBase64Encoded': False
         }
-        
+
     except Exception as e:
-        print(f"[ERROR] Scheduler error: {str(e)}")
+        print(f"[FATAL] {e}")
         import traceback
-        print(traceback.format_exc())
-        
+        traceback.print_exc()
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'success': False, 'error': str(e)}),
-            'isBase64Encoded': False
+            'body': json.dumps({'error': str(e)}), 'isBase64Encoded': False
         }

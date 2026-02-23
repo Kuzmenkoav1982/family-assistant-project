@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-assistant-v12';
+const CACHE_NAME = 'family-assistant-v13';
 let geolocationIntervalId = null;
 
 self.addEventListener('install', (event) => {
@@ -108,45 +108,36 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push event received!', event);
-  
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
-    console.log('[SW] Push data:', data);
   } catch (error) {
     console.error('[SW] Failed to parse push data:', error);
   }
   
   const title = data.title || 'Семейный Ассистент';
+  const targetUrl = data.url || '/notifications';
+  
   const options = {
     body: data.body || data.message || 'У вас новое уведомление',
     icon: data.icon || '/icon-192.png',
     badge: '/icon-192.png',
     vibrate: [200, 100, 200],
+    tag: data.type || 'general',
+    renotify: true,
     data: {
-      url: data.url || '/',
+      url: targetUrl,
+      type: data.type || 'general',
       dateOfArrival: Date.now()
     },
     actions: [
-      {
-        action: 'open',
-        title: 'Открыть',
-        icon: '/icon-192.png'
-      },
-      {
-        action: 'close',
-        title: 'Закрыть'
-      }
+      { action: 'open', title: 'Открыть' },
+      { action: 'close', title: 'Закрыть' }
     ]
   };
 
-  console.log('[SW] Showing notification:', title, options);
-  
   event.waitUntil(
     self.registration.showNotification(title, options)
-      .then(() => console.log('[SW] Notification shown successfully!'))
-      .catch(err => console.error('[SW] Failed to show notification:', err))
   );
 });
 
@@ -157,18 +148,29 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  const urlToOpen = event.notification.data.url || '/';
+  const targetUrl = event.notification.data && event.notification.data.url 
+    ? event.notification.data.url 
+    : '/notifications';
+  
+  const fullUrl = new URL(targetUrl, self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
         for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
+          if (client.url.includes(targetUrl) && 'focus' in client) {
+            client.postMessage({ type: 'NAVIGATE', url: targetUrl });
+            return client.focus();
+          }
+        }
+        for (const client of clientList) {
+          if ('focus' in client) {
+            client.postMessage({ type: 'NAVIGATE', url: targetUrl });
             return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
+          return clients.openWindow(fullUrl);
         }
       })
   );
