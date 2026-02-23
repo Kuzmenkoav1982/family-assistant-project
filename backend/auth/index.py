@@ -22,6 +22,8 @@ from rate_limit_helper import check_rate_limit
 DATABASE_URL = os.environ.get('DATABASE_URL')
 YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
 YANDEX_CLIENT_SECRET = os.environ.get('YANDEX_CLIENT_SECRET')
+VK_APP_ID = os.environ.get('VK_APP_ID')
+VK_APP_SECRET = os.environ.get('VK_APP_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 NOTIFICATIONS_URL = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774'
 
@@ -764,6 +766,215 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
     except Exception as e:
         return {'error': f'Ошибка OAuth: {str(e)}'}
 
+def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
+    """Генерирует URL для редиректа на VK ID OAuth"""
+    if not VK_APP_ID:
+        return {'error': 'VK_APP_ID не настроен'}
+    
+    import urllib.request
+    
+    AUTH_FUNC_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0'
+    redirect_uri = f"{AUTH_FUNC_URL}?oauth=vk_callback"
+    
+    state_data = {
+        'random': secrets.token_urlsafe(8),
+        'frontend': frontend_url or 'https://nasha-semiya.ru/login'
+    }
+    state = json.dumps(state_data)
+    
+    params = {
+        'response_type': 'code',
+        'client_id': VK_APP_ID,
+        'redirect_uri': redirect_uri,
+        'scope': 'email',
+        'state': state,
+        'v': '5.131'
+    }
+    
+    oauth_url = 'https://id.vk.com/authorize?' + urllib.parse.urlencode(params)
+    
+    return {
+        'redirect_url': oauth_url,
+        'state': state
+    }
+
+def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
+    """Обрабатывает callback от VK ID OAuth"""
+    if not VK_APP_ID or not VK_APP_SECRET:
+        return {'error': 'VK OAuth credentials не настроены'}
+    
+    import urllib.request
+    
+    AUTH_FUNC_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0'
+    redirect_uri = f"{AUTH_FUNC_URL}?oauth=vk_callback"
+    
+    token_url = 'https://id.vk.com/oauth2/auth'
+    token_data = urllib.parse.urlencode({
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': VK_APP_ID,
+        'client_secret': VK_APP_SECRET,
+        'redirect_uri': redirect_uri,
+        'code_verifier': ''
+    }).encode()
+    
+    try:
+        token_req = urllib.request.Request(token_url, data=token_data, method='POST')
+        token_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        
+        try:
+            with urllib.request.urlopen(token_req) as response:
+                token_response = json.loads(response.read().decode())
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode()
+            return {'error': f'VK вернул ошибку при обмене кода: {e.code} - {error_body}'}
+        
+        access_token = token_response.get('access_token')
+        if not access_token:
+            return {'error': f'Не получен access_token от VK. Ответ: {json.dumps(token_response)}'}
+        
+        user_info_url = f'https://api.vk.com/method/users.get?fields=photo_200,screen_name&access_token={access_token}&v=5.131'
+        user_req = urllib.request.Request(user_info_url)
+        
+        with urllib.request.urlopen(user_req) as response:
+            user_response = json.loads(response.read().decode())
+        
+        if 'error' in user_response:
+            return {'error': f'VK API error: {user_response["error"].get("error_msg", "unknown")}'}
+        
+        users = user_response.get('response', [])
+        if not users:
+            return {'error': 'Не удалось получить данные пользователя VK'}
+        
+        vk_user = users[0]
+        vk_id = str(vk_user.get('id'))
+        first_name = vk_user.get('first_name', '')
+        last_name = vk_user.get('last_name', '')
+        name = f"{first_name} {last_name}".strip() or f"VK User {vk_id}"
+        avatar_url = vk_user.get('photo_200')
+        email = token_response.get('email')
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        check_query = f"""
+            SELECT id FROM {SCHEMA}.users 
+            WHERE oauth_provider = 'vk' AND oauth_id = {escape_string(vk_id)}
+        """
+        cur.execute(check_query)
+        existing_user = cur.fetchone()
+        
+        if existing_user:
+            user_id = existing_user['id']
+            
+            update_user = f"""
+                UPDATE {SCHEMA}.users
+                SET name = {escape_string(name)},
+                    avatar_url = {escape_string(avatar_url)},
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = {escape_string(user_id)}
+            """
+            cur.execute(update_user)
+        else:
+            insert_user = f"""
+                INSERT INTO {SCHEMA}.users 
+                (email, oauth_provider, oauth_id, name, avatar_url, is_verified, password_hash)
+                VALUES (
+                    {escape_string(email)},
+                    'vk',
+                    {escape_string(vk_id)},
+                    {escape_string(name)},
+                    {escape_string(avatar_url)},
+                    TRUE,
+                    ''
+                )
+                RETURNING id
+            """
+            try:
+                cur.execute(insert_user)
+                user = cur.fetchone()
+                user_id = user['id']
+            except Exception as insert_error:
+                cur.close()
+                conn.close()
+                return {'error': f'Ошибка создания пользователя VK: {str(insert_error)}'}
+            
+            default_family_name = "Моя семья"
+            insert_family = f"""
+                INSERT INTO {SCHEMA}.families (name)
+                VALUES ({escape_string(default_family_name)})
+                RETURNING id
+            """
+            cur.execute(insert_family)
+            family = cur.fetchone()
+            family_id = family['id']
+            
+            insert_member = f"""
+                INSERT INTO {SCHEMA}.family_members
+                (family_id, user_id, name, role, points, level, workload, avatar, avatar_type)
+                VALUES (
+                    {escape_string(family_id)},
+                    {escape_string(user_id)},
+                    {escape_string(name)},
+                    'Владелец',
+                    0, 1, 0,
+                    '👤',
+                    'emoji'
+                )
+            """
+            cur.execute(insert_member)
+        
+        token = generate_token()
+        expires_at = datetime.now() + timedelta(days=30)
+        
+        insert_session = f"""
+            INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at)
+            VALUES (
+                {escape_string(user_id)},
+                {escape_string(token)},
+                {escape_string(expires_at.isoformat())}
+            )
+        """
+        cur.execute(insert_session)
+        
+        member_query = f"""
+            SELECT fm.id, fm.family_id, fm.access_role,
+                   f.name as family_name, f.logo_url
+            FROM {SCHEMA}.family_members fm
+            JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE fm.user_id = {escape_string(user_id)}
+            LIMIT 1
+        """
+        cur.execute(member_query)
+        member = cur.fetchone()
+        
+        user_data = {
+            'id': str(user_id),
+            'email': email,
+            'oauth_provider': 'vk',
+            'name': name,
+            'avatar_url': avatar_url
+        }
+        
+        if member:
+            user_data['family_id'] = str(member['family_id'])
+            user_data['family_name'] = member['family_name']
+            user_data['logo_url'] = member.get('logo_url')
+            user_data['member_id'] = str(member['id'])
+            user_data['access_role'] = member.get('access_role', 'viewer')
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            'success': True,
+            'token': token,
+            'user': user_data
+        }
+        
+    except Exception as e:
+        return {'error': f'Ошибка VK OAuth: {str(e)}'}
+
 def register_user_email(email: str, password: str, name: str = '') -> Dict[str, Any]:
     """Регистрация через email"""
     if not email or '@' not in email:
@@ -1075,6 +1286,73 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         callback_url = "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0?oauth=yandex_callback"
         result = oauth_callback_yandex(code, callback_url)
+        
+        if 'error' in result:
+            error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': error_url,
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': ''
+            }
+        
+        success_url = f"{frontend_url}?token={result['token']}&user={urllib.parse.quote(json.dumps(result['user']))}"
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': success_url,
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
+    
+    if oauth_action == 'vk' and method == 'GET':
+        frontend_url = query_params.get('frontend_url', 'https://nasha-semiya.ru/login')
+        
+        result = oauth_login_vk(frontend_url)
+        
+        if 'error' in result:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps(result)
+            }
+        
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': result['redirect_url'],
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
+    
+    if oauth_action == 'vk_callback' and method == 'GET':
+        code = query_params.get('code')
+        state = query_params.get('state', '')
+        
+        frontend_url = 'https://nasha-semiya.ru/login'
+        if state:
+            try:
+                state_data = json.loads(state)
+                frontend_url = state_data.get('frontend', frontend_url)
+            except:
+                pass
+        
+        if not code:
+            error_url = f"{frontend_url}?error={urllib.parse.quote('code обязателен')}"
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': error_url,
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': ''
+            }
+        
+        result = oauth_callback_vk(code, state)
         
         if 'error' in result:
             error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
