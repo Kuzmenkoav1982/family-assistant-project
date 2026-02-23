@@ -774,7 +774,7 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
     import urllib.request
     
     AUTH_FUNC_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0'
-    redirect_uri = f"{AUTH_FUNC_URL}?oauth=vk_callback"
+    redirect_uri = AUTH_FUNC_URL
     
     state_data = {
         'random': secrets.token_urlsafe(8),
@@ -806,7 +806,7 @@ def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
     import urllib.request
     
     AUTH_FUNC_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0'
-    redirect_uri = f"{AUTH_FUNC_URL}?oauth=vk_callback"
+    redirect_uri = AUTH_FUNC_URL
     
     token_url = 'https://id.vk.com/oauth2/auth'
     token_data = urllib.parse.urlencode({
@@ -1351,6 +1351,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 },
                 'body': ''
             }
+        
+        result = oauth_callback_vk(code, state)
+        
+        if 'error' in result:
+            error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': error_url,
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': ''
+            }
+        
+        success_url = f"{frontend_url}?token={result['token']}&user={urllib.parse.quote(json.dumps(result['user']))}"
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': success_url,
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
+    
+    if not oauth_action and method == 'GET' and query_params.get('code') and not query_params.get('token'):
+        code = query_params.get('code')
+        state = query_params.get('state', '')
+        device_id = query_params.get('device_id', '')
+        
+        frontend_url = 'https://nasha-semiya.ru/login'
+        if state:
+            try:
+                state_data = json.loads(state)
+                frontend_url = state_data.get('frontend', frontend_url)
+            except:
+                pass
         
         result = oauth_callback_vk(code, state)
         
