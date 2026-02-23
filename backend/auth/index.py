@@ -766,19 +766,28 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
     except Exception as e:
         return {'error': f'Ошибка OAuth: {str(e)}'}
 
+def generate_pkce():
+    """Генерирует code_verifier и code_challenge для PKCE"""
+    import base64
+    code_verifier = secrets.token_urlsafe(64)
+    code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).digest()
+    code_challenge = base64.urlsafe_b64encode(code_challenge).decode('utf-8').replace('=', '')
+    return code_verifier, code_challenge
+
 def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
     """Генерирует URL для редиректа на VK ID OAuth"""
     if not VK_APP_ID:
         return {'error': 'VK_APP_ID не настроен'}
     
-    import urllib.request
-    
     AUTH_FUNC_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0'
     redirect_uri = AUTH_FUNC_URL
     
+    code_verifier, code_challenge = generate_pkce()
+    
     state_data = {
         'random': secrets.token_urlsafe(8),
-        'frontend': frontend_url or 'https://nasha-semiya.ru/login'
+        'frontend': frontend_url or 'https://nasha-semiya.ru/login',
+        'cv': code_verifier
     }
     state = json.dumps(state_data)
     
@@ -788,7 +797,8 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
         'redirect_uri': redirect_uri,
         'scope': 'email',
         'state': state,
-        'v': '5.131'
+        'code_challenge': code_challenge,
+        'code_challenge_method': 'S256'
     }
     
     oauth_url = 'https://id.vk.com/authorize?' + urllib.parse.urlencode(params)
@@ -808,6 +818,14 @@ def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
     AUTH_FUNC_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0'
     redirect_uri = AUTH_FUNC_URL
     
+    code_verifier = ''
+    if state:
+        try:
+            state_data = json.loads(state)
+            code_verifier = state_data.get('cv', '')
+        except:
+            pass
+    
     token_url = 'https://id.vk.com/oauth2/auth'
     token_data = urllib.parse.urlencode({
         'grant_type': 'authorization_code',
@@ -815,7 +833,7 @@ def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
         'client_id': VK_APP_ID,
         'client_secret': VK_APP_SECRET,
         'redirect_uri': redirect_uri,
-        'code_verifier': ''
+        'code_verifier': code_verifier
     }).encode()
     
     try:
