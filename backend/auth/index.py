@@ -795,7 +795,6 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
         'response_type': 'code',
         'client_id': VK_APP_ID,
         'redirect_uri': redirect_uri,
-        'scope': 'email',
         'state': state,
         'code_challenge': code_challenge,
         'code_challenge_method': 'S256'
@@ -808,7 +807,7 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
         'state': state
     }
 
-def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
+def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[str, Any]:
     """Обрабатывает callback от VK ID OAuth"""
     if not VK_APP_ID or not VK_APP_SECRET:
         return {'error': 'VK OAuth credentials не настроены'}
@@ -833,6 +832,7 @@ def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
         'client_id': VK_APP_ID,
         'client_secret': VK_APP_SECRET,
         'redirect_uri': redirect_uri,
+        'device_id': device_id,
         'code_verifier': code_verifier
     }).encode()
     
@@ -851,26 +851,27 @@ def oauth_callback_vk(code: str, state: str = '') -> Dict[str, Any]:
         if not access_token:
             return {'error': f'Не получен access_token от VK. Ответ: {json.dumps(token_response)}'}
         
-        user_info_url = f'https://api.vk.com/method/users.get?fields=photo_200,screen_name&access_token={access_token}&v=5.131'
-        user_req = urllib.request.Request(user_info_url)
+        user_info_url = 'https://id.vk.com/oauth2/user_info'
+        user_info_data = urllib.parse.urlencode({
+            'client_id': VK_APP_ID,
+            'access_token': access_token
+        }).encode()
+        user_req = urllib.request.Request(user_info_url, data=user_info_data, method='POST')
+        user_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         
         with urllib.request.urlopen(user_req) as response:
-            user_response = json.loads(response.read().decode())
+            user_info = json.loads(response.read().decode())
         
-        if 'error' in user_response:
-            return {'error': f'VK API error: {user_response["error"].get("error_msg", "unknown")}'}
+        if 'error' in user_info:
+            return {'error': f'VK user_info error: {user_info.get("error_description", user_info.get("error"))}'}
         
-        users = user_response.get('response', [])
-        if not users:
-            return {'error': 'Не удалось получить данные пользователя VK'}
-        
-        vk_user = users[0]
-        vk_id = str(vk_user.get('id'))
-        first_name = vk_user.get('first_name', '')
-        last_name = vk_user.get('last_name', '')
+        user_data_vk = user_info.get('user', user_info)
+        vk_id = str(user_data_vk.get('user_id', ''))
+        first_name = user_data_vk.get('first_name', '')
+        last_name = user_data_vk.get('last_name', '')
         name = f"{first_name} {last_name}".strip() or f"VK User {vk_id}"
-        avatar_url = vk_user.get('photo_200')
-        email = token_response.get('email')
+        avatar_url = user_data_vk.get('avatar', user_data_vk.get('photo_200'))
+        email = user_data_vk.get('email', token_response.get('email'))
         
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -1350,6 +1351,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if oauth_action == 'vk_callback' and method == 'GET':
         code = query_params.get('code')
         state = query_params.get('state', '')
+        device_id = query_params.get('device_id', '')
         
         frontend_url = 'https://nasha-semiya.ru/login'
         if state:
@@ -1370,7 +1372,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': ''
             }
         
-        result = oauth_callback_vk(code, state)
+        result = oauth_callback_vk(code, state, device_id)
         
         if 'error' in result:
             error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
@@ -1406,7 +1408,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             except:
                 pass
         
-        result = oauth_callback_vk(code, state)
+        result = oauth_callback_vk(code, state, device_id)
         
         if 'error' in result:
             error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
