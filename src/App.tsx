@@ -3,117 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt"; 
-import Index from "./pages/Index";
-import Instructions from "./pages/Instructions";
-import Garage from "./pages/Garage";
-import Health from "./pages/HealthNew";
-import Finance from "./pages/Finance";
-import Education from "./pages/Education";
-import EventsPage from "./pages/EventsPage";
-import CreateEventPage from "./pages/CreateEventPage";
-import EditEventPage from "./pages/EditEventPage";
-import EventDetailsPage from "./pages/EventDetailsPage";
-import SharedEventPage from "./pages/SharedEventPage";
-import Pets from "./pages/Pets";
-import Faith from "./pages/Faith";
-import Tree from "./pages/Tree";
-import Shopping from "./pages/Shopping";
-import Meals from "./pages/Meals";
-import Calendar from "./pages/Calendar";
-import PermissionsManagement from "./pages/PermissionsManagement";
-import NotFound from "./pages/NotFound";
-import Community from "./pages/Community";
-import MemberProfile from "./pages/MemberProfile";
-import FamilyCode from "./pages/FamilyCode";
-import Presentation from "./pages/Presentation";
-import FamilyPsychologist from "./pages/FamilyPsychologist";
-import FamilyRules from "./pages/FamilyRules";
-import LaunchPlan from "./pages/LaunchPlan";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import RefundPolicy from "./pages/RefundPolicy";
-import Documentation from "./pages/Documentation";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ResetPassword from "./pages/ResetPassword";
-import ResetPasswordConfirm from "./pages/ResetPasswordConfirm";
-import OAuthDebug from "./pages/OAuthDebug";
+import { useEffect, useState, lazy, Suspense } from "react";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Welcome from "./pages/Welcome";
-import DemoMode from "./pages/DemoMode";
-import VotingPage from "./pages/VotingPage";
-import JoinFamily from "./pages/JoinFamily";
-import FeedbackPage from "./pages/FeedbackPage";
-import SuggestionsPage from "./pages/SuggestionsPage";
-import SupportPage from "./pages/SupportPage";
-import AdminSupport from "./pages/AdminSupport";
-import AdminLogin from "./pages/AdminLogin";
-import NationalitiesPage from "./pages/NationalitiesPage";
-import NationalityDetailPage from "./pages/NationalityDetailPage";
-import Children from "./pages/Children";
-import AssessmentReport from "./pages/AssessmentReport";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
-
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminTraffic from "./pages/AdminTraffic";
-import Recipes from "./pages/Recipes";
-import Purchases from "./pages/Purchases";
-import AIAssistant from "./pages/AIAssistant";
-import Development from "./pages/Development";
-import LifeRoad from "./pages/LifeRoad";
-import FamilyManagement from "./pages/FamilyManagement";
-import InDevelopmentList from "./pages/InDevelopmentList";
-import FamilyInvite from "./pages/FamilyInvite";
-import Nutrition from "./pages/Nutrition";
-import NutritionHub from "./pages/NutritionHub";
-import DietQuiz from "./pages/DietQuiz";
-import DietProgramCatalog from "./pages/DietProgramCatalog";
-import DietMiniQuiz from "./pages/DietMiniQuiz";
-import RecipeFromProducts from "./pages/RecipeFromProducts";
-import DietProgress from "./pages/DietProgress";
-import FamilyWallet from "./pages/FamilyWallet";
-import Trips from "./pages/Trips";
-import TripDetails from "./pages/TripDetails";
-import TripWishlist from "./pages/TripWishlist";
-import Leisure from "./pages/Leisure";
-import TelegramServices from "./pages/TelegramServices";
-import StateSupport from "./pages/StateSupport";
-import FamilyPolicy from "./pages/FamilyPolicy";
-import WhatIsFamily from "./pages/WhatIsFamily";
-import FamilyNews from "./pages/FamilyNews";
-import Pricing from "./pages/Pricing";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import InvestorDeck from "./pages/InvestorDeck";
-import AdminSubscriptions from "./pages/AdminSubscriptions";
-import IdeasBoard from "./pages/IdeasBoard";
-import Notifications from "./pages/Notifications";
-import AdminDomovoy from "./pages/AdminDomovoy";
-import DomovoyPage from "./pages/DomovoyPage";
-import AliceIntegration from "./pages/AliceIntegration";
-import AdminAlice from "./pages/AdminAlice";
-import AdminMAX from "./pages/AdminMAX";
-import AdminUsers from "./pages/AdminUsers";
-import AdminWelcomeAnalytics from "./pages/AdminWelcomeAnalytics";
-import ActivateChild from "./pages/ActivateChild";
-import ActivateCallback from "./pages/ActivateCallback";
-import FamilyTracker from "./pages/FamilyTracker";
-import LocationHistory from "./pages/LocationHistory";
-import DebugAuth from "./pages/DebugAuth";
-import Onboarding from "./pages/Onboarding";
-import FamilyHub from "./pages/FamilyHub";
-import ValuesHub from "./pages/ValuesHub";
-import PlanningHub from "./pages/PlanningHub";
-import HouseholdHub from "./pages/HouseholdHub";
-import DevelopmentHub from "./pages/DevelopmentHub";
-import StateHub from "./pages/StateHub";
-import HealthHub from "./pages/HealthHub";
-import LeisureHub from "./pages/LeisureHub";
-import Values from "./pages/Values";
-import Culture from "./pages/Culture";
-import Tasks from "./pages/Tasks";
-import Goals from "./pages/Goals";
+import NotFound from "./pages/NotFound";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import GlobalTopBar from "@/components/GlobalTopBar";
 import GlobalSidebar from "@/components/GlobalSidebar";
@@ -129,6 +22,119 @@ import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { medicationNotificationService } from "@/services/medicationNotifications";
+
+const Index = lazy(() => import("./pages/Index"));
+const Instructions = lazy(() => import("./pages/Instructions"));
+const Garage = lazy(() => import("./pages/Garage"));
+const Health = lazy(() => import("./pages/HealthNew"));
+const Finance = lazy(() => import("./pages/Finance"));
+const Education = lazy(() => import("./pages/Education"));
+const EventsPage = lazy(() => import("./pages/EventsPage"));
+const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
+const EditEventPage = lazy(() => import("./pages/EditEventPage"));
+const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
+const SharedEventPage = lazy(() => import("./pages/SharedEventPage"));
+const Pets = lazy(() => import("./pages/Pets"));
+const Faith = lazy(() => import("./pages/Faith"));
+const Tree = lazy(() => import("./pages/Tree"));
+const Shopping = lazy(() => import("./pages/Shopping"));
+const Meals = lazy(() => import("./pages/Meals"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const PermissionsManagement = lazy(() => import("./pages/PermissionsManagement"));
+const Community = lazy(() => import("./pages/Community"));
+const MemberProfile = lazy(() => import("./pages/MemberProfile"));
+const FamilyCode = lazy(() => import("./pages/FamilyCode"));
+const Presentation = lazy(() => import("./pages/Presentation"));
+const FamilyPsychologist = lazy(() => import("./pages/FamilyPsychologist"));
+const FamilyRules = lazy(() => import("./pages/FamilyRules"));
+const LaunchPlan = lazy(() => import("./pages/LaunchPlan"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const Documentation = lazy(() => import("./pages/Documentation"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ResetPasswordConfirm = lazy(() => import("./pages/ResetPasswordConfirm"));
+const OAuthDebug = lazy(() => import("./pages/OAuthDebug"));
+const DemoMode = lazy(() => import("./pages/DemoMode"));
+const VotingPage = lazy(() => import("./pages/VotingPage"));
+const JoinFamily = lazy(() => import("./pages/JoinFamily"));
+const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
+const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
+const AdminSupport = lazy(() => import("./pages/AdminSupport"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const NationalitiesPage = lazy(() => import("./pages/NationalitiesPage"));
+const NationalityDetailPage = lazy(() => import("./pages/NationalityDetailPage"));
+const Children = lazy(() => import("./pages/Children"));
+const AssessmentReport = lazy(() => import("./pages/AssessmentReport"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminTraffic = lazy(() => import("./pages/AdminTraffic"));
+const Recipes = lazy(() => import("./pages/Recipes"));
+const Purchases = lazy(() => import("./pages/Purchases"));
+const AIAssistant = lazy(() => import("./pages/AIAssistant"));
+const Development = lazy(() => import("./pages/Development"));
+const LifeRoad = lazy(() => import("./pages/LifeRoad"));
+const FamilyManagement = lazy(() => import("./pages/FamilyManagement"));
+const InDevelopmentList = lazy(() => import("./pages/InDevelopmentList"));
+const FamilyInvite = lazy(() => import("./pages/FamilyInvite"));
+const Nutrition = lazy(() => import("./pages/Nutrition"));
+const NutritionHub = lazy(() => import("./pages/NutritionHub"));
+const DietQuiz = lazy(() => import("./pages/DietQuiz"));
+const DietProgramCatalog = lazy(() => import("./pages/DietProgramCatalog"));
+const DietMiniQuiz = lazy(() => import("./pages/DietMiniQuiz"));
+const RecipeFromProducts = lazy(() => import("./pages/RecipeFromProducts"));
+const DietProgress = lazy(() => import("./pages/DietProgress"));
+const FamilyWallet = lazy(() => import("./pages/FamilyWallet"));
+const Trips = lazy(() => import("./pages/Trips"));
+const TripDetails = lazy(() => import("./pages/TripDetails"));
+const TripWishlist = lazy(() => import("./pages/TripWishlist"));
+const Leisure = lazy(() => import("./pages/Leisure"));
+const TelegramServices = lazy(() => import("./pages/TelegramServices"));
+const StateSupport = lazy(() => import("./pages/StateSupport"));
+const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
+const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
+const FamilyNews = lazy(() => import("./pages/FamilyNews"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
+const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
+const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
+const DomovoyPage = lazy(() => import("./pages/DomovoyPage"));
+const AliceIntegration = lazy(() => import("./pages/AliceIntegration"));
+const AdminAlice = lazy(() => import("./pages/AdminAlice"));
+const AdminMAX = lazy(() => import("./pages/AdminMAX"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminWelcomeAnalytics = lazy(() => import("./pages/AdminWelcomeAnalytics"));
+const ActivateChild = lazy(() => import("./pages/ActivateChild"));
+const ActivateCallback = lazy(() => import("./pages/ActivateCallback"));
+const FamilyTracker = lazy(() => import("./pages/FamilyTracker"));
+const LocationHistory = lazy(() => import("./pages/LocationHistory"));
+const DebugAuth = lazy(() => import("./pages/DebugAuth"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const FamilyHub = lazy(() => import("./pages/FamilyHub"));
+const ValuesHub = lazy(() => import("./pages/ValuesHub"));
+const PlanningHub = lazy(() => import("./pages/PlanningHub"));
+const HouseholdHub = lazy(() => import("./pages/HouseholdHub"));
+const DevelopmentHub = lazy(() => import("./pages/DevelopmentHub"));
+const StateHub = lazy(() => import("./pages/StateHub"));
+const HealthHub = lazy(() => import("./pages/HealthHub"));
+const LeisureHub = lazy(() => import("./pages/LeisureHub"));
+const Values = lazy(() => import("./pages/Values"));
+const Culture = lazy(() => import("./pages/Culture"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const Goals = lazy(() => import("./pages/Goals"));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
+  </div>
+);
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -208,7 +214,6 @@ const App = () => {
 
     window.addEventListener('popstate', trackPageChange);
 
-    // Запускаем сервис уведомлений о лекарствах
     medicationNotificationService.start();
 
     return () => {
@@ -237,6 +242,7 @@ const App = () => {
                     <GlobalSidebar />
                     <GlobalBottomBar />
                     <PageWrapper>
+                    <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/shared/event/:token" element={<SharedEventPage />} />
                       <Route path="/welcome" element={<Welcome />} />
@@ -354,6 +360,7 @@ const App = () => {
                       
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    </Suspense>
                     </PageWrapper>
                   </BrowserRouter>
                 </TooltipProvider>

@@ -310,15 +310,17 @@ export default function Login() {
             </div>
           </div>
 
-          <Button
-            onClick={handleYandexLogin}
-            variant="outline"
-            className="w-full h-12 border-2"
-            type="button"
-          >
-            <Icon name="LogIn" className="mr-2" size={20} />
-            Войти через Яндекс ID
-          </Button>
+          <div className="space-y-2">
+            <Button
+              onClick={handleYandexLogin}
+              variant="outline"
+              className="w-full h-12 border-2"
+              type="button"
+            >
+              <Icon name="LogIn" className="mr-2" size={20} />
+              Войти через Яндекс ID
+            </Button>
+          </div>
 
           <div className="text-center text-sm">
             <span className="text-gray-600">Нет аккаунта? </span>

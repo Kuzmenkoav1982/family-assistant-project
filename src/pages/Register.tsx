@@ -22,11 +22,8 @@ export default function Register() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    acceptedPolicy: false
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rateLimitInfo, setRateLimitInfo] = useState<{
     remaining: number;
     blocked: boolean;
@@ -77,28 +74,10 @@ export default function Register() {
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Ошибка',
-        description: 'Пароли не совпадают',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     if (formData.password.length < 6) {
       toast({
         title: 'Ошибка',
         description: 'Пароль должен быть не менее 6 символов',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    if (!formData.acceptedPolicy) {
-      toast({
-        title: 'Требуется согласие',
-        description: 'Необходимо принять политику конфиденциальности',
         variant: 'destructive'
       });
       return;
@@ -265,52 +244,16 @@ export default function Register() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
-              <div className="relative">
-                <Icon name="Lock" className="absolute left-3 top-3 text-gray-400" size={18} />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Повторите пароль"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="pl-10 pr-10"
-                  disabled={loading}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  <Icon name={showConfirmPassword ? "EyeOff" : "Eye"} size={18} />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-              <input
-                type="checkbox"
-                id="acceptPolicy"
-                checked={formData.acceptedPolicy}
-                onChange={(e) => setFormData({ ...formData, acceptedPolicy: e.target.checked })}
-                className="mt-1 h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                disabled={loading}
-                required
-              />
-              <label htmlFor="acceptPolicy" className="text-sm text-gray-700">
-                Я прочитал(а) и принимаю{' '}
-                <Link to="/privacy-policy" target="_blank" className="text-purple-600 hover:underline font-medium">
-                  политику конфиденциальности
-                </Link>
-                {' '}и{' '}
-                <Link to="/terms-of-service" target="_blank" className="text-purple-600 hover:underline font-medium">
-                  условия использования
-                </Link>
-              </label>
-            </div>
+            <p className="text-xs text-gray-400 text-center">
+              Нажимая «Зарегистрироваться», вы принимаете{' '}
+              <Link to="/privacy-policy" target="_blank" className="text-purple-600 hover:underline">
+                политику конфиденциальности
+              </Link>
+              {' '}и{' '}
+              <Link to="/terms-of-service" target="_blank" className="text-purple-600 hover:underline">
+                условия использования
+              </Link>
+            </p>
 
             {rateLimitInfo && !rateLimitInfo.blocked && rateLimitInfo.remaining <= 2 && (
               <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
@@ -334,7 +277,7 @@ export default function Register() {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading || rateLimitInfo?.blocked || !formData.acceptedPolicy}
+              disabled={loading || rateLimitInfo?.blocked}
             >
               {loading ? (
                 <>

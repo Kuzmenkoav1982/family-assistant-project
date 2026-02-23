@@ -10,47 +10,46 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="pt-20 sm:pt-24 pb-16">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-full px-4 py-1.5 mb-6">
-          <Icon name="Sparkles" size={14} className="text-orange-500" />
-          <span className="text-xs font-semibold text-orange-700">Всё для семьи в одном приложении</span>
-        </div>
-        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.1] font-[Montserrat] text-gray-900">
-          Управляйте семьёй
-          <br />
-          как настоящей командой
+    <div className="pt-24 sm:pt-32 pb-16 sm:pb-24">
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.1] tracking-tight text-gray-900">
+          Семейные дела —{' '}
+          <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+            под контролем
+          </span>
         </h2>
-        <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 font-[Rubik]">
-          Задачи, питание, здоровье, развитие детей, AI-ассистент — всё в одном месте
+        <p className="text-lg sm:text-xl text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
+          Задачи, покупки, события, здоровье — всё в одном месте. Бесплатно для семьи до 4 человек.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          {!isLoggedIn && (
+          {isLoggedIn ? (
+            <Button
+              onClick={() => navigate('/')}
+              size="lg"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-lg px-10 py-7 font-bold shadow-xl shadow-orange-200/50 rounded-2xl w-full sm:w-auto"
+            >
+              <Icon name="Home" size={22} className="mr-3" />
+              Перейти в приложение
+            </Button>
+          ) : (
             <Button
               onClick={() => navigate('/register')}
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-lg px-10 py-7 font-bold shadow-xl shadow-orange-200/50 transform hover:scale-105 transition-all rounded-2xl"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-lg px-10 py-7 font-bold shadow-xl shadow-orange-200/50 rounded-2xl w-full sm:w-auto"
             >
-              <Icon name="UserPlus" size={22} className="mr-3" />
-              Создать семью бесплатно
+              Начать бесплатно
             </Button>
           )}
-          <Button
-            onClick={() => {
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('authUser');
-              localStorage.removeItem('familyId');
-              localStorage.setItem('isDemoMode', 'true');
-              localStorage.setItem('demoStartTime', Date.now().toString());
-              navigate('/');
-            }}
-            size="lg"
-            variant="outline"
-            className="border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700 font-semibold text-lg px-8 py-7 rounded-2xl transition-all"
-          >
-            <Icon name="Play" size={20} className="mr-2 text-orange-500" />
-            Попробовать демо
-          </Button>
+          {!isLoggedIn && (
+            <Button
+              onClick={() => navigate('/login')}
+              size="lg"
+              variant="ghost"
+              className="text-gray-500 hover:text-gray-900 text-base"
+            >
+              Уже есть аккаунт? Войти
+            </Button>
+          )}
         </div>
       </div>
     </div>
