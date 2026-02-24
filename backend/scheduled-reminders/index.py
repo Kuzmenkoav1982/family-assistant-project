@@ -103,6 +103,73 @@ def send_telegram(chat_id: int, title: str, message: str, target_url: str = '') 
         return False
 
 
+# === УТИЛИТЫ НАСТРОЕК НАПОМИНАНИЙ ===
+
+def parse_remind_before(remind_str: str) -> List[str]:
+    if not remind_str:
+        return ['1d']
+    return [p.strip() for p in remind_str.split('+') if p.strip()]
+
+def get_day_offsets(remind_str: str) -> List[int]:
+    parts = parse_remind_before(remind_str)
+    offsets = []
+    for p in parts:
+        if p in ('1d', '1d+1h', '1d+2h'):
+            offsets.append(1)
+        elif p == '3d':
+            offsets.append(3)
+        elif p == '7d':
+            offsets.append(7)
+    if not offsets:
+        offsets = [1]
+    return list(set(offsets))
+
+def get_hour_offsets(remind_str: str) -> List[int]:
+    parts = parse_remind_before(remind_str)
+    offsets = []
+    for p in parts:
+        if p == '30m':
+            offsets.append(0)
+        elif p == '1h':
+            offsets.append(1)
+        elif p == '2h':
+            offsets.append(2)
+    return list(set(offsets))
+
+def should_remind_day(remind_str: str, days_before: int) -> bool:
+    parts = parse_remind_before(remind_str)
+    for p in parts:
+        if p == '1d' and days_before == 1:
+            return True
+        if p == '3d' and days_before == 3:
+            return True
+        if p == '7d' and days_before == 7:
+            return True
+    return False
+
+def should_remind_hours(remind_str: str) -> List[float]:
+    parts = parse_remind_before(remind_str)
+    hours = []
+    for p in parts:
+        if p == '30m':
+            hours.append(0.5)
+        elif p == '1h':
+            hours.append(1)
+        elif p == '2h':
+            hours.append(2)
+    return hours
+
+def get_setting_for_type(settings, type_key: str):
+    if not settings or not isinstance(settings, dict):
+        return {'enabled': True, 'remind_before': '1d+1h'}
+    val = settings.get(type_key)
+    if val is None:
+        return {'enabled': True, 'remind_before': '1d+1h'}
+    if isinstance(val, bool):
+        return {'enabled': val, 'remind_before': '1d+1h'}
+    return val
+
+
 # === ПРОВЕРКИ ИСТОЧНИКОВ ===
 
 def format_date_ru(d) -> str:
@@ -114,96 +181,136 @@ def format_date_ru(d) -> str:
         return f"{d.day} {months[d.month - 1]}"
     return str(d)
 
-def check_important_dates(cur, family_id: str) -> List[Dict]:
+def check_important_dates(cur, family_id: str, remind_before: str = '1d') -> List[Dict]:
     notifications = []
     fid = escape(family_id)
-    try:
-        cur.execute(f"""
-            SELECT title, date, type FROM {SCHEMA}.important_dates 
-            WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '1 day'
-        """)
-        for d in cur.fetchall():
-            dt = format_date_ru(d.get('date'))
-            dtype = d.get('type', '')
-            type_label = 'День рождения' if dtype == 'birthday' else 'Важная дата'
-            notifications.append({
-                'type': 'birthday', 'target_url': '/calendar',
-                'title': f"Завтра ({dt}): {d['title']}",
-                'message': f"{type_label}. Не забудьте поздравить и подготовить подарок!"
-            })
-    except Exception as e:
-        print(f"[ERROR] Important dates: {e}")
-
-    try:
-        cur.execute(f"""
-            SELECT name FROM {SCHEMA}.family_members 
-            WHERE family_id = '{fid}'
-            AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE + INTERVAL '1 day')
-            AND EXTRACT(DAY FROM created_at) = EXTRACT(DAY FROM CURRENT_DATE + INTERVAL '1 day')
-        """)
-        for m in cur.fetchall():
-            tomorrow = date.today() + timedelta(days=1)
-            dt = format_date_ru(tomorrow)
-            notifications.append({
-                'type': 'birthday', 'target_url': '/calendar',
-                'title': f"Завтра ({dt}): День рождения — {m['name']}",
-                'message': f"Завтра день рождения у {m['name']}! Подготовьте поздравление и подарок."
-            })
-    except Exception as e:
-        print(f"[ERROR] Birthdays: {e}")
+    day_offsets = get_day_offsets(remind_before)
+    
+    for offset in day_offsets:
+        try:
+            time_labels = {1: 'Завтра', 3: 'Через 3 дня', 7: 'Через неделю'}
+            label = time_labels.get(offset, f'Через {offset} дн.')
+            
+            cur.execute(f"""
+                SELECT title, date, type FROM {SCHEMA}.important_dates 
+                WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '{offset} day'
+            """)
+            for d in cur.fetchall():
+                dt = format_date_ru(d.get('date'))
+                dtype = d.get('type', '')
+                type_label = 'День рождения' if dtype == 'birthday' else 'Важная дата'
+                n_type = 'birthday' if dtype == 'birthday' else 'important_dates'
+                notifications.append({
+                    'type': n_type, 'target_url': '/calendar',
+                    'title': f"{label} ({dt}): {d['title']}",
+                    'message': f"{type_label}. Не забудьте поздравить и подготовить подарок!"
+                })
+        except Exception as e:
+            print(f"[ERROR] Important dates offset={offset}: {e}")
     return notifications
 
-def check_calendar(cur, family_id: str) -> List[Dict]:
+def check_birthdays(cur, family_id: str, remind_before: str = '1d') -> List[Dict]:
+    notifications = []
+    fid = escape(family_id)
+    day_offsets = get_day_offsets(remind_before)
+    
+    for offset in day_offsets:
+        try:
+            time_labels = {1: 'Завтра', 3: 'Через 3 дня', 7: 'Через неделю'}
+            label = time_labels.get(offset, f'Через {offset} дн.')
+            target_date = date.today() + timedelta(days=offset)
+            
+            cur.execute(f"""
+                SELECT name FROM {SCHEMA}.family_members 
+                WHERE family_id = '{fid}'
+                AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE + INTERVAL '{offset} day')
+                AND EXTRACT(DAY FROM created_at) = EXTRACT(DAY FROM CURRENT_DATE + INTERVAL '{offset} day')
+            """)
+            for m in cur.fetchall():
+                dt = format_date_ru(target_date)
+                notifications.append({
+                    'type': 'birthday', 'target_url': '/calendar',
+                    'title': f"{label} ({dt}): День рождения — {m['name']}",
+                    'message': f"{label} день рождения у {m['name']}! Подготовьте поздравление и подарок."
+                })
+        except Exception as e:
+            print(f"[ERROR] Birthdays offset={offset}: {e}")
+    return notifications
+
+def check_calendar(cur, family_id: str, remind_before: str = '1d+1h') -> List[Dict]:
     notifications = []
     fid = escape(family_id)
     now = datetime.now()
-    cur_t = now.strftime('%H:%M')
-    fut_t = (now + timedelta(hours=1)).strftime('%H:%M')
+    
+    hour_windows = should_remind_hours(remind_before)
+    if not hour_windows and '+' in remind_before:
+        parts = remind_before.split('+')
+        for p in parts:
+            if p in ('30m', '1h', '2h'):
+                hour_windows = should_remind_hours(p)
+    if not hour_windows:
+        hour_windows = [1]
+    
+    for h_offset in hour_windows:
+        try:
+            minutes = int(h_offset * 60)
+            window_start = (now + timedelta(minutes=max(0, minutes - 5))).strftime('%H:%M')
+            window_end = (now + timedelta(minutes=minutes + 5)).strftime('%H:%M')
+            
+            if h_offset <= 0.5:
+                time_label = "через 30 минут"
+            elif h_offset <= 1:
+                time_label = "через час"
+            else:
+                time_label = f"через {int(h_offset)} часа"
+            
+            cur.execute(f"""
+                SELECT title, date, time, description FROM {SCHEMA}.calendar_events 
+                WHERE family_id = '{fid}' AND date = CURRENT_DATE
+                AND time IS NOT NULL AND time != ''
+                AND time >= '{window_start}' AND time <= '{window_end}'
+                AND (completed = false OR completed IS NULL)
+                ORDER BY time LIMIT 5
+            """)
+            for e in cur.fetchall():
+                t = e.get('time', '')
+                desc = e.get('description', '')
+                desc_text = f"\n{desc[:80]}" if desc else ""
+                notifications.append({
+                    'type': 'calendar', 'target_url': '/calendar',
+                    'title': f"Сегодня в {t}: {e['title']}",
+                    'message': f"Начало {time_label}.{desc_text}"
+                })
+        except Exception as e:
+            print(f"[ERROR] Calendar upcoming h={h_offset}: {e}")
 
-    try:
-        cur.execute(f"""
-            SELECT title, date, time, description FROM {SCHEMA}.calendar_events 
-            WHERE family_id = '{fid}' AND date = CURRENT_DATE
-            AND time IS NOT NULL AND time != ''
-            AND time >= '{cur_t}' AND time <= '{fut_t}'
-            AND (completed = false OR completed IS NULL)
-            ORDER BY time LIMIT 3
-        """)
-        for e in cur.fetchall():
-            t = e.get('time', '')
-            desc = e.get('description', '')
-            desc_text = f"\n{desc[:80]}" if desc else ""
-            notifications.append({
-                'type': 'calendar', 'target_url': '/calendar',
-                'title': f"Сегодня в {t}: {e['title']}",
-                'message': f"Напоминание о событии через менее чем час.{desc_text}"
-            })
-    except Exception as e:
-        print(f"[ERROR] Calendar upcoming: {e}")
-
-    try:
-        cur.execute(f"""
-            SELECT title, date, time, description FROM {SCHEMA}.calendar_events 
-            WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '1 day'
-            AND (completed = false OR completed IS NULL)
-            ORDER BY time LIMIT 5
-        """)
-        tomorrow_events = cur.fetchall()
-        if tomorrow_events:
-            tomorrow = date.today() + timedelta(days=1)
-            dt = format_date_ru(tomorrow)
-            for e in tomorrow_events:
+    day_offsets = get_day_offsets(remind_before)
+    for offset in day_offsets:
+        try:
+            time_labels = {1: 'Завтра', 3: 'Через 3 дня', 7: 'Через неделю'}
+            label = time_labels.get(offset, f'Через {offset} дн.')
+            target_date = date.today() + timedelta(days=offset)
+            dt = format_date_ru(target_date)
+            
+            cur.execute(f"""
+                SELECT title, date, time, description FROM {SCHEMA}.calendar_events 
+                WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '{offset} day'
+                AND (completed = false OR completed IS NULL)
+                ORDER BY time LIMIT 5
+            """)
+            events = cur.fetchall()
+            for e in events:
                 t = e.get('time')
                 desc = e.get('description', '')
                 time_text = f" в {t}" if t else " (на весь день)"
                 desc_text = f"\n{desc[:80]}" if desc else ""
                 notifications.append({
                     'type': 'calendar', 'target_url': '/calendar',
-                    'title': f"Завтра ({dt}){time_text}: {e['title']}",
-                    'message': f"Запланировано на завтра{time_text}.{desc_text}"
+                    'title': f"{label} ({dt}){time_text}: {e['title']}",
+                    'message': f"Запланировано на {dt}{time_text}.{desc_text}"
                 })
-    except Exception as e:
-        print(f"[ERROR] Calendar tomorrow: {e}")
+        except Exception as e:
+            print(f"[ERROR] Calendar day offset={offset}: {e}")
     return notifications
 
 def check_medications_children(cur, family_id: str) -> List[Dict]:
@@ -596,9 +703,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             uid = str(sub.get('user_id', ''))
 
             if fid not in family_notifs:
+                ns = sub.get('notification_settings') or {}
+                cal_s = get_setting_for_type(ns, 'calendar')
+                bd_s = get_setting_for_type(ns, 'birthdays')
+                id_s = get_setting_for_type(ns, 'important_dates')
+                
                 family_notifs[fid] = []
-                family_notifs[fid].extend(check_important_dates(cur, fid))
-                family_notifs[fid].extend(check_calendar(cur, fid))
+                family_notifs[fid].extend(check_important_dates(cur, fid, id_s.get('remind_before', '1d')))
+                family_notifs[fid].extend(check_birthdays(cur, fid, bd_s.get('remind_before', '1d')))
+                family_notifs[fid].extend(check_calendar(cur, fid, cal_s.get('remind_before', '1d+1h')))
                 family_notifs[fid].extend(check_medications_children(cur, fid))
                 family_notifs[fid].extend(check_tasks(cur, fid))
                 family_notifs[fid].extend(check_shopping(cur, fid))
@@ -657,12 +770,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 setting_key = {
                     'medication': 'medications', 'calendar': 'calendar', 'task': 'tasks',
                     'shopping': 'shopping', 'voting': 'votings', 'birthday': 'birthdays',
+                    'important_dates': 'important_dates',
                     'diet': 'diet', 'geofence': 'geofence', 'leisure': 'leisure',
                     'subscription': 'subscription'
                 }.get(n_type, n_type)
 
                 if isinstance(settings, dict) and setting_key in settings:
-                    if not settings[setting_key]:
+                    sv = settings[setting_key]
+                    if isinstance(sv, bool) and not sv:
+                        continue
+                    if isinstance(sv, dict) and not sv.get('enabled', True):
                         continue
 
                 h = make_hash(n['title'], n['message'])
