@@ -1,6 +1,6 @@
 import Icon from '@/components/ui/icon';
 
-const PHONE_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c0473c2f-ff60-494a-a66a-c5313956e851.jpg';
+const PHONE_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2e8fe906-941e-4986-b745-a4d8898a8a64.jpeg';
 
 export default function WelcomePWA() {
   return (
