@@ -357,6 +357,7 @@ const App = () => {
                       <Route path="/goals" element={<Goals />} />
                       <Route path="/notifications" element={<Notifications />} />
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
+                      <Route path="/diet" element={<Navigate to="/nutrition/diet" replace />} />
                       
                       <Route path="*" element={<NotFound />} />
                     </Routes>
