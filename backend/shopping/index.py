@@ -11,7 +11,12 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from pywebpush import webpush, WebPushException
+
+try:
+    from pywebpush import webpush, WebPushException
+except ImportError:
+    webpush = None
+    WebPushException = Exception
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
@@ -33,6 +38,9 @@ def escape_string(value: Any) -> str:
 def send_push_notification(family_id: str, title: str, message: str, notification_type: str = 'shopping'):
     """Отправка push-уведомлений всем подписчикам семьи с проверкой настроек"""
     try:
+        if webpush is None:
+            print("[WARN] pywebpush not available, skipping notification")
+            return
         vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
         if not vapid_key:
             print(f"[WARN] VAPID key not configured, skipping notification")
