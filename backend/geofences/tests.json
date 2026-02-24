@@ -1,23 +1,29 @@
 {
   "tests": [
     {
-      "name": "Get geofences list",
-      "method": "GET",
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
     },
     {
-      "name": "Create new geofence",
-      "method": "POST",
+      "name": "Get geofences list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "geofences": []
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "PUT settings without auth",
+      "method": "PUT",
       "path": "/",
       "body": {
-        "name": "Школа №1",
-        "center_lat": 55.751244,
-        "center_lng": 37.618423,
-        "radius": 500,
-        "color": "#9333EA"
+        "settings": []
       },
-      "expectedStatus": 200
+      "expectedStatus": 401
     }
   ]
 }

@@ -94,7 +94,7 @@ def handler(event: dict, context) -> dict:
             conn.commit()
 
             if exit_events:
-                send_instant_alerts(cur, conn, str(family_id), str(user_id), member_name, exit_events)
+                send_instant_alerts(cur, conn, str(family_id), str(member_id), str(user_id), member_name, exit_events)
 
             return {
                 'statusCode': 200,
@@ -192,7 +192,7 @@ def check_geofence_violations(cur, member_id: str, lat: float, lng: float) -> li
     return exit_events
 
 
-def send_instant_alerts(cur, conn, family_id: str, sender_user_id: str, member_name: str, exit_events: list):
+def send_instant_alerts(cur, conn, family_id: str, sender_member_id: str, sender_user_id: str, member_name: str, exit_events: list):
     """Мгновенная отправка push/MAX/Telegram при выходе из зоны. Крон — подстраховка."""
     vapid_key = os.environ.get('VAPID_PRIVATE_KEY')
 
@@ -200,14 +200,29 @@ def send_instant_alerts(cur, conn, family_id: str, sender_user_id: str, member_n
 
     try:
         cur2.execute(f"""
-            SELECT ps.user_id, ps.subscription_data, ps.notification_settings
-            FROM {SCHEMA}.push_subscriptions ps
-            WHERE ps.family_id = %s AND ps.subscription_data IS NOT NULL
-        """, (family_id,))
-        subscriptions = cur2.fetchall()
+            SELECT member_id, alerts_enabled, notify_members
+            FROM {SCHEMA}.geofence_alert_settings
+            WHERE family_id = %s AND member_id = %s
+        """, (family_id, sender_member_id))
+        alert_row = cur2.fetchone()
+
+        if alert_row and not alert_row['alerts_enabled']:
+            return
+
+        allowed_member_ids = []
+        if alert_row and alert_row.get('notify_members'):
+            allowed_member_ids = alert_row['notify_members']
 
         cur2.execute(f"""
-            SELECT u.id as user_id, u.telegram_chat_id, u.max_chat_id
+            SELECT fm.id as member_id, fm.user_id, ps.subscription_data, ps.notification_settings
+            FROM {SCHEMA}.family_members fm
+            LEFT JOIN {SCHEMA}.push_subscriptions ps ON ps.user_id = fm.user_id AND ps.family_id = fm.family_id
+            WHERE fm.family_id = %s
+        """, (family_id,))
+        family_rows = cur2.fetchall()
+
+        cur2.execute(f"""
+            SELECT fm.id as member_id, u.id as user_id, u.telegram_chat_id, u.max_chat_id
             FROM {SCHEMA}.family_members fm
             JOIN {SCHEMA}.users u ON fm.user_id = u.id
             WHERE fm.family_id = %s
@@ -224,21 +239,24 @@ def send_instant_alerts(cur, conn, family_id: str, sender_user_id: str, member_n
             target_url = '/family-tracker'
             any_sent = False
 
-            for sub in subscriptions:
-                if str(sub.get('user_id', '')) == sender_user_id:
+            for row in family_rows:
+                if str(row.get('user_id', '')) == sender_user_id:
                     continue
 
-                settings = sub.get('notification_settings') or {}
+                if allowed_member_ids and str(row['member_id']) not in [str(x) for x in allowed_member_ids]:
+                    continue
+
+                settings = row.get('notification_settings') or {}
                 geo_setting = settings.get('geofence', True)
                 if isinstance(geo_setting, dict) and not geo_setting.get('enabled', True):
                     continue
                 if isinstance(geo_setting, bool) and not geo_setting:
                     continue
 
-                if vapid_key and sub.get('subscription_data'):
+                if vapid_key and row.get('subscription_data'):
                     try:
                         webpush(
-                            subscription_info=sub['subscription_data'],
+                            subscription_info=row['subscription_data'],
                             data=json.dumps({
                                 'title': title,
                                 'body': message,
@@ -256,6 +274,9 @@ def send_instant_alerts(cur, conn, family_id: str, sender_user_id: str, member_n
 
             for m in messengers:
                 if str(m.get('user_id', '')) == sender_user_id:
+                    continue
+
+                if allowed_member_ids and str(m['member_id']) not in [str(x) for x in allowed_member_ids]:
                     continue
 
                 if m.get('max_chat_id'):
