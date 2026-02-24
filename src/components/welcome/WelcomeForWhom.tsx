@@ -7,7 +7,7 @@ const KIDS_URL = 'https://cdn.poehali.dev/files/7b37fcba-0c22-4efa-a374-703dcf5a
 const roles = [
   {
     title: 'Для мам',
-    subtitle: 'Анастасия, 32 года',
+    subtitle: 'Питание, здоровье, покупки',
     image: MAMA_URL,
     gradient: 'from-pink-500 to-rose-500',
     bg: 'bg-pink-50',
@@ -20,7 +20,7 @@ const roles = [
   },
   {
     title: 'Для пап',
-    subtitle: 'Алексей, 38 лет',
+    subtitle: 'Задачи, финансы, контроль',
     image: PAPA_URL,
     gradient: 'from-blue-500 to-indigo-500',
     bg: 'bg-blue-50',
@@ -33,7 +33,7 @@ const roles = [
   },
   {
     title: 'Для детей',
-    subtitle: 'Матвей, 14 лет',
+    subtitle: 'Развитие, достижения, игры',
     image: KIDS_URL,
     gradient: 'from-orange-500 to-amber-500',
     bg: 'bg-orange-50',

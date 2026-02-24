@@ -1,6 +1,6 @@
 import Icon from '@/components/ui/icon';
 
-const DOMOVOY_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/755f2ca5-15dc-494c-91b7-f9e58937c6d1.jpg';
+const DOMOVOY_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/f5f98c5e-0116-4004-a74f-986626d7178c.jpeg';
 
 const capabilities = [
   { icon: 'MessageSquare', text: 'Отвечает на любые вопросы о семье' },
