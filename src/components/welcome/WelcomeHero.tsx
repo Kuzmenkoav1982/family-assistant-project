@@ -89,7 +89,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
           <div className="relative hidden lg:block">
             <div className="relative">
               <img
-                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7195ccde-25ba-4877-aecc-f38d2787ceac.jpg"
+                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/cdc5e59a-7a91-439d-aa9a-9ac8143466a0.jpeg"
                 alt="Семейное приложение"
                 className="w-full max-w-lg mx-auto rounded-3xl shadow-2xl"
               />
