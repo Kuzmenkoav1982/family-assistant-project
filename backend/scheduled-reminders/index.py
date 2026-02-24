@@ -1,4 +1,4 @@
-"""Единый крон уведомлений — проверяет ВСЕ источники, сохраняет в notifications, отправляет push/MAX"""
+"""Единый крон уведомлений — проверяет ВСЕ источники, сохраняет в notifications, отправляет push/MAX/Telegram"""
 
 import json
 import os
@@ -11,7 +11,7 @@ from psycopg2.extras import RealDictCursor
 from pywebpush import webpush, WebPushException
 
 SCHEMA = 't_p5815085_family_assistant_pro'
-APP_URL = 'https://family-assistant-project.poehali.dev'
+APP_URL = 'https://nasha-semiya.ru'
 
 def escape(v: Any) -> str:
     if v is None:
@@ -26,7 +26,7 @@ def is_already_sent(cur, family_id: str, h: str) -> bool:
     cur.execute(f"""
         SELECT id FROM {SCHEMA}.sent_notifications 
         WHERE family_id = '{escape(family_id)}' AND notification_hash = '{escape(h)}'
-        AND sent_at > NOW() - INTERVAL '6 hours'
+        AND sent_at > NOW() - INTERVAL '24 hours'
     """)
     return cur.fetchone() is not None
 
@@ -39,7 +39,7 @@ def mark_sent(cur, conn, family_id: str, h: str, title: str):
     conn.commit()
 
 def cleanup_old(cur, conn):
-    cur.execute(f"DELETE FROM {SCHEMA}.sent_notifications WHERE sent_at < NOW() - INTERVAL '24 hours'")
+    cur.execute(f"DELETE FROM {SCHEMA}.sent_notifications WHERE sent_at < NOW() - INTERVAL '48 hours'")
     conn.commit()
 
 def save_notification(cur, conn, user_id: str, family_id: str, n_type: str, title: str, message: str, target_url: str, channel: str = 'push'):
@@ -83,12 +83,15 @@ def send_max(chat_id: int, title: str, message: str, target_url: str) -> bool:
         print(f"[ERROR] MAX: {e}")
         return False
 
-def send_telegram(chat_id: int, title: str, message: str) -> bool:
+def send_telegram(chat_id: int, title: str, message: str, target_url: str = '') -> bool:
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
     if not bot_token or not chat_id:
         return False
     try:
+        full_url = f"{APP_URL}{target_url}" if target_url else ''
         text = f"*{title}*\n{message}"
+        if full_url:
+            text += f"\n\n{full_url}"
         resp = requests.post(
             f'https://api.telegram.org/bot{bot_token}/sendMessage',
             json={'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'},
@@ -102,6 +105,15 @@ def send_telegram(chat_id: int, title: str, message: str) -> bool:
 
 # === ПРОВЕРКИ ИСТОЧНИКОВ ===
 
+def format_date_ru(d) -> str:
+    if not d:
+        return ''
+    months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+              'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+    if hasattr(d, 'day'):
+        return f"{d.day} {months[d.month - 1]}"
+    return str(d)
+
 def check_important_dates(cur, family_id: str) -> List[Dict]:
     notifications = []
     fid = escape(family_id)
@@ -111,10 +123,13 @@ def check_important_dates(cur, family_id: str) -> List[Dict]:
             WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '1 day'
         """)
         for d in cur.fetchall():
+            dt = format_date_ru(d.get('date'))
+            dtype = d.get('type', '')
+            type_label = 'День рождения' if dtype == 'birthday' else 'Важная дата'
             notifications.append({
                 'type': 'birthday', 'target_url': '/calendar',
-                'title': f"Завтра: {d['title']}",
-                'message': 'Не забудьте поздравить!'
+                'title': f"Завтра ({dt}): {d['title']}",
+                'message': f"{type_label}. Не забудьте поздравить и подготовить подарок!"
             })
     except Exception as e:
         print(f"[ERROR] Important dates: {e}")
@@ -127,10 +142,12 @@ def check_important_dates(cur, family_id: str) -> List[Dict]:
             AND EXTRACT(DAY FROM created_at) = EXTRACT(DAY FROM CURRENT_DATE + INTERVAL '1 day')
         """)
         for m in cur.fetchall():
+            tomorrow = date.today() + timedelta(days=1)
+            dt = format_date_ru(tomorrow)
             notifications.append({
                 'type': 'birthday', 'target_url': '/calendar',
-                'title': f"День рождения {m['name']}",
-                'message': 'Завтра день рождения! Подготовьте поздравление'
+                'title': f"Завтра ({dt}): День рождения — {m['name']}",
+                'message': f"Завтра день рождения у {m['name']}! Подготовьте поздравление и подарок."
             })
     except Exception as e:
         print(f"[ERROR] Birthdays: {e}")
@@ -145,7 +162,7 @@ def check_calendar(cur, family_id: str) -> List[Dict]:
 
     try:
         cur.execute(f"""
-            SELECT title, date, time FROM {SCHEMA}.calendar_events 
+            SELECT title, date, time, description FROM {SCHEMA}.calendar_events 
             WHERE family_id = '{fid}' AND date = CURRENT_DATE
             AND time IS NOT NULL AND time != ''
             AND time >= '{cur_t}' AND time <= '{fut_t}'
@@ -153,27 +170,38 @@ def check_calendar(cur, family_id: str) -> List[Dict]:
             ORDER BY time LIMIT 3
         """)
         for e in cur.fetchall():
+            t = e.get('time', '')
+            desc = e.get('description', '')
+            desc_text = f"\n{desc[:80]}" if desc else ""
             notifications.append({
                 'type': 'calendar', 'target_url': '/calendar',
-                'title': f"Скоро событие в {e['time'] or ''}",
-                'message': e['title']
+                'title': f"Сегодня в {t}: {e['title']}",
+                'message': f"Напоминание о событии через менее чем час.{desc_text}"
             })
     except Exception as e:
         print(f"[ERROR] Calendar upcoming: {e}")
 
     try:
         cur.execute(f"""
-            SELECT title, date, time FROM {SCHEMA}.calendar_events 
+            SELECT title, date, time, description FROM {SCHEMA}.calendar_events 
             WHERE family_id = '{fid}' AND date = CURRENT_DATE + INTERVAL '1 day'
             AND (completed = false OR completed IS NULL)
-            ORDER BY time LIMIT 3
+            ORDER BY time LIMIT 5
         """)
-        for e in cur.fetchall():
-            notifications.append({
-                'type': 'calendar', 'target_url': '/calendar',
-                'title': f"Завтра: {e['title']}",
-                'message': f"Запланировано на {e['time'] or 'весь день'}"
-            })
+        tomorrow_events = cur.fetchall()
+        if tomorrow_events:
+            tomorrow = date.today() + timedelta(days=1)
+            dt = format_date_ru(tomorrow)
+            for e in tomorrow_events:
+                t = e.get('time')
+                desc = e.get('description', '')
+                time_text = f" в {t}" if t else " (на весь день)"
+                desc_text = f"\n{desc[:80]}" if desc else ""
+                notifications.append({
+                    'type': 'calendar', 'target_url': '/calendar',
+                    'title': f"Завтра ({dt}){time_text}: {e['title']}",
+                    'message': f"Запланировано на завтра{time_text}.{desc_text}"
+                })
     except Exception as e:
         print(f"[ERROR] Calendar tomorrow: {e}")
     return notifications
@@ -193,11 +221,11 @@ def check_medications_children(cur, family_id: str) -> List[Dict]:
         """)
         for med in cur.fetchall():
             ts = med['time'].strftime('%H:%M') if hasattr(med['time'], 'strftime') else str(med['time'])[:5]
-            dose = f" ({med['dosage']})" if med.get('dosage') else ""
+            dose = f", дозировка: {med['dosage']}" if med.get('dosage') else ""
             notifications.append({
                 'type': 'medication', 'target_url': '/health/medications',
-                'title': 'Время лекарства',
-                'message': f"{med['name']}{dose} в {ts}"
+                'title': f"Время лекарства в {ts}",
+                'message': f"Нужно принять: {med['name']}{dose}. Не пропустите приём!"
             })
     except Exception as e:
         print(f"[ERROR] Children meds: {e}")
@@ -216,18 +244,16 @@ def check_health_medications(cur, user_id: str) -> List[Dict]:
             FROM {SCHEMA}.medications m
             JOIN {SCHEMA}.health_profiles hp ON m.profile_id = hp.id
             JOIN {SCHEMA}.medication_reminders mr ON mr.medication_id = m.id
-            WHERE m.active = true AND mr.enabled = true
-            AND (m.end_date IS NULL OR m.end_date >= CURRENT_DATE)
-            AND hp.user_id = '{uid}'
+            WHERE m.active = true AND hp.user_id = '{uid}'
             AND mr.time BETWEEN '{t_start}' AND '{t_end}'
         """)
         for med in cur.fetchall():
             ts = med['reminder_time'].strftime('%H:%M') if hasattr(med['reminder_time'], 'strftime') else str(med['reminder_time'])[:5]
-            dose = f" ({med['dosage']})" if med.get('dosage') else ""
+            dose = f", дозировка: {med['dosage']}" if med.get('dosage') else ""
             notifications.append({
                 'type': 'medication', 'target_url': '/health/medications',
-                'title': 'Время лекарства',
-                'message': f"{med['name']}{dose} в {ts}"
+                'title': f"Время лекарства в {ts}",
+                'message': f"Нужно принять: {med['name']}{dose}. Не пропустите приём!"
             })
     except Exception as e:
         print(f"[ERROR] Health meds: {e}")
@@ -245,16 +271,17 @@ def check_tasks(cur, family_id: str) -> List[Dict]:
         """)
         for t in cur.fetchall():
             if t.get('deadline') and t['deadline'] < datetime.now():
+                dl = t['deadline'].strftime('%d.%m в %H:%M') if hasattr(t['deadline'], 'strftime') else str(t['deadline'])
                 notifications.append({
                     'type': 'task', 'target_url': '/tasks',
-                    'title': 'Просрочена задача',
-                    'message': t['title']
+                    'title': f"Просрочена задача: {t['title']}",
+                    'message': f"Срок выполнения истёк ({dl}). Пожалуйста, выполните или перенесите задачу."
                 })
             elif t.get('priority') == 'high':
                 notifications.append({
                     'type': 'task', 'target_url': '/tasks',
-                    'title': 'Срочная задача',
-                    'message': t['title']
+                    'title': f"Срочная задача: {t['title']}",
+                    'message': f"У вас есть срочная задача с высоким приоритетом. Не откладывайте!"
                 })
     except Exception as e:
         print(f"[ERROR] Tasks: {e}")
@@ -266,14 +293,16 @@ def check_shopping(cur, family_id: str) -> List[Dict]:
     try:
         cur.execute(f"""
             SELECT name FROM {SCHEMA}.shopping_items_v2 
-            WHERE family_id = '{fid}' AND priority = 'urgent' AND bought = FALSE LIMIT 3
+            WHERE family_id = '{fid}' AND priority = 'urgent' AND bought = FALSE LIMIT 5
         """)
         items = cur.fetchall()
         if items:
             names = ', '.join([i['name'] for i in items])
+            cnt = len(items)
+            word = 'товар' if cnt == 1 else ('товара' if cnt < 5 else 'товаров')
             notifications.append({
                 'type': 'shopping', 'target_url': '/shopping',
-                'title': 'Срочные покупки',
+                'title': f"Срочные покупки ({cnt} {word})",
                 'message': f"Нужно купить: {names}"
             })
     except Exception as e:
@@ -285,18 +314,20 @@ def check_votings(cur, family_id: str) -> List[Dict]:
     fid = escape(family_id)
     try:
         cur.execute(f"""
-            SELECT v.title, COUNT(vt.id) as total_votes 
+            SELECT v.title, v.end_date, COUNT(vt.id) as total_votes 
             FROM {SCHEMA}.votings v
             LEFT JOIN {SCHEMA}.votes vt ON v.id = vt.voting_id
             WHERE v.family_id = '{fid}' AND v.end_date > NOW()
             AND v.created_at > NOW() - INTERVAL '24 hours'
-            GROUP BY v.id, v.title HAVING COUNT(vt.id) < 3 LIMIT 2
+            GROUP BY v.id, v.title, v.end_date HAVING COUNT(vt.id) < 3 LIMIT 2
         """)
         for v in cur.fetchall():
+            end = v.get('end_date')
+            end_text = f" (до {end.strftime('%d.%m в %H:%M')})" if end and hasattr(end, 'strftime') else ""
             notifications.append({
                 'type': 'voting', 'target_url': '/votings',
-                'title': 'Проголосуйте',
-                'message': v['title']
+                'title': f"Голосование: {v['title']}",
+                'message': f"Ваш голос ещё не учтён! Проголосуйте{end_text}."
             })
     except Exception as e:
         print(f"[ERROR] Votings: {e}")
@@ -314,11 +345,13 @@ def check_leisure(cur, user_id: str) -> List[Dict]:
             AND (reminder_sent = FALSE OR reminder_sent IS NULL) LIMIT 3
         """)
         for a in cur.fetchall():
-            loc = f" ({a['location']})" if a.get('location') else ""
+            loc = f" | Место: {a['location']}" if a.get('location') else ""
+            t = a.get('time', '')
+            d = format_date_ru(a.get('date'))
             notifications.append({
                 'type': 'leisure', 'target_url': '/leisure',
                 'title': f"Скоро: {a['title']}",
-                'message': f"{a['time'] or ''}{loc}"
+                'message': f"{d} в {t}{loc}. Пора собираться!"
             })
             if a.get('id'):
                 cur.execute(f"UPDATE {SCHEMA}.leisure_activities SET reminder_sent = TRUE WHERE id = {a['id']}")
@@ -396,8 +429,8 @@ def check_diet(cur, user_id: str) -> List[Dict]:
             if cur.fetchone()['cnt'] == 0:
                 notifications.append({
                     'type': 'diet', 'target_url': '/diet',
-                    'title': 'Взвешивание',
-                    'message': 'Не забудьте записать утренний вес'
+                    'title': 'Утреннее взвешивание',
+                    'message': 'Не забудьте записать утренний вес натощак для отслеживания прогресса.'
                 })
 
         if setting_enabled(settings, 'meal_reminder') and time_match(settings, 'meal_reminder', '12:00'):
@@ -407,17 +440,19 @@ def check_diet(cur, user_id: str) -> List[Dict]:
             """)
             r = cur.fetchone()
             if r and r['cnt'] > 0:
+                word = 'приём' if r['cnt'] == 1 else ('приёма' if r['cnt'] < 5 else 'приёмов')
                 notifications.append({
                     'type': 'diet', 'target_url': '/diet',
-                    'title': 'Приём пищи',
-                    'message': f"Осталось {r['cnt']} приёмов пищи сегодня"
+                    'title': f"План питания: {r['cnt']} {word} пищи",
+                    'message': f"Осталось {r['cnt']} {word} пищи на сегодня. Придерживайтесь плана!"
                 })
 
         if setting_enabled(settings, 'water_reminder') and time_match(settings, 'water_reminder', '14:00'):
+            water_target = plan.get('daily_water_ml', 2000)
             notifications.append({
                 'type': 'diet', 'target_url': '/diet',
-                'title': 'Вода',
-                'message': 'Не забывайте пить воду!'
+                'title': 'Напоминание о воде',
+                'message': f"Не забывайте пить воду! Ваша дневная цель — {water_target} мл."
             })
 
     except Exception as e:
@@ -429,18 +464,21 @@ def check_geofences(cur) -> List[Dict]:
     notifications = []
     try:
         cur.execute(f"""
-            SELECT ge.id, ge.member_id, g.name as zone_name, g.family_id
+            SELECT ge.id, ge.member_id, g.name as zone_name, g.family_id,
+                   fm.name as member_name
             FROM {SCHEMA}.geofence_events ge
             JOIN {SCHEMA}.geofences g ON ge.geofence_id = g.id
+            LEFT JOIN {SCHEMA}.family_members fm ON ge.member_id::text = fm.id::text
             WHERE ge.event_type = 'exit'
             AND ge.timestamp > NOW() - INTERVAL '10 minutes'
             AND (ge.notified = FALSE OR ge.notified IS NULL)
         """)
         for ev in cur.fetchall():
+            member_name = ev.get('member_name', 'Член семьи')
             notifications.append({
                 'type': 'geofence', 'target_url': '/family-tracker',
-                'title': f"Выход из зоны",
-                'message': f"Покинул зону \"{ev['zone_name']}\"",
+                'title': f"Выход из зоны: {ev['zone_name']}",
+                'message': f"{member_name} покинул(а) зону \"{ev['zone_name']}\".",
                 'family_id': ev['family_id'],
                 'geofence_event_id': ev['id']
             })
@@ -481,10 +519,12 @@ def check_subscriptions(cur) -> List[Dict]:
                 continue
 
             plan_display = plan_names.get(s['plan_type'], s['plan_type'])
+            end_date_str = s['end_date'].strftime('%d.%m.%Y') if hasattr(s['end_date'], 'strftime') else str(s['end_date'])
+            word = 'день' if days_left == 1 else ('дня' if days_left < 5 else 'дней')
             notifications.append({
                 'type': 'subscription', 'target_url': '/pricing',
-                'title': 'Подписка заканчивается',
-                'message': f"Подписка \"{plan_display}\" истекает через {days_left} дн.",
+                'title': f"Подписка \"{plan_display}\" заканчивается",
+                'message': f"Осталось {days_left} {word} (до {end_date_str}). Продлите, чтобы не потерять доступ.",
                 'user_id': str(s['user_id']),
                 'family_id': str(s['family_id']),
                 'sub_id': sub_id,
@@ -631,17 +671,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     continue
 
                 target_url = n.get('target_url', '/notifications')
-                title_full = f"{n['title']} от Наша Семья"
 
-                push_ok = send_push(sub_data, title_full, n['message'], target_url, vapid_key)
+                push_ok = send_push(sub_data, n['title'], n['message'], target_url, vapid_key)
 
+                max_ok = False
                 for chat_id in max_cache.get(fid, []):
-                    send_max(chat_id, title_full, n['message'], target_url)
+                    if send_max(chat_id, n['title'], n['message'], target_url):
+                        max_ok = True
 
+                tg_ok = False
                 for chat_id in telegram_cache.get(fid, []):
-                    send_telegram(chat_id, title_full, n['message'])
+                    if send_telegram(chat_id, n['title'], n['message'], target_url):
+                        tg_ok = True
 
-                if push_ok:
+                any_sent = push_ok or max_ok or tg_ok
+                if any_sent:
                     total_sent += 1
                     mark_sent(cur, conn, fid, h, n['title'])
                     if uid:
@@ -659,19 +703,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         for sn in sub_notifs:
             h = make_hash(sn['title'], sn['message'])
             target_url = sn.get('target_url', '/pricing')
-            title_full = f"{sn['title']} от Наша Семья"
             sn_uid = sn.get('user_id', '')
             sn_fid = sn.get('family_id', '')
 
             for sub in subscriptions:
                 if str(sub.get('user_id', '')) == sn_uid:
-                    push_ok = send_push(sub['subscription_data'], title_full, sn['message'], target_url, vapid_key)
+                    push_ok = send_push(sub['subscription_data'], sn['title'], sn['message'], target_url, vapid_key)
                     if push_ok:
                         total_sent += 1
                     break
 
             for chat_id in max_cache.get(sn_fid, []):
-                send_max(chat_id, title_full, sn['message'], target_url)
+                send_max(chat_id, sn['title'], sn['message'], target_url)
 
             if sn_uid:
                 save_notification(cur, conn, sn_uid, sn_fid, 'subscription', sn['title'], sn['message'], target_url, 'push')
