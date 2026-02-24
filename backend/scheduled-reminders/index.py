@@ -313,11 +313,16 @@ def check_calendar(cur, family_id: str, remind_before: str = '1d+1h') -> List[Di
             print(f"[ERROR] Calendar day offset={offset}: {e}")
     return notifications
 
-def check_medications_children(cur, family_id: str) -> List[Dict]:
+def get_med_window_minutes(remind_before: str) -> int:
+    mapping = {'5m': 5, '15m': 15, '30m': 30, '1h': 60}
+    return mapping.get(remind_before, 15)
+
+def check_medications_children(cur, family_id: str, remind_before: str = '15m') -> List[Dict]:
     notifications = []
     now = datetime.now()
+    window = get_med_window_minutes(remind_before)
     t_start = (now - timedelta(minutes=5)).time()
-    t_end = (now + timedelta(minutes=30)).time()
+    t_end = (now + timedelta(minutes=window)).time()
 
     try:
         cur.execute(f"""
@@ -338,12 +343,13 @@ def check_medications_children(cur, family_id: str) -> List[Dict]:
         print(f"[ERROR] Children meds: {e}")
     return notifications
 
-def check_health_medications(cur, user_id: str) -> List[Dict]:
+def check_health_medications(cur, user_id: str, remind_before: str = '15m') -> List[Dict]:
     notifications = []
     uid = escape(user_id)
     now = datetime.now()
+    window = get_med_window_minutes(remind_before)
     t_start = (now - timedelta(minutes=5)).time()
-    t_end = (now + timedelta(minutes=30)).time()
+    t_end = (now + timedelta(minutes=window)).time()
 
     try:
         cur.execute(f"""
@@ -366,15 +372,20 @@ def check_health_medications(cur, user_id: str) -> List[Dict]:
         print(f"[ERROR] Health meds: {e}")
     return notifications
 
-def check_tasks(cur, family_id: str) -> List[Dict]:
+def get_task_interval(remind_before: str) -> str:
+    mapping = {'1h': '1 hour', '2h': '2 hours', '1d': '1 day', '1d+1h': '1 day'}
+    return mapping.get(remind_before, '1 day')
+
+def check_tasks(cur, family_id: str, remind_before: str = '1d') -> List[Dict]:
     notifications = []
     fid = escape(family_id)
+    interval = get_task_interval(remind_before)
     try:
         cur.execute(f"""
             SELECT title, priority, deadline FROM {SCHEMA}.tasks 
             WHERE family_id = '{fid}' AND status != 'done'
-            AND (priority = 'high' OR (deadline IS NOT NULL AND deadline < NOW() + INTERVAL '2 hours'))
-            LIMIT 3
+            AND (priority = 'high' OR (deadline IS NOT NULL AND deadline < NOW() + INTERVAL '{interval}'))
+            LIMIT 5
         """)
         for t in cur.fetchall():
             if t.get('deadline') and t['deadline'] < datetime.now():
@@ -707,13 +718,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cal_s = get_setting_for_type(ns, 'calendar')
                 bd_s = get_setting_for_type(ns, 'birthdays')
                 id_s = get_setting_for_type(ns, 'important_dates')
+                med_s = get_setting_for_type(ns, 'medications')
+                task_s = get_setting_for_type(ns, 'tasks')
                 
                 family_notifs[fid] = []
                 family_notifs[fid].extend(check_important_dates(cur, fid, id_s.get('remind_before', '1d')))
                 family_notifs[fid].extend(check_birthdays(cur, fid, bd_s.get('remind_before', '1d')))
                 family_notifs[fid].extend(check_calendar(cur, fid, cal_s.get('remind_before', '1d+1h')))
-                family_notifs[fid].extend(check_medications_children(cur, fid))
-                family_notifs[fid].extend(check_tasks(cur, fid))
+                family_notifs[fid].extend(check_medications_children(cur, fid, med_s.get('remind_before', '15m')))
+                family_notifs[fid].extend(check_tasks(cur, fid, task_s.get('remind_before', '1d')))
                 family_notifs[fid].extend(check_shopping(cur, fid))
                 family_notifs[fid].extend(check_votings(cur, fid))
 
@@ -721,7 +734,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 user_notifs[uid] = []
                 user_notifs[uid].extend(check_leisure(cur, uid))
                 user_notifs[uid].extend(check_diet(cur, uid))
-                user_notifs[uid].extend(check_health_medications(cur, uid))
+                ns_user = sub.get('notification_settings') or {}
+                med_s_u = get_setting_for_type(ns_user, 'medications')
+                user_notifs[uid].extend(check_health_medications(cur, uid, med_s_u.get('remind_before', '15m')))
 
         geo_notifs = check_geofences(cur)
         sub_notifs = check_subscriptions(cur)
@@ -738,6 +753,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             uid = str(sub.get('user_id', ''))
             sub_data = sub['subscription_data']
             settings = sub.get('notification_settings') or {}
+
+            qh = settings.get('quiet_hours')
+            if isinstance(qh, dict) and qh.get('enabled', False):
+                qs = qh.get('start', '22:00') or '22:00'
+                qe = qh.get('end', '07:00') or '07:00'
+                if is_quiet(qs, qe):
+                    total_skipped += 1
+                    print(f"[INFO] Quiet hours active for family {fid}, skipping")
+                    continue
 
             all_n = list(family_notifs.get(fid, []))
             if uid:

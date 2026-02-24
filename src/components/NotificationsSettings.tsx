@@ -24,7 +24,6 @@ export function NotificationsSettings() {
 
   const { currentUser } = useAuth();
   const [isSendingTest, setIsSendingTest] = useState(false);
-  const [isCheckingReminders, setIsCheckingReminders] = useState(false);
   const [maxConnected, setMaxConnected] = useState<boolean | null>(null);
   const [maxLoading, setMaxLoading] = useState(false);
 
@@ -70,24 +69,6 @@ export function NotificationsSettings() {
   const maxBotLink = currentUser?.id
     ? `https://max.ru/id231805288780_bot?start=${currentUser.id}`
     : 'https://max.ru/id231805288780_bot';
-
-  const handleCheckReminders = async () => {
-    setIsCheckingReminders(true);
-    try {
-      const response = await fetch(func2url['scheduled-reminders']);
-      const result = await response.json();
-      
-      if (result.success) {
-        alert(`✅ Проверка завершена!\nОтправлено: ${result.sent} уведомлений\nОшибок: ${result.failed}`);
-      } else {
-        alert(`❌ Ошибка: ${result.error}`);
-      }
-    } catch (error) {
-      alert('❌ Не удалось выполнить проверку напоминаний');
-    } finally {
-      setIsCheckingReminders(false);
-    }
-  };
 
   const handleToggle = async () => {
     if (isSubscribed) {
@@ -232,24 +213,19 @@ export function NotificationsSettings() {
         {isSubscribed && (
           <>
             <NotificationTypeSettings />
-            <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            
+            <div className="flex flex-col gap-2">
               <Button
                 onClick={handleTestNotification}
                 disabled={isSendingTest || isLoading}
                 variant="outline"
-                className="w-full gap-2"
+                size="sm"
+                className="w-full gap-2 h-10 text-sm active:scale-[0.98] transition-transform"
               >
                 {isSendingTest ? (
-                  <>
-                    <Icon name="Loader2" size={18} className="animate-spin" />
-                    Отправка...
-                  </>
+                  <><Icon name="Loader2" size={16} className="animate-spin" /> Отправка...</>
                 ) : (
-                  <>
-                    <Icon name="Send" size={18} />
-                    Тестовое уведомление
-                  </>
+                  <><Icon name="Send" size={16} /> Тестовое уведомление</>
                 )}
               </Button>
               
@@ -257,92 +233,24 @@ export function NotificationsSettings() {
                 onClick={async () => {
                   const success = await unsubscribe();
                   if (success) {
-                    alert('✅ Push-уведомления отключены. Включите их заново, чтобы пересоздать подписку с актуальными ключами.');
-                  } else {
-                    alert('❌ Не удалось отключить уведомления. Попробуйте ещё раз.');
+                    alert('Push-уведомления отключены. Включите их заново, чтобы пересоздать подписку.');
                   }
                 }}
                 disabled={isLoading}
                 variant="outline"
-                className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                size="sm"
+                className="w-full gap-2 h-10 text-sm border-red-200 text-red-600 hover:bg-red-50 active:scale-[0.98] transition-transform"
               >
-                {isLoading ? (
-                  <>
-                    <Icon name="Loader2" size={18} className="animate-spin" />
-                    Отключение...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="BellOff" size={18} />
-                    Отключить уведомления
-                  </>
-                )}
+                <Icon name="BellOff" size={16} /> Отключить уведомления
               </Button>
             </div>
             
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Icon name="Info" size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-700">
-                  <strong>Если уведомления не приходят:</strong> Отключите Push-уведомления и включите заново — это пересоздаст подписку с актуальными ключами.
-                </p>
-              </div>
+              <p className="text-xs text-gray-700 flex items-start gap-2">
+                <Icon name="Info" size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <span><strong>Не приходят?</strong> Отключите и включите заново — это обновит подписку.</span>
+              </p>
             </div>
-
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-              <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                <Icon name="Sparkles" size={18} className="text-purple-600" />
-                Автоматические напоминания
-              </h5>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <Icon name="Clock" size={16} className="mt-0.5 flex-shrink-0 text-blue-600" />
-                  <span><strong>Задачи:</strong> уведомления за день до срока выполнения</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Icon name="Calendar" size={16} className="mt-0.5 flex-shrink-0 text-purple-600" />
-                  <span><strong>События:</strong> напоминания о предстоящих мероприятиях</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Icon name="Pill" size={16} className="mt-0.5 flex-shrink-0 text-pink-600" />
-                  <span><strong>Лекарства:</strong> напоминания о приёме медикаментов детям</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Icon name="Gift" size={16} className="mt-0.5 flex-shrink-0 text-orange-600" />
-                  <span><strong>Важные даты:</strong> дни рождения и годовщины членов семьи</span>
-                </li>
-              </ul>
-              
-              <Button
-                onClick={handleCheckReminders}
-                disabled={isCheckingReminders}
-                variant="outline"
-                className="w-full gap-2 mt-4 bg-white hover:bg-blue-50"
-              >
-                {isCheckingReminders ? (
-                  <>
-                    <Icon name="Loader2" size={18} className="animate-spin" />
-                    Проверка напоминаний...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="RefreshCw" size={18} />
-                    Проверить напоминания сейчас
-                  </>
-                )}
-              </Button>
-              
-              <div className="mt-3 p-3 bg-white rounded border border-blue-200">
-                <p className="text-xs text-gray-600 flex items-start gap-2">
-                  <Icon name="Info" size={14} className="mt-0.5 flex-shrink-0" />
-                  <span>
-                    <strong>Автоматическая проверка:</strong> Напоминания проверяются каждый день в 9:00, 14:00 и 19:00. 
-                    Или нажмите кнопку выше для ручной проверки прямо сейчас.
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
           </>
         )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,95 +10,118 @@ interface TypeSetting {
   remind_before: string;
 }
 
-interface NotificationSettings {
-  votings: boolean | TypeSetting;
-  tasks: boolean | TypeSetting;
-  shopping: boolean | TypeSetting;
-  calendar: boolean | TypeSetting;
-  medications: boolean | TypeSetting;
-  birthdays: boolean | TypeSetting;
-  subscription: boolean | TypeSetting;
-  important_dates: boolean | TypeSetting;
+interface QuietHours {
+  enabled: boolean;
+  start: string;
+  end: string;
+}
+
+interface FullSettings {
+  [key: string]: boolean | TypeSetting | QuietHours;
 }
 
 const REMIND_OPTIONS = [
-  { value: '30m', label: 'За 30 минут' },
+  { value: '30m', label: 'За 30 мин' },
   { value: '1h', label: 'За 1 час' },
   { value: '2h', label: 'За 2 часа' },
   { value: '1d', label: 'За 1 день' },
-  { value: '1d+1h', label: 'За 1 день и за 1 час' },
-  { value: '1d+2h', label: 'За 1 день и за 2 часа' },
+  { value: '1d+1h', label: 'За день и за час' },
+  { value: '1d+2h', label: 'За день и за 2 часа' },
 ];
 
 const DATE_REMIND_OPTIONS = [
   { value: '1d', label: 'За 1 день' },
   { value: '3d', label: 'За 3 дня' },
   { value: '7d', label: 'За неделю' },
-  { value: '1d+7d', label: 'За неделю и за 1 день' },
+  { value: '1d+7d', label: 'За неделю и за день' },
+];
+
+const MED_REMIND_OPTIONS = [
+  { value: '5m', label: 'За 5 минут' },
+  { value: '15m', label: 'За 15 минут' },
+  { value: '30m', label: 'За 30 минут' },
+  { value: '1h', label: 'За 1 час' },
+];
+
+const TASK_REMIND_OPTIONS = [
+  { value: '1h', label: 'За 1 час' },
+  { value: '2h', label: 'За 2 часа' },
+  { value: '1d', label: 'За 1 день' },
+  { value: '1d+1h', label: 'За день и за час' },
+];
+
+const QUIET_HOURS_OPTIONS = [
+  '21:00', '22:00', '23:00', '00:00',
+];
+
+const QUIET_END_OPTIONS = [
+  '06:00', '07:00', '08:00', '09:00',
 ];
 
 const NOTIFICATION_TYPES = [
   {
-    key: 'calendar' as keyof NotificationSettings,
+    key: 'calendar',
     icon: 'Calendar',
     title: 'События календаря',
     description: 'Напоминания о предстоящих событиях',
-    hasRemindBefore: true,
     remindOptions: REMIND_OPTIONS,
     defaultRemind: '1d+1h',
   },
   {
-    key: 'birthdays' as keyof NotificationSettings,
+    key: 'birthdays',
     icon: 'Cake',
     title: 'Дни рождения',
-    description: 'Напоминания о днях рождения членов семьи',
-    hasRemindBefore: true,
+    description: 'Дни рождения членов семьи',
     remindOptions: DATE_REMIND_OPTIONS,
     defaultRemind: '1d',
   },
   {
-    key: 'important_dates' as keyof NotificationSettings,
+    key: 'important_dates',
     icon: 'Star',
     title: 'Важные даты',
-    description: 'Годовщины и важные семейные события',
-    hasRemindBefore: true,
+    description: 'Годовщины и семейные события',
     remindOptions: DATE_REMIND_OPTIONS,
     defaultRemind: '1d',
   },
   {
-    key: 'medications' as keyof NotificationSettings,
+    key: 'medications',
     icon: 'Pill',
     title: 'Лекарства',
-    description: 'Напоминания о приёме лекарств',
-    hasRemindBefore: false,
+    description: 'Приём лекарств по расписанию',
+    remindOptions: MED_REMIND_OPTIONS,
+    defaultRemind: '15m',
   },
   {
-    key: 'tasks' as keyof NotificationSettings,
+    key: 'tasks',
     icon: 'CheckSquare',
     title: 'Задачи',
-    description: 'Срочные задачи и напоминания о дедлайнах',
-    hasRemindBefore: false,
+    description: 'Срочные задачи и дедлайны',
+    remindOptions: TASK_REMIND_OPTIONS,
+    defaultRemind: '1d',
   },
   {
-    key: 'shopping' as keyof NotificationSettings,
+    key: 'shopping',
     icon: 'ShoppingCart',
     title: 'Покупки',
-    description: 'Срочные товары в списке покупок',
-    hasRemindBefore: false,
+    description: 'Срочные товары в списке',
+    remindOptions: null,
+    defaultRemind: '',
   },
   {
-    key: 'votings' as keyof NotificationSettings,
+    key: 'votings',
     icon: 'Vote',
     title: 'Голосования',
-    description: 'Новые голосования и напоминания проголосовать',
-    hasRemindBefore: false,
+    description: 'Новые голосования в семье',
+    remindOptions: null,
+    defaultRemind: '',
   },
   {
-    key: 'subscription' as keyof NotificationSettings,
+    key: 'subscription',
     icon: 'CreditCard',
     title: 'Подписка',
-    description: 'Уведомления об истечении подписки',
-    hasRemindBefore: false,
+    description: 'Истечение подписки',
+    remindOptions: null,
+    defaultRemind: '',
   },
 ];
 
@@ -109,35 +132,54 @@ function getEnabled(val: boolean | TypeSetting | undefined): boolean {
 }
 
 function getRemindBefore(val: boolean | TypeSetting | undefined, defaultVal: string): string {
-  if (val && typeof val === 'object' && val.remind_before) return val.remind_before;
+  if (val && typeof val === 'object' && 'remind_before' in val && val.remind_before) return val.remind_before;
   return defaultVal;
 }
 
 export function NotificationTypeSettings() {
-  const [settings, setSettings] = useState<NotificationSettings | null>(null);
+  const [settings, setSettings] = useState<FullSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    loadSettings();
+  const migrateSettings = useCallback((raw: Record<string, unknown>): FullSettings => {
+    const result: FullSettings = {};
+    for (const type of NOTIFICATION_TYPES) {
+      const val = raw[type.key];
+      if (val === undefined) {
+        result[type.key] = { enabled: true, remind_before: type.defaultRemind };
+      } else if (typeof val === 'boolean') {
+        result[type.key] = { enabled: val, remind_before: type.defaultRemind };
+      } else {
+        result[type.key] = val as TypeSetting;
+      }
+    }
+    if (raw.quiet_hours && typeof raw.quiet_hours === 'object') {
+      result.quiet_hours = raw.quiet_hours as QuietHours;
+    } else {
+      result.quiet_hours = { enabled: true, start: '22:00', end: '07:00' };
+    }
+    return result;
   }, []);
 
-  const loadSettings = async () => {
+  const buildDefaults = useCallback((): FullSettings => {
+    const result: FullSettings = {};
+    for (const type of NOTIFICATION_TYPES) {
+      result[type.key] = { enabled: true, remind_before: type.defaultRemind };
+    }
+    result.quiet_hours = { enabled: true, start: '22:00', end: '07:00' };
+    return result;
+  }, []);
+
+  const loadSettings = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
       if (!token) return;
-
       const response = await fetch(`${func2url['push-notifications']}?action=get_settings`, {
         headers: { 'X-Auth-Token': token },
       });
-
       if (response.ok) {
         const data = await response.json();
-        if (data.settings) {
-          setSettings(migrateSettings(data.settings));
-        } else {
-          setSettings(buildDefaults());
-        }
+        setSettings(data.settings ? migrateSettings(data.settings) : buildDefaults());
       } else {
         setSettings(buildDefaults());
       }
@@ -147,74 +189,59 @@ export function NotificationTypeSettings() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [migrateSettings, buildDefaults]);
 
-  const migrateSettings = (raw: Record<string, boolean | TypeSetting>): NotificationSettings => {
-    const result = {} as Record<string, boolean | TypeSetting>;
-    for (const type of NOTIFICATION_TYPES) {
-      const val = raw[type.key];
-      if (val === undefined) {
-        result[type.key] = type.hasRemindBefore
-          ? { enabled: true, remind_before: type.defaultRemind || '1d' }
-          : { enabled: true, remind_before: '' };
-      } else if (typeof val === 'boolean') {
-        result[type.key] = type.hasRemindBefore
-          ? { enabled: val, remind_before: type.defaultRemind || '1d' }
-          : { enabled: val, remind_before: '' };
-      } else {
-        result[type.key] = val;
-      }
-    }
-    return result as NotificationSettings;
-  };
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
-  const buildDefaults = (): NotificationSettings => {
-    const result = {} as Record<string, TypeSetting>;
-    for (const type of NOTIFICATION_TYPES) {
-      result[type.key] = {
-        enabled: true,
-        remind_before: type.hasRemindBefore ? (type.defaultRemind || '1d') : '',
-      };
-    }
-    return result as NotificationSettings;
-  };
-
-  const saveSettings = async (newSettings: NotificationSettings) => {
+  const saveSettings = async (newSettings: FullSettings) => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('authToken');
       if (!token) return;
-
       await fetch(func2url['push-notifications'], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
         body: JSON.stringify({ action: 'update_settings', settings: newSettings }),
       });
     } catch (error) {
-      console.error('Failed to save notification settings:', error);
+      console.error('Failed to save:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleToggle = (key: keyof NotificationSettings) => {
+  const handleToggle = (key: string) => {
     if (!settings) return;
-    const current = settings[key];
-    const newVal: TypeSetting = typeof current === 'object'
-      ? { ...current, enabled: !current.enabled }
-      : { enabled: !(current as boolean), remind_before: '' };
+    const current = settings[key] as TypeSetting;
+    const newVal: TypeSetting = { ...current, enabled: !current.enabled };
     const newSettings = { ...settings, [key]: newVal };
     setSettings(newSettings);
     saveSettings(newSettings);
   };
 
-  const handleRemindChange = (key: keyof NotificationSettings, value: string) => {
+  const handleRemindChange = (key: string, value: string) => {
     if (!settings) return;
-    const current = settings[key];
-    const newVal: TypeSetting = typeof current === 'object'
-      ? { ...current, remind_before: value }
-      : { enabled: true, remind_before: value };
+    const current = settings[key] as TypeSetting;
+    const newVal: TypeSetting = { ...current, remind_before: value };
     const newSettings = { ...settings, [key]: newVal };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+  };
+
+  const handleQuietToggle = () => {
+    if (!settings) return;
+    const qh = settings.quiet_hours as QuietHours;
+    const newSettings = { ...settings, quiet_hours: { ...qh, enabled: !qh.enabled } };
+    setSettings(newSettings);
+    saveSettings(newSettings);
+  };
+
+  const handleQuietChange = (field: 'start' | 'end', value: string) => {
+    if (!settings) return;
+    const qh = settings.quiet_hours as QuietHours;
+    const newSettings = { ...settings, quiet_hours: { ...qh, [field]: value } };
     setSettings(newSettings);
     saveSettings(newSettings);
   };
@@ -229,76 +256,122 @@ export function NotificationTypeSettings() {
     );
   }
 
+  const quietHours = settings.quiet_hours as QuietHours;
+
   return (
-    <Card className="border-gray-200">
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Icon name="Settings" size={20} className="text-gray-600" />
-          Типы уведомлений
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-gray-600 mb-4">
-          Выберите, какие уведомления получать и за сколько напоминать
-        </p>
-        
-        {NOTIFICATION_TYPES.map((type) => {
-          const enabled = getEnabled(settings[type.key]);
-          const remindBefore = getRemindBefore(settings[type.key], type.defaultRemind || '');
+    <div className="space-y-4">
+      <Card className="border-gray-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="Settings" size={20} className="text-gray-600" />
+            Типы уведомлений
+          </CardTitle>
+          <p className="text-sm text-gray-500">Какие уведомления получать и за сколько напоминать</p>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {NOTIFICATION_TYPES.map((type) => {
+            const enabled = getEnabled(settings[type.key] as TypeSetting);
+            const remindBefore = getRemindBefore(settings[type.key] as TypeSetting, type.defaultRemind);
 
-          return (
-            <div
-              key={type.key}
-              className={`p-3 rounded-lg border transition-colors ${
-                enabled ? 'bg-gray-50 border-gray-200 hover:border-gray-300' : 'bg-gray-100 border-gray-200 opacity-60'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3 flex-1">
-                  <Icon name={type.icon} size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 text-sm">{type.title}</h4>
-                    <p className="text-xs text-gray-600 mt-0.5">{type.description}</p>
+            return (
+              <div
+                key={type.key}
+                className={`p-3 rounded-lg border transition-colors ${
+                  enabled ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100 opacity-60'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                    <Icon name={type.icon} size={18} className="text-gray-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm leading-tight">{type.title}</h4>
+                      <p className="text-xs text-gray-500 leading-tight mt-0.5 truncate">{type.description}</p>
+                    </div>
                   </div>
+                  <Switch
+                    checked={enabled}
+                    onCheckedChange={() => handleToggle(type.key)}
+                    disabled={isSaving}
+                    className="flex-shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={enabled}
-                  onCheckedChange={() => handleToggle(type.key)}
-                  disabled={isSaving}
-                  className="flex-shrink-0 ml-3"
-                />
+
+                {type.remindOptions && enabled && (
+                  <div className="mt-2 ml-7 flex items-center gap-2">
+                    <Icon name="Clock" size={13} className="text-gray-400 flex-shrink-0" />
+                    <Select value={remindBefore} onValueChange={(v) => handleRemindChange(type.key, v)}>
+                      <SelectTrigger className="h-7 text-xs flex-1 max-w-[200px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {type.remindOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
+            );
+          })}
+        </CardContent>
+      </Card>
 
-              {type.hasRemindBefore && enabled && (
-                <div className="mt-3 ml-8 flex items-center gap-2">
-                  <Icon name="Clock" size={14} className="text-gray-500 flex-shrink-0" />
-                  <span className="text-xs text-gray-600 flex-shrink-0">Напомнить:</span>
-                  <Select value={remindBefore} onValueChange={(v) => handleRemindChange(type.key, v)}>
-                    <SelectTrigger className="h-8 text-xs w-auto min-w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(type.remindOptions || []).map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+      <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2.5">
+              <Icon name="Moon" size={18} className="text-indigo-600" />
+              <div>
+                <h4 className="font-medium text-gray-900 text-sm">Тихие часы</h4>
+                <p className="text-xs text-gray-500">Без уведомлений в ночное время</p>
+              </div>
             </div>
-          );
-        })}
-
-        {isSaving && (
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-600 py-2">
-            <Icon name="Loader2" size={16} className="animate-spin" />
-            Сохранение...
+            <Switch
+              checked={quietHours.enabled}
+              onCheckedChange={handleQuietToggle}
+              disabled={isSaving}
+            />
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {quietHours.enabled && (
+            <div className="flex items-center gap-2 ml-7 flex-wrap">
+              <span className="text-xs text-gray-600">С</span>
+              <Select value={quietHours.start} onValueChange={(v) => handleQuietChange('start', v)}>
+                <SelectTrigger className="h-7 text-xs w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {QUIET_HOURS_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-xs text-gray-600">до</span>
+              <Select value={quietHours.end} onValueChange={(v) => handleQuietChange('end', v)}>
+                <SelectTrigger className="h-7 text-xs w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {QUIET_END_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {isSaving && (
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-500 py-1">
+          <Icon name="Loader2" size={14} className="animate-spin" />
+          Сохранение...
+        </div>
+      )}
+    </div>
   );
 }
 
