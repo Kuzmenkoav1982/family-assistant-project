@@ -2,82 +2,60 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from datetime import datetime
+
+SCHEMA = 't_p5815085_family_assistant_pro'
 
 def handler(event: dict, context) -> dict:
-    '''API для получения истории перемещений члена семьи за день'''
+    """API для получения истории перемещений члена семьи за день"""
     method = event.get('httpMethod', 'GET')
-    
+
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
+        'Content-Type': 'application/json'
+    }
+
     if method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token'
-            },
-            'body': ''
-        }
-    
+        return {'statusCode': 200, 'headers': cors_headers, 'body': ''}
+
     if method != 'GET':
         return {
             'statusCode': 405,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': cors_headers,
             'body': json.dumps({'error': 'Method not allowed'})
         }
-    
-    # Параметры запроса
-    params = event.get('queryStringParameters', {})
+
+    params = event.get('queryStringParameters', {}) or {}
     member_id = params.get('member_id')
-    date_str = params.get('date')  # Формат: YYYY-MM-DD
-    
+    date_str = params.get('date')
+
     if not member_id or not date_str:
         return {
             'statusCode': 400,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': cors_headers,
             'body': json.dumps({'error': 'Missing member_id or date'})
         }
-    
-    dsn = os.environ.get('DATABASE_URL')
-    if not dsn:
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'DATABASE_URL not configured'})
-        }
-    
-    conn = psycopg2.connect(dsn)
+
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
     conn.autocommit = True
-    
+
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Создаем таблицу если не существует
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS family_tracker_locations (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    family_id INTEGER NOT NULL,
-                    latitude DOUBLE PRECISION NOT NULL,
-                    longitude DOUBLE PRECISION NOT NULL,
-                    accuracy DOUBLE PRECISION,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            
-            # Получаем историю за указанную дату
-            cur.execute('''
-                SELECT latitude as lat, longitude as lng, accuracy, created_at as timestamp
-                FROM family_tracker_locations
-                WHERE user_id = %s
-                  AND DATE(created_at) = %s
-                ORDER BY created_at ASC
-            ''', (int(member_id), date_str))
-            
+            cur.execute(f"""
+                SELECT lt.latitude as lat, lt.longitude as lng, lt.accuracy, lt.created_at as timestamp
+                FROM {SCHEMA}.family_location_tracking lt
+                JOIN {SCHEMA}.family_members fm ON fm.user_id = lt.user_id
+                WHERE fm.id = %s
+                  AND DATE(lt.created_at) = %s
+                ORDER BY lt.created_at ASC
+            """, (member_id, date_str))
+
             locations = cur.fetchall()
-            
+
             return {
                 'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'headers': cors_headers,
                 'body': json.dumps({
                     'success': True,
                     'member_id': member_id,
@@ -94,11 +72,11 @@ def handler(event: dict, context) -> dict:
                     'total_points': len(locations)
                 }, default=str)
             }
-    
+
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': cors_headers,
             'body': json.dumps({'error': str(e)})
         }
     finally:

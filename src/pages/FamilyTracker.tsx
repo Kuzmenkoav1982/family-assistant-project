@@ -237,7 +237,6 @@ export default function FamilyTracker() {
     
     setIsTracking(false);
     localStorage.setItem('isTracking', 'false');
-    sessionStorage.removeItem('trackingStarted');
   };
 
   // Добавление геозоны
@@ -495,12 +494,10 @@ export default function FamilyTracker() {
     }
   }, [map]);
 
-  // Восстановление отслеживания при загрузке страницы (только один раз)
+  // Восстановление отслеживания при загрузке страницы
   useEffect(() => {
-    const hasStartedTracking = sessionStorage.getItem('trackingStarted');
-    if (isTracking && map && !hasStartedTracking) {
+    if (isTracking && map && !watchId.current) {
       startTracking();
-      sessionStorage.setItem('trackingStarted', 'true');
     }
   }, [map]);
 
@@ -694,7 +691,7 @@ export default function FamilyTracker() {
                 {familyMembers.map((member) => {
                   const memberLocation = locations.find(loc => loc.memberId === member.id);
                   const isOnline = memberLocation && 
-                    (new Date().getTime() - new Date(memberLocation.timestamp).getTime()) < 600000; // 10 минут
+                    (new Date().getTime() - new Date(memberLocation.timestamp).getTime()) < 1800000; // 30 минут
 
                   return (
                     <div

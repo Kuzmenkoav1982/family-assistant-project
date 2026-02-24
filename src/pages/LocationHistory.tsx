@@ -59,22 +59,48 @@ export default function LocationHistory() {
 
   // Инициализация карты
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=your_api_key&lang=ru_RU';
-    script.async = true;
-    script.onload = () => {
-      // @ts-ignore
-      window.ymaps.ready(() => {
-        // @ts-ignore
-        const mapInstance = new window.ymaps.Map('history-map', {
-          center: [55.751244, 37.618423],
-          zoom: 12,
-          controls: ['zoomControl', 'fullscreenControl']
-        });
-        setMap(mapInstance);
-      });
+    const initMap = async () => {
+      try {
+        const resp = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
+        const data = await resp.json();
+        const apiKey = data.apiKey;
+
+        // @ts-expect-error ymaps
+        if (window.ymaps) {
+          // @ts-expect-error ymaps
+          window.ymaps.ready(() => {
+            // @ts-expect-error ymaps
+            const mapInstance = new window.ymaps.Map('history-map', {
+              center: [55.751244, 37.618423],
+              zoom: 12,
+              controls: ['zoomControl', 'fullscreenControl']
+            });
+            setMap(mapInstance);
+          });
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`;
+        script.async = true;
+        script.onload = () => {
+          // @ts-expect-error ymaps
+          window.ymaps.ready(() => {
+            // @ts-expect-error ymaps
+            const mapInstance = new window.ymaps.Map('history-map', {
+              center: [55.751244, 37.618423],
+              zoom: 12,
+              controls: ['zoomControl', 'fullscreenControl']
+            });
+            setMap(mapInstance);
+          });
+        };
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Ошибка инициализации карты:', error);
+      }
     };
-    document.head.appendChild(script);
+    initMap();
   }, []);
 
   // Загрузка истории
@@ -82,7 +108,7 @@ export default function LocationHistory() {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(
-        `https://functions.poehali.dev/location-history?member_id=${selectedMember}&date=${selectedDate}`,
+        `https://functions.poehali.dev/e00d057e-5c17-4a43-ab17-f926d7ab3d7c?member_id=${selectedMember}&date=${selectedDate}`,
         {
           method: 'GET',
           headers: {

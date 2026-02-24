@@ -1,10 +1,30 @@
 {
   "tests": [
     {
-      "name": "Get location history for date",
-      "method": "GET",
-      "path": "/?member_id=1&date=2026-01-14",
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
       "expectedStatus": 200
+    },
+    {
+      "name": "Missing params",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Missing member_id or date"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get history for member",
+      "method": "GET",
+      "path": "/?member_id=40e4eece-5988-4133-a6bb-0aaaee4db0c2&date=2026-02-24",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
