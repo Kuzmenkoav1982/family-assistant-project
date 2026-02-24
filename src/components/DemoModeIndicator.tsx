@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
+const HIDDEN_PAGES = ['/welcome', '/login', '/register', '/reset-password'];
+
 export function DemoModeIndicator() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
@@ -28,6 +31,7 @@ export function DemoModeIndicator() {
   }, []);
 
   if (!isDemoMode) return null;
+  if (HIDDEN_PAGES.includes(location.pathname)) return null;
 
   return (
     <div className="fixed top-20 right-4 z-40 animate-fade-in">
