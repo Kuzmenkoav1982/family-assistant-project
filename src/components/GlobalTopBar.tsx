@@ -31,6 +31,7 @@ export default function GlobalTopBar() {
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
+  const isDemoMode = !isAuthenticated && localStorage.getItem('isDemoMode') === 'true';
 
   const fetchBalance = useCallback(() => {
     if (!authToken) return;
@@ -107,12 +108,22 @@ export default function GlobalTopBar() {
       >
         <div className="px-4 h-16 flex items-center justify-between max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleMenuClick}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <Icon name="Menu" size={20} className="text-gray-600 dark:text-gray-400" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={handleMenuClick}
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <Icon name="Menu" size={20} className="text-gray-600 dark:text-gray-400" />
+              </button>
+              {isDemoMode && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap z-50 animate-fade-in pointer-events-none">
+                  <div className="relative bg-orange-500 text-white px-3 py-1.5 rounded-xl text-sm font-medium shadow-lg">
+                    <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-orange-500 rotate-45 rounded-sm" />
+                    Все разделы тут
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={() => navigate('/')}

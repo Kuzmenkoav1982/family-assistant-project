@@ -46,7 +46,6 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 onClick={() => {
                   localStorage.setItem('isDemoMode', 'true');
                   localStorage.setItem('demoStartTime', Date.now().toString());
-                  localStorage.setItem('demoShowSidebarHint', 'true');
                   navigate('/');
                 }}
                 size="lg"

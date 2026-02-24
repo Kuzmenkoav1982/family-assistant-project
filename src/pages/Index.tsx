@@ -325,18 +325,17 @@ export default function Index({ onLogout }: IndexProps) {
     return (localStorage.getItem('appearanceMode') as 'light' | 'dark' | 'system' | 'auto') || 'light';
   });
   const [showWelcome, setShowWelcome] = useState(() => {
+    if (localStorage.getItem('isDemoMode') === 'true') return false;
+    
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     const userData = localStorage.getItem('userData');
     
-    // Не показываем приветствие, если пользователь уже видел его
     if (hasSeenWelcome) return false;
     
-    // Не показываем приветствие зарегистрированным пользователям (у которых есть семья)
     if (userData) {
       try {
         const user = JSON.parse(userData);
         if (user.family_name && user.logo_url) {
-          // Пользователь уже настроил семью - не показываем приветствие
           localStorage.setItem('hasSeenWelcome', 'true');
           return false;
         }
@@ -362,23 +361,7 @@ export default function Index({ onLogout }: IndexProps) {
   const [activeSection, setActiveSection] = useState<string>('family');
   const [showInDevelopment, setShowInDevelopment] = useState(false);
 
-  useEffect(() => {
-    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
-    const hasSeenSidebarHint = localStorage.getItem('hasSeenSidebarHint');
-    if (isDemoMode && !hasSeenSidebarHint) {
-      const openTimer = setTimeout(() => {
-        setIsLeftMenuVisible(true);
-      }, 1500);
-      const closeTimer = setTimeout(() => {
-        setIsLeftMenuVisible(false);
-        setShowSidebarHint(true);
-      }, 5500);
-      return () => {
-        clearTimeout(openTimer);
-        clearTimeout(closeTimer);
-      };
-    }
-  }, []);
+  
 
   // Read section from URL params
   useEffect(() => {
