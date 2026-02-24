@@ -81,33 +81,32 @@ export default function AssistantTypeSelectorDialog({
       }
     }}>
       <DialogContent 
-        className="max-w-2xl max-h-[90vh] overflow-y-auto" 
+        className="max-w-2xl w-[95vw] sm:w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6" 
         onPointerDownOutside={(e) => e.preventDefault()} 
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             🏠 Выберите вашего помощника
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             AI-ассистент будет помогать вам в организации семейной жизни
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Нейтральный AI */}
+        <div className="space-y-3 sm:space-y-4 py-2 sm:py-4">
           <div
-            className={`p-6 cursor-pointer transition-all rounded-lg border-2 ${
+            className={`p-4 sm:p-6 cursor-pointer transition-all rounded-lg border-2 ${
               selectedType === 'neutral'
                 ? 'border-blue-500 border-2 bg-blue-50'
                 : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
             }`}
             onClick={() => setSelectedType('neutral')}
           >
-            <div className="flex items-start gap-4">
-              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI Ассистент" className="w-12 h-12 rounded-full flex-shrink-0" />
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI Ассистент" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-semibold mb-1 flex items-center gap-2">
                   Нейтральный AI-ассистент
                   {selectedType === 'neutral' && (
                     <Icon name="CheckCircle2" className="text-blue-500" size={20} />
@@ -147,17 +146,17 @@ export default function AssistantTypeSelectorDialog({
 
           {/* Домовой */}
           <div
-            className={`p-6 cursor-pointer transition-all rounded-lg border-2 ${
+            className={`p-4 sm:p-6 cursor-pointer transition-all rounded-lg border-2 ${
               selectedType === 'domovoy'
                 ? 'border-amber-500 border-2 bg-amber-50'
                 : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
             }`}
             onClick={() => setSelectedType('domovoy')}
           >
-            <div className="flex items-start gap-4">
-              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7b22f58e-5e92-433c-a828-92484495a246.jpg" alt="Домовой" className="w-12 h-12 rounded-full flex-shrink-0 object-cover" />
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7b22f58e-5e92-433c-a828-92484495a246.jpg" alt="Домовой" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 object-cover" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-semibold mb-1 flex items-center gap-2">
                   Домовой - хранитель очага
                   {selectedType === 'domovoy' && (
                     <Icon name="CheckCircle2" className="text-amber-500" size={20} />

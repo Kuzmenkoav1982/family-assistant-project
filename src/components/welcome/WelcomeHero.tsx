@@ -43,20 +43,26 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
           {!isLoggedIn && (
             <>
               <Button
+                onClick={() => {
+                  localStorage.setItem('isDemoMode', 'true');
+                  localStorage.setItem('demoStartTime', Date.now().toString());
+                  localStorage.setItem('demoShowSidebarHint', 'true');
+                  navigate('/');
+                }}
+                size="lg"
+                variant="outline"
+                className="border-2 border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400 text-lg px-8 py-7 font-semibold rounded-2xl w-full sm:w-auto"
+              >
+                <Icon name="Eye" size={20} className="mr-2" />
+                Попробовать без регистрации
+              </Button>
+              <Button
                 onClick={() => navigate('/login')}
                 size="lg"
                 variant="ghost"
                 className="text-gray-500 hover:text-gray-900 text-base"
               >
                 Уже есть аккаунт? Войти
-              </Button>
-              <Button
-                onClick={() => navigate('/demo')}
-                size="lg"
-                variant="ghost"
-                className="text-gray-400 hover:text-gray-700 text-sm underline underline-offset-4"
-              >
-                Посмотреть без регистрации
               </Button>
             </>
           )}
