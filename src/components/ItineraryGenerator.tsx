@@ -54,7 +54,7 @@ const INTERESTS_OPTIONS = [
 export default function ItineraryGenerator() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const familyId = localStorage.getItem('currentFamilyId') || null;
+  const familyId = localStorage.getItem('familyId') || null;
   const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
 
   const [location, setLocation] = useState('');

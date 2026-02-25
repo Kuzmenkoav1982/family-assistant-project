@@ -32,7 +32,7 @@ const AIAssistant = () => {
   const { toast } = useToast();
 
   // Получаем данные пользователя
-  const familyId = localStorage.getItem('currentFamilyId') || null;
+  const familyId = localStorage.getItem('familyId') || null;
   const userData = localStorage.getItem('userData');
   const userId = userData ? JSON.parse(userData).id : undefined;
 

@@ -54,7 +54,7 @@ export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeas
         const parsed = JSON.parse(userData);
         return parsed.family_id || null;
       }
-      return localStorage.getItem('currentFamilyId') || null;
+      return localStorage.getItem('familyId') || null;
     } catch {
       return null;
     }

@@ -45,7 +45,7 @@ const AGE_GROUPS = [
 export function AIAssistant({ onAddPlace }: AIAssistantProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const familyId = localStorage.getItem('currentFamilyId') || null;
+  const familyId = localStorage.getItem('familyId') || null;
   const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
 
   const [isOpen, setIsOpen] = useState(false);
