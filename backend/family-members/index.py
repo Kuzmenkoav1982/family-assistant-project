@@ -75,7 +75,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
           AND name NOT LIKE '[ДУБЛИКАТ%'
-        ORDER BY created_at ASC
+        ORDER BY CASE WHEN role = 'Владелец' THEN 0 ELSE 1 END, created_at ASC
     """
     print(f"[DEBUG] get_family_members query: {query}")
     cur.execute(query)

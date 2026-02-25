@@ -27,6 +27,25 @@ interface FamilyMember {
 
 const FAMILY_MEMBERS_API = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5';
 
+function sortMembersByPriority(members: FamilyMember[], currentMemberId?: string): FamilyMember[] {
+  const getPriority = (m: FamilyMember): number => {
+    const role = (m.role || '').toLowerCase();
+    const rel = (m.relationship || '').toLowerCase();
+    if (role === 'владелец') return 0;
+    if (currentMemberId && m.id === currentMemberId) return 1;
+    if (['жена', 'муж', 'супруга', 'супруг'].some(r => role.includes(r) || rel.includes(r))) return 2;
+    if (['сын', 'дочь', 'ребёнок', 'ребенок'].some(r => role.includes(r) || rel.includes(r))) return 3;
+    if (['бабушка', 'дедушка'].some(r => role.includes(r) || rel.includes(r))) return 4;
+    return 5;
+  };
+  return [...members].sort((a, b) => {
+    const pa = getPriority(a);
+    const pb = getPriority(b);
+    if (pa !== pb) return pa - pb;
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
+}
+
 export function useFamilyMembers() {
   const dialogLock = useContext(DialogLockContext);
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -75,7 +94,12 @@ export function useFamilyMembers() {
           birthTime: m.birth_time,
           account_type: m.account_type || (m.user_id ? 'full' : 'child_profile')
         }));
-        setMembers(convertedMembers);
+        let currentMemberId: string | undefined;
+        try {
+          const ud = localStorage.getItem('userData');
+          if (ud) currentMemberId = JSON.parse(ud).member_id;
+        } catch { /* ignore */ }
+        setMembers(sortMembersByPriority(convertedMembers, data.current_member_id || currentMemberId));
         setError(null);
       } else {
         if (!silent) {
