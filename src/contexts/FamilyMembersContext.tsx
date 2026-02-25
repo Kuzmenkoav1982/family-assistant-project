@@ -53,10 +53,10 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   const getAuthToken = () => localStorage.getItem('authToken') || '';
 
   const getMemberSortPriority = (member: FamilyMember, currentUserMemberId?: string): number => {
-    if (currentUserMemberId && member.id === currentUserMemberId) return 0;
     const role = (member.role || '').toLowerCase();
     const rel = (member.relationship || '').toLowerCase();
-    if (role === 'владелец') return 1;
+    if (role === 'владелец') return 0;
+    if (currentUserMemberId && member.id === currentUserMemberId) return 1;
     if (['жена', 'муж', 'супруга', 'супруг'].some(r => role.includes(r) || rel.includes(r))) return 2;
     if (['сын', 'дочь', 'ребёнок', 'ребенок'].some(r => role.includes(r) || rel.includes(r))) return 3;
     if (['бабушка', 'дедушка'].some(r => role.includes(r) || rel.includes(r))) return 4;
