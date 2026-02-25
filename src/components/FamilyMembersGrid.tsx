@@ -343,7 +343,19 @@ const MemberCard = ({
   );
 };
 
-export function FamilyMembersGrid({ members, onMemberClick, tasks = [], events = [], onAssignTask }: FamilyMembersGridProps) {
+function ensureOwnerFirst(members: FamilyMember[]): FamilyMember[] {
+  const ownerIdx = members.findIndex(m => (m.role || '').toLowerCase() === 'владелец');
+  if (ownerIdx > 0) {
+    const sorted = [...members];
+    const [owner] = sorted.splice(ownerIdx, 1);
+    sorted.unshift(owner);
+    return sorted;
+  }
+  return members;
+}
+
+export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = [], events = [], onAssignTask }: FamilyMembersGridProps) {
+  const members = ensureOwnerFirst(rawMembers);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   
   if (members.length > 50) {

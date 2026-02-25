@@ -75,7 +75,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       } catch { /* ignore */ }
     }
 
-    return [...members].sort((a, b) => {
+    const sorted = [...members].sort((a, b) => {
       const priorityA = getMemberSortPriority(a, currentUserMemberId);
       const priorityB = getMemberSortPriority(b, currentUserMemberId);
       if (priorityA !== priorityB) return priorityA - priorityB;
@@ -83,6 +83,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       const dateB = new Date(b.created_at).getTime();
       return dateA - dateB;
     });
+    return sorted;
   };
 
   const fetchMembers = useCallback(async (silent = false) => {
