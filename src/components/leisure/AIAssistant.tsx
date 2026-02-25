@@ -83,9 +83,10 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
       // Инкрементируем счётчик
       await incrementUsage('ai_requests');
 
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
       const response = await fetch(LEISURE_AI_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
         body: JSON.stringify({
           action: 'recommend',
           city,
@@ -94,6 +95,16 @@ export function AIAssistant({ onAddPlace }: AIAssistantProps) {
           budget
         })
       });
+
+      if (response.status === 402) {
+        const errData = await response.json();
+        toast({
+          title: 'Недостаточно средств',
+          description: `На балансе ${errData.balance || 0} руб, нужно 4 руб. Пополните кошелёк.`,
+          variant: 'destructive',
+        });
+        return;
+      }
 
       const data = await response.json();
       setRecommendations(data.recommendations || []);
