@@ -636,7 +636,8 @@ export default function FamilyTracker() {
                             {memberLocation
                               ? new Date(memberLocation.timestamp).toLocaleTimeString('ru-RU', {
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
+                                timeZone: 'Europe/Moscow'
                               })
                               : 'Нет данных'}
                           </p>

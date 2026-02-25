@@ -123,7 +123,7 @@ def handler(event: dict, context) -> dict:
                     'lat': float(row[1]),
                     'lng': float(row[2]),
                     'accuracy': float(row[3]) if row[3] else 0,
-                    'timestamp': row[4].isoformat() if row[4] else None
+                    'timestamp': (row[4].isoformat() + 'Z') if row[4] else None
                 })
 
             return {
