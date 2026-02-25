@@ -85,15 +85,16 @@ def handler(event: dict, context) -> dict:
             # Получаем всех членов семьи с подтвержденными аккаунтами
             cur.execute('''
                 SELECT 
-                    u.id,
+                    fm.id,
                     COALESCE(fm.name, u.name) as name,
                     COALESCE(fm.photo_url, u.avatar_url) as avatar_url,
                     fm.role
                 FROM t_p5815085_family_assistant_pro.family_members fm
-                JOIN t_p5815085_family_assistant_pro.users u ON fm.user_id = u.id
+                LEFT JOIN t_p5815085_family_assistant_pro.users u ON fm.user_id = u.id
                 WHERE fm.family_id = %s
                   AND fm.member_status = 'active'
-                ORDER BY fm.name
+                  AND fm.name NOT LIKE '%%ДУБЛИКАТ%%'
+                ORDER BY fm.created_at
             ''', (family_id,))
             
             members = cur.fetchall()

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,15 @@ interface AlertSetting {
   notify_members: string[];
 }
 
+const TRACKER_URL = 'https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533';
+const MEMBERS_URL = 'https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d';
+const GEOFENCES_URL = 'https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459';
+const MAPS_KEY_URL = 'https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7';
+
+function getToken() {
+  return localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+}
+
 export default function FamilyTracker() {
   const navigate = useNavigate();
   const [map, setMap] = useState<any>(null);
@@ -45,7 +54,6 @@ export default function FamilyTracker() {
   const [isTracking, setIsTracking] = useState(() => {
     return localStorage.getItem('isTracking') === 'true';
   });
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string>('');
   const [geofences, setGeofences] = useState<Geofence[]>([]);
   const [isAddingZone, setIsAddingZone] = useState(false);
@@ -57,39 +65,66 @@ export default function FamilyTracker() {
   const [savingSettings, setSavingSettings] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const watchId = useRef<number | null>(null);
-  const circleRef = useRef<any>(null);
+  const mapRef = useRef<any>(null);
+  const membersRef = useRef<FamilyMember[]>([]);
+  const isAddingZoneRef = useRef(false);
+  const newZoneNameRef = useRef('');
+  const newZoneRadiusRef = useRef(500);
 
-  // Загрузка членов семьи
+  useEffect(() => { membersRef.current = familyMembers; }, [familyMembers]);
+  useEffect(() => { isAddingZoneRef.current = isAddingZone; }, [isAddingZone]);
+  useEffect(() => { newZoneNameRef.current = newZoneName; }, [newZoneName]);
+  useEffect(() => { newZoneRadiusRef.current = newZoneRadius; }, [newZoneRadius]);
+
   useEffect(() => {
     const loadMembers = async () => {
       try {
-        const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-        const response = await fetch('https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d', {
+        const response = await fetch(MEMBERS_URL, {
           method: 'GET',
-          headers: {
-            'X-Auth-Token': token || ''
-          }
+          headers: { 'X-Auth-Token': getToken() }
         });
-
         if (response.ok) {
           const data = await response.json();
-          setFamilyMembers(data.members || []);
+          const members = data.members || [];
+          console.log('[Tracker] Members loaded:', members.length, members.map((m: any) => ({ id: m.id, name: m.name, avatar_url: m.avatar_url })));
+          setFamilyMembers(members);
         }
-      } catch (error) {
-        console.error('Ошибка загрузки членов семьи:', error);
+      } catch (err) {
+        console.error('[Tracker] Error loading members:', err);
       }
     };
-
     loadMembers();
   }, []);
 
-  // Инициализация Яндекс.Карт
   useEffect(() => {
     const initMap = async () => {
       try {
-        const response = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
+        const response = await fetch(MAPS_KEY_URL);
         const data = await response.json();
         const apiKey = data.apiKey;
+
+        // @ts-ignore
+        if (window.ymaps) {
+          // @ts-ignore
+          window.ymaps.ready(() => {
+            if (!mapContainer.current) return;
+            // @ts-ignore
+            const mapInstance = new window.ymaps.Map(mapContainer.current, {
+              center: [55.751244, 37.618423],
+              zoom: 12,
+              controls: ['zoomControl', 'fullscreenControl']
+            });
+            mapInstance.events.add('click', (e: any) => {
+              if (isAddingZoneRef.current && newZoneNameRef.current) {
+                const coords = e.get('coords');
+                addGeofence(coords[0], coords[1]);
+              }
+            });
+            mapRef.current = mapInstance;
+            setMap(mapInstance);
+          });
+          return;
+        }
 
         const script = document.createElement('script');
         script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`;
@@ -98,104 +133,70 @@ export default function FamilyTracker() {
           // @ts-ignore
           window.ymaps.ready(() => {
             if (!mapContainer.current) return;
-
             // @ts-ignore
             const mapInstance = new window.ymaps.Map(mapContainer.current, {
-              center: [55.751244, 37.618423], // Москва по умолчанию
+              center: [55.751244, 37.618423],
               zoom: 12,
               controls: ['zoomControl', 'fullscreenControl']
             });
-
-            // Обработчик клика по карте для добавления зоны
             mapInstance.events.add('click', (e: any) => {
-              if (isAddingZone && newZoneName) {
+              if (isAddingZoneRef.current && newZoneNameRef.current) {
                 const coords = e.get('coords');
                 addGeofence(coords[0], coords[1]);
               }
             });
-
+            mapRef.current = mapInstance;
             setMap(mapInstance);
           });
         };
         document.head.appendChild(script);
-      } catch (error) {
-        console.error('Ошибка загрузки API ключа Яндекс.Карт:', error);
+      } catch (err) {
+        console.error('[Tracker] Error loading map:', err);
       }
     };
-
     initMap();
-
     return () => {
-      if (map) {
-        map.destroy();
+      if (mapRef.current) {
+        mapRef.current.destroy();
       }
     };
   }, []);
 
-  // Запуск отслеживания геолокации
   const startTracking = () => {
     if (!navigator.geolocation) {
       setError('Ваш браузер не поддерживает геолокацию');
       return;
     }
-
     setError('');
     setIsTracking(true);
     localStorage.setItem('isTracking', 'true');
 
-    // Получение координат и отправка на сервер
     const sendCurrentLocation = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude, accuracy } = position.coords;
-          const newLocation = {
-            memberId: '1',
-            lat: latitude,
-            lng: longitude,
-            timestamp: new Date().toISOString(),
-            accuracy
-          };
-
-          setCurrentLocation({ lat: latitude, lng: longitude });
-          sendLocationToServer(newLocation);
-
-          // Центрирование карты
-          if (map) {
-            map.setCenter([latitude, longitude]);
-            // @ts-ignore
-            const placemark = new window.ymaps.Placemark(
-              [latitude, longitude],
-              { balloonContent: 'Вы здесь' },
-              { preset: 'islands#blueCircleDotIcon' }
-            );
-            map.geoObjects.add(placemark);
+          sendLocationToServer({ lat: latitude, lng: longitude, accuracy });
+          if (mapRef.current) {
+            mapRef.current.setCenter([latitude, longitude]);
           }
         },
         (err) => {
-          setError(`Ошибка получения геолокации: ${err.message}`);
+          setError(`Ошибка геолокации: ${err.message}`);
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     };
 
-    // Отправить координаты сразу
     sendCurrentLocation();
 
-    // Настроить Service Worker для фоновой отправки
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const token = getToken();
       navigator.serviceWorker.controller.postMessage({
         type: 'START_GEOLOCATION',
-        interval: 600000, // 10 минут
-        apiUrl: 'https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533',
+        interval: 600000,
+        apiUrl: TRACKER_URL,
         authToken: token
       });
-
-      // Слушаем запросы от Service Worker
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data.type === 'REQUEST_LOCATION') {
           navigator.geolocation.getCurrentPosition(
@@ -204,309 +205,208 @@ export default function FamilyTracker() {
               try {
                 await fetch(event.data.apiUrl, {
                   method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-Auth-Token': event.data.authToken || ''
-                  },
-                  body: JSON.stringify({
-                    lat: latitude,
-                    lng: longitude,
-                    accuracy
-                  })
+                  headers: { 'Content-Type': 'application/json', 'X-Auth-Token': event.data.authToken || '' },
+                  body: JSON.stringify({ lat: latitude, lng: longitude, accuracy })
                 });
-              } catch (error) {
-                console.error('Ошибка отправки координат:', error);
+              } catch (e) {
+                console.error('[Tracker] SW location send error:', e);
               }
             },
-            (err) => console.error('Ошибка геолокации:', err),
+            (err) => console.error('[Tracker] SW geolocation error:', err),
             { enableHighAccuracy: true }
           );
         }
       });
     }
 
-    // Периодическое обновление на странице (каждые 10 минут)
     watchId.current = window.setInterval(sendCurrentLocation, 600000);
   };
 
-  // Остановка отслеживания
   const stopTracking = () => {
     if (watchId.current !== null) {
       clearInterval(watchId.current);
       watchId.current = null;
     }
-    
-    // Остановить Service Worker
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'STOP_GEOLOCATION'
-      });
+      navigator.serviceWorker.controller.postMessage({ type: 'STOP_GEOLOCATION' });
     }
-    
     setIsTracking(false);
     localStorage.setItem('isTracking', 'false');
   };
 
-  // Добавление геозоны
+  const sendLocationToServer = async (location: { lat: number; lng: number; accuracy: number }) => {
+    try {
+      await fetch(TRACKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': getToken() },
+        body: JSON.stringify(location)
+      });
+    } catch (err) {
+      console.error('[Tracker] Send location error:', err);
+    }
+  };
+
   const addGeofence = async (lat: number, lng: number) => {
-    if (!newZoneName) {
+    const zoneName = newZoneNameRef.current;
+    const zoneRadius = newZoneRadiusRef.current;
+    if (!zoneName) {
       setError('Введите название зоны');
       return;
     }
-
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
+      const response = await fetch(GEOFENCES_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token || ''
-        },
-        body: JSON.stringify({
-          name: newZoneName,
-          center_lat: lat,
-          center_lng: lng,
-          radius: newZoneRadius,
-          color: '#9333EA'
-        })
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': getToken() },
+        body: JSON.stringify({ name: zoneName, center_lat: lat, center_lng: lng, radius: zoneRadius, color: '#9333EA' })
       });
-
       if (response.ok) {
         const newZone = await response.json();
-        setGeofences([...geofences, newZone]);
-        
-        // Отрисовка круга на карте
-        if (map) {
-          // @ts-ignore
-          const circle = new window.ymaps.Circle(
-            [[lat, lng], newZoneRadius],
-            {},
-            {
-              fillColor: '#9333EA30',
-              strokeColor: '#9333EA',
-              strokeWidth: 2
-            }
-          );
-          map.geoObjects.add(circle);
-
-          // Метка с названием
-          // @ts-ignore
-          const placemark = new window.ymaps.Placemark(
-            [lat, lng],
-            { balloonContent: newZoneName },
-            { preset: 'islands#violetCircleDotIcon' }
-          );
-          map.geoObjects.add(placemark);
-        }
-
+        setGeofences(prev => [...prev, newZone]);
+        drawZoneOnMap(newZone);
         setNewZoneName('');
         setIsAddingZone(false);
         setError('');
       }
-    } catch (error) {
+    } catch (err) {
       setError('Ошибка добавления зоны');
-      console.error(error);
     }
   };
 
-  // Удаление геозоны
+  const drawZoneOnMap = (zone: Geofence) => {
+    const m = mapRef.current;
+    if (!m) return;
+    // @ts-ignore
+    const circle = new window.ymaps.Circle(
+      [[zone.center_lat, zone.center_lng], zone.radius],
+      {},
+      { fillColor: (zone.color || '#9333EA') + '30', strokeColor: zone.color || '#9333EA', strokeWidth: 2 }
+    );
+    m.geoObjects.add(circle);
+    // @ts-ignore
+    const placemark = new window.ymaps.Placemark(
+      [zone.center_lat, zone.center_lng],
+      { balloonContent: zone.name },
+      { preset: 'islands#violetCircleDotIcon' }
+    );
+    m.geoObjects.add(placemark);
+  };
+
   const deleteGeofence = async (zoneId: number) => {
     if (!confirm('Удалить эту зону?')) return;
-    
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-      const response = await fetch(`https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459?id=${zoneId}`, {
+      const response = await fetch(`${GEOFENCES_URL}?id=${zoneId}`, {
         method: 'DELETE',
-        headers: {
-          'X-Auth-Token': token || ''
-        }
+        headers: { 'X-Auth-Token': getToken() }
       });
-
       if (response.ok) {
-        // Обновляем список зон
-        setGeofences(geofences.filter(z => z.id !== zoneId));
-        // Перезагружаем карту
-        if (map) {
-          map.geoObjects.removeAll();
+        setGeofences(prev => prev.filter(z => z.id !== zoneId));
+        if (mapRef.current) {
+          mapRef.current.geoObjects.removeAll();
           loadGeofences();
           loadFamilyLocations();
         }
       }
-    } catch (error) {
-      console.error('Ошибка удаления зоны:', error);
+    } catch (err) {
+      console.error('[Tracker] Delete zone error:', err);
     }
   };
 
-  // Загрузка геозон
-  const loadGeofences = async () => {
+  const loadGeofences = useCallback(async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
+      const response = await fetch(GEOFENCES_URL, {
         method: 'GET',
-        headers: {
-          'X-Auth-Token': token || ''
-        }
+        headers: { 'X-Auth-Token': getToken() }
       });
-
       if (response.ok) {
         const data = await response.json();
         setGeofences(data.geofences || []);
-
         if (data.alert_settings) {
           setAlertSettings(data.alert_settings);
         }
-
-        // Отрисовка на карте
-        if (map && data.geofences) {
-          data.geofences.forEach((zone: Geofence) => {
-            // @ts-ignore
-            const circle = new window.ymaps.Circle(
-              [[zone.center_lat, zone.center_lng], zone.radius],
-              {},
-              {
-                fillColor: zone.color + '30',
-                strokeColor: zone.color,
-                strokeWidth: 2
-              }
-            );
-            map.geoObjects.add(circle);
-
-            // @ts-ignore
-            const placemark = new window.ymaps.Placemark(
-              [zone.center_lat, zone.center_lng],
-              { balloonContent: zone.name },
-              { preset: 'islands#violetCircleDotIcon' }
-            );
-            map.geoObjects.add(placemark);
-          });
+        if (mapRef.current && data.geofences) {
+          data.geofences.forEach((zone: Geofence) => drawZoneOnMap(zone));
         }
       }
-    } catch (error) {
-      console.error('Ошибка загрузки геозон:', error);
+    } catch (err) {
+      console.error('[Tracker] Load geofences error:', err);
     }
-  };
+  }, []);
 
-  // Отправка координат на сервер
-  const sendLocationToServer = async (location: LocationData) => {
+  const loadFamilyLocations = useCallback(async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token || ''
-        },
-        body: JSON.stringify(location)
-      });
-
-      if (!response.ok) {
-        console.error('Ошибка отправки координат на сервер');
-      }
-    } catch (error) {
-      console.error('Ошибка при отправке координат:', error);
-    }
-  };
-
-  // Загрузка локаций всех членов семьи
-  const loadFamilyLocations = async () => {
-    try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-      const response = await fetch('https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533', {
+      const response = await fetch(TRACKER_URL, {
         method: 'GET',
-        headers: {
-          'X-Auth-Token': token || ''
-        }
+        headers: { 'X-Auth-Token': getToken() }
       });
-
       if (response.ok) {
         const data = await response.json();
-        
-        // Показываем только последнюю локацию каждого члена семьи
+        const rawLocations = data.locations || [];
+        console.log('[Tracker] Raw locations:', rawLocations);
+
         const latestLocations: { [key: string]: LocationData } = {};
-        (data.locations || []).forEach((loc: LocationData) => {
-          if (!latestLocations[loc.memberId] || 
-              new Date(loc.timestamp) > new Date(latestLocations[loc.memberId].timestamp)) {
+        rawLocations.forEach((loc: LocationData) => {
+          if (!latestLocations[loc.memberId] ||
+            new Date(loc.timestamp) > new Date(latestLocations[loc.memberId].timestamp)) {
             latestLocations[loc.memberId] = loc;
           }
         });
         const filteredLocations = Object.values(latestLocations);
+        console.log('[Tracker] Filtered locations:', filteredLocations);
         setLocations(filteredLocations);
 
-        // Отображение меток на карте
-        if (map) {
-          // Очищаем старые метки (но не геозоны)
-          map.geoObjects.each((geoObject: any) => {
-            if (geoObject.properties && geoObject.properties.get('type') === 'member-location') {
-              map.geoObjects.remove(geoObject);
-            }
-          });
-
+        const m = mapRef.current;
+        const members = membersRef.current;
+        if (m && members.length > 0) {
           filteredLocations.forEach((loc: LocationData) => {
-            const member = familyMembers.find(m => m.id === loc.memberId);
-            if (member) {
-              // @ts-ignore
-              const MyIconContentLayout = window.ymaps.templateLayoutFactory.createClass(
-                `<div style="width: 50px; height: 50px; position: relative;">
-                  <div style="
-                    width: 44px; 
-                    height: 44px; 
-                    border-radius: 50%; 
-                    border: 3px solid ${member.color}; 
-                    overflow: hidden;
-                    background: ${member.color}20;
-                    position: absolute;
-                    top: 3px;
-                    left: 3px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                  ">
-                    ${member.avatar_url 
-                      ? `<img src="${member.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" />` 
-                      : `<span style="color: ${member.color}; font-size: 20px; font-weight: bold;">${member.name.charAt(0)}</span>`
-                    }
-                  </div>
-                </div>`
-              );
-
-              // @ts-ignore
-              const placemark = new window.ymaps.Placemark(
-                [loc.lat, loc.lng],
-                {
-                  balloonContent: `${member.name}<br>${new Date(loc.timestamp).toLocaleString()}`,
-                  type: 'member-location'
-                },
-                {
-                  iconLayout: MyIconContentLayout,
-                  iconShape: {
-                    type: 'Circle',
-                    coordinates: [0, 0],
-                    radius: 25
-                  }
-                }
-              );
-              placemark.properties.set('type', 'member-location');
-              map.geoObjects.add(placemark);
+            const member = members.find(mem => mem.id === loc.memberId);
+            if (!member) {
+              console.log('[Tracker] No member match for memberId:', loc.memberId, 'Available:', members.map(m => m.id));
+              return;
             }
+
+            const avatarHtml = member.avatar_url
+              ? `<img src="${member.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'color: ${member.color}; font-size: 20px; font-weight: bold;\\'>${member.name.charAt(0)}</span>'" />`
+              : `<span style="color: ${member.color}; font-size: 20px; font-weight: bold;">${member.name.charAt(0)}</span>`;
+
+            // @ts-ignore
+            const IconLayout = window.ymaps.templateLayoutFactory.createClass(
+              `<div style="width: 50px; height: 50px; position: relative;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid ${member.color}; overflow: hidden; background: ${member.color}20; position: absolute; top: 3px; left: 3px; display: flex; align-items: center; justify-content: center;">
+                  ${avatarHtml}
+                </div>
+              </div>`
+            );
+
+            // @ts-ignore
+            const placemark = new window.ymaps.Placemark(
+              [loc.lat, loc.lng],
+              {
+                balloonContent: `<strong>${member.name}</strong><br>${new Date(loc.timestamp).toLocaleString('ru-RU')}`,
+                type: 'member-location'
+              },
+              {
+                iconLayout: IconLayout,
+                iconShape: { type: 'Circle', coordinates: [25, 25], radius: 25 }
+              }
+            );
+            m.geoObjects.add(placemark);
           });
         }
       }
-    } catch (error) {
-      console.error('Ошибка загрузки локаций:', error);
+    } catch (err) {
+      console.error('[Tracker] Load locations error:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (map) {
+    if (map && familyMembers.length > 0) {
       loadFamilyLocations();
       loadGeofences();
-      // Обновление каждые 30 секунд
       const interval = setInterval(loadFamilyLocations, 30000);
       return () => clearInterval(interval);
     }
-  }, [map]);
+  }, [map, familyMembers]);
 
-  // Восстановление отслеживания при загрузке страницы
   useEffect(() => {
     if (isTracking && map && !watchId.current) {
       startTracking();
@@ -523,9 +423,8 @@ export default function FamilyTracker() {
           backPath="/family-hub"
         />
 
-        {/* Сворачиваемая инструкция */}
         <Card className="shadow-md bg-blue-50 border-blue-200">
-          <div 
+          <div
             className="p-4 cursor-pointer flex items-center justify-between hover:bg-blue-100 transition-colors"
             onClick={() => setIsInstructionOpen(!isInstructionOpen)}
           >
@@ -533,13 +432,13 @@ export default function FamilyTracker() {
               <Icon name="Info" size={20} className="text-blue-600" />
               <span className="font-semibold text-blue-900">Как это работает?</span>
             </div>
-            <Icon 
-              name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} 
-              size={20} 
+            <Icon
+              name={isInstructionOpen ? "ChevronUp" : "ChevronDown"}
+              size={20}
               className="text-blue-600"
             />
           </div>
-          
+
           {isInstructionOpen && (
             <div className="px-4 pb-4 text-blue-800 space-y-3">
               <p>
@@ -555,8 +454,8 @@ export default function FamilyTracker() {
               <p className="text-sm text-blue-700">
                 Данные защищены и доступны только вашей семье.
               </p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="mt-2 border-blue-400 text-blue-700 hover:bg-blue-100"
                 onClick={(e) => {
@@ -579,7 +478,6 @@ export default function FamilyTracker() {
         )}
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Карта */}
           <div className="lg:col-span-2">
             <Card className="shadow-xl">
               <CardHeader>
@@ -603,18 +501,12 @@ export default function FamilyTracker() {
                       Включить отслеживание
                     </Button>
                   ) : (
-                    <Button
-                      onClick={stopTracking}
-                      variant="destructive"
-                    >
+                    <Button onClick={stopTracking} variant="destructive">
                       <Icon name="Pause" size={18} className="mr-2" />
                       Остановить отслеживание
                     </Button>
                   )}
-                  <Button
-                    onClick={loadFamilyLocations}
-                    variant="outline"
-                  >
+                  <Button onClick={() => { if (mapRef.current) { mapRef.current.geoObjects.removeAll(); loadFamilyLocations(); loadGeofences(); } }} variant="outline">
                     <Icon name="RefreshCw" size={18} className="mr-2" />
                     Обновить
                   </Button>
@@ -627,7 +519,7 @@ export default function FamilyTracker() {
                     {isAddingZone ? 'Отменить' : 'Добавить зону'}
                   </Button>
                   <Button
-                    onClick={() => window.location.href = '/location-history'}
+                    onClick={() => navigate('/location-history')}
                     variant="outline"
                     className="bg-indigo-50 hover:bg-indigo-100 border-indigo-300"
                   >
@@ -635,7 +527,7 @@ export default function FamilyTracker() {
                     История перемещений
                   </Button>
                 </div>
-                
+
                 {isAddingZone && (
                   <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200 space-y-3">
                     <p className="text-sm font-medium text-purple-900">Кликните на карту, чтобы добавить безопасную зону</p>
@@ -663,7 +555,7 @@ export default function FamilyTracker() {
                     </div>
                   </div>
                 )}
-                
+
                 {geofences.length > 0 && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
                     <p className="text-sm font-semibold text-gray-700 mb-2">Безопасные зоны ({geofences.length}):</p>
@@ -690,7 +582,6 @@ export default function FamilyTracker() {
             </Card>
           </div>
 
-          {/* Список членов семьи */}
           <div className="space-y-4">
             <Card className="shadow-xl">
               <CardHeader>
@@ -702,8 +593,8 @@ export default function FamilyTracker() {
               <CardContent className="space-y-3">
                 {familyMembers.map((member) => {
                   const memberLocation = locations.find(loc => loc.memberId === member.id);
-                  const isOnline = memberLocation && 
-                    (new Date().getTime() - new Date(memberLocation.timestamp).getTime()) < 1800000; // 30 минут
+                  const isOnline = memberLocation &&
+                    (new Date().getTime() - new Date(memberLocation.timestamp).getTime()) < 1800000;
 
                   return (
                     <div
@@ -714,16 +605,16 @@ export default function FamilyTracker() {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ring-2"
-                          style={{ 
+                          style={{
                             backgroundColor: member.avatar_url ? 'transparent' : member.color + '20',
-                            borderColor: member.color
+                            ringColor: member.color
                           }}
                         >
                           {member.avatar_url ? (
-                            <img 
-                              src={member.avatar_url} 
+                            <img
+                              src={member.avatar_url}
                               alt={member.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover rounded-full"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';
@@ -744,9 +635,9 @@ export default function FamilyTracker() {
                           <p className="text-xs text-gray-500">
                             {memberLocation
                               ? new Date(memberLocation.timestamp).toLocaleTimeString('ru-RU', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
                               : 'Нет данных'}
                           </p>
                         </div>
@@ -762,7 +653,6 @@ export default function FamilyTracker() {
               </CardContent>
             </Card>
 
-            {/* Настройки уведомлений */}
             <Card className="shadow-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -772,7 +662,7 @@ export default function FamilyTracker() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-xs text-gray-500">
-                  Выберите, за кого следить при выходе из безопасных зон
+                  Выберите, за кем следить при выходе из безопасных зон
                 </p>
                 {familyMembers.map((member) => {
                   const setting = alertSettings.find(s => s.member_id === member.id);
@@ -785,10 +675,10 @@ export default function FamilyTracker() {
                         <div className="flex items-center gap-2">
                           <div
                             className="w-7 h-7 rounded-full flex items-center justify-center overflow-hidden"
-                            style={{ backgroundColor: member.color + '20' }}
+                            style={{ backgroundColor: member.avatar_url ? 'transparent' : member.color + '20' }}
                           >
                             {member.avatar_url ? (
-                              <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
+                              <img src={member.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
                             ) : (
                               <span className="text-xs font-bold" style={{ color: member.color }}>{member.name.charAt(0)}</span>
                             )}
@@ -830,15 +720,12 @@ export default function FamilyTracker() {
                                     const idx = newSettings.findIndex(s => s.member_id === member.id);
                                     const others = familyMembers.filter(m => m.id !== member.id).map(m => m.id);
                                     let currentNotify = notifyIds.length === 0 ? [...others] : [...notifyIds];
-                                    
                                     if (e.target.checked) {
                                       if (!currentNotify.includes(recipient.id)) currentNotify.push(recipient.id);
                                     } else {
                                       currentNotify = currentNotify.filter(id => id !== recipient.id);
                                     }
-
                                     const allSelected = currentNotify.length === others.length;
-
                                     if (idx >= 0) {
                                       newSettings[idx] = { ...newSettings[idx], notify_members: allSelected ? [] : currentNotify };
                                     } else {
@@ -862,10 +749,9 @@ export default function FamilyTracker() {
                   onClick={async () => {
                     setSavingSettings(true);
                     try {
-                      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
-                      await fetch('https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459', {
+                      await fetch(GEOFENCES_URL, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token || '' },
+                        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': getToken() },
                         body: JSON.stringify({ settings: alertSettings })
                       });
                     } catch (err) {
@@ -885,7 +771,6 @@ export default function FamilyTracker() {
           </div>
         </div>
 
-        {/* Информация о PWA */}
         <Card className="shadow-xl bg-gradient-to-r from-purple-50 to-indigo-50">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">

@@ -34,7 +34,7 @@ export default function LocationHistory() {
   useEffect(() => {
     const loadMembers = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
         const response = await fetch('https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d', {
           method: 'GET',
           headers: {
@@ -106,7 +106,7 @@ export default function LocationHistory() {
   // Загрузка истории
   const loadHistory = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
       const response = await fetch(
         `https://functions.poehali.dev/e00d057e-5c17-4a43-ab17-f926d7ab3d7c?member_id=${selectedMember}&date=${selectedDate}`,
         {
