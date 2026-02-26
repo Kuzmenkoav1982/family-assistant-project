@@ -527,6 +527,334 @@ export default function AdminValuation() {
           </div>
         </div>
 
+        {/* СЛАЙД 9 — Варианты реализации */}
+        <div data-pdf-slide className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Как продать</div>
+          <h2 className="text-3xl font-black text-slate-900 mb-3">Варианты реализации платформы</h2>
+          <p className="text-slate-500 mb-8 text-base">Три принципиально разных пути — каждый со своими условиями, сроками и выгодой. Выбор зависит от ваших целей.</p>
+
+          <div className="space-y-5">
+            {/* Вариант A */}
+            <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
+              <div className="bg-slate-100 px-6 py-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center font-black text-lg">A</div>
+                <div>
+                  <div className="font-black text-slate-900 text-lg">Продажа технологии и кода</div>
+                  <div className="text-sm text-slate-500">Самый простой и быстрый вариант</div>
+                </div>
+                <div className="ml-auto text-right">
+                  <div className="text-2xl font-black text-slate-800">40–60 млн ₽</div>
+                  <div className="text-xs text-slate-400">единовременно</div>
+                </div>
+              </div>
+              <div className="px-6 py-5 grid grid-cols-3 gap-4">
+                <div>
+                  <div className="text-xs font-semibold text-slate-400 uppercase mb-2">Что передаётся</div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    <li>• Весь исходный код</li>
+                    <li>• База данных и схема</li>
+                    <li>• Документация</li>
+                    <li>• Домен и брендинг</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-400 uppercase mb-2">Кому подходит</div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    <li>• IT-компания</li>
+                    <li>• Частный инвестор</li>
+                    <li>• Стартап-фонд</li>
+                    <li>• Крупный работодатель</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-400 uppercase mb-2">Сроки</div>
+                  <div className="text-sm text-slate-700">Сделка закрывается за <strong>2–4 недели</strong>. Минимум юридических формальностей. Оплата разово.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Вариант B */}
+            <div className="rounded-2xl border-2 border-blue-400 overflow-hidden">
+              <div className="bg-blue-600 px-6 py-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white text-blue-600 flex items-center justify-center font-black text-lg">B</div>
+                <div>
+                  <div className="font-black text-white text-lg">Продажа бизнеса целиком</div>
+                  <div className="text-sm text-blue-200">Оптимальный вариант — продаёте всё вместе с правами и базой</div>
+                </div>
+                <div className="ml-auto text-right">
+                  <div className="text-2xl font-black text-white">80–120 млн ₽</div>
+                  <div className="text-xs text-blue-200">+ возможен earn-out</div>
+                </div>
+              </div>
+              <div className="px-6 py-5 grid grid-cols-3 gap-4 bg-blue-50">
+                <div>
+                  <div className="text-xs font-semibold text-blue-400 uppercase mb-2">Что передаётся</div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    <li>• Код + инфраструктура</li>
+                    <li>• База пользователей</li>
+                    <li>• Торговая марка</li>
+                    <li>• ИП или ООО целиком</li>
+                    <li>• Все договоры и API</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-blue-400 uppercase mb-2">Кому подходит</div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    <li>• Банки (Сбер, Т-Банк)</li>
+                    <li>• Телеком (МТС, Яндекс)</li>
+                    <li>• Страховые компании</li>
+                    <li>• Медиахолдинги</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-blue-400 uppercase mb-2">Сроки и схема</div>
+                  <div className="text-sm text-slate-700"><strong>1–3 месяца</strong> на due diligence и юридическое оформление. Возможна рассрочка или earn-out (доплата от выручки).</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Вариант C */}
+            <div className="rounded-2xl border-2 border-amber-400 overflow-hidden">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white text-amber-600 flex items-center justify-center font-black text-lg">C</div>
+                <div>
+                  <div className="font-black text-white text-lg">Стратегическое партнёрство с банком</div>
+                  <div className="text-sm text-amber-100">Максимальная оценка — банк интегрирует платформу в свою экосистему</div>
+                </div>
+                <div className="ml-auto text-right">
+                  <div className="text-2xl font-black text-white">150–250 млн ₽</div>
+                  <div className="text-xs text-amber-100">старт переговоров</div>
+                </div>
+              </div>
+              <div className="px-6 py-5 grid grid-cols-3 gap-4 bg-amber-50">
+                <div>
+                  <div className="text-xs font-semibold text-amber-500 uppercase mb-2">Что получает банк</div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    <li>• Готовый канал к семьям</li>
+                    <li>• Витрина ипотеки, ДМС</li>
+                    <li>• Семейный кошелёк</li>
+                    <li>• Данные для таргетинга</li>
+                    <li>• ESG-актив</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-amber-500 uppercase mb-2">Целевые покупатели</div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    <li>• Сбербанк (СберСемья)</li>
+                    <li>• Т-Банк (экосистема)</li>
+                    <li>• ВТБ (Мои финансы)</li>
+                    <li>• Альфа-Банк</li>
+                    <li>• Ростелеком</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-amber-500 uppercase mb-2">Сроки и схема</div>
+                  <div className="text-sm text-slate-700"><strong>3–9 месяцев</strong> переговоры + сделка. Возможна структура: аванс 30% + доля в совместном продукте. Потенциал роста актива в <strong>5–10×</strong> за 3 года.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* СЛАЙД 10 — Пошаговый план действий */}
+        <div data-pdf-slide className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Дорожная карта сделки</div>
+          <h2 className="text-3xl font-black text-slate-900 mb-3">Пошаговый план действий</h2>
+          <p className="text-slate-500 mb-8">Что нужно сделать от сегодняшнего дня (26.02.2026) до закрытия сделки — по шагам, простым языком.</p>
+
+          <div className="space-y-4">
+            {[
+              {
+                step: '1',
+                phase: 'Подготовка',
+                time: 'Февраль – март 2026',
+                color: 'bg-slate-800',
+                border: 'border-slate-200',
+                bg: 'bg-slate-50',
+                actions: [
+                  'Зарегистрировать торговую марку «Наша Семья» в Роспатенте (защита IP)',
+                  'Подготовить техническую документацию: архитектура, схема БД, API-описание',
+                  'Составить финансовую модель на 3 года (выручка, расходы, юнит-экономика)',
+                  'Сделать тизер (1 страница) и полный инвест. меморандум (этот документ)',
+                  'Определить приоритетный сценарий продажи (A, B или C)',
+                ],
+              },
+              {
+                step: '2',
+                phase: 'Поиск покупателей',
+                time: 'Март – апрель 2026',
+                color: 'bg-blue-600',
+                border: 'border-blue-100',
+                bg: 'bg-blue-50',
+                actions: [
+                  'Составить список из 15–20 целевых компаний (банки, телеком, IT-экосистемы)',
+                  'Выйти на M&A-отделы через LinkedIn, профессиональные ивенты, рекомендации',
+                  'Рассмотреть M&A-брокера или буткемп для стартапов (ФРИИ, Сколково)',
+                  'Параллельно: разместить анонс на площадках Avito Business, Mergers.ru',
+                  'Не раскрывать технические детали без подписанного NDA',
+                ],
+              },
+              {
+                step: '3',
+                phase: 'Переговоры',
+                time: 'Апрель – июнь 2026',
+                color: 'bg-purple-600',
+                border: 'border-purple-100',
+                bg: 'bg-purple-50',
+                actions: [
+                  'Провести демо-сессии для каждого заинтересованного покупателя',
+                  'Получить LOI (Letter of Intent) — письмо о намерении купить с ценовым диапазоном',
+                  'Не снижать цену до получения минимум 2–3 предложений (конкуренция = цена)',
+                  'Привлечь юриста для анализа условий сделки и структуры передачи прав',
+                  'Согласовать структуру: единовременно / рассрочка / earn-out / доля',
+                ],
+              },
+              {
+                step: '4',
+                phase: 'Due Diligence покупателя',
+                time: 'Июнь – июль 2026',
+                color: 'bg-teal-600',
+                border: 'border-teal-100',
+                bg: 'bg-teal-50',
+                actions: [
+                  'Предоставить доступ к коду в защищённом репозитории (read-only)',
+                  'Подготовить выгрузки: статистика пользователей, финансы, технические метрики',
+                  'Ответить на технические вопросы команды покупателя',
+                  'Убедиться, что все данные пользователей соответствуют ФЗ-152 о персданных',
+                  'Не допускать полной передачи данных до подписания договора',
+                ],
+              },
+              {
+                step: '5',
+                phase: 'Закрытие сделки',
+                time: 'Июль – август 2026',
+                color: 'bg-green-600',
+                border: 'border-green-100',
+                bg: 'bg-green-50',
+                actions: [
+                  'Подписать договор купли-продажи исключительных прав на ПО',
+                  'Получить первый платёж (аванс или полная сумма)',
+                  'Передать исходный код, базы данных, доступы к инфраструктуре',
+                  'Провести онбординг технической команды покупателя (1–2 недели)',
+                  'Опционально: остаться в роли технического советника на 6–12 мес.',
+                ],
+              },
+            ].map(row => (
+              <div key={row.step} className={`rounded-xl border ${row.border} overflow-hidden`}>
+                <div className={`${row.bg} px-5 py-3 flex items-center gap-3`}>
+                  <div className={`w-8 h-8 rounded-lg ${row.color} text-white flex items-center justify-center font-black text-sm flex-shrink-0`}>{row.step}</div>
+                  <div className="font-bold text-slate-900">{row.phase}</div>
+                  <div className="ml-auto text-xs text-slate-400 font-medium">{row.time}</div>
+                </div>
+                <div className="px-5 py-4 grid grid-cols-1 gap-1">
+                  {row.actions.map((action, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm text-slate-700 py-1">
+                      <div className={`w-5 h-5 rounded-full ${row.color} text-white flex items-center justify-center text-xs flex-shrink-0 mt-0.5`}>{i + 1}</div>
+                      {action}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* СЛАЙД 11 — Сравнение вариантов и финальный совет */}
+        <div data-pdf-slide className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Сравнение</div>
+          <h2 className="text-3xl font-black text-slate-900 mb-8">Какой вариант выбрать?</h2>
+
+          <div className="overflow-hidden rounded-xl border border-slate-200 mb-8">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Критерий</th>
+                  <th className="text-center px-4 py-3 font-semibold text-slate-700">A — Продажа кода</th>
+                  <th className="text-center px-4 py-3 font-semibold text-blue-700 bg-blue-50">B — Продажа бизнеса</th>
+                  <th className="text-center px-4 py-3 font-semibold text-amber-700">C — Банк/экосистема</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['Сумма сделки', '40–60 млн ₽', '80–120 млн ₽', '150–250 млн ₽'],
+                  ['Скорость', '2–4 недели', '1–3 месяца', '3–9 месяцев'],
+                  ['Сложность', 'Низкая', 'Средняя', 'Высокая'],
+                  ['Нужен юрист', 'Желательно', 'Обязательно', 'Обязательно'],
+                  ['Риск срыва', 'Низкий', 'Средний', 'Средний'],
+                  ['Потенциал роста', 'Нет', 'Умеренный', 'В 5–10× за 3 года'],
+                  ['Участие после сделки', 'Не нужно', 'Опционально', 'Часто требуется'],
+                ].map(([crit, a, b, c], i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                    <td className="px-4 py-3 font-medium text-slate-800">{crit}</td>
+                    <td className="px-4 py-3 text-center text-slate-600">{a}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-blue-700 bg-blue-50/50">{b}</td>
+                    <td className="px-4 py-3 text-center text-amber-700">{c}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-slate-100 rounded-xl p-5">
+              <div className="font-bold text-slate-800 mb-2">Выбирайте A, если...</div>
+              <div className="text-sm text-slate-600">Хотите быстро получить деньги без сложных переговоров. Технология важнее, чем бизнес как таковой.</div>
+            </div>
+            <div className="bg-blue-100 rounded-xl p-5">
+              <div className="font-bold text-blue-900 mb-2">Выбирайте B, если...</div>
+              <div className="text-sm text-blue-800">Хотите максимально честную цену за всё вложенное. Есть время на переговоры и юридическое оформление.</div>
+            </div>
+            <div className="bg-amber-100 rounded-xl p-5">
+              <div className="font-bold text-amber-900 mb-2">Выбирайте C, если...</div>
+              <div className="text-sm text-amber-800">Хотите максимальную сумму и готовы участвовать в переговорах с крупными структурами несколько месяцев.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* СЛАЙД 12 — Финальный */}
+        <div data-pdf-slide className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-900 to-blue-950 text-white p-12">
+          <div className="text-xs font-semibold tracking-[0.2em] text-blue-300 uppercase mb-8">Итог · Москва, 26 февраля 2026 г.</div>
+          <h2 className="text-4xl font-black mb-6">Ключевые выводы</h2>
+
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            {[
+              { label: 'Платформа полностью готова к продаже', desc: 'Работающий MVP, реальные пользователи, встроенная монетизация' },
+              { label: 'Аналогов на рынке нет', desc: 'Единственный комплексный семейный органайзер в России' },
+              { label: 'Государственный приоритет', desc: '«Десятилетие семьи» 2024–2033 — попутный ветер для любого покупателя' },
+              { label: 'Стоимость растёт с каждым месяцем', desc: 'Каждый новый пользователь и интеграция увеличивают оценку' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white/10 rounded-xl p-5">
+                <div className="font-bold text-white mb-2">{item.label}</div>
+                <div className="text-sm text-slate-300">{item.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-blue-600/50 border border-blue-500 rounded-xl p-6 mb-8">
+            <div className="text-sm text-blue-200 mb-1">Рекомендуемое первое действие</div>
+            <div className="text-xl font-bold text-white">Зарегистрировать торговую марку + нанять M&A-юриста + разослать тизер в 5 банков</div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-3xl font-black text-green-400">40–60</div>
+              <div className="text-sm text-slate-400">млн ₽ минимум</div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-blue-300">80–120</div>
+              <div className="text-sm text-slate-400">млн ₽ справедливо</div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-yellow-400">150+</div>
+              <div className="text-sm text-slate-400">млн ₽ цель переговоров</div>
+            </div>
+          </div>
+
+          <div className="mt-8 text-xs text-slate-500">
+            Документ подготовлен: 26 февраля 2026 г. · Москва · ИП Кузьменко А.В. · Конфиденциально
+          </div>
+        </div>
+
       </div>
     </div>
   );
