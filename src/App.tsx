@@ -111,6 +111,7 @@ const AdminAlice = lazy(() => import("./pages/AdminAlice"));
 const AdminMAX = lazy(() => import("./pages/AdminMAX"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminWelcomeAnalytics = lazy(() => import("./pages/AdminWelcomeAnalytics"));
+const AdminValuation = lazy(() => import("./pages/AdminValuation"));
 const ActivateChild = lazy(() => import("./pages/ActivateChild"));
 const ActivateCallback = lazy(() => import("./pages/ActivateCallback"));
 const FamilyTracker = lazy(() => import("./pages/FamilyTracker"));
@@ -301,6 +302,7 @@ const App = () => {
                       <Route path="/admin/alice" element={<AdminAlice />} />
                       <Route path="/admin/max" element={<AdminMAX />} />
                       <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route path="/admin/valuation" element={<AdminValuation />} />
                       <Route path="/alice" element={<AliceIntegration />} />
                       <Route path="/nationalities" element={<NationalitiesPage />} />
                       <Route path="/nationalities/:id" element={<NationalityDetailPage />} />

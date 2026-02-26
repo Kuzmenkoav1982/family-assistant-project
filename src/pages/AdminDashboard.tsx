@@ -210,6 +210,10 @@ export default function AdminDashboard() {
               <Icon name="Users" size={16} className="mr-2" />
               Пользователи
             </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/admin/valuation'}>
+              <Icon name="TrendingUp" size={16} className="mr-2" />
+              Оценка стоимости
+            </Button>
             <Button variant="outline" onClick={() => window.location.href = '/'}>
               <Icon name="ArrowLeft" size={16} className="mr-2" />
               На главную
