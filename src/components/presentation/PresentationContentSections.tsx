@@ -768,7 +768,7 @@ export function PresentationContentSections() {
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
             <div className="flex items-center gap-4 mb-4">
               <img 
-                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5e30173d-cee6-4e04-85bc-8862a273e4a0.png"
+                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/9079c4ae-4ba2-4aa1-9e41-811ec09039e2.jpeg"
                 alt="MAX Канал"
                 className="w-16 h-16 rounded-2xl shadow-md object-cover"
               />
@@ -796,7 +796,7 @@ export function PresentationContentSections() {
           <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-5 border border-slate-200">
             <div className="flex items-center gap-4 mb-4">
               <img 
-                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/9079c4ae-4ba2-4aa1-9e41-811ec09039e2.jpeg"
+                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5e30173d-cee6-4e04-85bc-8862a273e4a0.png"
                 alt="MAX Чат-бот"
                 className="w-16 h-16 rounded-2xl shadow-md object-cover"
               />
