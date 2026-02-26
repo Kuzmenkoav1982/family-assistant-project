@@ -932,7 +932,100 @@ export default function AdminValuation() {
           </div>
         </div>
 
-        {/* СЛАЙД 13 — Финальный */}
+        {/* СЛАЙД 13 — Тизер (одностраничный питч для отправки) */}
+        <div data-pdf-slide className="rounded-2xl border-2 border-slate-800 bg-white p-10 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Тизер · Конфиденциально · Февраль 2026</div>
+              <h2 className="text-4xl font-black text-slate-900">НАША СЕМЬЯ</h2>
+              <div className="text-lg text-slate-500 font-medium">Семейная платформа нового поколения</div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-slate-400 mb-1">nasha-semiya.ru</div>
+              <div className="text-xs text-slate-400">ИП Кузьменко А.В.</div>
+              <div className="mt-2 inline-block bg-slate-900 text-white text-xs px-3 py-1 rounded-full font-semibold">Ищем стратегического партнёра</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 text-white rounded-2xl p-6 mb-6">
+            <div className="text-sm text-slate-400 mb-2">Одной фразой</div>
+            <div className="text-xl font-bold leading-snug">"Первый в России полноценный цифровой органайзер для семьи — от документов и здоровья до семейного бюджета и льгот от государства."</div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[
+              { num: '50 млн', label: 'семей в России — целевой рынок (TAM)' },
+              { num: '28 млн ₽', label: 'стоимость воспроизведения технологии' },
+              { num: '~80 млн ₽', label: 'оценка бизнеса (метод Беркуса)' },
+              { num: '2024–2033', label: 'Десятилетие семьи — гос. приоритет РФ' },
+            ].map((s, i) => (
+              <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <div className="text-2xl font-black text-slate-900 mb-1">{s.num}</div>
+                <div className="text-xs text-slate-500">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Что создано (готово)</div>
+              <ul className="space-y-1.5 text-sm text-slate-700">
+                {[
+                  'Работающий MVP — веб-платформа + мобильная версия',
+                  'Модули: Здоровье, Документы, Бюджет, Задачи, Календарь',
+                  'Раздел «Господдержка» — пособия, льготы, ипотека',
+                  'ИИ-диетолог с медицинскими столами (уникально для РФ)',
+                  'Семейный маячок — GPS-трекинг, геозоны, SOS-кнопка',
+                  'Аналитика нагрузки, Домовой (ИИ-психолог/педагог)',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold flex-shrink-0">✓</span>{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Почему сейчас</div>
+              <ul className="space-y-1.5 text-sm text-slate-700 mb-4">
+                {[
+                  'Аналогов нет — уникальная ниша в России',
+                  'ПСБ: 2+ млн семей военных — идеальная аудитория',
+                  '«Десятилетие семьи» — попутный ветер 10 лет',
+                  'Технология защищена — регистрация ТМ в Роспатенте',
+                  'Стоимость растёт с каждым новым пользователем',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-blue-500 font-bold flex-shrink-0">→</span>{f}
+                  </li>
+                ))}
+              </ul>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Варианты сделки</div>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between"><span className="text-slate-600">Продажа кода</span><span className="font-bold">40–60 млн ₽</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">Продажа бизнеса</span><span className="font-bold text-blue-700">80–120 млн ₽</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">Стратегический банк</span><span className="font-bold text-amber-700">150–250 млн ₽</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 bg-blue-600 text-white rounded-xl p-5">
+              <div className="text-sm text-blue-200 mb-1">Приоритетный покупатель</div>
+              <div className="font-bold text-lg mb-2">ПСБ (Промсвязьбанк) — опорный банк ВПК</div>
+              <div className="text-sm text-blue-100">Платформа «Наша Семья» — готовый цифровой продукт для 2+ млн семей военнослужащих: льготная ипотека, субсидии, семейный бюджет, документы, здоровье. Идеальный fit с аудиторией ПСБ.</div>
+            </div>
+            <div className="bg-slate-900 text-white rounded-xl p-5 flex flex-col justify-between">
+              <div>
+                <div className="text-sm text-slate-400 mb-1">Контакт для переговоров</div>
+                <div className="font-bold text-white">ИП Кузьменко А.В.</div>
+                <div className="text-sm text-slate-300 mt-1">nasha-semiya.ru</div>
+              </div>
+              <div className="mt-3 text-xs text-slate-500">Документ конфиденциален. Передача третьим лицам только с письменного согласия.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* СЛАЙД 14 — Финальный */}
         <div data-pdf-slide className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-900 to-blue-950 text-white p-12">
           <div className="text-xs font-semibold tracking-[0.2em] text-blue-300 uppercase mb-8">Итог · Москва, 26 февраля 2026 г.</div>
           <h2 className="text-4xl font-black mb-6">Ключевые выводы</h2>
