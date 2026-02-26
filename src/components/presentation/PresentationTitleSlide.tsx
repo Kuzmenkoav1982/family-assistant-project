@@ -2,7 +2,7 @@ import Icon from '@/components/ui/icon';
 
 export function PresentationTitleSlide() {
   return (
-    <div className="text-center mb-16 pt-4">
+    <div data-pdf-slide className="text-center mb-16 pt-4">
       <div className="inline-block mb-3 px-4 py-1.5 bg-emerald-100 rounded-full">
         <span className="text-emerald-700 text-sm font-medium">Десятилетие семьи 2024–2034</span>
       </div>

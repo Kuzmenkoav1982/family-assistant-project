@@ -2,7 +2,7 @@ import Icon from '@/components/ui/icon';
 
 function SectionCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <section className={`bg-white rounded-3xl shadow-xl p-8 md:p-10 mb-8 ${className}`}>
+    <section data-pdf-slide className={`bg-white rounded-3xl shadow-xl p-8 md:p-10 mb-8 ${className}`}>
       {children}
     </section>
   );

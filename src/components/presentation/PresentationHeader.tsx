@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 interface PresentationHeaderProps {
   onDownloadPDF: () => void;
   isDownloading: boolean;
+  downloadProgress?: string;
 }
 
-export function PresentationHeader({ onDownloadPDF, isDownloading }: PresentationHeaderProps) {
+export function PresentationHeader({ onDownloadPDF, isDownloading, downloadProgress }: PresentationHeaderProps) {
   return (
     <div className="fixed top-4 right-4 z-50 flex gap-2">
       <Button
@@ -19,10 +20,10 @@ export function PresentationHeader({ onDownloadPDF, isDownloading }: Presentatio
       <Button
         onClick={onDownloadPDF}
         disabled={isDownloading}
-        className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
+        className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg min-w-[160px]"
       >
-        <Icon name="Download" size={18} className="mr-2" />
-        {isDownloading ? 'Создаём PDF...' : 'Скачать PDF'}
+        <Icon name={isDownloading ? "Loader2" : "Download"} size={18} className={`mr-2 ${isDownloading ? 'animate-spin' : ''}`} />
+        {isDownloading ? (downloadProgress || 'Создаём PDF...') : 'Скачать PDF'}
       </Button>
       <Button
         onClick={() => window.history.back()}

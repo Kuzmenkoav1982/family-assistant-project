@@ -3,7 +3,7 @@ import Icon from '@/components/ui/icon';
 export function PresentationFooter() {
   return (
     <>
-      <section className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl shadow-2xl p-10 mb-8 text-white">
+      <section data-pdf-slide className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl shadow-2xl p-10 mb-8 text-white">
         <div className="text-center space-y-5">
           <h2 className="text-3xl font-bold">
             «Наша семья» — это:
@@ -41,7 +41,7 @@ export function PresentationFooter() {
         </div>
       </section>
 
-      <div className="text-center text-gray-500 pb-8 space-y-1">
+      <div data-pdf-slide className="text-center text-gray-500 pb-8 space-y-1">
         <p className="text-sm font-medium">
           © 2026 Наша семья. Все права защищены.
         </p>
