@@ -1,4 +1,3 @@
-import { Download, X } from 'lucide-react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 
@@ -22,7 +21,7 @@ export function PresentationHeader({ onDownloadPDF, isDownloading }: Presentatio
         disabled={isDownloading}
         className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
       >
-        <Download className="mr-2" size={18} />
+        <Icon name="Download" size={18} className="mr-2" />
         {isDownloading ? 'Создаём PDF...' : 'Скачать PDF'}
       </Button>
       <Button
@@ -30,7 +29,7 @@ export function PresentationHeader({ onDownloadPDF, isDownloading }: Presentatio
         variant="outline"
         className="shadow-lg"
       >
-        <X size={18} />
+        <Icon name="X" size={18} />
       </Button>
     </div>
   );
