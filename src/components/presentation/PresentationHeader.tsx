@@ -5,9 +5,21 @@ interface PresentationHeaderProps {
   onDownloadPDF: () => void;
   isDownloading: boolean;
   downloadProgress?: string;
+  onDownloadPPTX: () => void;
+  isPptxDownloading: boolean;
+  pptxProgress?: string;
 }
 
-export function PresentationHeader({ onDownloadPDF, isDownloading, downloadProgress }: PresentationHeaderProps) {
+export function PresentationHeader({ 
+  onDownloadPDF, 
+  isDownloading, 
+  downloadProgress,
+  onDownloadPPTX,
+  isPptxDownloading,
+  pptxProgress,
+}: PresentationHeaderProps) {
+  const anyLoading = isDownloading || isPptxDownloading;
+
   return (
     <div className="fixed top-4 right-4 z-50 flex gap-2">
       <Button
@@ -18,8 +30,16 @@ export function PresentationHeader({ onDownloadPDF, isDownloading, downloadProgr
         <Icon name="Home" size={18} />
       </Button>
       <Button
+        onClick={onDownloadPPTX}
+        disabled={anyLoading}
+        className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg min-w-[160px]"
+      >
+        <Icon name={isPptxDownloading ? "Loader2" : "FileSliders"} size={18} className={`mr-2 ${isPptxDownloading ? 'animate-spin' : ''}`} />
+        {isPptxDownloading ? (pptxProgress || 'Создаём PPTX...') : 'Скачать PPTX'}
+      </Button>
+      <Button
         onClick={onDownloadPDF}
-        disabled={isDownloading}
+        disabled={anyLoading}
         className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg min-w-[160px]"
       >
         <Icon name={isDownloading ? "Loader2" : "Download"} size={18} className={`mr-2 ${isDownloading ? 'animate-spin' : ''}`} />
