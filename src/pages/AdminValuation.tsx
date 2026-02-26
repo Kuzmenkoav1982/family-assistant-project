@@ -600,9 +600,10 @@ export default function AdminValuation() {
                 <div>
                   <div className="text-xs font-semibold text-blue-400 uppercase mb-2">Кому подходит</div>
                   <ul className="space-y-1 text-sm text-slate-700">
-                    <li>• Банки (Сбер, Т-Банк)</li>
-                    <li>• Телеком (МТС, Яндекс)</li>
-                    <li>• Страховые компании</li>
+                    <li className="font-bold text-blue-700">• ПСБ — банк семей военных</li>
+                    <li className="text-slate-500 text-xs pl-3 -mt-1 mb-1">Платформа идеально покрывает аудиторию семей военнослужащих: планирование бюджета, льготы, ипотека</li>
+                    <li>• Сбербанк (СберСемья)</li>
+                    <li>• Т-Банк (экосистема)</li>
                     <li>• Медиахолдинги</li>
                   </ul>
                 </div>
@@ -640,10 +641,11 @@ export default function AdminValuation() {
                 <div>
                   <div className="text-xs font-semibold text-amber-500 uppercase mb-2">Целевые покупатели</div>
                   <ul className="space-y-1 text-sm text-slate-700">
+                    <li className="font-bold text-amber-700">• ПСБ (Промсвязьбанк)</li>
+                    <li className="text-slate-500 text-xs pl-3 -mt-1 mb-1">Опорный банк ВПК и семей военных: льготная ипотека, субсидии, 2+ млн клиентов-военных</li>
                     <li>• Сбербанк (СберСемья)</li>
                     <li>• Т-Банк (экосистема)</li>
                     <li>• ВТБ (Мои финансы)</li>
-                    <li>• Альфа-Банк</li>
                     <li>• Ростелеком</li>
                   </ul>
                 </div>
@@ -811,7 +813,126 @@ export default function AdminValuation() {
           </div>
         </div>
 
-        {/* СЛАЙД 12 — Финальный */}
+        {/* СЛАЙД 12 — M&A-брокеры и площадки */}
+        <div data-pdf-slide className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Куда идти прямо сейчас</div>
+          <h2 className="text-3xl font-black text-slate-900 mb-3">M&A-брокеры и площадки для тизера</h2>
+          <p className="text-slate-500 mb-8">Конкретные компании, организации и площадки, куда можно отправить тизер уже сегодня — без холодного поиска с нуля.</p>
+
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            {/* M&A-брокеры */}
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">M&A-брокеры (ведут сделку под ключ)</div>
+              <div className="space-y-3">
+                {[
+                  {
+                    name: 'IMAC (imac.ru)',
+                    desc: 'Топ-1 в России по сделкам с IT и цифровыми активами. Оценка, подбор покупателя, сопровождение.',
+                    contact: 'info@imac.ru',
+                    tag: 'IT-сделки',
+                    tagColor: 'bg-blue-100 text-blue-700',
+                  },
+                  {
+                    name: 'RusBase M&A / Mergers.ru',
+                    desc: 'Крупнейшая онлайн-площадка для продажи готового бизнеса в РФ. Разместить объявление — бесплатно.',
+                    contact: 'mergers.ru → раздел "Разместить"',
+                    tag: 'Онлайн-площадка',
+                    tagColor: 'bg-slate-100 text-slate-600',
+                  },
+                  {
+                    name: 'АВМ Capital (avmcapital.ru)',
+                    desc: 'Специализируются на продаже IT-продуктов и SaaS стартапов. Есть опыт работы с банками.',
+                    contact: 'info@avmcapital.ru',
+                    tag: 'SaaS / IT',
+                    tagColor: 'bg-purple-100 text-purple-700',
+                  },
+                  {
+                    name: 'Бизброкер (bizbroker.ru)',
+                    desc: 'Онлайн-маркетплейс готового бизнеса №1 по трафику в РФ. Быстрый выход на частных инвесторов.',
+                    contact: 'bizbroker.ru → "Продать бизнес"',
+                    tag: 'Маркетплейс',
+                    tagColor: 'bg-green-100 text-green-700',
+                  },
+                ].map((item, i) => (
+                  <div key={i} className="border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="font-bold text-slate-900 text-sm">{item.name}</div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${item.tagColor}`}>{item.tag}</span>
+                    </div>
+                    <div className="text-xs text-slate-500 mb-2">{item.desc}</div>
+                    <div className="text-xs font-mono text-slate-400">{item.contact}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Институты и фонды */}
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Институты, фонды и прямые контакты</div>
+              <div className="space-y-3">
+                {[
+                  {
+                    name: 'ФРИИ (Фонд развития интернет-инициатив)',
+                    desc: 'Крупнейший венчурный фонд РФ. Программа «Акселератор» и прямые сделки с IT-активами.',
+                    contact: 'iidf.ru → раздел "Портфель и партнёры"',
+                    tag: 'Венчур',
+                    tagColor: 'bg-orange-100 text-orange-700',
+                  },
+                  {
+                    name: 'ПСБ (Промсвязьбанк) — M&A отдел',
+                    desc: 'Опорный банк ВПК. Прямой контакт: департамент развития экосистемы и цифровых продуктов.',
+                    contact: 'psbank.ru → "Для бизнеса" / partnership@psbank.ru',
+                    tag: 'Приоритет #1',
+                    tagColor: 'bg-red-100 text-red-700',
+                  },
+                  {
+                    name: 'Сколково — Рынок технологий',
+                    desc: 'Платформа для поиска покупателей и партнёров среди крупных корпораций. Бесплатное размещение.',
+                    contact: 'sk.ru → "Для стартапов" → Marketplace',
+                    tag: 'Экосистема',
+                    tagColor: 'bg-teal-100 text-teal-700',
+                  },
+                  {
+                    name: 'Авито Бизнес / Авито Готовый бизнес',
+                    desc: 'Раздел продажи готового бизнеса. Большой охват частных инвесторов. Быстрый первый отклик.',
+                    contact: 'avito.ru → Готовый бизнес → Подать объявление',
+                    tag: 'Быстрый старт',
+                    tagColor: 'bg-yellow-100 text-yellow-700',
+                  },
+                ].map((item, i) => (
+                  <div key={i} className={`border rounded-xl p-4 ${i === 1 ? 'border-red-300 bg-red-50/50' : 'border-slate-200'}`}>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="font-bold text-slate-900 text-sm">{item.name}</div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${item.tagColor}`}>{item.tag}</span>
+                    </div>
+                    <div className="text-xs text-slate-500 mb-2">{item.desc}</div>
+                    <div className="text-xs font-mono text-slate-400">{item.contact}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 text-white rounded-xl p-6">
+            <div className="text-sm font-semibold text-slate-300 mb-3">Рекомендуемый порядок действий (первые 2 недели)</div>
+            <div className="grid grid-cols-4 gap-4 text-center">
+              {[
+                { num: '1', action: 'Отправить тизер в ПСБ', sub: 'partnership@psbank.ru' },
+                { num: '2', action: 'Разместить на Mergers.ru', sub: 'Бесплатно, быстро' },
+                { num: '3', action: 'Подать заявку в ФРИИ', sub: 'iidf.ru/accelerator' },
+                { num: '4', action: 'Связаться с IMAC', sub: 'Подобрать покупателя' },
+              ].map((s, i) => (
+                <div key={i} className="bg-white/10 rounded-lg p-3">
+                  <div className="text-2xl font-black text-white mb-1">{s.num}</div>
+                  <div className="text-sm font-semibold text-white mb-1">{s.action}</div>
+                  <div className="text-xs text-slate-400">{s.sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* СЛАЙД 13 — Финальный */}
         <div data-pdf-slide className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-900 to-blue-950 text-white p-12">
           <div className="text-xs font-semibold tracking-[0.2em] text-blue-300 uppercase mb-8">Итог · Москва, 26 февраля 2026 г.</div>
           <h2 className="text-4xl font-black mb-6">Ключевые выводы</h2>
