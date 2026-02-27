@@ -59,7 +59,8 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
                 { href: '/terms-of-service', icon: 'FileText', text: 'Пользовательское соглашение' },
                 { href: '/terms-of-service', icon: 'FileCheck', text: 'Оферта' },
                 { href: '/refund-policy', icon: 'RotateCcw', text: 'Возврат средств' },
-                { href: '/documentation#about', icon: 'BookOpen', text: 'Документация' },
+                { href: '/documentation', icon: 'BookOpen', text: 'Документация ПО' },
+                { href: '/documentation#installation', icon: 'Download', text: 'Руководство по установке' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <a href={link.href} className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm">
