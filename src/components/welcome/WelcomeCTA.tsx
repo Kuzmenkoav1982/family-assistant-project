@@ -40,9 +40,8 @@ export default function WelcomeCTA({ isLoggedIn }: WelcomeCTAProps) {
               </div>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight">
-              Присоединяйтесь к семьям,<br className="hidden sm:block" />
-              которые уже с нами
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight break-words hyphens-auto">
+              Присоединяйтесь к семьям, которые уже с нами
             </h2>
 
             <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
@@ -77,8 +76,7 @@ export default function WelcomeCTA({ isLoggedIn }: WelcomeCTAProps) {
                       navigate('/');
                     }}
                     size="lg"
-                    variant="outline"
-                    className="border-2 border-white/50 text-white hover:bg-white/10 text-lg px-8 py-7 font-semibold rounded-2xl w-full sm:w-auto"
+                    className="bg-white/20 border-2 border-white text-white hover:bg-white/30 text-lg px-8 py-7 font-semibold rounded-2xl w-full sm:w-auto"
                   >
                     <Icon name="Eye" size={20} className="mr-2" />
                     Смотреть демо
