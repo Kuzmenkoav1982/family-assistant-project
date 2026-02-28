@@ -422,7 +422,7 @@ export default function Pricing() {
           <Card className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-700">
-                <Icon name="CheckCircle" size={24} />
+                <Icon name="Check" size={24} />
                 Активная подписка
               </CardTitle>
               <CardDescription className="text-green-600">
@@ -540,7 +540,7 @@ export default function Pricing() {
               <Card className="mb-8 border-2 border-green-500 bg-green-50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Icon name="CheckCircle2" size={24} className="text-green-600" />
+                    <Icon name="Check" size={24} className="text-green-600" />
                     Активная подписка
                   </CardTitle>
                 </CardHeader>
