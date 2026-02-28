@@ -23,14 +23,23 @@ export default function Documentation() {
               <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
               На главную
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleExportPDF}
-              className="print:hidden"
-            >
-              <Icon name="Download" className="w-4 h-4 mr-2" />
-              Экспорт в PDF
-            </Button>
+            <div className="flex gap-2 print:hidden">
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => window.open('https://disk.yandex.ru/d/lQtBEbN7cu37rA', '_blank')}
+              >
+                <Icon name="Download" className="w-4 h-4 mr-2" />
+                Скачать дистрибутив v1.0
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportPDF}
+              >
+                <Icon name="FileText" className="w-4 h-4 mr-2" />
+                Экспорт в PDF
+              </Button>
+            </div>
           </div>
           
           <div className="flex items-center gap-4 mb-4">
