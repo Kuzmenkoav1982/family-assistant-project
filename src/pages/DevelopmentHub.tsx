@@ -38,7 +38,7 @@ export default function DevelopmentHub() {
         <SectionHero
           title="Развитие"
           subtitle="Образование, рост и путь жизни"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5f143ca9-8610-4d6c-acd2-456d264789b1.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/files/5f143ca9-8610-4d6c-acd2-456d264789b1.jpg"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
