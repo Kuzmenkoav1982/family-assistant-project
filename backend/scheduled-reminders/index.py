@@ -70,8 +70,7 @@ def send_max(chat_id: int, title: str, message: str, target_url: str) -> bool:
     if not bot_token or not chat_id:
         return False
     try:
-        full_url = f"{APP_URL}{target_url}"
-        text = f"{title}\n{message}\n\n{full_url}"
+        text = f"{title}\n{message}"
         resp = requests.post(
             f'https://platform-api.max.ru/messages?access_token={bot_token}&chat_id={chat_id}',
             headers={'Content-Type': 'application/json'},
