@@ -34,7 +34,7 @@ export function PresentationTitleSlide() {
         </div>
         <p className="text-xs text-slate-600 mb-3">
           Единый цифровой профиль семьи открывает новое качество клиентского опыта: общие расходы, 
-          совместные счета, единый ID для банков и маркетплейсов (Сбер, Яндекс, Wildberries, Озон).
+          совместные счета, единый ID для банков и маркетплейсов.
         </p>
         <div className="flex flex-wrap gap-2">
           {['Общие расходы и счета', 'Бонусные программы семьи', 'Единый клиентский опыт', 'Интеграция с маркетплейсами'].map((tag) => (
@@ -43,16 +43,7 @@ export function PresentationTitleSlide() {
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-3 text-sm text-slate-500">
-        <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
-          <Icon name="Globe" size={14} className="text-slate-400" />
-          nasha-semiya.ru
-        </span>
-        <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
-          <Icon name="Building2" size={14} className="text-slate-400" />
-          ИП Кузьменко А.В.
-        </span>
-      </div>
+      
     </div>
   );
 }

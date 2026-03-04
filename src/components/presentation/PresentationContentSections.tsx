@@ -520,9 +520,7 @@ export function PresentationContentSections() {
       {/* СЛАЙД: Текущие показатели */}
       <SectionCard>
         <SectionTitle icon="BarChart3" iconColor="bg-indigo-500" title="Текущие показатели (MVP)" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          <StatCard value="40+" label="Пользователей" icon="UserCheck" />
-          <StatCard value="51" label="Семей" icon="Users" />
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-5">
           <StatCard value="90+" label="Экранов" icon="Monitor" />
           <StatCard value="86" label="API-функций" icon="Server" />
         </div>
@@ -947,7 +945,7 @@ export function PresentationContentSections() {
               />
               <div>
                 <h3 className="font-bold text-gray-800">Канал «Наша Семья»</h3>
-                <p className="text-sm text-blue-600">811 подписчиков</p>
+                
               </div>
             </div>
             <p className="text-xs text-gray-600 mb-3">
