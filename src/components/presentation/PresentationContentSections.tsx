@@ -774,6 +774,49 @@ export function PresentationContentSections() {
             </div>
           </div>
         </div>
+
+        {/* Партнёрская выручка */}
+        <div className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-200">
+          <h3 className="font-bold text-amber-900 text-sm mb-3 flex items-center gap-2">
+            <Icon name="Handshake" size={16} className="text-amber-600" />
+            Партнёрская выручка (% от транзакций)
+          </h3>
+          <p className="text-xs text-gray-600 mb-4">
+            Дополнительный доход без прямых вложений — платформа получает комиссию с каждой транзакции, 
+            совершённой через интегрированные сервисы партнёров.
+          </p>
+          <div className="space-y-2 text-xs mb-4">
+            {[
+              { partner: 'Маркетплейсы (WB, Озон, Яндекс Маркет)', commission: '2–5%', icon: 'ShoppingCart', color: 'text-violet-600' },
+              { partner: 'Банки — финансовые продукты (ипотека, кредиты)', commission: '0.5–1.5%', icon: 'Landmark', color: 'text-blue-600' },
+              { partner: 'Страхование (ДМС, КАСКО, имущество)', commission: '5–10%', icon: 'Shield', color: 'text-emerald-600' },
+              { partner: 'Туристические сервисы (билеты, отели)', commission: '3–8%', icon: 'Plane', color: 'text-sky-600' },
+              { partner: 'Образование и курсы для детей', commission: '10–15%', icon: 'GraduationCap', color: 'text-pink-600' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-2.5">
+                <div className="flex items-center gap-2">
+                  <Icon name={item.icon} size={14} className={item.color} />
+                  <span className="text-gray-700">{item.partner}</span>
+                </div>
+                <span className="font-bold text-amber-700 ml-3 flex-shrink-0">{item.commission}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="bg-white rounded-xl p-3">
+              <p className="text-base font-bold text-amber-700">+20–40%</p>
+              <p className="text-xs text-gray-500">к выручке от подписок</p>
+            </div>
+            <div className="bg-white rounded-xl p-3">
+              <p className="text-base font-bold text-amber-700">0 ₽</p>
+              <p className="text-xs text-gray-500">доп. затрат на привлечение</p>
+            </div>
+            <div className="bg-white rounded-xl p-3">
+              <p className="text-base font-bold text-amber-700">Win-Win</p>
+              <p className="text-xs text-gray-500">партнёр платит за конверсию</p>
+            </div>
+          </div>
+        </div>
       </SectionCard>
 
       {/* СЛАЙД: Семейный ID */}
