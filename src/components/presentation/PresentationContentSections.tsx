@@ -46,7 +46,7 @@ function FeatureRow({ icon, iconBg, title, desc }: { icon: string; iconBg: strin
 function ComparisonTable() {
   const rows = [
     { label: 'Российская юрисдикция', us: true, foreign: false, todo: false, bank: true },
-    { label: 'Данные в РФ', us: true, foreign: false, todo: false, bank: true },
+    { label: 'Локализация данных в РФ', us: true, foreign: false, todo: false, bank: true },
     { label: 'Всё-в-одном для семьи', us: true, foreign: false, todo: false, bank: false },
     { label: 'AI-ассистент', us: true, foreign: false, todo: false, bank: false },
     { label: 'Голосовое управление', us: true, foreign: false, todo: false, bank: false },
@@ -115,7 +115,7 @@ export function PresentationContentSections() {
           </div>
           <div className="bg-purple-50 rounded-2xl p-5 border-l-4 border-purple-500">
             <p className="text-purple-900 font-medium text-sm">
-              «Наша семья» — это не просто приложение. Это инструмент для восстановления 
+              «Наша Семья» — это не просто приложение. Это инструмент для гармонизации 
               семейных связей, справедливого распределения обязанностей и воспитания 
               ответственности у каждого члена семьи.
             </p>
@@ -131,11 +131,14 @@ export function PresentationContentSections() {
             «Объединяя семьи, мы укрепляем общество»
           </p>
         </div>
+        <p className="text-sm text-gray-600 text-center mb-4">
+          Семья — фундамент общества. Когда семьи работают как единая команда:
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { icon: 'Baby', color: 'text-pink-500', text: 'Дети вырастают ответственными' },
-            { icon: 'Users', color: 'text-blue-500', text: 'Родители чувствуют поддержку' },
-            { icon: 'Heart', color: 'text-red-500', text: 'Старшее поколение вовлечено в жизнь близких' },
+            { icon: 'Baby', color: 'text-pink-500', text: 'Дети обучаются и вырастают ответственными' },
+            { icon: 'Users', color: 'text-blue-500', text: 'Родители чувствуют поддержку и вовлечённость' },
+            { icon: 'Heart', color: 'text-red-500', text: 'Старшее поколение активно участвует в жизни близких' },
           ].map((item, i) => (
             <div key={i} className="bg-white rounded-xl p-4 text-center shadow-sm">
               <Icon name={item.icon} size={28} className={`${item.color} mx-auto mb-2`} />
@@ -144,7 +147,7 @@ export function PresentationContentSections() {
           ))}
         </div>
         <p className="mt-5 text-sm text-gray-600 text-center">
-          <strong>Видение:</strong> стать национальной платформой №1 для российских семей — единым 
+          <strong>Видение:</strong> стать национальной платформой №1 для российских семей (семейной экосистемой) — единым 
           цифровым центром, где каждый член семьи от ребёнка до бабушки находит свою роль.
         </p>
       </SectionCard>
@@ -178,7 +181,6 @@ export function PresentationContentSections() {
               <li>• Детские аккаунты, семейный код для приглашений</li>
               <li>• Раздел «Дети» — полная картина развития, достижения, награды</li>
               <li>• Семейный маячок на Яндекс.Картах</li>
-              <li>• Семейное древо (в разработке)</li>
             </ul>
           </div>
 
@@ -278,7 +280,10 @@ export function PresentationContentSections() {
               <li>• Семейные ценности — определение и поддержание принципов</li>
               <li>• Традиции — сохранение и создание новых</li>
               <li>• Культурное наследие, народы России</li>
-              <li>• Раздел «Вера» (в разработке)</li>
+              <li>• Раздел «Вера» — духовная составляющая (в разработке)</li>
+              <li>• Семейное дерево (в разработке)</li>
+              <li>• Семейный фотоальбом (в разработке)</li>
+              <li>• Семейный блог (в разработке)</li>
             </ul>
           </div>
 
@@ -369,65 +374,108 @@ export function PresentationContentSections() {
 
       {/* СЛАЙД: Связность экосистемы */}
       <SectionCard>
-        <SectionTitle icon="Network" iconColor="bg-teal-500" title="Как разделы связаны в экосистему" />
-        <p className="text-sm text-gray-500 mb-5">Уникальная связность — каждый раздел усиливает остальные</p>
-        
-        <div className="bg-gradient-to-br from-slate-50 to-purple-50 rounded-2xl p-6 mb-5">
-          <div className="text-center mb-4">
-            <div className="inline-flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full">
-              <Icon name="Users" size={16} className="text-purple-600" />
-              <span className="font-bold text-purple-800 text-sm">СЕМЬЯ (профили)</span>
+        <SectionTitle icon="Network" iconColor="bg-teal-500" title="Реальные связи внутри экосистемы" />
+        <p className="text-sm text-gray-500 mb-6">Нажатие одной кнопки запускает цепочку автоматических действий через разделы</p>
+
+        <div className="space-y-4">
+          {/* Цепочка 1: Питание */}
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-5 border border-orange-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <Icon name="UtensilsCrossed" size={14} className="text-white" />
+              </div>
+              <h4 className="font-bold text-orange-900 text-sm">Питание → Быт → Покупки — одним нажатием</h4>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="bg-orange-100 text-orange-800 px-2.5 py-1 rounded-lg font-medium">Создаёшь ИИ-диету</span>
+              <Icon name="ArrowRight" size={12} className="text-orange-400" />
+              <span className="bg-orange-100 text-orange-800 px-2.5 py-1 rounded-lg font-medium">Формируется меню на неделю</span>
+              <Icon name="ArrowRight" size={12} className="text-orange-400" />
+              <span className="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-medium">Система рассчитывает ингредиенты</span>
+              <Icon name="ArrowRight" size={12} className="text-orange-400" />
+              <span className="bg-green-100 text-green-800 px-2.5 py-1 rounded-lg font-medium">Список покупок готов автоматически</span>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {[
-              { icon: 'CalendarCheck', label: 'Планирование', color: 'bg-blue-100 text-blue-600' },
-              { icon: 'HeartPulse', label: 'Здоровье', color: 'bg-red-100 text-red-600' },
-              { icon: 'UtensilsCrossed', label: 'Питание', color: 'bg-orange-100 text-orange-600' },
-            ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className={`w-10 h-10 rounded-xl ${item.color.split(' ')[0]} flex items-center justify-center mx-auto mb-1`}>
-                  <Icon name={item.icon} size={18} className={item.color.split(' ')[1]} />
-                </div>
-                <span className="text-xs font-medium text-gray-600">{item.label}</span>
+
+          {/* Цепочка 2: Ребёнок */}
+          <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-5 border border-pink-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-pink-500 flex items-center justify-center flex-shrink-0">
+                <Icon name="Baby" size={14} className="text-white" />
               </div>
-            ))}
-          </div>
-          <div className="text-center mb-4">
-            <div className="inline-flex items-center gap-2 bg-indigo-100 px-4 py-2 rounded-full">
-              <Icon name="Brain" size={16} className="text-indigo-600" />
-              <span className="font-bold text-indigo-800 text-sm">«ДОМОВОЙ» (AI-ассистент)</span>
+              <h4 className="font-bold text-pink-900 text-sm">Здоровье → Планирование → Задача маме</h4>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="bg-pink-100 text-pink-800 px-2.5 py-1 rounded-lg font-medium">Профиль ребёнка</span>
+              <Icon name="ArrowRight" size={12} className="text-pink-400" />
+              <span className="bg-pink-100 text-pink-800 px-2.5 py-1 rounded-lg font-medium">Прививки по нац. календарю</span>
+              <Icon name="ArrowRight" size={12} className="text-pink-400" />
+              <span className="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-lg font-medium">Напоминание маме</span>
+              <Icon name="ArrowRight" size={12} className="text-pink-400" />
+              <span className="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-lg font-medium">Задача в календарь</span>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { icon: 'Plane', label: 'Досуг', color: 'bg-cyan-100 text-cyan-600' },
-              { icon: 'TrendingUp', label: 'Развитие', color: 'bg-violet-100 text-violet-600' },
-              { icon: 'Landmark', label: 'Государство', color: 'bg-emerald-100 text-emerald-600' },
-            ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className={`w-10 h-10 rounded-xl ${item.color.split(' ')[0]} flex items-center justify-center mx-auto mb-1`}>
-                  <Icon name={item.icon} size={18} className={item.color.split(' ')[1]} />
-                </div>
-                <span className="text-xs font-medium text-gray-600">{item.label}</span>
+
+          {/* Цепочка 3: Путешествие */}
+          <div className="bg-gradient-to-r from-cyan-50 to-teal-50 rounded-2xl p-5 border border-cyan-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-cyan-600 flex items-center justify-center flex-shrink-0">
+                <Icon name="Plane" size={14} className="text-white" />
               </div>
-            ))}
+              <h4 className="font-bold text-cyan-900 text-sm">Путешествия → Финансы → Покупки → Задачи</h4>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-lg font-medium">Планируем поездку</span>
+              <Icon name="ArrowRight" size={12} className="text-cyan-400" />
+              <span className="bg-teal-100 text-teal-800 px-2.5 py-1 rounded-lg font-medium">Бюджет в «Финансах»</span>
+              <Icon name="ArrowRight" size={12} className="text-cyan-400" />
+              <span className="bg-green-100 text-green-800 px-2.5 py-1 rounded-lg font-medium">Список покупок к поездке</span>
+              <Icon name="ArrowRight" size={12} className="text-cyan-400" />
+              <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-lg font-medium">Задачи по сборам в календарь</span>
+            </div>
+          </div>
+
+          {/* Цепочка 4: Развитие + ИИ */}
+          <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-5 border border-violet-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                <Icon name="Brain" size={14} className="text-white" />
+              </div>
+              <h4 className="font-bold text-violet-900 text-sm">AI-ассистент «Домовой» — связывает всё</h4>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="bg-violet-100 text-violet-800 px-2.5 py-1 rounded-lg font-medium">Знает возраст ребёнка</span>
+              <Icon name="ArrowRight" size={12} className="text-violet-400" />
+              <span className="bg-violet-100 text-violet-800 px-2.5 py-1 rounded-lg font-medium">Формирует план развития</span>
+              <Icon name="ArrowRight" size={12} className="text-violet-400" />
+              <span className="bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg font-medium">Ставит задачи родителям</span>
+              <Icon name="ArrowRight" size={12} className="text-violet-400" />
+              <span className="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-lg font-medium">Трекинг прогресса</span>
+            </div>
+          </div>
+
+          {/* Цепочка 5: Авто */}
+          <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-5 border border-slate-200">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0">
+                <Icon name="Car" size={14} className="text-white" />
+              </div>
+              <h4 className="font-bold text-slate-800 text-sm">Гараж → Финансы → Планирование</h4>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-medium">ТО авто в «Гараже»</span>
+              <Icon name="ArrowRight" size={12} className="text-slate-400" />
+              <span className="bg-green-100 text-green-800 px-2.5 py-1 rounded-lg font-medium">Расход в «Финансах»</span>
+              <Icon name="ArrowRight" size={12} className="text-slate-400" />
+              <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-lg font-medium">Задача в «Планировании»</span>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-xs text-gray-500 font-medium mb-2">Примеры связности:</p>
-          {[
-            'Профиль ребёнка → прививки → напоминания → задача маме → календарь',
-            'AI знает возраст ребёнка → план развития → задачи → трекинг прогресса',
-            'Путешествие → бюджет в «Финансах» → список покупок → задачи по сборам',
-            'ТО авто в «Гараже» → расход в «Финансах» → задача в «Планировании»',
-          ].map((text, i) => (
-            <div key={i} className="flex items-start gap-2 text-xs text-gray-600">
-              <Icon name="ArrowRight" size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
-              <span>{text}</span>
-            </div>
-          ))}
+        <div className="mt-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl p-4 border border-teal-200 text-center">
+          <p className="text-sm font-semibold text-teal-800">
+            Ближайшие конкуренты покрывают 1–2 функции. «Наша Семья» — все 12 направлений в единой связке.
+          </p>
         </div>
       </SectionCard>
 
@@ -517,6 +565,7 @@ export function PresentationContentSections() {
               <p>• PostgreSQL — 151 таблица</p>
               <p>• Cloud Functions — автомасштабирование</p>
               <p>• S3 Cloud Storage</p>
+              <p>• Yandex Cloud — российская облачная инфраструктура</p>
               <p>• REST API</p>
             </div>
           </div>
@@ -552,7 +601,7 @@ export function PresentationContentSections() {
         <SectionTitle icon="ShieldCheck" iconColor="bg-green-600" title="Безопасность и защита данных" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { icon: 'MapPin', title: 'Данные в РФ', desc: 'Все данные хранятся исключительно на серверах в Российской Федерации' },
+            { icon: 'MapPin', title: 'Данные в РФ (Yandex Cloud)', desc: 'Все данные хранятся исключительно на российской инфраструктуре Yandex Cloud' },
             { icon: 'Lock', title: 'Шифрование', desc: 'Шифрование данных при передаче (TLS 1.3) и хранении' },
             { icon: 'HeartPulse', title: 'Защита медданных', desc: 'Строгое разграничение доступа: каждый видит только свои медицинские записи' },
             { icon: 'Users', title: 'Ролевая система', desc: 'Администратор, редактор, наблюдатель — на уровне семьи' },
@@ -593,10 +642,10 @@ export function PresentationContentSections() {
             </div>
           </div>
         </div>
-        <div className="space-y-2 text-xs text-gray-600">
+        <div className="space-y-2 text-xs text-gray-600 mb-4">
           {[
             'Разработчик — ИП, зарегистрированный в РФ',
-            'Все данные на серверах в Российской Федерации',
+            'Все данные на серверах в Российской Федерации (Yandex Cloud)',
             'Открытые фреймворки без санкционных рисков',
             'Полностью русскоязычный интерфейс',
             'Соответствие требованиям ФЗ-152',
@@ -606,6 +655,21 @@ export function PresentationContentSections() {
               <span>{text}</span>
             </div>
           ))}
+        </div>
+
+        {/* Депонирование */}
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4 border border-amber-200">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
+              <Icon name="Award" size={14} className="text-white" />
+            </div>
+            <h4 className="font-bold text-amber-900 text-sm">Депонирование ПО — н'РИС (РЦИС.РФ)</h4>
+          </div>
+          <p className="text-xs text-amber-800">
+            Программный код «Наша Семья» находится в процессе депонирования в Национальном реестре 
+            интеллектуальной собственности (н'РИС). Депонирование подтверждает авторство и защищает 
+            интеллектуальную собственность продукта.
+          </p>
         </div>
       </SectionCard>
 
@@ -708,6 +772,72 @@ export function PresentationContentSections() {
               <span>1 000 000 пользователей</span>
               <span className="font-bold text-purple-700">4,4 млрд ₽/год</span>
             </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* СЛАЙД: Семейный ID */}
+      <SectionCard className="bg-gradient-to-br from-blue-50 to-indigo-50">
+        <SectionTitle icon="Fingerprint" iconColor="bg-blue-600" title="Семейный ID — новый клиентский опыт" />
+        <p className="text-sm text-gray-600 mb-5">
+          Единый цифровой профиль семьи создаёт уникальный клиентский опыт для банков, 
+          маркетплейсов и сервисных компаний. Семья — это не набор индивидуальных клиентов, 
+          а <strong>единый центр принятия финансовых решений</strong>.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+          {/* Банки */}
+          <div className="bg-white rounded-2xl p-5 border border-blue-100 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                <Icon name="Landmark" size={16} className="text-white" />
+              </div>
+              <h4 className="font-bold text-gray-800 text-sm">Банки и финтех</h4>
+            </div>
+            <ul className="text-xs text-gray-600 space-y-1.5">
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-blue-500 mt-0.5 flex-shrink-0" /><span>Общие семейные счета и карты</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-blue-500 mt-0.5 flex-shrink-0" /><span>Единый кэшбэк на всю семью</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-blue-500 mt-0.5 flex-shrink-0" /><span>Семейные ипотечные и кредитные программы</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-blue-500 mt-0.5 flex-shrink-0" /><span>Накопительные цели для детей</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-blue-500 mt-0.5 flex-shrink-0" /><span>Страховые продукты (ДМС, КАСКО)</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-blue-500 mt-0.5 flex-shrink-0" /><span><strong>Сбер, Т-Банк, Яндекс</strong> — партнёры экосистемы</span></li>
+            </ul>
+          </div>
+
+          {/* Маркетплейсы */}
+          <div className="bg-white rounded-2xl p-5 border border-violet-100 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
+                <Icon name="ShoppingCart" size={16} className="text-white" />
+              </div>
+              <h4 className="font-bold text-gray-800 text-sm">Маркетплейсы и ритейл</h4>
+            </div>
+            <ul className="text-xs text-gray-600 space-y-1.5">
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-violet-500 mt-0.5 flex-shrink-0" /><span>Список покупок → прямая интеграция в корзину маркетплейса</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-violet-500 mt-0.5 flex-shrink-0" /><span>Семейные бонусные программы (общие баллы)</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-violet-500 mt-0.5 flex-shrink-0" /><span>ИИ-диета → автоматический заказ продуктов</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-violet-500 mt-0.5 flex-shrink-0" /><span>Рекомендации к праздникам и событиям</span></li>
+              <li className="flex items-start gap-1.5"><Icon name="Check" size={12} className="text-violet-500 mt-0.5 flex-shrink-0" /><span><strong>Wildberries, Озон, Яндекс Маркет</strong> — площадки интеграции</span></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Ценности для партнёра */}
+        <div className="bg-gradient-to-r from-indigo-100 to-blue-100 rounded-2xl p-5">
+          <h4 className="font-bold text-indigo-900 text-sm mb-3">Почему это выгодно партнёру:</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+            {[
+              { icon: 'Heart', label: 'Ценности семьи', sub: 'лояльность на годы' },
+              { icon: 'Sparkles', label: 'Гармония и порядок', sub: 'снижение стресса клиента' },
+              { icon: 'Users', label: 'Единый клиент', sub: 'семья, а не 4 разных' },
+              { icon: 'TrendingUp', label: 'Клиентский опыт', sub: 'глубокий и персональный' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl p-3">
+                <Icon name={item.icon} size={20} className="text-indigo-500 mx-auto mb-1" />
+                <p className="text-xs font-bold text-gray-800">{item.label}</p>
+                <p className="text-xs text-gray-500">{item.sub}</p>
+              </div>
+            ))}
           </div>
         </div>
       </SectionCard>

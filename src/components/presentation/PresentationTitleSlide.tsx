@@ -14,14 +14,35 @@ export function PresentationTitleSlide() {
         />
       </div>
       <h1 className="text-5xl font-bold mb-3 text-slate-800 tracking-tight">
-        Наша семья
+        Наша Семья
       </h1>
-      <p className="text-xl text-slate-500 mb-2">
-        Цифровая платформа управления семейной жизнью
+      <p className="text-xl text-slate-500 mb-1">
+        Цифровая платформа благополучия семейной жизни
       </p>
+      <p className="text-sm text-slate-400 mb-3 italic">элемент семейной экосистемы</p>
       <p className="text-2xl font-semibold text-emerald-700 mb-6">
         Объединяем семьи. Укрепляем общество.
       </p>
+
+      {/* Концепция: Семья как единый клиент */}
+      <div className="max-w-2xl mx-auto mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100 text-left">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <Icon name="Users" size={16} className="text-white" />
+          </div>
+          <h3 className="font-bold text-blue-900 text-sm">Семья как единый клиент — Семейный ID</h3>
+        </div>
+        <p className="text-xs text-slate-600 mb-3">
+          Единый цифровой профиль семьи открывает новое качество клиентского опыта: общие расходы, 
+          совместные счета, единый ID для банков и маркетплейсов (Сбер, Яндекс, Wildberries, Озон).
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {['Общие расходы и счета', 'Бонусные программы семьи', 'Единый клиентский опыт', 'Интеграция с маркетплейсами'].map((tag) => (
+            <span key={tag} className="text-xs bg-white text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-medium">{tag}</span>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-wrap justify-center gap-3 text-sm text-slate-500">
         <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
           <Icon name="Globe" size={14} className="text-slate-400" />
