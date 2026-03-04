@@ -168,7 +168,7 @@ export function TopBar({
                 title="Презентация"
               >
                 <Icon name="FileText" size={18} />
-                <span className="text-sm hidden md:inline">Презентация</span>
+                <span className="text-sm hidden md:inline">Инвесторам</span>
               </Button>
             )}
             

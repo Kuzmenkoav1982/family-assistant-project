@@ -192,7 +192,7 @@ export default function GlobalTopBar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/presentation')} className="rounded-lg">
                   <Icon name="Play" size={16} className="mr-2.5 text-gray-500" />
-                  <span>Презентация</span>
+                  <span>Инвесторам</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => window.open('https://t.me/Nasha7iya', '_blank')} className="rounded-lg">
