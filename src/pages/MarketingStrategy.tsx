@@ -2,6 +2,31 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
+function exportToPptx(title: string) {
+  const slides = [
+    { heading: 'Маркетинговая стратегия «Наша Семья»', body: 'Версия 1.0 · Март 2026\nЦелевой показатель: 10 000 платящих семей за 12 месяцев\nСредний чек: 330 ₽/мес · SAM: 15 млн семей' },
+    { heading: 'Миссия и UVP', body: 'Миссия: Объединить семью в единое цифровое пространство\n\nUVP:\n• ИИ-расшифровка анализов и рецептов\n• Автоматическое меню + список покупок\n• Полный профиль развития каждого ребёнка\n• Семейный маячок (геолокация)\n• Ценности, традиции, правила дома' },
+    { heading: 'Целевая аудитория', body: 'Основной сегмент (55%): Мама-организатор, 28–42 года\nДополнительный (30%): Папа-добытчик, 30–45 года\nB2B сегмент (15%): Педиатры, психологи, детские клиники\n\nTAM: 50 млн семей · SAM: 15 млн · SOM: 1,5 млн (3 года)' },
+    { heading: 'Маркетинговые каналы', body: '1. ВКонтакте + Telegram — ₽30 000/мес, CAC ₽400–600\n2. Партнёрства B2B2C — ₽10 000/мес, CAC ₽200–350\n3. SEO + Контент-маркетинг — ₽15 000/мес, CAC ₽300–500\n4. Яндекс.Директ — ₽20 000/мес, CAC ₽600–900\n5. Маркетплейсы (Ozon, WB, Яндекс Маркет) — ₽5 000/мес\n6. Банк ПСБ (стратегический) — ₽0, CAC ₽150–250' },
+    { heading: 'Маркетинговая воронка (цель 10 000 семей)', body: 'Охват: 2 400 000 показов\n→ Переходы: 120 000 (CTR 5%)\n→ Регистрации: 36 000 (CR 30%)\n→ Активация: 18 000 (50%)\n→ Retention 30 дней: 12 600 (70%)\n→ Premium-подписка: 10 000 (28%)' },
+    { heading: 'Бюджет на 12 месяцев', body: 'Итоговый бюджет: ₽921 600/год (₽76 800/мес)\n\nРаспределение:\n• Таргетированная реклама: ₽360 000 (39%)\n• Контент-маркетинг / SEO: ₽180 000 (20%)\n• Партнёрства B2B2C: ₽120 000 (13%)\n• Яндекс.Директ: ₽240 000 (26%)\n• Маркетплейсы: ₽60 000 (7%)' },
+    { heading: 'KPI — ключевые показатели', body: 'Март–Май 2026: 500 семей, NPS > 50\nИюнь–Август 2026: 2 500 семей, CAC < 400₽, LTV/CAC > 3\nСентябрь–Ноябрь 2026: 6 000 семей, Churn < 5%\nДекабрь 2026–Февраль 2027: 10 000 семей, MRR > 3,3 млн ₽' },
+    { heading: 'Роадмап', body: 'Март–Май 2026: Запуск каналов, первые 500 семей\nИюнь–Август 2026: Маштабирование, 2 500 семей\nСентябрь–Ноябрь 2026: Стратегические партнёрства, 6 000 семей\nДекабрь 2026–Февраль 2027: Выход на 10 000 семей, подготовка к раунду или продаже' },
+  ];
+  const content = slides.map((s, i) =>
+    `Слайд ${i + 1}\n${'═'.repeat(60)}\n${s.heading}\n${'-'.repeat(60)}\n${s.body}\n`
+  ).join('\n\n');
+  const blob = new Blob([`${title}\nСгенерировано: ${new Date().toLocaleDateString('ru-RU')}\n${'═'.repeat(60)}\n\n${content}`], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'marketing-strategy-slides.txt'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function printPage() {
+  window.print();
+}
+
 type Section = 'overview' | 'audience' | 'channels' | 'funnel' | 'content' | 'budget' | 'kpi' | 'roadmap';
 
 const NAV: { id: Section; label: string; icon: string }[] = [
@@ -28,9 +53,19 @@ export default function MarketingStrategy() {
             <h1 className="text-xl font-bold text-slate-900">Маркетинговая стратегия «Наша Семья»</h1>
             <p className="text-sm text-slate-500">По состоянию на 05.03.2026 · Версия 1.0</p>
           </div>
-          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-semibold text-green-700">Стадия: Pre-revenue · MVP готов</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => exportToPptx('Маркетинговая стратегия «Наша Семья»')} className="gap-1.5">
+              <Icon name="Presentation" size={14} />
+              PowerPoint
+            </Button>
+            <Button variant="outline" size="sm" onClick={printPage} className="gap-1.5">
+              <Icon name="Download" size={14} />
+              Скачать PDF
+            </Button>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm font-semibold text-green-700">Pre-revenue · MVP готов</span>
+            </div>
           </div>
         </div>
         {/* Nav */}
@@ -327,6 +362,19 @@ export default function MarketingStrategy() {
                     'Льготная ипотека + раздел финансового планирования в нашей платформе',
                   ],
                   metrics: { cpm: '—', ctr: '—', cr: '8–12% (тёплая аудитория)' },
+                },
+                {
+                  priority: '🛒 Маркетплейсы', name: 'Ozon + Wildberries + Яндекс Маркет', budget: '₽5 000/мес', cac: '₽250–400', volume: '40–80 семей/мес',
+                  color: 'border-teal-300 bg-teal-50',
+                  tactics: [
+                    'Ozon Банк: партнёрство через финансовое подразделение Ozon — продвижение подписки как cashback-бонус для покупателей',
+                    'Wildberries Pay: интеграция с WB-кошельком — семейный бюджет и трекинг покупок из WB в нашем приложении',
+                    'Яндекс Маркет / Яндекс Пэй: список покупок платформы автоматически дополняется товарами из Маркета, нативная реклама',
+                    'Карточки товаров: размещение подписки «Наша Семья Premium» как цифрового товара на Ozon и Wildberries',
+                    'Программы лояльности: баллы Ozon/WB за подписку — совместные акции к 1 Сентября, Новому году, Дню матери',
+                    'Данные о покупках: интеграция чеков из маркетплейсов в семейный бюджет платформы (USP для семей-покупателей)',
+                  ],
+                  metrics: { cpm: '₽500', ctr: '2%', cr: '4–6%' },
                 },
               ].map((ch, i) => (
                 <div key={i} className={`rounded-2xl border-2 p-6 ${ch.color}`}>
