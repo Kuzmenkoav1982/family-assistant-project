@@ -131,6 +131,7 @@ const Culture = lazy(() => import("./pages/Culture"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Goals = lazy(() => import("./pages/Goals"));
 const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
+const MarketingSale = lazy(() => import("./pages/MarketingSale"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -305,6 +306,7 @@ const App = () => {
                       <Route path="/admin/users" element={<AdminUsers />} />
                       <Route path="/admin/valuation" element={<AdminValuation />} />
                       <Route path="/admin/marketing" element={<MarketingStrategy />} />
+                      <Route path="/admin/marketing-sale" element={<MarketingSale />} />
                       <Route path="/alice" element={<AliceIntegration />} />
                       <Route path="/nationalities" element={<NationalitiesPage />} />
                       <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
