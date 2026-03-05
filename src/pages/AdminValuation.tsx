@@ -616,7 +616,7 @@ export default function AdminValuation() {
                 <div>
                   <div className="text-xs font-semibold text-blue-400 uppercase mb-2">Кому подходит</div>
                   <ul className="space-y-1 text-sm text-slate-700">
-                    <li className="font-bold text-blue-700">• ПСБ — банк семей военных</li>
+                    <li className="font-bold text-blue-700">• Банк ПСБ (ПАО «Банк ПСБ») — банк семей военных</li>
                     <li className="text-slate-500 text-xs pl-3 -mt-1 mb-1">Платформа идеально покрывает аудиторию семей военнослужащих: планирование бюджета, льготы, ипотека</li>
                     <li>• Сбербанк (СберСемья)</li>
                     <li>• Т-Банк (экосистема)</li>
@@ -657,7 +657,7 @@ export default function AdminValuation() {
                 <div>
                   <div className="text-xs font-semibold text-amber-500 uppercase mb-2">Целевые покупатели</div>
                   <ul className="space-y-1 text-sm text-slate-700">
-                    <li className="font-bold text-amber-700">• ПСБ (Промсвязьбанк)</li>
+                    <li className="font-bold text-amber-700">• Банк ПСБ (ПАО «Банк ПСБ»)</li>
                     <li className="text-slate-500 text-xs pl-3 -mt-1 mb-1">Опорный банк ВПК и семей военных: льготная ипотека, субсидии, 2+ млн клиентов-военных</li>
                     <li>• Сбербанк (СберСемья)</li>
                     <li>• Т-Банк (экосистема)</li>
@@ -895,7 +895,7 @@ export default function AdminValuation() {
                     tagColor: 'bg-orange-100 text-orange-700',
                   },
                   {
-                    name: 'ПСБ (Промсвязьбанк) — M&A отдел',
+                    name: 'Банк ПСБ (ПАО «Банк ПСБ») — M&A отдел',
                     desc: 'Опорный банк ВПК. Прямой контакт: департамент развития экосистемы и цифровых продуктов.',
                     contact: 'psbank.ru → "Для бизнеса" / partnership@psbank.ru',
                     tag: 'Приоритет #1',
@@ -1005,7 +1005,7 @@ export default function AdminValuation() {
               <ul className="space-y-1.5 text-sm text-slate-700 mb-4">
                 {[
                   'Аналогов нет — уникальная ниша в России',
-                  'ПСБ: 2+ млн семей военных — идеальная аудитория',
+                  'Банк ПСБ: 2+ млн семей военных — идеальная аудитория',
                   '«Десятилетие семьи» — попутный ветер 10 лет',
                   'Технология защищена — регистрация ТМ в Роспатенте',
                   'Стоимость растёт с каждым новым пользователем',
@@ -1027,8 +1027,8 @@ export default function AdminValuation() {
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 bg-blue-600 text-white rounded-xl p-5">
               <div className="text-sm text-blue-200 mb-1">Приоритетный покупатель</div>
-              <div className="font-bold text-lg mb-2">ПСБ (Промсвязьбанк) — опорный банк ВПК</div>
-              <div className="text-sm text-blue-100">Платформа «Наша Семья» — готовый цифровой продукт для 2+ млн семей военнослужащих: льготная ипотека, субсидии, семейный бюджет, документы, здоровье. Идеальный fit с аудиторией ПСБ.</div>
+              <div className="font-bold text-lg mb-2">Банк ПСБ (ПАО «Банк ПСБ») — опорный банк ВПК</div>
+              <div className="text-sm text-blue-100">Платформа «Наша Семья» — готовый цифровой продукт для 2+ млн семей военнослужащих: льготная ипотека, субсидии, семейный бюджет, документы, здоровье. Идеальный fit с аудиторией Банка ПСБ.</div>
             </div>
             <div className="bg-slate-900 text-white rounded-xl p-5 flex flex-col justify-between">
               <div>
