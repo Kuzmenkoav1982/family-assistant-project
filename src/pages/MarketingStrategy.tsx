@@ -1,30 +1,24 @@
 import { useState } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-function exportToPptx(title: string) {
-  const slides = [
-    { heading: 'Маркетинговая стратегия «Наша Семья»', body: 'Версия 1.0 · Март 2026\nЦелевой показатель: 10 000 платящих семей за 12 месяцев\nСредний чек: 330 ₽/мес · SAM: 15 млн семей' },
-    { heading: 'Миссия и UVP', body: 'Миссия: Объединить семью в единое цифровое пространство\n\nUVP:\n• ИИ-расшифровка анализов и рецептов\n• Автоматическое меню + список покупок\n• Полный профиль развития каждого ребёнка\n• Семейный маячок (геолокация)\n• Ценности, традиции, правила дома' },
-    { heading: 'Целевая аудитория', body: 'Основной сегмент (55%): Мама-организатор, 28–42 года\nДополнительный (30%): Папа-добытчик, 30–45 года\nB2B сегмент (15%): Педиатры, психологи, детские клиники\n\nTAM: 50 млн семей · SAM: 15 млн · SOM: 1,5 млн (3 года)' },
-    { heading: 'Маркетинговые каналы', body: '1. ВКонтакте + Telegram — ₽30 000/мес, CAC ₽400–600\n2. Партнёрства B2B2C — ₽10 000/мес, CAC ₽200–350\n3. SEO + Контент-маркетинг — ₽15 000/мес, CAC ₽300–500\n4. Яндекс.Директ — ₽20 000/мес, CAC ₽600–900\n5. Маркетплейсы (Ozon, WB, Яндекс Маркет) — ₽5 000/мес\n6. Банк ПСБ (стратегический) — ₽0, CAC ₽150–250' },
-    { heading: 'Маркетинговая воронка (цель 10 000 семей)', body: 'Охват: 2 400 000 показов\n→ Переходы: 120 000 (CTR 5%)\n→ Регистрации: 36 000 (CR 30%)\n→ Активация: 18 000 (50%)\n→ Retention 30 дней: 12 600 (70%)\n→ Premium-подписка: 10 000 (28%)' },
-    { heading: 'Бюджет на 12 месяцев', body: 'Итоговый бюджет: ₽921 600/год (₽76 800/мес)\n\nРаспределение:\n• Таргетированная реклама: ₽360 000 (39%)\n• Контент-маркетинг / SEO: ₽180 000 (20%)\n• Партнёрства B2B2C: ₽120 000 (13%)\n• Яндекс.Директ: ₽240 000 (26%)\n• Маркетплейсы: ₽60 000 (7%)' },
-    { heading: 'KPI — ключевые показатели', body: 'Март–Май 2026: 500 семей, NPS > 50\nИюнь–Август 2026: 2 500 семей, CAC < 400₽, LTV/CAC > 3\nСентябрь–Ноябрь 2026: 6 000 семей, Churn < 5%\nДекабрь 2026–Февраль 2027: 10 000 семей, MRR > 3,3 млн ₽' },
-    { heading: 'Роадмап', body: 'Март–Май 2026: Запуск каналов, первые 500 семей\nИюнь–Август 2026: Маштабирование, 2 500 семей\nСентябрь–Ноябрь 2026: Стратегические партнёрства, 6 000 семей\nДекабрь 2026–Февраль 2027: Выход на 10 000 семей, подготовка к раунду или продаже' },
-  ];
-  const content = slides.map((s, i) =>
-    `Слайд ${i + 1}\n${'═'.repeat(60)}\n${s.heading}\n${'-'.repeat(60)}\n${s.body}\n`
-  ).join('\n\n');
-  const blob = new Blob([`${title}\nСгенерировано: ${new Date().toLocaleDateString('ru-RU')}\n${'═'.repeat(60)}\n\n${content}`], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'marketing-strategy-slides.txt'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function printPage() {
-  window.print();
+async function captureStrategySlides(onProgress: (msg: string) => void): Promise<HTMLCanvasElement[] | null> {
+  const container = document.getElementById('marketing-strategy-slides');
+  if (!container) return null;
+  container.style.display = 'block';
+  await new Promise(r => setTimeout(r, 300));
+  const slides = Array.from(container.querySelectorAll('[data-pdf-slide]')) as HTMLElement[];
+  if (!slides.length) { container.style.display = 'none'; return null; }
+  const canvases: HTMLCanvasElement[] = [];
+  for (let i = 0; i < slides.length; i++) {
+    onProgress(`Слайд ${i + 1} из ${slides.length}...`);
+    const c = await html2canvas(slides[i], { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 1200, imageTimeout: 0 });
+    canvases.push(c);
+  }
+  container.style.display = 'none';
+  return canvases;
 }
 
 type Section = 'overview' | 'audience' | 'channels' | 'funnel' | 'content' | 'budget' | 'kpi' | 'roadmap';
@@ -42,6 +36,60 @@ const NAV: { id: Section; label: string; icon: string }[] = [
 
 export default function MarketingStrategy() {
   const [active, setActive] = useState<Section>('overview');
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfMsg, setPdfMsg] = useState('');
+  const [pptxBusy, setPptxBusy] = useState(false);
+  const [pptxMsg, setPptxMsg] = useState('');
+
+  const downloadPDF = async () => {
+    setPdfBusy(true);
+    try {
+      const canvases = await captureStrategySlides(setPdfMsg);
+      if (!canvases) return;
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const pw = 297; const ph = 210; const m = 8;
+      const cw = pw - m * 2; const ch = ph - m * 2;
+      for (let i = 0; i < canvases.length; i++) {
+        const c = canvases[i];
+        const ar = c.width / c.height;
+        let w = cw; let h = w / ar;
+        if (h > ch) { h = ch; w = h * ar; }
+        const x = m + (cw - w) / 2; const y = m + (ch - h) / 2;
+        if (i > 0) pdf.addPage();
+        pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, pw, ph, 'F');
+        pdf.addImage(c.toDataURL('image/png'), 'PNG', x, y, w, h, `s${i}`, 'FAST');
+        pdf.setFontSize(7); pdf.setTextColor(180, 180, 180);
+        pdf.text(`${i + 1} / ${canvases.length}`, pw / 2, ph - 4, { align: 'center' });
+      }
+      pdf.save('Маркетинговая-стратегия-НашаСемья.pdf');
+    } finally { setPdfBusy(false); setPdfMsg(''); }
+  };
+
+  const downloadPPTX = async () => {
+    setPptxBusy(true);
+    try {
+      const PptxGenJS = (await import('pptxgenjs')).default;
+      const canvases = await captureStrategySlides(setPptxMsg);
+      if (!canvases) return;
+      setPptxMsg('Формирую PPTX...');
+      const pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_16x9';
+      pptx.title = 'Маркетинговая стратегия — Наша Семья';
+      pptx.company = 'Наша Семья';
+      const sw = 10; const sh = 5.625; const p = 0.2;
+      for (let i = 0; i < canvases.length; i++) {
+        const c = canvases[i];
+        const ar = c.width / c.height;
+        let w = sw - p * 2; let h = w / ar;
+        if (h > sh - p * 2) { h = sh - p * 2; w = h * ar; }
+        const slide = pptx.addSlide();
+        slide.background = { fill: 'FFFFFF' };
+        slide.addImage({ data: c.toDataURL('image/png'), x: (sw - w) / 2, y: (sh - h) / 2, w, h });
+        slide.addText(`${i + 1} / ${canvases.length}`, { x: 0, y: sh - 0.3, w: sw, h: 0.25, align: 'center', fontSize: 7, color: 'B4B4B4' });
+      }
+      await pptx.writeFile({ fileName: 'Маркетинговая-стратегия-НашаСемья.pptx' });
+    } finally { setPptxBusy(false); setPptxMsg(''); }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -54,13 +102,13 @@ export default function MarketingStrategy() {
             <p className="text-sm text-slate-500">По состоянию на 05.03.2026 · Версия 1.0</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <Button variant="outline" size="sm" onClick={() => exportToPptx('Маркетинговая стратегия «Наша Семья»')} className="gap-1.5">
-              <Icon name="Presentation" size={14} />
-              PowerPoint
+            <Button variant="outline" size="sm" onClick={downloadPPTX} disabled={pptxBusy} className="gap-1.5">
+              <Icon name={pptxBusy ? 'Loader2' : 'Presentation'} size={14} className={pptxBusy ? 'animate-spin' : ''} />
+              {pptxBusy ? pptxMsg || 'PPTX...' : 'PowerPoint'}
             </Button>
-            <Button variant="outline" size="sm" onClick={printPage} className="gap-1.5">
-              <Icon name="Download" size={14} />
-              Скачать PDF
+            <Button variant="outline" size="sm" onClick={downloadPDF} disabled={pdfBusy} className="gap-1.5">
+              <Icon name={pdfBusy ? 'Loader2' : 'Download'} size={14} className={pdfBusy ? 'animate-spin' : ''} />
+              {pdfBusy ? pdfMsg || 'PDF...' : 'Скачать PDF'}
             </Button>
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -928,6 +976,82 @@ export default function MarketingStrategy() {
         <div className="text-center text-xs text-slate-400 pt-4 pb-8">
           «Наша Семья» · Маркетинговая стратегия v1.0 · 05.03.2026 · Конфиденциально
         </div>
+      </div>
+
+      {/* Скрытые слайды для PDF/PPTX */}
+      <div id="marketing-strategy-slides" style={{ display: 'none', position: 'fixed', left: '-9999px', top: 0, width: '1200px', zIndex: -1 }}>
+        {[
+          {
+            title: 'Маркетинговая стратегия «Наша Семья»',
+            subtitle: 'Версия 1.0 · Март 2026',
+            color: 'from-blue-700 to-indigo-700',
+            items: ['Целевой показатель: 10 000 платящих семей за 12 месяцев', 'Средний чек: 330 ₽/мес', 'SAM: 15 млн семей с детьми в России', 'Текущий traction: 51 семья · MVP готов']
+          },
+          {
+            title: 'Семейный ID — ключевая концепция',
+            subtitle: 'Уникальная ценность, которой нет ни у банков, ни у маркетплейсов',
+            color: 'from-indigo-900 to-blue-900',
+            items: ['🪪 Семейный ID — единый цифровой профиль семьи для банков и маркетплейсов', '💳 Общие расходы и совместные счета — семейный бюджет под контролем', '🎁 Бонусные программы семьи — единый кошелёк лояльности всей семьи', '🔗 Единый клиентский опыт — магазин, банк, здоровье, дети в одном месте', '💡 B2B монетизация: банки и маркетплейсы платят за доступ к Семейному ID']
+          },
+          {
+            title: 'Целевая аудитория',
+            subtitle: 'TAM 50 млн · SAM 15 млн · SOM 1,5 млн семей',
+            color: 'from-pink-700 to-rose-700',
+            items: ['👩‍👧‍👦 Мама-организатор 28–42 года (55%) — CAC ₽400–600, LTV ₽10 800', '👨‍👩‍👦 Папа-партнёр 30–45 лет (25%) — вовлекается через финансовый модуль', '🏥 B2B: педиатры, психологи, детские клиники (15%) — CAC ₽200–350', '🏢 Корпоративный: HR-льготы для сотрудников с семьями (10%)']
+          },
+          {
+            title: 'Маркетинговые каналы',
+            subtitle: 'Мультиканальная стратегия с CAC ₽150–900',
+            color: 'from-violet-700 to-purple-700',
+            items: ['1. ВКонтакте + Telegram — ₽30 000/мес, CAC ₽400–600', '2. Партнёрства B2B2C (клиники, HR) — ₽10 000/мес, CAC ₽200–350', '3. SEO + Контент-маркетинг — ₽15 000/мес, CAC ₽300–500', '4. Яндекс.Директ — ₽20 000/мес, CAC ₽600–900', '5. Маркетплейсы (Ozon, WB, Яндекс Маркет) — ₽5 000/мес', '6. Банк ПСБ (стратегический) — ₽0, CAC ₽150–250']
+          },
+          {
+            title: 'Маркетинговая воронка',
+            subtitle: 'Цель: 10 000 платящих семей',
+            color: 'from-cyan-700 to-blue-700',
+            items: ['Охват: 2 400 000 показов/мес', '→ Переходы: 120 000 (CTR 5%)', '→ Регистрации: 36 000 (CR 30%)', '→ Активация: 18 000 (50%)', '→ Retention 30 дней: 12 600 (70%)', '→ Premium-подписка: 10 000 (28%) — MRR ₽3,3 млн']
+          },
+          {
+            title: 'Бюджет на 12 месяцев',
+            subtitle: '₽921 600/год · ₽76 800/мес',
+            color: 'from-emerald-700 to-teal-700',
+            items: ['Таргетированная реклама: ₽360 000 (39%)', 'Яндекс.Директ: ₽240 000 (26%)', 'Контент-маркетинг / SEO: ₽180 000 (20%)', 'Партнёрства B2B2C: ₽120 000 (13%)', 'Маркетплейсы: ₽60 000 (7%)', 'Ожидаемый ROMI: >300% к концу года']
+          },
+          {
+            title: 'KPI — ключевые показатели',
+            subtitle: 'Ежеквартальные цели март 2026 – март 2027',
+            color: 'from-amber-600 to-orange-600',
+            items: ['Q1 2026 (Март–Май): 300 семей · MRR ₽99K · NPS > 50', 'Q2 2026 (Июнь–Август): 2 000 семей · MRR ₽660K · CAC < ₽400', 'Q3 2026 (Сент–Ноябрь): 5 000 семей · MRR ₽1,65M · Breakeven', 'Q4 2026 (Дек–Март 2027): 10 000 семей · MRR ₽3,3M · ARR ₽39,6M']
+          },
+          {
+            title: 'Роадмап',
+            subtitle: 'Март 2026 — Март 2027',
+            color: 'from-slate-800 to-slate-900',
+            items: ['Q1: Запуск каналов, партнёрства с клиниками, первые 300 семей', 'Q2: Масштабирование, iOS-приложение, переговоры с ПСБ, 2 000 семей', 'Q3: B2B корпоративный тариф, Android, пилот с ПСБ, 5 000 семей', 'Q4: Series A / стратегическая продажа, выход в СНГ, 10 000 семей']
+          },
+        ].map((slide, i) => (
+          <div key={i} data-pdf-slide style={{ width: '1200px', minHeight: '675px', background: 'white', padding: '0', marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: `linear-gradient(135deg, ${slide.color.replace('from-', '').replace(' to-', ', ')})`, padding: '60px 80px 40px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>
+                Маркетинговая стратегия · Слайд {i + 1} из 8
+              </div>
+              <h2 style={{ fontSize: '48px', fontWeight: 900, color: 'white', lineHeight: 1.1, margin: '0 0 12px' }}>{slide.title}</h2>
+              <p style={{ fontSize: '20px', color: 'rgba(255,255,255,0.75)', margin: '0 0 40px' }}>{slide.subtitle}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {slide.items.map((item, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', background: 'rgba(255,255,255,0.12)', borderRadius: '12px', padding: '16px 20px' }}>
+                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>→</div>
+                    <div style={{ fontSize: '18px', color: 'white', lineHeight: 1.4 }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: 'white', padding: '12px 80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e5e7eb' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Маркетинговая стратегия «Наша Семья» · Конфиденциально</span>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>05.03.2026</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

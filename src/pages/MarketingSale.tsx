@@ -1,6 +1,25 @@
 import { useState } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+
+async function captureSaleSlides(onProgress: (msg: string) => void): Promise<HTMLCanvasElement[] | null> {
+  const container = document.getElementById('sale-strategy-slides');
+  if (!container) return null;
+  container.style.display = 'block';
+  await new Promise(r => setTimeout(r, 300));
+  const slides = Array.from(container.querySelectorAll('[data-pdf-slide]')) as HTMLElement[];
+  if (!slides.length) { container.style.display = 'none'; return null; }
+  const canvases: HTMLCanvasElement[] = [];
+  for (let i = 0; i < slides.length; i++) {
+    onProgress(`Слайд ${i + 1} из ${slides.length}...`);
+    const c = await html2canvas(slides[i], { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 1200, imageTimeout: 0 });
+    canvases.push(c);
+  }
+  container.style.display = 'none';
+  return canvases;
+}
 
 type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap';
 
@@ -15,28 +34,62 @@ const NAV: { id: Section; label: string; icon: string }[] = [
   { id: 'roadmap', label: 'Роадмап', icon: 'Map' },
 ];
 
-function exportSalePptx() {
-  const slides = [
-    { heading: 'Стратегия продажи «Наша Семья»', body: 'M&A стратегия · Версия 1.0 · Март 2026\nСтрого конфиденциально — только для собственника\nЦелевой диапазон сделки: 80–250 млн ₽' },
-    { heading: 'Три сценария выхода', body: 'A. Продажа технологии: 40–60 млн ₽ / 2–4 месяца\n   Продажа кода + ИС IT-интегратору или банку\n\nB. Продажа бизнеса: 80–130 млн ₽ / 4–7 месяцев\n   Действующий бизнес с пользователями + earn-out\n\nC. Стратегическое партнёрство: 150–250 млн ₽ / 6–9 месяцев\n   Контрольный пакет крупному стратегу (ПСБ, Сбер)' },
-    { heading: 'Целевые покупатели — Банки', body: '#1 Банк ПСБ: 150–250 млн ₽ — 2+ млн семей военных, идеальная аудитория\n#2 Сбербанк: 100–200 млн ₽ — дополняет СберПрайм Семья\n#3 Т-Банк: 80–150 млн ₽ — lifestyle-экосистема, аудитория 25–40 лет\n   Ozon Банк: 60–100 млн ₽ — 40M покупателей с семьями\n   Ozon/WB как дистрибуция подписки: нативная интеграция' },
-    { heading: 'Целевые покупатели — Маркетплейсы и Экосистемы', body: 'Ozon + Ozon Банк: 60–100 млн ₽\n   40M пользователей, WB Pay / Ozon Pay → семейный кошелёк\n\nWildberries: 50–90 млн ₽\n   60M покупателей, женская аудитория 80% совпадает\n\nЯндекс (Маркет + Алиса): 80–150 млн ₽\n   Уже есть интеграция с Алисой, список покупок → Маркет\n\nVK: 60–120 млн ₽ · МТС: 70–130 млн ₽' },
-    { heading: 'Оценка платформы', body: 'Стоимость воспроизведения: 28 млн ₽ (нижняя граница)\nОценка по Беркусу + ИС n\'RIS: 42 млн ₽\nСправедливая рыночная: 80–130 млн ₽\nСтратегическая премия (банк): 150–250 млн ₽\n\nЧто входит: 86 API, 151 таблица БД, 385+ компонентов,\nИС n\'RIS №518-830-027, бренд, домен, интеграции' },
-    { heading: 'Структура сделки и налоги', body: 'А. Договор отчуждения ИС: 40–60 млн / НДФЛ 13% / быстро\nБ. Asset Deal: 80–130 млн / НДФЛ 15% / средний DD\nВ. Share Deal (ООО): 150–250 млн / НДФЛ 15% / полный DD\n\nEarn-out: +35–50 млн при достижении 5K/15K семей\n\nЧистыми: 80 млн → ~68 млн | 200 млн → ~170 млн ₽' },
-    { heading: 'Роадмап продажи', body: 'Март–Апрель 2026: Подготовка (ООО, ТМ, тизер, финансы)\nМай–Июнь 2026: Первые контакты, 5+ NDA\nИюль–Август 2026: LOI и Due Diligence\nСентябрь–Октябрь 2026: Финальные переговоры\nНоябрь 2026: Закрытие сделки 💰' },
-  ];
-  const content = slides.map((s, i) =>
-    `Слайд ${i + 1}\n${'═'.repeat(60)}\n${s.heading}\n${'-'.repeat(60)}\n${s.body}\n`
-  ).join('\n\n');
-  const blob = new Blob([`СТРАТЕГИЯ ПРОДАЖИ «НАША СЕМЬЯ» — СТРОГО КОНФИДЕНЦИАЛЬНО\nСгенерировано: ${new Date().toLocaleDateString('ru-RU')}\n${'═'.repeat(60)}\n\n${content}`], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'sale-strategy-slides.txt'; a.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function MarketingSale() {
   const [active, setActive] = useState<Section>('overview');
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfMsg, setPdfMsg] = useState('');
+  const [pptxBusy, setPptxBusy] = useState(false);
+  const [pptxMsg, setPptxMsg] = useState('');
+
+  const downloadPDF = async () => {
+    setPdfBusy(true);
+    try {
+      const canvases = await captureSaleSlides(setPdfMsg);
+      if (!canvases) return;
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const pw = 297; const ph = 210; const m = 8;
+      const cw = pw - m * 2; const ch = ph - m * 2;
+      for (let i = 0; i < canvases.length; i++) {
+        const c = canvases[i];
+        const ar = c.width / c.height;
+        let w = cw; let h = w / ar;
+        if (h > ch) { h = ch; w = h * ar; }
+        const x = m + (cw - w) / 2; const y = m + (ch - h) / 2;
+        if (i > 0) pdf.addPage();
+        pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, pw, ph, 'F');
+        pdf.addImage(c.toDataURL('image/png'), 'PNG', x, y, w, h, `s${i}`, 'FAST');
+        pdf.setFontSize(7); pdf.setTextColor(180, 180, 180);
+        pdf.text(`${i + 1} / ${canvases.length}`, pw / 2, ph - 4, { align: 'center' });
+      }
+      pdf.save('Стратегия-продажи-НашаСемья.pdf');
+    } finally { setPdfBusy(false); setPdfMsg(''); }
+  };
+
+  const downloadPPTX = async () => {
+    setPptxBusy(true);
+    try {
+      const PptxGenJS = (await import('pptxgenjs')).default;
+      const canvases = await captureSaleSlides(setPptxMsg);
+      if (!canvases) return;
+      setPptxMsg('Формирую PPTX...');
+      const pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_16x9';
+      pptx.title = 'Стратегия продажи — Наша Семья';
+      pptx.company = 'Наша Семья';
+      const sw = 10; const sh = 5.625; const p = 0.2;
+      for (let i = 0; i < canvases.length; i++) {
+        const c = canvases[i];
+        const ar = c.width / c.height;
+        let w = sw - p * 2; let h = w / ar;
+        if (h > sh - p * 2) { h = sh - p * 2; w = h * ar; }
+        const slide = pptx.addSlide();
+        slide.background = { fill: 'FFFFFF' };
+        slide.addImage({ data: c.toDataURL('image/png'), x: (sw - w) / 2, y: (sh - h) / 2, w, h });
+        slide.addText(`${i + 1} / ${canvases.length}`, { x: 0, y: sh - 0.3, w: sw, h: 0.25, align: 'center', fontSize: 7, color: 'B4B4B4' });
+      }
+      await pptx.writeFile({ fileName: 'Стратегия-продажи-НашаСемья.pptx' });
+    } finally { setPptxBusy(false); setPptxMsg(''); }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -49,13 +102,13 @@ export default function MarketingSale() {
             <p className="text-sm text-slate-500">По состоянию на 05.03.2026 · M&A стратегия · Версия 1.0</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <Button variant="outline" size="sm" onClick={exportSalePptx} className="gap-1.5">
-              <Icon name="Presentation" size={14} />
-              PowerPoint
+            <Button variant="outline" size="sm" onClick={downloadPPTX} disabled={pptxBusy} className="gap-1.5">
+              <Icon name={pptxBusy ? 'Loader2' : 'Presentation'} size={14} className={pptxBusy ? 'animate-spin' : ''} />
+              {pptxBusy ? pptxMsg || 'PPTX...' : 'PowerPoint'}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5">
-              <Icon name="Download" size={14} />
-              Скачать PDF
+            <Button variant="outline" size="sm" onClick={downloadPDF} disabled={pdfBusy} className="gap-1.5">
+              <Icon name={pdfBusy ? 'Loader2' : 'Download'} size={14} className={pdfBusy ? 'animate-spin' : ''} />
+              {pdfBusy ? pdfMsg || 'PDF...' : 'Скачать PDF'}
             </Button>
             <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               <Icon name="Shield" size={16} className="text-amber-600" />
@@ -1036,6 +1089,76 @@ export default function MarketingSale() {
         <div className="text-center text-xs text-slate-400 pt-4 pb-8">
           «Наша Семья» · Стратегия продажи платформы v1.0 · 05.03.2026 · Строго конфиденциально
         </div>
+      </div>
+
+      {/* Скрытые слайды для PDF/PPTX */}
+      <div id="sale-strategy-slides" style={{ display: 'none', position: 'fixed', left: '-9999px', top: 0, width: '1200px', zIndex: -1 }}>
+        {[
+          {
+            title: 'Стратегия продажи «Наша Семья»',
+            subtitle: 'M&A стратегия · Строго конфиденциально · Март 2026',
+            color: '#0f172a, #1e293b',
+            items: ['Целевой диапазон сделки: 80–250 млн ₽', 'Три сценария выхода: продажа кода, бизнеса или стратегическое партнёрство', 'Срок закрытия: 4–9 месяцев от первого контакта', '⛔ Строго конфиденциально — только для собственника']
+          },
+          {
+            title: 'Три сценария выхода',
+            subtitle: 'От продажи кода до стратегического партнёрства',
+            color: '#1e3a5f, #1e40af',
+            items: ['A. Продажа технологии: 40–60 млн ₽ / 2–4 месяца — код + ИС IT-интегратору или банку', 'B. Продажа бизнеса: 80–130 млн ₽ / 4–7 месяцев — действующий бизнес + earn-out', 'C. Стратегическое партнёрство: 150–250 млн ₽ / 6–9 месяцев — контрольный пакет крупному стратегу (ПСБ, Сбер)', 'Earn-out: +35–50 млн ₽ при достижении 5K / 15K семей']
+          },
+          {
+            title: 'Целевые покупатели — Банки',
+            subtitle: 'Наивысший приоритет — стратегическая ценность',
+            color: '#1d4ed8, #2563eb',
+            items: ['#1 Банк ПСБ: 150–250 млн ₽ — 2+ млн семей военных, идеальная аудитория для Семейного ID', '#2 Сбербанк: 100–200 млн ₽ — дополняет СберПрайм Семья, 100M+ клиентов', '#3 Т-Банк: 80–150 млн ₽ — lifestyle-экосистема, аудитория 25–40 лет', 'Ozon Банк: 60–100 млн ₽ — 40M покупателей с семьями, WB Pay / Ozon Pay → семейный кошелёк']
+          },
+          {
+            title: 'Целевые покупатели — Маркетплейсы и Экосистемы',
+            subtitle: 'Семейный ID как точка входа в ядро аудитории',
+            color: '#7c3aed, #6d28d9',
+            items: ['Ozon + Ozon Банк: 60–100 млн ₽ — 40M пользователей, семейный кошелёк как стратегия', 'Wildberries: 50–90 млн ₽ — 60M покупателей, женская аудитория 80% совпадает', 'Яндекс (Маркет + Алиса): 80–150 млн ₽ — уже есть интеграция с Алисой', 'VK: 60–120 млн ₽ · МТС: 70–130 млн ₽ — экосистемы с семейной аудиторией']
+          },
+          {
+            title: 'Оценка платформы',
+            subtitle: 'Четыре метода — диапазон 42–250 млн ₽',
+            color: '#065f46, #047857',
+            items: ['Стоимость воспроизведения: 28 млн ₽ (нижняя граница) — труд + инфраструктура', 'Оценка по Беркусу + ИС n\'RIS: 42 млн ₽ — интеллектуальная собственность', 'Справедливая рыночная стоимость: 80–130 млн ₽ — действующий бизнес', 'Стратегическая премия (банк): 150–250 млн ₽ — монопольный Семейный ID', 'Актив: 86 API, 151 таблица БД, 385+ компонентов, ИС n\'RIS №518-830-027']
+          },
+          {
+            title: 'Структура сделки и налоги',
+            subtitle: 'Чистыми: 80 млн → ~68 млн | 200 млн → ~170 млн ₽',
+            color: '#92400e, #b45309',
+            items: ['А. Договор отчуждения ИС: 40–60 млн / НДФЛ 13% / быстро (2–4 мес)', 'Б. Asset Deal: 80–130 млн / НДФЛ 15% / средний DD (4–6 мес)', 'В. Share Deal (ООО): 150–250 млн / НДФЛ 15% / полный DD (6–9 мес)', 'Earn-out: +35–50 млн при достижении 5K/15K семей — повышает базовую цену']
+          },
+          {
+            title: 'Роадмап продажи',
+            subtitle: 'Март 2026 — Ноябрь 2026',
+            color: '#1e293b, #334155',
+            items: ['Март–Апрель 2026: Подготовка (ООО, ТМ, тизер, финансы, список покупателей)', 'Май–Июнь 2026: Первые контакты с банками и маркетплейсами, 5+ NDA', 'Июль–Август 2026: LOI от 1–2 покупателей, открытие VDR, Due Diligence', 'Сентябрь–Октябрь 2026: Финальные переговоры, earn-out, выбор покупателя', 'Ноябрь 2026: 💰 Закрытие сделки — 80–250 млн ₽']
+          },
+        ].map((slide, i) => (
+          <div key={i} data-pdf-slide style={{ width: '1200px', minHeight: '675px', background: 'white', marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: `linear-gradient(135deg, ${slide.color})`, padding: '60px 80px 40px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>
+                ⛔ Строго конфиденциально · Слайд {i + 1} из 7
+              </div>
+              <h2 style={{ fontSize: '46px', fontWeight: 900, color: 'white', lineHeight: 1.1, margin: '0 0 12px' }}>{slide.title}</h2>
+              <p style={{ fontSize: '20px', color: 'rgba(255,255,255,0.7)', margin: '0 0 40px' }}>{slide.subtitle}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {slide.items.map((item, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', padding: '16px 20px' }}>
+                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>→</div>
+                    <div style={{ fontSize: '18px', color: 'white', lineHeight: 1.4 }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: 'white', padding: '12px 80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e5e7eb' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Стратегия продажи «Наша Семья» · Строго конфиденциально</span>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>05.03.2026</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
