@@ -188,10 +188,31 @@ export default function InvestorDeck() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
         {/* Navigation */}
-        <div className="flex justify-between items-center mb-8">
-          <Badge variant="outline" className="text-white border-white">
-            Слайд {currentSlide + 1} / {slides.length}
-          </Badge>
+        <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-white border-white">
+              Слайд {currentSlide + 1} / {slides.length}
+            </Badge>
+            {/* n'RIS Certificate Badge */}
+            <a
+              href="https://nris.ru/deposits/check-certificate/?num=518-830-027"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg px-3 py-1.5 transition-all"
+              title="Свидетельство о депонировании n'RIS №518-830-027"
+            >
+              <div className="flex flex-col leading-none">
+                <span className="text-[9px] font-bold text-blue-200 uppercase tracking-wider">Интеллектуальная собственность</span>
+                <span className="text-white font-bold text-xs">n'RIS №518-830-027</span>
+              </div>
+              <div className="w-px h-6 bg-white/20" />
+              <div className="flex flex-col leading-none">
+                <span className="text-[9px] text-slate-300">Депонировано</span>
+                <span className="text-white text-xs font-semibold">04.03.2026</span>
+              </div>
+              <Icon name="ShieldCheck" size={14} className="text-green-400 ml-1" />
+            </a>
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={prevSlide}
@@ -260,7 +281,7 @@ export default function InvestorDeck() {
                 <div className="grid grid-cols-3 gap-6 mb-8">
                   {slide.stats?.map((stat, idx) => (
                     <div key={idx} className="text-center p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl">
-                      <Icon name={stat.icon as any} className="mx-auto mb-3 text-purple-600" size={40} />
+                      <Icon name={stat.icon as string} className="mx-auto mb-3 text-purple-600" size={40} />
                       <div className="text-4xl font-bold text-gray-900 mb-2">{stat.value}</div>
                       <div className="text-sm text-gray-600">{stat.label}</div>
                     </div>

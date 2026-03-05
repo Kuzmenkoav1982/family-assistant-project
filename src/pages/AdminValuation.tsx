@@ -166,6 +166,22 @@ export default function AdminValuation() {
             </div>
             <h1 className="text-xl font-bold text-slate-900">Оценка рыночной стоимости платформы «Наша семья»</h1>
             <p className="text-sm text-slate-500">По состоянию на 26 февраля 2026 г.</p>
+            {/* n'RIS Certificate */}
+            <a
+              href="https://nris.ru/deposits/check-certificate/?num=518-830-027"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg px-3 py-1.5 transition-all"
+            >
+              <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-[8px] font-black leading-none">n</span>
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="text-[9px] text-slate-500 uppercase tracking-wide">Свидетельство о депонировании n'RIS</span>
+                <span className="text-blue-700 font-bold text-xs">№ 518-830-027 · 04.03.2026 · РЦИС.РФ</span>
+              </div>
+              <span className="text-green-600 text-xs font-semibold ml-1 flex items-center gap-1">✓ ИС защищена</span>
+            </a>
           </div>
           <div className="flex gap-3">
             <Button
@@ -321,7 +337,7 @@ export default function AdminValuation() {
               { factor: 'Качество команды', score: 5, max: 10, note: 'Соло-основатель с глубокой экспертизой, продукт создан на собственном опыте', color: 'bg-orange-400' },
               { factor: 'Стратегические партнёрства и интеграции', score: 6, max: 10, note: 'Яндекс Алиса, платёжные системы (СБП, Сбер, Т-Банк), Яндекс Карты', color: 'bg-purple-500' },
               { factor: 'Первые пользователи / traction', score: 4, max: 10, note: '40+ пользователей, 51 семья, 30K+ аналитических событий, работающие платежи', color: 'bg-teal-500' },
-              { factor: 'Интеллектуальная собственность', score: 6, max: 10, note: 'Алгоритм оценки развития детей (Выготский + Эльконин), AI-ассистент «Домовой»', color: 'bg-pink-500' },
+              { factor: 'Интеллектуальная собственность', score: 8, max: 10, note: 'Свидетельство о депонировании n\'RIS №518-830-027 (РЦИС.РФ, 04.03.2026) · Алгоритм оценки развития детей (Выготский + Эльконин) · AI-ассистент «Домовой»', color: 'bg-pink-500' },
             ].map((row, i) => (
               <div key={i} className="bg-slate-50 rounded-xl p-4">
                 <div className="flex justify-between items-start mb-2">
@@ -339,9 +355,9 @@ export default function AdminValuation() {
           <div className="bg-blue-600 text-white rounded-xl p-6 flex items-center justify-between">
             <div>
               <div className="text-sm text-blue-200 mb-1">Оценка по методу Беркуса</div>
-              <div className="text-sm text-blue-100">Базовая оценка стартапа с учётом всех ключевых факторов</div>
+              <div className="text-sm text-blue-100">Базовая оценка стартапа с учётом всех ключевых факторов · ИС подтверждена свидетельством n'RIS</div>
             </div>
-            <div className="text-4xl font-black">~40 млн ₽</div>
+            <div className="text-4xl font-black">~42 млн ₽</div>
           </div>
         </div>
 
@@ -438,7 +454,7 @@ export default function AdminValuation() {
           <div className="bg-amber-500 text-white rounded-xl p-6 flex items-center justify-between">
             <div>
               <div className="text-sm text-amber-100 mb-1">Совокупная стратегическая премия для банка</div>
-              <div className="text-sm text-amber-100">Беркус (40 млн) + премия 145–225% = итоговая оценка</div>
+              <div className="text-sm text-amber-100">Беркус (42 млн, ИС n'RIS) + премия 145–225% = итоговая оценка</div>
             </div>
             <div className="text-right">
               <div className="text-3xl font-black">98–130 млн ₽</div>
