@@ -3,7 +3,25 @@ import jsPDF from 'jspdf';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-const STRATEGY_SLIDES = [
+type SlideBlock = { label: string; value: string };
+type TableRow = string[];
+type BarRow = { label: string; value: number; max: number; color: string };
+
+interface BaseSlide {
+  title: string;
+  subtitle: string;
+  bg: string;
+  accent: string;
+  tag: string;
+}
+interface BlocksSlide extends BaseSlide { type?: 'blocks'; blocks: SlideBlock[]; }
+interface TableSlide extends BaseSlide { type: 'table'; headers: string[]; rows: TableRow[]; note?: string; }
+interface BarSlide extends BaseSlide { type: 'bar'; bars: BarRow[]; note?: string; }
+interface FunnelSlide extends BaseSlide { type: 'funnel'; steps: { label: string; value: string; pct: string }[]; note?: string; }
+
+type AnySlide = BlocksSlide | TableSlide | BarSlide | FunnelSlide;
+
+const STRATEGY_SLIDES: AnySlide[] = [
   {
     title: 'Маркетинговая стратегия',
     subtitle: '"Наша Семья" — цифровая платформа для семей',
@@ -122,6 +140,53 @@ const STRATEGY_SLIDES = [
       { label: 'Интеграции', value: 'Яндекс.Алиса (готово) · Ozon/WB · Банк ПСБ · Госуслуги · ДМС страховые' },
     ]
   },
+  {
+    type: 'table' as const,
+    title: 'Конкурентный анализ',
+    subtitle: 'Наша Семья против ключевых игроков рынка',
+    bg: '1A1A2E', accent: '818CF8',
+    tag: 'Конкуренты',
+    headers: ['Продукт', 'Семейный ID', 'Здоровье/ИИ', 'Дети/развитие', 'Бюджет семьи', 'Геолокация', 'Цена/мес'],
+    rows: [
+      ['Наша Семья', '✓ Да', '✓ ИИ-анализ', '✓ Полный', '✓ Да', '✓ Да', '330 руб.'],
+      ['Сбер Семья', '— Нет', '— Нет', '— Нет', '✓ Частично', '— Нет', 'Бесплатно'],
+      ['VK Kids', '— Нет', '— Нет', '✓ Частично', '— Нет', '— Нет', 'Бесплатно'],
+      ['Яндекс.Алиса', '— Нет', '— Нет', '— Нет', '— Нет', '— Нет', 'Бесплатно'],
+      ['Life360', '— Нет', '— Нет', '— Нет', '— Нет', '✓ Да', '600 руб.'],
+      ['Google Family', '— Нет', '— Нет', '✓ Частично', '— Нет', '✓ Да', 'Бесплатно'],
+    ],
+    note: 'Наша Семья — единственная платформа с полным набором семейных функций и Семейным ID в России',
+  },
+  {
+    type: 'funnel' as const,
+    title: 'Воронка привлечения — визуализация',
+    subtitle: 'Путь от показа до платящего пользователя',
+    bg: '0E4F6E', accent: '7EE7FA',
+    tag: 'Конверсия · Детали',
+    steps: [
+      { label: 'Показы рекламы', value: '2 400 000', pct: '100%' },
+      { label: 'Клики на сайт', value: '120 000', pct: '5%' },
+      { label: 'Регистрации', value: '36 000', pct: '30%' },
+      { label: 'Активация (добавили семью)', value: '18 000', pct: '50%' },
+      { label: 'Retention 30 дней', value: '12 600', pct: '70%' },
+      { label: 'Premium-подписка', value: '10 000', pct: '79%' },
+    ],
+    note: 'CAC средний: 92 руб./регистрация → 307 руб./Premium · LTV: 10 800 руб. · LTV/CAC = 35x',
+  },
+  {
+    type: 'bar' as const,
+    title: 'Рост MRR по кварталам',
+    subtitle: 'Ежемесячная выручка в тыс. руб. — план на 12 месяцев',
+    bg: '134E4A', accent: '6EE7B7',
+    tag: 'Финансовая модель',
+    bars: [
+      { label: 'Q1: Март–Май 2026', value: 99, max: 3300, color: '6EE7B7' },
+      { label: 'Q2: Июнь–Август 2026', value: 660, max: 3300, color: '34D399' },
+      { label: 'Q3: Сент–Ноябрь 2026', value: 1650, max: 3300, color: '10B981' },
+      { label: 'Q4: Дек 2026 – Март 2027', value: 3300, max: 3300, color: '059669' },
+    ],
+    note: 'ARR к марту 2027: 39 600 000 руб. · Breakeven в Q3 2026 · ROI маркетинга: >300%',
+  },
 ];
 
 type Section = 'overview' | 'audience' | 'channels' | 'funnel' | 'content' | 'budget' | 'kpi' | 'roadmap';
@@ -144,54 +209,95 @@ export default function MarketingStrategy() {
   const [pptxBusy, setPptxBusy] = useState(false);
   const [pptxMsg, setPptxMsg] = useState('');
 
-  const hex2rgb = (hex: string) => ({ r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) });
+  const h2r = (hex: string) => ({ r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) });
+
+  const pdfHeader = (pdf: jsPDF, s: AnySlide, W: number, H: number, i: number, total: number) => {
+    const { r, g, b } = h2r(s.bg); const { r: ar, g: ag, b: ab } = h2r(s.accent);
+    if (i > 0) pdf.addPage();
+    pdf.setFillColor(r,g,b); pdf.rect(0,0,W,H,'F');
+    pdf.setFillColor(Math.min(r+28,255),Math.min(g+28,255),Math.min(b+28,255));
+    pdf.roundedRect(14,10,110,7,1,1,'F');
+    pdf.setTextColor(ar,ag,ab); pdf.setFontSize(6.5); pdf.setFont('helvetica','bold');
+    pdf.text(s.tag.toUpperCase(),18,15);
+    pdf.setTextColor(255,255,255); pdf.setFontSize(20); pdf.setFont('helvetica','bold');
+    pdf.text(s.title,14,33,{maxWidth:220});
+    pdf.setFontSize(9.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(ar,ag,ab);
+    pdf.text(s.subtitle,14,43,{maxWidth:220});
+    pdf.setFillColor(Math.max(r-20,0),Math.max(g-20,0),Math.max(b-20,0));
+    pdf.rect(0,H-10,W,10,'F');
+    pdf.setTextColor(ar,ag,ab); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+    pdf.text('Маркетинговая стратегия "Наша Семья" · Конфиденциально · 05.03.2026',14,H-4);
+    pdf.setTextColor(255,255,255); pdf.text(`${i+1} / ${total}`,W-14,H-4,{align:'right'});
+    return {r,g,b,ar,ag,ab};
+  };
 
   const downloadPDF = async () => {
     setPdfBusy(true);
     try {
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const W = 297; const H = 210;
-      const total = STRATEGY_SLIDES.length;
-      for (let i = 0; i < total; i++) {
+      const pdf = new jsPDF('l','mm','a4');
+      const W=297; const H=210; const total=STRATEGY_SLIDES.length;
+      for (let i=0; i<total; i++) {
         setPdfMsg(`Слайд ${i+1} из ${total}...`);
         const s = STRATEGY_SLIDES[i];
-        const { r, g, b } = hex2rgb(s.bg);
-        const { r: ar, g: ag, b: ab } = hex2rgb(s.accent);
-        if (i > 0) pdf.addPage();
-        pdf.setFillColor(r, g, b); pdf.rect(0, 0, W, H, 'F');
-        // Тег-подложка
-        pdf.setFillColor(Math.min(ar+40,255), Math.min(ag+40,255), Math.min(ab+40,255));
-        pdf.roundedRect(14, 13, 90, 7, 1, 1, 'F');
-        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7); pdf.setFont('helvetica','bold');
-        pdf.text(s.tag.toUpperCase(), 18, 18);
-        // Заголовок
-        pdf.setTextColor(255,255,255); pdf.setFontSize(22); pdf.setFont('helvetica','bold');
-        pdf.text(s.title, 14, 38, { maxWidth: 180 });
-        // Подзаголовок
-        pdf.setFontSize(10); pdf.setFont('helvetica','normal');
-        pdf.setTextColor(ar, ag, ab);
-        pdf.text(s.subtitle, 14, 50, { maxWidth: 180 });
-        // Блоки
-        const startY = 60; const blockH = (H - startY - 18) / s.blocks.length;
-        s.blocks.forEach((block, bi) => {
-          const y = startY + bi * blockH;
-          // Слегка светлее фон блока
-          const br = Math.min(r + 20, 255); const bg2 = Math.min(g + 20, 255); const bb = Math.min(b + 20, 255);
-          pdf.setFillColor(br, bg2, bb);
-          pdf.roundedRect(14, y, W - 28, blockH - 2, 2, 2, 'F');
-          pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
-          pdf.text(block.label, 20, y + 6);
-          pdf.setTextColor(255,255,255); pdf.setFontSize(9); pdf.setFont('helvetica','normal');
-          pdf.text(block.value, 20, y + 12, { maxWidth: W - 45 });
-        });
-        // Футер
-        const fr = Math.max(r - 20, 0); const fg = Math.max(g - 20, 0); const fb = Math.max(b - 20, 0);
-        pdf.setFillColor(fr, fg, fb);
-        pdf.rect(0, H - 10, W, 10, 'F');
-        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
-        pdf.text('Маркетинговая стратегия "Наша Семья" · Конфиденциально · 05.03.2026', 14, H - 4);
-        pdf.setTextColor(255,255,255);
-        pdf.text(`${i+1} / ${total}`, W - 14, H - 4, { align: 'right' });
+        const {r,g,b,ar,ag,ab} = pdfHeader(pdf,s,W,H,i,total);
+        const sY=51;
+        if (s.type==='table') {
+          const cW=(W-28)/s.headers.length; const rH=9;
+          pdf.setFillColor(Math.min(r+35,255),Math.min(g+35,255),Math.min(b+35,255));
+          pdf.rect(14,sY,W-28,rH,'F');
+          s.headers.forEach((h,ci)=>{ pdf.setTextColor(ar,ag,ab); pdf.setFontSize(7); pdf.setFont('helvetica','bold'); pdf.text(h,16+ci*cW,sY+6,{maxWidth:cW-3}); });
+          s.rows.forEach((row,ri)=>{
+            const y=sY+rH+ri*rH;
+            pdf.setFillColor(ri===0?Math.min(r+18,255):Math.min(r+8,255), ri===0?Math.min(g+18,255):Math.min(g+8,255), ri===0?Math.min(b+18,255):Math.min(b+8,255));
+            pdf.rect(14,y,W-28,rH,'F');
+            row.forEach((cell,ci)=>{
+              pdf.setTextColor(cell.startsWith('✓')?ag:cell.startsWith('—')?120:255, cell.startsWith('✓')?255:255, cell.startsWith('✓')?ab:255);
+              pdf.setFontSize(ci===0?7.5:7); pdf.setFont('helvetica',ri===0||ci===0?'bold':'normal');
+              pdf.text(cell,16+ci*cW,y+6,{maxWidth:cW-3});
+            });
+          });
+          if (s.note){pdf.setTextColor(ar,ag,ab);pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(s.note,14,H-14,{maxWidth:W-28});}
+        } else if (s.type==='funnel') {
+          const fH=(H-sY-18)/s.steps.length;
+          s.steps.forEach((step,si)=>{
+            const shrink=Math.pow(0.87,si); const bW=(W-28)*shrink;
+            const x=14+(W-28-bW)/2; const y=sY+si*(fH+1);
+            pdf.setFillColor(Math.min(ar+si*8,255),Math.min(ag-si*3,0),Math.min(ab-si*3,0));
+            pdf.roundedRect(x,y,bW,fH-1,2,2,'F');
+            pdf.setTextColor(Math.max(r-10,0),Math.max(g-10,0),Math.max(b-10,0));
+            pdf.setFontSize(8); pdf.setFont('helvetica','bold');
+            pdf.text(step.label,x+5,y+fH*0.45,{maxWidth:bW*0.55});
+            pdf.setFontSize(10); pdf.text(step.value,x+bW-5,y+fH*0.38,{align:'right'});
+            pdf.setFontSize(7); pdf.text(step.pct,x+bW-5,y+fH*0.7,{align:'right'});
+          });
+          if (s.note){pdf.setTextColor(ar,ag,ab);pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(s.note,14,H-14,{maxWidth:W-28});}
+        } else if (s.type==='bar') {
+          const aH=H-sY-32; const bW=(W-60)/s.bars.length-6;
+          s.bars.forEach((bar,bi)=>{
+            const bH=(bar.value/bar.max)*aH; const x=30+bi*(bW+6); const y=sY+aH-bH;
+            const [rr,gg,bb2]=[parseInt(bar.color.slice(0,2),16),parseInt(bar.color.slice(2,4),16),parseInt(bar.color.slice(4,6),16)];
+            pdf.setFillColor(rr,gg,bb2); pdf.roundedRect(x,y,bW,bH,2,2,'F');
+            pdf.setTextColor(255,255,255); pdf.setFontSize(8); pdf.setFont('helvetica','bold');
+            pdf.text(`${bar.value.toLocaleString()} руб.`,x+bW/2,y-2,{align:'center'});
+            pdf.setFontSize(6.5); pdf.setFont('helvetica','normal');
+            pdf.splitTextToSize(bar.label,bW+5).forEach((ln: string,li: number)=>{
+              pdf.text(ln,x+bW/2,sY+aH+7+li*5,{align:'center'});
+            });
+          });
+          if (s.note){pdf.setTextColor(ar,ag,ab);pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(s.note,14,H-14,{maxWidth:W-28});}
+        } else {
+          const bs=(s as BlocksSlide).blocks;
+          const bH=(H-sY-18)/bs.length;
+          bs.forEach((block,bi)=>{
+            const y=sY+bi*bH;
+            pdf.setFillColor(Math.min(r+20,255),Math.min(g+20,255),Math.min(b+20,255));
+            pdf.roundedRect(14,y,W-28,bH-2,2,2,'F');
+            pdf.setTextColor(ar,ag,ab); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
+            pdf.text(block.label,20,y+6);
+            pdf.setTextColor(255,255,255); pdf.setFontSize(9); pdf.setFont('helvetica','normal');
+            pdf.text(block.value,20,y+13,{maxWidth:W-45});
+          });
+        }
       }
       pdf.save('Маркетинговая-стратегия-НашаСемья.pdf');
     } finally { setPdfBusy(false); setPdfMsg(''); }
@@ -206,40 +312,75 @@ export default function MarketingStrategy() {
       pptx.title = 'Маркетинговая стратегия — Наша Семья';
       pptx.company = 'Наша Семья';
       const total = STRATEGY_SLIDES.length;
-      for (let i = 0; i < total; i++) {
+
+      const hdr = (slide: ReturnType<typeof pptx.addSlide>, s: AnySlide, i: number) => {
+        slide.background = { fill: s.bg };
+        slide.addShape('rect',{x:0,y:0,w:10,h:0.06,fill:{color:s.accent},line:{color:s.accent}});
+        slide.addText(s.tag.toUpperCase(),{x:0.4,y:0.13,w:9.2,h:0.2,fontSize:7.5,bold:true,color:s.accent,fontFace:'Calibri'});
+        slide.addText(s.title,{x:0.4,y:0.38,w:9.2,h:0.65,fontSize:24,bold:true,color:'FFFFFF',fontFace:'Calibri',shrinkText:true});
+        slide.addText(s.subtitle,{x:0.4,y:0.98,w:9.2,h:0.28,fontSize:10,color:s.accent,fontFace:'Calibri',italic:true});
+        slide.addShape('rect',{x:0,y:5.35,w:10,h:0.275,fill:{color:'000000',transparency:70},line:{color:'000000',transparency:100}});
+        slide.addText('Маркетинговая стратегия "Наша Семья" · Конфиденциально',{x:0.3,y:5.37,w:8,h:0.22,fontSize:7,color:s.accent,fontFace:'Calibri'});
+        slide.addText(`${i+1} / ${total}`,{x:0,y:5.37,w:9.7,h:0.22,fontSize:7,color:'FFFFFF',fontFace:'Calibri',align:'right'});
+      };
+
+      for (let i=0; i<total; i++) {
         setPptxMsg(`Слайд ${i+1} из ${total}...`);
         const s = STRATEGY_SLIDES[i];
         const slide = pptx.addSlide();
-        slide.background = { fill: s.bg };
-        // Декоративная полоса вверху
-        slide.addShape('rect', { x: 0, y: 0, w: 10, h: 0.06, fill: { color: s.accent }, line: { color: s.accent } });
-        // Тег
-        slide.addText(s.tag.toUpperCase(), { x: 0.4, y: 0.25, w: 9.2, h: 0.22, fontSize: 8, bold: true, color: s.accent, fontFace: 'Calibri' });
-        // Заголовок
-        slide.addText(s.title, { x: 0.4, y: 0.55, w: 6.5, h: 0.9, fontSize: 28, bold: true, color: 'FFFFFF', fontFace: 'Calibri', breakLine: false, shrinkText: true });
-        // Подзаголовок
-        slide.addText(s.subtitle, { x: 0.4, y: 1.3, w: 7, h: 0.35, fontSize: 12, color: s.accent, fontFace: 'Calibri', italic: true });
-        // Блоки
-        const cols = s.blocks.length <= 4 ? 1 : 2;
-        const perCol = Math.ceil(s.blocks.length / cols);
-        const boxW = cols === 1 ? 9.2 : 4.5;
-        const totalH = 3.6;
-        const boxH = (totalH / perCol) - 0.08;
-        s.blocks.forEach((block, bi) => {
-          const col = cols === 2 ? Math.floor(bi / perCol) : 0;
-          const row = bi % perCol;
-          const x = 0.4 + col * (boxW + 0.2);
-          const y = 1.75 + row * (boxH + 0.08);
-          slide.addShape('rect', { x, y, w: boxW, h: boxH, fill: { color: 'FFFFFF', transparency: 88 }, line: { color: s.accent, transparency: 70, width: 0.5 }, rectRadius: 0.08 });
-          slide.addText([
-            { text: block.label + '  ', options: { bold: true, color: s.accent, fontSize: 9 } },
-            { text: block.value, options: { color: 'FFFFFF', fontSize: cols === 1 ? 10.5 : 9.5 } },
-          ], { x: x + 0.15, y: y + 0.04, w: boxW - 0.3, h: boxH - 0.1, fontFace: 'Calibri', valign: 'middle', wrap: true });
-        });
-        // Футер
-        slide.addShape('rect', { x: 0, y: 5.35, w: 10, h: 0.275, fill: { color: '000000', transparency: 70 }, line: { color: '000000', transparency: 100 } });
-        slide.addText(`Маркетинговая стратегия "Наша Семья" · Конфиденциально`, { x: 0.3, y: 5.37, w: 8, h: 0.22, fontSize: 7, color: s.accent, fontFace: 'Calibri' });
-        slide.addText(`${i+1} / ${total}`, { x: 0, y: 5.37, w: 9.7, h: 0.22, fontSize: 7, color: 'FFFFFF', fontFace: 'Calibri', align: 'right' });
+        hdr(slide, s, i);
+        const cY=1.32; const cH=3.95;
+
+        if (s.type==='table') {
+          const colW=9.2/s.headers.length; const rH=cH/(s.rows.length+1);
+          s.headers.forEach((h,ci)=>{
+            slide.addShape('rect',{x:0.4+ci*colW,y:cY,w:colW-0.03,h:rH-0.03,fill:{color:s.accent,transparency:15},line:{color:s.accent,transparency:50}});
+            slide.addText(h,{x:0.42+ci*colW,y:cY+0.03,w:colW-0.07,h:rH-0.06,fontSize:8,bold:true,color:s.bg,fontFace:'Calibri',valign:'middle',wrap:true});
+          });
+          s.rows.forEach((row,ri)=>{
+            const isOurs=ri===0;
+            row.forEach((cell,ci)=>{
+              const y=cY+rH+ri*rH;
+              slide.addShape('rect',{x:0.4+ci*colW,y,w:colW-0.03,h:rH-0.03,fill:{color:isOurs?s.accent:'FFFFFF',transparency:isOurs?82:94},line:{color:s.accent,transparency:80}});
+              const cc=cell.startsWith('✓')?'22C55E':cell.startsWith('—')?'64748B':'E2E8F0';
+              slide.addText(cell,{x:0.42+ci*colW,y:y+0.02,w:colW-0.07,h:rH-0.06,fontSize:ci===0?8.5:8,bold:isOurs||ci===0,color:isOurs?'FFFFFF':cc,fontFace:'Calibri',valign:'middle'});
+            });
+          });
+          if(s.note) slide.addText(s.note,{x:0.4,y:cY+cH+0.05,w:9.2,h:0.22,fontSize:8,color:s.accent,fontFace:'Calibri',italic:true});
+        } else if (s.type==='funnel') {
+          const sH=cH/s.steps.length-0.06;
+          s.steps.forEach((step,si)=>{
+            const shrink=Math.pow(0.88,si); const bW=9.2*shrink;
+            const x=0.4+(9.2-bW)/2; const y=cY+si*(sH+0.06);
+            slide.addShape('rect',{x,y,w:bW,h:sH,fill:{color:s.accent,transparency:15+si*11},line:{color:s.accent,transparency:40},rectRadius:0.07});
+            slide.addText(step.label,{x:x+0.15,y,w:bW*0.6,h:sH,fontSize:9,color:s.bg,fontFace:'Calibri',valign:'middle'});
+            slide.addText(`${step.value}  ${step.pct}`,{x,y,w:bW-0.15,h:sH,fontSize:10,bold:true,color:s.bg,fontFace:'Calibri',valign:'middle',align:'right'});
+          });
+          if(s.note) slide.addText(s.note,{x:0.4,y:cY+cH+0.05,w:9.2,h:0.22,fontSize:8,color:s.accent,fontFace:'Calibri',italic:true});
+        } else if (s.type==='bar') {
+          const maxV=s.bars[s.bars.length-1].max; const barW=9.2/s.bars.length-0.22;
+          s.bars.forEach((bar,bi)=>{
+            const ratio=bar.value/maxV; const bH=cH*ratio*0.82;
+            const x=0.4+bi*(barW+0.22); const y=cY+cH*0.82-bH;
+            slide.addShape('rect',{x,y,w:barW,h:bH,fill:{color:bar.color},line:{color:bar.color},rectRadius:0.07});
+            slide.addText(`${bar.value.toLocaleString()} руб.`,{x,y:y-0.28,w:barW,h:0.25,fontSize:8.5,bold:true,color:'FFFFFF',fontFace:'Calibri',align:'center'});
+            slide.addText(bar.label,{x:x-0.05,y:cY+cH*0.84,w:barW+0.1,h:0.55,fontSize:7.5,color:s.accent,fontFace:'Calibri',align:'center',wrap:true});
+          });
+          if(s.note) slide.addText(s.note,{x:0.4,y:cY+cH+0.05,w:9.2,h:0.22,fontSize:8,color:s.accent,fontFace:'Calibri',italic:true});
+        } else {
+          const bs=(s as BlocksSlide).blocks;
+          const cols=bs.length<=4?1:2; const perCol=Math.ceil(bs.length/cols);
+          const boxW=cols===1?9.2:4.5; const boxH=(cH/perCol)-0.08;
+          bs.forEach((block,bi)=>{
+            const col=cols===2?Math.floor(bi/perCol):0; const row=bi%perCol;
+            const x=0.4+col*(boxW+0.2); const y=cY+row*(boxH+0.08);
+            slide.addShape('rect',{x,y,w:boxW,h:boxH,fill:{color:'FFFFFF',transparency:88},line:{color:s.accent,transparency:70,width:0.5},rectRadius:0.08});
+            slide.addText([
+              {text:block.label+'  ',options:{bold:true,color:s.accent,fontSize:9}},
+              {text:block.value,options:{color:'FFFFFF',fontSize:cols===1?10.5:9.5}},
+            ],{x:x+0.15,y:y+0.04,w:boxW-0.3,h:boxH-0.1,fontFace:'Calibri',valign:'middle',wrap:true});
+          });
+        }
       }
       await pptx.writeFile({ fileName: 'Маркетинговая-стратегия-НашаСемья.pptx' });
     } finally { setPptxBusy(false); setPptxMsg(''); }

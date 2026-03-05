@@ -108,7 +108,50 @@ const SALE_SLIDES = [
       { label: 'Ноябрь 2026', value: 'Закрытие сделки · Подписание договора · Передача активов · Получение оплаты 80–250 млн руб.' },
     ]
   },
+  {
+    type: 'table' as const,
+    title: 'Сравнение покупателей',
+    subtitle: 'Матрица приоритетов по ключевым критериям',
+    bg: '0A1628', accent: '60A5FA',
+    tag: 'АНАЛИЗ ПОКУПАТЕЛЕЙ · ПРИОРИТИЗАЦИЯ',
+    headers: ['Покупатель', 'Диапазон цены', 'Стратег. интерес', 'Семейн. аудит.', 'Срок сделки', 'Приоритет'],
+    rows: [
+      ['Банк ПСБ', '150–250 млн', 'Семейный ID', '2+ млн воен. семей', '6–9 мес', '#1 ВЫСШИЙ'],
+      ['Сбербанк', '100–200 млн', 'СберПрайм +', '100M+ клиентов', '7–9 мес', '#2 Высокий'],
+      ['Т-Банк', '80–150 млн', 'Lifestyle', '25–40 лет', '5–8 мес', '#3 Высокий'],
+      ['Яндекс', '80–150 млн', 'Алиса + Маркет', 'Экосистема', '5–8 мес', '#4 Средний'],
+      ['Ozon + Ozon Банк', '60–100 млн', 'Семейн. кошелёк', '40M покупат.', '4–7 мес', '#5 Средний'],
+      ['VK', '60–120 млн', 'Kids + Pay', '70M+ польз.', '4–7 мес', '#6 Средний'],
+      ['МТС', '70–130 млн', 'Семейн. тарифы', 'Телеком база', '5–8 мес', '#7 Базовый'],
+      ['Wildberries', '50–90 млн', 'Женская аудит.', '60M покупат.', '3–6 мес', '#8 Базовый'],
+    ],
+    note: 'Рекомендация: вести параллельные переговоры с ПСБ, Сбером и Т-Банком — создаёт ценовую конкуренцию',
+  },
+  {
+    type: 'bar' as const,
+    title: 'Диапазоны оценки по покупателям',
+    subtitle: 'Максимальные цены (с earn-out) в млн руб.',
+    bg: '0D2137', accent: '34D399',
+    tag: 'ОЦЕНКА · ФИНАНСОВЫЙ ПОТЕНЦИАЛ',
+    bars: [
+      { label: 'Wildberries', value: 90, max: 300, color: '94A3B8' },
+      { label: 'Ozon Банк', value: 100, max: 300, color: '7DD3FC' },
+      { label: 'МТС', value: 130, max: 300, color: '818CF8' },
+      { label: 'VK', value: 120, max: 300, color: 'A78BFA' },
+      { label: 'Яндекс', value: 150, max: 300, color: '60A5FA' },
+      { label: 'Т-Банк', value: 150, max: 300, color: '38BDF8' },
+      { label: 'Сбербанк', value: 200, max: 300, color: '4ADE80' },
+      { label: 'Банк ПСБ', value: 300, max: 300, color: '34D399' },
+    ],
+    note: 'С earn-out (+35–50 млн) при 5K / 15K семей · ПСБ с earn-out: до 300 млн руб. "на руки"',
+  },
 ];
+
+type SaleBlock = { label: string; value: string };
+type SaleTableSlide = { type: 'table'; title: string; subtitle: string; bg: string; accent: string; tag: string; headers: string[]; rows: string[][]; note?: string };
+type SaleBarSlide = { type: 'bar'; title: string; subtitle: string; bg: string; accent: string; tag: string; bars: { label: string; value: number; max: number; color: string }[]; note?: string };
+type SaleBlocksSlide = { type?: 'blocks'; title: string; subtitle: string; bg: string; accent: string; tag: string; blocks: SaleBlock[] };
+type AnySaleSlide = SaleBlocksSlide | SaleTableSlide | SaleBarSlide;
 
 type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap';
 
@@ -130,53 +173,74 @@ export default function MarketingSale() {
   const [pptxBusy, setPptxBusy] = useState(false);
   const [pptxMsg, setPptxMsg] = useState('');
 
-  const hex2rgb = (hex: string) => ({ r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) });
+  const h2r = (hex: string) => ({ r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) });
+
+  const saleHdr = (pdf: jsPDF, s: AnySaleSlide, W: number, H: number, i: number, total: number) => {
+    const {r,g,b}=h2r(s.bg); const {r:ar,g:ag,b:ab}=h2r(s.accent);
+    if (i>0) pdf.addPage();
+    pdf.setFillColor(r,g,b); pdf.rect(0,0,W,H,'F');
+    pdf.setFillColor(Math.min(r+28,255),Math.min(g+28,255),Math.min(b+28,255));
+    pdf.roundedRect(14,10,120,7,1,1,'F');
+    pdf.setTextColor(ar,ag,ab); pdf.setFontSize(6.5); pdf.setFont('helvetica','bold'); pdf.text(s.tag,18,15);
+    pdf.setTextColor(255,255,255); pdf.setFontSize(20); pdf.setFont('helvetica','bold'); pdf.text(s.title,14,33,{maxWidth:220});
+    pdf.setFontSize(9.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(ar,ag,ab); pdf.text(s.subtitle,14,43,{maxWidth:220});
+    pdf.setFillColor(Math.max(r-20,0),Math.max(g-20,0),Math.max(b-20,0)); pdf.rect(0,H-10,W,10,'F');
+    pdf.setTextColor(ar,ag,ab); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+    pdf.text('Стратегия продажи "Наша Семья" · Строго конфиденциально · 05.03.2026',14,H-4);
+    pdf.setTextColor(255,255,255); pdf.text(`${i+1} / ${total}`,W-14,H-4,{align:'right'});
+    return {r,g,b,ar,ag,ab};
+  };
 
   const downloadPDF = async () => {
     setPdfBusy(true);
     try {
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const W = 297; const H = 210;
-      const total = SALE_SLIDES.length;
-      for (let i = 0; i < total; i++) {
+      const pdf = new jsPDF('l','mm','a4');
+      const W=297; const H=210; const total=SALE_SLIDES.length;
+      for (let i=0; i<total; i++) {
         setPdfMsg(`Слайд ${i+1} из ${total}...`);
-        const s = SALE_SLIDES[i];
-        const { r, g, b } = hex2rgb(s.bg);
-        const { r: ar, g: ag, b: ab } = hex2rgb(s.accent);
-        if (i > 0) pdf.addPage();
-        pdf.setFillColor(r, g, b); pdf.rect(0, 0, W, H, 'F');
-        // Тег-подложка
-        pdf.setFillColor(Math.min(r+25,255), Math.min(g+25,255), Math.min(b+25,255));
-        pdf.roundedRect(14, 10, 120, 7, 1, 1, 'F');
-        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(6.5); pdf.setFont('helvetica','bold');
-        pdf.text(s.tag, 18, 15);
-        // Заголовок
-        pdf.setTextColor(255,255,255); pdf.setFontSize(20); pdf.setFont('helvetica','bold');
-        pdf.text(s.title, 14, 35, { maxWidth: 200 });
-        // Подзаголовок
-        pdf.setFontSize(10); pdf.setFont('helvetica','normal');
-        pdf.setTextColor(ar, ag, ab);
-        pdf.text(s.subtitle, 14, 47, { maxWidth: 200 });
-        // Блоки
-        const startY = 57; const blockH = (H - startY - 14) / s.blocks.length;
-        s.blocks.forEach((block, bi) => {
-          const y = startY + bi * blockH;
-          const br = Math.min(r+22,255); const bg2 = Math.min(g+22,255); const bb2 = Math.min(b+22,255);
-          pdf.setFillColor(br, bg2, bb2);
-          pdf.roundedRect(14, y, W - 28, blockH - 2, 2, 2, 'F');
-          pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
-          pdf.text(block.label, 20, y + 6);
-          pdf.setTextColor(255,255,255); pdf.setFontSize(9); pdf.setFont('helvetica','normal');
-          pdf.text(block.value, 20, y + 12, { maxWidth: W - 45 });
-        });
-        // Футер
-        const fr = Math.max(r-20, 0); const fg = Math.max(g-20, 0); const fb = Math.max(b-20, 0);
-        pdf.setFillColor(fr, fg, fb);
-        pdf.rect(0, H - 10, W, 10, 'F');
-        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
-        pdf.text('Стратегия продажи "Наша Семья" · Строго конфиденциально · 05.03.2026', 14, H - 4);
-        pdf.setTextColor(255,255,255);
-        pdf.text(`${i+1} / ${total}`, W - 14, H - 4, { align: 'right' });
+        const s = SALE_SLIDES[i] as AnySaleSlide;
+        const {r,g,b,ar,ag,ab} = saleHdr(pdf,s,W,H,i,total);
+        const sY=51;
+        if (s.type==='table') {
+          const cW=(W-28)/s.headers.length; const rH=9;
+          pdf.setFillColor(Math.min(r+35,255),Math.min(g+35,255),Math.min(b+35,255));
+          pdf.rect(14,sY,W-28,rH,'F');
+          s.headers.forEach((h,ci)=>{ pdf.setTextColor(ar,ag,ab); pdf.setFontSize(6.8); pdf.setFont('helvetica','bold'); pdf.text(h,15+ci*cW,sY+6,{maxWidth:cW-2}); });
+          s.rows.forEach((row,ri)=>{
+            const y=sY+rH+ri*rH;
+            pdf.setFillColor(ri===0?Math.min(r+20,255):Math.min(r+8+(ri%2)*4,255),ri===0?Math.min(g+20,255):Math.min(g+8+(ri%2)*4,255),ri===0?Math.min(b+20,255):Math.min(b+8+(ri%2)*4,255));
+            pdf.rect(14,y,W-28,rH,'F');
+            row.forEach((cell,ci)=>{
+              const isFirst=ri===0;
+              pdf.setTextColor(isFirst?ar:255, isFirst?ag:255, isFirst?ab:255);
+              pdf.setFontSize(ci===0?7.5:6.8); pdf.setFont('helvetica',isFirst||ci===0?'bold':'normal');
+              pdf.text(cell,15+ci*cW,y+6,{maxWidth:cW-2});
+            });
+          });
+          if(s.note){pdf.setTextColor(ar,ag,ab);pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(s.note,14,H-14,{maxWidth:W-28});}
+        } else if (s.type==='bar') {
+          const aH=H-sY-32; const bW=(W-60)/s.bars.length-4;
+          s.bars.forEach((bar,bi)=>{
+            const bH=(bar.value/bar.max)*aH; const x=30+bi*(bW+4); const y=sY+aH-bH;
+            const [rr,gg,bb2]=[parseInt(bar.color.slice(0,2),16),parseInt(bar.color.slice(2,4),16),parseInt(bar.color.slice(4,6),16)];
+            pdf.setFillColor(rr,gg,bb2); pdf.roundedRect(x,y,bW,bH,2,2,'F');
+            pdf.setTextColor(255,255,255); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
+            pdf.text(`${bar.value} млн`,x+bW/2,y-2,{align:'center'});
+            pdf.setFontSize(6); pdf.setFont('helvetica','normal');
+            pdf.splitTextToSize(bar.label,bW+5).forEach((ln:string,li:number)=>{ pdf.text(ln,x+bW/2,sY+aH+7+li*4.5,{align:'center'}); });
+          });
+          if(s.note){pdf.setTextColor(ar,ag,ab);pdf.setFontSize(7.5);pdf.setFont('helvetica','italic');pdf.text(s.note,14,H-14,{maxWidth:W-28});}
+        } else {
+          const bs=(s as SaleBlocksSlide).blocks;
+          const bH=(H-sY-14)/bs.length;
+          bs.forEach((block,bi)=>{
+            const y=sY+bi*bH;
+            pdf.setFillColor(Math.min(r+22,255),Math.min(g+22,255),Math.min(b+22,255));
+            pdf.roundedRect(14,y,W-28,bH-2,2,2,'F');
+            pdf.setTextColor(ar,ag,ab); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold'); pdf.text(block.label,20,y+6);
+            pdf.setTextColor(255,255,255); pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.text(block.value,20,y+13,{maxWidth:W-45});
+          });
+        }
       }
       pdf.save('Стратегия-продажи-НашаСемья.pdf');
     } finally { setPdfBusy(false); setPdfMsg(''); }
@@ -191,34 +255,63 @@ export default function MarketingSale() {
       pptx.title = 'Стратегия продажи — Наша Семья';
       pptx.company = 'Наша Семья';
       const total = SALE_SLIDES.length;
-      for (let i = 0; i < total; i++) {
+
+      const hdr = (slide: ReturnType<typeof pptx.addSlide>, s: AnySaleSlide, i: number) => {
+        slide.background={fill:s.bg};
+        slide.addShape('rect',{x:0,y:0,w:10,h:0.06,fill:{color:s.accent},line:{color:s.accent}});
+        slide.addText(s.tag,{x:0.4,y:0.13,w:9.2,h:0.2,fontSize:7.5,bold:true,color:s.accent,fontFace:'Calibri'});
+        slide.addText(s.title,{x:0.4,y:0.38,w:9.2,h:0.65,fontSize:24,bold:true,color:'FFFFFF',fontFace:'Calibri',shrinkText:true});
+        slide.addText(s.subtitle,{x:0.4,y:0.98,w:9.2,h:0.28,fontSize:10,color:s.accent,fontFace:'Calibri',italic:true});
+        slide.addShape('rect',{x:0,y:5.35,w:10,h:0.275,fill:{color:'000000',transparency:65},line:{color:'000000',transparency:100}});
+        slide.addText('Стратегия продажи "Наша Семья" · Строго конфиденциально',{x:0.3,y:5.37,w:8,h:0.22,fontSize:7,color:s.accent,fontFace:'Calibri'});
+        slide.addText(`${i+1} / ${total}`,{x:0,y:5.37,w:9.7,h:0.22,fontSize:7,color:'FFFFFF',fontFace:'Calibri',align:'right'});
+      };
+
+      for (let i=0; i<total; i++) {
         setPptxMsg(`Слайд ${i+1} из ${total}...`);
-        const s = SALE_SLIDES[i];
+        const s = SALE_SLIDES[i] as AnySaleSlide;
         const slide = pptx.addSlide();
-        slide.background = { fill: s.bg };
-        // Полоса вверху
-        slide.addShape('rect', { x: 0, y: 0, w: 10, h: 0.06, fill: { color: s.accent }, line: { color: s.accent } });
-        // Тег
-        slide.addText(s.tag, { x: 0.4, y: 0.22, w: 9.2, h: 0.22, fontSize: 7.5, bold: true, color: s.accent, fontFace: 'Calibri' });
-        // Заголовок
-        slide.addText(s.title, { x: 0.4, y: 0.5, w: 9.2, h: 0.85, fontSize: 26, bold: true, color: 'FFFFFF', fontFace: 'Calibri', shrinkText: true });
-        // Подзаголовок
-        slide.addText(s.subtitle, { x: 0.4, y: 1.28, w: 9.2, h: 0.32, fontSize: 11, color: s.accent, fontFace: 'Calibri', italic: true });
-        // Блоки — всегда 1 колонка для Sale (много текста)
-        const totalH = 3.75;
-        const boxH = (totalH / s.blocks.length) - 0.07;
-        s.blocks.forEach((block, bi) => {
-          const y = 1.68 + bi * (boxH + 0.07);
-          slide.addShape('rect', { x: 0.4, y, w: 9.2, h: boxH, fill: { color: 'FFFFFF', transparency: 88 }, line: { color: s.accent, transparency: 72, width: 0.5 }, rectRadius: 0.07 });
-          slide.addText([
-            { text: block.label + '   ', options: { bold: true, color: s.accent, fontSize: 9 } },
-            { text: block.value, options: { color: 'FFFFFF', fontSize: 9.5 } },
-          ], { x: 0.55, y: y + 0.04, w: 9.0, h: boxH - 0.1, fontFace: 'Calibri', valign: 'middle', wrap: true });
-        });
-        // Футер
-        slide.addShape('rect', { x: 0, y: 5.35, w: 10, h: 0.275, fill: { color: '000000', transparency: 65 }, line: { color: '000000', transparency: 100 } });
-        slide.addText(`Стратегия продажи "Наша Семья" · Строго конфиденциально`, { x: 0.3, y: 5.37, w: 8, h: 0.22, fontSize: 7, color: s.accent, fontFace: 'Calibri' });
-        slide.addText(`${i+1} / ${total}`, { x: 0, y: 5.37, w: 9.7, h: 0.22, fontSize: 7, color: 'FFFFFF', fontFace: 'Calibri', align: 'right' });
+        hdr(slide,s,i);
+        const cY=1.32; const cH=3.95;
+
+        if (s.type==='table') {
+          const colW=9.2/s.headers.length; const rH=cH/(s.rows.length+1);
+          s.headers.forEach((h,ci)=>{
+            slide.addShape('rect',{x:0.4+ci*colW,y:cY,w:colW-0.03,h:rH-0.03,fill:{color:s.accent,transparency:12},line:{color:s.accent,transparency:50}});
+            slide.addText(h,{x:0.42+ci*colW,y:cY+0.03,w:colW-0.07,h:rH-0.06,fontSize:7.5,bold:true,color:s.bg,fontFace:'Calibri',valign:'middle',wrap:true});
+          });
+          s.rows.forEach((row,ri)=>{
+            const isFirst=ri===0;
+            row.forEach((cell,ci)=>{
+              const y=cY+rH+ri*rH;
+              slide.addShape('rect',{x:0.4+ci*colW,y,w:colW-0.03,h:rH-0.03,fill:{color:isFirst?s.accent:'FFFFFF',transparency:isFirst?80:94},line:{color:s.accent,transparency:80}});
+              const cc=isFirst?'FFFFFF':(cell.includes('#1')||cell.includes('ВЫСШИЙ')?'4ADE80':cell.includes('#2')||cell.includes('Высокий')?'60A5FA':'C4D0E3');
+              slide.addText(cell,{x:0.42+ci*colW,y:y+0.02,w:colW-0.07,h:rH-0.06,fontSize:ci===0?8:7.5,bold:isFirst||ci===0,color:cc,fontFace:'Calibri',valign:'middle'});
+            });
+          });
+          if(s.note) slide.addText(s.note,{x:0.4,y:cY+cH+0.05,w:9.2,h:0.22,fontSize:8,color:s.accent,fontFace:'Calibri',italic:true});
+        } else if (s.type==='bar') {
+          const maxV=s.bars[s.bars.length-1].max; const barW=9.2/s.bars.length-0.16;
+          s.bars.forEach((bar,bi)=>{
+            const ratio=bar.value/maxV; const bH=cH*ratio*0.82;
+            const x=0.4+bi*(barW+0.16); const y=cY+cH*0.82-bH;
+            slide.addShape('rect',{x,y,w:barW,h:bH,fill:{color:bar.color},line:{color:bar.color},rectRadius:0.07});
+            slide.addText(`${bar.value} млн`,{x,y:y-0.28,w:barW,h:0.25,fontSize:8,bold:true,color:'FFFFFF',fontFace:'Calibri',align:'center'});
+            slide.addText(bar.label,{x:x-0.05,y:cY+cH*0.84,w:barW+0.1,h:0.6,fontSize:7,color:s.accent,fontFace:'Calibri',align:'center',wrap:true});
+          });
+          if(s.note) slide.addText(s.note,{x:0.4,y:cY+cH+0.05,w:9.2,h:0.22,fontSize:8,color:s.accent,fontFace:'Calibri',italic:true});
+        } else {
+          const bs=(s as SaleBlocksSlide).blocks;
+          const boxH=(cH/bs.length)-0.07;
+          bs.forEach((block,bi)=>{
+            const y=cY+bi*(boxH+0.07);
+            slide.addShape('rect',{x:0.4,y,w:9.2,h:boxH,fill:{color:'FFFFFF',transparency:88},line:{color:s.accent,transparency:72,width:0.5},rectRadius:0.07});
+            slide.addText([
+              {text:block.label+'   ',options:{bold:true,color:s.accent,fontSize:9}},
+              {text:block.value,options:{color:'FFFFFF',fontSize:9.5}},
+            ],{x:0.55,y:y+0.04,w:9.0,h:boxH-0.1,fontFace:'Calibri',valign:'middle',wrap:true});
+          });
+        }
       }
       await pptx.writeFile({ fileName: 'Стратегия-продажи-НашаСемья.pptx' });
     } finally { setPptxBusy(false); setPptxMsg(''); }
