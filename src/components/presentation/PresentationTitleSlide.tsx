@@ -7,11 +7,10 @@ export function PresentationTitleSlide() {
         <span className="text-emerald-700 text-sm font-medium">Десятилетие семьи 2024–2034</span>
       </div>
       <div className="flex justify-center mb-6">
-        <img 
-          src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
-          alt="Наша семья"
-          className="h-36 w-36 object-contain rounded-2xl shadow-lg"
-        />
+        <div className="h-36 w-36 rounded-2xl shadow-lg bg-gradient-to-br from-emerald-500 to-blue-600 flex flex-col items-center justify-center gap-1">
+          <span className="text-4xl">👨‍👩‍👧‍👦</span>
+          <span className="text-white text-xs font-bold tracking-wide">НАША СЕМЬЯ</span>
+        </div>
       </div>
       <h1 className="text-5xl font-bold mb-3 text-slate-800 tracking-tight">
         Наша Семья

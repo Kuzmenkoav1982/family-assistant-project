@@ -119,17 +119,17 @@ const AIAssistantWidget = () => {
 
   // Информация о ролях с изображениями
   const getRoleInfo = (role: string) => {
-    const roles: Record<string, { name: string; icon: string; description: string; image: string }> = {
-      'family-assistant': { name: 'Семейный помощник', icon: '🏡', description: 'Универсальный помощник', image: 'https://cdn.poehali.dev/files/Семейный помощник.png' },
-      'cook': { name: 'Повар', icon: '🍳', description: 'Рецепты и кулинария', image: 'https://cdn.poehali.dev/files/Повар.png' },
-      'organizer': { name: 'Организатор', icon: '📋', description: 'Планирование задач', image: 'https://cdn.poehali.dev/files/Организатор.png' },
-      'child-educator': { name: 'Воспитатель', icon: '👶', description: 'Советы по детям', image: 'https://cdn.poehali.dev/files/Воспитатель.png' },
-      'financial-advisor': { name: 'Финансовый советник', icon: '💰', description: 'Бюджет и экономия', image: 'https://cdn.poehali.dev/files/Финансовый советник.png' },
-      'psychologist': { name: 'Психолог', icon: '🧠', description: 'Отношения в семье', image: 'https://cdn.poehali.dev/files/Психолог.png' },
-      'fitness-trainer': { name: 'Фитнес-тренер', icon: '💪', description: 'Здоровье и спорт', image: 'https://cdn.poehali.dev/files/Фитнес-тренер.png' },
-      'nutritionist': { name: 'Диетолог', icon: '🍎', description: 'Здоровое питание', image: 'https://cdn.poehali.dev/files/Диетолог.png' },
-      'travel-planner': { name: 'Тревел-планер', icon: '✈️', description: 'Организация поездок', image: 'https://cdn.poehali.dev/files/Тревел-планер.png' },
-      'astrologer': { name: 'Астролог', icon: '🌙', description: 'Гороскопы и прогнозы', image: 'https://cdn.poehali.dev/files/Астролог.png' },
+    const roles: Record<string, { name: string; icon: string; description: string }> = {
+      'family-assistant': { name: 'Семейный помощник', icon: '🏡', description: 'Универсальный помощник' },
+      'cook': { name: 'Повар', icon: '🍳', description: 'Рецепты и кулинария' },
+      'organizer': { name: 'Организатор', icon: '📋', description: 'Планирование задач' },
+      'child-educator': { name: 'Воспитатель', icon: '👶', description: 'Советы по детям' },
+      'financial-advisor': { name: 'Финансовый советник', icon: '💰', description: 'Бюджет и экономия' },
+      'psychologist': { name: 'Психолог', icon: '🧠', description: 'Отношения в семье' },
+      'fitness-trainer': { name: 'Фитнес-тренер', icon: '💪', description: 'Здоровье и спорт' },
+      'nutritionist': { name: 'Диетолог', icon: '🍎', description: 'Здоровое питание' },
+      'travel-planner': { name: 'Тревел-планер', icon: '✈️', description: 'Организация поездок' },
+      'astrologer': { name: 'Астролог', icon: '🌙', description: 'Гороскопы и прогнозы' },
     };
     return roles[role] || roles['family-assistant'];
   };
@@ -407,19 +407,12 @@ const AIAssistantWidget = () => {
             </button>
             <div className="flex items-start gap-3">
               {assistantType === 'domovoy' ? (
-                <div className="relative bg-white overflow-hidden border-4 border-orange-400 flex-shrink-0 rounded-2xl w-16 h-20">
-                  <img 
-                    src={getRoleInfo(kuzyaRole).image}
-                    alt={getRoleInfo(kuzyaRole).name}
-                    className="w-full h-full pointer-events-none object-cover"
-                    style={{ objectPosition: 'center' }}
-                    draggable={false}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
+                <div className="relative bg-gradient-to-br from-orange-400 to-amber-500 border-4 border-orange-400 flex-shrink-0 rounded-2xl w-16 h-20 flex items-center justify-center">
+                  <span className="text-3xl">{getRoleInfo(kuzyaRole).icon}</span>
                 </div>
               ) : (
-                <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-blue-400 flex-shrink-0">
-                  <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
+                <div className="w-16 h-16 rounded-full border-4 border-blue-400 flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                  <span className="text-2xl">🤖</span>
                 </div>
               )}
               <div>
@@ -471,19 +464,12 @@ const AIAssistantWidget = () => {
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3 min-w-0">
                 {assistantType === 'domovoy' ? (
-                  <div className="relative bg-white overflow-hidden border-2 border-orange-300 rounded-xl w-10 h-12 flex-shrink-0">
-                    <img 
-                      src={getRoleInfo(kuzyaRole).image}
-                      alt={getRoleInfo(kuzyaRole).name}
-                      className="w-full h-full pointer-events-none object-cover"
-                      style={{ objectPosition: 'center' }}
-                      draggable={false}
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
+                  <div className="relative bg-gradient-to-br from-orange-400 to-amber-500 border-2 border-orange-300 rounded-xl w-10 h-12 flex-shrink-0 flex items-center justify-center">
+                    <span className="text-xl">{getRoleInfo(kuzyaRole).icon}</span>
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
+                  <div className="w-10 h-10 rounded-xl flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                    <span className="text-lg">🤖</span>
                   </div>
                 )}
                 <div className="min-w-0">
@@ -638,17 +624,12 @@ const AIAssistantWidget = () => {
                               <span className="text-white text-sm font-bold">Я</span>
                             </div>
                           ) : assistantType === 'domovoy' ? (
-                            <img 
-                              src={getRoleInfo(kuzyaRole).image}
-                              alt={getRoleInfo(kuzyaRole).name}
-                              className="w-8 h-10 rounded-xl border-2 border-orange-400 pointer-events-none object-cover"
-                              style={{ objectPosition: 'center' }}
-                              draggable={false}
-                              onContextMenu={(e) => e.preventDefault()}
-                            />
+                            <div className="w-8 h-10 rounded-xl border-2 border-orange-400 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
+                              <span className="text-sm">{getRoleInfo(kuzyaRole).icon}</span>
+                            </div>
                           ) : (
-                            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-400">
-                              <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
+                            <div className="w-8 h-8 rounded-full border-2 border-blue-400 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                              <span className="text-xs">🤖</span>
                             </div>
                           )}
                         </div>
@@ -672,17 +653,12 @@ const AIAssistantWidget = () => {
                     {isLoading && (
                       <div className="flex gap-2">
                         {assistantType === 'domovoy' ? (
-                          <img 
-                            src={getRoleInfo(kuzyaRole).image}
-                            alt={getRoleInfo(kuzyaRole).name}
-                            className="w-8 h-10 rounded-xl border-2 border-orange-400 pointer-events-none object-cover"
-                            style={{ objectPosition: 'center' }}
-                            draggable={false}
-                            onContextMenu={(e) => e.preventDefault()}
-                          />
+                          <div className="w-8 h-10 rounded-xl border-2 border-orange-400 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm">{getRoleInfo(kuzyaRole).icon}</span>
+                          </div>
                         ) : (
-                          <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-400">
-                            <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover" />
+                          <div className="w-8 h-8 rounded-full border-2 border-blue-400 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs">🤖</span>
                           </div>
                         )}
                         <div className="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2">
@@ -749,16 +725,13 @@ const AIAssistantWidget = () => {
           } ${isButtonDragging ? 'scale-110' : 'hover:scale-105 animate-bounce-subtle'}`}
         >
           {assistantType === 'domovoy' ? (
-            <img 
-              src={getRoleInfo(kuzyaRole).image}
-              alt={getRoleInfo(kuzyaRole).name}
-              className="w-full h-full pointer-events-none object-cover"
-              style={{ objectPosition: 'center' }}
-              draggable={false}
-              onContextMenu={(e) => e.preventDefault()}
-            />
+            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
+              <span className="text-4xl">{getRoleInfo(kuzyaRole).icon}</span>
+            </div>
           ) : (
-            <img src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4a8cd84b-8eb3-43f6-b24c-712f67d25a29.jpg" alt="AI" className="w-full h-full object-cover pointer-events-none" draggable={false} onContextMenu={(e) => e.preventDefault()} />
+            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <span className="text-3xl">🤖</span>
+            </div>
           )}
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
         </button>
