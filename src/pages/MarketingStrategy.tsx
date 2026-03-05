@@ -1,25 +1,128 @@
 import { useState } from 'react';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-async function captureStrategySlides(onProgress: (msg: string) => void): Promise<HTMLCanvasElement[] | null> {
-  const container = document.getElementById('marketing-strategy-slides');
-  if (!container) return null;
-  container.style.display = 'block';
-  await new Promise(r => setTimeout(r, 300));
-  const slides = Array.from(container.querySelectorAll('[data-pdf-slide]')) as HTMLElement[];
-  if (!slides.length) { container.style.display = 'none'; return null; }
-  const canvases: HTMLCanvasElement[] = [];
-  for (let i = 0; i < slides.length; i++) {
-    onProgress(`Слайд ${i + 1} из ${slides.length}...`);
-    const c = await html2canvas(slides[i], { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 1200, imageTimeout: 0 });
-    canvases.push(c);
-  }
-  container.style.display = 'none';
-  return canvases;
-}
+const STRATEGY_SLIDES = [
+  {
+    title: 'Маркетинговая стратегия',
+    subtitle: '"Наша Семья" — цифровая платформа для семей',
+    bg: '1D4ED8', accent: 'BFDBFE',
+    tag: 'Версия 1.0 · Март 2026 · Конфиденциально',
+    blocks: [
+      { label: 'Цель', value: '10 000 платящих семей за 12 месяцев' },
+      { label: 'Средний чек', value: '330 руб./мес — тариф "Семья"' },
+      { label: 'Рынок (SAM)', value: '15 млн семей с детьми в России' },
+      { label: 'Статус', value: 'MVP готов · 51 семья уже активна' },
+      { label: 'MRR цель', value: '3,3 млн руб./мес к марту 2027' },
+    ]
+  },
+  {
+    title: 'Семейный ID — ключевая концепция',
+    subtitle: 'Уникальный актив, которого нет ни у одного банка или маркетплейса',
+    bg: '312E81', accent: 'C7D2FE',
+    tag: 'Конкурентное преимущество',
+    blocks: [
+      { label: 'Семейный ID', value: 'Единый цифровой профиль семьи для банков, маркетплейсов, сервисов' },
+      { label: 'Общие расходы', value: 'Совместный семейный бюджет, трекинг трат, общие накопления' },
+      { label: 'Бонусные программы', value: 'Единый кошелёк лояльности — баллы от всех платформ в одном месте' },
+      { label: 'Единый опыт', value: 'Магазин, банк, здоровье, дети — одна точка входа для всей семьи' },
+      { label: 'B2B монетизация', value: 'Банки и маркетплейсы платят за доступ к API Семейного ID' },
+    ]
+  },
+  {
+    title: 'Целевая аудитория',
+    subtitle: 'TAM 50 млн · SAM 15 млн · SOM 1,5 млн семей',
+    bg: 'BE185D', accent: 'FBCFE8',
+    tag: 'Сегментация рынка',
+    blocks: [
+      { label: 'Мама-организатор (55%)', value: 'Возраст 28–42 года · CAC 400–600 руб. · LTV 10 800 руб. · Главный сегмент' },
+      { label: 'Папа-партнёр (25%)', value: 'Возраст 30–45 лет · Вовлекается через финансовый модуль и геолокацию' },
+      { label: 'B2B сегмент (15%)', value: 'Педиатры, психологи, детские клиники · CAC 200–350 руб.' },
+      { label: 'Корпоративный (10%)', value: 'HR-льготы для сотрудников с семьями · Пилот с 2–3 компаниями в Q3' },
+    ]
+  },
+  {
+    title: 'Маркетинговые каналы',
+    subtitle: 'Мультиканальная стратегия · CAC 150–900 руб.',
+    bg: '6D28D9', accent: 'DDD6FE',
+    tag: 'Привлечение',
+    blocks: [
+      { label: '1. ВКонтакте + Telegram', value: '30 000 руб./мес · CAC 400–600 руб. · Основной канал для мам' },
+      { label: '2. Партнёрства B2B2C', value: '10 000 руб./мес · CAC 200–350 руб. · Клиники, HR, страховые' },
+      { label: '3. SEO + Контент', value: '15 000 руб./мес · CAC 300–500 руб. · 4 статьи в месяц' },
+      { label: '4. Яндекс.Директ', value: '20 000 руб./мес · CAC 600–900 руб. · Поиск + РСЯ' },
+      { label: '5. Маркетплейсы (Ozon, WB)', value: '5 000 руб./мес · Нативная интеграция подписки' },
+      { label: '6. Банк ПСБ (стратег)', value: '0 руб. · CAC 150–250 руб. · 2+ млн семей военных' },
+    ]
+  },
+  {
+    title: 'Маркетинговая воронка',
+    subtitle: 'Цель: 10 000 платящих Premium-семей',
+    bg: '0E7490', accent: 'A5F3FC',
+    tag: 'Конверсия',
+    blocks: [
+      { label: 'Охват (показы)', value: '2 400 000 показов/мес — ВКонтакте, Яндекс, партнёры' },
+      { label: 'Переходы на сайт', value: '120 000 визитов (CTR 5%) — лендинг + блог + маркетплейсы' },
+      { label: 'Регистрации', value: '36 000 аккаунтов (CR 30%) — бесплатный период 14 дней' },
+      { label: 'Активация', value: '18 000 активных (50%) — добавили семью, заполнили профиль' },
+      { label: 'Retention D30', value: '12 600 семей (70%) — привычка использования сформирована' },
+      { label: 'Premium-подписка', value: '10 000 семей (28%) · MRR 3,3 млн руб. · Цель достигнута' },
+    ]
+  },
+  {
+    title: 'Бюджет на 12 месяцев',
+    subtitle: '921 600 руб./год · 76 800 руб./мес',
+    bg: '065F46', accent: 'A7F3D0',
+    tag: 'Финансы',
+    blocks: [
+      { label: 'Таргетированная реклама (39%)', value: '360 000 руб./год — ВКонтакте, Instagram, TikTok' },
+      { label: 'Яндекс.Директ (26%)', value: '240 000 руб./год — поисковая и контекстная реклама' },
+      { label: 'Контент-маркетинг / SEO (20%)', value: '180 000 руб./год — блог, YouTube, Telegram-канал' },
+      { label: 'Партнёрства B2B2C (13%)', value: '120 000 руб./год — клиники, HR, школы' },
+      { label: 'Маркетплейсы (7%)', value: '60 000 руб./год — Ozon, WB, Яндекс Маркет' },
+      { label: 'Ожидаемый ROMI', value: '>300% к концу года · CAC окупается за 3 месяца' },
+    ]
+  },
+  {
+    title: 'KPI — ключевые показатели',
+    subtitle: 'Ежеквартальные цели март 2026 — март 2027',
+    bg: 'B45309', accent: 'FDE68A',
+    tag: 'Метрики',
+    blocks: [
+      { label: 'Q1 2026 · Март–Май', value: '300 платящих семей · MRR 99 000 руб. · NPS > 50 · CAC < 600 руб.' },
+      { label: 'Q2 2026 · Июнь–Август', value: '2 000 семей · MRR 660 000 руб. · CAC < 400 руб. · LTV/CAC > 3' },
+      { label: 'Q3 2026 · Сентябрь–Ноябрь', value: '5 000 семей · MRR 1 650 000 руб. · Churn < 5% · Breakeven' },
+      { label: 'Q4 2026 · Декабрь–Март 2027', value: '10 000 семей · MRR 3 300 000 руб. · ARR 39 600 000 руб.' },
+      { label: 'North Star Metric', value: 'Активных платящих семей — целевое значение 10 000 к марту 2027' },
+    ]
+  },
+  {
+    title: 'SWOT-анализ',
+    subtitle: 'Сильные стороны, слабые, возможности, угрозы',
+    bg: '1E293B', accent: '94A3B8',
+    tag: 'Анализ',
+    blocks: [
+      { label: 'Сильные стороны', value: 'Нет прямых конкурентов · Готовый MVP · Гос. поддержка · ИС n\'RIS · 86 API, 151 таблица БД, 385+ компонентов' },
+      { label: 'Слабые стороны', value: 'Соло-основатель · Низкий traction (51 семья) · Нет мобильных приложений iOS/Android' },
+      { label: 'Возможности', value: 'Программа "Десятилетие семьи" до 2035 · Господдержка · B2B с банками · Выход в СНГ' },
+      { label: 'Угрозы', value: 'Копирование идеи Сбером / VK · Высокий CAC · Регуляторные риски (персданные детей)' },
+    ]
+  },
+  {
+    title: 'Роадмап 2026–2027',
+    subtitle: 'От 51 семьи к 10 000 платящих',
+    bg: '0F172A', accent: '7DD3FC',
+    tag: 'Дорожная карта',
+    blocks: [
+      { label: 'Q1 2026 · Март–Май', value: 'Запуск рекламных каналов · Партнёрства с 3–5 клиниками · Реферальная программа · 300 семей' },
+      { label: 'Q2 2026 · Июнь–Август', value: 'iOS-приложение · Масштаб ВКонтакте до 40K/мес · Переговоры с ПСБ · 2 000 семей' },
+      { label: 'Q3 2026 · Сентябрь–Ноябрь', value: 'Android-приложение · Корпоративный тариф · Пилот с ПСБ 50K семей · 5 000 семей' },
+      { label: 'Q4 2026 · Декабрь–Март 2027', value: 'Series A или стратегическая продажа · Выход в Казахстан, Беларусь · 10 000 семей' },
+      { label: 'Интеграции', value: 'Яндекс.Алиса (готово) · Ozon/WB · Банк ПСБ · Госуслуги · ДМС страховые' },
+    ]
+  },
+];
 
 type Section = 'overview' | 'audience' | 'channels' | 'funnel' | 'content' | 'budget' | 'kpi' | 'roadmap';
 
@@ -41,25 +144,54 @@ export default function MarketingStrategy() {
   const [pptxBusy, setPptxBusy] = useState(false);
   const [pptxMsg, setPptxMsg] = useState('');
 
+  const hex2rgb = (hex: string) => ({ r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) });
+
   const downloadPDF = async () => {
     setPdfBusy(true);
     try {
-      const canvases = await captureStrategySlides(setPdfMsg);
-      if (!canvases) return;
       const pdf = new jsPDF('l', 'mm', 'a4');
-      const pw = 297; const ph = 210; const m = 8;
-      const cw = pw - m * 2; const ch = ph - m * 2;
-      for (let i = 0; i < canvases.length; i++) {
-        const c = canvases[i];
-        const ar = c.width / c.height;
-        let w = cw; let h = w / ar;
-        if (h > ch) { h = ch; w = h * ar; }
-        const x = m + (cw - w) / 2; const y = m + (ch - h) / 2;
+      const W = 297; const H = 210;
+      const total = STRATEGY_SLIDES.length;
+      for (let i = 0; i < total; i++) {
+        setPdfMsg(`Слайд ${i+1} из ${total}...`);
+        const s = STRATEGY_SLIDES[i];
+        const { r, g, b } = hex2rgb(s.bg);
+        const { r: ar, g: ag, b: ab } = hex2rgb(s.accent);
         if (i > 0) pdf.addPage();
-        pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, pw, ph, 'F');
-        pdf.addImage(c.toDataURL('image/png'), 'PNG', x, y, w, h, `s${i}`, 'FAST');
-        pdf.setFontSize(7); pdf.setTextColor(180, 180, 180);
-        pdf.text(`${i + 1} / ${canvases.length}`, pw / 2, ph - 4, { align: 'center' });
+        pdf.setFillColor(r, g, b); pdf.rect(0, 0, W, H, 'F');
+        // Тег-подложка
+        pdf.setFillColor(Math.min(ar+40,255), Math.min(ag+40,255), Math.min(ab+40,255));
+        pdf.roundedRect(14, 13, 90, 7, 1, 1, 'F');
+        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7); pdf.setFont('helvetica','bold');
+        pdf.text(s.tag.toUpperCase(), 18, 18);
+        // Заголовок
+        pdf.setTextColor(255,255,255); pdf.setFontSize(22); pdf.setFont('helvetica','bold');
+        pdf.text(s.title, 14, 38, { maxWidth: 180 });
+        // Подзаголовок
+        pdf.setFontSize(10); pdf.setFont('helvetica','normal');
+        pdf.setTextColor(ar, ag, ab);
+        pdf.text(s.subtitle, 14, 50, { maxWidth: 180 });
+        // Блоки
+        const startY = 60; const blockH = (H - startY - 18) / s.blocks.length;
+        s.blocks.forEach((block, bi) => {
+          const y = startY + bi * blockH;
+          // Слегка светлее фон блока
+          const br = Math.min(r + 20, 255); const bg2 = Math.min(g + 20, 255); const bb = Math.min(b + 20, 255);
+          pdf.setFillColor(br, bg2, bb);
+          pdf.roundedRect(14, y, W - 28, blockH - 2, 2, 2, 'F');
+          pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
+          pdf.text(block.label, 20, y + 6);
+          pdf.setTextColor(255,255,255); pdf.setFontSize(9); pdf.setFont('helvetica','normal');
+          pdf.text(block.value, 20, y + 12, { maxWidth: W - 45 });
+        });
+        // Футер
+        const fr = Math.max(r - 20, 0); const fg = Math.max(g - 20, 0); const fb = Math.max(b - 20, 0);
+        pdf.setFillColor(fr, fg, fb);
+        pdf.rect(0, H - 10, W, 10, 'F');
+        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+        pdf.text('Маркетинговая стратегия "Наша Семья" · Конфиденциально · 05.03.2026', 14, H - 4);
+        pdf.setTextColor(255,255,255);
+        pdf.text(`${i+1} / ${total}`, W - 14, H - 4, { align: 'right' });
       }
       pdf.save('Маркетинговая-стратегия-НашаСемья.pdf');
     } finally { setPdfBusy(false); setPdfMsg(''); }
@@ -69,23 +201,45 @@ export default function MarketingStrategy() {
     setPptxBusy(true);
     try {
       const PptxGenJS = (await import('pptxgenjs')).default;
-      const canvases = await captureStrategySlides(setPptxMsg);
-      if (!canvases) return;
-      setPptxMsg('Формирую PPTX...');
       const pptx = new PptxGenJS();
       pptx.layout = 'LAYOUT_16x9';
       pptx.title = 'Маркетинговая стратегия — Наша Семья';
       pptx.company = 'Наша Семья';
-      const sw = 10; const sh = 5.625; const p = 0.2;
-      for (let i = 0; i < canvases.length; i++) {
-        const c = canvases[i];
-        const ar = c.width / c.height;
-        let w = sw - p * 2; let h = w / ar;
-        if (h > sh - p * 2) { h = sh - p * 2; w = h * ar; }
+      const total = STRATEGY_SLIDES.length;
+      for (let i = 0; i < total; i++) {
+        setPptxMsg(`Слайд ${i+1} из ${total}...`);
+        const s = STRATEGY_SLIDES[i];
         const slide = pptx.addSlide();
-        slide.background = { fill: 'FFFFFF' };
-        slide.addImage({ data: c.toDataURL('image/png'), x: (sw - w) / 2, y: (sh - h) / 2, w, h });
-        slide.addText(`${i + 1} / ${canvases.length}`, { x: 0, y: sh - 0.3, w: sw, h: 0.25, align: 'center', fontSize: 7, color: 'B4B4B4' });
+        slide.background = { fill: s.bg };
+        // Декоративная полоса вверху
+        slide.addShape('rect', { x: 0, y: 0, w: 10, h: 0.06, fill: { color: s.accent }, line: { color: s.accent } });
+        // Тег
+        slide.addText(s.tag.toUpperCase(), { x: 0.4, y: 0.25, w: 9.2, h: 0.22, fontSize: 8, bold: true, color: s.accent, fontFace: 'Calibri' });
+        // Заголовок
+        slide.addText(s.title, { x: 0.4, y: 0.55, w: 6.5, h: 0.9, fontSize: 28, bold: true, color: 'FFFFFF', fontFace: 'Calibri', breakLine: false, shrinkText: true });
+        // Подзаголовок
+        slide.addText(s.subtitle, { x: 0.4, y: 1.3, w: 7, h: 0.35, fontSize: 12, color: s.accent, fontFace: 'Calibri', italic: true });
+        // Блоки
+        const cols = s.blocks.length <= 4 ? 1 : 2;
+        const perCol = Math.ceil(s.blocks.length / cols);
+        const boxW = cols === 1 ? 9.2 : 4.5;
+        const totalH = 3.6;
+        const boxH = (totalH / perCol) - 0.08;
+        s.blocks.forEach((block, bi) => {
+          const col = cols === 2 ? Math.floor(bi / perCol) : 0;
+          const row = bi % perCol;
+          const x = 0.4 + col * (boxW + 0.2);
+          const y = 1.75 + row * (boxH + 0.08);
+          slide.addShape('rect', { x, y, w: boxW, h: boxH, fill: { color: 'FFFFFF', transparency: 88 }, line: { color: s.accent, transparency: 70, width: 0.5 }, rectRadius: 0.08 });
+          slide.addText([
+            { text: block.label + '  ', options: { bold: true, color: s.accent, fontSize: 9 } },
+            { text: block.value, options: { color: 'FFFFFF', fontSize: cols === 1 ? 10.5 : 9.5 } },
+          ], { x: x + 0.15, y: y + 0.04, w: boxW - 0.3, h: boxH - 0.1, fontFace: 'Calibri', valign: 'middle', wrap: true });
+        });
+        // Футер
+        slide.addShape('rect', { x: 0, y: 5.35, w: 10, h: 0.275, fill: { color: '000000', transparency: 70 }, line: { color: '000000', transparency: 100 } });
+        slide.addText(`Маркетинговая стратегия "Наша Семья" · Конфиденциально`, { x: 0.3, y: 5.37, w: 8, h: 0.22, fontSize: 7, color: s.accent, fontFace: 'Calibri' });
+        slide.addText(`${i+1} / ${total}`, { x: 0, y: 5.37, w: 9.7, h: 0.22, fontSize: 7, color: 'FFFFFF', fontFace: 'Calibri', align: 'right' });
       }
       await pptx.writeFile({ fileName: 'Маркетинговая-стратегия-НашаСемья.pptx' });
     } finally { setPptxBusy(false); setPptxMsg(''); }
@@ -978,81 +1132,6 @@ export default function MarketingStrategy() {
         </div>
       </div>
 
-      {/* Скрытые слайды для PDF/PPTX */}
-      <div id="marketing-strategy-slides" style={{ display: 'none', position: 'fixed', left: '-9999px', top: 0, width: '1200px', zIndex: -1 }}>
-        {[
-          {
-            title: 'Маркетинговая стратегия «Наша Семья»',
-            subtitle: 'Версия 1.0 · Март 2026',
-            color: 'from-blue-700 to-indigo-700',
-            items: ['Целевой показатель: 10 000 платящих семей за 12 месяцев', 'Средний чек: 330 ₽/мес', 'SAM: 15 млн семей с детьми в России', 'Текущий traction: 51 семья · MVP готов']
-          },
-          {
-            title: 'Семейный ID — ключевая концепция',
-            subtitle: 'Уникальная ценность, которой нет ни у банков, ни у маркетплейсов',
-            color: 'from-indigo-900 to-blue-900',
-            items: ['🪪 Семейный ID — единый цифровой профиль семьи для банков и маркетплейсов', '💳 Общие расходы и совместные счета — семейный бюджет под контролем', '🎁 Бонусные программы семьи — единый кошелёк лояльности всей семьи', '🔗 Единый клиентский опыт — магазин, банк, здоровье, дети в одном месте', '💡 B2B монетизация: банки и маркетплейсы платят за доступ к Семейному ID']
-          },
-          {
-            title: 'Целевая аудитория',
-            subtitle: 'TAM 50 млн · SAM 15 млн · SOM 1,5 млн семей',
-            color: 'from-pink-700 to-rose-700',
-            items: ['👩‍👧‍👦 Мама-организатор 28–42 года (55%) — CAC ₽400–600, LTV ₽10 800', '👨‍👩‍👦 Папа-партнёр 30–45 лет (25%) — вовлекается через финансовый модуль', '🏥 B2B: педиатры, психологи, детские клиники (15%) — CAC ₽200–350', '🏢 Корпоративный: HR-льготы для сотрудников с семьями (10%)']
-          },
-          {
-            title: 'Маркетинговые каналы',
-            subtitle: 'Мультиканальная стратегия с CAC ₽150–900',
-            color: 'from-violet-700 to-purple-700',
-            items: ['1. ВКонтакте + Telegram — ₽30 000/мес, CAC ₽400–600', '2. Партнёрства B2B2C (клиники, HR) — ₽10 000/мес, CAC ₽200–350', '3. SEO + Контент-маркетинг — ₽15 000/мес, CAC ₽300–500', '4. Яндекс.Директ — ₽20 000/мес, CAC ₽600–900', '5. Маркетплейсы (Ozon, WB, Яндекс Маркет) — ₽5 000/мес', '6. Банк ПСБ (стратегический) — ₽0, CAC ₽150–250']
-          },
-          {
-            title: 'Маркетинговая воронка',
-            subtitle: 'Цель: 10 000 платящих семей',
-            color: 'from-cyan-700 to-blue-700',
-            items: ['Охват: 2 400 000 показов/мес', '→ Переходы: 120 000 (CTR 5%)', '→ Регистрации: 36 000 (CR 30%)', '→ Активация: 18 000 (50%)', '→ Retention 30 дней: 12 600 (70%)', '→ Premium-подписка: 10 000 (28%) — MRR ₽3,3 млн']
-          },
-          {
-            title: 'Бюджет на 12 месяцев',
-            subtitle: '₽921 600/год · ₽76 800/мес',
-            color: 'from-emerald-700 to-teal-700',
-            items: ['Таргетированная реклама: ₽360 000 (39%)', 'Яндекс.Директ: ₽240 000 (26%)', 'Контент-маркетинг / SEO: ₽180 000 (20%)', 'Партнёрства B2B2C: ₽120 000 (13%)', 'Маркетплейсы: ₽60 000 (7%)', 'Ожидаемый ROMI: >300% к концу года']
-          },
-          {
-            title: 'KPI — ключевые показатели',
-            subtitle: 'Ежеквартальные цели март 2026 – март 2027',
-            color: 'from-amber-600 to-orange-600',
-            items: ['Q1 2026 (Март–Май): 300 семей · MRR ₽99K · NPS > 50', 'Q2 2026 (Июнь–Август): 2 000 семей · MRR ₽660K · CAC < ₽400', 'Q3 2026 (Сент–Ноябрь): 5 000 семей · MRR ₽1,65M · Breakeven', 'Q4 2026 (Дек–Март 2027): 10 000 семей · MRR ₽3,3M · ARR ₽39,6M']
-          },
-          {
-            title: 'Роадмап',
-            subtitle: 'Март 2026 — Март 2027',
-            color: 'from-slate-800 to-slate-900',
-            items: ['Q1: Запуск каналов, партнёрства с клиниками, первые 300 семей', 'Q2: Масштабирование, iOS-приложение, переговоры с ПСБ, 2 000 семей', 'Q3: B2B корпоративный тариф, Android, пилот с ПСБ, 5 000 семей', 'Q4: Series A / стратегическая продажа, выход в СНГ, 10 000 семей']
-          },
-        ].map((slide, i) => (
-          <div key={i} data-pdf-slide style={{ width: '1200px', minHeight: '675px', background: 'white', padding: '0', marginBottom: '20px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ background: `linear-gradient(135deg, ${slide.color.replace('from-', '').replace(' to-', ', ')})`, padding: '60px 80px 40px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>
-                Маркетинговая стратегия · Слайд {i + 1} из 8
-              </div>
-              <h2 style={{ fontSize: '48px', fontWeight: 900, color: 'white', lineHeight: 1.1, margin: '0 0 12px' }}>{slide.title}</h2>
-              <p style={{ fontSize: '20px', color: 'rgba(255,255,255,0.75)', margin: '0 0 40px' }}>{slide.subtitle}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {slide.items.map((item, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', background: 'rgba(255,255,255,0.12)', borderRadius: '12px', padding: '16px 20px' }}>
-                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>→</div>
-                    <div style={{ fontSize: '18px', color: 'white', lineHeight: 1.4 }}>{item}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ background: 'white', padding: '12px 80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e5e7eb' }}>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Маркетинговая стратегия «Наша Семья» · Конфиденциально</span>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>05.03.2026</span>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

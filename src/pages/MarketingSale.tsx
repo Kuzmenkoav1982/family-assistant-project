@@ -1,25 +1,114 @@
 import { useState } from 'react';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
-async function captureSaleSlides(onProgress: (msg: string) => void): Promise<HTMLCanvasElement[] | null> {
-  const container = document.getElementById('sale-strategy-slides');
-  if (!container) return null;
-  container.style.display = 'block';
-  await new Promise(r => setTimeout(r, 300));
-  const slides = Array.from(container.querySelectorAll('[data-pdf-slide]')) as HTMLElement[];
-  if (!slides.length) { container.style.display = 'none'; return null; }
-  const canvases: HTMLCanvasElement[] = [];
-  for (let i = 0; i < slides.length; i++) {
-    onProgress(`Слайд ${i + 1} из ${slides.length}...`);
-    const c = await html2canvas(slides[i], { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 1200, imageTimeout: 0 });
-    canvases.push(c);
-  }
-  container.style.display = 'none';
-  return canvases;
-}
+const SALE_SLIDES = [
+  {
+    title: 'Стратегия продажи платформы',
+    subtitle: '"Наша Семья" — M&A стратегия · Март 2026',
+    bg: '0F172A', accent: '7DD3FC',
+    tag: 'СТРОГО КОНФИДЕНЦИАЛЬНО · ТОЛЬКО ДЛЯ СОБСТВЕННИКА',
+    blocks: [
+      { label: 'Целевая сумма', value: '80–250 млн руб. в зависимости от типа покупателя и структуры сделки' },
+      { label: 'Срок закрытия', value: '4–9 месяцев от первого контакта до получения денег' },
+      { label: 'Приоритетный покупатель', value: 'Банк ПСБ (150–250 млн руб.) — 2+ млн семей военных, идеальная аудитория' },
+      { label: 'Актив', value: '86 API, 151 таблица БД, 385+ компонентов, ИС n\'RIS №518-830-027' },
+      { label: 'Уникальность', value: 'Единственный в России Семейный ID — актива нет ни у Сбера, ни у ВК, ни у Ozon' },
+    ]
+  },
+  {
+    title: 'Три сценария выхода',
+    subtitle: 'От продажи кода до стратегического партнёрства',
+    bg: '1E3A5F', accent: 'BFDBFE',
+    tag: 'СЦЕНАРИИ ВЫХОДА',
+    blocks: [
+      { label: 'A. Продажа технологии (код + ИС)', value: '40–60 млн руб. · Срок: 2–4 месяца · Покупатель: IT-интегратор или банк · НДФЛ 13% · Самый быстрый вариант' },
+      { label: 'B. Продажа бизнеса (Asset Deal)', value: '80–130 млн руб. · Срок: 4–7 месяцев · Действующий бизнес с пользователями + earn-out · НДФЛ 15%' },
+      { label: 'C. Стратегическое партнёрство (Share Deal)', value: '150–250 млн руб. · Срок: 6–9 месяцев · Контрольный пакет крупному стратегу (ПСБ, Сбер, VK) · НДФЛ 15%' },
+      { label: 'Earn-out (во всех сценариях)', value: '+35–50 млн руб. дополнительно при достижении 5 000 / 15 000 активных семей' },
+      { label: 'Чистыми после налогов', value: 'Сценарий A: ~35 млн руб. · Сценарий B: ~68–110 млн руб. · Сценарий C: ~127–212 млн руб.' },
+    ]
+  },
+  {
+    title: 'Целевые покупатели — Банки',
+    subtitle: 'Наивысший приоритет — максимальная стратегическая ценность',
+    bg: '1D4ED8', accent: 'BFDBFE',
+    tag: 'ПОТЕНЦИАЛЬНЫЕ ПОКУПАТЕЛИ · БАНКИ',
+    blocks: [
+      { label: '#1 Банк ПСБ (приоритет)', value: '150–250 млн руб. · 2+ млн семей военнослужащих · Семейный ID как флагманский продукт для лояльности' },
+      { label: '#2 Сбербанк / СберПрайм', value: '100–200 млн руб. · Дополняет экосистему СберПрайм Семья · 100M+ клиентов · Высокий интерес к семейной теме' },
+      { label: '#3 Т-Банк (Тинькофф)', value: '80–150 млн руб. · Lifestyle-экосистема · Аудитория 25–40 лет · Нет семейного продукта' },
+      { label: 'Ozon Банк', value: '60–100 млн руб. · 40M покупателей с семьями · Ozon Pay / WB Pay → семейный кошелёк' },
+      { label: 'Ключевой аргумент для банков', value: 'Семейный ID = доступ ко всей семье как к единому клиенту · Кросс-продажи ипотека, ДМС, детские вклады' },
+    ]
+  },
+  {
+    title: 'Целевые покупатели — Маркетплейсы и Экосистемы',
+    subtitle: 'Семейный ID как ядро лояльности покупателей',
+    bg: '5B21B6', accent: 'DDD6FE',
+    tag: 'ПОТЕНЦИАЛЬНЫЕ ПОКУПАТЕЛИ · ЭКОСИСТЕМЫ',
+    blocks: [
+      { label: 'Ozon + Ozon Банк', value: '60–100 млн руб. · 40M пользователей · Семейный кошелёк + единая подписка · Женская аудитория 70%' },
+      { label: 'Wildberries', value: '50–90 млн руб. · 60M покупателей · Женская аудитория 80% совпадает с мамами-организаторами' },
+      { label: 'Яндекс (Маркет + Алиса + 360)', value: '80–150 млн руб. · Уже есть интеграция с Алисой · Список покупок → Маркет · Единая экосистема' },
+      { label: 'VK Экосистема', value: '60–120 млн руб. · VK Pay, VK Kids, образование · 70M+ пользователей · Детский контент' },
+      { label: 'МТС Экосистема', value: '70–130 млн руб. · МТС Premium, Kion, МТС Pay · Семейные тарифы как точка входа для Семейного ID' },
+    ]
+  },
+  {
+    title: 'Оценка стоимости платформы',
+    subtitle: 'Четыре метода оценки — диапазон 28–250 млн руб.',
+    bg: '065F46', accent: 'A7F3D0',
+    tag: 'ОЦЕНКА СТОИМОСТИ',
+    blocks: [
+      { label: 'Стоимость воспроизведения (Cost Approach)', value: '28 млн руб. — нижняя граница · 12+ месяцев работы · Разработка + дизайн + инфраструктура + интеграции' },
+      { label: 'Оценка по Беркусу + ИС n\'RIS', value: '42 млн руб. · ИС защищена свидетельством n\'RIS №518-830-027 от 04.03.2026' },
+      { label: 'Справедливая рыночная стоимость', value: '80–130 млн руб. · Действующий продукт + пользователи + бренд + домен + все интеграции' },
+      { label: 'Стратегическая премия (банк / экосистема)', value: '150–250 млн руб. · Монопольный Семейный ID + аудитория + earn-out + синергия с покупателем' },
+      { label: 'Что входит в сделку', value: '86 API · 151 таблица БД · 385+ компонентов · Яндекс.Алиса · ЮКасса · Карты · Бренд · Домен · ИС' },
+    ]
+  },
+  {
+    title: 'Структура сделки и налоги',
+    subtitle: 'Юридические форматы и чистые суммы после НДФЛ',
+    bg: '92400E', accent: 'FDE68A',
+    tag: 'ЮРИДИКА И ФИНАНСЫ',
+    blocks: [
+      { label: 'А. Договор отчуждения ИС (быстро)', value: '40–60 млн руб. · НДФЛ 13% · Нотариус + договор · Срок 2–4 недели · Чистыми: ~35–52 млн руб.' },
+      { label: 'Б. Asset Deal (средний DD)', value: '80–130 млн руб. · НДФЛ/УСН 6–15% · Оценка активов · Срок 2–4 месяца · Чистыми: ~68–110 млн руб.' },
+      { label: 'В. Share Deal (полный DD)', value: '150–250 млн руб. · НДФЛ 15% · Нужно ООО · M&A юристы · Срок 3–6 месяцев · Чистыми: ~127–212 млн руб.' },
+      { label: 'Earn-out механизм', value: '+35–50 млн руб. при KPI: 5 000 активных семей (через 6 мес.) и 15 000 семей (через 18 мес.)' },
+      { label: 'Переходный период', value: '3–12 месяцев технической поддержки после сделки · Как правило входит в базовую цену или оплачивается отдельно' },
+    ]
+  },
+  {
+    title: 'Подготовка к продаже',
+    subtitle: 'Что нужно сделать до первого контакта',
+    bg: '374151', accent: 'D1D5DB',
+    tag: 'ПОДГОТОВКА · МАРТ–АПРЕЛЬ 2026',
+    blocks: [
+      { label: 'Юридика', value: 'Зарегистрировать ООО · Подать заявку на ТМ "Наша Семья" в Роспатент · Подготовить NDA' },
+      { label: 'Финансы', value: 'Собрать P&L (доходы/расходы) · Unit economics · Прогноз на 3 года · Список ключевых KPI' },
+      { label: 'Документы для DD', value: 'Тизер (1 страница без цены) · Инвест. меморандум (IM, 15–20 страниц) · Технический README · VDR' },
+      { label: 'Список покупателей', value: '10–15 потенциальных покупателей с контактами M&A-директоров или отделов стратегии' },
+      { label: 'Интеллектуальная собственность', value: 'ИС уже защищена: n\'RIS №518-830-027 от 04.03.2026 · Все права подтверждены документально' },
+    ]
+  },
+  {
+    title: 'Роадмап продажи',
+    subtitle: 'Март 2026 — Ноябрь 2026 · Целевая дата закрытия',
+    bg: '134E4A', accent: '99F6E4',
+    tag: 'ДОРОЖНАЯ КАРТА M&A',
+    blocks: [
+      { label: 'Март–Апрель 2026', value: 'Подготовка: ООО, ТМ, тизер, IM, NDA, список покупателей, VDR, финансовая документация' },
+      { label: 'Май–Июнь 2026', value: 'Первые контакты: тизеры в ПСБ, Сбер, Т-Банк, VK, Яндекс · Цель: 5+ NDA · 2–3 активных диалога' },
+      { label: 'Июль–Август 2026', value: 'LOI от 1–2 покупателей · Открытие VDR · Технический + юридический + финансовый Due Diligence' },
+      { label: 'Сентябрь–Октябрь 2026', value: 'Финальные переговоры · Выбор покупателя · Согласование earn-out · Финальный договор с юристами' },
+      { label: 'Ноябрь 2026', value: 'Закрытие сделки · Подписание договора · Передача активов · Получение оплаты 80–250 млн руб.' },
+    ]
+  },
+];
 
 type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap';
 
@@ -41,25 +130,53 @@ export default function MarketingSale() {
   const [pptxBusy, setPptxBusy] = useState(false);
   const [pptxMsg, setPptxMsg] = useState('');
 
+  const hex2rgb = (hex: string) => ({ r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) });
+
   const downloadPDF = async () => {
     setPdfBusy(true);
     try {
-      const canvases = await captureSaleSlides(setPdfMsg);
-      if (!canvases) return;
       const pdf = new jsPDF('l', 'mm', 'a4');
-      const pw = 297; const ph = 210; const m = 8;
-      const cw = pw - m * 2; const ch = ph - m * 2;
-      for (let i = 0; i < canvases.length; i++) {
-        const c = canvases[i];
-        const ar = c.width / c.height;
-        let w = cw; let h = w / ar;
-        if (h > ch) { h = ch; w = h * ar; }
-        const x = m + (cw - w) / 2; const y = m + (ch - h) / 2;
+      const W = 297; const H = 210;
+      const total = SALE_SLIDES.length;
+      for (let i = 0; i < total; i++) {
+        setPdfMsg(`Слайд ${i+1} из ${total}...`);
+        const s = SALE_SLIDES[i];
+        const { r, g, b } = hex2rgb(s.bg);
+        const { r: ar, g: ag, b: ab } = hex2rgb(s.accent);
         if (i > 0) pdf.addPage();
-        pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, pw, ph, 'F');
-        pdf.addImage(c.toDataURL('image/png'), 'PNG', x, y, w, h, `s${i}`, 'FAST');
-        pdf.setFontSize(7); pdf.setTextColor(180, 180, 180);
-        pdf.text(`${i + 1} / ${canvases.length}`, pw / 2, ph - 4, { align: 'center' });
+        pdf.setFillColor(r, g, b); pdf.rect(0, 0, W, H, 'F');
+        // Тег-подложка
+        pdf.setFillColor(Math.min(r+25,255), Math.min(g+25,255), Math.min(b+25,255));
+        pdf.roundedRect(14, 10, 120, 7, 1, 1, 'F');
+        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(6.5); pdf.setFont('helvetica','bold');
+        pdf.text(s.tag, 18, 15);
+        // Заголовок
+        pdf.setTextColor(255,255,255); pdf.setFontSize(20); pdf.setFont('helvetica','bold');
+        pdf.text(s.title, 14, 35, { maxWidth: 200 });
+        // Подзаголовок
+        pdf.setFontSize(10); pdf.setFont('helvetica','normal');
+        pdf.setTextColor(ar, ag, ab);
+        pdf.text(s.subtitle, 14, 47, { maxWidth: 200 });
+        // Блоки
+        const startY = 57; const blockH = (H - startY - 14) / s.blocks.length;
+        s.blocks.forEach((block, bi) => {
+          const y = startY + bi * blockH;
+          const br = Math.min(r+22,255); const bg2 = Math.min(g+22,255); const bb2 = Math.min(b+22,255);
+          pdf.setFillColor(br, bg2, bb2);
+          pdf.roundedRect(14, y, W - 28, blockH - 2, 2, 2, 'F');
+          pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
+          pdf.text(block.label, 20, y + 6);
+          pdf.setTextColor(255,255,255); pdf.setFontSize(9); pdf.setFont('helvetica','normal');
+          pdf.text(block.value, 20, y + 12, { maxWidth: W - 45 });
+        });
+        // Футер
+        const fr = Math.max(r-20, 0); const fg = Math.max(g-20, 0); const fb = Math.max(b-20, 0);
+        pdf.setFillColor(fr, fg, fb);
+        pdf.rect(0, H - 10, W, 10, 'F');
+        pdf.setTextColor(ar, ag, ab); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+        pdf.text('Стратегия продажи "Наша Семья" · Строго конфиденциально · 05.03.2026', 14, H - 4);
+        pdf.setTextColor(255,255,255);
+        pdf.text(`${i+1} / ${total}`, W - 14, H - 4, { align: 'right' });
       }
       pdf.save('Стратегия-продажи-НашаСемья.pdf');
     } finally { setPdfBusy(false); setPdfMsg(''); }
@@ -69,23 +186,39 @@ export default function MarketingSale() {
     setPptxBusy(true);
     try {
       const PptxGenJS = (await import('pptxgenjs')).default;
-      const canvases = await captureSaleSlides(setPptxMsg);
-      if (!canvases) return;
-      setPptxMsg('Формирую PPTX...');
       const pptx = new PptxGenJS();
       pptx.layout = 'LAYOUT_16x9';
       pptx.title = 'Стратегия продажи — Наша Семья';
       pptx.company = 'Наша Семья';
-      const sw = 10; const sh = 5.625; const p = 0.2;
-      for (let i = 0; i < canvases.length; i++) {
-        const c = canvases[i];
-        const ar = c.width / c.height;
-        let w = sw - p * 2; let h = w / ar;
-        if (h > sh - p * 2) { h = sh - p * 2; w = h * ar; }
+      const total = SALE_SLIDES.length;
+      for (let i = 0; i < total; i++) {
+        setPptxMsg(`Слайд ${i+1} из ${total}...`);
+        const s = SALE_SLIDES[i];
         const slide = pptx.addSlide();
-        slide.background = { fill: 'FFFFFF' };
-        slide.addImage({ data: c.toDataURL('image/png'), x: (sw - w) / 2, y: (sh - h) / 2, w, h });
-        slide.addText(`${i + 1} / ${canvases.length}`, { x: 0, y: sh - 0.3, w: sw, h: 0.25, align: 'center', fontSize: 7, color: 'B4B4B4' });
+        slide.background = { fill: s.bg };
+        // Полоса вверху
+        slide.addShape('rect', { x: 0, y: 0, w: 10, h: 0.06, fill: { color: s.accent }, line: { color: s.accent } });
+        // Тег
+        slide.addText(s.tag, { x: 0.4, y: 0.22, w: 9.2, h: 0.22, fontSize: 7.5, bold: true, color: s.accent, fontFace: 'Calibri' });
+        // Заголовок
+        slide.addText(s.title, { x: 0.4, y: 0.5, w: 9.2, h: 0.85, fontSize: 26, bold: true, color: 'FFFFFF', fontFace: 'Calibri', shrinkText: true });
+        // Подзаголовок
+        slide.addText(s.subtitle, { x: 0.4, y: 1.28, w: 9.2, h: 0.32, fontSize: 11, color: s.accent, fontFace: 'Calibri', italic: true });
+        // Блоки — всегда 1 колонка для Sale (много текста)
+        const totalH = 3.75;
+        const boxH = (totalH / s.blocks.length) - 0.07;
+        s.blocks.forEach((block, bi) => {
+          const y = 1.68 + bi * (boxH + 0.07);
+          slide.addShape('rect', { x: 0.4, y, w: 9.2, h: boxH, fill: { color: 'FFFFFF', transparency: 88 }, line: { color: s.accent, transparency: 72, width: 0.5 }, rectRadius: 0.07 });
+          slide.addText([
+            { text: block.label + '   ', options: { bold: true, color: s.accent, fontSize: 9 } },
+            { text: block.value, options: { color: 'FFFFFF', fontSize: 9.5 } },
+          ], { x: 0.55, y: y + 0.04, w: 9.0, h: boxH - 0.1, fontFace: 'Calibri', valign: 'middle', wrap: true });
+        });
+        // Футер
+        slide.addShape('rect', { x: 0, y: 5.35, w: 10, h: 0.275, fill: { color: '000000', transparency: 65 }, line: { color: '000000', transparency: 100 } });
+        slide.addText(`Стратегия продажи "Наша Семья" · Строго конфиденциально`, { x: 0.3, y: 5.37, w: 8, h: 0.22, fontSize: 7, color: s.accent, fontFace: 'Calibri' });
+        slide.addText(`${i+1} / ${total}`, { x: 0, y: 5.37, w: 9.7, h: 0.22, fontSize: 7, color: 'FFFFFF', fontFace: 'Calibri', align: 'right' });
       }
       await pptx.writeFile({ fileName: 'Стратегия-продажи-НашаСемья.pptx' });
     } finally { setPptxBusy(false); setPptxMsg(''); }
@@ -1091,8 +1224,8 @@ export default function MarketingSale() {
         </div>
       </div>
 
-      {/* Скрытые слайды для PDF/PPTX */}
-      <div id="sale-strategy-slides" style={{ display: 'none', position: 'fixed', left: '-9999px', top: 0, width: '1200px', zIndex: -1 }}>
+      {/* Старый скрытый контейнер — больше не нужен */}
+      <div id="sale-strategy-slides" style={{ display: 'none' }}>
         {[
           {
             title: 'Стратегия продажи «Наша Семья»',
