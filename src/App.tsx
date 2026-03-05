@@ -130,6 +130,7 @@ const Values = lazy(() => import("./pages/Values"));
 const Culture = lazy(() => import("./pages/Culture"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Goals = lazy(() => import("./pages/Goals"));
+const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -147,7 +148,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const token = storage.getItem('authToken');
         const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
         const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                      (window.navigator as any).standalone === true;
+                      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
         
         setIsAuthenticated(!!token || isDemoMode);
       } catch (error) {
@@ -303,6 +304,7 @@ const App = () => {
                       <Route path="/admin/max" element={<AdminMAX />} />
                       <Route path="/admin/users" element={<AdminUsers />} />
                       <Route path="/admin/valuation" element={<AdminValuation />} />
+                      <Route path="/admin/marketing" element={<MarketingStrategy />} />
                       <Route path="/alice" element={<AliceIntegration />} />
                       <Route path="/nationalities" element={<NationalitiesPage />} />
                       <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
