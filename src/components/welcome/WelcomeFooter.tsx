@@ -60,7 +60,6 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
                 { href: '/terms-of-service', icon: 'FileCheck', text: 'Оферта' },
                 { href: '/refund-policy', icon: 'RotateCcw', text: 'Возврат средств' },
                 { href: '/documentation', icon: 'BookOpen', text: 'Документация ПО' },
-                { href: '/documentation#installation', icon: 'Download', text: 'Руководство по установке' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <a href={link.href} className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm">
@@ -69,6 +68,17 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
                   </a>
                 </li>
               ))}
+              <li>
+                <a
+                  href="https://github.com/Kuzmenkoav1982/family-assistant-project/blob/main/docs/%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE_%D0%BF%D0%BE_%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5_%D0%B8_%D1%80%D0%B0%D0%B7%D0%B2%D0%B5%D1%80%D1%82%D1%8B%D0%B2%D0%B0%D0%BD%D0%B8%D1%8E.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="Download" size={16} />
+                  Руководство по установке
+                </a>
+              </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-gray-700">
               <p className="text-xs text-gray-400 mb-1">ИП Кузьменко А.В.</p>
