@@ -193,6 +193,22 @@ export default function Documentation() {
             3. Установка и запуск
           </h2>
           <div className="space-y-6 text-gray-700">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="font-bold text-gray-900 text-base mb-1">Руководство по установке и развёртыванию ПО</p>
+                <p className="text-sm text-gray-600">Полная техническая документация для системных администраторов</p>
+              </div>
+              <a
+                href="https://raw.githubusercontent.com/Kuzmenkoav1982/family-assistant-project/main/docs/%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE_%D0%BF%D0%BE_%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5_%D0%B8_%D1%80%D0%B0%D0%B7%D0%B2%D0%B5%D1%80%D1%82%D1%8B%D0%B2%D0%B0%D0%BD%D0%B8%D1%8E.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                <Icon name="FileDown" size={16} />
+                Открыть документ
+              </a>
+            </div>
+
             <p className="text-lg">
               Наша Семья — это веб-приложение, которое не требует традиционной установки.
               Приложение работает через браузер и может быть установлено как PWA (Progressive Web App).

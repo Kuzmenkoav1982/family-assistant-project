@@ -147,6 +147,15 @@ export default function Footer() {
                   Документация
                 </Link>
               </li>
+              <li>
+                <Link 
+                  to="/documentation#installation" 
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="Download" size={16} />
+                  Руководство по установке
+                </Link>
+              </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-gray-700">
               <p className="text-xs text-gray-400 mb-1">ИП Кузьменко А.В.</p>
