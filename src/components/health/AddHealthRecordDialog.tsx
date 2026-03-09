@@ -35,7 +35,7 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
   });
 
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<Record<string, unknown> | null>(null);
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -243,8 +243,8 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
                         })
                       });
                       
+                      const data = await response.json();
                       if (response.ok) {
-                        const data = await response.json();
                         setAiAnalysis({
                           ...data,
                           sourceImageUrl: base64
@@ -253,11 +253,18 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHeal
                           title: '✅ Анализ завершён',
                           description: 'ИИ обработал документ'
                         });
+                      } else {
+                        const hint = data.hint || data.error || 'Не удалось распознать текст на изображении';
+                        toast({
+                          title: 'Не удалось распознать документ',
+                          description: hint,
+                          variant: 'destructive'
+                        });
                       }
                     } catch (error) {
                       toast({
                         title: 'Ошибка анализа',
-                        description: 'Не удалось проанализировать изображение',
+                        description: 'Проверьте интернет-соединение и попробуйте снова',
                         variant: 'destructive'
                       });
                     } finally {
