@@ -49,9 +49,11 @@ def handler(event: dict, context) -> dict:
     
     gpt_api_key = os.environ.get('YANDEX_GPT_API_KEY')
     vision_api_key = os.environ.get('YANDEX_CLOUD_API_KEY')
-    folder_id = os.environ.get('YANDEX_FOLDER_ID', 'b1gaglg8i7v2i32nvism')
+    # Vision API привязан к service account folder b1g3puef9ud8vnrlbudf
+    vision_folder_id = 'b1g3puef9ud8vnrlbudf'
+    gpt_folder_id = os.environ.get('YANDEX_FOLDER_ID', 'b1gaglg8i7v2i32nvism')
     
-    print(f'[DEBUG] Starting AI analysis, type: {analysis_type}, folder_id: {folder_id}')
+    print(f'[DEBUG] Starting AI analysis, type: {analysis_type}, vision_folder: {vision_folder_id}, gpt_folder: {gpt_folder_id}')
     
     system_prompts = {
         'blood_test': 'Ты медицинский ассистент. Проанализируй результаты общего анализа крови. Выдели показатели, укажи норму и отклонения. Дай краткую интерпретацию на русском языке.',
@@ -67,7 +69,7 @@ def handler(event: dict, context) -> dict:
     # Пробуем Yandex Vision OCR для распознавания текста
     if vision_api_key:
         vision_payload = {
-            'folderId': folder_id,
+            'folderId': vision_folder_id,
             'analyze_specs': [{
                 'content': image_base64,
                 'features': [{
@@ -124,7 +126,7 @@ def handler(event: dict, context) -> dict:
         
         # Просим GPT описать что на изображении (без OCR)
         fallback_payload = {
-            'modelUri': f'gpt://{folder_id}/yandexgpt',
+            'modelUri': f'gpt://{gpt_folder_id}/yandexgpt',
             'completionOptions': {
                 'stream': False,
                 'temperature': 0.3,
@@ -187,7 +189,7 @@ def handler(event: dict, context) -> dict:
         }
     
     yandex_payload = {
-        'modelUri': f'gpt://{folder_id}/yandexgpt',
+        'modelUri': f'gpt://{gpt_folder_id}/yandexgpt',
         'completionOptions': {
             'stream': False,
             'temperature': 0.3,
