@@ -149,7 +149,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  to="/documentation#installation" 
+                  to="/installation-guide" 
                   className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                 >
                   <Icon name="Download" size={16} />

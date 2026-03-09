@@ -52,6 +52,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const Documentation = lazy(() => import("./pages/Documentation"));
+const InstallationGuide = lazy(() => import("./pages/InstallationGuide"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -339,6 +340,7 @@ const App = () => {
                       <Route path="/terms-of-service" element={<TermsOfService />} />
                       <Route path="/refund-policy" element={<RefundPolicy />} />
                       <Route path="/documentation" element={<Documentation />} />
+                      <Route path="/installation-guide" element={<InstallationGuide />} />
                       <Route path="/pricing" element={<Pricing />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/ideas" element={<IdeasBoard />} />
