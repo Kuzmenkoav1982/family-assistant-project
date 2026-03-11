@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { initialTasks } from '@/data/mockData';
 
 interface Task {
@@ -11,6 +11,7 @@ interface Task {
   points: number;
   priority: string;
   category?: string;
+  deadline?: string;
   reminder_time?: string;
   is_recurring: boolean;
   recurring_frequency?: string;
@@ -21,6 +22,31 @@ interface Task {
   cooking_day?: string;
   created_at: string;
   updated_at: string;
+}
+
+const NOTIF_PUSH_URL = 'https://functions.poehali.dev/3c808a69-0f14-4db0-b486-3e2a0e273a94';
+
+function getDeadlineAlerts(tasks: Task[]): { approaching: Task[]; overdue: Task[] } {
+  const now = new Date();
+  const approaching: Task[] = [];
+  const overdue: Task[] = [];
+
+  for (const task of tasks) {
+    if (task.completed || !task.deadline) continue;
+    const deadline = new Date(task.deadline);
+    if (isNaN(deadline.getTime())) continue;
+
+    const diffMs = deadline.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (diffHours < 0) {
+      overdue.push(task);
+    } else if (diffHours <= 24) {
+      approaching.push(task);
+    }
+  }
+
+  return { approaching, overdue };
 }
 
 const API_URL = 'https://functions.poehali.dev/638290a3-bc43-46ef-9ca1-1e80b72544bf';
@@ -47,7 +73,7 @@ export function useTasks() {
       // Имитируем небольшую задержку загрузки
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      const convertedTasks = initialTasks.map((task: any) => ({
+      const convertedTasks = initialTasks.map((task: Record<string, unknown>) => ({
         id: task.id,
         title: task.title,
         description: task.description || '',
@@ -236,6 +262,55 @@ export function useTasks() {
     });
   };
 
+  const notifiedTaskIds = useRef<Set<string>>(new Set());
+
+  const checkDeadlineNotifications = useCallback(async (taskList: Task[]) => {
+    const token = getAuthToken();
+    if (!token) return;
+
+    const { approaching, overdue } = getDeadlineAlerts(taskList);
+
+    for (const task of overdue) {
+      const key = `overdue_${task.id}`;
+      if (notifiedTaskIds.current.has(key)) continue;
+      notifiedTaskIds.current.add(key);
+
+      try {
+        await fetch(NOTIF_PUSH_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
+          body: JSON.stringify({
+            action: 'send',
+            title: '🔴 Задача просрочена',
+            message: `«${task.title}» — срок истёк${task.assignee_name ? `. Ответственный: ${task.assignee_name}` : ''}`,
+          }),
+        });
+      } catch { /* ignore */ }
+    }
+
+    for (const task of approaching) {
+      const key = `approaching_${task.id}`;
+      if (notifiedTaskIds.current.has(key)) continue;
+      notifiedTaskIds.current.add(key);
+
+      const deadline = new Date(task.deadline!);
+      const diffH = Math.round((deadline.getTime() - Date.now()) / (1000 * 60 * 60));
+      const timeLabel = diffH <= 1 ? 'менее часа' : `${diffH} ч.`;
+
+      try {
+        await fetch(NOTIF_PUSH_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
+          body: JSON.stringify({
+            action: 'send',
+            title: '⏰ Скоро дедлайн',
+            message: `«${task.title}» — осталось ${timeLabel}${task.assignee_name ? `. Ответственный: ${task.assignee_name}` : ''}`,
+          }),
+        });
+      } catch { /* ignore */ }
+    }
+  }, []);
+
   useEffect(() => {
     const token = getAuthToken();
     const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
@@ -243,7 +318,6 @@ export function useTasks() {
     if (token || isDemoMode) {
       fetchTasks();
       
-      // В демо-режиме не нужен автообновление с сервера
       if (!isDemoMode) {
         const interval = setInterval(() => {
           fetchTasks(undefined, true);
@@ -255,6 +329,12 @@ export function useTasks() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (tasks.length > 0) {
+      checkDeadlineNotifications(tasks);
+    }
+  }, [tasks, checkDeadlineNotifications]);
 
   return {
     tasks,
