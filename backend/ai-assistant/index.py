@@ -16,27 +16,80 @@ def get_db_connection():
     return psycopg2.connect(database_url)
 
 
-def check_subscription(family_id: str) -> bool:
+def check_subscription_and_limits(family_id: str) -> dict:
+    """
+    Возвращает:
+    - 'allowed': True если можно использовать AI
+    - 'is_premium': True если платная подписка
+    - 'reason': причина отказа если allowed=False
+    """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         safe_family_id = family_id.replace("'", "''")
-        query = f"""
+
+        cursor.execute(f"""
             SELECT plan_type FROM {SCHEMA}.subscriptions
             WHERE family_id = '{safe_family_id}'
             AND status = 'active'
             AND end_date > CURRENT_TIMESTAMP
-            AND plan_type IN ('ai_assistant', 'full', 'premium_1m', 'premium_3m', 'premium_6m', 'premium_12m')
-            LIMIT 1
-        """
-        cursor.execute(query)
-        result = cursor.fetchone()
+            ORDER BY end_date DESC LIMIT 1
+        """)
+        sub = cursor.fetchone()
+
+        plan_type = sub[0] if sub else None
+        is_premium = bool(plan_type and (
+            plan_type.startswith('premium_') or
+            plan_type in ('ai_assistant', 'full', 'family')
+        ))
+
+        if is_premium:
+            cursor.close()
+            conn.close()
+            return {'allowed': True, 'is_premium': True}
+
+        cursor.execute(f"""
+            SELECT ai_requests_used, ai_requests_reset_date
+            FROM {SCHEMA}.subscription_usage
+            WHERE family_id = '{safe_family_id}'
+        """)
+        usage = cursor.fetchone()
+
+        from datetime import date
+        today = date.today()
+
+        if usage:
+            ai_used = usage[0]
+            reset_date = usage[1]
+            if reset_date and reset_date < today:
+                cursor.execute(f"""
+                    UPDATE {SCHEMA}.subscription_usage
+                    SET ai_requests_used = 0, ai_requests_reset_date = CURRENT_DATE
+                    WHERE family_id = '{safe_family_id}'
+                """)
+                conn.commit()
+                ai_used = 0
+        else:
+            cursor.execute(f"""
+                INSERT INTO {SCHEMA}.subscription_usage
+                (family_id, ai_requests_used, photos_used, family_members_count)
+                VALUES ('{safe_family_id}', 0, 0, 0)
+                ON CONFLICT (family_id) DO NOTHING
+            """)
+            conn.commit()
+            ai_used = 0
+
         cursor.close()
         conn.close()
-        return result is not None
+
+        if ai_used >= 5:
+            return {'allowed': False, 'is_premium': False, 'reason': 'daily_limit_reached', 'used': ai_used, 'limit': 5}
+
+        return {'allowed': True, 'is_premium': False}
+
     except Exception as e:
         print(f'[ERROR] Ошибка проверки подписки: {str(e)}')
-        return False
+        return {'allowed': False, 'is_premium': False, 'reason': 'error'}
 
 
 def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
@@ -118,6 +171,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         system_prompt = body_data.get('systemPrompt')
         family_id = body_data.get('familyId')
         user_id = body_data.get('userId')
+        access = {'allowed': True, 'is_premium': True}
 
         if not messages:
             return {
@@ -127,12 +181,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
 
         if family_id:
-            has_subscription = check_subscription(family_id)
-            if not has_subscription:
+            access = check_subscription_and_limits(family_id)
+            if not access['allowed']:
+                reason = access.get('reason', '')
+                if reason == 'daily_limit_reached':
+                    used = access.get('used', 5)
+                    limit = access.get('limit', 5)
+                    message = f'Вы использовали {used} из {limit} бесплатных AI-запросов сегодня. Обновитесь до Premium для безлимитного доступа!'
+                    error_code = 'daily_limit_reached'
+                else:
+                    message = 'Для использования AI-помощника требуется подписка'
+                    error_code = 'subscription_required'
                 return {
                     'statusCode': 403,
                     'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                    'body': json.dumps({'error': 'subscription_required', 'message': 'Для использования AI-помощника требуется подписка'})
+                    'body': json.dumps({'error': error_code, 'message': message})
                 }
 
         api_key = os.environ.get('YANDEX_GPT_API_KEY')
@@ -196,6 +259,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             save_message(family_id, user_id, 'user', user_message_content)
         if family_id and ai_text:
             save_message(family_id, user_id, 'assistant', ai_text)
+
+        if family_id and not access.get('is_premium', True):
+            try:
+                conn2 = get_db_connection()
+                cur2 = conn2.cursor()
+                safe_fid = family_id.replace("'", "''")
+                cur2.execute(f"""
+                    UPDATE {SCHEMA}.subscription_usage
+                    SET ai_requests_used = ai_requests_used + 1
+                    WHERE family_id = '{safe_fid}'
+                """)
+                conn2.commit()
+                cur2.close()
+                conn2.close()
+            except Exception as e:
+                print(f'[ERROR] Ошибка инкремента счётчика: {str(e)}')
 
         return {
             'statusCode': 200,
