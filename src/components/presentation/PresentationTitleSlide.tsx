@@ -19,7 +19,7 @@ export function PresentationTitleSlide() {
       <p className="text-xl text-slate-500 mb-1">
         Цифровая платформа благополучия семейной жизни
       </p>
-      <p className="text-sm text-slate-400 mb-3 italic">элемент семейной экосистемы</p>
+      <p className="text-base font-semibold text-slate-600 mb-3 tracking-wide uppercase">элемент семейной экосистемы</p>
       <p className="text-2xl font-semibold text-emerald-700 mb-6">
         Объединяем семьи. Укрепляем общество.
       </p>

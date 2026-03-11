@@ -120,6 +120,15 @@ export function PresentationContentSections() {
               ответственности у каждого члена семьи.
             </p>
           </div>
+          <div className="pt-2 border-t border-gray-200 mt-2">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              <span className="font-medium text-gray-500">Источники данных:</span>{' '}
+              Указ Президента РФ №809 от 09.11.2022 «Об утверждении Основ государственной политики по сохранению и укреплению традиционных российских духовно-нравственных ценностей»; 
+              Указ Президента РФ №987 от 22.11.2023 «Об объявлении в Российской Федерации Десятилетия семьи»; 
+              исследование ВЦИОМ «Семейный стресс и цифровые инструменты» (2023); 
+              аналитика App Annie / data.ai по среднему числу используемых приложений на домохозяйство (2023).
+            </p>
+          </div>
         </div>
       </SectionCard>
 
@@ -152,15 +161,7 @@ export function PresentationContentSections() {
         </p>
       </SectionCard>
 
-      {/* СЛАЙД: Уникальность */}
-      <SectionCard>
-        <SectionTitle icon="Shield" iconColor="bg-blue-500" title="Полностью российский продукт. Аналогов нет." />
-        <ComparisonTable />
-        <p className="text-sm text-gray-500 mt-4 text-center">
-          На рынке нет комплексного решения, объединяющего все аспекты семейной жизни. 
-          Ближайшие конкуренты покрывают 1–2 функции, «Наша семья» — все 12 направлений.
-        </p>
-      </SectionCard>
+
 
       {/* СЛАЙД: 12 разделов платформы */}
       <SectionCard className="bg-gradient-to-br from-purple-50 to-indigo-50">
@@ -486,7 +487,7 @@ export function PresentationContentSections() {
           {[
             { icon: 'Baby', color: 'text-pink-600', bg: 'bg-pink-50', title: 'Семьи с детьми до 7 лет', desc: 'Развитие ребёнка с ИИ, здоровье, прививки, медкарты' },
             { icon: 'GraduationCap', color: 'text-blue-600', bg: 'bg-blue-50', title: 'Семьи со школьниками', desc: 'Организация учёбы, кружков, мотивация через геймификацию' },
-            { icon: 'Heart', color: 'text-red-600', bg: 'bg-red-50', title: 'Многопоколенные семьи', desc: 'Вовлечение бабушек/дедушек, семейное древо, связь поколений' },
+            { icon: 'Heart', color: 'text-red-600', bg: 'bg-red-50', title: 'Семьи с несколькими поколениями', desc: 'Вовлечение бабушек/дедушек, семейное древо, связь поколений' },
             { icon: 'Compass', color: 'text-cyan-600', bg: 'bg-cyan-50', title: 'Активные семьи', desc: 'Совместные мероприятия, путешествия, традиции' },
           ].map((item, i) => (
             <div key={i} className={`${item.bg} rounded-xl p-4`}>
@@ -513,6 +514,14 @@ export function PresentationContentSections() {
               <p className="text-xl font-bold text-emerald-600">1,5 млн</p>
               <p className="text-xs text-gray-500">SOM — цель (3 года)</p>
             </div>
+          </div>
+          <div className="mt-3 pt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              <span className="font-medium text-gray-500">Источники:</span>{' '}
+              Росстат, Демографический ежегодник России 2023 (50 млн домохозяйств с детьми до 18 лет);
+              данные Минцифры РФ об интернет-аудитории городских семей (2023);
+              внутренние расчёты команды на основе данных о проникновении мобильных приложений.
+            </p>
           </div>
         </div>
       </SectionCard>
@@ -655,19 +664,55 @@ export function PresentationContentSections() {
           ))}
         </div>
 
-        {/* Депонирование */}
-        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4 border border-amber-200">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
-              <Icon name="Award" size={14} className="text-white" />
+        {/* Депонирование — выполнено */}
+        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-5 border border-emerald-300">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center">
+                <Icon name="ShieldCheck" size={20} className="text-white" />
+              </div>
             </div>
-            <h4 className="font-bold text-amber-900 text-sm">Депонирование ПО — н'РИС (РЦИС.РФ)</h4>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-bold text-emerald-900 text-sm">Депонирование ПО — выполнено ✓</h4>
+                <span className="text-xs bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">РЦИС.РФ</span>
+              </div>
+              <p className="text-xs text-emerald-800 mb-3">
+                Программный код «Наша Семья» депонирован в Национальном реестре интеллектуальной 
+                собственности (н'РИС / РЦИС). Авторство подтверждено и защищено.
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wide font-medium">Свидетельство №</p>
+                  <p className="font-bold text-gray-800">0607-331-313</p>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wide font-medium">Дата регистрации</p>
+                  <p className="font-bold text-gray-800">04.03.2026</p>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wide font-medium">Рег. номер н'РИС</p>
+                  <p className="font-bold text-gray-800">518-830-027</p>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-200">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wide font-medium">Правообладатель</p>
+                  <p className="font-bold text-gray-800">ИП Кузьменко А.В.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-emerald-200">
+                <img 
+                  src="https://cdn.poehali.dev/files/ad2ee2fd-dd83-4691-aa61-aa83fdf80c5d.PNG"
+                  alt="Свидетельство РЦИС"
+                  className="w-10 h-14 object-cover rounded border border-gray-200 flex-shrink-0"
+                />
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">Свидетельство РЦИС №0607-331-313</p>
+                  <p className="text-[10px] text-gray-500">«Наша Семья — цифровая платформа благополучия семейной жизни»</p>
+                  <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Тип объекта: Компьютерная программа</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-amber-800">
-            Программный код «Наша Семья» находится в процессе депонирования в Национальном реестре 
-            интеллектуальной собственности (н'РИС). Депонирование подтверждает авторство и защищает 
-            интеллектуальную собственность продукта.
-          </p>
         </div>
       </SectionCard>
 
@@ -1016,30 +1061,7 @@ export function PresentationContentSections() {
         </div>
       </SectionCard>
 
-      {/* СЛАЙД: Дорожная карта */}
-      <SectionCard>
-        <SectionTitle icon="Map" iconColor="bg-violet-600" title="Дорожная карта при партнёрстве" />
-        <div className="space-y-3">
-          {[
-            { period: '0–3 мес', action: 'Интеграция в экосистему', result: 'Адаптация UI/UX, SSO, банковские API, запуск «Финансов»', color: 'border-blue-400 bg-blue-50' },
-            { period: '3–6 мес', action: 'Пилотный запуск', result: '10 000 семей сотрудников банка', color: 'border-emerald-400 bg-emerald-50' },
-            { period: '6–12 мес', action: 'Открытый запуск', result: '100 000+ семей клиентов банка', color: 'border-purple-400 bg-purple-50' },
-            { period: '12–24 мес', action: 'Масштабирование', result: '500 000+ семей, кросс-продажи', color: 'border-amber-400 bg-amber-50' },
-            { period: '24–36 мес', action: 'Национальный масштаб', result: '1 500 000+ семей', color: 'border-red-400 bg-red-50' },
-          ].map((item, i) => (
-            <div key={i} className={`rounded-xl p-4 border-l-4 ${item.color}`}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <span className="text-xs font-bold text-gray-400">ЭТАП {i + 1}</span>
-                  <h4 className="font-bold text-gray-800 text-sm">{item.action}</h4>
-                  <p className="text-xs text-gray-500">{item.result}</p>
-                </div>
-                <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{item.period}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
+
 
       {/* СЛАЙД: Команда */}
       <SectionCard className="bg-gradient-to-br from-gray-50 to-slate-50">
