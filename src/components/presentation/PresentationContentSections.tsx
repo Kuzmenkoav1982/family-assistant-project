@@ -924,7 +924,7 @@ export function PresentationContentSections() {
             {[
               { icon: 'Heart', label: 'Ценности семьи', sub: 'лояльность на годы' },
               { icon: 'Sparkles', label: 'Гармония и порядок', sub: 'снижение стресса клиента' },
-              { icon: 'Users', label: 'Единый клиент', sub: 'семья, а не 4 разных' },
+              { icon: 'Users', label: 'Единый клиент', sub: 'семья, а не отдельные люди' },
               { icon: 'TrendingUp', label: 'Клиентский опыт', sub: 'глубокий и персональный' },
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-xl p-3">
