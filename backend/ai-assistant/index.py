@@ -40,7 +40,7 @@ def check_subscription_and_limits(family_id: str) -> dict:
         plan_type = sub[0] if sub else None
         is_premium = bool(plan_type and (
             plan_type.startswith('premium_') or
-            plan_type in ('ai_assistant', 'full', 'family')
+            plan_type in ('ai_assistant', 'full')
         ))
 
         if is_premium:

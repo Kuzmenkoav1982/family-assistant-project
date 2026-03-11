@@ -9,8 +9,7 @@
       },
       "expectedStatus": 200,
       "expectedBody": {
-        "is_premium": "boolean",
-        "limits": "object"
+        "plan_type": "free_2026"
       },
       "bodyMatcher": "partial"
     }
