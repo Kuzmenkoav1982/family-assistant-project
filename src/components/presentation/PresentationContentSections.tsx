@@ -125,8 +125,8 @@ export function PresentationContentSections() {
               <span className="font-medium text-gray-500">Источники данных:</span>{' '}
               Указ Президента РФ №809 от 09.11.2022 «Об утверждении Основ государственной политики по сохранению и укреплению традиционных российских духовно-нравственных ценностей»; 
               Указ Президента РФ №987 от 22.11.2023 «Об объявлении в Российской Федерации Десятилетия семьи»; 
-              исследование ВЦИОМ «Семейный стресс и цифровые инструменты» (2023); 
-              аналитика App Annie / data.ai по среднему числу используемых приложений на домохозяйство (2023).
+              исследования ВЦИОМ по теме семейного стресса и цифровых привычек домохозяйств (актуализируются ежегодно, wciom.ru); 
+              аналитика data.ai (App Annie) по среднему числу используемых приложений на домохозяйство (State of Mobile, актуальные данные на дату подготовки презентации).
             </p>
           </div>
         </div>
@@ -518,8 +518,8 @@ export function PresentationContentSections() {
           <div className="mt-3 pt-2 border-t border-gray-100">
             <p className="text-xs text-gray-400 leading-relaxed">
               <span className="font-medium text-gray-500">Источники:</span>{' '}
-              Росстат, Демографический ежегодник России 2023 (50 млн домохозяйств с детьми до 18 лет);
-              данные Минцифры РФ об интернет-аудитории городских семей (2023);
+              Росстат, Демографический ежегодник России (rosstat.gov.ru) — данные о числе домохозяйств с детьми до 18 лет;
+              Минцифры РФ, аналитика об интернет-аудитории городских семей (digital.gov.ru);
               внутренние расчёты команды на основе данных о проникновении мобильных приложений.
             </p>
           </div>
@@ -705,10 +705,19 @@ export function PresentationContentSections() {
                   alt="Свидетельство РЦИС"
                   className="w-10 h-14 object-cover rounded border border-gray-200 flex-shrink-0"
                 />
-                <div>
+                <div className="flex-1">
                   <p className="text-xs font-semibold text-gray-800">Свидетельство РЦИС №0607-331-313</p>
                   <p className="text-[10px] text-gray-500">«Наша Семья — цифровая платформа благополучия семейной жизни»</p>
                   <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Тип объекта: Компьютерная программа</p>
+                  <a
+                    href="https://nris.ru/deposits/check-certificate/?num=518-830-027"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-1 font-medium"
+                  >
+                    <Icon name="ExternalLink" size={10} />
+                    Проверить на nris.ru
+                  </a>
                 </div>
               </div>
             </div>
