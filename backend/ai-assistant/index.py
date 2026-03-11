@@ -171,7 +171,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         system_prompt = body_data.get('systemPrompt')
         family_id = body_data.get('familyId')
         user_id = body_data.get('userId')
-        access = {'allowed': True, 'is_premium': True}
 
         if not messages:
             return {
@@ -180,23 +179,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Не указаны сообщения'})
             }
 
-        if family_id:
-            access = check_subscription_and_limits(family_id)
-            if not access['allowed']:
-                reason = access.get('reason', '')
-                if reason == 'daily_limit_reached':
-                    used = access.get('used', 5)
-                    limit = access.get('limit', 5)
-                    message = f'Вы использовали {used} из {limit} бесплатных AI-запросов сегодня. Обновитесь до Premium для безлимитного доступа!'
-                    error_code = 'daily_limit_reached'
-                else:
-                    message = 'Для использования AI-помощника требуется подписка'
-                    error_code = 'subscription_required'
-                return {
-                    'statusCode': 403,
-                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                    'body': json.dumps({'error': error_code, 'message': message})
-                }
+        if not family_id:
+            return {
+                'statusCode': 403,
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'auth_required', 'message': 'Для использования AI-помощника необходимо зарегистрироваться'})
+            }
+
+        access = check_subscription_and_limits(family_id)
+        if not access['allowed']:
+            reason = access.get('reason', '')
+            if reason == 'daily_limit_reached':
+                used = access.get('used', 5)
+                limit = access.get('limit', 5)
+                message = f'Вы использовали {used} из {limit} бесплатных AI-запросов сегодня. Обновитесь до Premium для безлимитного доступа!'
+                error_code = 'daily_limit_reached'
+            else:
+                message = 'Для использования AI-помощника требуется подписка'
+                error_code = 'subscription_required'
+            return {
+                'statusCode': 403,
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                'body': json.dumps({'error': error_code, 'message': message})
+            }
 
         api_key = os.environ.get('YANDEX_GPT_API_KEY')
         folder_id = os.environ.get('YANDEX_FOLDER_ID')
