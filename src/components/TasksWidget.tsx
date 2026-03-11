@@ -11,6 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+
+const weekDayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 export function TasksWidget() {
   const { tasks, loading, toggleTask, createTask } = useTasks();
@@ -23,24 +27,48 @@ export function TasksWidget() {
     assignee_id: 'unassigned',
     points: 10,
     priority: 'medium' as 'low' | 'medium' | 'high',
-    category: 'Дом'
+    category: 'Дом',
+    isRecurring: false,
+    recurringFrequency: 'weekly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
+    recurringInterval: 1,
+    recurringEndDate: '',
+    recurringDaysOfWeek: [] as number[]
   });
 
   const activeTasks = tasks?.filter(t => !t.completed).slice(0, 5) || [];
   const completedCount = tasks?.filter(t => t.completed).length || 0;
 
+  const toggleDayOfWeek = (dayIdx: number) => {
+    const days = newTask.recurringDaysOfWeek.includes(dayIdx)
+      ? newTask.recurringDaysOfWeek.filter(d => d !== dayIdx)
+      : [...newTask.recurringDaysOfWeek, dayIdx];
+    setNewTask({ ...newTask, recurringDaysOfWeek: days });
+  };
+
   const handleCreateTask = async () => {
     if (!newTask.title.trim()) return;
 
-    await createTask({
+    const taskData: Record<string, unknown> = {
       title: newTask.title,
       description: newTask.description,
       assignee_id: newTask.assignee_id === 'unassigned' ? null : newTask.assignee_id,
       points: newTask.points,
       priority: newTask.priority,
       category: newTask.category,
-      completed: false
-    });
+      completed: false,
+      isRecurring: newTask.isRecurring,
+    };
+
+    if (newTask.isRecurring) {
+      taskData.recurringFrequency = newTask.recurringFrequency;
+      taskData.recurringInterval = newTask.recurringInterval;
+      if (newTask.recurringEndDate) taskData.recurringEndDate = newTask.recurringEndDate;
+      if (newTask.recurringFrequency === 'weekly' && newTask.recurringDaysOfWeek.length > 0) {
+        taskData.recurringDaysOfWeek = newTask.recurringDaysOfWeek;
+      }
+    }
+
+    await createTask(taskData);
 
     setNewTask({
       title: '',
@@ -48,7 +76,12 @@ export function TasksWidget() {
       assignee_id: 'unassigned',
       points: 10,
       priority: 'medium',
-      category: 'Дом'
+      category: 'Дом',
+      isRecurring: false,
+      recurringFrequency: 'weekly',
+      recurringInterval: 1,
+      recurringEndDate: '',
+      recurringDaysOfWeek: []
     });
     setIsDialogOpen(false);
   };
@@ -107,7 +140,7 @@ export function TasksWidget() {
                 <span className="leading-none">Добавить</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Новая задача</DialogTitle>
               </DialogHeader>
@@ -180,8 +213,82 @@ export function TasksWidget() {
                     />
                   </div>
                 </div>
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      id="recurring-widget"
+                      checked={newTask.isRecurring}
+                      onCheckedChange={(checked) => setNewTask({ ...newTask, isRecurring: checked })}
+                    />
+                    <Label htmlFor="recurring-widget" className="cursor-pointer font-medium">
+                      Повторяющаяся задача
+                    </Label>
+                  </div>
+
+                  {newTask.isRecurring && (
+                    <div className="space-y-4 mt-4 pl-4 border-l-2 border-orange-200">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Частота</Label>
+                          <Select
+                            value={newTask.recurringFrequency}
+                            onValueChange={(val: 'daily' | 'weekly' | 'monthly' | 'yearly') => setNewTask({ ...newTask, recurringFrequency: val })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="daily">Ежедневно</SelectItem>
+                              <SelectItem value="weekly">Еженедельно</SelectItem>
+                              <SelectItem value="monthly">Ежемесячно</SelectItem>
+                              <SelectItem value="yearly">Ежегодно</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Интервал</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={30}
+                            value={newTask.recurringInterval}
+                            onChange={(e) => setNewTask({ ...newTask, recurringInterval: parseInt(e.target.value) || 1 })}
+                          />
+                        </div>
+                      </div>
+
+                      {newTask.recurringFrequency === 'weekly' && (
+                        <div>
+                          <Label>Дни недели</Label>
+                          <div className="flex gap-2 mt-2">
+                            {weekDayNames.map((day, idx) => (
+                              <Badge
+                                key={idx}
+                                variant={newTask.recurringDaysOfWeek.includes(idx) ? 'default' : 'outline'}
+                                className={`cursor-pointer ${newTask.recurringDaysOfWeek.includes(idx) ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+                                onClick={() => toggleDayOfWeek(idx)}
+                              >
+                                {day}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <Label>Дата окончания (необязательно)</Label>
+                        <Input
+                          type="date"
+                          value={newTask.recurringEndDate}
+                          onChange={(e) => setNewTask({ ...newTask, recurringEndDate: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-2 pt-4">
-                  <Button onClick={handleCreateTask} className="flex-1">
+                  <Button onClick={handleCreateTask} className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600">
                     Создать задачу
                   </Button>
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -310,6 +417,12 @@ export function TasksWidget() {
                       {task.points && (
                         <Badge variant="secondary" className="text-xs">
                           {task.points} 🏆
+                        </Badge>
+                      )}
+                      {task.is_recurring && (
+                        <Badge variant="outline" className="text-xs border-orange-300 text-orange-600">
+                          <Icon name="Repeat" size={10} className="mr-1" />
+                          Повтор
                         </Badge>
                       )}
                     </div>
