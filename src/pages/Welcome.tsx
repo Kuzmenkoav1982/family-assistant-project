@@ -8,6 +8,7 @@ import WelcomeAI from '@/components/welcome/WelcomeAI';
 import WelcomePWA from '@/components/welcome/WelcomePWA';
 import WelcomeCTA from '@/components/welcome/WelcomeCTA';
 import WelcomeFooter from '@/components/welcome/WelcomeFooter';
+import WelcomeVideo from '@/components/welcome/WelcomeVideo';
 
 const openTelegramSupport = () => {
   window.open('https://t.me/Nasha7iya', '_blank');
@@ -26,6 +27,8 @@ export default function Welcome() {
       <WelcomeHeader isLoggedIn={isLoggedIn} />
 
       <WelcomeHero isLoggedIn={isLoggedIn} />
+
+      <WelcomeVideo />
 
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeForWhom />

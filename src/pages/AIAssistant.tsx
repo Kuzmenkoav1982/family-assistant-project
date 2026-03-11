@@ -119,6 +119,32 @@ const AIAssistant = () => {
         })
       });
 
+      if (response.status === 403) {
+        const errorData = await response.json();
+        if (errorData.error === 'auth_required') {
+          toast({
+            title: '🔐 Необходима регистрация',
+            description: 'Зарегистрируйтесь, чтобы использовать AI-помощника',
+          });
+          setTimeout(() => navigate('/login'), 2000);
+          return;
+        }
+        if (errorData.error === 'daily_limit_reached') {
+          toast({
+            title: '⚠️ Лимит исчерпан',
+            description: errorData.message || 'Обновитесь до Premium для безлимитного доступа',
+          });
+          setTimeout(() => navigate('/pricing'), 2000);
+          return;
+        }
+        toast({
+          title: '🔒 Требуется подписка',
+          description: 'Подключите Premium для доступа к AI',
+        });
+        setTimeout(() => navigate('/pricing'), 2000);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(`Ошибка: ${response.status}`);
       }

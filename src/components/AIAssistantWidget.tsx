@@ -252,6 +252,22 @@ const AIAssistantWidget = () => {
 
       if (response.status === 403) {
         const error = await response.json();
+        if (error.error === 'auth_required') {
+          toast({
+            title: '🔐 Необходима регистрация',
+            description: 'Зарегистрируйтесь, чтобы использовать AI-помощника',
+          });
+          setTimeout(() => navigate('/login'), 2000);
+          return;
+        }
+        if (error.error === 'daily_limit_reached') {
+          toast({
+            title: '⚠️ Лимит исчерпан',
+            description: error.message || 'Обновитесь до Premium для безлимитного доступа',
+          });
+          setTimeout(() => navigate('/pricing'), 2000);
+          return;
+        }
         if (error.error === 'subscription_required') {
           toast({
             title: '🔒 Требуется подписка',

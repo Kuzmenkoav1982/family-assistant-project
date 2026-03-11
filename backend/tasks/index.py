@@ -101,10 +101,16 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     # Frontend sends 'assignee' but DB expects 'assignee_id'
     assignee_id = data.get('assignee_id') or data.get('assignee')
     
+    days_of_week = data.get('recurring_days_of_week') or data.get('recurringDaysOfWeek')
+    days_of_week_sql = 'NULL'
+    if days_of_week and isinstance(days_of_week, list):
+        days_of_week_sql = "ARRAY[" + ",".join(str(int(d)) for d in days_of_week) + "]"
+
     insert_query = f"""
         INSERT INTO {SCHEMA}.tasks_v2 (
             id, family_id, title, description, assignee_id, completed, 
-            points, priority, category, deadline
+            points, priority, category, deadline,
+            is_recurring, recurring_frequency, recurring_interval, recurring_end_date, recurring_days_of_week
         ) VALUES (
             {task_id}::uuid,
             {escape_string(family_id)}::uuid,
@@ -115,7 +121,12 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             {escape_string(data.get('points', 10))},
             {escape_string(data.get('priority', 'medium'))},
             {escape_string(data.get('category') or 'Дом')},
-            {escape_string(data.get('deadline'))}
+            {escape_string(data.get('deadline'))},
+            {escape_string(data.get('is_recurring') or data.get('isRecurring', False))},
+            {escape_string(data.get('recurring_frequency') or data.get('recurringFrequency'))},
+            {escape_string(data.get('recurring_interval') or data.get('recurringInterval', 1))},
+            {escape_string(data.get('recurring_end_date') or data.get('recurringEndDate'))},
+            {days_of_week_sql}
         )
     """
     
@@ -158,12 +169,29 @@ def update_task(task_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str,
     fields = []
     
     for field in ['title', 'description', 'assignee_id', 'completed', 'points', 
-                  'priority', 'category', 'deadline']:
-        if field in data:
+                  'priority', 'category', 'deadline',
+                  'is_recurring', 'recurring_frequency', 'recurring_interval', 'recurring_end_date']:
+        camel_key = field
+        if field == 'is_recurring': camel_key = 'isRecurring'
+        elif field == 'recurring_frequency': camel_key = 'recurringFrequency'
+        elif field == 'recurring_interval': camel_key = 'recurringInterval'
+        elif field == 'recurring_end_date': camel_key = 'recurringEndDate'
+        
+        val = data.get(field) if field in data else data.get(camel_key)
+        if val is not None:
             if field == 'assignee_id':
-                fields.append(f"{field} = {escape_string(data[field])}::uuid")
+                fields.append(f"{field} = {escape_string(val)}::uuid")
             else:
-                fields.append(f"{field} = {escape_string(data[field])}")
+                fields.append(f"{field} = {escape_string(val)}")
+    
+    dow_key = 'recurring_days_of_week' if 'recurring_days_of_week' in data else 'recurringDaysOfWeek'
+    if dow_key in data:
+        dow = data[dow_key]
+        if dow and isinstance(dow, list):
+            days_sql = "ARRAY[" + ",".join(str(int(d)) for d in dow) + "]"
+            fields.append(f"recurring_days_of_week = {days_sql}")
+        else:
+            fields.append("recurring_days_of_week = NULL")
     
     if not fields:
         cur.close()
