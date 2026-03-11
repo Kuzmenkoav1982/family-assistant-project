@@ -374,13 +374,13 @@ export function TasksTabContent({
                         {task.points || 10} баллов
                       </Badge>
 
-                      {task.isRecurring && (
-                        <Badge variant="secondary" className="gap-1">
+                      {(task.isRecurring || task.is_recurring) && (
+                        <Badge variant="outline" className="gap-1 border-orange-300 text-orange-600 whitespace-nowrap">
                           <Icon name="Repeat" size={14} />
-                          {task.recurringPattern?.frequency === 'daily' && 'Каждый день'}
-                          {task.recurringPattern?.frequency === 'weekly' && 'Каждую неделю'}
-                          {task.recurringPattern?.frequency === 'monthly' && 'Каждый месяц'}
-                          {task.recurringPattern?.frequency === 'yearly' && 'Каждый год'}
+                          {(task.recurringPattern?.frequency || task.recurring_frequency) === 'daily' && 'Ежедневно'}
+                          {(task.recurringPattern?.frequency || task.recurring_frequency) === 'weekly' && 'Еженедельно'}
+                          {(task.recurringPattern?.frequency || task.recurring_frequency) === 'monthly' && 'Ежемесячно'}
+                          {(task.recurringPattern?.frequency || task.recurring_frequency) === 'yearly' && 'Ежегодно'}
                         </Badge>
                       )}
                     </div>
