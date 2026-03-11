@@ -277,6 +277,23 @@ export interface Task {
   dueDate?: string;
   completed: boolean;
   assignee_id?: string;
+  assignee_name?: string;
+  assignee?: string;
   priority?: 'high' | 'medium' | 'low';
   points?: number;
+  category?: string;
+  is_recurring?: boolean;
+  isRecurring?: boolean;
+  recurring_frequency?: string;
+  recurring_interval?: number;
+  recurring_days_of_week?: number[] | string;
+  recurring_end_date?: string;
+  recurringPattern?: {
+    frequency: string;
+    interval: number;
+    daysOfWeek?: number[];
+    endDate?: string;
+  };
+  created_at?: string;
+  updated_at?: string;
 }
