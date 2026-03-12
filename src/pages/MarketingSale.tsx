@@ -154,9 +154,9 @@ type SaleBarSlide = { type: 'bar'; title: string; subtitle: string; bg: string; 
 type SaleBlocksSlide = { type?: 'blocks'; title: string; subtitle: string; bg: string; accent: string; tag: string; blocks: SaleBlock[] };
 type AnySaleSlide = SaleBlocksSlide | SaleTableSlide | SaleBarSlide;
 
-type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap';
+type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap' | 'bankpitch';
 
-const SALE_SECTIONS: Section[] = ['overview','buyers','teasers','valuation','dealstructure','preparation','negotiation','roadmap'];
+const SALE_SECTIONS: Section[] = ['overview','buyers','teasers','valuation','dealstructure','preparation','negotiation','roadmap','bankpitch'];
 
 const NAV: { id: Section; label: string; icon: string }[] = [
   { id: 'overview', label: 'Обзор', icon: 'LayoutDashboard' },
@@ -164,6 +164,7 @@ const NAV: { id: Section; label: string; icon: string }[] = [
   { id: 'teasers', label: 'Тизеры', icon: 'FileText' },
   { id: 'valuation', label: 'Оценка', icon: 'TrendingUp' },
   { id: 'dealstructure', label: 'Структура сделки', icon: 'GitMerge' },
+  { id: 'bankpitch', label: 'Питч для банков', icon: 'Landmark' },
   { id: 'preparation', label: 'Подготовка', icon: 'ClipboardList' },
   { id: 'negotiation', label: 'Переговоры', icon: 'Handshake' },
   { id: 'roadmap', label: 'Роадмап', icon: 'Map' },
@@ -1245,6 +1246,310 @@ export default function MarketingSale() {
                 ))}
               </div>
               <div className="mt-4 text-xs text-green-300">После НДФЛ 15%. С earn-out — до +50 млн ₽ дополнительно.</div>
+            </div>
+          </div>
+        )}
+
+        {active === 'bankpitch' && (
+          <div className="space-y-6">
+            <div>
+              <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Коммерческое предложение для банков</div>
+              <h2 className="text-3xl font-black text-slate-900 mb-2">Питчдек: «Наша Семья» для банков</h2>
+              <p className="text-slate-500">Три модели сотрудничества + персональные предложения для ключевых банков</p>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-amber-400 uppercase mb-3">Слайд 1 · Проблема</div>
+              <h3 className="text-3xl font-black mb-4">Банки теряют семейную аудиторию</h3>
+              <p className="text-slate-300 leading-relaxed mb-6 max-w-3xl">
+                73% семей управляют бюджетом в Excel или блокноте. У банков нет продукта для семьи как единого клиента — 
+                только индивидуальные счета. Семейные клиенты приносят в 3-5x больше продуктов на домохозяйство, но банки 
+                не могут объединить их в единый профиль.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { value: '73%', desc: 'семей ведут бюджет вне банка' },
+                  { value: '3-5x', desc: 'больше продуктов от семьи vs одиночки' },
+                  { value: '0', desc: 'банков в РФ с Семейным ID' },
+                ].map((s, i) => (
+                  <div key={i} className="bg-white/10 rounded-xl p-4 text-center">
+                    <div className="text-3xl font-black text-amber-400">{s.value}</div>
+                    <div className="text-sm text-slate-300 mt-1">{s.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3">Слайд 2 · Решение</div>
+              <h3 className="text-3xl font-black mb-4">«Наша Семья» — готовый Семейный ID для банка</h3>
+              <p className="text-blue-100 leading-relaxed mb-6 max-w-3xl">
+                Платформа объединяет всю семью в единый цифровой профиль: общий бюджет, задачи, календарь, 
+                здоровье, образование детей. Банк получает Семейный ID — инструмент для кросс-продаж ипотеки, 
+                ДМС, детских вкладов и семейных подписок.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { icon: '🪪', title: 'Семейный ID', desc: 'Единый профиль для всех членов семьи' },
+                  { icon: '💰', title: 'Семейный бюджет', desc: 'Общий трекинг расходов и доходов' },
+                  { icon: '📅', title: 'Семейный календарь', desc: 'Совместные события, напоминания' },
+                  { icon: '🎓', title: 'Развитие детей', desc: 'Образование, здоровье, достижения' },
+                ].map((c, i) => (
+                  <div key={i} className="bg-white/10 rounded-xl p-4">
+                    <div className="text-2xl mb-2">{c.icon}</div>
+                    <div className="font-bold text-sm mb-1">{c.title}</div>
+                    <div className="text-xs text-blue-200">{c.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-emerald-900 to-teal-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-emerald-300 uppercase mb-3">Слайд 3 · Что уже готово</div>
+              <h3 className="text-3xl font-black mb-4">Production-ready платформа</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+                {[
+                  { value: '86', label: 'API эндпоинтов' },
+                  { value: '151', label: 'таблиц БД' },
+                  { value: '385+', label: 'компонентов' },
+                  { value: '90+', label: 'экранов' },
+                  { value: '1', label: 'свидетельство ИС' },
+                ].map((s, i) => (
+                  <div key={i} className="bg-white/10 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-black text-emerald-300">{s.value}</div>
+                    <div className="text-xs text-emerald-100">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { title: 'Интеграции', items: 'Яндекс.Алиса, ЮКасса, Карты, Push-уведомления, S3' },
+                  { title: 'Безопасность', items: 'JWT-авторизация, шифрование, роли доступа, 152-ФЗ' },
+                  { title: 'ИС защищена', items: 'Свидетельство n\'RIS №518-830-027 от 04.03.2026' },
+                ].map((c, i) => (
+                  <div key={i} className="bg-white/10 rounded-xl p-4">
+                    <div className="font-bold text-sm mb-1">{c.title}</div>
+                    <div className="text-xs text-emerald-200">{c.items}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border-2 border-amber-400 bg-white p-8">
+              <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3">Слайд 4 · Три модели для банков</div>
+              <h3 className="text-2xl font-black text-slate-900 mb-6">Выберите формат сотрудничества</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {[
+                  {
+                    model: 'A', name: 'White-Label лицензия', price: 'от 300K ₽/мес',
+                    color: 'border-slate-300 bg-slate-50', badge: 'bg-slate-700',
+                    desc: 'Платформа разворачивается под брендом банка. Банк получает полностью готовый продукт со своим логотипом и дизайном.',
+                    features: ['Запуск за 4-6 недель', 'Кастомизация под бренд', 'Техподдержка 24/7', 'Обновления включены'],
+                    best: 'Быстрый старт, минимальные инвестиции',
+                  },
+                  {
+                    model: 'B', name: 'Revenue Share 70/30', price: 'без начального платежа',
+                    color: 'border-blue-300 bg-blue-50', badge: 'bg-blue-700',
+                    desc: 'Банк предоставляет аудиторию и каналы дистрибуции, мы предоставляем продукт. Банк получает 70% от дохода платформы.',
+                    features: ['Нулевые начальные затраты', 'Банк получает 70% дохода', 'Мотивация обеих сторон', 'Масштабирование вместе'],
+                    best: 'Оптимальный баланс рисков — РЕКОМЕНДУЕМ',
+                  },
+                  {
+                    model: 'C', name: 'Полная покупка', price: 'от 15 млн ₽',
+                    color: 'border-amber-300 bg-amber-50', badge: 'bg-amber-700',
+                    desc: 'Банк покупает платформу целиком: код, данные, бренд, ИС. Все права переходят банку. Автор остаётся на переходный период.',
+                    features: ['Полные права на код и ИС', 'Собственная команда развития', 'Нет зависимости от поставщика', 'Переходный период 3-12 мес'],
+                    best: 'Полный контроль и независимость',
+                  },
+                ].map((m, i) => (
+                  <div key={i} className={`rounded-xl border-2 p-6 ${m.color} relative`}>
+                    {m.model === 'B' && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-700 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        РЕКОМЕНДУЕМ
+                      </div>
+                    )}
+                    <div className={`inline-block text-white text-xs font-bold px-2 py-0.5 rounded mb-3 ${m.badge}`}>Модель {m.model}</div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">{m.name}</h4>
+                    <div className="text-lg font-bold text-amber-600 mb-3">{m.price}</div>
+                    <p className="text-sm text-slate-600 mb-4">{m.desc}</p>
+                    <ul className="space-y-2 mb-4">
+                      {m.features.map((f, j) => (
+                        <li key={j} className="flex items-center gap-2 text-sm text-slate-700">
+                          <span className="text-green-500">✓</span>{f}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="text-xs font-semibold text-slate-500 bg-white rounded-lg p-2 text-center">{m.best}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-violet-900 to-purple-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-violet-300 uppercase mb-3">Слайд 5 · Что получает банк</div>
+              <h3 className="text-3xl font-black mb-6">Бизнес-ценность для банка</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {[
+                  { icon: '🪪', title: 'Семейный ID', desc: 'Доступ ко всей семье как к единому клиенту. Вместо 1 счёта — 3-5 продуктов на домохозяйство: ипотека, ДМС, детский вклад, кредитка второму супругу.' },
+                  { icon: '📊', title: 'Данные о семье', desc: 'Состав семьи, возраст детей, доходы и расходы, интересы. Точный таргетинг предложений: когда ребёнку исполняется 7 — предложить вклад на образование.' },
+                  { icon: '💳', title: 'Семейные финансовые продукты', desc: 'Семейный счёт, совместный бюджет, детская карта с лимитами, семейная подписка. Новая продуктовая линейка, которой нет у конкурентов.' },
+                  { icon: '🏆', title: 'Лояльность и удержание', desc: 'Семья, которая ведёт бюджет в банке — не уходит. Churn rate семейных клиентов в 2-3x ниже. LTV семьи — в 5-8x выше индивидуального клиента.' },
+                  { icon: '📱', title: 'Суперапп для семьи', desc: 'Банковское приложение становится ежедневным инструментом семьи: задачи, покупки, календарь, здоровье — не только финансы.' },
+                  { icon: '🎯', title: 'Конкурентное преимущество', desc: 'Первый банк с Семейным ID получает преимущество first-mover. Ни Сбер, ни Т-Банк, ни ВТБ не имеют аналога.' },
+                ].map((c, i) => (
+                  <div key={i} className="bg-white/10 rounded-xl p-5 flex gap-4">
+                    <span className="text-3xl flex-shrink-0">{c.icon}</span>
+                    <div>
+                      <div className="font-bold mb-1">{c.title}</div>
+                      <div className="text-sm text-violet-200 leading-relaxed">{c.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-cyan-900 to-blue-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-cyan-300 uppercase mb-3">Слайд 6 · Финансовая модель</div>
+              <h3 className="text-3xl font-black mb-4">ROI для банка за 12 месяцев</h3>
+              <p className="text-cyan-100 mb-6">Расчёт на базе 100 000 семейных клиентов банка</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                {[
+                  { label: 'Новые продукты на семью', value: '+2.3 продукта', desc: 'Ипотека, ДМС, детская карта, семейная подписка' },
+                  { label: 'Средний чек семьи', value: '×3.2', desc: 'По сравнению с индивидуальным клиентом' },
+                  { label: 'Снижение churn', value: '-47%', desc: 'Семья, ведущая бюджет в банке, не уходит к конкурентам' },
+                  { label: 'Дополнительный доход', value: '180-350 млн ₽/год', desc: 'На базе 100K семейных клиентов при среднем +1 800 ₽/семью/год' },
+                ].map((s, i) => (
+                  <div key={i} className="bg-white/10 rounded-xl p-5">
+                    <div className="text-2xl font-black text-cyan-300 mb-1">{s.value}</div>
+                    <div className="font-bold text-sm mb-1">{s.label}</div>
+                    <div className="text-xs text-cyan-200">{s.desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-white/10 rounded-xl p-5">
+                <div className="text-sm font-bold mb-2">Окупаемость инвестиций:</div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-xl font-black text-cyan-300">White-Label</div>
+                    <div className="text-sm text-cyan-100">окупается за 1-2 мес</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-black text-cyan-300">Revenue Share</div>
+                    <div className="text-sm text-cyan-100">окупается сразу (0 ₽ вход)</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-black text-cyan-300">Покупка</div>
+                    <div className="text-sm text-cyan-100">окупается за 3-6 мес</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-r from-amber-800 to-orange-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-amber-300 uppercase mb-3">Слайд 7 · Персональное предложение</div>
+              <h3 className="text-3xl font-black mb-4">Для Банка ПСБ</h3>
+              <p className="text-amber-100 leading-relaxed mb-6">
+                2+ млн семей военнослужащих — идеальная аудитория для Семейного ID. 
+                Частые переезды, длительные командировки — семьям критически нужен инструмент координации.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {[
+                  '«Семья военного» — специальный режим для семей с частыми переездами',
+                  'Интеграция с военной ипотекой ПСБ',
+                  'Семейный бюджет с учётом командировочных и надбавок',
+                  'Детская карта ПСБ с родительским контролем через платформу',
+                  'Программа лояльности «Семья ПСБ» — баллы за активность',
+                  'Готовность к пилоту: 1000 семей за 2 месяца',
+                ].map((f, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="text-amber-300 flex-shrink-0">★</span>
+                    <span className="text-amber-100">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-white/10 rounded-xl p-4 text-center">
+                <div className="text-sm text-amber-200 mb-1">Рекомендуемая модель для ПСБ</div>
+                <div className="text-xl font-black">Revenue Share 70/30 → пилот на 1000 семей → масштаб на 2+ млн</div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-r from-yellow-800 to-amber-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-yellow-300 uppercase mb-3">Слайд 8 · Персональное предложение</div>
+              <h3 className="text-3xl font-black mb-4">Для Т-Банка / Сбера</h3>
+              <p className="text-yellow-100 leading-relaxed mb-6">
+                Lifestyle-экосистема + молодая аудитория 25-40 лет. «Наша Семья» закрывает нишу, 
+                которую ни один банк в России ещё не занял — семейный продукт внутри банковского суперприложения.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {[
+                  'Интеграция в существующее приложение банка как модуль',
+                  'Семейная подписка Premium — ежемесячный recurring revenue',
+                  'Кросс-продажи: ребёнку 7 лет → вклад на образование, 18 лет → первая кредитка',
+                  'Семейный кэшбэк: совместные покупки дают повышенный кэшбэк',
+                  'White-Label с полной кастомизацией под дизайн-систему банка',
+                  'Эксклюзивность: конкурент не получит аналогичный продукт',
+                ].map((f, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="text-yellow-300 flex-shrink-0">★</span>
+                    <span className="text-yellow-100">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-white/10 rounded-xl p-4 text-center">
+                <div className="text-sm text-yellow-200 mb-1">Рекомендуемая модель</div>
+                <div className="text-xl font-black">White-Label от 300K ₽/мес или покупка от 15 млн ₽ (эксклюзив)</div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-3">Слайд 9 · Сроки запуска</div>
+              <h3 className="text-3xl font-black mb-6">От подписания до запуска — 4-6 недель</h3>
+              <div className="space-y-4">
+                {[
+                  { week: 'Неделя 1', title: 'Подписание и старт', desc: 'NDA, договор, доступ к API, назначение ответственных' },
+                  { week: 'Неделя 2-3', title: 'Кастомизация', desc: 'Брендирование, интеграция с банковскими системами, настройка авторизации' },
+                  { week: 'Неделя 4', title: 'Тестирование', desc: 'Внутреннее тестирование, security audit, нагрузочное тестирование' },
+                  { week: 'Неделя 5-6', title: 'Пилотный запуск', desc: 'Запуск на 1000 семей, мониторинг, сбор обратной связи' },
+                  { week: 'Месяц 3+', title: 'Масштабирование', desc: 'Расширение на всю клиентскую базу банка' },
+                ].map((s, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap min-w-[100px] text-center">{s.week}</div>
+                    <div>
+                      <div className="font-bold">{s.title}</div>
+                      <div className="text-sm text-slate-400">{s.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-green-900 to-emerald-900 text-white p-10 text-center">
+              <div className="text-xs font-semibold tracking-widest text-green-300 uppercase mb-3">Слайд 10 · Следующий шаг</div>
+              <h3 className="text-4xl font-black mb-4">Готовы к демо?</h3>
+              <p className="text-green-100 text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
+                30-минутная демонстрация платформы для вашей команды. 
+                Покажем Семейный ID в действии и обсудим пилотный проект.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+                <div className="bg-white/10 rounded-xl p-4">
+                  <div className="text-2xl mb-1">📧</div>
+                  <div className="text-sm font-bold">Email</div>
+                  <div className="text-xs text-green-200">[указать email]</div>
+                </div>
+                <div className="bg-white/10 rounded-xl p-4">
+                  <div className="text-2xl mb-1">📱</div>
+                  <div className="text-sm font-bold">Телефон</div>
+                  <div className="text-xs text-green-200">[указать телефон]</div>
+                </div>
+                <div className="bg-white/10 rounded-xl p-4">
+                  <div className="text-2xl mb-1">🌐</div>
+                  <div className="text-sm font-bold">Сайт</div>
+                  <div className="text-xs text-green-200">nasha-semiya.ru</div>
+                </div>
+              </div>
+              <div className="text-xs text-green-400">
+                «Наша Семья» · Коммерческое предложение для банков · Март 2026 · Строго конфиденциально
+              </div>
             </div>
           </div>
         )}
