@@ -1468,39 +1468,200 @@ export default function MarketingSale() {
               </div>
             </div>
 
-            {/* СЛАЙД 6 — СТОИМОСТЬ И СЛЕДУЮЩИЙ ШАГ */}
-            <div className="rounded-2xl bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 text-white p-10 text-center">
-              <div className="text-xs font-semibold tracking-widest text-amber-300 uppercase mb-3">06 · Стоимость и следующий шаг</div>
-              <h3 className="text-4xl font-black mb-4">Стоимость платформы</h3>
-              <div className="bg-white/10 rounded-2xl p-8 max-w-2xl mx-auto mb-8">
-                <p className="text-lg text-amber-100 leading-relaxed mb-4">
-                  Стоимость определяется на основании <span className="font-bold text-white">независимой оценки</span> программы для ЭВМ, 
-                  проводимой аккредитованным оценщиком в соответствии с ФСО.
-                </p>
-                <div className="w-16 h-0.5 bg-amber-500/50 mx-auto my-4"></div>
-                <p className="text-amber-200 text-sm">
-                  Оценка учитывает: затратный подход (стоимость воспроизведения), сравнительный подход (аналоги на рынке) 
-                  и доходный подход (прогноз выручки). Отчёт предоставляется покупателю.
+            {/* СЛАЙД 6 — ЦЕНООБРАЗОВАНИЕ */}
+            <div className="rounded-2xl bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-amber-300 uppercase mb-3">06 · Ценообразование</div>
+              <h3 className="text-3xl font-black mb-2">Как формируется стоимость платформы</h3>
+              <p className="text-amber-200 mb-6">Независимая оценка определяет минимальную планку — но итоговая цена сделки учитывает значительно больше факторов</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-white/10 rounded-xl p-6">
+                  <div className="text-xs text-amber-300 font-semibold uppercase mb-3">Базовая оценка (пол цены)</div>
+                  <p className="text-sm text-amber-100 mb-4">Независимый оценщик определяет минимальную рыночную стоимость исключительного права на программу для ЭВМ по трём подходам:</p>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Затратный подход', desc: 'Сколько стоит воспроизвести платформу с нуля: 86 API, 151 таблица БД, 385+ компонентов, 90+ экранов, интеграции' },
+                      { name: 'Доходный подход', desc: 'Прогноз будущих денежных потоков от подписок, B2B-лицензий, монетизации данных' },
+                      { name: 'Сравнительный подход', desc: 'Стоимость аналогичных платформ на рынке (FamilyWall, Cozi, OurHome и пр.)' },
+                    ].map((a, i) => (
+                      <div key={i} className="bg-white/5 rounded-lg p-3">
+                        <div className="font-bold text-xs text-amber-300 mb-0.5">{a.name}</div>
+                        <div className="text-xs text-amber-100/80">{a.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 bg-amber-500/20 border border-amber-500/30 rounded-lg p-3 text-center">
+                    <div className="text-xs text-amber-200">Отчёт об оценке предоставляется покупателю</div>
+                  </div>
+                </div>
+
+                <div className="bg-white/10 rounded-xl p-6">
+                  <div className="text-xs text-amber-300 font-semibold uppercase mb-3">Премия к оценке (факторы роста цены)</div>
+                  <p className="text-sm text-amber-100 mb-4">Итоговая стоимость сделки формируется <span className="font-bold text-white">с учётом</span> оценки, но не ограничивается ею:</p>
+                  <div className="space-y-2.5">
+                    {[
+                      { icon: '💎', factor: 'Уникальность продукта', desc: 'Единственная в России платформа «Семейный ID» с зарегистрированной ИС. Аналогов на рынке нет' },
+                      { icon: '🚀', factor: 'Инновационность', desc: 'Новая категория продукта — не просто приложение, а цифровая инфраструктура для семьи с AI-ассистентом' },
+                      { icon: '📈', factor: 'Потенциал рынка', desc: '24+ млн семей в России. TAM семейных сервисов — $2.4 млрд. Рынок растёт на 15-20% в год' },
+                      { icon: '🔗', factor: 'Синергия с бизнесом покупателя', desc: 'Для банка, телекома или экосистемы — мгновенный доступ к семейной аудитории и кросс-продажи' },
+                      { icon: '⏱️', factor: 'Time-to-market', desc: 'Production-ready продукт. Покупатель экономит 12-18 месяцев и 15-30 млн ₽ на разработку с нуля' },
+                      { icon: '🏆', factor: 'First-mover advantage', desc: 'Покупатель получает преимущество первопроходца на рынке, который конкуренты ещё не заняли' },
+                    ].map((f, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <span className="text-lg flex-shrink-0">{f.icon}</span>
+                        <div>
+                          <span className="font-bold text-xs text-white">{f.factor}: </span>
+                          <span className="text-xs text-amber-100/80">{f.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/10 rounded-xl p-5 text-center">
+                <p className="text-sm text-amber-100 leading-relaxed max-w-3xl mx-auto">
+                  <span className="font-bold text-white">Принцип:</span> независимая оценка устанавливает обоснованный минимум стоимости ИС. 
+                  Итоговая цена сделки определяется переговорами и отражает стратегическую ценность платформы 
+                  для конкретного покупателя — его бизнес-модели, аудитории и планов развития.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
-                <div className="bg-white/10 rounded-xl p-5">
-                  <div className="text-3xl mb-2">📋</div>
-                  <div className="font-bold text-sm mb-1">Шаг 1</div>
-                  <div className="text-xs text-amber-200">NDA и обмен контактами для переговоров</div>
+            </div>
+
+            {/* СЛАЙД 7 — TERM SHEET */}
+            <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-3">07 · Term Sheet</div>
+              <h3 className="text-3xl font-black mb-2">Соглашение об основных условиях сделки</h3>
+              <p className="text-slate-400 mb-6">
+                Term Sheet (термшит) — документ, фиксирующий ключевые договорённости сторон до подписания основного договора. 
+                Позволяет убедиться, что продавец и покупатель одинаково понимают параметры сделки
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-white/10 rounded-xl p-6">
+                  <div className="text-xs text-violet-300 font-semibold uppercase mb-3">Что фиксируется в Term Sheet</div>
+                  <div className="space-y-3">
+                    {[
+                      { num: '1', title: 'Стороны и предмет сделки', desc: 'Продавец (ИП), покупатель, состав передаваемых активов (ИС, код, домен, каналы, бот, данные)' },
+                      { num: '2', title: 'Стоимость и порядок оплаты', desc: 'Согласованная цена, график платежей, валюта, условия корректировки цены (если применимо)' },
+                      { num: '3', title: 'Формат сделки', desc: 'Прямая продажа от ИП / через ООО / под ключ с сопровождением — выбранный вариант' },
+                      { num: '4', title: 'Due Diligence', desc: 'Срок и объём проверки: технический аудит кода, юридическая проверка прав на ИС, финансовый анализ' },
+                      { num: '5', title: 'Переходный период', desc: 'Срок сопровождения автором (1-3 мес), объём работ, обучение команды, доработка ПО' },
+                      { num: '6', title: 'Гарантии и ограничения', desc: 'Соглашение о неконкуренции, гарантийный период на баги, NDA, ответственность сторон' },
+                      { num: '7', title: 'Сроки и условия закрытия', desc: 'Дедлайн подписания основного договора, отлагательные условия, порядок передачи активов' },
+                      { num: '8', title: 'Эксклюзивность', desc: 'Запрет на ведение переговоров с другими покупателями на период действия Term Sheet' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <div className="bg-violet-500/30 text-violet-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">{item.num}</div>
+                        <div>
+                          <div className="font-bold text-sm text-white">{item.title}</div>
+                          <div className="text-xs text-slate-400">{item.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="bg-white/10 rounded-xl p-5">
-                  <div className="text-3xl mb-2">🔍</div>
-                  <div className="font-bold text-sm mb-1">Шаг 2</div>
-                  <div className="text-xs text-amber-200">Демонстрация платформы и ответы на вопросы</div>
-                </div>
-                <div className="bg-white/10 rounded-xl p-5">
-                  <div className="text-3xl mb-2">🤝</div>
-                  <div className="font-bold text-sm mb-1">Шаг 3</div>
-                  <div className="text-xs text-amber-200">Выбор формата сделки и согласование условий</div>
+
+                <div className="space-y-4">
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <div className="text-xs text-emerald-300 font-semibold uppercase mb-3">Зачем нужен Term Sheet</div>
+                    <div className="space-y-2.5">
+                      {[
+                        'Экономит время и деньги обеих сторон — все ключевые вопросы решаются до подготовки основных документов',
+                        'Снижает риск срыва сделки — стороны заранее согласовывают все спорные моменты',
+                        'Упрощает работу юристов — Term Sheet становится основой для основного договора',
+                        'Фиксирует серьёзность намерений — обе стороны подтверждают готовность к сделке',
+                        'Защищает продавца — эксклюзивность гарантирует, что покупатель не ведёт параллельные переговоры',
+                      ].map((b, i) => (
+                        <div key={i} className="flex gap-2 text-sm text-slate-300">
+                          <span className="text-emerald-400 flex-shrink-0">✓</span>
+                          <span>{b}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <div className="text-xs text-amber-300 font-semibold uppercase mb-3">Юридический статус</div>
+                    <p className="text-sm text-slate-300 leading-relaxed mb-3">
+                      Term Sheet — это «джентльменское соглашение». Как правило, не является юридически обязывающим документом,
+                      но фиксирует намерения сторон и дисциплинирует переговорный процесс.
+                    </p>
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Необязывающие пункты', desc: 'Цена, структура, сроки — могут уточняться при подготовке основного договора' },
+                        { label: 'Обязывающие пункты', desc: 'NDA, эксклюзивность, распределение расходов — как правило, имеют юридическую силу' },
+                      ].map((p, i) => (
+                        <div key={i} className="bg-white/5 rounded-lg p-3">
+                          <div className="font-bold text-xs text-amber-300 mb-0.5">{p.label}</div>
+                          <div className="text-xs text-slate-400">{p.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="text-xs text-amber-400">
+
+              <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4 text-center">
+                <div className="text-sm text-slate-300">
+                  Типичный объём документа: <span className="font-bold text-white">3–5 страниц</span>. 
+                  Срок согласования: <span className="font-bold text-white">3–7 дней</span>. 
+                  Рекомендуется привлечение юриста обеих сторон.
+                </div>
+              </div>
+            </div>
+
+            {/* СЛАЙД 8 — СЛЕДУЮЩИЕ ШАГИ */}
+            <div className="rounded-2xl bg-gradient-to-br from-green-900 to-emerald-900 text-white p-10">
+              <div className="text-xs font-semibold tracking-widest text-green-300 uppercase mb-3">08 · Следующие шаги</div>
+              <h3 className="text-3xl font-black mb-2 text-center">Путь от первого контакта до закрытия сделки</h3>
+              <p className="text-green-200 mb-8 text-center">Прозрачный процесс из 6 этапов — каждый шаг согласовывается с покупателем</p>
+
+              <div className="space-y-4 max-w-3xl mx-auto mb-8">
+                {[
+                  { step: '01', title: 'NDA', desc: 'Подписание соглашения о конфиденциальности. Обмен контактами для переговоров', time: '1–2 дня', color: 'bg-green-500/20 text-green-300' },
+                  { step: '02', title: 'Демонстрация платформы', desc: 'Полная демонстрация продукта: функционал, архитектура, код, БД, интеграции. Ответы на все вопросы', time: '1 встреча', color: 'bg-emerald-500/20 text-emerald-300' },
+                  { step: '03', title: 'Term Sheet', desc: 'Согласование и подписание основных условий сделки: цена, формат, сроки, гарантии, эксклюзивность', time: '3–7 дней', color: 'bg-teal-500/20 text-teal-300' },
+                  { step: '04', title: 'Due Diligence', desc: 'Проверка покупателем: технический аудит кода, юридическая проверка прав на ИС, анализ документации', time: '1–2 недели', color: 'bg-cyan-500/20 text-cyan-300' },
+                  { step: '05', title: 'Основной договор', desc: 'Подготовка и подписание договора отчуждения исключительного права, акта приёма-передачи, доп. соглашений', time: '1–2 недели', color: 'bg-blue-500/20 text-blue-300' },
+                  { step: '06', title: 'Передача и сопровождение', desc: 'Передача кода, доступов, данных. Обучение команды. Доработка ПО. Гарантийный период', time: '1–3 месяца', color: 'bg-indigo-500/20 text-indigo-300' },
+                ].map((s, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className={`${s.color} text-xs font-black px-3 py-2 rounded-lg whitespace-nowrap min-w-[44px] text-center`}>{s.step}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-0.5">
+                        <span className="font-bold text-white">{s.title}</span>
+                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-slate-400">{s.time}</span>
+                      </div>
+                      <div className="text-sm text-slate-400">{s.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-white/10 rounded-xl p-6 text-center max-w-2xl mx-auto">
+                <div className="text-lg font-black text-white mb-2">Готовы обсудить?</div>
+                <p className="text-sm text-green-200 mb-4">
+                  Первый шаг — подписание NDA и 30-минутная демонстрация платформы. 
+                  Без обязательств, без давления.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <div className="text-lg mb-1">📧</div>
+                    <div className="text-xs font-bold">Email</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <div className="text-lg mb-1">📱</div>
+                    <div className="text-xs font-bold">Телефон</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <div className="text-lg mb-1">🌐</div>
+                    <div className="text-xs font-bold">nasha-semiya.ru</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-xs text-green-400 text-center mt-6">
                 «Наша Семья» · Условия приобретения платформы · Март 2026 · Строго конфиденциально
               </div>
             </div>
