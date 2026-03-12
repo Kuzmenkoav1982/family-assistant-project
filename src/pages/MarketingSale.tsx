@@ -1251,34 +1251,37 @@ export default function MarketingSale() {
         )}
 
         {active === 'bankpitch' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
               <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Предложение покупателю</div>
               <h2 className="text-3xl font-black text-slate-900 mb-2">Что вы приобретаете вместе с платформой «Наша Семья»</h2>
-              <p className="text-slate-500">Активы · Форматы сделки · Поддержка после закрытия · Ценообразование · Следующий шаг</p>
+              <p className="text-slate-500 text-base">Активы · Форматы сделки · Поддержка после закрытия · Ценообразование · Следующий шаг</p>
             </div>
 
             {/* СЛАЙД 1 — ЧТО ПОЛУЧАЕТ ПОКУПАТЕЛЬ */}
-            <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-amber-400 uppercase mb-3">01 · Что вы получаете</div>
-              <h3 className="text-3xl font-black mb-2">Полный комплект — готовый к запуску в день закрытия сделки</h3>
-              <p className="text-slate-400 mb-6">Вы получаете не исходный код, а работающий бизнес-актив: продукт, права, аудиторию, инфраструктуру и каналы</p>
+            <div className="rounded-2xl border-2 border-slate-200 bg-white p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-slate-900 text-white text-xs font-black px-3 py-1 rounded-full">01</span>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Что вы получаете</div>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-1">Полный комплект — готовый к запуску в день закрытия сделки</h3>
+              <p className="text-slate-500 text-base mb-6">Не исходный код, а работающий бизнес-актив: продукт, права, аудитория, инфраструктура и каналы</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { icon: '💻', title: 'Готовый продукт — запуск в день 1', desc: 'Исходный код: 86 API, 151 таблица БД, 385+ компонентов, 90+ экранов. Работает прямо сейчас — не нужно ждать разработки' },
-                  { icon: '🛡️', title: 'Защищённая ИС — ваш актив навсегда', desc: 'Исключительное право по свидетельству n\'RIS №518-830-027 от 04.03.2026 переходит к вам полностью. Ни у кого больше нет прав на этот продукт' },
-                  { icon: '🌐', title: 'Бренд и домен — узнаваемость с первого дня', desc: 'Домен nasha-semiya.ru, логотип, брендбук, дизайн-система. Или переименовываете под свой бренд — код это позволяет' },
-                  { icon: '📢', title: 'Живая аудитория — не нужно начинать с нуля', desc: 'Канал MAX «Наша Семья» с подписчиками + бот MAX. Вы получаете уже прогретую аудиторию, а не пустой аккаунт' },
-                  { icon: '🔗', title: 'Все интеграции уже подключены', desc: 'Яндекс.Алиса, ЮКасса, Яндекс.Карты, Push, S3 — не нужно тратить месяцы на подключение. Всё работает и передаётся вам' },
-                  { icon: '📄', title: 'Документация — не разбираетесь с нуля', desc: 'Техническая документация, API-спецификации, инструкции, аналитика рынка, роадмап. Ваша команда войдёт в продукт быстро' },
-                  { icon: '👥', title: 'Пользовательская база и данные', desc: 'Все зарегистрированные пользователи, история активности, аналитика поведения. Готовая база для роста и монетизации' },
-                  { icon: '🔑', title: 'Полный контроль с первого дня', desc: 'Все доступы: хостинг, серверы, БД, S3, API-ключи, админ-панель, аналитика — переходят к вам без каких-либо ограничений' },
+                  { icon: '💻', color: 'bg-blue-50 border-blue-200', iconBg: 'bg-blue-100', title: 'Готовый продукт — запуск в день 1', desc: '86 API, 151 таблица БД, 385+ компонентов, 90+ экранов. Работает прямо сейчас — не нужно ждать разработки' },
+                  { icon: '🛡️', color: 'bg-green-50 border-green-200', iconBg: 'bg-green-100', title: 'Защищённая ИС — ваш актив навсегда', desc: 'Исключительное право по свидетельству n\'RIS №518-830-027 переходит к вам полностью. Никто другой не имеет прав на продукт' },
+                  { icon: '🌐', color: 'bg-purple-50 border-purple-200', iconBg: 'bg-purple-100', title: 'Бренд и домен — узнаваемость с первого дня', desc: 'Домен nasha-semiya.ru, логотип, брендбук, дизайн-система. Или переименовываете под свой бренд — код это позволяет' },
+                  { icon: '📢', color: 'bg-orange-50 border-orange-200', iconBg: 'bg-orange-100', title: 'Живая аудитория — не начинаете с нуля', desc: 'Канал MAX с подписчиками + бот MAX. Уже прогретая аудитория, которую получаете вместе с активом' },
+                  { icon: '🔗', color: 'bg-cyan-50 border-cyan-200', iconBg: 'bg-cyan-100', title: 'Все интеграции уже работают', desc: 'Яндекс.Алиса, ЮКасса, Яндекс.Карты, Push, S3 — не нужно тратить месяцы. Всё настроено и передаётся вам' },
+                  { icon: '📄', color: 'bg-amber-50 border-amber-200', iconBg: 'bg-amber-100', title: 'Документация — ваша команда входит быстро', desc: 'Техническая документация, API-спецификации, роадмап, аналитика рынка. Ничего не изучаете с нуля' },
+                  { icon: '👥', color: 'bg-pink-50 border-pink-200', iconBg: 'bg-pink-100', title: 'Пользовательская база и данные', desc: 'Все зарегистрированные пользователи, история активности, аналитика поведения — готовая база для роста' },
+                  { icon: '🔑', color: 'bg-teal-50 border-teal-200', iconBg: 'bg-teal-100', title: 'Полный контроль с первого дня', desc: 'Все доступы: хостинг, серверы, БД, S3, API-ключи, админ-панель — переходят без каких-либо ограничений' },
                 ].map((c, i) => (
-                  <div key={i} className="bg-white/10 rounded-xl p-5 flex gap-4">
-                    <span className="text-2xl flex-shrink-0">{c.icon}</span>
+                  <div key={i} className={`rounded-xl border ${c.color} p-4 flex gap-4`}>
+                    <div className={`${c.iconBg} rounded-xl w-12 h-12 flex items-center justify-center text-2xl flex-shrink-0`}>{c.icon}</div>
                     <div>
-                      <div className="font-bold text-sm mb-1">{c.title}</div>
-                      <div className="text-xs text-slate-300 leading-relaxed">{c.desc}</div>
+                      <div className="font-bold text-slate-900 text-base mb-1">{c.title}</div>
+                      <div className="text-sm text-slate-600 leading-relaxed">{c.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -1286,17 +1289,20 @@ export default function MarketingSale() {
             </div>
 
             {/* СЛАЙД 2 — ФОРМАТЫ СДЕЛКИ */}
-            <div className="rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-blue-300 uppercase mb-3">02 · Форматы сделки</div>
-              <h3 className="text-3xl font-black mb-2">Выберите удобный для вас формат приобретения</h3>
-              <p className="text-blue-200 mb-6">Три варианта — под разные юридические структуры и предпочтения покупателя</p>
+            <div className="rounded-2xl border-2 border-slate-200 bg-white p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full">02</span>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Форматы сделки</div>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-1">Выберите удобный для вас формат приобретения</h3>
+              <p className="text-slate-500 text-base mb-6">Три варианта — под разные юридические структуры и предпочтения</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {[
                   {
                     label: 'Вариант A', name: 'Прямая покупка активов',
-                    color: 'from-blue-800/60 to-blue-900/60', badge: 'text-blue-300',
+                    border: 'border-blue-200', bg: 'bg-blue-50', badge: 'bg-blue-600', badgeText: 'text-blue-700', pill: 'bg-blue-100 text-blue-700',
                     best: 'Подходит если: нужна скорость, минимум бюрократии',
-                    forYou: 'Вы получаете активы напрямую на своё юрлицо. Быстрый старт без лишних шагов.',
+                    forYou: 'Активы переходят напрямую на ваше юрлицо. Быстрый старт без лишних шагов.',
                     steps: ['NDA → договор отчуждения ИС', 'Акт приёма-передачи кода, БД, документации', 'Передача всех доступов и каналов'],
                     pros: ['Закрытие за 2–4 недели', 'Минимум юридических затрат', 'Чистая и прозрачная структура'],
                     note: 'Инфраструктура разворачивается в вашем контуре',
@@ -1304,47 +1310,49 @@ export default function MarketingSale() {
                   },
                   {
                     label: 'Вариант B', name: 'Покупка ООО (Share Deal)',
-                    color: 'from-violet-800/60 to-violet-900/60', badge: 'text-violet-300',
+                    border: 'border-violet-200', bg: 'bg-violet-50', badge: 'bg-violet-600', badgeText: 'text-violet-700', pill: 'bg-violet-100 text-violet-700',
                     best: 'Подходит если: нужно юрлицо, привычный формат M&A',
-                    forYou: 'Вы покупаете 100% доли ООО, в котором упакованы все активы. Один документ — и всё ваше.',
+                    forYou: 'Покупаете 100% доли ООО, в котором упакованы все активы. Один документ — и всё ваше.',
                     steps: ['Due Diligence ООО', 'Нотариальная сделка купли-продажи доли', 'Запись в ЕГРЮЛ — вы новый владелец'],
                     pros: ['Стандартный формат для банков и корпораций', 'Все активы в одном юрлице', 'Юридическая преемственность договоров'],
-                    note: 'Требуется предварительная регистрация ООО продавцом',
+                    note: 'Требуется предварительная регистрация ООО',
                     time: '1–2 месяца',
                   },
                   {
                     label: 'Вариант C', name: 'Под ключ с сопровождением',
-                    color: 'from-emerald-800/60 to-emerald-900/60', badge: 'text-emerald-300',
-                    best: 'Подходит если: важно быстро запустить и адаптировать под свой бизнес',
-                    forYou: 'Вы получаете активы + автор 1–3 месяца работает в вашей команде: адаптирует продукт, обучает разработчиков, сопровождает запуск.',
+                    border: 'border-emerald-200', bg: 'bg-emerald-50', badge: 'bg-emerald-600', badgeText: 'text-emerald-700', pill: 'bg-emerald-100 text-emerald-700',
+                    best: 'Подходит если: важно быстро адаптировать под свой бизнес',
+                    forYou: 'Получаете активы + автор 1–3 мес работает в вашей команде: адаптирует, обучает, сопровождает запуск.',
                     steps: ['Договор отчуждения ИС + договор на услуги', 'Доработка под ваши системы и бренд', 'Обучение команды, сопровождение запуска'],
-                    pros: ['Продукт адаптирован под ваш бизнес', 'Ваша команда входит в проект с готовыми знаниями', 'Минимальный риск для покупателя'],
+                    pros: ['Продукт адаптирован под ваш бизнес', 'Команда входит с готовыми знаниями', 'Минимальный риск для покупателя'],
                     note: 'Рекомендуем для максимально гладкого старта',
                     time: '2–4 нед + 1–3 мес',
                   },
                 ].map((v, i) => (
-                  <div key={i} className={`rounded-xl bg-gradient-to-br ${v.color} border border-white/10 p-5 flex flex-col`}>
-                    <div className={`text-xs font-bold uppercase mb-1 ${v.badge}`}>{v.label}</div>
-                    <div className="font-black text-lg text-white mb-2">{v.name}</div>
-                    <div className="text-xs text-blue-200 bg-white/5 rounded-lg px-3 py-2 mb-3">{v.best}</div>
-                    <p className="text-xs text-slate-300 leading-relaxed mb-3">{v.forYou}</p>
-                    <div className="space-y-1 mb-3">
+                  <div key={i} className={`rounded-xl border-2 ${v.border} ${v.bg} p-5 flex flex-col`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`${v.badge} text-white text-xs font-black px-2 py-0.5 rounded`}>{v.label}</span>
+                    </div>
+                    <div className={`font-black text-lg text-slate-900 mb-2`}>{v.name}</div>
+                    <div className={`text-sm font-medium ${v.badgeText} mb-3`}>{v.best}</div>
+                    <p className="text-sm text-slate-600 leading-relaxed mb-4">{v.forYou}</p>
+                    <div className="space-y-1.5 mb-4">
                       {v.steps.map((s, j) => (
-                        <div key={j} className="flex gap-2 text-xs text-slate-300">
-                          <span className={`${v.badge} flex-shrink-0`}>{j + 1}.</span><span>{s}</span>
+                        <div key={j} className="flex gap-2 text-sm text-slate-700">
+                          <span className={`font-bold ${v.badgeText} flex-shrink-0`}>{j + 1}.</span><span>{s}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="space-y-1 mb-auto">
+                    <div className="space-y-1.5 mb-auto">
                       {v.pros.map((p, j) => (
-                        <div key={j} className="flex gap-2 text-xs text-slate-200">
-                          <span className="text-green-400 flex-shrink-0">✓</span><span>{p}</span>
+                        <div key={j} className="flex gap-2 text-sm text-slate-700">
+                          <span className="text-green-600 flex-shrink-0 font-bold">✓</span><span>{p}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 border-t border-white/10 pt-3 flex items-center justify-between">
-                      <span className="text-xs text-slate-400">{v.note}</span>
-                      <span className="text-xs font-bold text-amber-300 whitespace-nowrap ml-2">{v.time}</span>
+                    <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between gap-2">
+                      <span className="text-xs text-slate-500">{v.note}</span>
+                      <span className={`text-sm font-black whitespace-nowrap ${v.badgeText}`}>{v.time}</span>
                     </div>
                   </div>
                 ))}
@@ -1352,53 +1360,60 @@ export default function MarketingSale() {
             </div>
 
             {/* СЛАЙД 3 — СОПРОВОЖДЕНИЕ */}
-            <div className="rounded-2xl bg-gradient-to-br from-cyan-900 to-blue-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-cyan-300 uppercase mb-3">03 · Ваша уверенность после сделки</div>
-              <h3 className="text-3xl font-black mb-2">Вы не остаётесь один на один с продуктом</h3>
-              <p className="text-cyan-200 mb-6">После закрытия сделки автор работает в вашей команде — передаёт знания, адаптирует продукт под ваш бизнес и сопровождает запуск</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="rounded-2xl border-2 border-slate-200 bg-white p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-cyan-600 text-white text-xs font-black px-3 py-1 rounded-full">03</span>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Ваша уверенность после сделки</div>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-1">Вы не остаётесь один на один с продуктом</h3>
+              <p className="text-slate-500 text-base mb-6">После закрытия сделки автор работает в вашей команде — передаёт знания, адаптирует продукт, сопровождает запуск</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
                 {[
                   {
-                    icon: '🎓', title: 'Ваша команда быстро входит в проект',
-                    items: ['Полная передача знаний об архитектуре', 'Обучение работе с кодом и БД', 'Документирование всех процессов', 'Автор отвечает на вопросы разработчиков'],
+                    icon: '🎓', bg: 'bg-blue-50', border: 'border-blue-200', accent: 'text-blue-700', pillBg: 'bg-blue-100',
+                    title: 'Ваша команда быстро входит в проект',
+                    items: ['Полная передача знаний об архитектуре', 'Обучение работе с кодом и БД', 'Документирование всех процессов', 'Автор отвечает на вопросы ваших разработчиков'],
                     period: '1–2 месяца',
                   },
                   {
-                    icon: '🔧', title: 'Продукт адаптируется под ваш бизнес',
+                    icon: '🔧', bg: 'bg-amber-50', border: 'border-amber-200', accent: 'text-amber-700', pillBg: 'bg-amber-100',
+                    title: 'Продукт адаптируется под ваш бизнес',
                     items: ['Интеграция с вашими внутренними системами', 'Кастомизация под ваш бренд и дизайн', 'Новые модули по вашему ТЗ', 'Подключение к вашим финансовым инструментам'],
                     period: '1–3 месяца',
                   },
                   {
-                    icon: '🚀', title: 'Запуск проходит без сюрпризов',
+                    icon: '🚀', bg: 'bg-green-50', border: 'border-green-200', accent: 'text-green-700', pillBg: 'bg-green-100',
+                    title: 'Запуск проходит без сюрпризов',
                     items: ['Пилот на группе пользователей под контролем автора', 'Быстрое исправление любых проблем', 'Оптимизация под нагрузку вашей аудитории', 'Консультации по развитию и монетизации'],
                     period: '1–3 месяца',
                   },
                 ].map((c, i) => (
-                  <div key={i} className="bg-white/10 rounded-xl p-5">
-                    <div className="text-2xl mb-2">{c.icon}</div>
-                    <div className="font-bold mb-1 text-sm">{c.title}</div>
-                    <ul className="space-y-1.5 mb-3">
+                  <div key={i} className={`rounded-xl border-2 ${c.border} ${c.bg} p-5`}>
+                    <div className="text-3xl mb-3">{c.icon}</div>
+                    <div className={`font-bold text-slate-900 text-base mb-3`}>{c.title}</div>
+                    <ul className="space-y-2 mb-4">
                       {c.items.map((item, j) => (
-                        <li key={j} className="flex gap-2 text-xs text-cyan-200">
-                          <span className="text-cyan-400">•</span>{item}
+                        <li key={j} className="flex gap-2 text-sm text-slate-600">
+                          <span className={`${c.accent} flex-shrink-0 font-bold`}>•</span>{item}
                         </li>
                       ))}
                     </ul>
-                    <div className="text-xs bg-cyan-500/20 rounded-lg px-3 py-1.5 text-center text-cyan-300 font-semibold">{c.period}</div>
+                    <div className={`text-sm font-bold ${c.accent} ${c.pillBg} rounded-lg px-3 py-2 text-center`}>{c.period}</div>
                   </div>
                 ))}
               </div>
-              <div className="bg-white/10 rounded-xl p-5">
-                <div className="font-bold text-sm mb-3 text-center">Ваша защита закреплена договором</div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-6">
+                <div className="font-bold text-slate-900 text-base mb-4 text-center">Ваша защита закреплена договором</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                   {[
-                    { label: 'Соглашение о неконкуренции', desc: 'Автор не создаст аналогичный продукт — вы приобретаете уникальное конкурентное преимущество без риска потерять его' },
-                    { label: 'Гарантийный период 3 месяца', desc: 'Критические баги устраняются бесплатно — вы запускаете продукт с уверенностью в его стабильности' },
-                    { label: 'NDA на всё время сделки', desc: 'Все переговоры, условия и коммерческая информация остаются строго конфиденциальными' },
+                    { icon: '🤝', label: 'Соглашение о неконкуренции', desc: 'Автор не создаст аналог — вы приобретаете уникальное преимущество без риска потерять его' },
+                    { icon: '🛠️', label: 'Гарантийный период 3 месяца', desc: 'Критические баги устраняются бесплатно — запускаете продукт с уверенностью в его стабильности' },
+                    { icon: '🔒', label: 'NDA на всё время сделки', desc: 'Переговоры, условия и коммерческая информация остаются строго конфиденциальными' },
                   ].map((g, i) => (
                     <div key={i} className="text-center">
-                      <div className="text-sm font-bold text-cyan-300 mb-1">{g.label}</div>
-                      <div className="text-xs text-cyan-200">{g.desc}</div>
+                      <div className="text-3xl mb-2">{g.icon}</div>
+                      <div className="font-bold text-slate-900 text-base mb-1">{g.label}</div>
+                      <div className="text-sm text-slate-600">{g.desc}</div>
                     </div>
                   ))}
                 </div>
@@ -1406,49 +1421,51 @@ export default function MarketingSale() {
             </div>
 
             {/* СЛАЙД 4 — ЦЕНООБРАЗОВАНИЕ */}
-            <div className="rounded-2xl bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-amber-300 uppercase mb-3">04 · Стоимость приобретения</div>
-              <h3 className="text-3xl font-black mb-2">Почему это выгодная инвестиция для вашего бизнеса</h3>
-              <p className="text-amber-200 mb-6">Цена сделки определяется переговорами с учётом независимой оценки — и отражает реальную стратегическую ценность для вас</p>
+            <div className="rounded-2xl border-2 border-slate-200 bg-white p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-amber-600 text-white text-xs font-black px-3 py-1 rounded-full">04</span>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Стоимость приобретения</div>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-1">Почему это выгодная инвестиция для вашего бизнеса</h3>
+              <p className="text-slate-500 text-base mb-6">Цена сделки согласовывается на переговорах с учётом независимой оценки — и отражает реальную стратегическую ценность для вас</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white/10 rounded-xl p-6">
-                  <div className="text-xs text-amber-300 font-semibold uppercase mb-3">Объективная база — отчёт независимого оценщика</div>
-                  <p className="text-sm text-amber-100 mb-4">Стоимость подкреплена профессиональным отчётом по трём подходам — вы платите обоснованную, а не произвольную цену:</p>
+                <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-6">
+                  <div className="font-bold text-amber-800 text-base mb-1">Объективная база — отчёт независимого оценщика</div>
+                  <p className="text-sm text-amber-700 mb-4">Вы платите обоснованную, а не произвольную цену — стоимость подкреплена профессиональным отчётом:</p>
                   <div className="space-y-3">
                     {[
-                      { name: 'Затратный подход', desc: 'Сколько обошлось бы воспроизвести платформу вашей команде: 86 API, 151 таблица БД, 385+ компонентов, 90+ экранов, все интеграции' },
-                      { name: 'Доходный подход', desc: 'Прогноз денежных потоков от подписок, B2B-лицензий и монетизации — ваш потенциальный доход с актива' },
-                      { name: 'Сравнительный подход', desc: 'Как оцениваются аналогичные платформы на рынке (FamilyWall, Cozi, OurHome) — вы видите рыночный контекст' },
+                      { name: 'Затратный подход', desc: 'Сколько стоило бы воспроизвести платформу вашей команде: 86 API, 151 таблица БД, 385+ компонентов, 90+ экранов, интеграции' },
+                      { name: 'Доходный подход', desc: 'Прогноз денежных потоков от подписок и B2B-лицензий — ваш потенциальный доход с актива' },
+                      { name: 'Сравнительный подход', desc: 'Оценка аналогичных платформ на рынке (FamilyWall, Cozi, OurHome) — рыночный контекст для вас' },
                     ].map((a, i) => (
-                      <div key={i} className="bg-white/5 rounded-lg p-3">
-                        <div className="font-bold text-xs text-amber-300 mb-0.5">{a.name}</div>
-                        <div className="text-xs text-amber-100/80">{a.desc}</div>
+                      <div key={i} className="bg-white rounded-lg p-3 border border-amber-200">
+                        <div className="font-bold text-sm text-amber-800 mb-0.5">{a.name}</div>
+                        <div className="text-sm text-slate-600">{a.desc}</div>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 bg-amber-500/20 border border-amber-500/30 rounded-lg p-3 text-center">
-                    <div className="text-xs text-amber-200">Полный отчёт об оценке передаётся вам до подписания</div>
+                  <div className="mt-4 bg-amber-100 border border-amber-300 rounded-lg p-3 text-center">
+                    <div className="text-sm font-semibold text-amber-800">Полный отчёт об оценке передаётся вам до подписания</div>
                   </div>
                 </div>
 
-                <div className="bg-white/10 rounded-xl p-6">
-                  <div className="text-xs text-amber-300 font-semibold uppercase mb-3">Что вы реально покупаете — сверх кода</div>
-                  <p className="text-sm text-amber-100 mb-4">Итоговая цена отражает стратегическую ценность именно для вашего бизнеса:</p>
-                  <div className="space-y-2.5">
+                <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-6">
+                  <div className="font-bold text-slate-900 text-base mb-1">Что вы реально покупаете — сверх кода</div>
+                  <p className="text-sm text-slate-600 mb-4">Итоговая цена отражает стратегическую ценность для вашего бизнеса:</p>
+                  <div className="space-y-3">
                     {[
-                      { icon: '💎', factor: 'Нет аналогов — нет конкурентов за актив', desc: 'Единственная в России платформа «Семейный ID» с оформленной ИС. Вы покупаете то, что невозможно просто скопировать' },
-                      { icon: '🚀', factor: 'Новая категория — не занятая ниша', desc: 'Цифровая инфраструктура для семьи с AI — это не очередное приложение, а рынок, которого ещё нет у ваших конкурентов' },
+                      { icon: '💎', factor: 'Нет аналогов — нет конкурентов за актив', desc: 'Единственная в России платформа «Семейный ID» с ИС. Вы покупаете то, что невозможно просто скопировать' },
+                      { icon: '🚀', factor: 'Новая категория — незанятая ниша', desc: 'Рынок, которого ещё нет у ваших конкурентов. Первый занял — второму не зайти' },
                       { icon: '📈', factor: 'Вы входите на растущий рынок', desc: 'Рынок семейных цифровых сервисов растёт на 15–20% в год — стоимость актива будет только расти' },
-                      { icon: '🔗', factor: 'Синергия с вашим бизнесом', desc: 'Семейная аудитория и данные о домохозяйствах усиливают ваши продукты: кросс-продажи, удержание, новые сегменты' },
-                      { icon: '⏱️', factor: 'Время — ваш главный выигрыш', desc: 'Вы выходите на рынок немедленно, а не через 1,5–2 года разработки. Пока конкурент строит — вы уже растёте' },
-                      { icon: '🏆', factor: 'Первый занял — второму не зайти', desc: 'Кто купит этот актив первым, получит преимущество, которое конкурент не сможет купить или догнать быстро' },
+                      { icon: '🔗', factor: 'Синергия с вашим бизнесом', desc: 'Семейная аудитория усиливает ваши продукты: кросс-продажи, удержание, новые сегменты' },
+                      { icon: '⏱️', factor: 'Время — ваш главный выигрыш', desc: 'Выходите на рынок немедленно. Пока конкурент строит 1,5–2 года — вы уже растёте' },
                     ].map((f, i) => (
-                      <div key={i} className="flex gap-3 items-start">
-                        <span className="text-lg flex-shrink-0">{f.icon}</span>
+                      <div key={i} className="flex gap-3 items-start bg-white rounded-lg p-3 border border-slate-200">
+                        <span className="text-xl flex-shrink-0">{f.icon}</span>
                         <div>
-                          <span className="font-bold text-xs text-white">{f.factor}: </span>
-                          <span className="text-xs text-amber-100/80">{f.desc}</span>
+                          <div className="font-bold text-sm text-slate-900">{f.factor}</div>
+                          <div className="text-sm text-slate-600">{f.desc}</div>
                         </div>
                       </div>
                     ))}
@@ -1456,66 +1473,69 @@ export default function MarketingSale() {
                 </div>
               </div>
 
-              <div className="bg-white/10 rounded-xl p-5 text-center">
-                <p className="text-sm text-amber-100 leading-relaxed max-w-3xl mx-auto">
-                  <span className="font-bold text-white">Итог:</span> независимая оценка устанавливает обоснованный минимум. 
-                  Итоговая цена согласовывается на переговорах и отражает то, сколько этот актив 
-                  стоит именно для вашей бизнес-модели, вашей аудитории и ваших планов.
+              <div className="bg-slate-900 rounded-xl p-5 text-center">
+                <p className="text-base text-slate-200 leading-relaxed max-w-3xl mx-auto">
+                  <span className="font-bold text-white">Итог:</span> независимая оценка — обоснованный минимум.
+                  Итоговая цена согласовывается на переговорах и отражает, сколько этот актив стоит
+                  именно для вашей бизнес-модели, аудитории и планов.
                 </p>
               </div>
             </div>
 
             {/* СЛАЙД 5 — СЛЕДУЮЩИЕ ШАГИ */}
-            <div className="rounded-2xl bg-gradient-to-br from-green-900 to-emerald-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-green-300 uppercase mb-3">05 · Ваш путь к закрытию сделки</div>
-              <h3 className="text-3xl font-black mb-2 text-center">Шесть шагов — и актив у вас</h3>
-              <p className="text-green-200 mb-8 text-center">Прозрачный процесс без скрытых этапов. Каждый шаг — в ваших руках</p>
+            <div className="rounded-2xl border-2 border-slate-200 bg-white p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-green-600 text-white text-xs font-black px-3 py-1 rounded-full">05</span>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Ваш путь к закрытию сделки</div>
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-1">Шесть шагов — и актив у вас</h3>
+              <p className="text-slate-500 text-base mb-8">Прозрачный процесс без скрытых этапов. Каждый шаг — в ваших руках</p>
 
               <div className="space-y-4 max-w-3xl mx-auto mb-8">
                 {[
-                  { step: '01', title: 'NDA', desc: 'Подписываете соглашение о конфиденциальности — и можете задавать любые вопросы без ограничений', time: '1–2 дня', color: 'bg-green-500/20 text-green-300' },
-                  { step: '02', title: 'Демонстрация', desc: 'Вы видите продукт изнутри: весь функционал, код, архитектуру, БД, интеграции. Никакого маркетинга — только реальный продукт', time: '1 встреча', color: 'bg-emerald-500/20 text-emerald-300' },
-                  { step: '03', title: 'Term Sheet', desc: 'Фиксируем на бумаге: цену, формат сделки, сроки, гарантии, эксклюзивность. Вы знаете все условия до того, как юристы садятся писать договор', time: '3–7 дней', color: 'bg-teal-500/20 text-teal-300' },
-                  { step: '04', title: 'Due Diligence', desc: 'Ваша команда проверяет всё: код, права на ИС, документацию, историю. Мы открыты — доступ без ограничений', time: '1–2 недели', color: 'bg-cyan-500/20 text-cyan-300' },
-                  { step: '05', title: 'Договор', desc: 'Подписываете договор отчуждения исключительного права и акт приёма-передачи. Права переходят к вам юридически', time: '1–2 недели', color: 'bg-blue-500/20 text-blue-300' },
-                  { step: '06', title: 'Передача и запуск', desc: 'Получаете весь код, все доступы, все данные. Автор рядом — обучает команду, дорабатывает продукт, сопровождает первый запуск', time: '1–3 месяца', color: 'bg-indigo-500/20 text-indigo-300' },
+                  { step: '01', title: 'NDA', desc: 'Подписываете соглашение о конфиденциальности — и можете задавать любые вопросы без ограничений', time: '1–2 дня', bg: 'bg-green-100', text: 'text-green-800', timeBg: 'bg-green-100 text-green-700' },
+                  { step: '02', title: 'Демонстрация', desc: 'Видите продукт изнутри: весь функционал, код, архитектуру, БД, интеграции. Никакого маркетинга — только реальный продукт', time: '1 встреча', bg: 'bg-emerald-100', text: 'text-emerald-800', timeBg: 'bg-emerald-100 text-emerald-700' },
+                  { step: '03', title: 'Term Sheet', desc: 'Фиксируем на бумаге: цену, формат, сроки, гарантии, эксклюзивность. Все условия известны до того, как юристы пишут договор', time: '3–7 дней', bg: 'bg-teal-100', text: 'text-teal-800', timeBg: 'bg-teal-100 text-teal-700' },
+                  { step: '04', title: 'Due Diligence', desc: 'Ваша команда проверяет всё: код, права на ИС, документацию, историю. Полный доступ без ограничений', time: '1–2 недели', bg: 'bg-cyan-100', text: 'text-cyan-800', timeBg: 'bg-cyan-100 text-cyan-700' },
+                  { step: '05', title: 'Договор', desc: 'Подписываете договор отчуждения исключительного права и акт приёма-передачи. Права переходят к вам юридически', time: '1–2 недели', bg: 'bg-blue-100', text: 'text-blue-800', timeBg: 'bg-blue-100 text-blue-700' },
+                  { step: '06', title: 'Передача и запуск', desc: 'Получаете код, все доступы, все данные. Автор рядом — обучает команду, дорабатывает продукт, сопровождает первый запуск', time: '1–3 месяца', bg: 'bg-indigo-100', text: 'text-indigo-800', timeBg: 'bg-indigo-100 text-indigo-700' },
                 ].map((s, i) => (
                   <div key={i} className="flex gap-4 items-start">
-                    <div className={`${s.color} text-xs font-black px-3 py-2 rounded-lg whitespace-nowrap min-w-[44px] text-center`}>{s.step}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-0.5">
-                        <span className="font-bold text-white">{s.title}</span>
-                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-slate-400">{s.time}</span>
+                    <div className={`${s.bg} ${s.text} text-sm font-black w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0`}>{s.step}</div>
+                    <div className="flex-1 pt-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="font-black text-slate-900 text-base">{s.title}</span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${s.timeBg}`}>{s.time}</span>
                       </div>
-                      <div className="text-sm text-slate-400">{s.desc}</div>
+                      <div className="text-sm text-slate-600 leading-relaxed">{s.desc}</div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-white/10 rounded-xl p-6 text-center max-w-2xl mx-auto">
-                <div className="text-lg font-black text-white mb-2">Первый шаг — за вами</div>
-                <p className="text-sm text-green-200 mb-4">
-                  Подпишите NDA и назначьте демонстрацию. 30 минут — и у вас полная картина.
+              <div className="bg-slate-900 rounded-xl p-7 text-center max-w-2xl mx-auto">
+                <div className="text-xl font-black text-white mb-2">Первый шаг — за вами</div>
+                <p className="text-base text-slate-300 mb-5">
+                  Подпишите NDA и назначьте демонстрацию. 30 минут — и у вас полная картина.<br/>
                   Без давления. Без обязательств. Только факты.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="bg-white/10 rounded-lg p-3">
-                    <div className="text-lg mb-1">📧</div>
-                    <div className="text-xs font-bold">Email</div>
+                    <div className="text-2xl mb-1">📧</div>
+                    <div className="text-sm font-bold text-white">Email</div>
                   </div>
                   <div className="bg-white/10 rounded-lg p-3">
-                    <div className="text-lg mb-1">📱</div>
-                    <div className="text-xs font-bold">Телефон</div>
+                    <div className="text-2xl mb-1">📱</div>
+                    <div className="text-sm font-bold text-white">Телефон</div>
                   </div>
                   <div className="bg-white/10 rounded-lg p-3">
-                    <div className="text-lg mb-1">🌐</div>
-                    <div className="text-xs font-bold">nasha-semiya.ru</div>
+                    <div className="text-2xl mb-1">🌐</div>
+                    <div className="text-sm font-bold text-white">nasha-semiya.ru</div>
                   </div>
                 </div>
               </div>
 
-              <div className="text-xs text-green-400 text-center mt-6">
+              <div className="text-xs text-slate-400 text-center mt-6">
                 «Наша Семья» · Предложение покупателю · Март 2026 · Строго конфиденциально
               </div>
             </div>
