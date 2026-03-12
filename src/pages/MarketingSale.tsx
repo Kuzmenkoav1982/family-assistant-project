@@ -1528,92 +1528,9 @@ export default function MarketingSale() {
               </div>
             </div>
 
-            {/* СЛАЙД 7 — TERM SHEET */}
-            <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-3">07 · Term Sheet</div>
-              <h3 className="text-3xl font-black mb-2">Соглашение об основных условиях сделки</h3>
-              <p className="text-slate-400 mb-6">
-                Term Sheet (термшит) — документ, фиксирующий ключевые договорённости сторон до подписания основного договора. 
-                Позволяет убедиться, что продавец и покупатель одинаково понимают параметры сделки
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white/10 rounded-xl p-6">
-                  <div className="text-xs text-violet-300 font-semibold uppercase mb-3">Что фиксируется в Term Sheet</div>
-                  <div className="space-y-3">
-                    {[
-                      { num: '1', title: 'Стороны и предмет сделки', desc: 'Продавец (ИП), покупатель, состав передаваемых активов (ИС, код, домен, каналы, бот, данные)' },
-                      { num: '2', title: 'Стоимость и порядок оплаты', desc: 'Согласованная цена, график платежей, валюта, условия корректировки цены (если применимо)' },
-                      { num: '3', title: 'Формат сделки', desc: 'Прямая продажа от ИП / через ООО / под ключ с сопровождением — выбранный вариант' },
-                      { num: '4', title: 'Due Diligence', desc: 'Срок и объём проверки: технический аудит кода, юридическая проверка прав на ИС, финансовый анализ' },
-                      { num: '5', title: 'Переходный период', desc: 'Срок сопровождения автором (1-3 мес), объём работ, обучение команды, доработка ПО' },
-                      { num: '6', title: 'Гарантии и ограничения', desc: 'Соглашение о неконкуренции, гарантийный период на баги, NDA, ответственность сторон' },
-                      { num: '7', title: 'Сроки и условия закрытия', desc: 'Дедлайн подписания основного договора, отлагательные условия, порядок передачи активов' },
-                      { num: '8', title: 'Эксклюзивность', desc: 'Запрет на ведение переговоров с другими покупателями на период действия Term Sheet' },
-                    ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start">
-                        <div className="bg-violet-500/30 text-violet-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">{item.num}</div>
-                        <div>
-                          <div className="font-bold text-sm text-white">{item.title}</div>
-                          <div className="text-xs text-slate-400">{item.desc}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white/10 rounded-xl p-6">
-                    <div className="text-xs text-emerald-300 font-semibold uppercase mb-3">Зачем нужен Term Sheet</div>
-                    <div className="space-y-2.5">
-                      {[
-                        'Экономит время и деньги обеих сторон — все ключевые вопросы решаются до подготовки основных документов',
-                        'Снижает риск срыва сделки — стороны заранее согласовывают все спорные моменты',
-                        'Упрощает работу юристов — Term Sheet становится основой для основного договора',
-                        'Фиксирует серьёзность намерений — обе стороны подтверждают готовность к сделке',
-                        'Защищает продавца — эксклюзивность гарантирует, что покупатель не ведёт параллельные переговоры',
-                      ].map((b, i) => (
-                        <div key={i} className="flex gap-2 text-sm text-slate-300">
-                          <span className="text-emerald-400 flex-shrink-0">✓</span>
-                          <span>{b}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-white/10 rounded-xl p-6">
-                    <div className="text-xs text-amber-300 font-semibold uppercase mb-3">Юридический статус</div>
-                    <p className="text-sm text-slate-300 leading-relaxed mb-3">
-                      Term Sheet — это «джентльменское соглашение». Как правило, не является юридически обязывающим документом,
-                      но фиксирует намерения сторон и дисциплинирует переговорный процесс.
-                    </p>
-                    <div className="space-y-2">
-                      {[
-                        { label: 'Необязывающие пункты', desc: 'Цена, структура, сроки — могут уточняться при подготовке основного договора' },
-                        { label: 'Обязывающие пункты', desc: 'NDA, эксклюзивность, распределение расходов — как правило, имеют юридическую силу' },
-                      ].map((p, i) => (
-                        <div key={i} className="bg-white/5 rounded-lg p-3">
-                          <div className="font-bold text-xs text-amber-300 mb-0.5">{p.label}</div>
-                          <div className="text-xs text-slate-400">{p.desc}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4 text-center">
-                <div className="text-sm text-slate-300">
-                  Типичный объём документа: <span className="font-bold text-white">3–5 страниц</span>. 
-                  Срок согласования: <span className="font-bold text-white">3–7 дней</span>. 
-                  Рекомендуется привлечение юриста обеих сторон.
-                </div>
-              </div>
-            </div>
-
-            {/* СЛАЙД 8 — СЛЕДУЮЩИЕ ШАГИ */}
+            {/* СЛАЙД 7 — СЛЕДУЮЩИЕ ШАГИ */}
             <div className="rounded-2xl bg-gradient-to-br from-green-900 to-emerald-900 text-white p-10">
-              <div className="text-xs font-semibold tracking-widest text-green-300 uppercase mb-3">08 · Следующие шаги</div>
+              <div className="text-xs font-semibold tracking-widest text-green-300 uppercase mb-3">07 · Следующие шаги</div>
               <h3 className="text-3xl font-black mb-2 text-center">Путь от первого контакта до закрытия сделки</h3>
               <p className="text-green-200 mb-8 text-center">Прозрачный процесс из 6 этапов — каждый шаг согласовывается с покупателем</p>
 
