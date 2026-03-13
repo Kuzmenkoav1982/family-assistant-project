@@ -13,11 +13,11 @@ export default function WelcomeVideo() {
 
         <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video">
           <iframe
-            src="https://vk.com/video_ext.php?oid=-235504794&id=456239017&hd=2"
+            src="https://rutube.ru/play/embed/107d70091a1da69108300a906a38471b/"
             width="100%"
             height="100%"
             frameBorder="0"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock"
+            allow="clipboard-write; autoplay"
             allowFullScreen
             className="absolute inset-0 w-full h-full"
           />
