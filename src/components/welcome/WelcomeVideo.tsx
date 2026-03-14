@@ -1,4 +1,45 @@
+import { useEffect, useRef } from 'react';
+
+const WELCOME_API = 'https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22';
+
+function getSessionId() {
+  let sid = sessionStorage.getItem('welcome_sid');
+  if (!sid) {
+    sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    sessionStorage.setItem('welcome_sid', sid);
+  }
+  return sid;
+}
+
 export default function WelcomeVideo() {
+  const videoRef = useRef<HTMLDivElement>(null);
+  const tracked = useRef(false);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !tracked.current) {
+          tracked.current = true;
+          fetch(WELCOME_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'track_video_view',
+              session_id: getSessionId(),
+              user_agent: navigator.userAgent,
+            }),
+          }).catch(() => {});
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    observer.observe(videoRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="py-16 sm:py-24 bg-gradient-to-b from-white to-orange-50/30">
       <div className="max-w-4xl mx-auto px-4">
@@ -11,7 +52,10 @@ export default function WelcomeVideo() {
           </p>
         </div>
 
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video">
+        <div
+          ref={videoRef}
+          className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video"
+        >
           <iframe
             src="https://rutube.ru/play/embed/e8451f5f3b3abb6b493c972d787602a8/"
             width="100%"

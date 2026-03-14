@@ -15,6 +15,19 @@
       }
     },
     {
+      "name": "Track video view",
+      "method": "POST",
+      "body": {
+        "action": "track_video_view",
+        "session_id": "test_session_video_456",
+        "user_agent": "Mozilla/5.0 Test"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    },
+    {
       "name": "Track section click",
       "method": "POST",
       "body": {
@@ -36,6 +49,7 @@
       "expectedStatus": 200,
       "expectedBody": {
         "page_views": "object",
+        "video_views": "object",
         "total": "array",
         "today": "array",
         "week": "array",

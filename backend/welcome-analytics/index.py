@@ -76,6 +76,41 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'success': True})
                 }
             
+            elif action == 'track_video_view':
+                session_id = body.get('session_id')
+                user_agent = body.get('user_agent', '')
+                
+                cursor.execute(f'''
+                    SELECT COUNT(*) FROM {schema}.welcome_video_views
+                    WHERE session_id = %s 
+                    AND viewed_at > %s
+                ''', (session_id, datetime.utcnow() - timedelta(minutes=30)))
+                
+                if cursor.fetchone()[0] > 0:
+                    cursor.close()
+                    conn.close()
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'success': True, 'duplicate': True})
+                    }
+                
+                cursor.execute(f'''
+                    INSERT INTO {schema}.welcome_video_views 
+                    (session_id, user_agent, viewed_at)
+                    VALUES (%s, %s, %s)
+                ''', (session_id, user_agent, datetime.utcnow()))
+                
+                conn.commit()
+                cursor.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'success': True})
+                }
+            
             elif action == 'track_click':
                 section_index = body.get('section_index')
                 section_title = body.get('section_title')
@@ -246,6 +281,43 @@ def handler(event: dict, context) -> dict:
                         'sessions': row[3]
                     })
                 
+                cursor.execute(f'''
+                    SELECT 
+                        COUNT(*) as total_views,
+                        COUNT(DISTINCT session_id) as unique_sessions
+                    FROM {schema}.welcome_video_views
+                ''')
+                vt = cursor.fetchone()
+                video_total = vt[0] if vt else 0
+                video_unique = vt[1] if vt else 0
+                
+                cursor.execute(f'''
+                    SELECT COUNT(*), COUNT(DISTINCT session_id)
+                    FROM {schema}.welcome_video_views
+                    WHERE viewed_at >= %s
+                ''', (today_start,))
+                vd = cursor.fetchone()
+                video_today = vd[0] if vd else 0
+                video_today_sessions = vd[1] if vd else 0
+                
+                cursor.execute(f'''
+                    SELECT COUNT(*), COUNT(DISTINCT session_id)
+                    FROM {schema}.welcome_video_views
+                    WHERE viewed_at >= %s
+                ''', (week_start,))
+                vw = cursor.fetchone()
+                video_week = vw[0] if vw else 0
+                video_week_sessions = vw[1] if vw else 0
+                
+                cursor.execute(f'''
+                    SELECT COUNT(*), COUNT(DISTINCT session_id)
+                    FROM {schema}.welcome_video_views
+                    WHERE viewed_at >= %s
+                ''', (month_start,))
+                vm = cursor.fetchone()
+                video_month = vm[0] if vm else 0
+                video_month_sessions = vm[1] if vm else 0
+                
                 cursor.close()
                 conn.close()
                 
@@ -259,6 +331,16 @@ def handler(event: dict, context) -> dict:
                             'today': today_page_views,
                             'week': week_page_views,
                             'month': month_page_views
+                        },
+                        'video_views': {
+                            'total': video_total,
+                            'unique_sessions': video_unique,
+                            'today': video_today,
+                            'today_sessions': video_today_sessions,
+                            'week': video_week,
+                            'week_sessions': video_week_sessions,
+                            'month': video_month,
+                            'month_sessions': video_month_sessions
                         },
                         'total': total_stats,
                         'today': today_stats,

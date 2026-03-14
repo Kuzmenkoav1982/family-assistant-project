@@ -22,8 +22,20 @@ interface PageViewsStats {
   month: number;
 }
 
+interface VideoViewsStats {
+  total: number;
+  unique_sessions: number;
+  today: number;
+  today_sessions: number;
+  week: number;
+  week_sessions: number;
+  month: number;
+  month_sessions: number;
+}
+
 interface AnalyticsData {
   page_views?: PageViewsStats;
+  video_views?: VideoViewsStats;
   total: SectionStats[];
   today: SectionStats[];
   week: SectionStats[];
@@ -203,17 +215,17 @@ export default function AdminWelcomeAnalytics() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-900">
                 <Icon name="Eye" size={24} />
                 Просмотры страницы
               </CardTitle>
-              <CardDescription>Сколько раз открывали /welcome (как Яндекс.Метрика)</CardDescription>
+              <CardDescription>Сколько раз открывали /welcome</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-2xl font-bold text-blue-600">{stats.page_views?.today || 0}</div>
                   <p className="text-xs text-gray-600">Сегодня</p>
@@ -231,6 +243,44 @@ export default function AdminWelcomeAnalytics() {
                   <p className="text-xs text-gray-600">Всего</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-900">
+                <Icon name="Play" size={24} />
+                Просмотры видео
+              </CardTitle>
+              <CardDescription>Доскроллили до видео и увидели плеер</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-2xl font-bold text-red-600">{stats.video_views?.today || 0}</div>
+                  <p className="text-xs text-gray-600">Сегодня</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-red-600">{stats.video_views?.week || 0}</div>
+                  <p className="text-xs text-gray-600">За неделю</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-red-600">{stats.video_views?.month || 0}</div>
+                  <p className="text-xs text-gray-600">За месяц</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-red-600">{stats.video_views?.total || 0}</div>
+                  <p className="text-xs text-gray-600">Всего</p>
+                </div>
+              </div>
+              {stats.page_views?.total && stats.video_views?.total ? (
+                <div className="mt-4 pt-4 border-t border-red-100">
+                  <div className="text-lg font-bold text-red-600">
+                    {((stats.video_views.total / stats.page_views.total) * 100).toFixed(1)}%
+                  </div>
+                  <p className="text-xs text-gray-600">доскроллили до видео</p>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
