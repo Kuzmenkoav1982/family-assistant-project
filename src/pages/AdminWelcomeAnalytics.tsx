@@ -14,7 +14,16 @@ interface VideoViewsStats {
   month_sessions: number;
 }
 
+interface PageViewsStats {
+  total: number;
+  unique_sessions: number;
+  today: number;
+  week: number;
+  month: number;
+}
+
 interface AnalyticsData {
+  page_views?: PageViewsStats;
   video_views?: VideoViewsStats;
 }
 
@@ -65,6 +74,11 @@ export default function AdminWelcomeAnalytics() {
   }
 
   const video = stats.video_views;
+  const page = stats.page_views;
+
+  const videoRate = page?.total && video?.total
+    ? ((video.total / page.total) * 100).toFixed(1)
+    : '0';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-6">
@@ -81,6 +95,42 @@ export default function AdminWelcomeAnalytics() {
             Назад
           </Button>
         </div>
+
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <Icon name="Eye" size={24} />
+              Просмотры страницы
+            </CardTitle>
+            <CardDescription>
+              Каждый заход на /welcome. Дедупликация: 1 просмотр на сессию за 30 минут.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <div className="text-3xl font-bold text-blue-600">{page?.today || 0}</div>
+                <p className="text-sm text-gray-600 mt-1">Сегодня</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-blue-600">{page?.week || 0}</div>
+                <p className="text-sm text-gray-600 mt-1">За неделю</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-blue-600">{page?.month || 0}</div>
+                <p className="text-sm text-gray-600 mt-1">За месяц</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-blue-600">{page?.total || 0}</div>
+                <p className="text-sm text-gray-600 mt-1">Всего</p>
+              </div>
+            </div>
+            <div className="mt-6 pt-6 border-t border-blue-100">
+              <div className="text-2xl font-bold text-indigo-600">{page?.unique_sessions || 0}</div>
+              <p className="text-xs text-gray-500">Уникальных сессий за всё время</p>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-orange-50">
           <CardHeader>
@@ -112,22 +162,14 @@ export default function AdminWelcomeAnalytics() {
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-red-100 grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div>
-                <div className="text-2xl font-bold text-orange-600">{video?.today_sessions || 0}</div>
-                <p className="text-xs text-gray-500">Уник. сессий сегодня</p>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">{video?.week_sessions || 0}</div>
-                <p className="text-xs text-gray-500">Уник. сессий за неделю</p>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">{video?.month_sessions || 0}</div>
-                <p className="text-xs text-gray-500">Уник. сессий за месяц</p>
-              </div>
+            <div className="mt-6 pt-6 border-t border-red-100 flex items-center gap-8">
               <div>
                 <div className="text-2xl font-bold text-orange-600">{video?.unique_sessions || 0}</div>
-                <p className="text-xs text-gray-500">Уник. сессий всего</p>
+                <p className="text-xs text-gray-500">Уникальных сессий</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">{videoRate}%</div>
+                <p className="text-xs text-gray-500">Доскроллили до видео</p>
               </div>
             </div>
           </CardContent>

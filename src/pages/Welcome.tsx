@@ -20,6 +20,22 @@ export default function Welcome() {
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     setIsLoggedIn(!!token);
+
+    let sid = sessionStorage.getItem('welcome_sid');
+    if (!sid) {
+      sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      sessionStorage.setItem('welcome_sid', sid);
+    }
+    fetch('https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'track_page_view',
+        page: 'welcome',
+        session_id: sid,
+        user_agent: navigator.userAgent,
+      }),
+    }).catch(() => {});
   }, []);
 
   return (
