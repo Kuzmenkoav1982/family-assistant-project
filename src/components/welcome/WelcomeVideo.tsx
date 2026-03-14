@@ -13,7 +13,7 @@ export default function WelcomeVideo() {
 
         <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video">
           <iframe
-            src="https://rutube.ru/play/embed/107d70091a1da69108300a906a38471b/"
+            src="https://rutube.ru/play/embed/e8451f5f3b3abb6b493c972d787602a8/"
             width="100%"
             height="100%"
             frameBorder="0"
