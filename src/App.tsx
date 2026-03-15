@@ -22,6 +22,7 @@ import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { medicationNotificationService } from "@/services/medicationNotifications";
+import CookieConsent from "@/components/CookieConsent";
 
 const Index = lazy(() => import("./pages/Index"));
 const Instructions = lazy(() => import("./pages/Instructions"));
@@ -378,6 +379,7 @@ const App = () => {
           </DialogLockProvider>
         </DemoModeProvider>
       </AuthProvider>
+      <CookieConsent />
     </QueryClientProvider>
   );
 };
