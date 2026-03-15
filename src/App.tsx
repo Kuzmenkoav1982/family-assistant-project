@@ -372,6 +372,7 @@ const App = () => {
                     </Routes>
                     </Suspense>
                     </PageWrapper>
+                    <CookieConsent />
                   </BrowserRouter>
                 </TooltipProvider>
               </AIAssistantProvider>
@@ -379,7 +380,6 @@ const App = () => {
           </DialogLockProvider>
         </DemoModeProvider>
       </AuthProvider>
-      <CookieConsent />
     </QueryClientProvider>
   );
 };
