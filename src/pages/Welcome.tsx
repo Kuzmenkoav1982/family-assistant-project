@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEOHead from '@/components/SEOHead';
 import WelcomeHeader from '@/components/welcome/WelcomeHeader';
 import WelcomeHero from '@/components/welcome/WelcomeHero';
 import WelcomeForWhom from '@/components/welcome/WelcomeForWhom';
@@ -40,6 +41,11 @@ export default function Welcome() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title="Семейный органайзер"
+        description="Наша Семья — платформа для управления семьёй. Профили, дети, здоровье, питание, планирование, финансы, ИИ-помощники и семейный маячок. Бесплатно."
+        path="/welcome"
+      />
       <WelcomeHeader isLoggedIn={isLoggedIn} />
 
       <WelcomeHero isLoggedIn={isLoggedIn} />

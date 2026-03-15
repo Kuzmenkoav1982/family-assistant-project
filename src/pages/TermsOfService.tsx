@@ -1,12 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
+import SEOHead from '@/components/SEOHead';
 
 export default function TermsOfService() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4">
+      <SEOHead
+        title="Пользовательское соглашение"
+        description="Пользовательское соглашение платформы «Наша Семья». Условия использования сервиса."
+        path="/terms-of-service"
+      />
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 md:p-12">
         <Button
           onClick={() => navigate(-1)}

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
+import SEOHead from '@/components/SEOHead';
 
 const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 const RATE_LIMITER_URL = 'https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-4702c42ac121';
@@ -190,6 +191,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 flex items-center justify-center p-4">
+      <SEOHead title="Регистрация" description="Создайте бесплатный аккаунт в «Наша Семья» — платформе для управления семейной жизнью." path="/register" />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

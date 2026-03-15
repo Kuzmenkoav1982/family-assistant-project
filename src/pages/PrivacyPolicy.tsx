@@ -1,12 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
+import SEOHead from '@/components/SEOHead';
 
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
+      <SEOHead
+        title="Политика конфиденциальности"
+        description="Политика конфиденциальности платформы «Наша Семья». Как мы собираем, храним и защищаем ваши персональные данные."
+        path="/privacy-policy"
+      />
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 md:p-12">
         <Button
           onClick={() => navigate(-1)}

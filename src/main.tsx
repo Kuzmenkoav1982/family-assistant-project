@@ -1,12 +1,17 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
 import './index.css'
 import { initWebVitals } from './utils/webVitals'
 
 initWebVitals();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>
+);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

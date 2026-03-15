@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -397,6 +398,11 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
+      <SEOHead
+        title="Тарифы"
+        description="Тарифы платформы «Наша Семья». Бесплатный план и подписка с расширенными возможностями для всей семьи."
+        path="/pricing"
+      />
       <div className="container mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <Button 

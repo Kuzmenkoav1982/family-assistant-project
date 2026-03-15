@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { storage } from '@/lib/storage';
+import SEOHead from '@/components/SEOHead';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 const RATE_LIMITER_URL = 'https://functions.poehali.dev/23dfd616-ea1a-480a-8c72-4702c42ac121';
@@ -197,6 +198,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <SEOHead title="Вход" description="Войдите в платформу «Наша Семья» через email или Яндекс ID." path="/login" />
       <Card className="max-w-md w-full shadow-2xl border-2 border-purple-200">
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
