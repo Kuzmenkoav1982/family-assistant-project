@@ -144,22 +144,20 @@ export function MemberProfileContent({
 
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
-            <TabsTrigger value="overview">Общее</TabsTrigger>
-            <TabsTrigger value="dreams">Мечты</TabsTrigger>
-            <TabsTrigger value="piggybank">Копилка</TabsTrigger>
-            <TabsTrigger value="edit">Редактировать</TabsTrigger>
-            <TabsTrigger value="questionnaire">Анкета</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-gray-100 p-1 rounded-xl">
+            <TabsTrigger value="overview" className="flex-1 min-w-[80px] rounded-lg">Общее</TabsTrigger>
+            <TabsTrigger value="dreams" className="flex-1 min-w-[80px] rounded-lg">Мечты</TabsTrigger>
+            <TabsTrigger value="piggybank" className="flex-1 min-w-[80px] rounded-lg">Копилка</TabsTrigger>
+            <TabsTrigger value="edit" className="flex-1 min-w-[80px] rounded-lg">Редактировать</TabsTrigger>
+            <TabsTrigger value="questionnaire" className="flex-1 min-w-[80px] rounded-lg">Анкета</TabsTrigger>
+            <button
+              onClick={handleCalendarClick}
+              className="flex-1 min-w-[80px] rounded-lg flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
+            >
+              <Icon name="Calendar" size={15} />
+              Календарь
+            </button>
           </TabsList>
-
-          <Button 
-            onClick={handleCalendarClick}
-            variant="outline" 
-            className="mt-6 sm:mt-8 w-full"
-          >
-            <Icon name="Calendar" className="mr-2" size={18} />
-            Открыть календарь
-          </Button>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div>
