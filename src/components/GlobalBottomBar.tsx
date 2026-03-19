@@ -61,8 +61,7 @@ export default function GlobalBottomBar() {
                       : 'text-white/75 hover:text-white hover:bg-white/15'
                   }`}
                 >
-                  <Icon name={item.icon} size={20} />
-                  <span className="text-[9px] leading-none font-medium">{item.label}</span>
+                  <Icon name={item.icon} size={22} />
                 </button>
               );
             })}
