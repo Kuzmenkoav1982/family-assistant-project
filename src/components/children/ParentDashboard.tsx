@@ -37,7 +37,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
 
 
 
-  const addItem = useCallback(async (type: string, itemData: any) => {
+  const addItem = useCallback(async (type: string, itemData: Record<string, unknown>) => {
     return mutation.mutateAsync({
       action: 'add',
       child_id: child.id,
@@ -46,7 +46,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
     });
   }, [mutation, child.id]);
 
-  const updateItem = useCallback(async (type: string, itemId: string, itemData: any) => {
+  const updateItem = useCallback(async (type: string, itemId: string, itemData: Record<string, unknown>) => {
     return mutation.mutateAsync({
       action: 'update',
       child_id: child.id,
@@ -231,20 +231,20 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
       <AssessmentsArchive child={child} onPlanDeleted={fetchChildData} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full">
-          <TabsTrigger value="overview" className="gap-2">
+        <TabsList className="grid grid-cols-4 h-auto w-full gap-1 bg-gray-100 p-1.5 rounded-xl">
+          <TabsTrigger value="overview" className="gap-1.5 flex-col rounded-lg py-2.5 text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Icon name="LayoutDashboard" size={16} />
             Обзор
           </TabsTrigger>
-          <TabsTrigger value="health" className="gap-2">
+          <TabsTrigger value="health" className="gap-1.5 flex-col rounded-lg py-2.5 text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Icon name="Heart" size={16} />
             Здоровье
           </TabsTrigger>
-          <TabsTrigger value="development" className="gap-2">
+          <TabsTrigger value="development" className="gap-1.5 flex-col rounded-lg py-2.5 text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Icon name="TrendingUp" size={16} />
             Развитие
           </TabsTrigger>
-          <TabsTrigger value="gifts" className="gap-2">
+          <TabsTrigger value="gifts" className="gap-1.5 flex-col rounded-lg py-2.5 text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Icon name="Gift" size={16} />
             Подарки
           </TabsTrigger>

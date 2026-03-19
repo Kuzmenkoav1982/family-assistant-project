@@ -18,7 +18,7 @@ interface ChildProfileProps {
     name: string;
     avatar: string;
     piggyBank?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -196,29 +196,29 @@ export function ChildProfile({ child }: ChildProfileProps) {
 
   return (
     <Tabs defaultValue="home" className="space-y-6">
-      <TabsList className="grid grid-cols-5 w-full">
-        <TabsTrigger value="home" className="gap-2">
-          <Icon name="Home" size={16} />
+      <TabsList className="grid grid-cols-3 grid-rows-2 h-auto w-full gap-1 bg-gray-100 p-1.5 rounded-xl">
+        <TabsTrigger value="home" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Icon name="Home" size={15} />
           Главная
         </TabsTrigger>
-        <TabsTrigger value="diary" className="gap-2">
-          <Icon name="Heart" size={16} />
+        <TabsTrigger value="diary" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Icon name="BookOpen" size={15} />
           Дневник
         </TabsTrigger>
-        <TabsTrigger value="achievements" className="gap-2">
-          <Icon name="Award" size={16} />
+        <TabsTrigger value="achievements" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Icon name="Award" size={15} />
           Достижения
         </TabsTrigger>
-        <TabsTrigger value="shop" className="gap-2">
-          <Icon name="ShoppingCart" size={16} />
+        <TabsTrigger value="shop" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Icon name="ShoppingCart" size={15} />
           Магазин
         </TabsTrigger>
-        <TabsTrigger value="money" className="gap-2">
-          <Icon name="Wallet" size={16} />
+        <TabsTrigger value="money" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Icon name="Wallet" size={15} />
           Копилка
         </TabsTrigger>
-        <TabsTrigger value="calendar" className="gap-2">
-          <Icon name="Calendar" size={16} />
+        <TabsTrigger value="calendar" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <Icon name="Calendar" size={15} />
           Календарь
         </TabsTrigger>
       </TabsList>
