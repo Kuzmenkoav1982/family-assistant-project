@@ -151,13 +151,13 @@ export function MemberProfileContent({
               <TabsTrigger value="piggybank" className="flex-1 rounded-lg">Копилка</TabsTrigger>
             </div>
             <div className="flex w-full gap-1">
-              <TabsTrigger value="edit" className="flex-1 rounded-lg">Редактировать</TabsTrigger>
-              <TabsTrigger value="questionnaire" className="flex-1 rounded-lg">Анкета</TabsTrigger>
+              <TabsTrigger value="edit" className="flex-1 rounded-lg text-xs px-1">Редактировать</TabsTrigger>
+              <TabsTrigger value="questionnaire" className="flex-1 rounded-lg text-xs px-1">Анкета</TabsTrigger>
               <button
                 onClick={handleCalendarClick}
-                className="flex-1 rounded-lg flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
+                className="flex-1 rounded-lg flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
               >
-                <Icon name="Calendar" size={15} />
+                <Icon name="Calendar" size={14} />
                 Календарь
               </button>
             </div>
