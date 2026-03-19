@@ -44,24 +44,26 @@ export default function GlobalBottomBar() {
           isVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="max-w-screen-2xl mx-auto px-4 py-2">
-          <div className="flex items-center gap-2 flex-1 justify-center overflow-x-auto scrollbar-hide">
+        <div className="w-full py-1 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center justify-between min-w-max mx-auto px-2 gap-0.5 sm:gap-1 sm:justify-center sm:min-w-0">
             {NAV_ITEMS.map(item => {
               const isActive = currentPath === item.path || 
                 (item.path !== '/' && currentPath.startsWith(item.path));
 
               return (
-                <Button
+                <button
                   key={item.path}
-                  variant={isActive ? 'secondary' : 'ghost'}
-                  size="sm"
                   onClick={() => navigate(item.path)}
-                  className={`whitespace-nowrap ${isActive ? '' : 'text-white hover:bg-white/20'}`}
                   title={item.label}
+                  className={`flex flex-col items-center justify-center gap-0.5 w-10 h-12 rounded-lg flex-shrink-0 transition-colors ${
+                    isActive
+                      ? 'bg-white/25 text-white'
+                      : 'text-white/75 hover:text-white hover:bg-white/15'
+                  }`}
                 >
-                  <Icon name={item.icon} size={18} />
-                  <span className="ml-1 text-xs hidden sm:inline">{item.label}</span>
-                </Button>
+                  <Icon name={item.icon} size={20} />
+                  <span className="text-[9px] leading-none font-medium">{item.label}</span>
+                </button>
               );
             })}
           </div>
@@ -71,7 +73,7 @@ export default function GlobalBottomBar() {
       <button
         onClick={() => setIsVisible(!isVisible)}
         className={`fixed left-1/2 -translate-x-1/2 z-40 bg-white/90 hover:bg-white shadow-md rounded-t-lg px-4 py-1.5 transition-all duration-300 ${
-          isVisible ? 'bottom-[48px]' : 'bottom-0'
+          isVisible ? 'bottom-[56px]' : 'bottom-0'
         }`}
       >
         <Icon
