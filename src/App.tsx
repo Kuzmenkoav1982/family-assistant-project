@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Welcome from "./pages/Welcome";
-import NotFound from "./pages/NotFound";
+import NotFound404 from "./pages/NotFound404";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import GlobalTopBar from "@/components/GlobalTopBar";
 import GlobalSidebar from "@/components/GlobalSidebar";
@@ -368,7 +368,7 @@ const App = () => {
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
                       <Route path="/diet" element={<Navigate to="/nutrition/diet" replace />} />
                       
-                      <Route path="*" element={<NotFound />} />
+                      <Route path="*" element={<NotFound404 />} />
                     </Routes>
                     </Suspense>
                     </PageWrapper>
