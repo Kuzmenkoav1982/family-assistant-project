@@ -144,19 +144,23 @@ export function MemberProfileContent({
 
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-gray-100 p-1 rounded-xl">
-            <TabsTrigger value="overview" className="flex-1 min-w-[80px] rounded-lg">Общее</TabsTrigger>
-            <TabsTrigger value="dreams" className="flex-1 min-w-[80px] rounded-lg">Мечты</TabsTrigger>
-            <TabsTrigger value="piggybank" className="flex-1 min-w-[80px] rounded-lg">Копилка</TabsTrigger>
-            <TabsTrigger value="edit" className="flex-1 min-w-[80px] rounded-lg">Редактировать</TabsTrigger>
-            <TabsTrigger value="questionnaire" className="flex-1 min-w-[80px] rounded-lg">Анкета</TabsTrigger>
-            <button
-              onClick={handleCalendarClick}
-              className="flex-1 min-w-[80px] rounded-lg flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
-            >
-              <Icon name="Calendar" size={15} />
-              Календарь
-            </button>
+          <TabsList className="flex flex-col h-auto gap-1 w-full bg-gray-100 p-1 rounded-xl">
+            <div className="flex w-full gap-1">
+              <TabsTrigger value="overview" className="flex-1 rounded-lg">Общее</TabsTrigger>
+              <TabsTrigger value="dreams" className="flex-1 rounded-lg">Мечты</TabsTrigger>
+              <TabsTrigger value="piggybank" className="flex-1 rounded-lg">Копилка</TabsTrigger>
+            </div>
+            <div className="flex w-full gap-1">
+              <TabsTrigger value="edit" className="flex-1 rounded-lg">Редактировать</TabsTrigger>
+              <TabsTrigger value="questionnaire" className="flex-1 rounded-lg">Анкета</TabsTrigger>
+              <button
+                onClick={handleCalendarClick}
+                className="flex-1 rounded-lg flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
+              >
+                <Icon name="Calendar" size={15} />
+                Календарь
+              </button>
+            </div>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
