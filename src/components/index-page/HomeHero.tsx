@@ -15,13 +15,17 @@ const DEFAULT_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4
 
 export default function HomeHero({ familyName, familyLogo, familyBanner, syncing }: HomeHeroProps) {
   const bannerSrc = familyBanner || DEFAULT_BG;
+  const bannerPosition = familyBanner
+    ? (localStorage.getItem('familyBannerPosition') || '50% 50%')
+    : 'center';
 
   return (
     <div className="relative -mx-4 mb-4 rounded-b-2xl overflow-hidden">
       <img
         src={bannerSrc}
         alt={familyName}
-        className="w-full h-56 sm:h-64 object-cover object-center"
+        className="w-full h-56 sm:h-64 object-cover"
+        style={{ objectPosition: bannerPosition }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 

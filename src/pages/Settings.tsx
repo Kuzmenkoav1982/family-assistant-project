@@ -16,6 +16,7 @@ import { CalendarExport } from '@/components/CalendarExport';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useTasks } from '@/hooks/useTasks';
 import { ImageCropDialog } from '@/components/ImageCropDialog';
+import { BannerPositioner } from '@/components/BannerPositioner';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -29,6 +30,11 @@ export default function Settings() {
   const [familyBanner, setFamilyBanner] = useState(() => {
     return localStorage.getItem('familyBanner') || '';
   });
+  const [bannerPosition, setBannerPosition] = useState(() => {
+    return localStorage.getItem('familyBannerPosition') || '50% 50%';
+  });
+  const [bannerRawSrc, setBannerRawSrc] = useState('');
+  const [showBannerPositioner, setShowBannerPositioner] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -67,14 +73,27 @@ export default function Settings() {
   const handleBannerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
-      setBannerFileBase64(base64);
-      setFamilyBanner(base64);
+      setBannerRawSrc(base64);
+      setShowBannerPositioner(true);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleBannerConfirm = () => {
+    setBannerFileBase64(bannerRawSrc);
+    setFamilyBanner(bannerRawSrc);
+    localStorage.setItem('familyBannerPosition', bannerPosition);
+    setShowBannerPositioner(false);
+  };
+
+  const handleBannerCancel = () => {
+    setBannerRawSrc('');
+    setShowBannerPositioner(false);
   };
 
   const handleCropComplete = (croppedBase64: string) => {
@@ -119,6 +138,7 @@ export default function Settings() {
         }
         if (data.family?.banner_url) {
           localStorage.setItem('familyBanner', data.family.banner_url);
+          localStorage.setItem('familyBannerPosition', bannerPosition);
           setFamilyBanner(data.family.banner_url);
         }
         
@@ -373,52 +393,82 @@ export default function Settings() {
 
                       <div>
                         <Label>Баннер главной страницы</Label>
-                        <p className="text-xs text-muted-foreground mb-2">Горизонтальное фото семьи, отображается вверху главного экрана</p>
+                        <p className="text-xs text-muted-foreground mb-3">Горизонтальное фото семьи, отображается вверху главного экрана</p>
                         <div className="flex flex-col gap-3">
-                          <div className="w-full h-32 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-50 flex items-center justify-center">
-                            {familyBanner ? (
-                              <img src={familyBanner} alt="Family banner" className="w-full h-full object-cover object-center" />
-                            ) : (
-                              <div className="flex flex-col items-center gap-1 text-gray-400">
-                                <Icon name="Image" size={28} />
-                                <span className="text-xs">Баннер не загружен</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleBannerSelect}
-                              className="hidden"
-                              id="bannerUpload"
+                          {showBannerPositioner && bannerRawSrc ? (
+                            <BannerPositioner
+                              imageSrc={bannerRawSrc}
+                              onPositionChange={setBannerPosition}
+                              onConfirm={handleBannerConfirm}
+                              onCancel={handleBannerCancel}
                             />
-                            <label htmlFor="bannerUpload">
-                              <Button variant="outline" className="cursor-pointer" asChild>
-                                <span>
-                                  <Icon name="Upload" size={16} className="mr-2" />
-                                  Загрузить баннер
-                                </span>
-                              </Button>
-                            </label>
-                            {familyBanner && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-600"
-                                onClick={() => {
-                                  setFamilyBanner('');
-                                  setBannerFileBase64('');
-                                }}
-                              >
-                                <Icon name="Trash2" size={14} className="mr-1" />
-                                Сбросить
-                              </Button>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Рекомендуется горизонтальное фото (16:9). Все члены семьи должны быть видны.
-                          </p>
+                          ) : (
+                            <>
+                              <div className="w-full h-32 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-50 flex items-center justify-center">
+                                {familyBanner ? (
+                                  <img
+                                    src={familyBanner}
+                                    alt="Family banner"
+                                    className="w-full h-full object-cover"
+                                    style={{ objectPosition: bannerPosition }}
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center gap-1 text-gray-400">
+                                    <Icon name="Image" size={28} />
+                                    <span className="text-xs">Баннер не загружен</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleBannerSelect}
+                                  className="hidden"
+                                  id="bannerUpload"
+                                />
+                                <label htmlFor="bannerUpload">
+                                  <Button variant="outline" className="cursor-pointer" asChild>
+                                    <span>
+                                      <Icon name="Upload" size={16} className="mr-2" />
+                                      Загрузить баннер
+                                    </span>
+                                  </Button>
+                                </label>
+                                {familyBanner && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setBannerRawSrc(familyBanner);
+                                      setShowBannerPositioner(true);
+                                    }}
+                                  >
+                                    <Icon name="Move" size={14} className="mr-1" />
+                                    Изменить ракурс
+                                  </Button>
+                                )}
+                                {familyBanner && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-500 hover:text-red-600"
+                                    onClick={() => {
+                                      setFamilyBanner('');
+                                      setBannerFileBase64('');
+                                      setBannerPosition('50% 50%');
+                                    }}
+                                  >
+                                    <Icon name="Trash2" size={14} className="mr-1" />
+                                    Сбросить
+                                  </Button>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Рекомендуется горизонтальное фото (16:9). После загрузки можно настроить ракурс.
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
 
