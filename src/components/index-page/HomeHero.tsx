@@ -9,7 +9,7 @@ interface HomeHeroProps {
   syncing: boolean;
 }
 
-const DEFAULT_BG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/394bc3ee-c247-4349-b0e0-657e6c902d6f.jpg';
+const DEFAULT_BG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/569353b3-fbeb-4c15-8d69-c30f645cc3b1.png';
 const DEFAULT_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG';
 
 export default function HomeHero({ familyName, familyLogo, syncing }: HomeHeroProps) {
@@ -18,7 +18,7 @@ export default function HomeHero({ familyName, familyLogo, syncing }: HomeHeroPr
       <img
         src={DEFAULT_BG}
         alt={familyName}
-        className="w-full h-56 sm:h-64 object-cover"
+        className="w-full h-56 sm:h-64 object-cover object-center"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
