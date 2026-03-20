@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 interface FamilyMember {
   id: string;
@@ -49,6 +50,7 @@ function getToken() {
 
 export default function FamilyTracker() {
   const navigate = useNavigate();
+  const { isDemoMode, demoLocations, demoGeofences, demoTrackerMembers } = useDemoMode();
   const [map, setMap] = useState<any>(null);
   const [locations, setLocations] = useState<LocationData[]>([]);
   const [isTracking, setIsTracking] = useState(() => {
@@ -77,6 +79,10 @@ export default function FamilyTracker() {
   useEffect(() => { newZoneRadiusRef.current = newZoneRadius; }, [newZoneRadius]);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setFamilyMembers(demoTrackerMembers);
+      return;
+    }
     const loadMembers = async () => {
       try {
         const response = await fetch(MEMBERS_URL, {
@@ -86,7 +92,6 @@ export default function FamilyTracker() {
         if (response.ok) {
           const data = await response.json();
           const members = data.members || [];
-          console.log('[Tracker] Members loaded:', members.length, members.map((m: any) => ({ id: m.id, name: m.name, avatar_url: m.avatar_url })));
           setFamilyMembers(members);
         }
       } catch (err) {
@@ -94,7 +99,7 @@ export default function FamilyTracker() {
       }
     };
     loadMembers();
-  }, []);
+  }, [isDemoMode, demoTrackerMembers]);
 
   useEffect(() => {
     const initMap = async () => {
@@ -312,6 +317,13 @@ export default function FamilyTracker() {
   };
 
   const loadGeofences = useCallback(async () => {
+    if (isDemoMode) {
+      setGeofences(demoGeofences);
+      if (mapRef.current) {
+        demoGeofences.forEach((zone) => drawZoneOnMap(zone));
+      }
+      return;
+    }
     try {
       const response = await fetch(GEOFENCES_URL, {
         method: 'GET',
@@ -330,9 +342,41 @@ export default function FamilyTracker() {
     } catch (err) {
       console.error('[Tracker] Load geofences error:', err);
     }
+  }, [isDemoMode, demoGeofences]);
+
+  const renderMembersOnMap = useCallback((locs: LocationData[], members: FamilyMember[]) => {
+    const m = mapRef.current;
+    if (!m || members.length === 0) return;
+    locs.forEach((loc: LocationData) => {
+      const member = members.find(mem => mem.id === loc.memberId);
+      if (!member) return;
+      const avatarHtml = member.avatar_url
+        ? `<img src="${member.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'color: ${member.color}; font-size: 20px; font-weight: bold;\\'>${member.name.charAt(0)}</span>'" />`
+        : `<span style="color: ${member.color}; font-size: 20px; font-weight: bold;">${member.name.charAt(0)}</span>`;
+      // @ts-ignore
+      const IconLayout = window.ymaps.templateLayoutFactory.createClass(
+        `<div style="width: 50px; height: 50px; position: relative;">
+          <div style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid ${member.color}; overflow: hidden; background: ${member.color}20; position: absolute; top: 3px; left: 3px; display: flex; align-items: center; justify-content: center;">
+            ${avatarHtml}
+          </div>
+        </div>`
+      );
+      // @ts-ignore
+      const placemark = new window.ymaps.Placemark(
+        [loc.lat, loc.lng],
+        { balloonContent: `<strong>${member.name}</strong><br>${new Date(loc.timestamp).toLocaleString('ru-RU')}`, type: 'member-location' },
+        { iconLayout: IconLayout, iconShape: { type: 'Circle', coordinates: [25, 25], radius: 25 } }
+      );
+      m.geoObjects.add(placemark);
+    });
   }, []);
 
   const loadFamilyLocations = useCallback(async () => {
+    if (isDemoMode) {
+      setLocations(demoLocations);
+      renderMembersOnMap(demoLocations, membersRef.current);
+      return;
+    }
     try {
       const response = await fetch(TRACKER_URL, {
         method: 'GET',
@@ -341,8 +385,6 @@ export default function FamilyTracker() {
       if (response.ok) {
         const data = await response.json();
         const rawLocations = data.locations || [];
-        console.log('[Tracker] Raw locations:', rawLocations);
-
         const latestLocations: { [key: string]: LocationData } = {};
         rawLocations.forEach((loc: LocationData) => {
           if (!latestLocations[loc.memberId] ||
@@ -351,52 +393,13 @@ export default function FamilyTracker() {
           }
         });
         const filteredLocations = Object.values(latestLocations);
-        console.log('[Tracker] Filtered locations:', filteredLocations);
         setLocations(filteredLocations);
-
-        const m = mapRef.current;
-        const members = membersRef.current;
-        if (m && members.length > 0) {
-          filteredLocations.forEach((loc: LocationData) => {
-            const member = members.find(mem => mem.id === loc.memberId);
-            if (!member) {
-              console.log('[Tracker] No member match for memberId:', loc.memberId, 'Available:', members.map(m => m.id));
-              return;
-            }
-
-            const avatarHtml = member.avatar_url
-              ? `<img src="${member.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'color: ${member.color}; font-size: 20px; font-weight: bold;\\'>${member.name.charAt(0)}</span>'" />`
-              : `<span style="color: ${member.color}; font-size: 20px; font-weight: bold;">${member.name.charAt(0)}</span>`;
-
-            // @ts-ignore
-            const IconLayout = window.ymaps.templateLayoutFactory.createClass(
-              `<div style="width: 50px; height: 50px; position: relative;">
-                <div style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid ${member.color}; overflow: hidden; background: ${member.color}20; position: absolute; top: 3px; left: 3px; display: flex; align-items: center; justify-content: center;">
-                  ${avatarHtml}
-                </div>
-              </div>`
-            );
-
-            // @ts-ignore
-            const placemark = new window.ymaps.Placemark(
-              [loc.lat, loc.lng],
-              {
-                balloonContent: `<strong>${member.name}</strong><br>${new Date(loc.timestamp).toLocaleString('ru-RU')}`,
-                type: 'member-location'
-              },
-              {
-                iconLayout: IconLayout,
-                iconShape: { type: 'Circle', coordinates: [25, 25], radius: 25 }
-              }
-            );
-            m.geoObjects.add(placemark);
-          });
-        }
+        renderMembersOnMap(filteredLocations, membersRef.current);
       }
     } catch (err) {
       console.error('[Tracker] Load locations error:', err);
     }
-  }, []);
+  }, [isDemoMode, demoLocations, renderMembersOnMap]);
 
   useEffect(() => {
     if (map && familyMembers.length > 0) {
@@ -497,7 +500,12 @@ export default function FamilyTracker() {
                   className="w-full h-[500px] rounded-lg bg-gray-100"
                 />
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {!isTracking ? (
+                  {isDemoMode ? (
+                    <Badge className="bg-blue-100 text-blue-700 border border-blue-300 px-3 py-1 text-sm">
+                      <Icon name="Eye" size={14} className="mr-1" />
+                      Демо-режим — реальное отслеживание доступно после входа
+                    </Badge>
+                  ) : !isTracking ? (
                     <Button
                       onClick={startTracking}
                       className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
