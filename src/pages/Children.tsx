@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import Footer from '@/components/Footer';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import { ParentDashboard } from '@/components/children/ParentDashboard';
 import { ChildProfile as ChildProfileComponent } from '@/components/children/ChildProfile';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
@@ -18,7 +19,10 @@ import type { FamilyMember } from '@/types/family.types';
 export default function Children() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { members, loading, addMember } = useFamilyMembersContext();
+  const { members: realMembers, loading: realLoading, addMember } = useFamilyMembersContext();
+  const { isDemoMode, demoMembers } = useDemoMode();
+  const members = isDemoMode ? demoMembers : realMembers;
+  const loading = isDemoMode ? false : realLoading;
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
@@ -59,10 +63,13 @@ export default function Children() {
     : undefined;
   
   // Проверяем и роль члена семьи, и права доступа
-  const isParent = currentMember?.role === 'Папа' || 
+  const isParent = isDemoMode || 
+                   currentMember?.role === 'Папа' || 
                    currentMember?.role === 'Мама' || 
                    currentMember?.role === 'Владелец' || 
                    currentMember?.role === 'Родитель' ||
+                   currentMember?.role === 'Отец' ||
+                   currentMember?.role === 'Мать' ||
                    currentMember?.role === 'Жена' ||
                    currentMember?.role === 'Муж' ||
                    currentUser?.role === 'Родитель' ||
@@ -160,10 +167,7 @@ export default function Children() {
     );
   }
 
-  const selectedChild = useMemo(() => 
-    children.find(c => c.id === selectedChildId) || children[0],
-    [children, selectedChildId]
-  );
+  const selectedChild = children.find(c => c.id === selectedChildId) || children[0];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50/30 to-white pb-24">
