@@ -1,0 +1,1 @@
+ALTER TABLE t_p5815085_family_assistant_pro.families ADD COLUMN IF NOT EXISTS banner_url text NULL;

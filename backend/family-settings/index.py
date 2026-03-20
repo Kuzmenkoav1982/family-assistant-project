@@ -1,5 +1,5 @@
 """
-API для управления настройками семьи (название, логотип)
+API для управления настройками семьи (название, логотип, баннер)
 """
 
 import json
@@ -54,27 +54,23 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         cur.close()
         conn.close()
 
-def upload_logo_to_s3(image_base64: str, family_id: str) -> str:
-    """Загружает логотип в S3 и возвращает CDN URL"""
+def upload_image_to_s3(image_base64: str, folder: str, family_id: str) -> str:
+    """Загружает изображение в S3 и возвращает CDN URL"""
     try:
-        # Декодируем base64
         if ',' in image_base64:
             image_base64 = image_base64.split(',')[1]
         
         image_data = base64.b64decode(image_base64)
         
-        # Определяем тип файла
         content_type = 'image/jpeg'
         extension = 'jpg'
         if image_data.startswith(b'\x89PNG'):
             content_type = 'image/png'
             extension = 'png'
         
-        # Генерируем уникальное имя файла
         file_hash = hashlib.md5(image_data).hexdigest()
-        file_key = f'family-logos/{family_id}/{file_hash}.{extension}'
+        file_key = f'{folder}/{family_id}/{file_hash}.{extension}'
         
-        # Загружаем в S3
         s3 = boto3.client('s3',
             endpoint_url='https://bucket.poehali.dev',
             aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
@@ -88,15 +84,14 @@ def upload_logo_to_s3(image_base64: str, family_id: str) -> str:
             ContentType=content_type
         )
         
-        # Формируем CDN URL
         cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{file_key}"
         return cdn_url
     
     except Exception as e:
-        print(f"[upload_logo_to_s3] Error: {e}")
+        print(f"[upload_image_to_s3] Error: {e}")
         raise Exception(f"Ошибка загрузки изображения: {str(e)}")
 
-def update_family_settings(family_id: str, name: Optional[str] = None, logo_base64: Optional[str] = None) -> Dict[str, Any]:
+def update_family_settings(family_id: str, name: Optional[str] = None, logo_base64: Optional[str] = None, banner_base64: Optional[str] = None) -> Dict[str, Any]:
     """Обновляет настройки семьи"""
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -104,13 +99,19 @@ def update_family_settings(family_id: str, name: Optional[str] = None, logo_base
     try:
         logo_url = None
         if logo_base64:
-            logo_url = upload_logo_to_s3(logo_base64, family_id)
+            logo_url = upload_image_to_s3(logo_base64, 'family-logos', family_id)
+        
+        banner_url = None
+        if banner_base64:
+            banner_url = upload_image_to_s3(banner_base64, 'family-banners', family_id)
         
         updates = []
         if name is not None:
             updates.append(f"name = {escape_string(name)}")
         if logo_url is not None:
             updates.append(f"logo_url = {escape_string(logo_url)}")
+        if banner_url is not None:
+            updates.append(f"banner_url = {escape_string(banner_url)}")
         
         if not updates:
             return {'success': False, 'error': 'Нет данных для обновления'}
@@ -119,7 +120,7 @@ def update_family_settings(family_id: str, name: Optional[str] = None, logo_base
             UPDATE {SCHEMA}.families
             SET {', '.join(updates)}, updated_at = NOW()
             WHERE id = '{family_id}'::uuid
-            RETURNING id, name, logo_url
+            RETURNING id, name, logo_url, banner_url
         """
         cur.execute(query)
         result = cur.fetchone()
@@ -130,7 +131,8 @@ def update_family_settings(family_id: str, name: Optional[str] = None, logo_base
                 'family': {
                     'id': str(result['id']),
                     'name': result['name'],
-                    'logo_url': result['logo_url']
+                    'logo_url': result['logo_url'],
+                    'banner_url': result['banner_url']
                 }
             }
         return {'success': False, 'error': 'Семья не найдена'}
@@ -143,7 +145,7 @@ def update_family_settings(family_id: str, name: Optional[str] = None, logo_base
         conn.close()
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """API для обновления настроек семьи"""
+    """API для обновления настроек семьи (название, логотип, баннер)"""
     method = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
@@ -194,8 +196,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             name = body.get('name')
             logo_base64 = body.get('logoBase64')
+            banner_base64 = body.get('bannerBase64')
             
-            if not name and not logo_base64:
+            if not name and not logo_base64 and not banner_base64:
                 return {
                     'statusCode': 400,
                     'headers': headers,
@@ -203,7 +206,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            result = update_family_settings(family_id, name, logo_base64)
+            result = update_family_settings(family_id, name, logo_base64, banner_base64)
             
             if result.get('success'):
                 return {

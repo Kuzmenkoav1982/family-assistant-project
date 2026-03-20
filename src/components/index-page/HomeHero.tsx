@@ -6,17 +6,20 @@ import { getDailyMotto } from '@/utils/dailyMottos';
 interface HomeHeroProps {
   familyName: string;
   familyLogo: string;
+  familyBanner?: string;
   syncing: boolean;
 }
 
 const DEFAULT_BG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/569353b3-fbeb-4c15-8d69-c30f645cc3b1.png';
 const DEFAULT_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG';
 
-export default function HomeHero({ familyName, familyLogo, syncing }: HomeHeroProps) {
+export default function HomeHero({ familyName, familyLogo, familyBanner, syncing }: HomeHeroProps) {
+  const bannerSrc = familyBanner || DEFAULT_BG;
+
   return (
     <div className="relative -mx-4 mb-4 rounded-b-2xl overflow-hidden">
       <img
-        src={DEFAULT_BG}
+        src={bannerSrc}
         alt={familyName}
         className="w-full h-56 sm:h-64 object-cover object-center"
       />

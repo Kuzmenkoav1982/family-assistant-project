@@ -119,12 +119,14 @@ export default function Index({ onLogout }: IndexProps) {
   
   const [familyName, setFamilyName] = useState('Наша Семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG');
+  const [familyBanner, setFamilyBanner] = useState('');
   
   useEffect(() => {
     const loadFamilyData = () => {
-      // Загружаем название и логотип из localStorage или userData
+      // Загружаем название, логотип и баннер из localStorage или userData
       const savedFamilyName = localStorage.getItem('familyName');
       const savedFamilyLogo = localStorage.getItem('familyLogo');
+      const savedFamilyBanner = localStorage.getItem('familyBanner');
       
       if (savedFamilyName) {
         setFamilyName(savedFamilyName);
@@ -132,6 +134,10 @@ export default function Index({ onLogout }: IndexProps) {
       
       if (savedFamilyLogo) {
         setFamilyLogo(savedFamilyLogo);
+      }
+
+      if (savedFamilyBanner) {
+        setFamilyBanner(savedFamilyBanner);
       }
       
       const userData = localStorage.getItem('userData');
@@ -153,6 +159,10 @@ export default function Index({ onLogout }: IndexProps) {
           
           if (!savedFamilyLogo && user.logo_url) {
             setFamilyLogo(user.logo_url);
+          }
+
+          if (!savedFamilyBanner && user.banner_url) {
+            setFamilyBanner(user.banner_url);
           }
         } catch (e) {
           console.error('[DEBUG Index] Error parsing userData:', e);
@@ -1292,6 +1302,7 @@ export default function Index({ onLogout }: IndexProps) {
         <HomeHero 
           familyName={familyName}
           familyLogo={familyLogo}
+          familyBanner={familyBanner}
           syncing={syncing}
         />
 
