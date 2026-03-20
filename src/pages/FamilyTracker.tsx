@@ -609,10 +609,9 @@ export default function FamilyTracker() {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ring-2"
+                          className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ring-2 ${isOnline ? 'ring-green-500' : 'ring-gray-300'}`}
                           style={{
                             backgroundColor: member.avatar_url ? 'transparent' : member.color + '20',
-                            ringColor: member.color
                           }}
                         >
                           {member.avatar_url ? (
