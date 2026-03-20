@@ -150,9 +150,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         const token = storage.getItem('authToken');
         const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-        
         setIsAuthenticated(!!token || isDemoMode);
       } catch (error) {
         console.error('[ProtectedRoute] Error checking auth:', error);
@@ -163,6 +160,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
     
     checkAuth();
+
+    const interval = setInterval(checkAuth, 300);
+    return () => clearInterval(interval);
   }, []);
 
   if (isChecking) {
