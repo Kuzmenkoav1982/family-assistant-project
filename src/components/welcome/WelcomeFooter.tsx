@@ -22,8 +22,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
               </div>
             </div>
             <p className="text-sm text-gray-300 leading-relaxed">
-              Платформа для организации семейной жизни: задачи, здоровье, питание, развитие, 
-              AI-помощник и многое другое. Всё в одном месте.
+              Удобное приложение для семьи: планирование, помощь, контроль. Платформа для организации семейной жизни: задачи, здоровье, питание, развитие, AI-помощник и многое другое. Всё в одном месте. Доступна бесплатная версия.
             </p>
             <div className="flex gap-2 pt-2">
               <a
@@ -130,7 +129,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
 
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-            <p>&copy; {new Date().getFullYear()} Наша семья. Все права защищены.</p>
+            <p>&copy; {new Date().getFullYear()} Мобильное приложение «Наша семья». Все права защищены.</p>
             <p className="flex items-center gap-2">
               <Icon name="Heart" size={16} className="text-red-500" />
               Создано с любовью к семьям
