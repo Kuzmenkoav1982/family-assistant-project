@@ -52,7 +52,7 @@ export default function WelcomeForWhom() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-            Для каждого члена семьи
+            Планирование для каждого члена семьи
           </h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
             У каждого своя роль, свои задачи и свои инструменты. 

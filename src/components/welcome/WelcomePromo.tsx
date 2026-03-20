@@ -93,7 +93,7 @@ export default function WelcomePromo() {
             10 разделов в одном приложении
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-            Всё, что нужно семье
+            Мобильное приложение со всеми необходимыми функциями
           </h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
             Каждый раздел продуман до мелочей и создан на основе реальных потребностей семей

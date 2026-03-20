@@ -24,10 +24,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.08] tracking-tight text-gray-900">
-              Вся семья —{' '}
-              <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
-                в одном приложении
-              </span>
+              Семейное приложение для планирования дел
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-600 max-w-xl mb-4 leading-relaxed mx-auto">

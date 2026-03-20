@@ -20,9 +20,9 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
               className="flex-shrink-0 w-9 h-9 rounded-xl object-cover shadow-md"
             />
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-lg font-bold text-gray-900 font-[Montserrat]">
+              <span className="text-sm sm:text-lg font-bold text-gray-900 font-[Montserrat]">
                 Наша Семья
-              </h1>
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
