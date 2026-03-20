@@ -10,6 +10,7 @@ import WelcomePWA from '@/components/welcome/WelcomePWA';
 import WelcomeCTA from '@/components/welcome/WelcomeCTA';
 import WelcomeFooter from '@/components/welcome/WelcomeFooter';
 import WelcomeVideo from '@/components/welcome/WelcomeVideo';
+import WelcomeDeveloper from '@/components/welcome/WelcomeDeveloper';
 
 const openTelegramSupport = () => {
   window.open('https://t.me/Nasha7iya', '_blank');
@@ -63,6 +64,8 @@ export default function Welcome() {
       <WelcomeAI />
 
       <WelcomePWA />
+
+      <WelcomeDeveloper />
 
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeCTA isLoggedIn={isLoggedIn} />
