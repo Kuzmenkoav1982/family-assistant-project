@@ -106,7 +106,7 @@ export function ParentDashboard({ child }: ParentDashboardProps) {
       <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-            {child.avatarType === 'photo' && child.photoUrl ? (
+            {child.photoUrl ? (
               <img 
                 src={child.photoUrl} 
                 alt={child.name}
