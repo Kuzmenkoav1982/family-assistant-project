@@ -8,6 +8,7 @@ import type {
   Dream, 
   DiaryEntry 
 } from '@/types/family.types';
+import { DEMO_CHILDREN_DATA } from '@/data/demoChildrenData';
 
 interface ChildData {
   health: ChildHealth;
@@ -25,6 +26,9 @@ interface ChildData {
 
 const CHILDREN_DATA_API = 'https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203';
 
+const isDemoMode = () =>
+  !localStorage.getItem('authToken') && localStorage.getItem('isDemoMode') === 'true';
+
 export function useChildrenData(childId: string) {
   const [data, setData] = useState<ChildData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +38,15 @@ export function useChildrenData(childId: string) {
 
   const fetchChildData = async (type: string = 'all') => {
     if (!childId) {
+      setLoading(false);
+      return;
+    }
+
+    // В демо-режиме возвращаем локальные данные без API-запроса
+    if (isDemoMode()) {
+      const demo = DEMO_CHILDREN_DATA[childId] || DEMO_CHILDREN_DATA['3'];
+      setData(demo as unknown as ChildData);
+      setError(null);
       setLoading(false);
       return;
     }

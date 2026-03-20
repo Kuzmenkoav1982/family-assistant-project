@@ -18,6 +18,7 @@ import {
   demoTestSchedule as testScheduleData,
   demoTestStats as testStatsData
 } from '@/data/demoTestResults';
+import { DEMO_CALENDAR_EVENTS } from '@/data/demoChildrenData';
 import type { FamilyMember, Task, ShoppingItem } from '@/types/family.types';
 
 interface DemoModeContextType {
@@ -75,6 +76,16 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
       if (authToken) {
         setIsDemoMode(false);
         return;
+      }
+      
+      // Заполняем демо-данные календаря детей в localStorage
+      if (demoFlag) {
+        Object.entries(DEMO_CALENDAR_EVENTS).forEach(([childId, events]) => {
+          const key = `child_calendar_${childId}`;
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, JSON.stringify(events));
+          }
+        });
       }
       
       setIsDemoMode(demoFlag);
