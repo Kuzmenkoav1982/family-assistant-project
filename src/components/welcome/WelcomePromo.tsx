@@ -4,6 +4,8 @@ const sections = [
   {
     icon: 'Users',
     title: 'Семья',
+    alt: 'Мобильное приложение для семьи',
+    imgTitle: 'Семейное приложение',
     description: 'Профили, роли, права доступа и семейный маячок GPS',
     gradient: 'from-blue-500 to-cyan-500',
     features: ['Профили семьи', 'Дети', 'Геолокация'],
@@ -12,6 +14,8 @@ const sections = [
   {
     icon: 'CalendarDays',
     title: 'Планирование',
+    alt: 'Мобильное приложение для планирования',
+    imgTitle: 'Семейное приложение функция «Планирование»',
     description: 'Цели, задачи, календарь, план покупок и аналитика',
     gradient: 'from-indigo-500 to-purple-500',
     features: ['Цели семьи', 'Задачи', 'Календарь', 'Аналитика'],
@@ -20,6 +24,8 @@ const sections = [
   {
     icon: 'UtensilsCrossed',
     title: 'Питание',
+    alt: 'Мобильное приложение для питания',
+    imgTitle: 'Семейное приложение функция «Питание»',
     description: 'AI-диета, рецепты, счётчик БЖУ, меню на неделю',
     gradient: 'from-green-500 to-emerald-500',
     features: ['AI-диета', 'Рецепт из продуктов', 'Меню на неделю', 'БЖУ'],
@@ -28,6 +34,8 @@ const sections = [
   {
     icon: 'Heart',
     title: 'Здоровье',
+    alt: 'Мобильное приложение для здоровья',
+    imgTitle: 'Семейное приложение функция «Здоровье»',
     description: 'Медкарты, анализы, прививки, лекарства и телемедицина',
     gradient: 'from-red-500 to-pink-500',
     features: ['Медкарты', 'Прививки', 'Лекарства', 'Врачи'],
@@ -36,6 +44,8 @@ const sections = [
   {
     icon: 'ShoppingCart',
     title: 'Быт и хозяйство',
+    alt: 'Мобильное приложение для быта и хозяйства',
+    imgTitle: 'Семейное приложение функция «Быт и хозяйство»',
     description: 'Список покупок для всей семьи и семейные голосования',
     gradient: 'from-orange-500 to-amber-500',
     features: ['Покупки', 'Голосования', 'Домашние дела'],
@@ -44,6 +54,8 @@ const sections = [
   {
     icon: 'Plane',
     title: 'Путешествия и досуг',
+    alt: 'Мобильное приложение для путешествий и досуга',
+    imgTitle: 'Семейное приложение функция «Путешествия и досуг»',
     description: 'Поездки, бюджет, маршруты, праздники и развлечения',
     gradient: 'from-sky-500 to-blue-500',
     features: ['Путешествия', 'Досуг', 'Праздники'],
@@ -52,6 +64,8 @@ const sections = [
   {
     icon: 'HeartHandshake',
     title: 'Ценности и культура',
+    alt: 'Мобильное приложение для семейных ценностей',
+    imgTitle: 'Семейное приложение функция «Ценности и культура»',
     description: 'Традиции, вера, правила дома и культурное наследие',
     gradient: 'from-amber-500 to-orange-500',
     features: ['Ценности', 'Традиции', 'Правила дома'],
@@ -60,6 +74,8 @@ const sections = [
   {
     icon: 'TrendingUp',
     title: 'Развитие',
+    alt: 'Мобильное приложение для развития семьи',
+    imgTitle: 'Семейное приложение функция «Развитие»',
     description: 'Планы развития, навыки и достижения каждого члена семьи',
     gradient: 'from-teal-500 to-green-500',
     features: ['Планы развития', 'Навыки', 'Достижения'],
@@ -68,6 +84,8 @@ const sections = [
   {
     icon: 'Landmark',
     title: 'Семья и государство',
+    alt: 'Мобильное приложение для семьи и государства',
+    imgTitle: 'Семейное приложение функция «Семья и государство»',
     description: 'Госпрограммы, маткапитал, пособия, семейный кодекс',
     gradient: 'from-violet-500 to-purple-500',
     features: ['Господдержка', 'Сем. кодекс', 'Новости'],
@@ -76,6 +94,8 @@ const sections = [
   {
     icon: 'Bot',
     title: 'AI-помощники',
+    alt: 'Мобильное приложение с AI-помощниками',
+    imgTitle: 'Семейное приложение функция «AI-помощники»',
     description: 'Домовой — умный ассистент + управление через Яндекс Алису',
     gradient: 'from-pink-500 to-rose-500',
     features: ['Домовой AI', 'Яндекс Алиса', 'Голос'],
@@ -96,7 +116,11 @@ export default function WelcomePromo() {
             Мобильное приложение со всеми необходимыми функциями
           </h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Каждый раздел продуман до мелочей и создан на основе реальных потребностей семей
+            Каждый раздел продуман до мелочей и создан на основе реальных потребностей семей. Сервис имеет бесплатную версию и доступен для любых устройств. Понятная настройка инструментов позволяет держать контроль на всех важных задачах: от планирования дел, финансовых расходов до семейных пособий.
+          </p>
+          <p className="text-base text-gray-500 max-w-2xl mx-auto mt-3">
+            Не нужно скачивать из магазина — добавьте на главный экран прямо из браузера.{' '}
+            <a href="/register" className="text-blue-600 hover:underline">Установить семейное приложение</a> просто.
           </p>
         </div>
 
@@ -109,7 +133,8 @@ export default function WelcomePromo() {
               <div className="h-36 overflow-hidden relative">
                 <img
                   src={section.image}
-                  alt={section.title}
+                  alt={section.alt}
+                  title={section.imgTitle}
                   className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
