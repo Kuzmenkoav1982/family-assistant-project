@@ -188,6 +188,11 @@ export default function TopBar({
                 <span>Презентация</span>
               </DropdownMenuItem>
 
+              <DropdownMenuItem onClick={() => navigate('/videos')} className="rounded-lg">
+                <Icon name="Video" size={16} className="mr-2.5 text-purple-500" />
+                <span>Видео</span>
+              </DropdownMenuItem>
+
               <DropdownMenuSeparator />
 
               <DropdownMenuItem onClick={openTelegramSupport} className="rounded-lg">

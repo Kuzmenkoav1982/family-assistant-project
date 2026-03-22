@@ -103,6 +103,7 @@ const FamilyNews = lazy(() => import("./pages/FamilyNews"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
+const Videos = lazy(() => import("./pages/Videos"));
 const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
 const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -347,6 +348,7 @@ const App = () => {
                       <Route path="/ideas" element={<IdeasBoard />} />
                       <Route path="/ideas-board" element={<IdeasBoard />} />
                       <Route path="/investor-deck" element={<InvestorDeck />} />
+                      <Route path="/videos" element={<Videos />} />
                       <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
                       <Route path="/admin/domovoy" element={<AdminDomovoy />} />
                       <Route path="/domovoy" element={<DomovoyPage />} />
