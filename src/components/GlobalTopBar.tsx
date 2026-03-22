@@ -190,6 +190,10 @@ export default function GlobalTopBar() {
                   <Icon name="BookOpen" size={16} className="mr-2.5 text-gray-500" />
                   <span>Инструкции</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/videos')} className="rounded-lg">
+                  <Icon name="Play" size={16} className="mr-2.5 text-gray-500" />
+                  <span>Видео</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/presentation')} className="rounded-lg">
                   <Icon name="Play" size={16} className="mr-2.5 text-gray-500" />
                   <span>Инвесторам</span>
