@@ -69,6 +69,62 @@ function isCC(type: string) {
   return type === 'credit_card';
 }
 
+function calcLoanPayoff(remaining: number, rate: number, monthly: number) {
+  if (monthly <= 0 || remaining <= 0) return null;
+  const monthlyRate = rate / 100 / 12;
+  let balance = remaining;
+  let months = 0;
+  let totalPaid = 0;
+  const maxMonths = 600;
+  while (balance > 0 && months < maxMonths) {
+    const interest = balance * monthlyRate;
+    const principal = Math.min(monthly - interest, balance);
+    if (principal <= 0) return { months: Infinity, totalPaid: Infinity, overpayment: Infinity };
+    balance -= principal;
+    totalPaid += monthly;
+    months++;
+  }
+  return { months, totalPaid, overpayment: totalPaid - remaining };
+}
+
+function calcCreditCardPayoff(remaining: number, rate: number, minPct: number) {
+  if (remaining <= 0 || minPct <= 0) return null;
+  const monthlyRate = rate / 100 / 12;
+  let balance = remaining;
+  let months = 0;
+  let totalPaid = 0;
+  const maxMonths = 600;
+  while (balance > 1 && months < maxMonths) {
+    const interest = balance * monthlyRate;
+    const payment = Math.max(balance * (minPct / 100), 500);
+    if (payment <= interest) return { months: Infinity, totalPaid: Infinity, overpayment: Infinity };
+    balance = balance + interest - payment;
+    totalPaid += payment;
+    months++;
+  }
+  return { months, totalPaid, overpayment: totalPaid - remaining };
+}
+
+function formatMonths(m: number) {
+  if (m === Infinity) return 'Не погасить';
+  const y = Math.floor(m / 12);
+  const mo = m % 12;
+  if (y > 0 && mo > 0) return `${y} г. ${mo} мес.`;
+  if (y > 0) return `${y} г.`;
+  return `${mo} мес.`;
+}
+
+function getDebtPayoff(d: Debt) {
+  if (d.status === 'paid' || d.remaining_amount <= 0) return null;
+  if (isCC(d.debt_type) && d.min_payment_pct) {
+    return calcCreditCardPayoff(d.remaining_amount, d.interest_rate, d.min_payment_pct);
+  }
+  if (d.monthly_payment > 0) {
+    return calcLoanPayoff(d.remaining_amount, d.interest_rate, d.monthly_payment);
+  }
+  return null;
+}
+
 export default function FinanceDebts() {
   const navigate = useNavigate();
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -495,6 +551,54 @@ export default function FinanceDebts() {
             </CardContent>
           </Card>
 
+          {(() => {
+            const payoff = getDebtPayoff(selectedDebt);
+            if (!payoff) return null;
+            const isInf = payoff.months === Infinity;
+            return (
+              <Card className={isInf ? 'border-red-200 bg-red-50/50' : 'border-purple-200 bg-purple-50/50'}>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
+                    <Icon name="Calculator" size={14} />
+                    {isCC(selectedDebt.debt_type) ? 'Прогноз при минимальных платежах' : 'Прогноз погашения'}
+                  </p>
+                  {isInf ? (
+                    <div className="text-center py-2">
+                      <p className="font-bold text-red-600">Платёж не покрывает проценты</p>
+                      <p className="text-xs text-red-500 mt-1">Увеличьте ежемесячный платёж, чтобы начать гасить долг</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <p className="text-xs text-muted-foreground">До погашения</p>
+                        <p className="font-bold text-sm">{formatMonths(payoff.months)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Переплата</p>
+                        <p className="font-bold text-sm text-red-600">{formatMoney(Math.round(payoff.overpayment))} ₽</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Всего выплатите</p>
+                        <p className="font-bold text-sm">{formatMoney(Math.round(payoff.totalPaid))} ₽</p>
+                      </div>
+                    </div>
+                  )}
+                  {!isInf && isCC(selectedDebt.debt_type) && payoff.overpayment > 0 && (
+                    <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
+                      <Icon name="AlertTriangle" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-[11px] text-amber-700">При минимальных платежах переплата составит <b>{formatMoney(Math.round(payoff.overpayment))} ₽</b>. Платите больше минимума, чтобы сэкономить.</p>
+                    </div>
+                  )}
+                  {!isInf && !isCC(selectedDebt.debt_type) && selectedDebt.end_date && (
+                    <p className="text-[11px] text-muted-foreground text-center">
+                      Ожидаемый конец: {new Date(new Date().setMonth(new Date().getMonth() + payoff.months)).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
           <div className="flex items-center justify-between">
             <h2 className="font-bold">История платежей</h2>
             <Button size="sm" className="bg-rose-600 hover:bg-rose-700" onClick={() => setShowPayment(true)}>
@@ -669,22 +773,78 @@ export default function FinanceDebts() {
           </Button>
         </div>
 
-        {debts.length > 0 && (
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="border-red-200 bg-red-50/50">
-              <CardContent className="p-3 text-center">
-                <p className="text-xs text-red-600">Общий долг</p>
-                <p className="text-lg font-bold text-red-700">{formatMoney(totalRemaining)} ₽</p>
-              </CardContent>
-            </Card>
-            <Card className="border-orange-200 bg-orange-50/50">
-              <CardContent className="p-3 text-center">
-                <p className="text-xs text-orange-600">Платежи/мес</p>
-                <p className="text-lg font-bold text-orange-700">{formatMoney(totalMonthly)} ₽</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {debts.length > 0 && (() => {
+          const active = debts.filter(d => d.status === 'active' && d.remaining_amount > 0);
+          const totalOverpayment = active.reduce((sum, d) => {
+            const p = getDebtPayoff(d);
+            return sum + (p && p.overpayment !== Infinity ? p.overpayment : 0);
+          }, 0);
+          const highestRate = active.reduce((max, d) => Math.max(max, d.interest_rate || 0), 0);
+          const highestRateDebt = active.find(d => d.interest_rate === highestRate);
+          const ccDebts = active.filter(d => isCC(d.debt_type));
+          const ccTotal = ccDebts.reduce((s, d) => s + d.remaining_amount, 0);
+
+          return (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="border-red-200 bg-red-50/50">
+                  <CardContent className="p-3 text-center">
+                    <p className="text-xs text-red-600">Общий долг</p>
+                    <p className="text-lg font-bold text-red-700">{formatMoney(totalRemaining)} ₽</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-orange-200 bg-orange-50/50">
+                  <CardContent className="p-3 text-center">
+                    <p className="text-xs text-orange-600">Платежи/мес</p>
+                    <p className="text-lg font-bold text-orange-700">{formatMoney(totalMonthly)} ₽</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {(totalOverpayment > 0 || ccTotal > 0 || active.length > 1) && (
+                <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
+                      <Icon name="TrendingUp" size={14} /> Аналитика долгов
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {totalOverpayment > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Общая переплата</p>
+                          <p className="font-bold text-sm text-red-600">{formatMoney(Math.round(totalOverpayment))} ₽</p>
+                        </div>
+                      )}
+                      {ccTotal > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Долг по карт{ccDebts.length > 1 ? 'ам' : 'е'}</p>
+                          <p className="font-bold text-sm text-orange-600">{formatMoney(ccTotal)} ₽</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-muted-foreground">Активных долгов</p>
+                        <p className="font-bold text-sm">{active.length}</p>
+                      </div>
+                      {highestRate > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Макс. ставка</p>
+                          <p className="font-bold text-sm">{highestRate}%</p>
+                        </div>
+                      )}
+                    </div>
+                    {highestRateDebt && active.length > 1 && highestRate > 0 && (
+                      <div className="bg-white/70 rounded-lg p-2.5 flex items-start gap-2">
+                        <Icon name="Lightbulb" size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-[11px] text-foreground">
+                          <b>Совет:</b> Гасите «{highestRateDebt.name}» ({highestRate}%) в первую очередь — это сэкономит больше всего на переплате (метод лавины)
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          );
+        })()}
 
         {debts.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
@@ -734,7 +894,26 @@ export default function FinanceDebts() {
                             <span className="text-muted-foreground">{debt.bank_name}</span>
                           )}
                         </div>
-                        <div className="mt-2">
+                        {(() => {
+                          const po = getDebtPayoff(debt);
+                          if (!po || isPaid) return null;
+                          return (
+                            <div className="flex items-center gap-3 mt-1.5 text-[11px]">
+                              {po.months !== Infinity && (
+                                <span className="text-purple-600 flex items-center gap-0.5">
+                                  <Icon name="Clock" size={11} /> {formatMonths(po.months)}
+                                </span>
+                              )}
+                              {po.overpayment !== Infinity && po.overpayment > 0 && (
+                                <span className="text-red-500">переплата {formatMoney(Math.round(po.overpayment))} ₽</span>
+                              )}
+                              {po.months === Infinity && (
+                                <span className="text-red-600 font-medium">Платёж не покрывает %</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                        <div className="mt-1.5">
                           <Progress value={isCC(debt.debt_type) && debt.credit_limit ? (debt.remaining_amount / debt.credit_limit) * 100 : paidPct} className="h-1.5" />
                         </div>
                       </div>
