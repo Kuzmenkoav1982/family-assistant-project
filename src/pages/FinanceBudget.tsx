@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -96,6 +96,8 @@ export default function FinanceBudget() {
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
   const [budgetCategoryId, setBudgetCategoryId] = useState('');
   const [budgetAmount, setBudgetAmount] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const analyticsRef = useRef<HTMLDivElement>(null);
 
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
 
@@ -268,6 +270,42 @@ export default function FinanceBudget() {
     const d = new Date(month + '-01');
     d.setMonth(d.getMonth() + 1);
     setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  };
+
+  const exportPDF = async () => {
+    if (!analyticsRef.current) { toast.error('Откройте вкладку Аналитика'); return; }
+    setExporting(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+      const el = analyticsRef.current;
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      pdf.setFontSize(16);
+      pdf.text('Финансовый отчёт', pageW / 2, 15, { align: 'center' });
+      pdf.setFontSize(11);
+      pdf.text(monthLabel, pageW / 2, 22, { align: 'center' });
+      pdf.setFontSize(10);
+      pdf.text(`Доходы: ${formatMoney(sumIncome)} р.  |  Расходы: ${formatMoney(sumExpense)} р.  |  Баланс: ${formatMoney(sumIncome - sumExpense)} р.`, pageW / 2, 30, { align: 'center' });
+      const imgW = pageW - 20;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const y = 36;
+      if (imgH + y > pageH - 10) {
+        const scale = (pageH - 46) / imgH;
+        pdf.addImage(imgData, 'PNG', 10, y, imgW * scale, imgH * scale);
+      } else {
+        pdf.addImage(imgData, 'PNG', 10, y, imgW, imgH);
+      }
+      pdf.save(`budget_${month}.pdf`);
+      toast.success('PDF сохранён');
+    } catch (e) {
+      toast.error('Ошибка экспорта');
+      console.error(e);
+    }
+    setExporting(false);
   };
 
   if (loading) {
@@ -454,13 +492,21 @@ export default function FinanceBudget() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4 mt-3">
+            {transactions.length > 0 && (
+              <div className="flex justify-end">
+                <Button size="sm" variant="outline" onClick={exportPDF} disabled={exporting}>
+                  <Icon name="FileDown" size={14} className="mr-1" />
+                  {exporting ? 'Экспорт...' : 'Скачать PDF'}
+                </Button>
+              </div>
+            )}
             {transactions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Icon name="BarChart3" size={40} className="mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">Добавьте операции для аналитики</p>
               </div>
             ) : (
-              <>
+              <div ref={analyticsRef}>
                 {pieData.length > 0 && (
                   <Card>
                     <CardContent className="p-4">
@@ -544,7 +590,7 @@ export default function FinanceBudget() {
                     </CardContent>
                   </Card>
                 )}
-              </>
+              </div>
             )}
           </TabsContent>
         </Tabs>
