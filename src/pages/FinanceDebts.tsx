@@ -401,7 +401,13 @@ export default function FinanceDebts() {
                         <p className="font-medium">{selectedDebt.min_payment_pct}% от долга</p>
                       </div>
                     )}
-                    {selectedDebt.monthly_payment > 0 && (
+                    {selectedDebt.min_payment_pct && selectedDebt.remaining_amount > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Мин. платёж (расчёт)</p>
+                        <p className="font-bold text-orange-600">{formatMoney(Math.ceil(selectedDebt.remaining_amount * (selectedDebt.min_payment_pct / 100)))} ₽</p>
+                      </div>
+                    )}
+                    {!selectedDebt.min_payment_pct && selectedDebt.monthly_payment > 0 && (
                       <div>
                         <p className="text-xs text-muted-foreground">Мин. платёж/мес</p>
                         <p className="font-medium">{formatMoney(selectedDebt.monthly_payment)} ₽</p>
@@ -718,6 +724,9 @@ export default function FinanceDebts() {
                           ) : debt.monthly_payment > 0 ? (
                             <span className="text-muted-foreground">{formatMoney(debt.monthly_payment)} ₽/мес</span>
                           ) : null}
+                          {isCC(debt.debt_type) && debt.min_payment_pct && debt.remaining_amount > 0 && (
+                            <span className="text-orange-600 font-medium">мин. {formatMoney(Math.ceil(debt.remaining_amount * (debt.min_payment_pct / 100)))} ₽</span>
+                          )}
                           {debt.interest_rate > 0 && (
                             <span className="text-muted-foreground">{debt.interest_rate}%</span>
                           )}
