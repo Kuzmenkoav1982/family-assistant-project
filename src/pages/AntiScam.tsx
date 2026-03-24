@@ -366,6 +366,8 @@ export default function AntiScam() {
   const [openScheme, setOpenScheme] = useState<ScamScheme | null>(null);
   const [checkValue, setCheckValue] = useState('');
   const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
+  const [panicMode, setPanicMode] = useState(false);
+  const [panicStep, setPanicStep] = useState(0);
 
   const filtered = SCAM_SCHEMES.filter(s => {
     const matchCategory = filter === 'all' || s.category === filter;
@@ -378,6 +380,142 @@ export default function AntiScam() {
     high: SCAM_SCHEMES.filter(s => s.danger === 'high').length,
     phone: SCAM_SCHEMES.filter(s => s.category === 'phone' || s.category === 'sms').length,
   };
+
+  const PANIC_STEPS = [
+    {
+      icon: 'PhoneOff',
+      title: 'Положите трубку!',
+      description: 'Прямо сейчас. Не говорите больше ни слова. Просто нажмите «завершить вызов».',
+      color: 'text-red-600',
+      bg: 'bg-red-50 border-red-200',
+    },
+    {
+      icon: 'Lock',
+      title: 'Заблокируйте карты',
+      description: 'Откройте приложение банка и временно заблокируйте карты. Или позвоните по номеру на обратной стороне карты.',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50 border-amber-200',
+    },
+    {
+      icon: 'Phone',
+      title: 'Позвоните в банк сами',
+      description: 'Наберите номер с обратной стороны вашей карты. Расскажите о звонке. Спросите, всё ли в порядке со счётом.',
+      color: 'text-blue-600',
+      bg: 'bg-blue-50 border-blue-200',
+    },
+    {
+      icon: 'Users',
+      title: 'Расскажите близким',
+      description: 'Позвоните родным и расскажите что произошло. Мошенники запрещают это делать — значит, это нужно сделать обязательно.',
+      color: 'text-green-600',
+      bg: 'bg-green-50 border-green-200',
+    },
+    {
+      icon: 'FileWarning',
+      title: 'Подайте заявление',
+      description: 'Если перевели деньги — напишите заявление в полицию (102) и обратитесь в банк для оспаривания перевода. Чем быстрее — тем больше шансов вернуть деньги.',
+      color: 'text-purple-600',
+      bg: 'bg-purple-50 border-purple-200',
+    },
+  ];
+
+  if (panicMode) {
+    const currentStep = PANIC_STEPS[panicStep];
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-red-100 to-white pb-24">
+        <div className="max-w-2xl mx-auto p-4 space-y-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => { setPanicMode(false); setPanicStep(0); }}>
+              <Icon name="X" size={18} />
+            </Button>
+            <h1 className="text-lg font-bold text-red-700">Экстренная помощь</h1>
+          </div>
+
+          <div className="flex gap-1 mb-2">
+            {PANIC_STEPS.map((_, i) => (
+              <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= panicStep ? 'bg-red-500' : 'bg-red-200'}`} />
+            ))}
+          </div>
+
+          <div className="text-center text-sm text-muted-foreground">
+            Шаг {panicStep + 1} из {PANIC_STEPS.length}
+          </div>
+
+          <Card className={`border-2 ${currentStep.bg}`}>
+            <CardContent className="p-6 text-center">
+              <div className={`w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center ${currentStep.bg}`}>
+                <Icon name={currentStep.icon} size={40} className={currentStep.color} />
+              </div>
+              <h2 className={`text-xl font-bold mb-3 ${currentStep.color}`}>{currentStep.title}</h2>
+              <p className="text-sm leading-relaxed">{currentStep.description}</p>
+            </CardContent>
+          </Card>
+
+          {panicStep === 0 && (
+            <Card className="border-red-300 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-xs text-red-700 text-center font-medium">
+                  Настоящий банк никогда не звонит с просьбой перевести деньги. Настоящая полиция вызывает повесткой, а не по телефону.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {panicStep === 2 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground text-center font-medium">Номера горячих линий:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { name: 'Сбербанк', phone: '900' },
+                  { name: 'Тинькофф', phone: '8-800-555-22-44' },
+                  { name: 'ВТБ', phone: '8-800-100-24-24' },
+                  { name: 'Альфа-Банк', phone: '8-800-200-00-00' },
+                ].map(b => (
+                  <a key={b.name} href={`tel:${b.phone.replace(/[^0-9+]/g, '')}`}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-white border text-sm hover:bg-blue-50 transition-colors">
+                    <Icon name="Phone" size={14} className="text-blue-600 shrink-0" />
+                    <div>
+                      <div className="font-medium text-xs">{b.name}</div>
+                      <div className="text-xs text-blue-600">{b.phone}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {panicStep === 4 && (
+            <div className="space-y-2">
+              <a href="tel:102" className="flex items-center gap-3 p-3 rounded-lg bg-white border hover:bg-purple-50 transition-colors">
+                <Icon name="Phone" size={18} className="text-purple-600" />
+                <div>
+                  <div className="font-medium text-sm">Полиция</div>
+                  <div className="text-xs text-purple-600">102</div>
+                </div>
+              </a>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            {panicStep > 0 && (
+              <Button variant="outline" className="flex-1" onClick={() => setPanicStep(panicStep - 1)}>
+                <Icon name="ArrowLeft" size={16} className="mr-2" /> Назад
+              </Button>
+            )}
+            {panicStep < PANIC_STEPS.length - 1 ? (
+              <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={() => setPanicStep(panicStep + 1)}>
+                Далее <Icon name="ArrowRight" size={16} className="ml-2" />
+              </Button>
+            ) : (
+              <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => { setPanicMode(false); setPanicStep(0); }}>
+                <Icon name="ShieldCheck" size={16} className="mr-2" /> Готово
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (openScheme) {
     return (
@@ -468,6 +606,21 @@ export default function AntiScam() {
             <p className="text-xs text-muted-foreground">Защита семьи от мошенников</p>
           </div>
         </div>
+
+        <button
+          onClick={() => { setPanicMode(true); setPanicStep(0); }}
+          className="w-full p-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:from-red-700 hover:to-red-800 active:scale-[0.98] transition-all"
+        >
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center animate-pulse">
+              <Icon name="Siren" size={28} />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-lg">Мне звонят мошенники!</div>
+              <div className="text-xs text-red-100">Нажмите для пошаговой инструкции</div>
+            </div>
+          </div>
+        </button>
 
         <div className="grid grid-cols-3 gap-2">
           <Card className="bg-red-50 border-red-200">
