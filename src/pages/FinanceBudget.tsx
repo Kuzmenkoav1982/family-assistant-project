@@ -286,6 +286,9 @@ export default function FinanceBudget() {
             <Icon name="ArrowLeft" size={18} />
           </Button>
           <h1 className="text-xl font-bold flex-1">Бюджет</h1>
+          <Button size="sm" variant="outline" onClick={() => navigate('/finance/recurring')}>
+            <Icon name="Repeat" size={16} className="mr-1" /> Регулярные
+          </Button>
           <Button size="sm" onClick={() => { setTxType('expense'); setShowAddTx(true); }}
             className="bg-emerald-600 hover:bg-emerald-700">
             <Icon name="Plus" size={16} className="mr-1" /> Запись

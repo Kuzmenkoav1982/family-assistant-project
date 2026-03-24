@@ -1,0 +1,356 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import Icon from '@/components/ui/icon';
+
+const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
+
+interface RecurringItem {
+  id: string;
+  amount: number;
+  type: string;
+  description: string;
+  frequency: string;
+  day_of_month: number | null;
+  next_date: string | null;
+  is_active: boolean;
+  category_name: string | null;
+  category_icon: string | null;
+  category_color: string | null;
+  account_name: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  type: string;
+}
+
+function getHeaders() {
+  return { 'Content-Type': 'application/json', 'X-Auth-Token': localStorage.getItem('authToken') || '' };
+}
+
+function formatMoney(n: number) {
+  return n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+const FREQ_LABELS: Record<string, string> = {
+  monthly: 'Ежемесячно',
+  weekly: 'Еженедельно',
+  quarterly: 'Ежеквартально',
+  yearly: 'Ежегодно',
+};
+
+const PRESETS = [
+  { label: 'Зарплата', type: 'income', icon: 'Banknote', desc: 'Зарплата' },
+  { label: 'Премия кварт.', type: 'income', icon: 'Award', desc: 'Квартальная премия', freq: 'quarterly' },
+  { label: 'Премия год.', type: 'income', icon: 'Trophy', desc: 'Годовая премия', freq: 'yearly' },
+  { label: 'ЖКХ', type: 'expense', icon: 'Home', desc: 'Коммунальные платежи' },
+  { label: 'Аренда', type: 'expense', icon: 'Key', desc: 'Аренда жилья' },
+  { label: 'Интернет', type: 'expense', icon: 'Wifi', desc: 'Интернет и ТВ' },
+  { label: 'Телефон', type: 'expense', icon: 'Smartphone', desc: 'Мобильная связь' },
+  { label: 'Подписки', type: 'expense', icon: 'Repeat', desc: 'Подписки (сервисы)' },
+  { label: 'Кредит', type: 'expense', icon: 'CreditCard', desc: 'Платёж по кредиту' },
+  { label: 'Садик/школа', type: 'expense', icon: 'GraduationCap', desc: 'Детский сад / школа' },
+  { label: 'Страховка', type: 'expense', icon: 'Shield', desc: 'Страхование' },
+  { label: 'Транспорт', type: 'expense', icon: 'Car', desc: 'Проездной / бензин' },
+];
+
+export default function FinanceRecurring() {
+  const navigate = useNavigate();
+  const [items, setItems] = useState<RecurringItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [showAdd, setShowAdd] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    type: 'expense' as 'income' | 'expense',
+    amount: '',
+    description: '',
+    frequency: 'monthly',
+    day_of_month: '',
+    next_date: '',
+    category_id: '',
+  });
+
+  const loadData = useCallback(async () => {
+    const [r1, r2] = await Promise.all([
+      fetch(`${API}?section=recurring`, { headers: getHeaders() }),
+      fetch(`${API}?section=categories`, { headers: getHeaders() }),
+    ]);
+    if (r1.ok) { const d = await r1.json(); setItems(d.recurring || []); }
+    if (r2.ok) { const d = await r2.json(); setCategories(d.categories || []); }
+  }, []);
+
+  useEffect(() => {
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  const addItem = async () => {
+    if (!form.amount || parseFloat(form.amount) <= 0 || !form.description.trim()) {
+      toast.error('Укажите сумму и описание');
+      return;
+    }
+    setSaving(true);
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'add_recurring',
+        type: form.type,
+        amount: parseFloat(form.amount),
+        description: form.description,
+        frequency: form.frequency,
+        day_of_month: form.day_of_month ? parseInt(form.day_of_month) : null,
+        next_date: form.next_date || new Date().toISOString().split('T')[0],
+        category_id: form.category_id || null,
+      })
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.success('Добавлено');
+      setShowAdd(false);
+      resetForm();
+      loadData();
+    } else { toast.error('Ошибка'); }
+  };
+
+  const toggleActive = async (item: RecurringItem) => {
+    await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'update_recurring', id: item.id, is_active: !item.is_active })
+    });
+    loadData();
+  };
+
+  const deleteItem = async (id: string) => {
+    await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'delete_recurring', id })
+    });
+    toast.success('Удалено');
+    loadData();
+  };
+
+  const applyPreset = (preset: typeof PRESETS[0]) => {
+    setForm({
+      ...form,
+      type: preset.type as 'income' | 'expense',
+      description: preset.desc,
+      frequency: (preset as { freq?: string }).freq || 'monthly',
+    });
+  };
+
+  const resetForm = () => {
+    setForm({ type: 'expense', amount: '', description: '', frequency: 'monthly', day_of_month: '', next_date: '', category_id: '' });
+  };
+
+  const activeItems = items.filter(i => i.is_active);
+  const inactiveItems = items.filter(i => !i.is_active);
+  const totalIncome = activeItems.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
+  const totalExpense = activeItems.filter(i => i.type === 'expense').reduce((s, i) => s + i.amount, 0);
+  const filteredCategories = categories.filter(c => c.type === form.type);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-24">
+      <div className="max-w-2xl mx-auto p-4 space-y-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/finance/budget')}>
+            <Icon name="ArrowLeft" size={18} />
+          </Button>
+          <h1 className="text-xl font-bold flex-1">Регулярные платежи</h1>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { resetForm(); setShowAdd(true); }}>
+            <Icon name="Plus" size={16} className="mr-1" /> Добавить
+          </Button>
+        </div>
+
+        {activeItems.length > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-green-200 bg-green-50/50">
+              <CardContent className="p-3 text-center">
+                <p className="text-xs text-green-600">Доходы/мес</p>
+                <p className="text-lg font-bold text-green-700">+{formatMoney(totalIncome)} ₽</p>
+              </CardContent>
+            </Card>
+            <Card className="border-red-200 bg-red-50/50">
+              <CardContent className="p-3 text-center">
+                <p className="text-xs text-red-600">Расходы/мес</p>
+                <p className="text-lg font-bold text-red-700">−{formatMoney(totalExpense)} ₽</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {items.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Icon name="Repeat" size={48} className="mx-auto mb-3 text-emerald-300" />
+            <p className="font-medium text-foreground">Нет регулярных платежей</p>
+            <p className="text-sm mt-1">Добавьте зарплату, коммуналку, подписки и кредиты</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {activeItems.map(item => (
+              <Card key={item.id} className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: (item.category_color || (item.type === 'income' ? '#22C55E' : '#EF4444')) + '20' }}>
+                      <Icon name={item.category_icon || (item.type === 'income' ? 'TrendingUp' : 'TrendingDown')}
+                        size={20} style={{ color: item.category_color || (item.type === 'income' ? '#22C55E' : '#EF4444') }} />
+                    </div>
+                    <div className="flex-1 px-3 py-2 min-w-0">
+                      <span className="text-sm font-medium truncate block">{item.description || 'Без описания'}</span>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{FREQ_LABELS[item.frequency] || item.frequency}</span>
+                        {item.day_of_month && <span>· {item.day_of_month}-е число</span>}
+                        {item.category_name && <span>· {item.category_name}</span>}
+                      </div>
+                    </div>
+                    <div className="pr-1 text-right flex-shrink-0">
+                      <p className={`font-bold text-sm ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                        {item.type === 'income' ? '+' : '−'}{formatMoney(item.amount)} ₽
+                      </p>
+                    </div>
+                    <div className="flex flex-col pr-1">
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-amber-500"
+                        onClick={() => toggleActive(item)}>
+                        <Icon name="Pause" size={12} />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-red-500"
+                        onClick={() => deleteItem(item.id)}>
+                        <Icon name="Trash2" size={12} />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {inactiveItems.length > 0 && (
+              <>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide pt-2">Приостановлены</p>
+                {inactiveItems.map(item => (
+                  <Card key={item.id} className="opacity-50">
+                    <CardContent className="p-3 flex items-center gap-3">
+                      <span className="text-sm flex-1 truncate">{item.description}</span>
+                      <span className="text-sm text-muted-foreground">{formatMoney(item.amount)} ₽</span>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => toggleActive(item)}>
+                        <Icon name="Play" size={12} />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Регулярный платёж</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Быстрый выбор</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {PRESETS.map(p => (
+                  <button key={p.label} onClick={() => applyPreset(p)}
+                    className={`text-xs p-2 rounded-lg border transition-all text-center ${
+                      form.description === p.desc ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:bg-gray-50'
+                    }`}>
+                    <Icon name={p.icon} size={16} className={`mx-auto mb-0.5 ${p.type === 'income' ? 'text-green-600' : 'text-red-500'}`} />
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant={form.type === 'expense' ? 'default' : 'outline'}
+                className={`flex-1 ${form.type === 'expense' ? 'bg-red-600 hover:bg-red-700' : ''}`}
+                onClick={() => setForm({ ...form, type: 'expense', category_id: '' })}>
+                Расход
+              </Button>
+              <Button variant={form.type === 'income' ? 'default' : 'outline'}
+                className={`flex-1 ${form.type === 'income' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                onClick={() => setForm({ ...form, type: 'income', category_id: '' })}>
+                Доход
+              </Button>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">Описание</label>
+              <Input placeholder="Зарплата / ЖКХ / Кредит..." value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Сумма, ₽</label>
+                <Input type="number" inputMode="decimal" placeholder="50000" value={form.amount}
+                  onChange={e => setForm({ ...form, amount: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Частота</label>
+                <Select value={form.frequency} onValueChange={v => setForm({ ...form, frequency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(FREQ_LABELS).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Число месяца</label>
+                <Input type="number" min={1} max={31} placeholder="10" value={form.day_of_month}
+                  onChange={e => setForm({ ...form, day_of_month: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Категория</label>
+                <Select value={form.category_id} onValueChange={v => setForm({ ...form, category_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Выбрать" /></SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                          {c.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={addItem} disabled={saving}
+              className="bg-emerald-600 hover:bg-emerald-700 w-full">
+              {saving ? 'Сохраняю...' : 'Добавить'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
