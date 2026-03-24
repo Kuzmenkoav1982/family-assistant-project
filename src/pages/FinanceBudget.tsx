@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -62,6 +63,14 @@ function formatMoney(n: number) {
   return n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+function formatShort(n: number) {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}М`;
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}т`;
+  return String(n);
+}
+
+const MONTH_NAMES = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+
 export default function FinanceBudget() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('transactions');
@@ -88,6 +97,8 @@ export default function FinanceBudget() {
   const [budgetCategoryId, setBudgetCategoryId] = useState('');
   const [budgetAmount, setBudgetAmount] = useState('');
 
+  const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
+
   const loadCategories = useCallback(async () => {
     const res = await fetch(`${API}?section=categories`, { headers: getHeaders() });
     if (res.ok) {
@@ -97,7 +108,7 @@ export default function FinanceBudget() {
   }, []);
 
   const loadTransactions = useCallback(async () => {
-    const params = new URLSearchParams({ section: 'transactions', month, limit: '50' });
+    const params = new URLSearchParams({ section: 'transactions', month, limit: '200' });
     if (txFilter !== 'all') params.set('type', txFilter);
     const res = await fetch(`${API}?${params}`, { headers: getHeaders() });
     if (res.ok) {
@@ -118,10 +129,56 @@ export default function FinanceBudget() {
     }
   }, [month]);
 
+  const loadHistory = useCallback(async () => {
+    const months: { month: string; income: number; expense: number }[] = [];
+    const d = new Date(month + '-01');
+    const promises = [];
+    for (let i = 5; i >= 0; i--) {
+      const md = new Date(d);
+      md.setMonth(md.getMonth() - i);
+      const m = `${md.getFullYear()}-${String(md.getMonth() + 1).padStart(2, '0')}`;
+      promises.push(
+        fetch(`${API}?section=transactions&month=${m}&limit=1`, { headers: getHeaders() })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => ({
+            month: MONTH_NAMES[md.getMonth()],
+            income: data?.sum_income || 0,
+            expense: data?.sum_expense || 0
+          }))
+      );
+    }
+    const results = await Promise.all(promises);
+    setHistoryData(results);
+  }, [month]);
+
   useEffect(() => {
-    Promise.all([loadCategories(), loadTransactions(), loadBudgets()])
+    Promise.all([loadCategories(), loadTransactions(), loadBudgets(), loadHistory()])
       .finally(() => setLoading(false));
-  }, [loadCategories, loadTransactions, loadBudgets]);
+  }, [loadCategories, loadTransactions, loadBudgets, loadHistory]);
+
+  const pieData = useMemo(() => {
+    const map = new Map<string, { name: string; value: number; color: string }>();
+    transactions.filter(t => t.type === 'expense').forEach(tx => {
+      const name = tx.category_name || 'Прочее';
+      const color = tx.category_color || '#6B7280';
+      const existing = map.get(name);
+      if (existing) {
+        existing.value += tx.amount;
+      } else {
+        map.set(name, { name, value: tx.amount, color });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.value - a.value);
+  }, [transactions]);
+
+  const budgetChartData = useMemo(() => {
+    return budgets.map(b => ({
+      name: b.category_name || 'Без категории',
+      planned: b.planned,
+      spent: b.spent,
+      color: b.category_color || '#6B7280'
+    }));
+  }, [budgets]);
 
   const addTransaction = async () => {
     if (!txAmount || parseFloat(txAmount) <= 0) {
@@ -150,6 +207,7 @@ export default function FinanceBudget() {
       setTxCategoryId('');
       loadTransactions();
       loadBudgets();
+      loadHistory();
     } else {
       toast.error('Ошибка при сохранении');
     }
@@ -165,6 +223,7 @@ export default function FinanceBudget() {
       toast.success('Удалено');
       loadTransactions();
       loadBudgets();
+      loadHistory();
     }
   };
 
@@ -270,6 +329,7 @@ export default function FinanceBudget() {
           <TabsList className="w-full">
             <TabsTrigger value="transactions" className="flex-1">Операции</TabsTrigger>
             <TabsTrigger value="budgets" className="flex-1">Лимиты</TabsTrigger>
+            <TabsTrigger value="analytics" className="flex-1">Аналитика</TabsTrigger>
           </TabsList>
 
           <TabsContent value="transactions" className="space-y-3 mt-3">
@@ -389,6 +449,101 @@ export default function FinanceBudget() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4 mt-3">
+            {transactions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Icon name="BarChart3" size={40} className="mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">Добавьте операции для аналитики</p>
+              </div>
+            ) : (
+              <>
+                {pieData.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-sm mb-3">Расходы по категориям</h3>
+                      <div className="flex items-center gap-4">
+                        <ResponsiveContainer width="50%" height={180}>
+                          <PieChart>
+                            <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={70} innerRadius={35}>
+                              {pieData.map((entry, i) => (
+                                <Cell key={i} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(v: number) => `${formatMoney(v)} ₽`} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="flex-1 space-y-1.5">
+                          {pieData.slice(0, 6).map((item, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs">
+                              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="truncate flex-1">{item.name}</span>
+                              <span className="font-medium">{formatShort(item.value)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {historyData.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-sm mb-3">Доходы и расходы за 6 месяцев</h3>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={historyData} barGap={2}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 11 }} tickFormatter={formatShort} width={40} />
+                          <Tooltip formatter={(v: number) => `${formatMoney(v)} ₽`} />
+                          <Legend wrapperStyle={{ fontSize: 12 }} />
+                          <Bar dataKey="income" name="Доходы" fill="#22C55E" radius={[3, 3, 0, 0]} />
+                          <Bar dataKey="expense" name="Расходы" fill="#EF4444" radius={[3, 3, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {historyData.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-sm mb-3">Динамика баланса</h3>
+                      <ResponsiveContainer width="100%" height={180}>
+                        <LineChart data={historyData.map(h => ({ ...h, balance: h.income - h.expense }))}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 11 }} tickFormatter={formatShort} width={40} />
+                          <Tooltip formatter={(v: number) => `${formatMoney(v)} ₽`} />
+                          <Line type="monotone" dataKey="balance" name="Баланс" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 4 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {budgetChartData.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <h3 className="font-bold text-sm mb-3">План vs Факт</h3>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={budgetChartData} layout="vertical" barGap={2}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={formatShort} />
+                          <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
+                          <Tooltip formatter={(v: number) => `${formatMoney(v)} ₽`} />
+                          <Legend wrapperStyle={{ fontSize: 12 }} />
+                          <Bar dataKey="planned" name="План" fill="#93C5FD" radius={[0, 3, 3, 0]} />
+                          <Bar dataKey="spent" name="Факт" fill="#F87171" radius={[0, 3, 3, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -410,13 +565,11 @@ export default function FinanceBudget() {
                 <Icon name="TrendingUp" size={16} className="mr-1" /> Доход
               </Button>
             </div>
-
             <div>
               <label className="text-sm font-medium mb-1 block">Сумма, ₽</label>
               <Input type="number" inputMode="decimal" placeholder="0"
                 value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus />
             </div>
-
             <div>
               <label className="text-sm font-medium mb-1 block">Категория</label>
               <Select value={txCategoryId} onValueChange={setTxCategoryId}>
@@ -433,13 +586,11 @@ export default function FinanceBudget() {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <label className="text-sm font-medium mb-1 block">Описание</label>
               <Input placeholder="Комментарий (необязательно)"
                 value={txDesc} onChange={e => setTxDesc(e.target.value)} />
             </div>
-
             <div>
               <label className="text-sm font-medium mb-1 block">Дата</label>
               <Input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} />
