@@ -150,6 +150,7 @@ export default function FinanceDebts() {
   const [payExtra, setPayExtra] = useState(false);
   const [payNotes, setPayNotes] = useState('');
   const [editDebt, setEditDebt] = useState<Debt | null>(null);
+  const [simPayment, setSimPayment] = useState('');
 
   const loadDebts = useCallback(async () => {
     const res = await fetch(`${API}?section=debts`, { headers: getHeaders() });
@@ -174,7 +175,10 @@ export default function FinanceDebts() {
   }, [loadDebts]);
 
   useEffect(() => {
-    if (selectedDebt) loadPayments(selectedDebt.id);
+    if (selectedDebt) {
+      loadPayments(selectedDebt.id);
+      setSimPayment('');
+    }
   }, [selectedDebt, loadPayments]);
 
   const isOwner = useIsFamilyOwner();
@@ -552,50 +556,136 @@ export default function FinanceDebts() {
           </Card>
 
           {(() => {
+            if (selectedDebt.status === 'paid' || selectedDebt.remaining_amount <= 0) return null;
             const payoff = getDebtPayoff(selectedDebt);
-            if (!payoff) return null;
-            const isInf = payoff.months === Infinity;
+            const isInf = payoff ? payoff.months === Infinity : false;
+
+            const simAmt = simPayment ? parseFloat(simPayment) : 0;
+            const simResult = simAmt > 0
+              ? calcLoanPayoff(selectedDebt.remaining_amount, selectedDebt.interest_rate, simAmt)
+              : null;
+            const simValid = simResult && simResult.months !== Infinity;
+            const savedMonths = simValid && payoff && !isInf ? payoff.months - simResult!.months : 0;
+            const savedMoney = simValid && payoff && !isInf ? payoff.overpayment - simResult!.overpayment : 0;
+
             return (
-              <Card className={isInf ? 'border-red-200 bg-red-50/50' : 'border-purple-200 bg-purple-50/50'}>
-                <CardContent className="p-4 space-y-3">
-                  <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
-                    <Icon name="Calculator" size={14} />
-                    {isCC(selectedDebt.debt_type) ? 'Прогноз при минимальных платежах' : 'Прогноз погашения'}
-                  </p>
-                  {isInf ? (
-                    <div className="text-center py-2">
-                      <p className="font-bold text-red-600">Платёж не покрывает проценты</p>
-                      <p className="text-xs text-red-500 mt-1">Увеличьте ежемесячный платёж, чтобы начать гасить долг</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-3 text-center">
-                      <div>
-                        <p className="text-xs text-muted-foreground">До погашения</p>
-                        <p className="font-bold text-sm">{formatMonths(payoff.months)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Переплата</p>
-                        <p className="font-bold text-sm text-red-600">{formatMoney(Math.round(payoff.overpayment))} ₽</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Всего выплатите</p>
-                        <p className="font-bold text-sm">{formatMoney(Math.round(payoff.totalPaid))} ₽</p>
-                      </div>
-                    </div>
-                  )}
-                  {!isInf && isCC(selectedDebt.debt_type) && payoff.overpayment > 0 && (
-                    <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
-                      <Icon name="AlertTriangle" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-[11px] text-amber-700">При минимальных платежах переплата составит <b>{formatMoney(Math.round(payoff.overpayment))} ₽</b>. Платите больше минимума, чтобы сэкономить.</p>
-                    </div>
-                  )}
-                  {!isInf && !isCC(selectedDebt.debt_type) && selectedDebt.end_date && (
-                    <p className="text-[11px] text-muted-foreground text-center">
-                      Ожидаемый конец: {new Date(new Date().setMonth(new Date().getMonth() + payoff.months)).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+              <>
+                {payoff && (
+                <Card className={isInf ? 'border-red-200 bg-red-50/50' : 'border-purple-200 bg-purple-50/50'}>
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
+                      <Icon name="Calculator" size={14} />
+                      {isCC(selectedDebt.debt_type) ? 'Прогноз при минимальных платежах' : 'Прогноз погашения'}
                     </p>
-                  )}
-                </CardContent>
-              </Card>
+                    {isInf ? (
+                      <div className="text-center py-2">
+                        <p className="font-bold text-red-600">Платёж не покрывает проценты</p>
+                        <p className="text-xs text-red-500 mt-1">Увеличьте ежемесячный платёж, чтобы начать гасить долг</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">До погашения</p>
+                          <p className="font-bold text-sm">{formatMonths(payoff.months)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Переплата</p>
+                          <p className="font-bold text-sm text-red-600">{formatMoney(Math.round(payoff.overpayment))} ₽</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Всего выплатите</p>
+                          <p className="font-bold text-sm">{formatMoney(Math.round(payoff.totalPaid))} ₽</p>
+                        </div>
+                      </div>
+                    )}
+                    {!isInf && isCC(selectedDebt.debt_type) && payoff.overpayment > 0 && (
+                      <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
+                        <Icon name="AlertTriangle" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-[11px] text-amber-700">При минимальных платежах переплата составит <b>{formatMoney(Math.round(payoff.overpayment))} ₽</b>. Платите больше минимума, чтобы сэкономить.</p>
+                      </div>
+                    )}
+                    {!isInf && (
+                      <p className="text-[11px] text-muted-foreground text-center">
+                        Ожидаемый конец: {new Date(new Date().setMonth(new Date().getMonth() + payoff.months)).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+                )}
+
+                <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50">
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                      <Icon name="Sparkles" size={14} /> А если платить больше?
+                    </p>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Ваш платёж в месяц, ₽</label>
+                      <Input
+                        type="number" inputMode="decimal"
+                        placeholder={selectedDebt.monthly_payment > 0 ? `Сейчас ${formatMoney(selectedDebt.monthly_payment)}` : 'Введите сумму'}
+                        value={simPayment}
+                        onChange={e => setSimPayment(e.target.value)}
+                        className="bg-white"
+                      />
+                    </div>
+                    {simResult && simResult.months === Infinity && (
+                      <p className="text-xs text-red-600 text-center font-medium">Эта сумма не покрывает проценты — увеличьте платёж</p>
+                    )}
+                    {simValid && (
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Срок</p>
+                          <p className="font-bold text-sm text-emerald-700">{formatMonths(simResult!.months)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Переплата</p>
+                          <p className="font-bold text-sm text-emerald-700">{formatMoney(Math.round(simResult!.overpayment))} ₽</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Всего</p>
+                          <p className="font-bold text-sm">{formatMoney(Math.round(simResult!.totalPaid))} ₽</p>
+                        </div>
+                      </div>
+                    )}
+                    {simValid && (savedMonths > 0 || savedMoney > 0) && (
+                      <div className="bg-emerald-100 rounded-lg p-2.5 text-center">
+                        <p className="text-xs font-bold text-emerald-800">
+                          Экономия:
+                          {savedMonths > 0 && <> {formatMonths(savedMonths)} быстрее</>}
+                          {savedMonths > 0 && savedMoney > 0 && ' и '}
+                          {savedMoney > 0 && <> {formatMoney(Math.round(savedMoney))} ₽ меньше переплата</>}
+                        </p>
+                      </div>
+                    )}
+                    {!simPayment && (() => {
+                      const base = selectedDebt.monthly_payment > 0
+                        ? selectedDebt.monthly_payment
+                        : isCC(selectedDebt.debt_type) && selectedDebt.min_payment_pct
+                          ? Math.ceil(selectedDebt.remaining_amount * (selectedDebt.min_payment_pct / 100))
+                          : selectedDebt.remaining_amount * 0.03;
+                      const suggestions = [
+                        Math.round(base * 1.5),
+                        Math.round(base * 2),
+                        Math.round(base * 3),
+                      ].filter(a => a > 0);
+                      if (suggestions.length === 0) return null;
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-[11px] text-muted-foreground">Попробуйте:</p>
+                          <div className="grid grid-cols-3 gap-2">
+                            {suggestions.map((amt, i) => (
+                              <Button key={i} variant="outline" size="sm" className="text-xs bg-white"
+                                onClick={() => setSimPayment(String(amt))}>
+                                {formatMoney(amt)} ₽
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              </>
             );
           })()}
 
