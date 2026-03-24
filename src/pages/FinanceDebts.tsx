@@ -27,6 +27,12 @@ interface Debt {
   end_date: string | null;
   status: string;
   notes: string;
+  credit_limit?: number | null;
+  grace_period_days?: number | null;
+  grace_period_end?: string | null;
+  grace_amount?: number | null;
+  min_payment_pct?: number | null;
+  bank_name?: string | null;
 }
 
 interface Payment {
@@ -59,6 +65,10 @@ function getDebtMeta(type: string) {
   return DEBT_TYPES.find(t => t.value === type) || DEBT_TYPES[1];
 }
 
+function isCC(type: string) {
+  return type === 'credit_card';
+}
+
 export default function FinanceDebts() {
   const navigate = useNavigate();
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -71,7 +81,9 @@ export default function FinanceDebts() {
   const [form, setForm] = useState({
     name: '', debt_type: 'credit', creditor: '', original_amount: '',
     remaining_amount: '', interest_rate: '', monthly_payment: '',
-    next_payment_date: '', start_date: '', end_date: '', notes: ''
+    next_payment_date: '', start_date: '', end_date: '', notes: '',
+    credit_limit: '', grace_period_days: '', grace_period_end: '',
+    grace_amount: '', min_payment_pct: '', bank_name: ''
   });
 
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -127,8 +139,17 @@ export default function FinanceDebts() {
   }
 
   const addDebt = async () => {
-    if (!form.name.trim() || !form.original_amount || parseFloat(form.original_amount) <= 0) {
-      toast.error('Укажите название и сумму');
+    const isCreditCard = form.debt_type === 'credit_card';
+    if (!form.name.trim()) {
+      toast.error('Укажите название');
+      return;
+    }
+    if (!isCreditCard && (!form.original_amount || parseFloat(form.original_amount) <= 0)) {
+      toast.error('Укажите сумму');
+      return;
+    }
+    if (isCreditCard && (!form.credit_limit || parseFloat(form.credit_limit) <= 0)) {
+      toast.error('Укажите кредитный лимит');
       return;
     }
     setSaving(true);
@@ -137,20 +158,26 @@ export default function FinanceDebts() {
       body: JSON.stringify({
         action: 'add_debt',
         ...form,
-        original_amount: parseFloat(form.original_amount),
-        remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : parseFloat(form.original_amount),
+        original_amount: form.debt_type === 'credit_card' && form.credit_limit ? parseFloat(form.credit_limit) : parseFloat(form.original_amount),
+        remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : (form.debt_type === 'credit_card' && form.credit_limit ? parseFloat(form.credit_limit) : parseFloat(form.original_amount)),
         interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
         monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
         next_payment_date: form.next_payment_date || null,
         start_date: form.start_date || null,
-        end_date: form.end_date || null
+        end_date: form.end_date || null,
+        credit_limit: form.credit_limit ? parseFloat(form.credit_limit) : null,
+        grace_period_days: form.grace_period_days ? parseInt(form.grace_period_days) : null,
+        grace_period_end: form.grace_period_end || null,
+        grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
+        min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
+        bank_name: form.bank_name || null
       })
     });
     setSaving(false);
     if (res.ok) {
       toast.success('Долг добавлен');
       setShowAdd(false);
-      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '' });
+      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
       loadDebts();
     } else {
       toast.error('Ошибка');
@@ -188,14 +215,20 @@ export default function FinanceDebts() {
         monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
         next_payment_date: form.next_payment_date || null,
         status: editDebt.status,
-        notes: form.notes
+        notes: form.notes,
+        credit_limit: form.credit_limit ? parseFloat(form.credit_limit) : null,
+        grace_period_days: form.grace_period_days ? parseInt(form.grace_period_days) : null,
+        grace_period_end: form.grace_period_end || null,
+        grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
+        min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
+        bank_name: form.bank_name || null
       })
     });
     setSaving(false);
     if (res.ok) {
       toast.success('Сохранено');
       setEditDebt(null);
-      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '' });
+      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
       loadDebts();
       if (selectedDebt && selectedDebt.id === editDebt.id) {
         setSelectedDebt(null);
@@ -217,7 +250,13 @@ export default function FinanceDebts() {
       next_payment_date: debt.next_payment_date || '',
       start_date: debt.start_date || '',
       end_date: debt.end_date || '',
-      notes: debt.notes || ''
+      notes: debt.notes || '',
+      credit_limit: debt.credit_limit ? String(debt.credit_limit) : '',
+      grace_period_days: debt.grace_period_days ? String(debt.grace_period_days) : '',
+      grace_period_end: debt.grace_period_end || '',
+      grace_amount: debt.grace_amount ? String(debt.grace_amount) : '',
+      min_payment_pct: debt.min_payment_pct ? String(debt.min_payment_pct) : '',
+      bank_name: debt.bank_name || ''
     });
     setEditDebt(debt);
   };
@@ -296,48 +335,153 @@ export default function FinanceDebts() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-muted-foreground">Сумма кредита</p>
-                  <p className="font-bold">{formatMoney(selectedDebt.original_amount)} ₽</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Остаток</p>
-                  <p className="font-bold text-red-600">{formatMoney(selectedDebt.remaining_amount)} ₽</p>
-                </div>
-                {selectedDebt.interest_rate > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Ставка</p>
-                    <p className="font-medium">{selectedDebt.interest_rate}%</p>
+              {isCC(selectedDebt.debt_type) ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Кредитный лимит</p>
+                      <p className="font-bold">{formatMoney(selectedDebt.credit_limit || selectedDebt.original_amount)} ₽</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Общая задолженность</p>
+                      <p className="font-bold text-red-600">{formatMoney(selectedDebt.remaining_amount)} ₽</p>
+                    </div>
                   </div>
-                )}
-                {selectedDebt.monthly_payment > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Ежемесячный платёж</p>
-                    <p className="font-medium">{formatMoney(selectedDebt.monthly_payment)} ₽</p>
-                  </div>
-                )}
-                {selectedDebt.next_payment_date && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Следующий платёж</p>
-                    <p className="font-medium">{new Date(selectedDebt.next_payment_date).toLocaleDateString('ru-RU')}</p>
-                  </div>
-                )}
-                {selectedDebt.end_date && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Дата окончания</p>
-                    <p className="font-medium">{new Date(selectedDebt.end_date).toLocaleDateString('ru-RU')}</p>
-                  </div>
-                )}
-              </div>
 
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">Погашено</span>
-                  <span className="font-medium">{Math.round(paidPct)}%</span>
+                  {(selectedDebt.grace_amount != null || selectedDebt.grace_period_end) && (
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardContent className="p-3 space-y-2">
+                        <p className="text-xs font-semibold text-blue-700 flex items-center gap-1">
+                          <Icon name="Shield" size={14} /> Льготный период
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {selectedDebt.grace_amount != null && (
+                            <div>
+                              <p className="text-xs text-blue-600">Льготная задолженность</p>
+                              <p className="font-bold text-blue-800">{formatMoney(selectedDebt.grace_amount)} ₽</p>
+                            </div>
+                          )}
+                          {selectedDebt.grace_period_end && (
+                            <div>
+                              <p className="text-xs text-blue-600">Действует до</p>
+                              <p className="font-bold text-blue-800">{new Date(selectedDebt.grace_period_end).toLocaleDateString('ru-RU')}</p>
+                            </div>
+                          )}
+                          {selectedDebt.grace_period_days && (
+                            <div>
+                              <p className="text-xs text-blue-600">Период</p>
+                              <p className="font-medium text-blue-800">до {selectedDebt.grace_period_days} дней</p>
+                            </div>
+                          )}
+                        </div>
+                        {selectedDebt.grace_period_end && new Date(selectedDebt.grace_period_end) >= new Date() && (
+                          <p className="text-[11px] text-green-700 bg-green-50 rounded px-2 py-1 flex items-center gap-1">
+                            <Icon name="Clock" size={12} /> Погасите до {new Date(selectedDebt.grace_period_end).toLocaleDateString('ru-RU')} — проценты не начислятся
+                          </p>
+                        )}
+                        {selectedDebt.grace_period_end && new Date(selectedDebt.grace_period_end) < new Date() && (
+                          <p className="text-[11px] text-red-700 bg-red-50 rounded px-2 py-1 flex items-center gap-1">
+                            <Icon name="AlertTriangle" size={12} /> Льготный период истёк — начисляются {selectedDebt.interest_rate}% годовых
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedDebt.interest_rate > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Ставка</p>
+                        <p className="font-medium">{selectedDebt.interest_rate}% годовых</p>
+                      </div>
+                    )}
+                    {selectedDebt.min_payment_pct && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Мин. платёж</p>
+                        <p className="font-medium">{selectedDebt.min_payment_pct}% от долга</p>
+                      </div>
+                    )}
+                    {selectedDebt.monthly_payment > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Мин. платёж/мес</p>
+                        <p className="font-medium">{formatMoney(selectedDebt.monthly_payment)} ₽</p>
+                      </div>
+                    )}
+                    {selectedDebt.bank_name && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Банк</p>
+                        <p className="font-medium">{selectedDebt.bank_name}</p>
+                      </div>
+                    )}
+                    {selectedDebt.next_payment_date && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Следующий платёж</p>
+                        <p className="font-medium">{new Date(selectedDebt.next_payment_date).toLocaleDateString('ru-RU')}</p>
+                      </div>
+                    )}
+                    {selectedDebt.credit_limit && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Доступно</p>
+                        <p className="font-medium text-green-600">{formatMoney((selectedDebt.credit_limit || 0) - selectedDebt.remaining_amount)} ₽</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {(selectedDebt.credit_limit || 0) > 0 && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Использовано лимита</span>
+                        <span className="font-medium">{Math.round((selectedDebt.remaining_amount / (selectedDebt.credit_limit || 1)) * 100)}%</span>
+                      </div>
+                      <Progress value={(selectedDebt.remaining_amount / (selectedDebt.credit_limit || 1)) * 100} className="h-2" />
+                    </div>
+                  )}
                 </div>
-                <Progress value={paidPct} className="h-2" />
-              </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Сумма кредита</p>
+                      <p className="font-bold">{formatMoney(selectedDebt.original_amount)} ₽</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Остаток</p>
+                      <p className="font-bold text-red-600">{formatMoney(selectedDebt.remaining_amount)} ₽</p>
+                    </div>
+                    {selectedDebt.interest_rate > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Ставка</p>
+                        <p className="font-medium">{selectedDebt.interest_rate}%</p>
+                      </div>
+                    )}
+                    {selectedDebt.monthly_payment > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Ежемесячный платёж</p>
+                        <p className="font-medium">{formatMoney(selectedDebt.monthly_payment)} ₽</p>
+                      </div>
+                    )}
+                    {selectedDebt.next_payment_date && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Следующий платёж</p>
+                        <p className="font-medium">{new Date(selectedDebt.next_payment_date).toLocaleDateString('ru-RU')}</p>
+                      </div>
+                    )}
+                    {selectedDebt.end_date && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Дата окончания</p>
+                        <p className="font-medium">{new Date(selectedDebt.end_date).toLocaleDateString('ru-RU')}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Погашено</span>
+                      <span className="font-medium">{Math.round(paidPct)}%</span>
+                    </div>
+                    <Progress value={paidPct} className="h-2" />
+                  </div>
+                </>
+              )}
 
               {selectedDebt.notes && (
                 <p className="text-sm text-muted-foreground bg-gray-50 rounded-lg p-3">{selectedDebt.notes}</p>
@@ -453,6 +597,46 @@ export default function FinanceDebts() {
                 <label className="text-sm font-medium mb-1 block">Заметка</label>
                 <Input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
               </div>
+              {editDebt && isCC(editDebt.debt_type) && (
+                <>
+                  <div className="border-t pt-3">
+                    <p className="text-xs font-semibold text-orange-600 mb-2">Кредитная карта</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Банк</label>
+                    <Input value={form.bank_name} onChange={e => setForm(f => ({ ...f, bank_name: e.target.value }))} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Кред. лимит, ₽</label>
+                      <Input type="number" inputMode="decimal" value={form.credit_limit}
+                        onChange={e => setForm(f => ({ ...f, credit_limit: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Мин. платёж, %</label>
+                      <Input type="number" inputMode="decimal" value={form.min_payment_pct}
+                        onChange={e => setForm(f => ({ ...f, min_payment_pct: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Льготный период, дн</label>
+                      <Input type="number" inputMode="numeric" value={form.grace_period_days}
+                        onChange={e => setForm(f => ({ ...f, grace_period_days: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Льготн. период до</label>
+                      <Input type="date" value={form.grace_period_end}
+                        onChange={e => setForm(f => ({ ...f, grace_period_end: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Льготная задолж., ₽</label>
+                    <Input type="number" inputMode="decimal" value={form.grace_amount}
+                      onChange={e => setForm(f => ({ ...f, grace_amount: e.target.value }))} />
+                  </div>
+                </>
+              )}
             </div>
             <DialogFooter>
               <Button onClick={updateDebt} disabled={saving}
@@ -527,17 +711,22 @@ export default function FinanceDebts() {
                           <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
                         </div>
                         {debt.creditor && <p className="text-xs text-muted-foreground mb-1">{debt.creditor}</p>}
-                        <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center gap-4 text-xs flex-wrap">
                           <span className="text-red-600 font-medium">{formatMoney(debt.remaining_amount)} ₽</span>
-                          {debt.monthly_payment > 0 && (
+                          {isCC(debt.debt_type) && debt.credit_limit ? (
+                            <span className="text-muted-foreground">лимит {formatMoney(debt.credit_limit)}</span>
+                          ) : debt.monthly_payment > 0 ? (
                             <span className="text-muted-foreground">{formatMoney(debt.monthly_payment)} ₽/мес</span>
-                          )}
+                          ) : null}
                           {debt.interest_rate > 0 && (
                             <span className="text-muted-foreground">{debt.interest_rate}%</span>
                           )}
+                          {isCC(debt.debt_type) && debt.bank_name && (
+                            <span className="text-muted-foreground">{debt.bank_name}</span>
+                          )}
                         </div>
                         <div className="mt-2">
-                          <Progress value={paidPct} className="h-1.5" />
+                          <Progress value={isCC(debt.debt_type) && debt.credit_limit ? (debt.remaining_amount / debt.credit_limit) * 100 : paidPct} className="h-1.5" />
                         </div>
                       </div>
                       <div className="flex items-center pr-3">
@@ -576,52 +765,120 @@ export default function FinanceDebts() {
               <label className="text-sm font-medium mb-1 block">Название</label>
               <Input placeholder="Ипотека Сбербанк" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Кредитор</label>
-              <Input placeholder="Банк / человек" value={form.creditor} onChange={e => setForm({...form, creditor: e.target.value})} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            {!isCC(form.debt_type) && (
               <div>
-                <label className="text-sm font-medium mb-1 block">Сумма кредита, ₽</label>
-                <Input type="number" inputMode="decimal" placeholder="3000000" value={form.original_amount}
-                  onChange={e => setForm({...form, original_amount: e.target.value})} />
+                <label className="text-sm font-medium mb-1 block">Кредитор</label>
+                <Input placeholder="Банк / человек" value={form.creditor} onChange={e => setForm({...form, creditor: e.target.value})} />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Остаток, ₽</label>
-                <Input type="number" inputMode="decimal" placeholder="Если уже платили" value={form.remaining_amount}
-                  onChange={e => setForm({...form, remaining_amount: e.target.value})} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Ставка, %</label>
-                <Input type="number" inputMode="decimal" placeholder="12.5" value={form.interest_rate}
-                  onChange={e => setForm({...form, interest_rate: e.target.value})} />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Платёж/мес, ₽</label>
-                <Input type="number" inputMode="decimal" placeholder="35000" value={form.monthly_payment}
-                  onChange={e => setForm({...form, monthly_payment: e.target.value})} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Дата начала</label>
-                <Input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Дата окончания</label>
-                <Input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">След. платёж</label>
-              <Input type="date" value={form.next_payment_date} onChange={e => setForm({...form, next_payment_date: e.target.value})} />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Заметка</label>
-              <Input placeholder="Необязательно" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
-            </div>
+            )}
+            {isCC(form.debt_type) ? (
+              <>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Банк</label>
+                  <Input placeholder="Т-Банк, Сбер, Альфа..." value={form.bank_name}
+                    onChange={e => setForm({...form, bank_name: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Кредитный лимит, ₽</label>
+                    <Input type="number" inputMode="decimal" placeholder="300000" value={form.credit_limit}
+                      onChange={e => setForm({...form, credit_limit: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Задолженность, ₽</label>
+                    <Input type="number" inputMode="decimal" placeholder="94675" value={form.remaining_amount}
+                      onChange={e => setForm({...form, remaining_amount: e.target.value})} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Ставка, % годовых</label>
+                    <Input type="number" inputMode="decimal" placeholder="59" value={form.interest_rate}
+                      onChange={e => setForm({...form, interest_rate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Мин. платёж, %</label>
+                    <Input type="number" inputMode="decimal" placeholder="3" value={form.min_payment_pct}
+                      onChange={e => setForm({...form, min_payment_pct: e.target.value})} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Льготный период, дн</label>
+                    <Input type="number" inputMode="numeric" placeholder="55" value={form.grace_period_days}
+                      onChange={e => setForm({...form, grace_period_days: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Льготн. период до</label>
+                    <Input type="date" value={form.grace_period_end}
+                      onChange={e => setForm({...form, grace_period_end: e.target.value})} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Льготная задолженность, ₽</label>
+                  <Input type="number" inputMode="decimal" placeholder="Сумма без процентов" value={form.grace_amount}
+                    onChange={e => setForm({...form, grace_amount: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Мин. платёж/мес, ₽</label>
+                  <Input type="number" inputMode="decimal" placeholder="Если фиксированный" value={form.monthly_payment}
+                    onChange={e => setForm({...form, monthly_payment: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">След. платёж</label>
+                  <Input type="date" value={form.next_payment_date} onChange={e => setForm({...form, next_payment_date: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Заметка</label>
+                  <Input placeholder="Необязательно" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Сумма кредита, ₽</label>
+                    <Input type="number" inputMode="decimal" placeholder="3000000" value={form.original_amount}
+                      onChange={e => setForm({...form, original_amount: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Остаток, ₽</label>
+                    <Input type="number" inputMode="decimal" placeholder="Если уже платили" value={form.remaining_amount}
+                      onChange={e => setForm({...form, remaining_amount: e.target.value})} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Ставка, %</label>
+                    <Input type="number" inputMode="decimal" placeholder="12.5" value={form.interest_rate}
+                      onChange={e => setForm({...form, interest_rate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Платёж/мес, ₽</label>
+                    <Input type="number" inputMode="decimal" placeholder="35000" value={form.monthly_payment}
+                      onChange={e => setForm({...form, monthly_payment: e.target.value})} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Дата начала</label>
+                    <Input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Дата окончания</label>
+                    <Input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">След. платёж</label>
+                  <Input type="date" value={form.next_payment_date} onChange={e => setForm({...form, next_payment_date: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Заметка</label>
+                  <Input placeholder="Необязательно" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button onClick={addDebt} disabled={saving} className="bg-rose-600 hover:bg-rose-700 w-full">

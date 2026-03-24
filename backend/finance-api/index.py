@@ -660,7 +660,9 @@ def get_debts(family_id):
         cur.execute("""
             SELECT id, debt_type, name, creditor, original_amount, remaining_amount,
                    interest_rate, monthly_payment, next_payment_date, start_date, end_date,
-                   status, notes, account_id
+                   status, notes, account_id,
+                   credit_limit, grace_period_days, grace_period_end, grace_amount,
+                   min_payment_pct, bank_name
             FROM finance_debts
             WHERE family_id = '%s'
             ORDER BY status, next_payment_date NULLS LAST
@@ -675,7 +677,13 @@ def get_debts(family_id):
                 'start_date': str(r[9]) if r[9] else None,
                 'end_date': str(r[10]) if r[10] else None,
                 'status': r[11], 'notes': r[12],
-                'account_id': str(r[13]) if r[13] else None
+                'account_id': str(r[13]) if r[13] else None,
+                'credit_limit': float(r[14]) if r[14] else None,
+                'grace_period_days': int(r[15]) if r[15] else None,
+                'grace_period_end': str(r[16]) if r[16] else None,
+                'grace_amount': float(r[17]) if r[17] else None,
+                'min_payment_pct': float(r[18]) if r[18] else None,
+                'bank_name': r[19]
             }
             for r in cur.fetchall()
         ]
@@ -707,8 +715,9 @@ def add_debt(family_id, body):
         cur.execute("""
             INSERT INTO finance_debts
             (family_id, debt_type, name, creditor, original_amount, remaining_amount,
-             interest_rate, monthly_payment, next_payment_date, start_date, end_date, notes, account_id)
-            VALUES ('%s', '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, %s, '%s', %s)
+             interest_rate, monthly_payment, next_payment_date, start_date, end_date, notes, account_id,
+             credit_limit, grace_period_days, grace_period_end, grace_amount, min_payment_pct, bank_name)
+            VALUES ('%s', '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, %s, '%s', %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """ % (
             str(family_id),
@@ -723,7 +732,13 @@ def add_debt(family_id, body):
             "'%s'" % safe(body['start_date']) if body.get('start_date') else 'NULL',
             "'%s'" % safe(body['end_date']) if body.get('end_date') else 'NULL',
             safe(body.get('notes', '')),
-            "'%s'" % safe(body['account_id']) if body.get('account_id') else 'NULL'
+            "'%s'" % safe(body['account_id']) if body.get('account_id') else 'NULL',
+            float(body['credit_limit']) if body.get('credit_limit') else 'NULL',
+            int(body['grace_period_days']) if body.get('grace_period_days') else 'NULL',
+            "'%s'" % safe(body['grace_period_end']) if body.get('grace_period_end') else 'NULL',
+            float(body['grace_amount']) if body.get('grace_amount') else 'NULL',
+            float(body['min_payment_pct']) if body.get('min_payment_pct') else 'NULL',
+            "'%s'" % safe(body['bank_name']) if body.get('bank_name') else 'NULL'
         ))
         new_id = str(cur.fetchone()[0])
         conn.commit()
@@ -757,6 +772,18 @@ def update_debt(family_id, body):
             sets.append("status = '%s'" % safe(body['status']))
         if 'notes' in body:
             sets.append("notes = '%s'" % safe(body['notes']))
+        if 'credit_limit' in body:
+            sets.append("credit_limit = %s" % (float(body['credit_limit']) if body['credit_limit'] else 'NULL'))
+        if 'grace_period_days' in body:
+            sets.append("grace_period_days = %s" % (int(body['grace_period_days']) if body['grace_period_days'] else 'NULL'))
+        if 'grace_period_end' in body:
+            sets.append("grace_period_end = %s" % ("'%s'" % safe(body['grace_period_end']) if body['grace_period_end'] else 'NULL'))
+        if 'grace_amount' in body:
+            sets.append("grace_amount = %s" % (float(body['grace_amount']) if body['grace_amount'] else 'NULL'))
+        if 'min_payment_pct' in body:
+            sets.append("min_payment_pct = %s" % (float(body['min_payment_pct']) if body['min_payment_pct'] else 'NULL'))
+        if 'bank_name' in body:
+            sets.append("bank_name = %s" % ("'%s'" % safe(body['bank_name']) if body['bank_name'] else 'NULL'))
         if not sets:
             return respond(400, {'error': 'Нечего обновлять'})
         sets.append("updated_at = NOW()")
