@@ -1,4 +1,4 @@
-"""Финансовый API: транзакции, бюджеты, долги, счета, цели, категории"""
+"""Финансовый API: транзакции, бюджеты, долги, счета, цели, категории, имущество"""
 
 import json
 import os
@@ -29,7 +29,7 @@ def get_db():
 
 OWNER_ONLY_SECTIONS = {'budgets', 'debts', 'debt_payments', 'accounts', 'recurring', 'assets', 'dashboard', 'transactions', 'categories'}
 OWNER_ONLY_ACTIONS = {
-    'add_transaction', 'delete_transaction',
+    'add_transaction', 'delete_transaction', 'update_transaction',
     'add_category', 'delete_category',
     'set_budget', 'delete_budget',
     'add_debt', 'update_debt', 'delete_debt', 'add_debt_payment',
@@ -139,6 +139,8 @@ def handler(event, context):
             return add_transaction(user_id, family_id, body)
         elif action == 'delete_transaction':
             return delete_transaction(family_id, body)
+        elif action == 'update_transaction':
+            return update_transaction(family_id, body)
         elif action == 'add_category':
             return add_category(family_id, body)
         elif action == 'delete_category':
@@ -418,6 +420,46 @@ def delete_transaction(family_id, body):
 
         cur.execute(
             "DELETE FROM finance_transactions WHERE id = '%s' AND family_id = '%s'" % (safe(tid), fid)
+        )
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+def update_transaction(family_id, body):
+    tid = body.get('id')
+    if not tid:
+        return respond(400, {'error': 'Укажите id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        cur.execute(
+            "SELECT amount, transaction_type, account_id FROM finance_transactions WHERE id = '%s' AND family_id = '%s'"
+            % (safe(tid), fid)
+        )
+        old = cur.fetchone()
+        if not old:
+            return respond(404, {'error': 'Транзакция не найдена'})
+        sets = []
+        if 'amount' in body:
+            sets.append("amount = %s" % float(body['amount']))
+        if 'description' in body:
+            sets.append("description = '%s'" % safe(body['description']))
+        if 'category_id' in body:
+            if body['category_id']:
+                sets.append("category_id = '%s'" % safe(body['category_id']))
+            else:
+                sets.append("category_id = NULL")
+        if 'date' in body:
+            sets.append("transaction_date = '%s'" % safe(body['date']))
+        if not sets:
+            return respond(400, {'error': 'Нечего обновлять'})
+        sets.append("updated_at = NOW()")
+        cur.execute(
+            "UPDATE finance_transactions SET %s WHERE id = '%s' AND family_id = '%s'"
+            % (', '.join(sets), safe(tid), fid)
         )
         conn.commit()
         return respond(200, {'success': True})

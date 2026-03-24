@@ -98,6 +98,7 @@ export default function FinanceBudget() {
   const [budgetCategoryId, setBudgetCategoryId] = useState('');
   const [budgetAmount, setBudgetAmount] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [editTx, setEditTx] = useState<Transaction | null>(null);
   const analyticsRef = useRef<HTMLDivElement>(null);
 
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
@@ -245,6 +246,49 @@ export default function FinanceBudget() {
       loadBudgets();
       loadHistory();
     }
+  };
+
+  const updateTransaction = async () => {
+    if (!editTx) return;
+    if (!txAmount || parseFloat(txAmount) <= 0) {
+      toast.error('Укажите сумму');
+      return;
+    }
+    setSaving(true);
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'update_transaction',
+        id: editTx.id,
+        amount: parseFloat(txAmount),
+        description: txDesc,
+        category_id: txCategoryId || null,
+        date: txDate
+      })
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.success('Сохранено');
+      setEditTx(null);
+      setTxAmount('');
+      setTxDesc('');
+      setTxCategoryId('');
+      loadTransactions();
+      loadBudgets();
+      loadHistory();
+    } else {
+      toast.error('Ошибка');
+    }
+  };
+
+  const openEditTx = (tx: Transaction) => {
+    setTxType(tx.type as 'income' | 'expense');
+    setTxAmount(String(tx.amount));
+    setTxDesc(tx.description || '');
+    setTxCategoryId(tx.category_name ? categories.find(c => c.name === tx.category_name)?.id || '' : '');
+    setTxDate(tx.date ? tx.date.split('T')[0] : new Date().toISOString().split('T')[0]);
+    setEditTx(tx);
   };
 
   const saveBudget = async () => {
@@ -438,6 +482,10 @@ export default function FinanceBudget() {
                             {tx.type === 'income' ? '+' : '−'}{formatMoney(tx.amount)} ₽
                           </p>
                         </div>
+                        <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500"
+                          onClick={(e) => { e.stopPropagation(); openEditTx(tx); }}>
+                          <Icon name="Pencil" size={14} />
+                        </Button>
                         <Button variant="ghost" size="sm" className="mr-1 text-gray-400 hover:text-red-500"
                           onClick={(e) => { e.stopPropagation(); deleteTransaction(tx.id); }}>
                           <Icon name="Trash2" size={14} />
@@ -704,6 +752,52 @@ export default function FinanceBudget() {
             <Button onClick={saveBudget} disabled={saving}
               className="bg-emerald-600 hover:bg-emerald-700 w-full">
               {saving ? 'Сохраняю...' : 'Установить лимит'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editTx} onOpenChange={(open) => { if (!open) setEditTx(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Редактировать запись</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Сумма, ₽</label>
+              <Input type="number" inputMode="decimal" placeholder="0"
+                value={txAmount} onChange={e => setTxAmount(e.target.value)} autoFocus />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Категория</label>
+              <Select value={txCategoryId} onValueChange={setTxCategoryId}>
+                <SelectTrigger><SelectValue placeholder="Выберите категорию" /></SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }} />
+                        {c.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Описание</label>
+              <Input placeholder="Комментарий"
+                value={txDesc} onChange={e => setTxDesc(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Дата</label>
+              <Input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={updateTransaction} disabled={saving}
+              className="bg-emerald-600 hover:bg-emerald-700 w-full">
+              {saving ? 'Сохраняю...' : 'Сохранить'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -48,6 +48,7 @@ function formatMoney(n: number) {
 const DEBT_TYPES = [
   { value: 'mortgage', label: 'Ипотека', icon: 'Home', color: '#3B82F6' },
   { value: 'credit', label: 'Кредит', icon: 'CreditCard', color: '#EF4444' },
+  { value: 'credit_card', label: 'Кредитная карта', icon: 'CreditCard', color: '#F97316' },
   { value: 'car_loan', label: 'Автокредит', icon: 'Car', color: '#F59E0B' },
   { value: 'personal', label: 'Личный долг', icon: 'Users', color: '#8B5CF6' },
   { value: 'microloan', label: 'Микрозайм', icon: 'Zap', color: '#EC4899' },
@@ -80,6 +81,7 @@ export default function FinanceDebts() {
   const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0]);
   const [payExtra, setPayExtra] = useState(false);
   const [payNotes, setPayNotes] = useState('');
+  const [editDebt, setEditDebt] = useState<Debt | null>(null);
 
   const loadDebts = useCallback(async () => {
     const res = await fetch(`${API}?section=debts`, { headers: getHeaders() });
@@ -167,6 +169,59 @@ export default function FinanceDebts() {
     }
   };
 
+  const updateDebt = async () => {
+    if (!editDebt) return;
+    if (!form.name.trim()) {
+      toast.error('Укажите название');
+      return;
+    }
+    setSaving(true);
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'update_debt',
+        id: editDebt.id,
+        name: form.name,
+        creditor: form.creditor,
+        remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : editDebt.remaining_amount,
+        interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
+        monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
+        next_payment_date: form.next_payment_date || null,
+        status: editDebt.status,
+        notes: form.notes
+      })
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.success('Сохранено');
+      setEditDebt(null);
+      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '' });
+      loadDebts();
+      if (selectedDebt && selectedDebt.id === editDebt.id) {
+        setSelectedDebt(null);
+      }
+    } else {
+      toast.error('Ошибка');
+    }
+  };
+
+  const openEditDebt = (debt: Debt) => {
+    setForm({
+      name: debt.name,
+      debt_type: debt.debt_type,
+      creditor: debt.creditor || '',
+      original_amount: String(debt.original_amount),
+      remaining_amount: String(debt.remaining_amount),
+      interest_rate: String(debt.interest_rate || ''),
+      monthly_payment: String(debt.monthly_payment || ''),
+      next_payment_date: debt.next_payment_date || '',
+      start_date: debt.start_date || '',
+      end_date: debt.end_date || '',
+      notes: debt.notes || ''
+    });
+    setEditDebt(debt);
+  };
+
   const addPayment = async () => {
     if (!selectedDebt || !payAmount || parseFloat(payAmount) <= 0) {
       toast.error('Укажите сумму платежа');
@@ -220,6 +275,9 @@ export default function FinanceDebts() {
               <Icon name="ArrowLeft" size={18} />
             </Button>
             <h1 className="text-xl font-bold flex-1 truncate">{selectedDebt.name}</h1>
+            <Button variant="ghost" size="sm" onClick={() => openEditDebt(selectedDebt)}>
+              <Icon name="Pencil" size={16} />
+            </Button>
             <Button variant="ghost" size="sm" className="text-red-500" onClick={() => deleteDebt(selectedDebt.id)}>
               <Icon name="Trash2" size={16} />
             </Button>
@@ -350,6 +408,56 @@ export default function FinanceDebts() {
             <DialogFooter>
               <Button onClick={addPayment} disabled={saving} className="bg-rose-600 hover:bg-rose-700 w-full">
                 {saving ? 'Сохраняю...' : 'Внести платёж'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!editDebt} onOpenChange={(open) => { if (!open) setEditDebt(null); }}>
+          <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Редактировать долг</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Название</label>
+                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Кредитор / Банк</label>
+                <Input value={form.creditor} onChange={e => setForm(f => ({ ...f, creditor: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Остаток, ₽</label>
+                  <Input type="number" inputMode="decimal" value={form.remaining_amount}
+                    onChange={e => setForm(f => ({ ...f, remaining_amount: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Ставка, %</label>
+                  <Input type="number" inputMode="decimal" value={form.interest_rate}
+                    onChange={e => setForm(f => ({ ...f, interest_rate: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Платёж/мес, ₽</label>
+                <Input type="number" inputMode="decimal" value={form.monthly_payment}
+                  onChange={e => setForm(f => ({ ...f, monthly_payment: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">След. платёж</label>
+                <Input type="date" value={form.next_payment_date}
+                  onChange={e => setForm(f => ({ ...f, next_payment_date: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Заметка</label>
+                <Input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={updateDebt} disabled={saving}
+                className="bg-rose-600 hover:bg-rose-700 w-full">
+                {saving ? 'Сохраняю...' : 'Сохранить'}
               </Button>
             </DialogFooter>
           </DialogContent>
