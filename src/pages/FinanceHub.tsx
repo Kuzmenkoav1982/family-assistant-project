@@ -77,6 +77,15 @@ const subSections: SubSection[] = [
     ready: true,
   },
   {
+    id: 'loyalty',
+    title: 'Скидочные карты',
+    description: 'Карты лояльности магазинов, аптек, АЗС — вся семья видит все карты',
+    icon: 'Ticket',
+    path: '/finance/loyalty',
+    gradient: 'from-pink-500 to-rose-600',
+    ready: true,
+  },
+  {
     id: 'wallet',
     title: 'Кошелёк сервиса',
     description: 'Баланс для ИИ-функций: диета, рецепты, открытки, рекомендации',

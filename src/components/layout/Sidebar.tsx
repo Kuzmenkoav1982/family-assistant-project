@@ -131,6 +131,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'finance-goals', label: 'Финансовые цели', icon: 'Target', path: '/finance/goals' },
         { id: 'finance-literacy', label: 'Финграмотность', icon: 'GraduationCap', path: '/finance/literacy' },
         { id: 'finance-assets', label: 'Имущество', icon: 'Home', path: '/finance/assets' },
+        { id: 'finance-loyalty', label: 'Скидочные карты', icon: 'Ticket', path: '/finance/loyalty' },
         { id: 'wallet', label: 'Кошелёк сервиса', icon: 'Wallet', path: '/wallet' }
       ]
     },
