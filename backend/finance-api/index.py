@@ -27,11 +27,24 @@ def get_db():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
 
+OWNER_ONLY_SECTIONS = {'budgets', 'debts', 'debt_payments', 'accounts', 'recurring', 'assets', 'dashboard', 'transactions', 'categories'}
+OWNER_ONLY_ACTIONS = {
+    'add_transaction', 'delete_transaction',
+    'add_category', 'delete_category',
+    'set_budget', 'delete_budget',
+    'add_debt', 'update_debt', 'delete_debt', 'add_debt_payment',
+    'add_account', 'update_account', 'delete_account',
+    'add_recurring', 'update_recurring', 'delete_recurring',
+    'add_asset', 'update_asset', 'delete_asset',
+    'ai_advice',
+}
+
+
 def get_user_and_family(event):
     headers = event.get('headers', {})
     token = headers.get('X-Auth-Token') or headers.get('x-auth-token', '')
     if not token:
-        return None, None
+        return None, None, None
     conn = get_db()
     try:
         cur = conn.cursor()
@@ -41,17 +54,24 @@ def get_user_and_family(event):
         )
         row = cur.fetchone()
         if not row:
-            return None, None
+            return None, None, None
         user_id = row[0]
         cur.execute(
-            "SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1"
+            "SELECT family_id, access_role FROM family_members WHERE user_id = '%s' LIMIT 1"
             % str(user_id)
         )
         fm = cur.fetchone()
-        family_id = fm[0] if fm else None
-        return user_id, family_id
+        if not fm:
+            return user_id, None, None
+        family_id = fm[0]
+        access_role = fm[1] or 'viewer'
+        return user_id, family_id, access_role
     finally:
         conn.close()
+
+
+def is_owner(access_role):
+    return access_role in ('admin', 'parent')
 
 
 def handler(event, context):
@@ -60,7 +80,7 @@ def handler(event, context):
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS, 'body': '', 'isBase64Encoded': False}
 
-    user_id, family_id = get_user_and_family(event)
+    user_id, family_id, access_role = get_user_and_family(event)
     if not user_id:
         return respond(401, {'error': 'Не авторизован'})
     if not family_id:
@@ -70,6 +90,8 @@ def handler(event, context):
     section = params.get('section', '')
 
     if method == 'GET':
+        if section in OWNER_ONLY_SECTIONS and not is_owner(access_role):
+            return respond(403, {'error': 'Этот раздел доступен только владельцу семьи'})
         if section == 'dashboard':
             return get_dashboard(family_id)
         elif section == 'transactions':
@@ -109,6 +131,9 @@ def handler(event, context):
         raw = event.get('body') or '{}'
         body = json.loads(raw)
         action = body.get('action', '')
+
+        if action in OWNER_ONLY_ACTIONS and not is_owner(access_role):
+            return respond(403, {'error': 'Это действие доступно только владельцу семьи'})
 
         if action == 'add_transaction':
             return add_transaction(user_id, family_id, body)
