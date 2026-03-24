@@ -29,6 +29,12 @@ const Instructions = lazy(() => import("./pages/Instructions"));
 const Garage = lazy(() => import("./pages/Garage"));
 const Health = lazy(() => import("./pages/HealthNew"));
 const Finance = lazy(() => import("./pages/Finance"));
+const FinanceHub = lazy(() => import("./pages/FinanceHub"));
+const FinanceBudget = lazy(() => import("./pages/FinanceBudget"));
+const FinanceDebts = lazy(() => import("./pages/FinanceDebts"));
+const FinanceAccounts = lazy(() => import("./pages/FinanceAccounts"));
+const FinanceGoals = lazy(() => import("./pages/FinanceGoals"));
+const FinanceLiteracy = lazy(() => import("./pages/FinanceLiteracy"));
 const Education = lazy(() => import("./pages/Education"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
@@ -270,7 +276,12 @@ const App = () => {
                       <Route path="/instructions" element={<Instructions />} />
                       <Route path="/garage" element={<Garage />} />
                       <Route path="/health" element={<Health />} />
-                      <Route path="/finance" element={<Finance />} />
+                      <Route path="/finance" element={<FinanceHub />} />
+                      <Route path="/finance/budget" element={<FinanceBudget />} />
+                      <Route path="/finance/debts" element={<FinanceDebts />} />
+                      <Route path="/finance/accounts" element={<FinanceAccounts />} />
+                      <Route path="/finance/goals" element={<FinanceGoals />} />
+                      <Route path="/finance/literacy" element={<FinanceLiteracy />} />
                       <Route path="/education" element={<Education />} />
                       <Route path="/events" element={<EventsPage />} />
                       <Route path="/events/create" element={<CreateEventPage />} />
