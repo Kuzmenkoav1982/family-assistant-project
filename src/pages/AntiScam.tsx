@@ -285,11 +285,87 @@ const SCAM_SCHEMES: ScamScheme[] = [
   },
 ];
 
+interface CheckResult {
+  type: 'safe' | 'suspicious' | 'dangerous';
+  title: string;
+  details: string[];
+}
+
+const SUSPICIOUS_DOMAINS = [
+  'sberbank-online', 'sber-secure', 'gosuslugi-pay', 'gosuslugi-vyplata',
+  'tinkoff-secure', 'vtb-online-pay', 'avito-delivery', 'avito-pay',
+  'ozon-dostavka', 'wildberries-pay', 'yandex-pay-secure', 'cb-rf',
+  'nalog-vozvrat', 'kompensaciya', 'vyplata-rf', 'bonus-card',
+  'prize-win', 'lottery-rf', 'invest-profit', 'crypto-garant',
+];
+
+const SUSPICIOUS_PATTERNS = [
+  /free.*money/i, /выигр/i, /компенсац/i, /выплат.*руб/i,
+  /безопасн.*счёт/i, /безопасн.*счет/i, /перевед.*срочно/i,
+  /заблокирован.*карт/i, /подтверд.*данные/i,
+];
+
+const KNOWN_SCAM_PREFIXES = [
+  '+7495', '+7499', '+7800',
+];
+
+function checkInput(value: string): CheckResult {
+  const trimmed = value.trim();
+
+  const isPhone = /^[+]?[\d\s\-()]{7,}$/.test(trimmed);
+  if (isPhone) {
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length < 10) {
+      return { type: 'suspicious', title: 'Короткий номер', details: ['Номер слишком короткий — возможно, это платный SMS-сервис', 'Не отправляйте SMS на короткие номера из непроверенных источников'] };
+    }
+    const hasScamPrefix = KNOWN_SCAM_PREFIXES.some(p => ('+' + digits).startsWith(p) || digits.startsWith(p.replace('+', '')));
+    if (hasScamPrefix) {
+      return { type: 'suspicious', title: 'Городской/служебный номер', details: ['Этот номер похож на городской — мошенники часто подделывают такие номера', 'Если звонят «из банка» — положите трубку и перезвоните по номеру с карты', 'Банки и госорганы редко звонят первыми'] };
+    }
+    if (digits.startsWith('7') || digits.startsWith('8')) {
+      return { type: 'safe', title: 'Мобильный номер РФ', details: ['Номер выглядит как обычный мобильный', 'Но мошенники тоже используют мобильные номера!', 'Если звонящий торопит или пугает — это признак мошенничества'] };
+    }
+    return { type: 'suspicious', title: 'Иностранный номер', details: ['Номер не похож на российский', 'Звонки с иностранных номеров часто используются мошенниками', 'Не перезванивайте на незнакомые иностранные номера'] };
+  }
+
+  const isUrl = /^(https?:\/\/|www\.|[a-zа-яё0-9][-a-zа-яё0-9]*\.[a-zа-яё]{2,})/i.test(trimmed);
+  if (isUrl) {
+    const lower = trimmed.toLowerCase();
+    const hasSuspiciousDomain = SUSPICIOUS_DOMAINS.some(d => lower.includes(d));
+    if (hasSuspiciousDomain) {
+      return { type: 'dangerous', title: 'Подозрительная ссылка!', details: ['Домен похож на поддельный сайт банка/госуслуг/маркетплейса', 'Мошенники создают копии популярных сайтов для кражи данных', 'НЕ вводите пароли и данные карты на этом сайте', 'Заходите в банк только через официальное приложение'] };
+    }
+    const hasHttpOnly = lower.startsWith('http://') && !lower.startsWith('https://');
+    const hasSuspiciousChars = /[а-яё].*\.[a-z]|[a-z].*\.[а-яё]/i.test(lower);
+    const hasManyDashes = (lower.match(/-/g) || []).length > 3;
+    const hasManyDots = (lower.match(/\./g) || []).length > 3;
+    const warnings: string[] = [];
+    if (hasHttpOnly) warnings.push('Сайт без защищённого соединения (HTTP вместо HTTPS)');
+    if (hasSuspiciousChars) warnings.push('Смешанные символы латиницы и кириллицы — возможна подмена букв');
+    if (hasManyDashes) warnings.push('Много дефисов в адресе — типичный признак фишинга');
+    if (hasManyDots) warnings.push('Слишком много поддоменов — это подозрительно');
+    if (warnings.length > 0) {
+      warnings.push('Перед вводом данных убедитесь, что это официальный сайт');
+      return { type: 'suspicious', title: 'Есть подозрительные признаки', details: warnings };
+    }
+    return { type: 'safe', title: 'Явных угроз не обнаружено', details: ['Ссылка не содержит явных признаков мошенничества', 'Но будьте внимательны: мы проверяем только по известным паттернам', 'Всегда проверяйте адресную строку перед вводом паролей и карт'] };
+  }
+
+  const hasPattern = SUSPICIOUS_PATTERNS.some(p => p.test(trimmed));
+  if (hasPattern) {
+    return { type: 'dangerous', title: 'Подозрительный текст!', details: ['Текст содержит типичные фразы мошенников', 'Не переводите деньги и не переходите по ссылкам из этого сообщения', 'Если это SMS/сообщение — заблокируйте отправителя'] };
+  }
+
+  return { type: 'safe', title: 'Введите ссылку, номер телефона или текст сообщения', details: ['Вставьте подозрительную ссылку, номер или текст SMS для проверки'] };
+}
+
 export default function AntiScam() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [openScheme, setOpenScheme] = useState<ScamScheme | null>(null);
+  const [checkValue, setCheckValue] = useState('');
+  const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
 
   const filtered = SCAM_SCHEMES.filter(s => {
     const matchCategory = filter === 'all' || s.category === filter;
@@ -413,6 +489,61 @@ export default function AntiScam() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name="ScanSearch" size={18} className="text-blue-600" />
+              <h3 className="font-semibold text-sm">Проверить ссылку, номер или сообщение</h3>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Вставьте ссылку, номер или текст SMS..."
+                value={checkValue}
+                onChange={e => { setCheckValue(e.target.value); setCheckResult(null); }}
+                className="flex-1 bg-white"
+              />
+              <Button
+                size="sm"
+                onClick={() => { if (checkValue.trim()) setCheckResult(checkInput(checkValue)); }}
+                disabled={!checkValue.trim()}
+                className="bg-blue-600 hover:bg-blue-700 shrink-0"
+              >
+                <Icon name="Search" size={16} />
+              </Button>
+            </div>
+            {checkResult && (
+              <div className={`mt-3 rounded-lg p-3 border ${
+                checkResult.type === 'dangerous' ? 'bg-red-50 border-red-300' :
+                checkResult.type === 'suspicious' ? 'bg-amber-50 border-amber-300' :
+                'bg-green-50 border-green-300'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon
+                    name={checkResult.type === 'dangerous' ? 'ShieldX' : checkResult.type === 'suspicious' ? 'ShieldAlert' : 'ShieldCheck'}
+                    size={18}
+                    className={
+                      checkResult.type === 'dangerous' ? 'text-red-600' :
+                      checkResult.type === 'suspicious' ? 'text-amber-600' : 'text-green-600'
+                    }
+                  />
+                  <span className={`font-semibold text-sm ${
+                    checkResult.type === 'dangerous' ? 'text-red-700' :
+                    checkResult.type === 'suspicious' ? 'text-amber-700' : 'text-green-700'
+                  }`}>{checkResult.title}</span>
+                </div>
+                <ul className="space-y-1">
+                  {checkResult.details.map((d, i) => (
+                    <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <span className="mt-0.5">•</span>
+                      <span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="relative">
           <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
