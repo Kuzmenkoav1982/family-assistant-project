@@ -1,24 +1,509 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+
+const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
+
+interface Debt {
+  id: string;
+  debt_type: string;
+  name: string;
+  creditor: string;
+  original_amount: number;
+  remaining_amount: number;
+  interest_rate: number;
+  monthly_payment: number;
+  next_payment_date: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  notes: string;
+}
+
+interface Payment {
+  id: string;
+  amount: number;
+  date: string;
+  is_extra: boolean;
+  notes: string;
+}
+
+function getHeaders() {
+  return { 'Content-Type': 'application/json', 'X-Auth-Token': localStorage.getItem('authToken') || '' };
+}
+
+function formatMoney(n: number) {
+  return n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+const DEBT_TYPES = [
+  { value: 'mortgage', label: 'Ипотека', icon: 'Home', color: '#3B82F6' },
+  { value: 'credit', label: 'Кредит', icon: 'CreditCard', color: '#EF4444' },
+  { value: 'car_loan', label: 'Автокредит', icon: 'Car', color: '#F59E0B' },
+  { value: 'personal', label: 'Личный долг', icon: 'Users', color: '#8B5CF6' },
+  { value: 'microloan', label: 'Микрозайм', icon: 'Zap', color: '#EC4899' },
+  { value: 'installment', label: 'Рассрочка', icon: 'ShoppingBag', color: '#14B8A6' },
+];
+
+function getDebtMeta(type: string) {
+  return DEBT_TYPES.find(t => t.value === type) || DEBT_TYPES[1];
+}
 
 export default function FinanceDebts() {
   const navigate = useNavigate();
+  const [debts, setDebts] = useState<Debt[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalRemaining, setTotalRemaining] = useState(0);
+  const [totalMonthly, setTotalMonthly] = useState(0);
+
+  const [showAdd, setShowAdd] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: '', debt_type: 'credit', creditor: '', original_amount: '',
+    remaining_amount: '', interest_rate: '', monthly_payment: '',
+    next_payment_date: '', start_date: '', end_date: '', notes: ''
+  });
+
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [showPayment, setShowPayment] = useState(false);
+  const [payAmount, setPayAmount] = useState('');
+  const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0]);
+  const [payExtra, setPayExtra] = useState(false);
+  const [payNotes, setPayNotes] = useState('');
+
+  const loadDebts = useCallback(async () => {
+    const res = await fetch(`${API}?section=debts`, { headers: getHeaders() });
+    if (res.ok) {
+      const data = await res.json();
+      setDebts(data.debts || []);
+      setTotalRemaining(data.total_remaining || 0);
+      setTotalMonthly(data.total_monthly_payment || 0);
+    }
+  }, []);
+
+  const loadPayments = useCallback(async (debtId: string) => {
+    const res = await fetch(`${API}?section=debt_payments&debt_id=${debtId}`, { headers: getHeaders() });
+    if (res.ok) {
+      const data = await res.json();
+      setPayments(data.payments || []);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDebts().finally(() => setLoading(false));
+  }, [loadDebts]);
+
+  useEffect(() => {
+    if (selectedDebt) loadPayments(selectedDebt.id);
+  }, [selectedDebt, loadPayments]);
+
+  const addDebt = async () => {
+    if (!form.name.trim() || !form.original_amount || parseFloat(form.original_amount) <= 0) {
+      toast.error('Укажите название и сумму');
+      return;
+    }
+    setSaving(true);
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'add_debt',
+        ...form,
+        original_amount: parseFloat(form.original_amount),
+        remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : parseFloat(form.original_amount),
+        interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
+        monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
+        next_payment_date: form.next_payment_date || null,
+        start_date: form.start_date || null,
+        end_date: form.end_date || null
+      })
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.success('Долг добавлен');
+      setShowAdd(false);
+      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '' });
+      loadDebts();
+    } else {
+      toast.error('Ошибка');
+    }
+  };
+
+  const deleteDebt = async (id: string) => {
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'delete_debt', id })
+    });
+    if (res.ok) {
+      toast.success('Удалено');
+      setSelectedDebt(null);
+      loadDebts();
+    }
+  };
+
+  const addPayment = async () => {
+    if (!selectedDebt || !payAmount || parseFloat(payAmount) <= 0) {
+      toast.error('Укажите сумму платежа');
+      return;
+    }
+    setSaving(true);
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'add_debt_payment',
+        debt_id: selectedDebt.id,
+        amount: parseFloat(payAmount),
+        date: payDate,
+        is_extra: payExtra,
+        notes: payNotes
+      })
+    });
+    setSaving(false);
+    if (res.ok) {
+      const data = await res.json();
+      toast.success(`Платёж внесён. Остаток: ${formatMoney(data.new_remaining)} ₽`);
+      setShowPayment(false);
+      setPayAmount('');
+      setPayNotes('');
+      setPayExtra(false);
+      loadDebts();
+      loadPayments(selectedDebt.id);
+    } else {
+      toast.error('Ошибка');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600" />
+      </div>
+    );
+  }
+
+  if (selectedDebt) {
+    const meta = getDebtMeta(selectedDebt.debt_type);
+    const paidPct = selectedDebt.original_amount > 0
+      ? ((selectedDebt.original_amount - selectedDebt.remaining_amount) / selectedDebt.original_amount) * 100 : 0;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white pb-24">
+        <div className="max-w-2xl mx-auto p-4 space-y-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedDebt(null)}>
+              <Icon name="ArrowLeft" size={18} />
+            </Button>
+            <h1 className="text-xl font-bold flex-1 truncate">{selectedDebt.name}</h1>
+            <Button variant="ghost" size="sm" className="text-red-500" onClick={() => deleteDebt(selectedDebt.id)}>
+              <Icon name="Trash2" size={16} />
+            </Button>
+          </div>
+
+          <Card className="overflow-hidden">
+            <div className={`h-2`} style={{ backgroundColor: meta.color }} />
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: meta.color + '20' }}>
+                  <Icon name={meta.icon} size={20} style={{ color: meta.color }} />
+                </div>
+                <div>
+                  <Badge variant="outline" className="text-xs">{meta.label}</Badge>
+                  {selectedDebt.creditor && <p className="text-sm text-muted-foreground mt-0.5">{selectedDebt.creditor}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Сумма кредита</p>
+                  <p className="font-bold">{formatMoney(selectedDebt.original_amount)} ₽</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Остаток</p>
+                  <p className="font-bold text-red-600">{formatMoney(selectedDebt.remaining_amount)} ₽</p>
+                </div>
+                {selectedDebt.interest_rate > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Ставка</p>
+                    <p className="font-medium">{selectedDebt.interest_rate}%</p>
+                  </div>
+                )}
+                {selectedDebt.monthly_payment > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Ежемесячный платёж</p>
+                    <p className="font-medium">{formatMoney(selectedDebt.monthly_payment)} ₽</p>
+                  </div>
+                )}
+                {selectedDebt.next_payment_date && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Следующий платёж</p>
+                    <p className="font-medium">{new Date(selectedDebt.next_payment_date).toLocaleDateString('ru-RU')}</p>
+                  </div>
+                )}
+                {selectedDebt.end_date && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Дата окончания</p>
+                    <p className="font-medium">{new Date(selectedDebt.end_date).toLocaleDateString('ru-RU')}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Погашено</span>
+                  <span className="font-medium">{Math.round(paidPct)}%</span>
+                </div>
+                <Progress value={paidPct} className="h-2" />
+              </div>
+
+              {selectedDebt.notes && (
+                <p className="text-sm text-muted-foreground bg-gray-50 rounded-lg p-3">{selectedDebt.notes}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold">История платежей</h2>
+            <Button size="sm" className="bg-rose-600 hover:bg-rose-700" onClick={() => setShowPayment(true)}>
+              <Icon name="Plus" size={14} className="mr-1" /> Платёж
+            </Button>
+          </div>
+
+          {payments.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <Icon name="Clock" size={32} className="mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">Платежей пока нет</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {payments.map(p => (
+                <Card key={p.id}>
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${p.is_extra ? 'bg-amber-100' : 'bg-green-100'}`}>
+                      <Icon name={p.is_extra ? 'Zap' : 'Check'} size={16} className={p.is_extra ? 'text-amber-600' : 'text-green-600'} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{formatMoney(p.amount)} ₽</span>
+                        {p.is_extra && <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-600 border-amber-200">Досрочный</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(p.date).toLocaleDateString('ru-RU')}
+                        {p.notes && ` · ${p.notes}`}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Dialog open={showPayment} onOpenChange={setShowPayment}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle>Внести платёж</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Сумма, ₽</label>
+                <Input type="number" inputMode="decimal" placeholder={selectedDebt.monthly_payment > 0 ? String(selectedDebt.monthly_payment) : '0'}
+                  value={payAmount} onChange={e => setPayAmount(e.target.value)} autoFocus />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Дата</label>
+                <Input type="date" value={payDate} onChange={e => setPayDate(e.target.value)} />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={payExtra} onChange={e => setPayExtra(e.target.checked)}
+                  className="rounded border-gray-300" />
+                <span className="text-sm">Досрочный платёж</span>
+              </label>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Комментарий</label>
+                <Input placeholder="Необязательно" value={payNotes} onChange={e => setPayNotes(e.target.value)} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={addPayment} disabled={saving} className="bg-rose-600 hover:bg-rose-700 w-full">
+                {saving ? 'Сохраняю...' : 'Внести платёж'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="max-w-2xl mx-auto p-4 space-y-4">
+        <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/finance')}>
             <Icon name="ArrowLeft" size={18} />
           </Button>
-          <h1 className="text-xl font-bold">Кредиты и долги</h1>
+          <h1 className="text-xl font-bold flex-1">Кредиты и долги</h1>
+          <Button size="sm" className="bg-rose-600 hover:bg-rose-700" onClick={() => setShowAdd(true)}>
+            <Icon name="Plus" size={16} className="mr-1" /> Добавить
+          </Button>
         </div>
-        <div className="text-center py-12 text-muted-foreground">
-          <Icon name="Receipt" size={48} className="mx-auto mb-3 text-rose-300" />
-          <p>Загрузка раздела...</p>
-        </div>
+
+        {debts.length > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-red-200 bg-red-50/50">
+              <CardContent className="p-3 text-center">
+                <p className="text-xs text-red-600">Общий долг</p>
+                <p className="text-lg font-bold text-red-700">{formatMoney(totalRemaining)} ₽</p>
+              </CardContent>
+            </Card>
+            <Card className="border-orange-200 bg-orange-50/50">
+              <CardContent className="p-3 text-center">
+                <p className="text-xs text-orange-600">Платежи/мес</p>
+                <p className="text-lg font-bold text-orange-700">{formatMoney(totalMonthly)} ₽</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {debts.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Icon name="PartyPopper" size={48} className="mx-auto mb-3 text-green-400" />
+            <p className="font-medium text-foreground">У вас нет долгов!</p>
+            <p className="text-sm mt-1">Добавьте кредиты, ипотеку или займы для отслеживания</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {debts.map(debt => {
+              const meta = getDebtMeta(debt.debt_type);
+              const paidPct = debt.original_amount > 0
+                ? ((debt.original_amount - debt.remaining_amount) / debt.original_amount) * 100 : 0;
+              const isPaid = debt.status === 'paid';
+
+              return (
+                <Card key={debt.id}
+                  className={`overflow-hidden cursor-pointer hover:shadow-lg transition-all ${isPaid ? 'opacity-60' : ''}`}
+                  onClick={() => setSelectedDebt(debt)}>
+                  <CardContent className="p-0">
+                    <div className="flex items-stretch">
+                      <div className="w-14 flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: meta.color + '15' }}>
+                        <Icon name={meta.icon} size={24} style={{ color: meta.color }} />
+                      </div>
+                      <div className="flex-1 p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-sm truncate">{debt.name}</span>
+                          {isPaid && <Badge className="text-[10px] bg-green-100 text-green-700">Погашен</Badge>}
+                          <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
+                        </div>
+                        {debt.creditor && <p className="text-xs text-muted-foreground mb-1">{debt.creditor}</p>}
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className="text-red-600 font-medium">{formatMoney(debt.remaining_amount)} ₽</span>
+                          {debt.monthly_payment > 0 && (
+                            <span className="text-muted-foreground">{formatMoney(debt.monthly_payment)} ₽/мес</span>
+                          )}
+                          {debt.interest_rate > 0 && (
+                            <span className="text-muted-foreground">{debt.interest_rate}%</span>
+                          )}
+                        </div>
+                        <div className="mt-2">
+                          <Progress value={paidPct} className="h-1.5" />
+                        </div>
+                      </div>
+                      <div className="flex items-center pr-3">
+                        <Icon name="ChevronRight" size={18} className="text-gray-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Новый долг</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Тип</label>
+              <Select value={form.debt_type} onValueChange={v => setForm({...form, debt_type: v})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DEBT_TYPES.map(t => (
+                    <SelectItem key={t.value} value={t.value}>
+                      <span className="flex items-center gap-2">
+                        <Icon name={t.icon} size={14} style={{ color: t.color }} />
+                        {t.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Название</label>
+              <Input placeholder="Ипотека Сбербанк" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Кредитор</label>
+              <Input placeholder="Банк / человек" value={form.creditor} onChange={e => setForm({...form, creditor: e.target.value})} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Сумма кредита, ₽</label>
+                <Input type="number" inputMode="decimal" placeholder="3000000" value={form.original_amount}
+                  onChange={e => setForm({...form, original_amount: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Остаток, ₽</label>
+                <Input type="number" inputMode="decimal" placeholder="Если уже платили" value={form.remaining_amount}
+                  onChange={e => setForm({...form, remaining_amount: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Ставка, %</label>
+                <Input type="number" inputMode="decimal" placeholder="12.5" value={form.interest_rate}
+                  onChange={e => setForm({...form, interest_rate: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Платёж/мес, ₽</label>
+                <Input type="number" inputMode="decimal" placeholder="35000" value={form.monthly_payment}
+                  onChange={e => setForm({...form, monthly_payment: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Дата начала</label>
+                <Input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Дата окончания</label>
+                <Input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">След. платёж</label>
+              <Input type="date" value={form.next_payment_date} onChange={e => setForm({...form, next_payment_date: e.target.value})} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Заметка</label>
+              <Input placeholder="Необязательно" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={addDebt} disabled={saving} className="bg-rose-600 hover:bg-rose-700 w-full">
+              {saving ? 'Сохраняю...' : 'Добавить долг'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
