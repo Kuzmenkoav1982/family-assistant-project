@@ -86,6 +86,15 @@ const subSections: SubSection[] = [
     ready: true,
   },
   {
+    id: 'antiscam',
+    title: 'Антимошенник',
+    description: 'База мошеннических схем, проверка ссылок и тревожная кнопка для защиты семьи',
+    icon: 'ShieldAlert',
+    path: '/finance/antiscam',
+    gradient: 'from-red-500 to-rose-700',
+    ready: true,
+  },
+  {
     id: 'wallet',
     title: 'Кошелёк сервиса',
     description: 'Баланс для ИИ-функций: диета, рецепты, открытки, рекомендации',
