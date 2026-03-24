@@ -36,6 +36,7 @@ const FinanceAccounts = lazy(() => import("./pages/FinanceAccounts"));
 const FinanceGoals = lazy(() => import("./pages/FinanceGoals"));
 const FinanceLiteracy = lazy(() => import("./pages/FinanceLiteracy"));
 const FinanceRecurring = lazy(() => import("./pages/FinanceRecurring"));
+const FinanceAssets = lazy(() => import("./pages/FinanceAssets"));
 const Education = lazy(() => import("./pages/Education"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
@@ -284,6 +285,7 @@ const App = () => {
                       <Route path="/finance/goals" element={<FinanceGoals />} />
                       <Route path="/finance/literacy" element={<FinanceLiteracy />} />
                       <Route path="/finance/recurring" element={<FinanceRecurring />} />
+                      <Route path="/finance/assets" element={<FinanceAssets />} />
                       <Route path="/education" element={<Education />} />
                       <Route path="/events" element={<EventsPage />} />
                       <Route path="/events/create" element={<CreateEventPage />} />

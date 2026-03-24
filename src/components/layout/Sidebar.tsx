@@ -130,6 +130,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'finance-debts', label: 'Кредиты и долги', icon: 'Receipt', path: '/finance/debts' },
         { id: 'finance-goals', label: 'Финансовые цели', icon: 'Target', path: '/finance/goals' },
         { id: 'finance-literacy', label: 'Финграмотность', icon: 'GraduationCap', path: '/finance/literacy' },
+        { id: 'finance-assets', label: 'Имущество', icon: 'Home', path: '/finance/assets' },
         { id: 'wallet', label: 'Кошелёк сервиса', icon: 'Wallet', path: '/wallet' }
       ]
     },

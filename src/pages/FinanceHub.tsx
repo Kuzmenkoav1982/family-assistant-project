@@ -68,6 +68,15 @@ const subSections: SubSection[] = [
     ready: true,
   },
   {
+    id: 'assets',
+    title: 'Имущество',
+    description: 'Недвижимость, транспорт, техника — учёт и стоимость всех активов',
+    icon: 'Home',
+    path: '/finance/assets',
+    gradient: 'from-sky-500 to-blue-600',
+    ready: true,
+  },
+  {
     id: 'wallet',
     title: 'Кошелёк сервиса',
     description: 'Баланс для ИИ-функций: диета, рецепты, открытки, рекомендации',

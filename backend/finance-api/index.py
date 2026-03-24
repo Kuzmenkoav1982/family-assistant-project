@@ -100,6 +100,10 @@ def handler(event, context):
             return get_edu_progress(family_id, user_id)
         elif section == 'edu_assignments':
             return get_edu_assignments(family_id, user_id)
+        elif section == 'assets':
+            return get_assets(family_id)
+        elif section == 'loyalty_cards':
+            return get_loyalty_cards(family_id)
 
     if method == 'POST':
         raw = event.get('body') or '{}'
@@ -156,6 +160,18 @@ def handler(event, context):
             return update_assignment(family_id, body)
         elif action == 'ai_advice':
             return ai_advice(family_id, body)
+        elif action == 'add_asset':
+            return add_asset(family_id, body)
+        elif action == 'update_asset':
+            return update_asset(family_id, body)
+        elif action == 'delete_asset':
+            return delete_asset(family_id, body)
+        elif action == 'add_loyalty_card':
+            return add_loyalty_card(family_id, body)
+        elif action == 'update_loyalty_card':
+            return update_loyalty_card(family_id, body)
+        elif action == 'delete_loyalty_card':
+            return delete_loyalty_card(family_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -1643,3 +1659,208 @@ def ai_advice(family_id, body):
             })
     except Exception as e:
         return respond(500, {'error': 'Ошибка ИИ: %s' % str(e)[:200]})
+
+
+# === ASSETS ===
+
+def get_assets(family_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, name, asset_type, purchase_date, purchase_price, current_value,
+                   description, location, icon, color, status
+            FROM finance_assets WHERE family_id = '%s'
+            ORDER BY status, current_value DESC NULLS LAST
+        """ % str(family_id))
+        items = [
+            {
+                'id': str(r[0]), 'name': r[1], 'asset_type': r[2],
+                'purchase_date': str(r[3]) if r[3] else None,
+                'purchase_price': float(r[4]) if r[4] else None,
+                'current_value': float(r[5]) if r[5] else None,
+                'description': r[6], 'location': r[7],
+                'icon': r[8], 'color': r[9], 'status': r[10]
+            }
+            for r in cur.fetchall()
+        ]
+        total = sum(i['current_value'] or 0 for i in items if i['status'] == 'active')
+        return respond(200, {'assets': items, 'total_value': total})
+    finally:
+        conn.close()
+
+
+def add_asset(family_id, body):
+    name = body.get('name', '').strip()
+    if not name:
+        return respond(400, {'error': 'Укажите название'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO finance_assets
+            (family_id, name, asset_type, purchase_date, purchase_price, current_value, description, location, icon, color)
+            VALUES ('%s', '%s', '%s', %s, %s, %s, '%s', '%s', '%s', '%s')
+            RETURNING id
+        """ % (
+            str(family_id), safe(name), safe(body.get('asset_type', 'property')),
+            "'%s'" % safe(body['purchase_date']) if body.get('purchase_date') else 'NULL',
+            float(body['purchase_price']) if body.get('purchase_price') else 'NULL',
+            float(body['current_value']) if body.get('current_value') else 'NULL',
+            safe(body.get('description', '')), safe(body.get('location', '')),
+            safe(body.get('icon', 'Package')), safe(body.get('color', '#3B82F6'))
+        ))
+        new_id = str(cur.fetchone()[0])
+        conn.commit()
+        return respond(201, {'id': new_id, 'success': True})
+    finally:
+        conn.close()
+
+
+def update_asset(family_id, body):
+    aid = body.get('id')
+    if not aid:
+        return respond(400, {'error': 'Укажите id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        sets = []
+        if 'name' in body: sets.append("name = '%s'" % safe(body['name']))
+        if 'current_value' in body: sets.append("current_value = %s" % float(body['current_value']))
+        if 'description' in body: sets.append("description = '%s'" % safe(body['description']))
+        if 'location' in body: sets.append("location = '%s'" % safe(body['location']))
+        if 'status' in body: sets.append("status = '%s'" % safe(body['status']))
+        if 'icon' in body: sets.append("icon = '%s'" % safe(body['icon']))
+        if 'color' in body: sets.append("color = '%s'" % safe(body['color']))
+        if not sets:
+            return respond(400, {'error': 'Нечего обновлять'})
+        sets.append("updated_at = NOW()")
+        cur.execute(
+            "UPDATE finance_assets SET %s WHERE id = '%s' AND family_id = '%s'"
+            % (', '.join(sets), safe(aid), str(family_id))
+        )
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+def delete_asset(family_id, body):
+    aid = body.get('id')
+    if not aid:
+        return respond(400, {'error': 'Укажите id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM finance_assets WHERE id = '%s' AND family_id = '%s'" % (safe(aid), str(family_id)))
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+# === LOYALTY CARDS ===
+
+def get_loyalty_cards(family_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT lc.id, lc.name, lc.store_name, lc.card_number, lc.barcode_data, lc.barcode_type,
+                   lc.category, lc.discount_percent, lc.cashback_percent, lc.points_balance,
+                   lc.member_id, lc.icon, lc.color, lc.notes, lc.is_active,
+                   u.name as member_name
+            FROM loyalty_cards lc
+            LEFT JOIN users u ON lc.member_id = u.id
+            WHERE lc.family_id = '%s'
+            ORDER BY lc.is_active DESC, lc.store_name
+        """ % str(family_id))
+        items = [
+            {
+                'id': str(r[0]), 'name': r[1], 'store_name': r[2],
+                'card_number': r[3], 'barcode_data': r[4], 'barcode_type': r[5],
+                'category': r[6],
+                'discount_percent': float(r[7]) if r[7] else None,
+                'cashback_percent': float(r[8]) if r[8] else None,
+                'points_balance': float(r[9]) if r[9] else 0,
+                'member_id': str(r[10]) if r[10] else None,
+                'icon': r[11], 'color': r[12], 'notes': r[13], 'is_active': r[14],
+                'member_name': r[15]
+            }
+            for r in cur.fetchall()
+        ]
+        return respond(200, {'cards': items})
+    finally:
+        conn.close()
+
+
+def add_loyalty_card(family_id, body):
+    name = body.get('name', '').strip()
+    if not name:
+        return respond(400, {'error': 'Укажите название'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO loyalty_cards
+            (family_id, name, store_name, card_number, barcode_data, barcode_type, category,
+             discount_percent, cashback_percent, points_balance, member_id, icon, color, notes)
+            VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s, %s, %s, '%s', '%s', '%s')
+            RETURNING id
+        """ % (
+            str(family_id), safe(name), safe(body.get('store_name', '')),
+            safe(body.get('card_number', '')), safe(body.get('barcode_data', '')),
+            safe(body.get('barcode_type', 'ean13')), safe(body.get('category', 'other')),
+            float(body['discount_percent']) if body.get('discount_percent') else 'NULL',
+            float(body['cashback_percent']) if body.get('cashback_percent') else 'NULL',
+            float(body.get('points_balance', 0)),
+            "'%s'" % safe(body['member_id']) if body.get('member_id') else 'NULL',
+            safe(body.get('icon', 'CreditCard')), safe(body.get('color', '#8B5CF6')),
+            safe(body.get('notes', ''))
+        ))
+        new_id = str(cur.fetchone()[0])
+        conn.commit()
+        return respond(201, {'id': new_id, 'success': True})
+    finally:
+        conn.close()
+
+
+def update_loyalty_card(family_id, body):
+    cid = body.get('id')
+    if not cid:
+        return respond(400, {'error': 'Укажите id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        sets = []
+        for field in ['name', 'store_name', 'card_number', 'barcode_data', 'category', 'icon', 'color', 'notes']:
+            if field in body: sets.append("%s = '%s'" % (field, safe(body[field])))
+        if 'discount_percent' in body: sets.append("discount_percent = %s" % (float(body['discount_percent']) if body['discount_percent'] else 'NULL'))
+        if 'cashback_percent' in body: sets.append("cashback_percent = %s" % (float(body['cashback_percent']) if body['cashback_percent'] else 'NULL'))
+        if 'points_balance' in body: sets.append("points_balance = %s" % float(body['points_balance']))
+        if 'is_active' in body: sets.append("is_active = %s" % body['is_active'])
+        if not sets:
+            return respond(400, {'error': 'Нечего обновлять'})
+        sets.append("updated_at = NOW()")
+        cur.execute(
+            "UPDATE loyalty_cards SET %s WHERE id = '%s' AND family_id = '%s'"
+            % (', '.join(sets), safe(cid), str(family_id))
+        )
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+def delete_loyalty_card(family_id, body):
+    cid = body.get('id')
+    if not cid:
+        return respond(400, {'error': 'Укажите id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM loyalty_cards WHERE id = '%s' AND family_id = '%s'" % (safe(cid), str(family_id)))
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
