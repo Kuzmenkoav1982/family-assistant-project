@@ -3,6 +3,7 @@
 import json
 import os
 import psycopg2
+import urllib.request
 
 
 CORS = {
@@ -153,6 +154,8 @@ def handler(event, context):
             return assign_edu(family_id, user_id, body)
         elif action == 'update_assignment':
             return update_assignment(family_id, body)
+        elif action == 'ai_advice':
+            return ai_advice(family_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -1477,3 +1480,166 @@ def update_assignment(family_id, body):
         return respond(200, {'success': True})
     finally:
         conn.close()
+
+
+# === AI FINANCIAL ADVISOR ===
+
+def ai_advice(family_id, body):
+    """ИИ-финансовый советник на Яндекс GPT"""
+    question = body.get('question', '')
+    api_key = os.environ.get('YANDEX_GPT_API_KEY', '')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID', 'b1gaglg8i7v2i32nvism')
+    if not api_key:
+        return respond(500, {'error': 'ИИ не настроен'})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+
+        cur.execute("""
+            SELECT
+                COALESCE(SUM(CASE WHEN transaction_type='income' THEN amount ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN transaction_type='expense' THEN amount ELSE 0 END), 0)
+            FROM finance_transactions
+            WHERE family_id = '%s'
+              AND date_trunc('month', transaction_date) = date_trunc('month', CURRENT_DATE)
+        """ % fid)
+        r = cur.fetchone()
+        month_income = float(r[0])
+        month_expense = float(r[1])
+
+        cur.execute("""
+            SELECT fc.name, SUM(ft.amount) as total
+            FROM finance_transactions ft
+            LEFT JOIN finance_categories fc ON ft.category_id = fc.id
+            WHERE ft.family_id = '%s' AND ft.transaction_type = 'expense'
+              AND date_trunc('month', ft.transaction_date) = date_trunc('month', CURRENT_DATE)
+            GROUP BY fc.name ORDER BY total DESC LIMIT 8
+        """ % fid)
+        top_expenses = [{'category': r[0] or 'Прочее', 'amount': float(r[1])} for r in cur.fetchall()]
+
+        cur.execute(
+            "SELECT COALESCE(SUM(balance), 0) FROM finance_accounts WHERE family_id = '%s' AND is_active = true" % fid
+        )
+        total_balance = float(cur.fetchone()[0])
+
+        cur.execute("""
+            SELECT name, remaining_amount, interest_rate, monthly_payment
+            FROM finance_debts WHERE family_id = '%s' AND status = 'active'
+            ORDER BY interest_rate DESC
+        """ % fid)
+        debts = [
+            {'name': r[0], 'remaining': float(r[1]), 'rate': float(r[2]) if r[2] else 0, 'payment': float(r[3]) if r[3] else 0}
+            for r in cur.fetchall()
+        ]
+
+        cur.execute("""
+            SELECT name, target_amount, current_amount
+            FROM finance_goals WHERE family_id = '%s' AND status = 'active'
+        """ % fid)
+        goals = [
+            {'name': r[0], 'target': float(r[1]), 'current': float(r[2])}
+            for r in cur.fetchall()
+        ]
+
+        cur.execute("""
+            SELECT fb.planned_amount, fc.name,
+                   COALESCE((SELECT SUM(ft.amount) FROM finance_transactions ft
+                    WHERE ft.family_id = '%s' AND ft.category_id = fb.category_id
+                      AND ft.transaction_type = 'expense'
+                      AND date_trunc('month', ft.transaction_date) = date_trunc('month', CURRENT_DATE)), 0) as spent
+            FROM finance_budgets fb
+            LEFT JOIN finance_categories fc ON fb.category_id = fc.id
+            WHERE fb.family_id = '%s'
+              AND date_trunc('month', fb.budget_month) = date_trunc('month', CURRENT_DATE)
+        """ % (fid, fid))
+        budget_limits = [
+            {'category': r[1] or 'Без категории', 'limit': float(r[0]), 'spent': float(r[2])}
+            for r in cur.fetchall()
+        ]
+
+    finally:
+        conn.close()
+
+    context_parts = []
+    context_parts.append("Доходы за текущий месяц: %s руб." % int(month_income))
+    context_parts.append("Расходы за текущий месяц: %s руб." % int(month_expense))
+    context_parts.append("Баланс: %s руб." % int(month_income - month_expense))
+    context_parts.append("Общий баланс на счетах: %s руб." % int(total_balance))
+
+    if top_expenses:
+        lines = ["%s: %s руб." % (e['category'], int(e['amount'])) for e in top_expenses]
+        context_parts.append("Топ расходов: " + "; ".join(lines))
+
+    if debts:
+        lines = ["%s: остаток %s руб., ставка %s%%, платёж %s руб./мес" % (d['name'], int(d['remaining']), d['rate'], int(d['payment'])) for d in debts]
+        context_parts.append("Кредиты и долги: " + "; ".join(lines))
+
+    if goals:
+        lines = ["%s: %s из %s руб." % (g['name'], int(g['current']), int(g['target'])) for g in goals]
+        context_parts.append("Финансовые цели: " + "; ".join(lines))
+
+    if budget_limits:
+        over = [bl for bl in budget_limits if bl['spent'] > bl['limit']]
+        if over:
+            lines = ["%s: потрачено %s из %s руб." % (bl['category'], int(bl['spent']), int(bl['limit'])) for bl in over]
+            context_parts.append("Превышены лимиты: " + "; ".join(lines))
+
+    financial_context = "\n".join(context_parts)
+
+    system_prompt = """Ты — профессиональный семейный финансовый консультант. Твоя задача — анализировать финансовую ситуацию семьи и давать конкретные, практичные рекомендации.
+
+Правила:
+- Отвечай на русском языке, кратко и по делу (до 500 слов)
+- Давай конкретные цифры и расчёты
+- Если есть кредиты — советуй порядок погашения (сначала самые дорогие по ставке)
+- Если расходы превышают доходы — предлагай где сократить
+- Если есть свободные деньги — советуй куда направить (подушка безопасности → погашение долгов → накопления)
+- Не рекомендуй конкретные банки или инвестиционные инструменты
+- Будь доброжелательным и поддерживающим
+
+Финансовые данные семьи:
+%s""" % financial_context
+
+    user_msg = question if question else "Проанализируй мою финансовую ситуацию и дай рекомендации: на что обратить внимание, как оптимизировать бюджет, в каком порядке гасить долги."
+
+    payload = {
+        'modelUri': 'gpt://%s/yandexgpt-lite' % folder_id,
+        'completionOptions': {
+            'stream': False,
+            'temperature': 0.5,
+            'maxTokens': 3000
+        },
+        'messages': [
+            {'role': 'system', 'text': system_prompt},
+            {'role': 'user', 'text': user_msg}
+        ]
+    }
+
+    try:
+        req = urllib.request.Request(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Authorization': 'Api-Key %s' % api_key,
+                'Content-Type': 'application/json'
+            }
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            text = data.get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+            if not text:
+                return respond(500, {'error': 'ИИ не дал ответ'})
+            return respond(200, {
+                'advice': text,
+                'context': {
+                    'month_income': month_income,
+                    'month_expense': month_expense,
+                    'total_balance': total_balance,
+                    'debts_count': len(debts),
+                    'goals_count': len(goals)
+                }
+            })
+    except Exception as e:
+        return respond(500, {'error': 'Ошибка ИИ: %s' % str(e)[:200]})

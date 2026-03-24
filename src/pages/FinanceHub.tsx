@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 
@@ -73,8 +78,39 @@ const subSections: SubSection[] = [
   },
 ];
 
+const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
+
+function getHeaders() {
+  return { 'Content-Type': 'application/json', 'X-Auth-Token': localStorage.getItem('authToken') || '' };
+}
+
 export default function FinanceHub() {
   const navigate = useNavigate();
+  const [showAI, setShowAI] = useState(false);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiAdvice, setAiAdvice] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const askAI = async (question?: string) => {
+    setAiLoading(true);
+    setAiAdvice('');
+    try {
+      const res = await fetch(API, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ action: 'ai_advice', question: question || aiQuestion || '' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiAdvice(data.advice || 'Нет рекомендаций');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Ошибка ИИ');
+      }
+    } catch {
+      toast.error('Ошибка соединения');
+    }
+    setAiLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-green-50/30 to-white pb-24">
@@ -163,7 +199,79 @@ export default function FinanceHub() {
             </Card>
           ))}
         </div>
+
+        <Card className="bg-gradient-to-r from-violet-600 to-purple-700 text-white border-0 cursor-pointer hover:shadow-xl transition-all hover:scale-[1.01]"
+          onClick={() => { setShowAI(true); if (!aiAdvice) askAI(); }}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Icon name="BrainCircuit" size={28} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg">ИИ-советник</h3>
+                <p className="text-violet-200 text-sm">Анализ бюджета, рекомендации по долгам и накоплениям</p>
+              </div>
+              <Icon name="ChevronRight" size={24} className="text-white/60" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <Dialog open={showAI} onOpenChange={setShowAI}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="BrainCircuit" size={20} className="text-violet-600" />
+              ИИ-финансовый советник
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex gap-2 flex-wrap">
+              {[
+                'Проанализируй мой бюджет',
+                'Как гасить кредиты?',
+                'Где сократить расходы?',
+                'Куда направить свободные деньги?'
+              ].map(q => (
+                <Button key={q} variant="outline" size="sm" className="text-xs"
+                  onClick={() => { setAiQuestion(q); askAI(q); }}>
+                  {q}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <Input placeholder="Задайте вопрос о ваших финансах..."
+                value={aiQuestion} onChange={e => setAiQuestion(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && !aiLoading && askAI()} />
+              <Button onClick={() => askAI()} disabled={aiLoading}
+                className="bg-violet-600 hover:bg-violet-700 flex-shrink-0">
+                <Icon name="Send" size={16} />
+              </Button>
+            </div>
+
+            {aiLoading && (
+              <div className="flex items-center gap-3 p-4 bg-violet-50 rounded-xl">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-violet-600" />
+                <p className="text-sm text-violet-700">Анализирую ваши финансы...</p>
+              </div>
+            )}
+
+            {aiAdvice && !aiLoading && (
+              <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Sparkles" size={16} className="text-violet-600" />
+                  <span className="text-sm font-medium text-violet-800">Рекомендации</span>
+                </div>
+                <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-800">
+                  {aiAdvice}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
