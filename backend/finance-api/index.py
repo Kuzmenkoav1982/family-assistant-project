@@ -87,6 +87,18 @@ def handler(event, context):
             return get_goals(family_id)
         elif section == 'recurring':
             return get_recurring(family_id)
+        elif section == 'edu_courses':
+            return get_edu_courses()
+        elif section == 'edu_course':
+            return get_edu_course(params)
+        elif section == 'edu_lesson':
+            return get_edu_lesson(params)
+        elif section == 'edu_test':
+            return get_edu_test(params)
+        elif section == 'edu_progress':
+            return get_edu_progress(family_id, user_id)
+        elif section == 'edu_assignments':
+            return get_edu_assignments(family_id, user_id)
 
     if method == 'POST':
         raw = event.get('body') or '{}'
@@ -133,6 +145,14 @@ def handler(event, context):
             return update_recurring(family_id, body)
         elif action == 'delete_recurring':
             return delete_recurring(family_id, body)
+        elif action == 'complete_lesson':
+            return complete_lesson(family_id, user_id, body)
+        elif action == 'submit_test':
+            return submit_test(family_id, user_id, body)
+        elif action == 'assign_edu':
+            return assign_edu(family_id, user_id, body)
+        elif action == 'update_assignment':
+            return update_assignment(family_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -1105,6 +1125,353 @@ def delete_recurring(family_id, body):
         cur = conn.cursor()
         cur.execute(
             "DELETE FROM finance_recurring WHERE id = '%s' AND family_id = '%s'" % (safe(rid), str(family_id))
+        )
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+# === FINANCIAL EDUCATION ===
+
+def get_edu_courses():
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT c.id, c.title, c.description, c.age_group, c.difficulty,
+                   c.icon, c.color, c.lessons_count,
+                   (SELECT COUNT(*) FROM fin_edu_tests t WHERE t.course_id = c.id) as tests_count
+            FROM fin_edu_courses c
+            WHERE c.is_published = true
+            ORDER BY c.sort_order
+        """)
+        items = [
+            {
+                'id': str(r[0]), 'title': r[1], 'description': r[2],
+                'age_group': r[3], 'difficulty': r[4],
+                'icon': r[5], 'color': r[6],
+                'lessons_count': r[7], 'tests_count': r[8]
+            }
+            for r in cur.fetchall()
+        ]
+        return respond(200, {'courses': items})
+    finally:
+        conn.close()
+
+
+def get_edu_course(params):
+    cid = params.get('course_id')
+    if not cid:
+        return respond(400, {'error': 'Укажите course_id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, title, description, age_group, difficulty, icon, color, lessons_count "
+            "FROM fin_edu_courses WHERE id = '%s'" % safe(cid)
+        )
+        c = cur.fetchone()
+        if not c:
+            return respond(404, {'error': 'Курс не найден'})
+
+        cur.execute("""
+            SELECT id, title, summary, sort_order, duration_minutes
+            FROM fin_edu_lessons WHERE course_id = '%s' ORDER BY sort_order
+        """ % safe(cid))
+        lessons = [
+            {'id': str(r[0]), 'title': r[1], 'summary': r[2], 'sort_order': r[3], 'duration': r[4]}
+            for r in cur.fetchall()
+        ]
+
+        cur.execute("""
+            SELECT id, title, description, pass_threshold, time_limit_minutes
+            FROM fin_edu_tests WHERE course_id = '%s' ORDER BY title
+        """ % safe(cid))
+        tests = [
+            {'id': str(r[0]), 'title': r[1], 'description': r[2], 'pass_threshold': r[3], 'time_limit': r[4]}
+            for r in cur.fetchall()
+        ]
+
+        return respond(200, {
+            'course': {
+                'id': str(c[0]), 'title': c[1], 'description': c[2],
+                'age_group': c[3], 'difficulty': c[4], 'icon': c[5], 'color': c[6]
+            },
+            'lessons': lessons,
+            'tests': tests
+        })
+    finally:
+        conn.close()
+
+
+def get_edu_lesson(params):
+    lid = params.get('lesson_id')
+    if not lid:
+        return respond(400, {'error': 'Укажите lesson_id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, course_id, title, content, summary, sort_order, duration_minutes "
+            "FROM fin_edu_lessons WHERE id = '%s'" % safe(lid)
+        )
+        r = cur.fetchone()
+        if not r:
+            return respond(404, {'error': 'Урок не найден'})
+        return respond(200, {
+            'lesson': {
+                'id': str(r[0]), 'course_id': str(r[1]), 'title': r[2],
+                'content': r[3], 'summary': r[4], 'sort_order': r[5], 'duration': r[6]
+            }
+        })
+    finally:
+        conn.close()
+
+
+def get_edu_test(params):
+    tid = params.get('test_id')
+    if not tid:
+        return respond(400, {'error': 'Укажите test_id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, title, description, pass_threshold, time_limit_minutes "
+            "FROM fin_edu_tests WHERE id = '%s'" % safe(tid)
+        )
+        t = cur.fetchone()
+        if not t:
+            return respond(404, {'error': 'Тест не найден'})
+
+        cur.execute("""
+            SELECT id, question_text, question_type, options, correct_answer, explanation, points
+            FROM fin_edu_questions WHERE test_id = '%s' ORDER BY sort_order
+        """ % safe(tid))
+        questions = [
+            {
+                'id': str(r[0]), 'text': r[1], 'type': r[2],
+                'options': r[3] if isinstance(r[3], list) else json.loads(r[3]) if r[3] else [],
+                'correct': r[4] if isinstance(r[4], (dict, list)) else json.loads(r[4]) if r[4] else None,
+                'explanation': r[5], 'points': r[6]
+            }
+            for r in cur.fetchall()
+        ]
+
+        return respond(200, {
+            'test': {
+                'id': str(t[0]), 'title': t[1], 'description': t[2],
+                'pass_threshold': t[3], 'time_limit': t[4]
+            },
+            'questions': questions
+        })
+    finally:
+        conn.close()
+
+
+def get_edu_progress(family_id, user_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        uid = str(user_id)
+
+        cur.execute("""
+            SELECT lesson_id, completed, completed_at
+            FROM fin_edu_progress
+            WHERE family_id = '%s' AND member_id = '%s'
+        """ % (fid, uid))
+        lessons_progress = [
+            {'lesson_id': str(r[0]), 'completed': r[1], 'completed_at': str(r[2]) if r[2] else None}
+            for r in cur.fetchall()
+        ]
+
+        cur.execute("""
+            SELECT test_id, score, max_score, passed, completed_at
+            FROM fin_edu_test_results
+            WHERE family_id = '%s' AND member_id = '%s'
+            ORDER BY completed_at DESC
+        """ % (fid, uid))
+        test_results = [
+            {'test_id': str(r[0]), 'score': r[1], 'max_score': r[2], 'passed': r[3], 'completed_at': str(r[4]) if r[4] else None}
+            for r in cur.fetchall()
+        ]
+
+        return respond(200, {
+            'lessons_progress': lessons_progress,
+            'test_results': test_results
+        })
+    finally:
+        conn.close()
+
+
+def get_edu_assignments(family_id, user_id):
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        cur.execute("""
+            SELECT a.id, a.assigned_by, a.assigned_to, a.course_id, a.lesson_id, a.test_id,
+                   a.deadline, a.status, a.message, a.created_at,
+                   c.title as course_title,
+                   u1.name as assigned_by_name, u2.name as assigned_to_name
+            FROM fin_edu_assignments a
+            LEFT JOIN fin_edu_courses c ON a.course_id = c.id
+            LEFT JOIN users u1 ON a.assigned_by = u1.id
+            LEFT JOIN users u2 ON a.assigned_to = u2.id
+            WHERE a.family_id = '%s'
+            ORDER BY a.created_at DESC
+        """ % fid)
+        items = [
+            {
+                'id': str(r[0]),
+                'assigned_by': str(r[1]), 'assigned_to': str(r[2]),
+                'course_id': str(r[3]) if r[3] else None,
+                'lesson_id': str(r[4]) if r[4] else None,
+                'test_id': str(r[5]) if r[5] else None,
+                'deadline': str(r[6]) if r[6] else None,
+                'status': r[7], 'message': r[8],
+                'created_at': str(r[9]),
+                'course_title': r[10],
+                'assigned_by_name': r[11], 'assigned_to_name': r[12]
+            }
+            for r in cur.fetchall()
+        ]
+        return respond(200, {'assignments': items})
+    finally:
+        conn.close()
+
+
+def complete_lesson(family_id, user_id, body):
+    lid = body.get('lesson_id')
+    if not lid:
+        return respond(400, {'error': 'Укажите lesson_id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        uid = str(user_id)
+        cur.execute("""
+            SELECT id FROM fin_edu_progress
+            WHERE family_id = '%s' AND member_id = '%s' AND lesson_id = '%s'
+        """ % (fid, uid, safe(lid)))
+        existing = cur.fetchone()
+        if existing:
+            cur.execute(
+                "UPDATE fin_edu_progress SET completed = true, completed_at = NOW() WHERE id = '%s'"
+                % str(existing[0])
+            )
+        else:
+            cur.execute("""
+                INSERT INTO fin_edu_progress (family_id, member_id, lesson_id, completed, completed_at)
+                VALUES ('%s', '%s', '%s', true, NOW())
+            """ % (fid, uid, safe(lid)))
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+def submit_test(family_id, user_id, body):
+    tid = body.get('test_id')
+    answers = body.get('answers', {})
+    if not tid:
+        return respond(400, {'error': 'Укажите test_id'})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, correct_answer, points FROM fin_edu_questions WHERE test_id = '%s' ORDER BY sort_order"
+            % safe(tid)
+        )
+        questions = cur.fetchall()
+        if not questions:
+            return respond(404, {'error': 'Вопросы не найдены'})
+
+        score = 0
+        max_score = 0
+        for q in questions:
+            qid = str(q[0])
+            correct = q[1]
+            points = q[2] or 1
+            max_score += points
+            user_answer = answers.get(qid)
+            if isinstance(correct, str):
+                try:
+                    correct = json.loads(correct)
+                except:
+                    pass
+            if user_answer is not None and str(user_answer) == str(correct):
+                score += points
+
+        cur.execute(
+            "SELECT pass_threshold FROM fin_edu_tests WHERE id = '%s'" % safe(tid)
+        )
+        test_row = cur.fetchone()
+        threshold = test_row[0] if test_row else 70
+        pct = (score / max_score * 100) if max_score > 0 else 0
+        passed = pct >= threshold
+
+        answers_json = json.dumps(answers, ensure_ascii=False).replace("'", "''")
+        cur.execute("""
+            INSERT INTO fin_edu_test_results
+            (family_id, member_id, test_id, score, max_score, passed, answers, completed_at)
+            VALUES ('%s', '%s', '%s', %d, %d, %s, '%s', NOW())
+            RETURNING id
+        """ % (
+            str(family_id), str(user_id), safe(tid),
+            score, max_score, passed, answers_json
+        ))
+        rid = str(cur.fetchone()[0])
+        conn.commit()
+
+        return respond(200, {
+            'id': rid, 'score': score, 'max_score': max_score,
+            'percentage': round(pct, 1), 'passed': passed
+        })
+    finally:
+        conn.close()
+
+
+def assign_edu(family_id, user_id, body):
+    assigned_to = body.get('assigned_to')
+    if not assigned_to:
+        return respond(400, {'error': 'Укажите assigned_to'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO fin_edu_assignments
+            (family_id, assigned_by, assigned_to, course_id, lesson_id, test_id, deadline, message)
+            VALUES ('%s', '%s', '%s', %s, %s, %s, %s, '%s')
+            RETURNING id
+        """ % (
+            str(family_id), str(user_id), safe(assigned_to),
+            "'%s'" % safe(body['course_id']) if body.get('course_id') else 'NULL',
+            "'%s'" % safe(body['lesson_id']) if body.get('lesson_id') else 'NULL',
+            "'%s'" % safe(body['test_id']) if body.get('test_id') else 'NULL',
+            "'%s'" % safe(body['deadline']) if body.get('deadline') else 'NULL',
+            safe(body.get('message', ''))
+        ))
+        aid = str(cur.fetchone()[0])
+        conn.commit()
+        return respond(201, {'id': aid, 'success': True})
+    finally:
+        conn.close()
+
+
+def update_assignment(family_id, body):
+    aid = body.get('id')
+    status = body.get('status')
+    if not aid or not status:
+        return respond(400, {'error': 'Укажите id и status'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE fin_edu_assignments SET status = '%s', updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
+            % (safe(status), safe(aid), str(family_id))
         )
         conn.commit()
         return respond(200, {'success': True})
