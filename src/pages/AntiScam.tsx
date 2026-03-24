@@ -466,8 +466,8 @@ export default function AntiScam() {
               <p className="text-xs text-muted-foreground text-center font-medium">Номера горячих линий:</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { name: 'Сбербанк', phone: '900' },
-                  { name: 'Тинькофф', phone: '8-800-555-22-44' },
+                  { name: 'Сбер', phone: '900' },
+                  { name: 'Т-Банк', phone: '8-800-555-22-44' },
                   { name: 'ВТБ', phone: '8-800-100-24-24' },
                   { name: 'Альфа-Банк', phone: '8-800-200-00-00' },
                 ].map(b => (

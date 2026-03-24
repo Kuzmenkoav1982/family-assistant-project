@@ -207,7 +207,7 @@ export default function PaymentsManagement() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className={payment.payment_provider === 'tbank' ? 'bg-yellow-500' : 'bg-green-500'}>
-                            {payment.payment_provider === 'tbank' ? '💳 Т-Банк' : '🏦 Сбербанк'}
+                            {payment.payment_provider === 'tbank' ? '💳 Т-Банк' : '🏦 Сбер'}
                           </Badge>
                           <Badge variant="outline" className="border-yellow-600 text-yellow-700">
                             ⏳ Ожидает оплаты
