@@ -118,6 +118,22 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       ]
     },
     {
+      id: 'finance',
+      title: 'Финансы',
+      icon: 'Wallet',
+      iconColor: 'text-emerald-600',
+      accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      hubPath: '/finance',
+      items: [
+        { id: 'finance-budget', label: 'Бюджет', icon: 'PieChart', path: '/finance/budget' },
+        { id: 'finance-accounts', label: 'Счета и карты', icon: 'CreditCard', path: '/finance/accounts' },
+        { id: 'finance-debts', label: 'Кредиты и долги', icon: 'Receipt', path: '/finance/debts' },
+        { id: 'finance-goals', label: 'Финансовые цели', icon: 'Target', path: '/finance/goals' },
+        { id: 'finance-literacy', label: 'Финграмотность', icon: 'GraduationCap', path: '/finance/literacy' },
+        { id: 'wallet', label: 'Кошелёк сервиса', icon: 'Wallet', path: '/wallet' }
+      ]
+    },
+    {
       id: 'household',
       title: 'Быт',
       icon: 'Home',
