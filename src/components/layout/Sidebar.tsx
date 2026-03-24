@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
+import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+
+const OWNER_ONLY_FINANCE_ITEMS = ['finance-budget', 'finance-accounts', 'finance-debts', 'finance-recurring', 'finance-assets'];
 
 interface MenuSection {
   id: string;
@@ -37,6 +40,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   const navigate = useNavigate();
   const location = useLocation();
   const { unreadCount } = useNotificationCenter();
+  const isOwner = useIsFamilyOwner();
   const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (sectionId: string) => {
@@ -332,7 +336,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                 </div>
                 
                 <CollapsibleContent className="mt-0.5 ml-5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-800 pl-3">
-                  {section.items.map((item) => (
+                  {section.items.filter(item => isOwner || !OWNER_ONLY_FINANCE_ITEMS.includes(item.id)).map((item) => (
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}

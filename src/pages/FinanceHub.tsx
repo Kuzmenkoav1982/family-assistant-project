@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 
 interface SubSection {
   id: string;
@@ -105,6 +106,8 @@ const subSections: SubSection[] = [
   },
 ];
 
+const OWNER_ONLY_SECTIONS = ['budget', 'debts', 'accounts', 'recurring', 'assets'];
+
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
 function getHeaders() {
@@ -113,6 +116,7 @@ function getHeaders() {
 
 export default function FinanceHub() {
   const navigate = useNavigate();
+  const isOwner = useIsFamilyOwner();
   const [showAI, setShowAI] = useState(false);
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiAdvice, setAiAdvice] = useState('');
@@ -163,7 +167,7 @@ export default function FinanceHub() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subSections.map((section) => (
+          {subSections.filter(s => isOwner || !OWNER_ONLY_SECTIONS.includes(s.id)).map((section) => (
             <Card
               key={section.id}
               className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${

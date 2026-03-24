@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -94,6 +95,23 @@ export default function FinanceRecurring() {
   useEffect(() => {
     loadData().finally(() => setLoading(false));
   }, [loadData]);
+
+  const isOwner = useIsFamilyOwner();
+
+  if (!isOwner) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-24">
+        <div className="text-center p-6">
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <Icon name="Lock" size={32} className="text-red-500" />
+          </div>
+          <h2 className="text-lg font-bold mb-2">Доступ ограничен</h2>
+          <p className="text-sm text-muted-foreground mb-4">Этот раздел доступен только владельцу семьи</p>
+          <Button onClick={() => navigate('/finance')}>Вернуться к финансам</Button>
+        </div>
+      </div>
+    );
+  }
 
   const addItem = async () => {
     if (!form.amount || parseFloat(form.amount) <= 0 || !form.description.trim()) {
