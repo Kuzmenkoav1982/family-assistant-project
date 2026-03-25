@@ -154,9 +154,9 @@ type SaleBarSlide = { type: 'bar'; title: string; subtitle: string; bg: string; 
 type SaleBlocksSlide = { type?: 'blocks'; title: string; subtitle: string; bg: string; accent: string; tag: string; blocks: SaleBlock[] };
 type AnySaleSlide = SaleBlocksSlide | SaleTableSlide | SaleBarSlide;
 
-type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap' | 'bankpitch';
+type Section = 'overview' | 'buyers' | 'teasers' | 'valuation' | 'dealstructure' | 'preparation' | 'negotiation' | 'roadmap' | 'bankpitch' | 'homework';
 
-const SALE_SECTIONS: Section[] = ['overview','buyers','teasers','valuation','dealstructure','preparation','negotiation','roadmap','bankpitch'];
+const SALE_SECTIONS: Section[] = ['overview','buyers','teasers','valuation','dealstructure','preparation','negotiation','roadmap','bankpitch','homework'];
 
 const NAV: { id: Section; label: string; icon: string }[] = [
   { id: 'overview', label: 'Обзор', icon: 'LayoutDashboard' },
@@ -168,6 +168,7 @@ const NAV: { id: Section; label: string; icon: string }[] = [
   { id: 'preparation', label: 'Подготовка', icon: 'ClipboardList' },
   { id: 'negotiation', label: 'Переговоры', icon: 'Handshake' },
   { id: 'roadmap', label: 'Роадмап', icon: 'Map' },
+  { id: 'homework', label: 'ДЗ ВШЭ', icon: 'GraduationCap' },
 ];
 
 export default function MarketingSale() {
@@ -1538,6 +1539,214 @@ export default function MarketingSale() {
               <div className="text-xs text-slate-400 text-center mt-6">
                 «Наша Семья» · Предложение покупателю · Март 2026 · Строго конфиденциально
               </div>
+            </div>
+          </div>
+        )}
+
+        {active === 'homework' && (
+          <div className="space-y-8">
+            <div>
+              <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">ВШЭ · Проектное управление</div>
+              <h2 className="text-3xl font-black text-slate-900 mb-2">Домашнее задание 1. Интервью с подчинёнными</h2>
+              <p className="text-slate-500 text-base">Серия коротких интервью: 3 вопроса · 3 респондента — подчинённые руководителя аппарата</p>
+            </div>
+
+            {/* Слайд 1 — Респондент 1 */}
+            <div className="rounded-2xl overflow-hidden shadow-lg bg-white border border-slate-200">
+              <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-800 text-white px-10 py-6">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[10px] font-semibold tracking-[0.2em] text-blue-300 uppercase">
+                    ВШЭ · Проектное управление · Домашнее задание 1
+                  </div>
+                  <div className="text-[10px] text-slate-400">Слайд 1 из 2</div>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight mb-1">
+                  Интервью с ключевыми лицами (подчинённые)
+                </h3>
+                <p className="text-sm text-blue-200/80">Серия коротких интервью: 3 вопроса · 3 респондента</p>
+              </div>
+
+              <div className="px-10 py-8">
+                <div className="mb-5">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-black">1</div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-base">Начальник Управления корпоративной политики в ДЗО</div>
+                      <div className="text-[11px] text-slate-400">Агрегированное мнение сотрудников управления</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-5">
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <div className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">1</div>
+                      <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wide">Сильные стороны как лидера</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="bg-white rounded-lg p-2.5 border border-blue-100">
+                        <p className="text-[11px] text-slate-400 font-medium mb-0.5">Комментарий 1:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Умение формулировать чёткие цели и задачи, реагировать на изменения, развитые организаторские способности и профессиональная компетенция</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-2.5 border border-blue-100">
+                        <p className="text-[11px] text-slate-400 font-medium mb-0.5">Комментарий 2:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Поддержка в реализуемых проектах, видение проблемы в целом, умение акцентироваться на проблемных моментах, слушать предложения и конструктивно их обсуждать; определение комфортных сроков исполнения задач; контроль за исполнением с обсуждением трудностей</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-2.5 border border-blue-100">
+                        <p className="text-[11px] text-slate-400 font-medium mb-0.5">Комментарий 3:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Стратегическое мышление; решительность в принятии ключевых решений; ответственность; мотивация и умение вдохновить; адаптивность; уверенность в себе; честность и целеустремлённость</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <div className="w-5 h-5 rounded bg-amber-600 text-white flex items-center justify-center text-[10px] font-black">2</div>
+                      <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wide">Что стоит изменить</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="bg-white rounded-lg p-2.5 border border-amber-100">
+                        <p className="text-[11px] text-slate-400 font-medium mb-0.5">Комментарий 1:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Проведение обсуждений «стратегических» задач, стоящих перед курируемым подразделением</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-2.5 border border-amber-100">
+                        <p className="text-[11px] text-slate-400 font-medium mb-0.5">Комментарий 2:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Надо стать более открытым в части объяснения перспектив развития, в т.ч. движения организации</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <div className="w-5 h-5 rounded bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</div>
+                      <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Хорошо / Лучше</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="bg-white rounded-lg p-2.5 border border-emerald-100">
+                        <p className="text-[11px] text-green-600 font-medium mb-0.5">✅ Хорошо:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Обсуждение проектов, получение глубокой обратной связи, привлечение заинтересованных лиц. Выслушивает все стороны, принимает взвешенное решение с обоснованием; чётко доносит задачу с указанием сроков</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-2.5 border border-emerald-100">
+                        <p className="text-[11px] text-blue-600 font-medium mb-0.5">🔼 Больше:</p>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">Доносить до подчинённых позицию высшего руководства по стратегическим направлениям развития подразделения на среднесрочную перспективу</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Слайд 2 — Респонденты 2 и 3 */}
+            <div className="rounded-2xl overflow-hidden shadow-lg bg-white border border-slate-200">
+              <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-800 text-white px-10 py-5">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[10px] font-semibold tracking-[0.2em] text-blue-300 uppercase">
+                    ВШЭ · Проектное управление · Домашнее задание 1
+                  </div>
+                  <div className="text-[10px] text-slate-400">Слайд 2 из 2</div>
+                </div>
+                <h3 className="text-xl font-black tracking-tight">
+                  Руководители направления Экспертно-аналитического управления
+                </h3>
+              </div>
+
+              <div className="px-10 py-6">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Респондент 2 */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm font-black">2</div>
+                      <div className="font-bold text-slate-900 text-sm">Руководитель направления ЭАУ (1)</div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Icon name="Star" size={12} className="text-blue-600" />
+                          <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Сильные стороны</span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                          Системное юридическое мышление в сочетании с управленческой экспертизой (МВА). Умение выстраивать сложные корпоративные процессы и доводить их до стандарта. Одновременно видит стратегическую картину и операционные детали. Высокий авторитет в профессиональном сообществе мотивирует команду.
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-amber-100 bg-amber-50/40 p-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Icon name="RefreshCw" size={12} className="text-amber-600" />
+                          <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Что стоит изменить</span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                          Чаще транслировать приоритеты — чтобы команда точнее распределяла усилия между «идеально» и «достаточно хорошо сейчас». Делегировать промежуточный контроль линейным руководителям.
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Icon name="CheckCircle" size={12} className="text-emerald-600" />
+                          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Хорошо / Больше / Меньше</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                            <span className="text-green-600 font-medium">✅</span> Чёткая постановка задач с правовой и управленческой аргументацией; доступен для эскалации критических вопросов по ДЗО
+                          </p>
+                          <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                            <span className="text-blue-600 font-medium">🔼</span> Проводить стратегические сессии для синхронизации приоритетов по дочерним обществам
+                          </p>
+                          <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                            <span className="text-amber-600 font-medium">🔽</span> Лично погружаться в рутинные согласования документов
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Респондент 3 */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm font-black">3</div>
+                      <div className="font-bold text-slate-900 text-sm">Руководитель направления ЭАУ (2)</div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Icon name="Star" size={12} className="text-blue-600" />
+                          <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Сильные стороны</span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                          Аналитическая глубина и требовательность к качеству данных. Способность быстро вникать в новые области и применять знания на практике. Умение защитить позицию команды — «надёжный тыл». Стратегическое видение, личная дисциплина и открытость к обратной связи вдохновляют команду.
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-amber-100 bg-amber-50/40 p-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Icon name="RefreshCw" size={12} className="text-amber-600" />
+                          <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Что стоит изменить</span>
+                        </div>
+                        <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                          Ускорить цикл принятия решений — выделить «быструю аналитику» как формат с допустимой погрешностью. Явно обозначать дедлайны и приоритеты при параллельных поручениях.
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Icon name="CheckCircle" size={12} className="text-emerald-600" />
+                          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Хорошо / Больше / Прекратить</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                            <span className="text-green-600 font-medium">✅</span> Культура доказательного подхода; поддержка профразвития (личный пример — обучение во ВШЭ); мотивация через смысл задачи
+                          </p>
+                          <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                            <span className="text-blue-600 font-medium">🔼</span> Делиться инсайтами из программы проектного управления; еженедельные 15-мин статус-встречи для приоритизации
+                          </p>
+                          <p className="text-[11.5px] text-slate-700 leading-relaxed">
+                            <span className="text-red-600 font-medium">⛔</span> Финальная вычитка каждого отчёта — доверить экспертам. Режим «всё срочно» — выделить задачи, которые могут подождать 24–48 ч
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-400 text-center mt-4">
+              ВШЭ · Проектное управление · Домашнее задание 1 · Интервью с подчинёнными
             </div>
           </div>
         )}
