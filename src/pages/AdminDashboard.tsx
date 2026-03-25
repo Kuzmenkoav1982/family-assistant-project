@@ -214,10 +214,7 @@ export default function AdminDashboard() {
               <Icon name="TrendingUp" size={16} className="mr-2" />
               Оценка стоимости
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/homework'}>
-              <Icon name="GraduationCap" size={16} className="mr-2" />
-              ДЗ ВШЭ
-            </Button>
+
             <Button variant="outline" onClick={() => window.location.href = '/admin/marketing'}>
               <Icon name="Megaphone" size={16} className="mr-2" />
               Стратегия развития

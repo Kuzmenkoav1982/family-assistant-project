@@ -125,7 +125,6 @@ const AdminMAX = lazy(() => import("./pages/AdminMAX"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminWelcomeAnalytics = lazy(() => import("./pages/AdminWelcomeAnalytics"));
 const AdminValuation = lazy(() => import("./pages/AdminValuation"));
-const AdminHomework = lazy(() => import("./pages/AdminHomework"));
 const ActivateChild = lazy(() => import("./pages/ActivateChild"));
 const ActivateCallback = lazy(() => import("./pages/ActivateCallback"));
 const FamilyTracker = lazy(() => import("./pages/FamilyTracker"));
@@ -328,7 +327,6 @@ const App = () => {
                       <Route path="/admin/max" element={<AdminMAX />} />
                       <Route path="/admin/users" element={<AdminUsers />} />
                       <Route path="/admin/valuation" element={<AdminValuation />} />
-                      <Route path="/admin/homework" element={<AdminHomework />} />
                       <Route path="/admin/marketing" element={<MarketingStrategy />} />
                       <Route path="/admin/marketing-sale" element={<MarketingSale />} />
                       <Route path="/alice" element={<AliceIntegration />} />
