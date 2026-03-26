@@ -212,35 +212,49 @@ export default function FinanceDebts() {
       toast.error('Укажите кредитный лимит');
       return;
     }
+    if (form.min_payment_pct && parseFloat(form.min_payment_pct) > 100) {
+      toast.error('Мин. платёж не может быть больше 100%');
+      return;
+    }
+    if (form.interest_rate && parseFloat(form.interest_rate) > 999) {
+      toast.error('Ставка слишком большая');
+      return;
+    }
     setSaving(true);
-    const res = await fetch(API, {
-      method: 'POST', headers: getHeaders(),
-      body: JSON.stringify({
-        action: 'add_debt',
-        ...form,
-        original_amount: form.debt_type === 'credit_card' && form.credit_limit ? parseFloat(form.credit_limit) : parseFloat(form.original_amount),
-        remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : (form.debt_type === 'credit_card' && form.credit_limit ? parseFloat(form.credit_limit) : parseFloat(form.original_amount)),
-        interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
-        monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
-        next_payment_date: form.next_payment_date || null,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        credit_limit: form.credit_limit ? parseFloat(form.credit_limit) : null,
-        grace_period_days: form.grace_period_days ? parseInt(form.grace_period_days) : null,
-        grace_period_end: form.grace_period_end || null,
-        grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
-        min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
-        bank_name: form.bank_name || null
-      })
-    });
-    setSaving(false);
-    if (res.ok) {
-      toast.success('Долг добавлен');
-      setShowAdd(false);
-      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
-      loadDebts();
-    } else {
-      toast.error('Ошибка');
+    try {
+      const res = await fetch(API, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({
+          action: 'add_debt',
+          ...form,
+          original_amount: isCreditCard && form.credit_limit ? parseFloat(form.credit_limit) : parseFloat(form.original_amount),
+          remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : (isCreditCard && form.credit_limit ? parseFloat(form.credit_limit) : parseFloat(form.original_amount)),
+          interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
+          monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
+          next_payment_date: form.next_payment_date || null,
+          start_date: form.start_date || null,
+          end_date: form.end_date || null,
+          credit_limit: form.credit_limit ? parseFloat(form.credit_limit) : null,
+          grace_period_days: form.grace_period_days ? parseInt(form.grace_period_days) : null,
+          grace_period_end: form.grace_period_end || null,
+          grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
+          min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
+          bank_name: form.bank_name || null
+        })
+      });
+      setSaving(false);
+      if (res.ok) {
+        toast.success('Долг добавлен');
+        setShowAdd(false);
+        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
+        loadDebts();
+      } else {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || 'Ошибка сохранения');
+      }
+    } catch {
+      setSaving(false);
+      toast.error('Ошибка сети');
     }
   };
 
@@ -262,39 +276,58 @@ export default function FinanceDebts() {
       toast.error('Укажите название');
       return;
     }
+    if (form.min_payment_pct && parseFloat(form.min_payment_pct) > 100) {
+      toast.error('Мин. платёж не может быть больше 100%');
+      return;
+    }
+    if (form.interest_rate && parseFloat(form.interest_rate) > 999) {
+      toast.error('Ставка слишком большая');
+      return;
+    }
+    const isCreditCard = form.debt_type === 'credit_card';
     setSaving(true);
-    const res = await fetch(API, {
-      method: 'POST', headers: getHeaders(),
-      body: JSON.stringify({
-        action: 'update_debt',
-        id: editDebt.id,
-        name: form.name,
-        creditor: form.creditor,
-        remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : editDebt.remaining_amount,
-        interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
-        monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
-        next_payment_date: form.next_payment_date || null,
-        status: editDebt.status,
-        notes: form.notes,
-        credit_limit: form.credit_limit ? parseFloat(form.credit_limit) : null,
-        grace_period_days: form.grace_period_days ? parseInt(form.grace_period_days) : null,
-        grace_period_end: form.grace_period_end || null,
-        grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
-        min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
-        bank_name: form.bank_name || null
-      })
-    });
-    setSaving(false);
-    if (res.ok) {
-      toast.success('Сохранено');
-      setEditDebt(null);
-      setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
-      loadDebts();
-      if (selectedDebt && selectedDebt.id === editDebt.id) {
-        setSelectedDebt(null);
+    try {
+      const res = await fetch(API, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({
+          action: 'update_debt',
+          id: editDebt.id,
+          debt_type: form.debt_type,
+          name: form.name,
+          creditor: form.creditor,
+          original_amount: isCreditCard && form.credit_limit ? parseFloat(form.credit_limit) : (form.original_amount ? parseFloat(form.original_amount) : editDebt.original_amount),
+          remaining_amount: form.remaining_amount ? parseFloat(form.remaining_amount) : editDebt.remaining_amount,
+          interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : 0,
+          monthly_payment: form.monthly_payment ? parseFloat(form.monthly_payment) : null,
+          next_payment_date: form.next_payment_date || null,
+          start_date: form.start_date || null,
+          end_date: form.end_date || null,
+          status: editDebt.status,
+          notes: form.notes,
+          credit_limit: form.credit_limit ? parseFloat(form.credit_limit) : null,
+          grace_period_days: form.grace_period_days ? parseInt(form.grace_period_days) : null,
+          grace_period_end: form.grace_period_end || null,
+          grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
+          min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
+          bank_name: form.bank_name || null
+        })
+      });
+      setSaving(false);
+      if (res.ok) {
+        toast.success('Сохранено');
+        setEditDebt(null);
+        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
+        loadDebts();
+        if (selectedDebt && selectedDebt.id === editDebt.id) {
+          setSelectedDebt(null);
+        }
+      } else {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || 'Ошибка сохранения');
       }
-    } else {
-      toast.error('Ошибка');
+    } catch {
+      setSaving(false);
+      toast.error('Ошибка сети');
     }
   };
 
@@ -814,7 +847,7 @@ export default function FinanceDebts() {
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-1 block">Мин. платёж, %</label>
-                      <Input type="number" inputMode="decimal" value={form.min_payment_pct}
+                      <Input type="number" inputMode="decimal" min="0" max="100" value={form.min_payment_pct}
                         onChange={e => setForm(f => ({ ...f, min_payment_pct: e.target.value }))} />
                     </div>
                   </div>
@@ -1076,7 +1109,7 @@ export default function FinanceDebts() {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Мин. платёж, %</label>
-                    <Input type="number" inputMode="decimal" placeholder="3" value={form.min_payment_pct}
+                    <Input type="number" inputMode="decimal" placeholder="3" min="0" max="100" value={form.min_payment_pct}
                       onChange={e => setForm({...form, min_payment_pct: e.target.value})} />
                   </div>
                 </div>

@@ -700,6 +700,29 @@ def get_debts(family_id):
         conn.close()
 
 
+def clamp_numeric(val, max_digits=13, scale=2):
+    if val is None:
+        return None
+    v = float(val)
+    max_val = 10 ** (max_digits - scale) - 10 ** (-scale)
+    if v > max_val:
+        return max_val
+    if v < -max_val:
+        return -max_val
+    return round(v, scale)
+
+
+def clamp_pct(val):
+    if val is None:
+        return None
+    v = float(val)
+    if v < 0:
+        return 0.0
+    if v > 999.99:
+        return 999.99
+    return round(v, 2)
+
+
 def add_debt(family_id, body):
     name = body.get('name', '').strip()
     if not name:
@@ -707,6 +730,9 @@ def add_debt(family_id, body):
     original = body.get('original_amount')
     if not original or float(original) <= 0:
         return respond(400, {'error': 'Укажите сумму'})
+
+    interest_rate = clamp_pct(body.get('interest_rate', 0))
+    min_payment_pct = clamp_pct(body.get('min_payment_pct')) if body.get('min_payment_pct') else None
 
     conn = get_db()
     try:
@@ -724,20 +750,20 @@ def add_debt(family_id, body):
             safe(body.get('debt_type', 'credit')),
             safe(name),
             safe(body.get('creditor', '')),
-            float(original),
-            float(remaining),
-            float(body.get('interest_rate', 0)),
-            float(body.get('monthly_payment', 0)) if body.get('monthly_payment') else 'NULL',
+            clamp_numeric(original),
+            clamp_numeric(remaining),
+            interest_rate,
+            clamp_numeric(body.get('monthly_payment', 0)) if body.get('monthly_payment') else 'NULL',
             "'%s'" % safe(body['next_payment_date']) if body.get('next_payment_date') else 'NULL',
             "'%s'" % safe(body['start_date']) if body.get('start_date') else 'NULL',
             "'%s'" % safe(body['end_date']) if body.get('end_date') else 'NULL',
             safe(body.get('notes', '')),
             "'%s'" % safe(body['account_id']) if body.get('account_id') else 'NULL',
-            float(body['credit_limit']) if body.get('credit_limit') else 'NULL',
+            clamp_numeric(body['credit_limit']) if body.get('credit_limit') else 'NULL',
             int(body['grace_period_days']) if body.get('grace_period_days') else 'NULL',
             "'%s'" % safe(body['grace_period_end']) if body.get('grace_period_end') else 'NULL',
-            float(body['grace_amount']) if body.get('grace_amount') else 'NULL',
-            float(body['min_payment_pct']) if body.get('min_payment_pct') else 'NULL',
+            clamp_numeric(body['grace_amount']) if body.get('grace_amount') else 'NULL',
+            min_payment_pct if min_payment_pct is not None else 'NULL',
             "'%s'" % safe(body['bank_name']) if body.get('bank_name') else 'NULL'
         ))
         new_id = str(cur.fetchone()[0])
@@ -758,30 +784,38 @@ def update_debt(family_id, body):
         sets = []
         if 'name' in body:
             sets.append("name = '%s'" % safe(body['name']))
+        if 'debt_type' in body:
+            sets.append("debt_type = '%s'" % safe(body['debt_type']))
         if 'creditor' in body:
             sets.append("creditor = '%s'" % safe(body['creditor']))
+        if 'original_amount' in body:
+            sets.append("original_amount = %s" % (clamp_numeric(body['original_amount']) if body['original_amount'] else 'NULL'))
         if 'remaining_amount' in body:
-            sets.append("remaining_amount = %s" % float(body['remaining_amount']))
+            sets.append("remaining_amount = %s" % (clamp_numeric(body['remaining_amount']) if body['remaining_amount'] else 0))
         if 'monthly_payment' in body:
-            sets.append("monthly_payment = %s" % float(body['monthly_payment']))
+            sets.append("monthly_payment = %s" % (clamp_numeric(body['monthly_payment']) if body['monthly_payment'] else 'NULL'))
         if 'interest_rate' in body:
-            sets.append("interest_rate = %s" % float(body['interest_rate']))
+            sets.append("interest_rate = %s" % (clamp_pct(body['interest_rate']) if body['interest_rate'] else 0))
         if 'next_payment_date' in body:
-            sets.append("next_payment_date = '%s'" % safe(body['next_payment_date']))
+            sets.append("next_payment_date = %s" % ("'%s'" % safe(body['next_payment_date']) if body['next_payment_date'] else 'NULL'))
+        if 'start_date' in body:
+            sets.append("start_date = %s" % ("'%s'" % safe(body['start_date']) if body['start_date'] else 'NULL'))
+        if 'end_date' in body:
+            sets.append("end_date = %s" % ("'%s'" % safe(body['end_date']) if body['end_date'] else 'NULL'))
         if 'status' in body:
             sets.append("status = '%s'" % safe(body['status']))
         if 'notes' in body:
             sets.append("notes = '%s'" % safe(body['notes']))
         if 'credit_limit' in body:
-            sets.append("credit_limit = %s" % (float(body['credit_limit']) if body['credit_limit'] else 'NULL'))
+            sets.append("credit_limit = %s" % (clamp_numeric(body['credit_limit']) if body['credit_limit'] else 'NULL'))
         if 'grace_period_days' in body:
             sets.append("grace_period_days = %s" % (int(body['grace_period_days']) if body['grace_period_days'] else 'NULL'))
         if 'grace_period_end' in body:
             sets.append("grace_period_end = %s" % ("'%s'" % safe(body['grace_period_end']) if body['grace_period_end'] else 'NULL'))
         if 'grace_amount' in body:
-            sets.append("grace_amount = %s" % (float(body['grace_amount']) if body['grace_amount'] else 'NULL'))
+            sets.append("grace_amount = %s" % (clamp_numeric(body['grace_amount']) if body['grace_amount'] else 'NULL'))
         if 'min_payment_pct' in body:
-            sets.append("min_payment_pct = %s" % (float(body['min_payment_pct']) if body['min_payment_pct'] else 'NULL'))
+            sets.append("min_payment_pct = %s" % (clamp_pct(body['min_payment_pct']) if body['min_payment_pct'] else 'NULL'))
         if 'bank_name' in body:
             sets.append("bank_name = %s" % ("'%s'" % safe(body['bank_name']) if body['bank_name'] else 'NULL'))
         if not sets:
