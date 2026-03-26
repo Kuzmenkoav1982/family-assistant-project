@@ -849,6 +849,7 @@ export default function FinanceDebts() {
                       <label className="text-sm font-medium mb-1 block">Мин. платёж, %</label>
                       <Input type="number" inputMode="decimal" min="0" max="100" value={form.min_payment_pct}
                         onChange={e => setForm(f => ({ ...f, min_payment_pct: e.target.value }))} />
+                      <p className="text-[11px] text-muted-foreground mt-1">Процент от долга, обычно 3-8%</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -1111,6 +1112,7 @@ export default function FinanceDebts() {
                     <label className="text-sm font-medium mb-1 block">Мин. платёж, %</label>
                     <Input type="number" inputMode="decimal" placeholder="3" min="0" max="100" value={form.min_payment_pct}
                       onChange={e => setForm({...form, min_payment_pct: e.target.value})} />
+                    <p className="text-[11px] text-muted-foreground mt-1">Процент от долга, обычно 3-8%</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
