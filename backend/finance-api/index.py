@@ -29,7 +29,7 @@ def get_db():
 
 OWNER_ONLY_SECTIONS = {'budgets', 'debts', 'debt_payments', 'accounts', 'recurring', 'assets', 'dashboard', 'transactions', 'categories'}
 OWNER_ONLY_ACTIONS = {
-    'add_transaction', 'delete_transaction', 'update_transaction',
+    'add_transaction', 'delete_transaction', 'update_transaction', 'confirm_planned',
     'add_category', 'delete_category',
     'set_budget', 'delete_budget',
     'add_debt', 'update_debt', 'delete_debt', 'add_debt_payment',
@@ -141,6 +141,8 @@ def handler(event, context):
             return delete_transaction(family_id, body)
         elif action == 'update_transaction':
             return update_transaction(family_id, body)
+        elif action == 'confirm_planned':
+            return confirm_planned(user_id, family_id, body)
         elif action == 'add_category':
             return add_category(family_id, body)
         elif action == 'delete_category':
@@ -342,11 +344,115 @@ def get_transactions(family_id, params):
         """ % where)
         sr = cur.fetchone()
 
+        planned = []
+        plan_income = 0
+        plan_expense = 0
+        if month:
+            year_m = safe(month)
+            yr, mo = year_m.split('-')
+            mo = int(mo)
+
+            cur.execute("""
+                SELECT fr.id, fr.amount, fr.transaction_type, fr.description,
+                       fr.day_of_month, fr.frequency,
+                       fc.name, fc.icon, fc.color, fa.name
+                FROM finance_recurring fr
+                LEFT JOIN finance_categories fc ON fr.category_id = fc.id
+                LEFT JOIN finance_accounts fa ON fr.account_id = fa.id
+                WHERE fr.family_id = '%s' AND fr.is_active = true
+            """ % fid)
+            for r in cur.fetchall():
+                freq = r[5] or 'monthly'
+                include = False
+                if freq == 'monthly':
+                    include = True
+                elif freq == 'weekly':
+                    include = True
+                elif freq == 'quarterly' and mo in (1, 4, 7, 10):
+                    include = True
+                elif freq == 'yearly' and mo == 1:
+                    include = True
+                if not include:
+                    continue
+                day = r[4] or 1
+                if day > 28:
+                    day = 28
+                plan_date = '%s-%02d-%02d' % (yr, mo, day)
+                already = any(
+                    t['is_recurring'] and t['description'] == r[3]
+                    and abs(t['amount'] - float(r[1])) < 0.01
+                    for t in items
+                )
+                if already:
+                    continue
+                amt = float(r[1])
+                p = {
+                    'id': 'recurring_' + str(r[0]),
+                    'source_id': str(r[0]),
+                    'source': 'recurring',
+                    'amount': amt,
+                    'type': r[2],
+                    'description': r[3] or '',
+                    'date': plan_date,
+                    'is_planned': True,
+                    'category_name': r[6], 'category_icon': r[7], 'category_color': r[8],
+                    'account_name': r[9]
+                }
+                planned.append(p)
+                if r[2] == 'income':
+                    plan_income += amt
+                else:
+                    plan_expense += amt
+
+            cur.execute("""
+                SELECT id, name, monthly_payment, debt_type, bank_name, next_payment_date
+                FROM finance_debts
+                WHERE family_id = '%s' AND status = 'active' AND show_in_budget = true
+                  AND monthly_payment IS NOT NULL AND monthly_payment > 0
+            """ % fid)
+            for r in cur.fetchall():
+                day = 15
+                if r[5]:
+                    try:
+                        day = int(str(r[5]).split('-')[2])
+                    except Exception:
+                        pass
+                if day > 28:
+                    day = 28
+                plan_date = '%s-%02d-%02d' % (yr, mo, day)
+                amt = float(r[2])
+                desc = r[1] or 'Платёж по долгу'
+                already = any(
+                    t['description'] == desc and abs(t['amount'] - amt) < 0.01
+                    for t in items
+                )
+                if already:
+                    continue
+                p = {
+                    'id': 'debt_' + str(r[0]),
+                    'source_id': str(r[0]),
+                    'source': 'debt',
+                    'amount': amt,
+                    'type': 'expense',
+                    'description': desc,
+                    'date': plan_date,
+                    'is_planned': True,
+                    'debt_type': r[3],
+                    'bank_name': r[4],
+                    'category_name': None, 'category_icon': None, 'category_color': None,
+                    'account_name': None
+                }
+                planned.append(p)
+                plan_expense += amt
+
         return respond(200, {
             'transactions': items,
+            'planned': planned,
             'total': total,
             'sum_income': float(sr[0]),
-            'sum_expense': float(sr[1])
+            'sum_expense': float(sr[1]),
+            'plan_income': plan_income,
+            'plan_expense': plan_expense
         })
     finally:
         conn.close()
@@ -385,6 +491,66 @@ def add_transaction(user_id, family_id, body):
             cur.execute(
                 "UPDATE finance_accounts SET balance = balance + %s, updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
                 % (float(amount) * sign, safe(body['account_id']), fid)
+            )
+
+        conn.commit()
+        return respond(201, {'id': new_id, 'success': True})
+    finally:
+        conn.close()
+
+
+def confirm_planned(user_id, family_id, body):
+    """Подтвердить запланированную операцию — создать реальную транзакцию"""
+    source = body.get('source', '')
+    source_id = body.get('source_id', '')
+    amount = body.get('amount')
+    tx_type = body.get('type', 'expense')
+    description = body.get('description', '')
+    date = body.get('date', '')
+
+    if not amount or float(amount) <= 0:
+        return respond(400, {'error': 'Сумма должна быть больше 0'})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        cat_id = 'NULL'
+        acc_id = 'NULL'
+        is_recurring = 'false'
+        recurring_id = 'NULL'
+
+        if source == 'recurring' and source_id:
+            cur.execute(
+                "SELECT category_id, account_id FROM finance_recurring WHERE id = '%s' AND family_id = '%s'"
+                % (safe(source_id), fid)
+            )
+            rr = cur.fetchone()
+            if rr:
+                if rr[0]:
+                    cat_id = "'%s'" % str(rr[0])
+                if rr[1]:
+                    acc_id = "'%s'" % str(rr[1])
+            is_recurring = 'true'
+            recurring_id = "'%s'" % safe(source_id)
+
+        cur.execute("""
+            INSERT INTO finance_transactions
+            (family_id, account_id, category_id, amount, transaction_type, description, transaction_date, member_id, is_recurring, recurring_id)
+            VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', NULL, %s, %s)
+            RETURNING id
+        """ % (
+            fid, acc_id, cat_id, float(amount),
+            safe(tx_type), safe(description), safe(date),
+            is_recurring, recurring_id
+        ))
+        new_id = str(cur.fetchone()[0])
+
+        if acc_id != 'NULL':
+            sign = 1 if tx_type == 'income' else -1
+            cur.execute(
+                "UPDATE finance_accounts SET balance = balance + %s, updated_at = NOW() WHERE id = %s AND family_id = '%s'"
+                % (float(amount) * sign, acc_id, fid)
             )
 
         conn.commit()
@@ -662,7 +828,7 @@ def get_debts(family_id):
                    interest_rate, monthly_payment, next_payment_date, start_date, end_date,
                    status, notes, account_id,
                    credit_limit, grace_period_days, grace_period_end, grace_amount,
-                   min_payment_pct, bank_name
+                   min_payment_pct, bank_name, show_in_budget
             FROM finance_debts
             WHERE family_id = '%s'
             ORDER BY status, next_payment_date NULLS LAST
@@ -683,7 +849,8 @@ def get_debts(family_id):
                 'grace_period_end': str(r[16]) if r[16] else None,
                 'grace_amount': float(r[17]) if r[17] else None,
                 'min_payment_pct': float(r[18]) if r[18] else None,
-                'bank_name': r[19]
+                'bank_name': r[19],
+                'show_in_budget': r[20]
             }
             for r in cur.fetchall()
         ]
@@ -818,6 +985,8 @@ def update_debt(family_id, body):
             sets.append("min_payment_pct = %s" % (clamp_pct(body['min_payment_pct']) if body['min_payment_pct'] else 'NULL'))
         if 'bank_name' in body:
             sets.append("bank_name = %s" % ("'%s'" % safe(body['bank_name']) if body['bank_name'] else 'NULL'))
+        if 'show_in_budget' in body:
+            sets.append("show_in_budget = %s" % ('true' if body['show_in_budget'] else 'false'))
         if not sets:
             return respond(400, {'error': 'Нечего обновлять'})
         sets.append("updated_at = NOW()")

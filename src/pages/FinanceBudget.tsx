@@ -28,6 +28,23 @@ interface Transaction {
   account_name: string | null;
 }
 
+interface PlannedItem {
+  id: string;
+  source_id: string;
+  source: 'recurring' | 'debt';
+  amount: number;
+  type: string;
+  description: string;
+  date: string;
+  is_planned: true;
+  category_name: string | null;
+  category_icon: string | null;
+  category_color: string | null;
+  account_name: string | null;
+  debt_type?: string;
+  bank_name?: string;
+}
+
 interface Category {
   id: string;
   name: string;
@@ -81,6 +98,9 @@ export default function FinanceBudget() {
   const [loading, setLoading] = useState(true);
   const [sumIncome, setSumIncome] = useState(0);
   const [sumExpense, setSumExpense] = useState(0);
+  const [plannedItems, setPlannedItems] = useState<PlannedItem[]>([]);
+  const [planIncome, setPlanIncome] = useState(0);
+  const [planExpense, setPlanExpense] = useState(0);
   const [totalPlanned, setTotalPlanned] = useState(0);
   const [totalSpent, setTotalSpent] = useState(0);
   const [month, setMonth] = useState(getCurrentMonth());
@@ -120,6 +140,9 @@ export default function FinanceBudget() {
       setTransactions(data.transactions || []);
       setSumIncome(data.sum_income || 0);
       setSumExpense(data.sum_expense || 0);
+      setPlannedItems(data.planned || []);
+      setPlanIncome(data.plan_income || 0);
+      setPlanExpense(data.plan_expense || 0);
     }
   }, [month, txFilter]);
 
@@ -200,6 +223,30 @@ export default function FinanceBudget() {
       </div>
     );
   }
+
+  const confirmPlanned = async (item: PlannedItem) => {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'confirm_planned',
+        source: item.source,
+        source_id: item.source_id,
+        amount: item.amount,
+        type: item.type,
+        description: item.description,
+        date: item.date
+      })
+    });
+    if (res.ok) {
+      toast.success('Операция подтверждена');
+      loadTransactions();
+      loadBudgets();
+      loadHistory();
+    } else {
+      toast.error('Ошибка при подтверждении');
+    }
+  };
 
   const addTransaction = async () => {
     if (!txAmount || parseFloat(txAmount) <= 0) {
@@ -409,20 +456,26 @@ export default function FinanceBudget() {
           <Card className="border-green-200 bg-green-50/50">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-green-600">Доходы</p>
-              <p className="text-lg font-bold text-green-700">{formatMoney(sumIncome)}</p>
+              <p className="text-lg font-bold text-green-700">{formatMoney(sumIncome + planIncome)}</p>
+              {planIncome > 0 && (
+                <p className="text-[10px] text-green-500">ожид. +{formatMoney(planIncome)}</p>
+              )}
             </CardContent>
           </Card>
           <Card className="border-red-200 bg-red-50/50">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-red-600">Расходы</p>
-              <p className="text-lg font-bold text-red-700">{formatMoney(sumExpense)}</p>
+              <p className="text-lg font-bold text-red-700">{formatMoney(sumExpense + planExpense)}</p>
+              {planExpense > 0 && (
+                <p className="text-[10px] text-red-500">ожид. +{formatMoney(planExpense)}</p>
+              )}
             </CardContent>
           </Card>
-          <Card className={`border-2 ${sumIncome - sumExpense >= 0 ? 'border-emerald-300 bg-emerald-50/50' : 'border-orange-300 bg-orange-50/50'}`}>
+          <Card className={`border-2 ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'border-emerald-300 bg-emerald-50/50' : 'border-orange-300 bg-orange-50/50'}`}>
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Баланс</p>
-              <p className={`text-lg font-bold ${sumIncome - sumExpense >= 0 ? 'text-emerald-700' : 'text-orange-700'}`}>
-                {sumIncome - sumExpense >= 0 ? '+' : ''}{formatMoney(sumIncome - sumExpense)}
+              <p className={`text-lg font-bold ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'text-emerald-700' : 'text-orange-700'}`}>
+                {(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? '+' : ''}{formatMoney((sumIncome + planIncome) - (sumExpense + planExpense))}
               </p>
             </CardContent>
           </Card>
@@ -446,7 +499,52 @@ export default function FinanceBudget() {
               ))}
             </div>
 
-            {transactions.length === 0 ? (
+            {plannedItems.filter(p => txFilter === 'all' || p.type === txFilter).length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-amber-600 flex items-center gap-1">
+                  <Icon name="Clock" size={14} /> Запланированные
+                </p>
+                {plannedItems.filter(p => txFilter === 'all' || p.type === txFilter).map(p => (
+                  <Card key={p.id} className="overflow-hidden border-dashed border-amber-300 bg-amber-50/30">
+                    <CardContent className="p-0">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: p.source === 'debt' ? '#EF444420' : (p.category_color || '#F59E0B') + '20' }}>
+                          <Icon name={p.source === 'debt' ? (p.debt_type === 'mortgage' ? 'Home' : p.debt_type === 'car_loan' ? 'Car' : 'Landmark')
+                            : (p.category_icon || (p.type === 'income' ? 'TrendingUp' : 'TrendingDown'))}
+                            size={20} style={{ color: p.source === 'debt' ? '#EF4444' : (p.category_color || '#F59E0B') }} />
+                        </div>
+                        <div className="flex-1 px-3 py-2 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-medium truncate">{p.description || 'Платёж'}</span>
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 border-amber-400 text-amber-600">
+                              {p.source === 'debt' ? 'долг' : 'регуляр.'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {p.category_name && <span>{p.category_name}</span>}
+                            {p.bank_name && <span>{p.bank_name}</span>}
+                            <span>{new Date(p.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}</span>
+                          </div>
+                        </div>
+                        <div className="pr-1 text-right flex-shrink-0">
+                          <p className={`font-bold text-sm ${p.type === 'income' ? 'text-green-600' : 'text-red-600'} opacity-60`}>
+                            {p.type === 'income' ? '+' : '−'}{formatMoney(p.amount)} ₽
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" className="mr-1 text-amber-600 hover:text-emerald-600"
+                          title="Подтвердить"
+                          onClick={() => confirmPlanned(p)}>
+                          <Icon name="CheckCircle" size={18} />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {transactions.length === 0 && plannedItems.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Icon name="FileText" size={40} className="mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">Нет операций за этот месяц</p>
@@ -455,8 +553,11 @@ export default function FinanceBudget() {
                   <Icon name="Plus" size={14} className="mr-1" /> Добавить первую запись
                 </Button>
               </div>
-            ) : (
+            ) : transactions.length > 0 ? (
               <div className="space-y-2">
+                {plannedItems.length > 0 && transactions.length > 0 && (
+                  <p className="text-xs font-semibold text-muted-foreground pt-1">Фактические</p>
+                )}
                 {transactions.map(tx => (
                   <Card key={tx.id} className="overflow-hidden">
                     <CardContent className="p-0">
@@ -495,7 +596,7 @@ export default function FinanceBudget() {
                   </Card>
                 ))}
               </div>
-            )}
+            ) : null}
           </TabsContent>
 
           <TabsContent value="budgets" className="space-y-3 mt-3">

@@ -1,0 +1,1 @@
+ALTER TABLE finance_debts ADD COLUMN IF NOT EXISTS show_in_budget boolean NOT NULL DEFAULT false;

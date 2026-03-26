@@ -33,6 +33,7 @@ interface Debt {
   grace_amount?: number | null;
   min_payment_pct?: number | null;
   bank_name?: string | null;
+  show_in_budget?: boolean;
 }
 
 interface Payment {
@@ -53,7 +54,7 @@ function formatMoney(n: number) {
 
 const DEBT_TYPES = [
   { value: 'mortgage', label: 'Ипотека', icon: 'Home', color: '#3B82F6' },
-  { value: 'credit', label: 'Кредит', icon: 'CreditCard', color: '#EF4444' },
+  { value: 'credit', label: 'Кредит', icon: 'Banknote', color: '#EF4444' },
   { value: 'credit_card', label: 'Кредитная карта', icon: 'CreditCard', color: '#F97316' },
   { value: 'car_loan', label: 'Автокредит', icon: 'Car', color: '#F59E0B' },
   { value: 'personal', label: 'Личный долг', icon: 'Users', color: '#8B5CF6' },
@@ -139,7 +140,8 @@ export default function FinanceDebts() {
     remaining_amount: '', interest_rate: '', monthly_payment: '',
     next_payment_date: '', start_date: '', end_date: '', notes: '',
     credit_limit: '', grace_period_days: '', grace_period_end: '',
-    grace_amount: '', min_payment_pct: '', bank_name: ''
+    grace_amount: '', min_payment_pct: '', bank_name: '',
+    show_in_budget: false as boolean
   });
 
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -239,14 +241,15 @@ export default function FinanceDebts() {
           grace_period_end: form.grace_period_end || null,
           grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
           min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
-          bank_name: form.bank_name || null
+          bank_name: form.bank_name || null,
+          show_in_budget: form.show_in_budget
         })
       });
       setSaving(false);
       if (res.ok) {
         toast.success('Долг добавлен');
         setShowAdd(false);
-        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
+        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '', show_in_budget: false });
         loadDebts();
       } else {
         const data = await res.json().catch(() => null);
@@ -309,14 +312,15 @@ export default function FinanceDebts() {
           grace_period_end: form.grace_period_end || null,
           grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
           min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
-          bank_name: form.bank_name || null
+          bank_name: form.bank_name || null,
+          show_in_budget: form.show_in_budget
         })
       });
       setSaving(false);
       if (res.ok) {
         toast.success('Сохранено');
         setEditDebt(null);
-        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '' });
+        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '', show_in_budget: false });
         loadDebts();
         if (selectedDebt && selectedDebt.id === editDebt.id) {
           setSelectedDebt(null);
@@ -349,7 +353,8 @@ export default function FinanceDebts() {
       grace_period_end: debt.grace_period_end || '',
       grace_amount: debt.grace_amount ? String(debt.grace_amount) : '',
       min_payment_pct: debt.min_payment_pct ? String(debt.min_payment_pct) : '',
-      bank_name: debt.bank_name || ''
+      bank_name: debt.bank_name || '',
+      show_in_budget: debt.show_in_budget || false
     });
     setEditDebt(debt);
   };
@@ -871,6 +876,13 @@ export default function FinanceDebts() {
                   </div>
                 </>
               )}
+              <label className="flex items-center gap-2 cursor-pointer py-1">
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${form.show_in_budget ? 'bg-emerald-600 border-emerald-600' : 'border-gray-300'}`}
+                  onClick={() => setForm(f => ({ ...f, show_in_budget: !f.show_in_budget }))}>
+                  {form.show_in_budget && <Icon name="Check" size={14} className="text-white" />}
+                </div>
+                <span className="text-sm" onClick={() => setForm(f => ({ ...f, show_in_budget: !f.show_in_budget }))}>Показывать платёж в бюджете</span>
+              </label>
             </div>
             <DialogFooter>
               <Button onClick={updateDebt} disabled={saving}
@@ -1192,6 +1204,13 @@ export default function FinanceDebts() {
                 </div>
               </>
             )}
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${form.show_in_budget ? 'bg-emerald-600 border-emerald-600' : 'border-gray-300'}`}
+                onClick={() => setForm({...form, show_in_budget: !form.show_in_budget})}>
+                {form.show_in_budget && <Icon name="Check" size={14} className="text-white" />}
+              </div>
+              <span className="text-sm" onClick={() => setForm({...form, show_in_budget: !form.show_in_budget})}>Показывать платёж в бюджете</span>
+            </label>
           </div>
           <DialogFooter>
             <Button onClick={addDebt} disabled={saving} className="bg-rose-600 hover:bg-rose-700 w-full">
