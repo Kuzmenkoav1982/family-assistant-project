@@ -1,0 +1,1 @@
+UPDATE finance_debts SET show_in_budget = true WHERE status = 'active' AND monthly_payment IS NOT NULL AND monthly_payment > 0;
