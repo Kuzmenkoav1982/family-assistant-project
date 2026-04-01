@@ -127,6 +127,7 @@ export default function FinanceBudget() {
   const analyticsRef = useRef<HTMLDivElement>(null);
 
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
+  const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
 
   const loadCategories = useCallback(async () => {
     const res = await fetch(`${API}?section=categories`, { headers: getHeaders() });
@@ -241,6 +242,7 @@ export default function FinanceBudget() {
   }
 
   const confirmPlanned = async (item: PlannedItem) => {
+    setConfirmingIds(prev => new Set(prev).add(item.id));
     const res = await fetch(API, {
       method: 'POST',
       headers: getHeaders(),
@@ -256,11 +258,24 @@ export default function FinanceBudget() {
     });
     if (res.ok) {
       toast.success('Операция подтверждена');
-      loadTransactions();
-      loadBudgets();
-      loadHistory();
+      // Задержка перед обновлением, чтобы пользователь увидел галочку
+      setTimeout(() => {
+        loadTransactions();
+        loadBudgets();
+        loadHistory();
+        setConfirmingIds(prev => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
+      }, 600);
     } else {
       toast.error('Ошибка при подтверждении');
+      setConfirmingIds(prev => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
     }
   };
 
@@ -749,7 +764,7 @@ export default function FinanceBudget() {
                   <Icon name="Clock" size={14} /> Запланированные
                 </p>
                 {plannedItems.filter(p => txFilter === 'all' || p.type === txFilter).map(p => (
-                  <Card key={p.id} className="overflow-hidden border-dashed border-amber-300 bg-amber-50/30">
+                  <Card key={p.id} className={`overflow-hidden transition-all duration-500 ${confirmingIds.has(p.id) ? 'border-solid border-emerald-400 bg-emerald-50/40' : 'border-dashed border-amber-300 bg-amber-50/30'}`}>
                     <CardContent className="p-0">
                       <div className="flex items-center">
                         <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
@@ -772,14 +787,16 @@ export default function FinanceBudget() {
                           </div>
                         </div>
                         <div className="pr-1 text-right flex-shrink-0">
-                          <p className={`font-bold text-sm ${p.type === 'income' ? 'text-green-600' : 'text-red-600'} opacity-60`}>
+                          <p className={`font-bold text-sm transition-opacity duration-300 ${p.type === 'income' ? 'text-green-600' : 'text-red-600'} ${confirmingIds.has(p.id) ? 'opacity-100' : 'opacity-60'}`}>
                             {p.type === 'income' ? '+' : '−'}{formatMoney(p.amount)} ₽
                           </p>
                         </div>
-                        <Button variant="ghost" size="sm" className="mr-1 text-amber-600 hover:text-emerald-600"
+                        <Button variant="ghost" size="sm"
+                          className={`mr-1 p-0 h-8 w-8 transition-all duration-300 ${confirmingIds.has(p.id) ? 'text-emerald-600 scale-110' : 'text-gray-400 hover:text-emerald-600'}`}
                           title="Подтвердить"
+                          disabled={confirmingIds.has(p.id)}
                           onClick={() => confirmPlanned(p)}>
-                          <Icon name="CheckCircle" size={18} />
+                          <Icon name={confirmingIds.has(p.id) ? "CheckSquare" : "Square"} size={20} />
                         </Button>
                       </div>
                     </CardContent>
