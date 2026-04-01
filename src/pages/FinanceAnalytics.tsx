@@ -33,6 +33,15 @@ function fm(n: number): string {
   return formatMoney(n) + ' \u20BD';
 }
 
+function fmCompact(n: number): string {
+  if (n == null || isNaN(n)) return '0 ₽';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 1_000_000) return sign + (abs / 1_000_000).toFixed(1).replace('.0', '') + 'М ₽';
+  if (abs >= 10_000) return sign + Math.round(abs / 1000) + 'К ₽';
+  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+}
+
 // --- Types ---
 
 interface Summary {
@@ -174,14 +183,14 @@ function HealthGauge({ score, label, status }: Health) {
 function MetricCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
   return (
     <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-      <CardContent className="p-4 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: (color || '#6366f1') + '18' }}>
-          <Icon name={icon} size={20} style={{ color: color || '#6366f1' }} />
+      <CardContent className="p-3 flex items-start gap-2.5">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: (color || '#6366f1') + '18' }}>
+          <Icon name={icon} size={18} style={{ color: color || '#6366f1' }} />
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-          <p className="text-lg font-bold truncate" style={{ color }}>{value}</p>
-          {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] leading-tight text-muted-foreground">{label}</p>
+          <p className="text-base font-bold leading-tight mt-0.5" style={{ color }}>{value}</p>
+          {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
         </div>
       </CardContent>
     </Card>
@@ -367,7 +376,7 @@ export default function FinanceAnalytics() {
       <div className="grid grid-cols-2 gap-3">
         <MetricCard
           icon="Wallet" label="Свободные средства"
-          value={fm(s.free_money)}
+          value={fmCompact(s.free_money)}
           color={s.free_money >= 0 ? '#22c55e' : '#ef4444'}
           sub="в месяц"
         />
@@ -385,7 +394,7 @@ export default function FinanceAnalytics() {
         />
         <MetricCard
           icon="TrendingUp" label="Чистая стоимость"
-          value={fm(s.net_worth)}
+          value={fmCompact(s.net_worth)}
           color={s.net_worth >= 0 ? '#3b82f6' : '#ef4444'}
           sub="net worth"
         />
