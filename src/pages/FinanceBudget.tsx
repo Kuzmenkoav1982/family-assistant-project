@@ -224,6 +224,113 @@ export default function FinanceBudget() {
     }));
   }, [budgets]);
 
+  const timeline = useMemo(() => {
+    type TimelineItem = {
+      id: string;
+      date: string;
+      dateStr: string;
+      amount: number;
+      type: string;
+      description: string;
+      isPlanned: boolean;
+      source?: 'recurring' | 'debt';
+      debt_type?: string;
+      bank_name?: string;
+      category_name: string | null;
+      category_icon: string | null;
+      category_color: string | null;
+      account_name: string | null;
+      originalPlanned?: PlannedItem;
+      originalTx?: Transaction;
+    };
+
+    const items: TimelineItem[] = [];
+
+    // Add planned items
+    plannedItems
+      .filter(p => txFilter === 'all' || p.type === txFilter)
+      .forEach(p => items.push({
+        id: 'p_' + p.id,
+        date: p.date,
+        dateStr: new Date(p.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
+        amount: p.amount,
+        type: p.type,
+        description: p.description || 'Платёж',
+        isPlanned: true,
+        source: p.source,
+        debt_type: p.debt_type,
+        bank_name: p.bank_name,
+        category_name: p.category_name,
+        category_icon: p.category_icon,
+        category_color: p.category_color,
+        account_name: p.account_name,
+        originalPlanned: p,
+      }));
+
+    // Add actual transactions
+    transactions
+      .filter(t => txFilter === 'all' || t.type === txFilter)
+      .forEach(tx => items.push({
+        id: 'tx_' + tx.id,
+        date: tx.date,
+        dateStr: new Date(tx.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
+        amount: tx.amount,
+        type: tx.type,
+        description: tx.description || tx.category_name || (tx.type === 'income' ? 'Доход' : 'Расход'),
+        isPlanned: false,
+        category_name: tx.category_name,
+        category_icon: tx.category_icon,
+        category_color: tx.category_color,
+        account_name: tx.account_name,
+        originalTx: tx,
+      }));
+
+    // Sort by date ascending
+    items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Calculate running balance
+    let balance = accountBalance;
+    const today = new Date().toISOString().split('T')[0];
+    let cashGap: { date: string; amount: number } | null = null;
+
+    const withBalance = items.map((item) => {
+      if (item.type === 'income') {
+        balance += item.amount;
+      } else {
+        balance -= item.amount;
+      }
+      const runningBalance = balance;
+      const isGap = runningBalance < 0;
+      if (isGap && !cashGap) {
+        cashGap = { date: item.dateStr, amount: runningBalance };
+      }
+      return { ...item, runningBalance, isGap };
+    });
+
+    // Group by date
+    const todayDate = today;
+    const groups: { dateKey: string; dateLabel: string; isToday: boolean; isPast: boolean; items: typeof withBalance }[] = [];
+    const dateMap = new Map<string, typeof withBalance>();
+
+    withBalance.forEach(item => {
+      const key = item.date.split('T')[0];
+      if (!dateMap.has(key)) dateMap.set(key, []);
+      dateMap.get(key)!.push(item);
+    });
+
+    dateMap.forEach((groupItems, dateKey) => {
+      const d = new Date(dateKey);
+      const isToday = dateKey === todayDate;
+      const isPast = dateKey < todayDate;
+      const dateLabel = isToday
+        ? `Сегодня, ${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`
+        : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+      groups.push({ dateKey, dateLabel, isToday, isPast, items: groupItems });
+    });
+
+    return { groups, cashGap, todayDate };
+  }, [plannedItems, transactions, txFilter, accountBalance]);
+
   const isOwner = useIsFamilyOwner();
 
   if (!isOwner) {
@@ -758,54 +865,26 @@ export default function FinanceBudget() {
               ))}
             </div>
 
-            {plannedItems.filter(p => txFilter === 'all' || p.type === txFilter).length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-amber-600 flex items-center gap-1">
-                  <Icon name="Clock" size={14} /> Запланированные
-                </p>
-                {plannedItems.filter(p => txFilter === 'all' || p.type === txFilter).map(p => (
-                  <Card key={p.id} className={`overflow-hidden transition-all duration-500 ${confirmingIds.has(p.id) ? 'border-solid border-emerald-400 bg-emerald-50/40' : 'border-dashed border-amber-300 bg-amber-50/30'}`}>
-                    <CardContent className="p-0">
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: p.source === 'debt' ? '#EF444420' : (p.category_color || '#F59E0B') + '20' }}>
-                          <Icon name={p.source === 'debt' ? (p.debt_type === 'mortgage' ? 'Home' : p.debt_type === 'car_loan' ? 'Car' : 'Landmark')
-                            : (p.category_icon || (p.type === 'income' ? 'TrendingUp' : 'TrendingDown'))}
-                            size={20} style={{ color: p.source === 'debt' ? '#EF4444' : (p.category_color || '#F59E0B') }} />
-                        </div>
-                        <div className="flex-1 px-3 py-2 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium truncate">{p.description || 'Платёж'}</span>
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 border-amber-400 text-amber-600">
-                              {p.source === 'debt' ? 'долг' : 'регуляр.'}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {p.category_name && <span>{p.category_name}</span>}
-                            {p.bank_name && <span>{p.bank_name}</span>}
-                            <span>{new Date(p.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}</span>
-                          </div>
-                        </div>
-                        <div className="pr-1 text-right flex-shrink-0">
-                          <p className={`font-bold text-sm transition-opacity duration-300 ${p.type === 'income' ? 'text-green-600' : 'text-red-600'} ${confirmingIds.has(p.id) ? 'opacity-100' : 'opacity-60'}`}>
-                            {p.type === 'income' ? '+' : '−'}{formatMoney(p.amount)} ₽
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm"
-                          className={`mr-1 p-0 h-8 w-8 transition-all duration-300 ${confirmingIds.has(p.id) ? 'text-emerald-600 scale-110' : 'text-gray-400 hover:text-emerald-600'}`}
-                          title="Подтвердить"
-                          disabled={confirmingIds.has(p.id)}
-                          onClick={() => confirmPlanned(p)}>
-                          <Icon name={confirmingIds.has(p.id) ? "CheckSquare" : "Square"} size={20} />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+            {/* Cash gap alert */}
+            {timeline.cashGap && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">
+                <Icon name="AlertTriangle" size={18} className="flex-shrink-0" />
+                <div className="text-sm">
+                  <span className="font-semibold">Кассовый разрыв</span>{' '}
+                  <span>{timeline.cashGap.date}</span> — баланс уходит до{' '}
+                  <span className="font-bold">{formatMoney(timeline.cashGap.amount)} ₽</span>
+                </div>
               </div>
             )}
 
-            {transactions.length === 0 && plannedItems.length === 0 ? (
+            {/* Starting balance */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
+              <Icon name="Wallet" size={14} />
+              <span>Начальный баланс на счетах:</span>
+              <span className="font-bold text-foreground">{formatMoney(accountBalance)} ₽</span>
+            </div>
+
+            {timeline.groups.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Icon name="FileText" size={40} className="mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">Нет операций за этот месяц</p>
@@ -814,50 +893,143 @@ export default function FinanceBudget() {
                   <Icon name="Plus" size={14} className="mr-1" /> Добавить первую запись
                 </Button>
               </div>
-            ) : transactions.length > 0 ? (
-              <div className="space-y-2">
-                {plannedItems.length > 0 && transactions.length > 0 && (
-                  <p className="text-xs font-semibold text-muted-foreground pt-1">Фактические</p>
-                )}
-                {transactions.map(tx => (
-                  <Card key={tx.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: (tx.category_color || '#6B7280') + '20' }}>
-                          <Icon name={tx.category_icon || (tx.type === 'income' ? 'TrendingUp' : 'TrendingDown')}
-                            size={20} style={{ color: tx.category_color || '#6B7280' }} />
+            ) : (
+              <div className="space-y-1">
+                {timeline.groups.map((group, gi) => {
+                  const showNowDivider = !group.isPast && !group.isToday &&
+                    (gi === 0 || timeline.groups[gi - 1].isPast || timeline.groups[gi - 1].isToday);
+
+                  return (
+                    <div key={group.dateKey}>
+                      {showNowDivider && (
+                        <div className="flex items-center gap-2 py-3">
+                          <div className="flex-1 h-px bg-blue-400" />
+                          <span className="text-xs font-bold text-blue-600 px-2 py-0.5 bg-blue-50 rounded-full border border-blue-200">
+                            СЕЙЧАС
+                          </span>
+                          <div className="flex-1 h-px bg-blue-400" />
                         </div>
-                        <div className="flex-1 px-3 py-2 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">
-                              {tx.description || tx.category_name || (tx.type === 'income' ? 'Доход' : 'Расход')}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {tx.category_name && <span>{tx.category_name}</span>}
-                            <span>{new Date(tx.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}</span>
-                          </div>
-                        </div>
-                        <div className="pr-2 text-right flex-shrink-0">
-                          <p className={`font-bold text-sm ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                            {tx.type === 'income' ? '+' : '−'}{formatMoney(tx.amount)} ₽
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500"
-                          onClick={(e) => { e.stopPropagation(); openEditTx(tx); }}>
-                          <Icon name="Pencil" size={14} />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="mr-1 text-gray-400 hover:text-red-500"
-                          onClick={(e) => { e.stopPropagation(); deleteTransaction(tx.id); }}>
-                          <Icon name="Trash2" size={14} />
-                        </Button>
+                      )}
+
+                      {/* Date header */}
+                      <div className={`flex items-center gap-2 pt-3 pb-1 px-1 ${group.isToday ? 'text-blue-700' : group.isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        <span className={`text-xs font-semibold ${group.isToday ? 'text-blue-600' : ''}`}>
+                          {group.dateLabel}
+                        </span>
+                        {group.isToday && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+
+                      {/* Items for this date */}
+                      <div className="space-y-1.5">
+                        {group.items.map(item => (
+                          <div key={item.id}>
+                            <Card className={`overflow-hidden transition-all duration-300 ${
+                              item.isPlanned
+                                ? (confirmingIds.has(item.originalPlanned?.id || '')
+                                    ? 'border-solid border-emerald-400 bg-emerald-50/40'
+                                    : 'border-dashed border-amber-300 bg-amber-50/30')
+                                : item.isGap
+                                  ? 'border-red-300 bg-red-50/30'
+                                  : ''
+                            }`}>
+                              <CardContent className="p-0">
+                                <div className="flex items-center">
+                                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 ml-1"
+                                    style={{ backgroundColor: item.isPlanned && item.source === 'debt' ? '#EF444420' : (item.category_color || (item.isPlanned ? '#F59E0B' : '#6B7280')) + '20' }}>
+                                    <Icon name={
+                                      item.isPlanned && item.source === 'debt'
+                                        ? (item.debt_type === 'mortgage' ? 'Home' : item.debt_type === 'car_loan' ? 'Car' : 'Landmark')
+                                        : (item.category_icon || (item.type === 'income' ? 'TrendingUp' : 'TrendingDown'))
+                                    } size={18} style={{ color: item.isPlanned && item.source === 'debt' ? '#EF4444' : (item.category_color || (item.isPlanned ? '#F59E0B' : '#6B7280')) }} />
+                                  </div>
+                                  <div className="flex-1 px-2 py-1.5 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-sm font-medium truncate">{item.description}</span>
+                                      {item.isPlanned && (
+                                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-amber-400 text-amber-600">
+                                          {item.source === 'debt' ? 'долг' : 'регуляр.'}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                                      {item.category_name && <span>{item.category_name}</span>}
+                                      {item.bank_name && <span>{item.bank_name}</span>}
+                                    </div>
+                                  </div>
+                                  <div className="text-right flex-shrink-0 pr-1">
+                                    <p className={`font-bold text-sm ${item.type === 'income' ? 'text-green-600' : 'text-red-600'} ${item.isPlanned && !confirmingIds.has(item.originalPlanned?.id || '') ? 'opacity-60' : ''}`}>
+                                      {item.type === 'income' ? '+' : '−'}{formatMoney(item.amount)} ₽
+                                    </p>
+                                    <p className={`text-[10px] font-medium ${item.isGap ? 'text-red-600 font-bold' : 'text-muted-foreground'}`}>
+                                      → {formatMoney(item.runningBalance)} ₽
+                                    </p>
+                                  </div>
+                                  {/* Action buttons */}
+                                  {item.isPlanned && item.originalPlanned ? (
+                                    <Button variant="ghost" size="sm"
+                                      className={`mr-1 p-0 h-8 w-8 transition-all duration-300 ${confirmingIds.has(item.originalPlanned.id) ? 'text-emerald-600 scale-110' : 'text-gray-400 hover:text-emerald-600'}`}
+                                      title="Подтвердить"
+                                      disabled={confirmingIds.has(item.originalPlanned.id)}
+                                      onClick={() => confirmPlanned(item.originalPlanned!)}>
+                                      <Icon name={confirmingIds.has(item.originalPlanned.id) ? "CheckSquare" : "Square"} size={18} />
+                                    </Button>
+                                  ) : item.originalTx ? (
+                                    <div className="flex flex-shrink-0">
+                                      <Button variant="ghost" size="sm" className="p-0 h-7 w-7 text-gray-400 hover:text-blue-500"
+                                        onClick={(e) => { e.stopPropagation(); openEditTx(item.originalTx!); }}>
+                                        <Icon name="Pencil" size={13} />
+                                      </Button>
+                                      <Button variant="ghost" size="sm" className="mr-1 p-0 h-7 w-7 text-gray-400 hover:text-red-500"
+                                        onClick={(e) => { e.stopPropagation(); deleteTransaction(item.originalTx!.id); }}>
+                                        <Icon name="Trash2" size={13} />
+                                      </Button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </CardContent>
+                            </Card>
+                            {/* Cash gap warning inline */}
+                            {item.isGap && item.runningBalance < 0 && (
+                              <div className="flex items-center gap-1.5 px-2 py-1 text-[11px] text-red-600 font-medium">
+                                <Icon name="AlertTriangle" size={12} />
+                                <span>Кассовый разрыв! Недостаточно средств</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* End of month forecast */}
+                <div className="flex items-center gap-2 pt-4 pb-2">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-[11px] text-muted-foreground px-2">конец месяца</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                <Card className={`border-2 ${
+                  timeline.groups.length > 0 && timeline.groups[timeline.groups.length - 1].items[timeline.groups[timeline.groups.length - 1].items.length - 1]?.runningBalance >= 0
+                    ? 'border-emerald-200 bg-emerald-50/50'
+                    : 'border-red-200 bg-red-50/50'
+                }`}>
+                  <CardContent className="p-3 text-center">
+                    <p className="text-xs text-muted-foreground">Прогноз баланса на конец месяца</p>
+                    <p className={`text-xl font-bold ${
+                      (timeline.groups.length > 0 && timeline.groups[timeline.groups.length - 1].items[timeline.groups[timeline.groups.length - 1].items.length - 1]?.runningBalance >= 0)
+                        ? 'text-emerald-700'
+                        : 'text-red-700'
+                    }`}>
+                      {formatMoney(
+                        timeline.groups.length > 0
+                          ? timeline.groups[timeline.groups.length - 1].items[timeline.groups[timeline.groups.length - 1].items.length - 1]?.runningBalance || 0
+                          : accountBalance
+                      )} ₽
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-            ) : null}
+            )}
           </TabsContent>
 
           <TabsContent value="budgets" className="space-y-3 mt-3">
