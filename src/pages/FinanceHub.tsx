@@ -24,6 +24,39 @@ interface SubSection {
 
 const subSections: SubSection[] = [
   {
+    id: 'analytics',
+    title: 'Финансовый пульс',
+    description: 'Полный анализ: здоровье финансов, ИИ-рекомендации, прогнозы и стратегии',
+    icon: 'Activity',
+    path: '/finance/analytics',
+    gradient: 'from-violet-500 to-purple-600',
+    badge: 'NEW',
+    badgeColor: 'bg-amber-100 text-amber-700 border-amber-300',
+    ready: true,
+  },
+  {
+    id: 'strategy',
+    title: 'Стратегия погашения',
+    description: 'Лавина, снежный ком — сравни стратегии, симулятор "Что если?"',
+    icon: 'Swords',
+    path: '/finance/strategy',
+    gradient: 'from-orange-500 to-red-600',
+    badge: 'NEW',
+    badgeColor: 'bg-amber-100 text-amber-700 border-amber-300',
+    ready: true,
+  },
+  {
+    id: 'cashflow',
+    title: 'Кэш-флоу прогноз',
+    description: 'Прогноз движения денег на 24 месяца, предупреждения о кассовых разрывах',
+    icon: 'TrendingUp',
+    path: '/finance/cashflow',
+    gradient: 'from-teal-500 to-emerald-600',
+    badge: 'NEW',
+    badgeColor: 'bg-amber-100 text-amber-700 border-amber-300',
+    ready: true,
+  },
+  {
     id: 'budget',
     title: 'Бюджет',
     description: 'Доходы, расходы, аналитика по категориям и лимиты на месяц',
@@ -106,7 +139,7 @@ const subSections: SubSection[] = [
   },
 ];
 
-const OWNER_ONLY_SECTIONS = ['budget', 'debts', 'accounts', 'recurring', 'assets'];
+const OWNER_ONLY_SECTIONS = ['budget', 'debts', 'accounts', 'recurring', 'assets', 'analytics', 'strategy', 'cashflow'];
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 

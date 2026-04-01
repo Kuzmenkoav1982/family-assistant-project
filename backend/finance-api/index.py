@@ -27,7 +27,7 @@ def get_db():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
 
-OWNER_ONLY_SECTIONS = {'budgets', 'debts', 'debt_payments', 'accounts', 'recurring', 'assets', 'dashboard', 'transactions', 'categories'}
+OWNER_ONLY_SECTIONS = {'budgets', 'debts', 'debt_payments', 'accounts', 'recurring', 'assets', 'dashboard', 'transactions', 'categories', 'financial_analysis'}
 OWNER_ONLY_ACTIONS = {
     'add_transaction', 'delete_transaction', 'update_transaction', 'confirm_planned',
     'add_category', 'delete_category',
@@ -36,7 +36,7 @@ OWNER_ONLY_ACTIONS = {
     'add_account', 'update_account', 'delete_account',
     'add_recurring', 'update_recurring', 'delete_recurring',
     'add_asset', 'update_asset', 'delete_asset',
-    'ai_advice',
+    'ai_advice', 'ai_smart_advice',
 }
 
 
@@ -124,6 +124,8 @@ def handler(event, context):
             return get_edu_assignments(family_id, user_id)
         elif section == 'assets':
             return get_assets(family_id)
+        elif section == 'financial_analysis':
+            return get_financial_analysis(family_id, params)
         elif section == 'loyalty_cards':
             return get_loyalty_cards(family_id)
 
@@ -189,6 +191,8 @@ def handler(event, context):
             return update_assignment(family_id, body)
         elif action == 'ai_advice':
             return ai_advice(family_id, body)
+        elif action == 'ai_smart_advice':
+            return ai_smart_advice(family_id, body)
         elif action == 'add_asset':
             return add_asset(family_id, body)
         elif action == 'update_asset':
@@ -1795,6 +1799,533 @@ def update_assignment(family_id, body):
         conn.close()
 
 
+# === FINANCIAL ANALYSIS ENGINE ===
+
+def calc_payoff_schedule(remaining, rate, monthly, extra=0):
+    """Calculate month-by-month payoff schedule"""
+    if monthly + extra <= 0 or remaining <= 0:
+        return []
+    monthly_rate = rate / 100 / 12
+    balance = remaining
+    schedule = []
+    total_interest = 0
+    month = 0
+    while balance > 0.01 and month < 600:
+        interest = balance * monthly_rate
+        payment = min(monthly + extra, balance + interest)
+        principal = payment - interest
+        if principal <= 0:
+            break
+        balance -= principal
+        if balance < 0:
+            balance = 0
+        total_interest += interest
+        month += 1
+        schedule.append({
+            'month': month,
+            'payment': round(payment, 2),
+            'principal': round(principal, 2),
+            'interest': round(interest, 2),
+            'balance': round(max(balance, 0), 2),
+            'total_interest': round(total_interest, 2)
+        })
+    return schedule
+
+
+def calc_strategy_avalanche(debts_data, free_money):
+    """Avalanche: pay highest rate first"""
+    if not debts_data or free_money <= 0:
+        return None
+    debts = sorted(debts_data, key=lambda d: -d['rate'])
+    return _simulate_strategy(debts, free_money, 'avalanche')
+
+
+def calc_strategy_snowball(debts_data, free_money):
+    """Snowball: pay smallest balance first"""
+    if not debts_data or free_money <= 0:
+        return None
+    debts = sorted(debts_data, key=lambda d: d['remaining'])
+    return _simulate_strategy(debts, free_money, 'snowball')
+
+
+def _simulate_strategy(sorted_debts, free_money, name):
+    """Simulate debt payoff with strategy"""
+    debts = []
+    for d in sorted_debts:
+        debts.append({
+            'id': d['id'],
+            'name': d['name'],
+            'remaining': d['remaining'],
+            'rate': d['rate'],
+            'payment': d['payment'],
+            'original_remaining': d['remaining']
+        })
+
+    total_min_payments = sum(d['payment'] for d in debts)
+    extra_available = free_money
+    
+    timeline = []
+    total_paid = 0
+    total_interest = 0
+    month = 0
+    closed_debts = []
+    
+    while any(d['remaining'] > 0.01 for d in debts) and month < 600:
+        month += 1
+        month_extra = extra_available
+        freed_payments = 0
+        
+        for d in debts:
+            if d['remaining'] <= 0.01:
+                continue
+            monthly_rate = d['rate'] / 100 / 12
+            interest = d['remaining'] * monthly_rate
+            payment = d['payment']
+            
+            # First debt in priority gets extra
+            if d == next((x for x in debts if x['remaining'] > 0.01), None):
+                payment += month_extra + freed_payments
+            
+            payment = min(payment, d['remaining'] + interest)
+            principal = payment - interest
+            if principal <= 0:
+                principal = 0
+                payment = interest
+            
+            d['remaining'] -= principal
+            if d['remaining'] < 0.01:
+                d['remaining'] = 0
+                closed_debts.append({'name': d['name'], 'month': month, 'id': d['id']})
+                freed_payments += d['payment']
+            
+            total_paid += payment
+            total_interest += interest
+        
+        active = [d for d in debts if d['remaining'] > 0.01]
+        total_remaining = sum(d['remaining'] for d in active)
+        
+        if month <= 36 or month % 3 == 0 or not active:
+            timeline.append({
+                'month': month,
+                'total_remaining': round(total_remaining, 0),
+                'active_debts': len(active),
+                'closed_total': len(closed_debts)
+            })
+    
+    # Calculate baseline (no extra payments)
+    baseline_interest = 0
+    baseline_months = 0
+    for d in sorted_debts:
+        if d['payment'] <= 0 or d['remaining'] <= 0:
+            continue
+        mr = d['rate'] / 100 / 12
+        bal = d['remaining']
+        m = 0
+        while bal > 0.01 and m < 600:
+            interest = bal * mr
+            princ = d['payment'] - interest
+            if princ <= 0:
+                m = 600
+                break
+            bal -= princ
+            baseline_interest += interest
+            m += 1
+        baseline_months = max(baseline_months, m)
+    
+    return {
+        'strategy': name,
+        'total_months': month,
+        'total_paid': round(total_paid, 0),
+        'total_interest': round(total_interest, 0),
+        'interest_saved': round(baseline_interest - total_interest, 0),
+        'months_saved': baseline_months - month,
+        'closed_order': closed_debts,
+        'timeline': timeline
+    }
+
+
+def get_financial_analysis(family_id, params):
+    """Comprehensive financial analysis: strategies, cashflow, health score"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        
+        # 1. Get income & expenses for current month
+        cur.execute("""
+            SELECT
+                COALESCE(SUM(CASE WHEN transaction_type='income' THEN amount ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN transaction_type='expense' THEN amount ELSE 0 END), 0)
+            FROM finance_transactions
+            WHERE family_id = '%s'
+              AND date_trunc('month', transaction_date) = date_trunc('month', CURRENT_DATE)
+        """ % fid)
+        r = cur.fetchone()
+        month_income = float(r[0])
+        month_expense = float(r[1])
+        
+        # 2. Get all active debts with full info
+        cur.execute("""
+            SELECT id, name, debt_type, creditor, original_amount, remaining_amount,
+                   interest_rate, monthly_payment, next_payment_date, start_date, end_date,
+                   credit_limit, min_payment_pct, bank_name, show_in_budget
+            FROM finance_debts
+            WHERE family_id = '%s' AND status = 'active'
+            ORDER BY interest_rate DESC NULLS LAST
+        """ % fid)
+        debts = []
+        total_debt_payments = 0
+        total_remaining = 0
+        for r in cur.fetchall():
+            mp = float(r[7]) if r[7] else 0
+            rem = float(r[5]) if r[5] else 0
+            rate = float(r[6]) if r[6] else 0
+            debts.append({
+                'id': str(r[0]), 'name': r[1], 'debt_type': r[2], 'creditor': r[3],
+                'original_amount': float(r[4]) if r[4] else 0,
+                'remaining': rem, 'rate': rate, 'payment': mp,
+                'next_payment_date': str(r[8]) if r[8] else None,
+                'start_date': str(r[9]) if r[9] else None,
+                'end_date': str(r[10]) if r[10] else None,
+                'credit_limit': float(r[11]) if r[11] else None,
+                'min_payment_pct': float(r[12]) if r[12] else None,
+                'bank_name': r[13]
+            })
+            total_debt_payments += mp
+            total_remaining += rem
+        
+        # 3. Get recurring income & expenses
+        cur.execute("""
+            SELECT amount, transaction_type, description, frequency
+            FROM finance_recurring
+            WHERE family_id = '%s' AND is_active = true
+        """ % fid)
+        recurring_income = 0
+        recurring_expense = 0
+        recurring_items = []
+        for r in cur.fetchall():
+            amt = float(r[0])
+            freq = r[3] or 'monthly'
+            monthly_amt = amt
+            if freq == 'weekly':
+                monthly_amt = amt * 4.33
+            elif freq == 'quarterly':
+                monthly_amt = amt / 3
+            elif freq == 'yearly':
+                monthly_amt = amt / 12
+            
+            if r[1] == 'income':
+                recurring_income += monthly_amt
+            else:
+                recurring_expense += monthly_amt
+            recurring_items.append({
+                'amount': monthly_amt,
+                'type': r[1],
+                'description': r[2],
+                'frequency': freq
+            })
+        
+        # 4. Accounts balance
+        cur.execute(
+            "SELECT COALESCE(SUM(balance), 0) FROM finance_accounts WHERE family_id = '%s' AND is_active = true" % fid
+        )
+        total_balance = float(cur.fetchone()[0])
+        
+        # 5. Goals
+        cur.execute("""
+            SELECT name, target_amount, current_amount
+            FROM finance_goals WHERE family_id = '%s' AND status = 'active'
+        """ % fid)
+        goals = [{'name': r[0], 'target': float(r[1]), 'current': float(r[2])} for r in cur.fetchall()]
+        
+        # 6. Assets
+        cur.execute(
+            "SELECT COALESCE(SUM(current_value), 0) FROM finance_assets WHERE family_id = '%s' AND status = 'active'" % fid
+        )
+        total_assets = float(cur.fetchone()[0])
+        
+        # 7. Budget data
+        cur.execute("""
+            SELECT fb.planned_amount, fc.name,
+                   COALESCE((SELECT SUM(ft.amount) FROM finance_transactions ft
+                    WHERE ft.family_id = '%s' AND ft.category_id = fb.category_id
+                      AND ft.transaction_type = 'expense'
+                      AND date_trunc('month', ft.transaction_date) = date_trunc('month', CURRENT_DATE)), 0)
+            FROM finance_budgets fb
+            LEFT JOIN finance_categories fc ON fb.category_id = fc.id
+            WHERE fb.family_id = '%s'
+              AND date_trunc('month', fb.budget_month) = date_trunc('month', CURRENT_DATE)
+        """ % (fid, fid))
+        budgets = [{'category': r[1] or 'Без категории', 'planned': float(r[0]), 'spent': float(r[2])} for r in cur.fetchall()]
+        
+        # 8. Last 6 months income/expense history
+        cur.execute("""
+            SELECT to_char(transaction_date, 'YYYY-MM') as m,
+                   COALESCE(SUM(CASE WHEN transaction_type='income' THEN amount ELSE 0 END), 0),
+                   COALESCE(SUM(CASE WHEN transaction_type='expense' THEN amount ELSE 0 END), 0)
+            FROM finance_transactions
+            WHERE family_id = '%s'
+              AND transaction_date >= (CURRENT_DATE - INTERVAL '6 months')
+            GROUP BY m ORDER BY m
+        """ % fid)
+        history = [{'month': r[0], 'income': float(r[1]), 'expense': float(r[2])} for r in cur.fetchall()]
+        
+    finally:
+        conn.close()
+    
+    # === CALCULATIONS ===
+    
+    # Use max of actual vs recurring for more accurate picture
+    effective_income = max(month_income, recurring_income)
+    effective_expenses = max(month_expense - total_debt_payments, recurring_expense - total_debt_payments)
+    if effective_expenses < 0:
+        effective_expenses = 0
+    
+    # Free money = income - living expenses - debt payments
+    free_money = effective_income - effective_expenses - total_debt_payments
+    if free_money < 0:
+        free_money = 0
+    
+    # DTI (Debt-to-Income ratio)
+    dti = (total_debt_payments / effective_income * 100) if effective_income > 0 else 0
+    
+    # Net Worth
+    net_worth = total_assets + total_balance - total_remaining
+    
+    # Financial Health Score (0-100)
+    health_score = 70  # Base
+    if dti > 50:
+        health_score -= 30
+    elif dti > 40:
+        health_score -= 20
+    elif dti > 30:
+        health_score -= 10
+    elif dti < 15:
+        health_score += 10
+    
+    if free_money > effective_income * 0.2:
+        health_score += 10
+    elif free_money < 0:
+        health_score -= 20
+    
+    emergency_months = total_balance / (effective_expenses + total_debt_payments) if (effective_expenses + total_debt_payments) > 0 else 0
+    if emergency_months >= 6:
+        health_score += 10
+    elif emergency_months < 1:
+        health_score -= 10
+    
+    if total_remaining > effective_income * 60:
+        health_score -= 10
+    
+    any_high_rate = any(d['rate'] > 25 for d in debts)
+    if any_high_rate:
+        health_score -= 5
+    
+    health_score = max(5, min(100, health_score))
+    
+    if health_score >= 75:
+        health_status = 'good'
+        health_label = 'Хорошее'
+    elif health_score >= 50:
+        health_status = 'warning'
+        health_label = 'Требует внимания'
+    else:
+        health_status = 'critical'
+        health_label = 'Критическое'
+    
+    # === DEBT STRATEGIES ===
+    debts_for_strategy = [d for d in debts if d['payment'] > 0 and d['remaining'] > 0]
+    
+    avalanche = calc_strategy_avalanche(debts_for_strategy, free_money)
+    snowball = calc_strategy_snowball(debts_for_strategy, free_money)
+    
+    # Determine which is better
+    best_strategy = None
+    if avalanche and snowball:
+        if avalanche['interest_saved'] >= snowball['interest_saved']:
+            best_strategy = 'avalanche'
+        else:
+            best_strategy = 'snowball'
+    
+    # === CASHFLOW PROJECTION (24 months) ===
+    cashflow = []
+    projected_debts = []
+    for d in debts:
+        projected_debts.append({
+            'name': d['name'],
+            'remaining': d['remaining'],
+            'rate': d['rate'],
+            'payment': d['payment']
+        })
+    
+    for m in range(1, 25):
+        month_debt_payment = 0
+        active_debts = 0
+        for pd in projected_debts:
+            if pd['remaining'] <= 0.01:
+                continue
+            active_debts += 1
+            mr = pd['rate'] / 100 / 12
+            interest = pd['remaining'] * mr
+            payment = min(pd['payment'], pd['remaining'] + interest)
+            principal = payment - interest
+            if principal > 0:
+                pd['remaining'] -= principal
+            month_debt_payment += payment
+        
+        cf_income = effective_income
+        cf_expense = effective_expenses + month_debt_payment
+        cf_free = cf_income - cf_expense
+        
+        cashflow.append({
+            'month': m,
+            'income': round(cf_income, 0),
+            'expenses': round(effective_expenses, 0),
+            'debt_payments': round(month_debt_payment, 0),
+            'free_money': round(cf_free, 0),
+            'active_debts': active_debts,
+            'total_remaining': round(sum(max(pd['remaining'], 0) for pd in projected_debts), 0)
+        })
+    
+    # === WHAT'S MISSING (proactive suggestions) ===
+    missing = []
+    if not budgets:
+        missing.append({'type': 'budgets', 'icon': 'PieChart', 'text': 'Установите лимиты бюджета по категориям для контроля расходов'})
+    if recurring_income == 0 and month_income > 0:
+        missing.append({'type': 'recurring_income', 'icon': 'RefreshCw', 'text': 'Добавьте регулярные доходы (зарплата) для точного прогноза кэш-флоу'})
+    if recurring_expense == 0 and month_expense > 0:
+        missing.append({'type': 'recurring_expense', 'icon': 'Calendar', 'text': 'Добавьте обязательные расходы (ЖКХ, продукты, транспорт) для точного расчёта свободных средств'})
+    if not goals:
+        missing.append({'type': 'goals', 'icon': 'Target', 'text': 'Создайте финансовые цели — система рассчитает сколько откладывать в месяц'})
+    if total_balance == 0:
+        missing.append({'type': 'accounts', 'icon': 'CreditCard', 'text': 'Добавьте счета с балансами для расчёта подушки безопасности'})
+    
+    # Survival budget check
+    essential_categories = ['ЖКХ', 'Продукты', 'Транспорт', 'Здоровье', 'Жильё', 'Коммунальные']
+    has_essentials = any(b['category'] in essential_categories for b in budgets)
+    if not has_essentials and budgets:
+        missing.append({'type': 'essential_expenses', 'icon': 'AlertTriangle', 'text': 'Добавьте категории обязательных расходов: ЖКХ, продукты, транспорт — для расчёта минимального бюджета'})
+    
+    # === TOP RECOMMENDATIONS ===
+    recommendations = []
+    
+    # High-rate debt alert
+    high_rate_debts = [d for d in debts if d['rate'] > 25]
+    if high_rate_debts:
+        d = high_rate_debts[0]
+        monthly_interest = d['remaining'] * d['rate'] / 100 / 12
+        recommendations.append({
+            'priority': 'critical',
+            'icon': 'AlertTriangle',
+            'title': 'Критическая ставка: %s (%.1f%%)' % (d['name'], d['rate']),
+            'text': 'Ежемесячно %s руб. уходит только на проценты. Направьте максимум свободных средств на досрочное погашение.' % int(monthly_interest),
+            'action': 'pay_debt',
+            'debt_id': d['id'],
+            'potential_savings': int(monthly_interest * 12)
+        })
+    
+    # Free money recommendation
+    if free_money > 0 and debts:
+        best_debt = max(debts, key=lambda d: d['rate']) if debts else None
+        if best_debt:
+            extra_monthly = min(free_money * 0.5, best_debt['remaining'])
+            schedule_without = calc_payoff_schedule(best_debt['remaining'], best_debt['rate'], best_debt['payment'])
+            schedule_with = calc_payoff_schedule(best_debt['remaining'], best_debt['rate'], best_debt['payment'], extra_monthly)
+            
+            months_saved = len(schedule_without) - len(schedule_with)
+            interest_saved = 0
+            if schedule_without and schedule_with:
+                interest_saved = schedule_without[-1]['total_interest'] - schedule_with[-1]['total_interest']
+            
+            if months_saved > 0 and interest_saved > 0:
+                recommendations.append({
+                    'priority': 'high',
+                    'icon': 'TrendingDown',
+                    'title': 'Досрочное погашение %s' % best_debt['name'],
+                    'text': 'Направляя %s руб./мес дополнительно, закроете на %d мес. раньше. Экономия на процентах: %s руб.' % (
+                        int(extra_monthly), months_saved, int(interest_saved)
+                    ),
+                    'action': 'extra_payment',
+                    'debt_id': best_debt['id'],
+                    'extra_amount': int(extra_monthly),
+                    'months_saved': months_saved,
+                    'interest_saved': int(interest_saved)
+                })
+    
+    # Emergency fund check
+    if emergency_months < 3:
+        target_emergency = (effective_expenses + total_debt_payments) * 3
+        need = target_emergency - total_balance
+        if need > 0:
+            recommendations.append({
+                'priority': 'high',
+                'icon': 'Shield',
+                'title': 'Подушка безопасности: %.1f мес.' % emergency_months,
+                'text': 'Рекомендуется иметь запас на 3-6 месяцев. Нужно накопить ещё %s руб.' % int(need),
+                'action': 'save',
+                'target_amount': int(need)
+            })
+    
+    # DTI warning
+    if dti > 40:
+        recommendations.append({
+            'priority': 'critical',
+            'icon': 'AlertOctagon',
+            'title': 'Высокая долговая нагрузка: %.1f%%' % dti,
+            'text': 'Более 40%% дохода уходит на кредиты. Критический уровень — риск дефолта при потере дохода.',
+            'action': 'reduce_debt'
+        })
+    elif dti > 30:
+        recommendations.append({
+            'priority': 'medium',
+            'icon': 'AlertTriangle',
+            'title': 'Долговая нагрузка: %.1f%%' % dti,
+            'text': 'Более 30%% дохода на кредиты — повышенный уровень. Рекомендуется снизить до 25%%.',
+            'action': 'reduce_debt'
+        })
+    
+    # Freedom date
+    freedom_date = None
+    if avalanche and avalanche['total_months'] < 600:
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        free_date = now + timedelta(days=avalanche['total_months'] * 30.44)
+        freedom_date = free_date.strftime('%Y-%m')
+    
+    return respond(200, {
+        'summary': {
+            'month_income': round(effective_income, 0),
+            'month_expenses': round(effective_expenses, 0),
+            'debt_payments': round(total_debt_payments, 0),
+            'free_money': round(free_money, 0),
+            'total_balance': round(total_balance, 0),
+            'total_debt': round(total_remaining, 0),
+            'total_assets': round(total_assets, 0),
+            'net_worth': round(net_worth, 0),
+            'dti': round(dti, 1),
+            'emergency_months': round(emergency_months, 1),
+            'freedom_date': freedom_date
+        },
+        'health': {
+            'score': health_score,
+            'status': health_status,
+            'label': health_label
+        },
+        'strategies': {
+            'avalanche': avalanche,
+            'snowball': snowball,
+            'recommended': best_strategy
+        },
+        'cashflow': cashflow,
+        'recommendations': sorted(recommendations, key=lambda r: {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}.get(r['priority'], 4)),
+        'missing_data': missing,
+        'debts_detail': debts,
+        'history': history,
+        'budgets': budgets,
+        'goals': goals
+    })
+
+
 # === AI FINANCIAL ADVISOR ===
 
 def ai_advice(family_id, body):
@@ -1838,12 +2369,12 @@ def ai_advice(family_id, body):
         total_balance = float(cur.fetchone()[0])
 
         cur.execute("""
-            SELECT name, remaining_amount, interest_rate, monthly_payment
+            SELECT name, remaining_amount, interest_rate, monthly_payment, debt_type
             FROM finance_debts WHERE family_id = '%s' AND status = 'active'
             ORDER BY interest_rate DESC
         """ % fid)
         debts = [
-            {'name': r[0], 'remaining': float(r[1]), 'rate': float(r[2]) if r[2] else 0, 'payment': float(r[3]) if r[3] else 0}
+            {'name': r[0], 'remaining': float(r[1]), 'rate': float(r[2]) if r[2] else 0, 'payment': float(r[3]) if r[3] else 0, 'type': r[4]}
             for r in cur.fetchall()
         ]
 
@@ -1872,57 +2403,125 @@ def ai_advice(family_id, body):
             for r in cur.fetchall()
         ]
 
+        # Get recurring for more accurate picture
+        cur.execute("""
+            SELECT amount, transaction_type, description, frequency
+            FROM finance_recurring WHERE family_id = '%s' AND is_active = true
+        """ % fid)
+        recurring_income = 0
+        recurring_expense = 0
+        recurring_items = []
+        for r in cur.fetchall():
+            amt = float(r[0])
+            freq = r[3] or 'monthly'
+            monthly_amt = amt
+            if freq == 'weekly': monthly_amt = amt * 4.33
+            elif freq == 'quarterly': monthly_amt = amt / 3
+            elif freq == 'yearly': monthly_amt = amt / 12
+            if r[1] == 'income':
+                recurring_income += monthly_amt
+            else:
+                recurring_expense += monthly_amt
+            recurring_items.append({'amount': round(monthly_amt), 'type': r[1], 'desc': r[2]})
+
+        # Assets
+        cur.execute(
+            "SELECT COALESCE(SUM(current_value), 0) FROM finance_assets WHERE family_id = '%s' AND status = 'active'" % fid
+        )
+        total_assets = float(cur.fetchone()[0])
+
     finally:
         conn.close()
 
+    total_debt_payments = sum(d['payment'] for d in debts)
+    total_remaining = sum(d['remaining'] for d in debts)
+    effective_income = max(month_income, recurring_income)
+    free_money = effective_income - (month_expense if month_expense > recurring_expense else recurring_expense)
+    dti = (total_debt_payments / effective_income * 100) if effective_income > 0 else 0
+    net_worth = total_assets + total_balance - total_remaining
+    emergency_months = total_balance / (month_expense if month_expense > 0 else 1)
+
     context_parts = []
+    context_parts.append("=== ПОЛНАЯ ФИНАНСОВАЯ КАРТИНА СЕМЬИ ===")
     context_parts.append("Доходы за текущий месяц: %s руб." % int(month_income))
-    context_parts.append("Расходы за текущий месяц: %s руб." % int(month_expense))
-    context_parts.append("Баланс: %s руб." % int(month_income - month_expense))
-    context_parts.append("Общий баланс на счетах: %s руб." % int(total_balance))
+    context_parts.append("Регулярный доход (в месяц): %s руб." % int(recurring_income))
+    context_parts.append("Расходы за текущий месяц (без кредитов): %s руб." % int(month_expense - total_debt_payments))
+    context_parts.append("Регулярные расходы (в месяц): %s руб." % int(recurring_expense))
+    context_parts.append("Платежи по кредитам: %s руб./мес" % int(total_debt_payments))
+    context_parts.append("Свободные средства: %s руб./мес" % int(free_money))
+    context_parts.append("Баланс на счетах: %s руб." % int(total_balance))
+    context_parts.append("Общий долг: %s руб." % int(total_remaining))
+    context_parts.append("Стоимость имущества: %s руб." % int(total_assets))
+    context_parts.append("Чистая стоимость (net worth): %s руб." % int(net_worth))
+    context_parts.append("Долговая нагрузка (DTI): %.1f%%" % dti)
+    context_parts.append("Подушка безопасности: %.1f мес." % emergency_months)
 
     if top_expenses:
         lines = ["%s: %s руб." % (e['category'], int(e['amount'])) for e in top_expenses]
-        context_parts.append("Топ расходов: " + "; ".join(lines))
+        context_parts.append("\nТоп расходов: " + "; ".join(lines))
 
     if debts:
-        lines = ["%s: остаток %s руб., ставка %s%%, платёж %s руб./мес" % (d['name'], int(d['remaining']), d['rate'], int(d['payment'])) for d in debts]
-        context_parts.append("Кредиты и долги: " + "; ".join(lines))
+        context_parts.append("\n=== КРЕДИТЫ И ДОЛГИ ===")
+        for i, d in enumerate(debts, 1):
+            interest_per_month = d['remaining'] * d['rate'] / 100 / 12
+            context_parts.append("%d. %s (%s): остаток %s руб., ставка %.1f%%, платёж %s руб./мес, проценты %s руб./мес" % (
+                i, d['name'], d['type'], int(d['remaining']), d['rate'], int(d['payment']), int(interest_per_month)
+            ))
+
+    if recurring_items:
+        context_parts.append("\n=== РЕГУЛЯРНЫЕ ПЛАТЕЖИ ===")
+        for r in recurring_items:
+            context_parts.append("%s: %s руб./мес (%s)" % (r['desc'], int(r['amount']), 'доход' if r['type'] == 'income' else 'расход'))
 
     if goals:
         lines = ["%s: %s из %s руб." % (g['name'], int(g['current']), int(g['target'])) for g in goals]
-        context_parts.append("Финансовые цели: " + "; ".join(lines))
+        context_parts.append("\nФинансовые цели: " + "; ".join(lines))
 
     if budget_limits:
         over = [bl for bl in budget_limits if bl['spent'] > bl['limit']]
         if over:
             lines = ["%s: потрачено %s из %s руб." % (bl['category'], int(bl['spent']), int(bl['limit'])) for bl in over]
-            context_parts.append("Превышены лимиты: " + "; ".join(lines))
+            context_parts.append("\nПревышены лимиты: " + "; ".join(lines))
+
+    # Note missing data
+    missing = []
+    if recurring_income == 0 and month_income > 0:
+        missing.append("регулярные доходы не указаны")
+    if recurring_expense == 0:
+        missing.append("обязательные расходы (ЖКХ, продукты, транспорт) не указаны")
+    if not budget_limits:
+        missing.append("лимиты бюджета не установлены")
+    if total_balance == 0:
+        missing.append("балансы счетов не указаны")
+    if missing:
+        context_parts.append("\n⚠ НЕДОСТАЮЩИЕ ДАННЫЕ для более точного анализа: " + "; ".join(missing))
 
     financial_context = "\n".join(context_parts)
 
-    system_prompt = """Ты — профессиональный семейный финансовый консультант. Твоя задача — анализировать финансовую ситуацию семьи и давать конкретные, практичные рекомендации.
+    system_prompt = """Ты — эксперт-финансовый аналитик для семьи. Ты ПРОАКТИВЕН: не ждёшь вопросов, а сам анализируешь и предлагаешь действия.
 
-Правила:
-- Отвечай на русском языке, кратко и по делу (до 500 слов)
-- Давай конкретные цифры и расчёты
-- Если есть кредиты — советуй порядок погашения (сначала самые дорогие по ставке)
-- Если расходы превышают доходы — предлагай где сократить
-- Если есть свободные деньги — советуй куда направить (подушка безопасности → погашение долгов → накопления)
-- Не рекомендуй конкретные банки или инвестиционные инструменты
-- Будь доброжелательным и поддерживающим
+ВАЖНЫЕ ПРАВИЛА:
+- Отвечай на русском, структурированно, с заголовками и списками
+- Давай КОНКРЕТНЫЕ цифры: суммы, сроки, экономию в рублях
+- Для кредитов рассчитывай: 1) порядок досрочного погашения (сначала самые дорогие по ставке), 2) конкретную сумму досрочного платежа, 3) экономию от досрочного погашения
+- Если данных не хватает — СКАЖИ какие именно данные нужны и ЗАЧЕМ
+- Если свободные средства > 0 — предложи ТОЧНЫЙ план распределения: X руб. на подушку, Y руб. на досрочное погашение, Z руб. на цели
+- Рассчитывай "Дату финансовой свободы" — когда все долги будут закрыты
+- Предупреждай о рисках: потеря дохода, рост ставок, кассовые разрывы
+- Используй формат: сначала ДИАГНОЗ (2-3 предложения), затем ПЛАН ДЕЙСТВИЙ (нумерованный список), затем ЭФФЕКТ (что это даст в цифрах)
+- Не рекомендуй конкретные банки
+- Максимум 700 слов
 
-Финансовые данные семьи:
 %s""" % financial_context
 
-    user_msg = question if question else "Проанализируй мою финансовую ситуацию и дай рекомендации: на что обратить внимание, как оптимизировать бюджет, в каком порядке гасить долги."
+    user_msg = question if question else "Сделай полный финансовый анализ моей семьи. Дай диагноз, конкретный план действий для выхода из долговой нагрузки, и рассчитай когда я стану свободен от долгов. Если чего-то не хватает для анализа — скажи что нужно добавить."
 
     payload = {
         'modelUri': 'gpt://%s/yandexgpt-lite' % folder_id,
         'completionOptions': {
             'stream': False,
-            'temperature': 0.5,
-            'maxTokens': 3000
+            'temperature': 0.4,
+            'maxTokens': 4000
         },
         'messages': [
             {'role': 'system', 'text': system_prompt},
@@ -1939,7 +2538,7 @@ def ai_advice(family_id, body):
                 'Content-Type': 'application/json'
             }
         )
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=45) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             text = data.get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
             if not text:
@@ -1951,11 +2550,19 @@ def ai_advice(family_id, body):
                     'month_expense': month_expense,
                     'total_balance': total_balance,
                     'debts_count': len(debts),
-                    'goals_count': len(goals)
+                    'goals_count': len(goals),
+                    'dti': round(dti, 1),
+                    'free_money': round(free_money, 0),
+                    'net_worth': round(net_worth, 0)
                 }
             })
     except Exception as e:
         return respond(500, {'error': 'Ошибка ИИ: %s' % str(e)[:200]})
+
+
+def ai_smart_advice(family_id, body):
+    """Продвинутый ИИ-советник с конкретным вопросом и контекстом"""
+    return ai_advice(family_id, body)
 
 
 # === ASSETS ===
