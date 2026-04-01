@@ -205,7 +205,7 @@ export default function FinanceCashflow() {
   if (loading) {
     return (
       <div className="space-y-4 pb-24">
-        <SectionHero title="Прогноз денежного потока" subtitle="Загрузка..." imageUrl="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80" backPath="/finance/analytics" />
+        <SectionHero title="Прогноз денежного потока" subtitle="Загрузка..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
           <p className="text-sm text-muted-foreground">Строим прогноз на 24 месяца...</p>
@@ -218,7 +218,7 @@ export default function FinanceCashflow() {
   if (error || !data) {
     return (
       <div className="space-y-4 pb-24">
-        <SectionHero title="Прогноз денежного потока" subtitle="Ошибка" imageUrl="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80" backPath="/finance/analytics" />
+        <SectionHero title="Прогноз денежного потока" subtitle="Ошибка" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
         <Card className="border-destructive">
           <CardContent className="py-10 text-center space-y-3">
             <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
@@ -233,7 +233,7 @@ export default function FinanceCashflow() {
   if (!cashflow.length) {
     return (
       <div className="space-y-4 pb-24">
-        <SectionHero title="Прогноз денежного потока" subtitle="Нет данных" imageUrl="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80" backPath="/finance/analytics" />
+        <SectionHero title="Прогноз денежного потока" subtitle="Нет данных" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
         <Card className="border-0 shadow-md">
           <CardContent className="py-12 text-center space-y-3">
             <Icon name="BarChart3" size={44} className="mx-auto text-muted-foreground" />
@@ -253,7 +253,7 @@ export default function FinanceCashflow() {
       <SectionHero
         title="Прогноз денежного потока"
         subtitle="24-месячная проекция доходов, расходов и долгов"
-        imageUrl="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg"
         backPath="/finance/analytics"
         rightAction={
           <Button size="sm" variant="secondary" className="text-xs gap-1" onClick={fetchData}>

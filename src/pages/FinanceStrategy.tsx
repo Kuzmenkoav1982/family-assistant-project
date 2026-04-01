@@ -417,7 +417,7 @@ export default function FinanceStrategy() {
   if (loading) {
     return (
       <div className="space-y-4 pb-24">
-        <SectionHero title="Стратегии погашения" subtitle="Загрузка..." imageUrl="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80" backPath="/finance/analytics" />
+        <SectionHero title="Стратегии погашения" subtitle="Загрузка..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
           <p className="text-sm text-muted-foreground">Рассчитываем стратегии...</p>
@@ -430,7 +430,7 @@ export default function FinanceStrategy() {
   if (error || !data) {
     return (
       <div className="space-y-4 pb-24">
-        <SectionHero title="Стратегии погашения" subtitle="Ошибка" imageUrl="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80" backPath="/finance/analytics" />
+        <SectionHero title="Стратегии погашения" subtitle="Ошибка" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
         <Card className="border-destructive">
           <CardContent className="py-10 text-center space-y-3">
             <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
@@ -446,7 +446,7 @@ export default function FinanceStrategy() {
   if (!debts.length) {
     return (
       <div className="space-y-4 pb-24">
-        <SectionHero title="Стратегии погашения" subtitle="Нет активных долгов" imageUrl="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80" backPath="/finance/analytics" />
+        <SectionHero title="Стратегии погашения" subtitle="Нет активных долгов" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
         <Card className="border-0 shadow-md">
           <CardContent className="py-12 text-center space-y-3">
             <Icon name="PartyPopper" size={48} className="mx-auto text-green-500" />
@@ -464,7 +464,7 @@ export default function FinanceStrategy() {
       <SectionHero
         title="Стратегии погашения"
         subtitle="Сравнение стратегий и симулятор досрочных платежей"
-        imageUrl="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg"
         backPath="/finance/analytics"
         rightAction={
           <Button size="sm" variant="secondary" className="text-xs gap-1" onClick={() => navigate('/finance/analytics')}>
