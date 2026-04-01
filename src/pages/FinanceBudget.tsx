@@ -119,6 +119,7 @@ export default function FinanceBudget() {
   const [budgetAmount, setBudgetAmount] = useState('');
   const [exporting, setExporting] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [editBudget, setEditBudget] = useState<BudgetItem | null>(null);
   const analyticsRef = useRef<HTMLDivElement>(null);
 
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
@@ -356,12 +357,38 @@ export default function FinanceBudget() {
     });
     setSaving(false);
     if (res.ok) {
-      toast.success('Лимит установлен');
-      setShowBudgetDialog(false);
-      setBudgetAmount('');
-      setBudgetCategoryId('');
+      toast.success(editBudget ? 'Лимит обновлён' : 'Лимит установлен');
+      closeBudgetDialog();
       loadBudgets();
     }
+  };
+
+  const deleteBudget = async (id: string) => {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ action: 'delete_budget', id })
+    });
+    if (res.ok) {
+      toast.success('Лимит удалён');
+      loadBudgets();
+    } else {
+      toast.error('Ошибка при удалении');
+    }
+  };
+
+  const openEditBudget = (b: BudgetItem) => {
+    setBudgetCategoryId(b.category_id || '');
+    setBudgetAmount(String(b.planned));
+    setEditBudget(b);
+    setShowBudgetDialog(true);
+  };
+
+  const closeBudgetDialog = () => {
+    setShowBudgetDialog(false);
+    setEditBudget(null);
+    setBudgetAmount('');
+    setBudgetCategoryId('');
   };
 
   const filteredCategories = categories.filter(c =>
@@ -634,11 +661,21 @@ export default function FinanceBudget() {
                             </div>
                             <span className="font-medium text-sm">{b.category_name || 'Без категории'}</span>
                           </div>
-                          <div className="text-right">
-                            <span className={`text-sm font-bold ${over ? 'text-red-600' : 'text-foreground'}`}>
-                              {formatMoney(b.spent)}
-                            </span>
-                            <span className="text-xs text-muted-foreground"> / {formatMoney(b.planned)} ₽</span>
+                          <div className="flex items-center gap-1">
+                            <div className="text-right mr-1">
+                              <span className={`text-sm font-bold ${over ? 'text-red-600' : 'text-foreground'}`}>
+                                {formatMoney(b.spent)}
+                              </span>
+                              <span className="text-xs text-muted-foreground"> / {formatMoney(b.planned)} ₽</span>
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-blue-500"
+                              onClick={() => openEditBudget(b)} title="Редактировать">
+                              <Icon name="Pencil" size={14} />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-red-500"
+                              onClick={() => deleteBudget(b.id)} title="Удалить">
+                              <Icon name="Trash2" size={14} />
+                            </Button>
                           </div>
                         </div>
                         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -821,15 +858,15 @@ export default function FinanceBudget() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>
+      <Dialog open={showBudgetDialog} onOpenChange={(open) => { if (!open) closeBudgetDialog(); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Установить лимит</DialogTitle>
+            <DialogTitle>{editBudget ? 'Редактировать лимит' : 'Установить лимит'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
               <label className="text-sm font-medium mb-1 block">Категория расходов</label>
-              <Select value={budgetCategoryId} onValueChange={setBudgetCategoryId}>
+              <Select value={budgetCategoryId} onValueChange={setBudgetCategoryId} disabled={!!editBudget}>
                 <SelectTrigger><SelectValue placeholder="Выберите категорию" /></SelectTrigger>
                 <SelectContent>
                   {expenseCategories.map(c => (
@@ -846,13 +883,13 @@ export default function FinanceBudget() {
             <div>
               <label className="text-sm font-medium mb-1 block">Лимит на месяц, ₽</label>
               <Input type="number" inputMode="decimal" placeholder="25000"
-                value={budgetAmount} onChange={e => setBudgetAmount(e.target.value)} />
+                value={budgetAmount} onChange={e => setBudgetAmount(e.target.value)} autoFocus />
             </div>
           </div>
           <DialogFooter>
             <Button onClick={saveBudget} disabled={saving}
               className="bg-emerald-600 hover:bg-emerald-700 w-full">
-              {saving ? 'Сохраняю...' : 'Установить лимит'}
+              {saving ? 'Сохраняю...' : editBudget ? 'Сохранить' : 'Установить лимит'}
             </Button>
           </DialogFooter>
         </DialogContent>
