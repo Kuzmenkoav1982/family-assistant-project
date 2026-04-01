@@ -105,6 +105,8 @@ export default function FinanceBudget() {
   const [totalPlanned, setTotalPlanned] = useState(0);
   const [totalSpent, setTotalSpent] = useState(0);
   const [month, setMonth] = useState(getCurrentMonth());
+  const [accountBalance, setAccountBalance] = useState(0);
+  const [accountCount, setAccountCount] = useState(0);
   const [txFilter, setTxFilter] = useState<'all' | 'income' | 'expense'>('all');
 
   const [showAddTx, setShowAddTx] = useState(false);
@@ -158,6 +160,17 @@ export default function FinanceBudget() {
     }
   }, [month]);
 
+  const loadAccountBalance = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}?section=accounts`, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setAccountBalance(data.total_balance || 0);
+        setAccountCount((data.accounts || []).filter((a: { is_active: boolean }) => a.is_active).length);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   const loadHistory = useCallback(async () => {
     const months: { month: string; income: number; expense: number }[] = [];
     const d = new Date(month + '-01');
@@ -181,9 +194,9 @@ export default function FinanceBudget() {
   }, [month]);
 
   useEffect(() => {
-    Promise.all([loadCategories(), loadTransactions(), loadBudgets(), loadHistory()])
+    Promise.all([loadCategories(), loadTransactions(), loadBudgets(), loadHistory(), loadAccountBalance()])
       .finally(() => setLoading(false));
-  }, [loadCategories, loadTransactions, loadBudgets, loadHistory]);
+  }, [loadCategories, loadTransactions, loadBudgets, loadHistory, loadAccountBalance]);
 
   const pieData = useMemo(() => {
     const map = new Map<string, { name: string; value: number; color: string }>();
@@ -483,6 +496,32 @@ export default function FinanceBudget() {
             <Icon name="ChevronRight" size={18} />
           </Button>
         </div>
+
+        {/* Текущий баланс на счетах */}
+        {accountCount > 0 && (
+          <Card className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-200 text-xs">На счетах сейчас</p>
+                  <p className="text-2xl font-bold">{formatMoney(accountBalance)} ₽</p>
+                  <p className="text-blue-200 text-[10px]">{accountCount} {accountCount === 1 ? 'счёт' : accountCount < 5 ? 'счёта' : 'счетов'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-blue-200 text-xs">Прогноз на конец мес.</p>
+                  <p className={`text-xl font-bold ${(accountBalance + planIncome - planExpense) >= 0 ? 'text-white' : 'text-orange-300'}`}>
+                    {formatMoney(accountBalance + planIncome - planExpense)} ₽
+                  </p>
+                  {(planIncome > 0 || planExpense > 0) && (
+                    <p className="text-blue-200 text-[10px]">
+                      {(planIncome - planExpense) >= 0 ? '+' : ''}{formatMoney(planIncome - planExpense)} ожид.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-3 gap-3">
           <Card className="border-green-200 bg-green-50/50">
