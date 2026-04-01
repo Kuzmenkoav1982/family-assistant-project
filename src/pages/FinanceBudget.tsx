@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
@@ -504,18 +505,103 @@ export default function FinanceBudget() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-200 text-xs">На счетах сейчас</p>
-                  <p className="text-2xl font-bold">{formatMoney(accountBalance)} ₽</p>
+                  <Popover>
+                    <PopoverTrigger className="cursor-pointer group">
+                      <div className="flex items-center gap-1">
+                        <p className="text-2xl font-bold underline decoration-dashed decoration-blue-300/50 underline-offset-4">{formatMoney(accountBalance)} ₽</p>
+                        <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3" side="bottom">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-sm">Баланс на счетах</p>
+                        <p className="text-xs text-muted-foreground">Сумма остатков на всех активных счетах семьи на текущий момент.</p>
+                        <div className="border-t pt-2 space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Активных счетов</span>
+                            <span className="font-medium">{accountCount}</span>
+                          </div>
+                        </div>
+                        <div className="border-t pt-1">
+                          <div className="flex justify-between text-xs font-bold">
+                            <span>Итого на счетах</span>
+                            <span>{formatMoney(accountBalance)} ₽</span>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <p className="text-blue-200 text-[10px]">{accountCount} {accountCount === 1 ? 'счёт' : accountCount < 5 ? 'счёта' : 'счетов'}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-blue-200 text-xs">Прогноз на конец мес.</p>
-                  <p className={`text-xl font-bold ${(accountBalance + planIncome - planExpense) >= 0 ? 'text-white' : 'text-orange-300'}`}>
-                    {formatMoney(accountBalance + planIncome - planExpense)} ₽
-                  </p>
+                  <Popover>
+                    <PopoverTrigger className="cursor-pointer group">
+                      <div className="flex items-center gap-1 justify-end">
+                        <p className={`text-xl font-bold underline decoration-dashed decoration-blue-300/50 underline-offset-4 ${(accountBalance + planIncome - planExpense) >= 0 ? 'text-white' : 'text-orange-300'}`}>
+                          {formatMoney(accountBalance + planIncome - planExpense)} ₽
+                        </p>
+                        <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3" side="bottom">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-sm">Прогноз на конец месяца</p>
+                        <p className="text-xs text-muted-foreground">Ожидаемый баланс на счетах к концу месяца с учётом запланированных доходов и расходов.</p>
+                        <div className="border-t pt-2 space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Текущий баланс</span>
+                            <span className="font-medium">{formatMoney(accountBalance)} ₽</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">+ Ожидаемые доходы</span>
+                            <span className="font-medium text-green-600">+{formatMoney(planIncome)} ₽</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">- Ожидаемые расходы</span>
+                            <span className="font-medium text-red-600">-{formatMoney(planExpense)} ₽</span>
+                          </div>
+                        </div>
+                        <div className="border-t pt-1">
+                          <div className="flex justify-between text-xs font-bold">
+                            <span>Прогноз</span>
+                            <span>{formatMoney(accountBalance + planIncome - planExpense)} ₽</span>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   {(planIncome > 0 || planExpense > 0) && (
-                    <p className="text-blue-200 text-[10px]">
-                      {(planIncome - planExpense) >= 0 ? '+' : ''}{formatMoney(planIncome - planExpense)} ожид.
-                    </p>
+                    <Popover>
+                      <PopoverTrigger className="cursor-pointer group">
+                        <p className="text-blue-200 text-[10px] underline decoration-dashed decoration-blue-300/40 underline-offset-2 flex items-center gap-0.5 justify-end">
+                          {(planIncome - planExpense) >= 0 ? '+' : ''}{formatMoney(planIncome - planExpense)} ожид.
+                          <Icon name="Info" size={10} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity" />
+                        </p>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-3" side="bottom">
+                        <div className="space-y-2">
+                          <p className="font-semibold text-sm">Ожидаемое изменение</p>
+                          <p className="text-xs text-muted-foreground">Чистое изменение баланса от запланированных операций (регулярные платежи, долги).</p>
+                          <div className="border-t pt-2 space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Ожидаемые доходы</span>
+                              <span className="font-medium text-green-600">+{formatMoney(planIncome)} ₽</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Ожидаемые расходы</span>
+                              <span className="font-medium text-red-600">-{formatMoney(planExpense)} ₽</span>
+                            </div>
+                          </div>
+                          <div className="border-t pt-1">
+                            <div className="flex justify-between text-xs font-bold">
+                              <span>Итого изменение</span>
+                              <span>{(planIncome - planExpense) >= 0 ? '+' : ''}{formatMoney(planIncome - planExpense)} ₽</span>
+                            </div>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   )}
                 </div>
               </div>
@@ -527,7 +613,36 @@ export default function FinanceBudget() {
           <Card className="border-green-200 bg-green-50/50">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-green-600">Доходы</p>
-              <p className="text-lg font-bold text-green-700">{formatMoney(sumIncome + planIncome)}</p>
+              <Popover>
+                <PopoverTrigger className="cursor-pointer group">
+                  <div className="flex items-center gap-1 justify-center">
+                    <p className="text-lg font-bold text-green-700 underline decoration-dashed decoration-green-300/50 underline-offset-4">{formatMoney(sumIncome + planIncome)}</p>
+                    <Icon name="Info" size={12} className="text-green-400 opacity-40 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-3" side="bottom">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Доходы за месяц</p>
+                    <p className="text-xs text-muted-foreground">Сумма фактически полученных доходов и запланированных поступлений (регулярные платежи).</p>
+                    <div className="border-t pt-2 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Фактические доходы</span>
+                        <span className="font-medium">{formatMoney(sumIncome)} ₽</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">+ Запланированные</span>
+                        <span className="font-medium text-green-600">+{formatMoney(planIncome)} ₽</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-1">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span>Итого доходов</span>
+                        <span>{formatMoney(sumIncome + planIncome)} ₽</span>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               {planIncome > 0 && (
                 <p className="text-[10px] text-green-500">ожид. +{formatMoney(planIncome)}</p>
               )}
@@ -536,7 +651,36 @@ export default function FinanceBudget() {
           <Card className="border-red-200 bg-red-50/50">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-red-600">Расходы</p>
-              <p className="text-lg font-bold text-red-700">{formatMoney(sumExpense + planExpense)}</p>
+              <Popover>
+                <PopoverTrigger className="cursor-pointer group">
+                  <div className="flex items-center gap-1 justify-center">
+                    <p className="text-lg font-bold text-red-700 underline decoration-dashed decoration-red-300/50 underline-offset-4">{formatMoney(sumExpense + planExpense)}</p>
+                    <Icon name="Info" size={12} className="text-red-400 opacity-40 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-3" side="bottom">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Расходы за месяц</p>
+                    <p className="text-xs text-muted-foreground">Сумма фактических расходов и запланированных трат (регулярные платежи, долги).</p>
+                    <div className="border-t pt-2 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Фактические расходы</span>
+                        <span className="font-medium">{formatMoney(sumExpense)} ₽</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">+ Запланированные</span>
+                        <span className="font-medium text-red-600">+{formatMoney(planExpense)} ₽</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-1">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span>Итого расходов</span>
+                        <span>{formatMoney(sumExpense + planExpense)} ₽</span>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               {planExpense > 0 && (
                 <p className="text-[10px] text-red-500">ожид. +{formatMoney(planExpense)}</p>
               )}
@@ -545,9 +689,38 @@ export default function FinanceBudget() {
           <Card className={`border-2 ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'border-emerald-300 bg-emerald-50/50' : 'border-orange-300 bg-orange-50/50'}`}>
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Баланс</p>
-              <p className={`text-lg font-bold ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'text-emerald-700' : 'text-orange-700'}`}>
-                {(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? '+' : ''}{formatMoney((sumIncome + planIncome) - (sumExpense + planExpense))}
-              </p>
+              <Popover>
+                <PopoverTrigger className="cursor-pointer group">
+                  <div className="flex items-center gap-1 justify-center">
+                    <p className={`text-lg font-bold underline decoration-dashed underline-offset-4 ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'text-emerald-700 decoration-emerald-300/50' : 'text-orange-700 decoration-orange-300/50'}`}>
+                      {(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? '+' : ''}{formatMoney((sumIncome + planIncome) - (sumExpense + planExpense))}
+                    </p>
+                    <Icon name="Info" size={12} className="text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-3" side="bottom">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Баланс за месяц</p>
+                    <p className="text-xs text-muted-foreground">Разница между всеми доходами и расходами за месяц (включая запланированные).</p>
+                    <div className="border-t pt-2 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Всего доходов</span>
+                        <span className="font-medium text-green-600">{formatMoney(sumIncome + planIncome)} ₽</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Всего расходов</span>
+                        <span className="font-medium text-red-600">-{formatMoney(sumExpense + planExpense)} ₽</span>
+                      </div>
+                    </div>
+                    <div className="border-t pt-1">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span>Баланс</span>
+                        <span>{(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? '+' : ''}{formatMoney((sumIncome + planIncome) - (sumExpense + planExpense))} ₽</span>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </CardContent>
           </Card>
         </div>
