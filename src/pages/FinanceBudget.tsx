@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 
@@ -455,17 +456,21 @@ export default function FinanceBudget() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/finance')}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <h1 className="text-xl font-bold flex-1">Бюджет</h1>
+        <SectionHero
+          title="Бюджет"
+          subtitle="Доходы, расходы и планирование"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3811fe85-aff5-47a9-8059-48190f4100e4.jpg"
+          backPath="/finance"
+          rightAction={
+            <Button size="sm" onClick={() => { setTxType('expense'); setShowAddTx(true); }}
+              className="bg-emerald-600 hover:bg-emerald-700">
+              <Icon name="Plus" size={16} className="mr-1" /> Запись
+            </Button>
+          }
+        />
+        <div className="flex justify-end gap-2">
           <Button size="sm" variant="outline" onClick={() => navigate('/finance/recurring')}>
             <Icon name="Repeat" size={16} className="mr-1" /> Регулярные
-          </Button>
-          <Button size="sm" onClick={() => { setTxType('expense'); setShowAddTx(true); }}
-            className="bg-emerald-600 hover:bg-emerald-700">
-            <Icon name="Plus" size={16} className="mr-1" /> Запись
           </Button>
         </div>
 

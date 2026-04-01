@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
@@ -188,15 +189,17 @@ export default function FinanceRecurring() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/finance/budget')}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <h1 className="text-xl font-bold flex-1">Регулярные платежи</h1>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { resetForm(); setShowAdd(true); }}>
-            <Icon name="Plus" size={16} className="mr-1" /> Добавить
-          </Button>
-        </div>
+        <SectionHero
+          title="Регулярные платежи"
+          subtitle="Подписки, коммуналка и автоплатежи"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cf1049c8-3a33-48d3-9b33-e69aa6cdfcb6.jpg"
+          backPath="/finance/budget"
+          rightAction={
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { resetForm(); setShowAdd(true); }}>
+              <Icon name="Plus" size={16} className="mr-1" /> Добавить
+            </Button>
+          }
+        />
 
         {activeItems.length > 0 && (
           <div className="grid grid-cols-2 gap-3">

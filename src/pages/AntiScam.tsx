@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 
 interface ScamScheme {
   id: string;
@@ -597,15 +598,12 @@ export default function AntiScam() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/finance')}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Антимошенник</h1>
-            <p className="text-xs text-muted-foreground">Защита семьи от мошенников</p>
-          </div>
-        </div>
+        <SectionHero
+          title="Антимошенник"
+          subtitle="Защита семьи от мошенников"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e8e3b99f-ee06-4225-bd9e-bbbb2e1a2c07.jpg"
+          backPath="/finance"
+        />
 
         <button
           onClick={() => { setPanicMode(true); setPanicStep(0); }}

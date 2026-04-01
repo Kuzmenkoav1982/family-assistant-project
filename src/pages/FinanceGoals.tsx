@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -145,15 +146,17 @@ export default function FinanceGoals() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/finance')}>
-            <Icon name="ArrowLeft" size={18} />
-          </Button>
-          <h1 className="text-xl font-bold flex-1">Финансовые цели</h1>
-          <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setShowAdd(true)}>
-            <Icon name="Plus" size={16} className="mr-1" /> Цель
-          </Button>
-        </div>
+        <SectionHero
+          title="Финансовые цели"
+          subtitle="Копите на мечты всей семьёй"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed60650e-aeba-4207-8ad6-870ec1760abf.jpg"
+          backPath="/finance"
+          rightAction={
+            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setShowAdd(true)}>
+              <Icon name="Plus" size={16} className="mr-1" /> Цель
+            </Button>
+          }
+        />
 
         {activeGoals.length > 0 && (
           <Card className="bg-gradient-to-br from-amber-500 to-orange-600 text-white border-0">
