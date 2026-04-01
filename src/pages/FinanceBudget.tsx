@@ -723,16 +723,14 @@ export default function FinanceBudget() {
           subtitle="Доходы, расходы и планирование"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3811fe85-aff5-47a9-8059-48190f4100e4.jpg"
           backPath="/finance"
-          rightAction={
-            <Button size="sm" onClick={() => { setTxType('expense'); setShowAddTx(true); }}
-              className="bg-emerald-600 hover:bg-emerald-700">
-              <Icon name="Plus" size={16} className="mr-1" /> Запись
-            </Button>
-          }
         />
         <div className="flex justify-end gap-2">
           <Button size="sm" variant="outline" onClick={() => navigate('/finance/recurring')}>
             <Icon name="Repeat" size={16} className="mr-1" /> Регулярные
+          </Button>
+          <Button size="sm" onClick={() => { setTxType('expense'); setShowAddTx(true); }}
+            className="bg-emerald-600 hover:bg-emerald-700">
+            <Icon name="Plus" size={16} className="mr-1" /> Запись
           </Button>
         </div>
 
@@ -748,16 +746,16 @@ export default function FinanceBudget() {
 
         {/* Текущий баланс на счетах */}
         {accountCount > 0 && (
-          <Card className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0">
+          <Card className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 overflow-hidden">
             <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-shrink">
                   <p className="text-blue-200 text-xs">На счетах сейчас</p>
                   <Popover>
                     <PopoverTrigger className="cursor-pointer group">
                       <div className="flex items-center gap-1">
-                        <p className="text-2xl font-bold underline decoration-dashed decoration-blue-300/50 underline-offset-4">{formatMoney(accountBalance)} ₽</p>
-                        <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity" />
+                        <p className="text-xl font-bold underline decoration-dashed decoration-blue-300/50 underline-offset-4 truncate">{formatMoney(accountBalance)} ₽</p>
+                        <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-72 p-3" side="bottom">
@@ -781,15 +779,15 @@ export default function FinanceBudget() {
                   </Popover>
                   <p className="text-blue-200 text-[10px]">{accountCount} {accountCount === 1 ? 'счёт' : accountCount < 5 ? 'счёта' : 'счетов'}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right min-w-0 flex-shrink">
                   <p className="text-blue-200 text-xs">Прогноз на конец мес.</p>
                   <Popover>
                     <PopoverTrigger className="cursor-pointer group">
                       <div className="flex items-center gap-1 justify-end">
-                        <p className={`text-xl font-bold underline decoration-dashed decoration-blue-300/50 underline-offset-4 ${(accountBalance + planIncome - planExpense) >= 0 ? 'text-white' : 'text-orange-300'}`}>
+                        <p className={`text-base font-bold underline decoration-dashed decoration-blue-300/50 underline-offset-4 truncate ${(accountBalance + planIncome - planExpense) >= 0 ? 'text-white' : 'text-orange-300'}`}>
                           {formatMoney(accountBalance + planIncome - planExpense)} ₽
                         </p>
-                        <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity" />
+                        <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-72 p-3" side="bottom">
@@ -857,15 +855,15 @@ export default function FinanceBudget() {
           </Card>
         )}
 
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="border-green-200 bg-green-50/50">
-            <CardContent className="p-3 text-center">
+        <div className="grid grid-cols-3 gap-2">
+          <Card className="border-green-200 bg-green-50/50 overflow-hidden">
+            <CardContent className="p-2 text-center">
               <p className="text-xs text-green-600">Доходы</p>
               <Popover>
-                <PopoverTrigger className="cursor-pointer group">
-                  <div className="flex items-center gap-1 justify-center">
-                    <p className="text-lg font-bold text-green-700 underline decoration-dashed decoration-green-300/50 underline-offset-4">{formatMoney(sumIncome + planIncome)}</p>
-                    <Icon name="Info" size={12} className="text-green-400 opacity-40 group-hover:opacity-100 transition-opacity" />
+                <PopoverTrigger className="cursor-pointer group w-full">
+                  <div className="flex items-center gap-0.5 justify-center">
+                    <p className="text-sm font-bold text-green-700 underline decoration-dashed decoration-green-300/50 underline-offset-4 truncate">{formatMoney(sumIncome + planIncome)}</p>
+                    <Icon name="Info" size={10} className="text-green-400 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-3" side="bottom">
@@ -896,14 +894,14 @@ export default function FinanceBudget() {
               )}
             </CardContent>
           </Card>
-          <Card className="border-red-200 bg-red-50/50">
-            <CardContent className="p-3 text-center">
+          <Card className="border-red-200 bg-red-50/50 overflow-hidden">
+            <CardContent className="p-2 text-center">
               <p className="text-xs text-red-600">Расходы</p>
               <Popover>
-                <PopoverTrigger className="cursor-pointer group">
-                  <div className="flex items-center gap-1 justify-center">
-                    <p className="text-lg font-bold text-red-700 underline decoration-dashed decoration-red-300/50 underline-offset-4">{formatMoney(sumExpense + planExpense)}</p>
-                    <Icon name="Info" size={12} className="text-red-400 opacity-40 group-hover:opacity-100 transition-opacity" />
+                <PopoverTrigger className="cursor-pointer group w-full">
+                  <div className="flex items-center gap-0.5 justify-center">
+                    <p className="text-sm font-bold text-red-700 underline decoration-dashed decoration-red-300/50 underline-offset-4 truncate">{formatMoney(sumExpense + planExpense)}</p>
+                    <Icon name="Info" size={10} className="text-red-400 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-3" side="bottom">
@@ -934,16 +932,16 @@ export default function FinanceBudget() {
               )}
             </CardContent>
           </Card>
-          <Card className={`border-2 ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'border-emerald-300 bg-emerald-50/50' : 'border-orange-300 bg-orange-50/50'}`}>
-            <CardContent className="p-3 text-center">
+          <Card className={`border-2 overflow-hidden ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'border-emerald-300 bg-emerald-50/50' : 'border-orange-300 bg-orange-50/50'}`}>
+            <CardContent className="p-2 text-center">
               <p className="text-xs text-muted-foreground">Баланс</p>
               <Popover>
-                <PopoverTrigger className="cursor-pointer group">
-                  <div className="flex items-center gap-1 justify-center">
-                    <p className={`text-lg font-bold underline decoration-dashed underline-offset-4 ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'text-emerald-700 decoration-emerald-300/50' : 'text-orange-700 decoration-orange-300/50'}`}>
+                <PopoverTrigger className="cursor-pointer group w-full">
+                  <div className="flex items-center gap-0.5 justify-center">
+                    <p className={`text-sm font-bold underline decoration-dashed underline-offset-4 truncate ${(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? 'text-emerald-700 decoration-emerald-300/50' : 'text-orange-700 decoration-orange-300/50'}`}>
                       {(sumIncome + planIncome) - (sumExpense + planExpense) >= 0 ? '+' : ''}{formatMoney((sumIncome + planIncome) - (sumExpense + planExpense))}
                     </p>
-                    <Icon name="Info" size={12} className="text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />
+                    <Icon name="Info" size={10} className="text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-3" side="bottom">
