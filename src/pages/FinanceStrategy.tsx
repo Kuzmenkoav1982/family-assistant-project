@@ -416,11 +416,13 @@ export default function FinanceStrategy() {
   // --- Loading ---
   if (loading) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Стратегии погашения" subtitle="Загрузка..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Рассчитываем стратегии...</p>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Стратегии погашения" subtitle="Загрузка..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="text-sm text-muted-foreground">Рассчитываем стратегии...</p>
+          </div>
         </div>
       </div>
     );
@@ -429,15 +431,17 @@ export default function FinanceStrategy() {
   // --- Error ---
   if (error || !data) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Стратегии погашения" subtitle="Ошибка" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
-        <Card className="border-destructive">
-          <CardContent className="py-10 text-center space-y-3">
-            <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
-            <p className="font-medium">{error || 'Не удалось загрузить данные'}</p>
-            <Button onClick={fetchData}>Повторить</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Стратегии погашения" subtitle="Ошибка" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
+          <Card className="border-destructive">
+            <CardContent className="py-10 text-center space-y-3">
+              <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
+              <p className="font-medium">{error || 'Не удалось загрузить данные'}</p>
+              <Button onClick={fetchData}>Повторить</Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -445,22 +449,25 @@ export default function FinanceStrategy() {
   // --- No debts ---
   if (!debts.length) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Стратегии погашения" subtitle="Нет активных долгов" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
-        <Card className="border-0 shadow-md">
-          <CardContent className="py-12 text-center space-y-3">
-            <Icon name="PartyPopper" size={48} className="mx-auto text-green-500" />
-            <h2 className="text-xl font-bold">Поздравляем!</h2>
-            <p className="text-sm text-muted-foreground">У вас нет активных долгов. Стратегии не требуются.</p>
-            <Button onClick={() => navigate('/finance/analytics')}>К аналитике</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Стратегии погашения" subtitle="Нет активных долгов" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4846d4f1-8f54-44aa-aed5-39da9b0321b6.jpg" backPath="/finance/analytics" />
+          <Card className="border-0 shadow-md">
+            <CardContent className="py-12 text-center space-y-3">
+              <Icon name="PartyPopper" size={48} className="mx-auto text-green-500" />
+              <h2 className="text-xl font-bold">Поздравляем!</h2>
+              <p className="text-sm text-muted-foreground">У вас нет активных долгов. Стратегии не требуются.</p>
+              <Button onClick={() => navigate('/finance/analytics')}>К аналитике</Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white pb-24">
+      <div className="max-w-4xl mx-auto p-4 space-y-5">
       <SectionHero
         title="Стратегии погашения"
         subtitle="Сравнение стратегий и симулятор досрочных платежей"
@@ -815,6 +822,7 @@ export default function FinanceStrategy() {
           <Icon name="Receipt" size={20} className="text-red-500" />
           <span className="text-xs">Кредиты</span>
         </Button>
+      </div>
       </div>
     </div>
   );

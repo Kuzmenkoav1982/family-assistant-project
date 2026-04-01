@@ -204,11 +204,13 @@ export default function FinanceCashflow() {
   // --- Loading ---
   if (loading) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Прогноз денежного потока" subtitle="Загрузка..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Строим прогноз на 24 месяца...</p>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Прогноз денежного потока" subtitle="Загрузка..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="text-sm text-muted-foreground">Строим прогноз на 24 месяца...</p>
+          </div>
         </div>
       </div>
     );
@@ -217,31 +219,35 @@ export default function FinanceCashflow() {
   // --- Error ---
   if (error || !data) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Прогноз денежного потока" subtitle="Ошибка" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
-        <Card className="border-destructive">
-          <CardContent className="py-10 text-center space-y-3">
-            <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
-            <p className="font-medium">{error || 'Не удалось загрузить данные'}</p>
-            <Button onClick={fetchData}>Повторить</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Прогноз денежного потока" subtitle="Ошибка" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
+          <Card className="border-destructive">
+            <CardContent className="py-10 text-center space-y-3">
+              <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
+              <p className="font-medium">{error || 'Не удалось загрузить данные'}</p>
+              <Button onClick={fetchData}>Повторить</Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (!cashflow.length) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Прогноз денежного потока" subtitle="Нет данных" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
-        <Card className="border-0 shadow-md">
-          <CardContent className="py-12 text-center space-y-3">
-            <Icon name="BarChart3" size={44} className="mx-auto text-muted-foreground" />
-            <p className="font-medium">Недостаточно данных для прогноза</p>
-            <p className="text-sm text-muted-foreground">Добавьте доходы, расходы и кредиты для построения прогноза</p>
-            <Button onClick={() => navigate('/finance')}>К финансам</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Прогноз денежного потока" subtitle="Нет данных" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg" backPath="/finance/analytics" />
+          <Card className="border-0 shadow-md">
+            <CardContent className="py-12 text-center space-y-3">
+              <Icon name="BarChart3" size={44} className="mx-auto text-muted-foreground" />
+              <p className="font-medium">Недостаточно данных для прогноза</p>
+              <p className="text-sm text-muted-foreground">Добавьте доходы, расходы и кредиты для построения прогноза</p>
+              <Button onClick={() => navigate('/finance')}>К финансам</Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -249,7 +255,8 @@ export default function FinanceCashflow() {
   const { avgFree, worstMonth, finalRemaining, gapMonths } = insights;
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
+      <div className="max-w-4xl mx-auto p-4 space-y-5">
       <SectionHero
         title="Прогноз денежного потока"
         subtitle="24-месячная проекция доходов, расходов и долгов"
@@ -510,6 +517,7 @@ export default function FinanceCashflow() {
           <Icon name="Swords" size={20} className="text-blue-500" />
           <span className="text-xs">Стратегии</span>
         </Button>
+      </div>
       </div>
     </div>
   );

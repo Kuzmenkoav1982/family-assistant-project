@@ -298,11 +298,13 @@ export default function FinanceAnalytics() {
   // --- Loading ---
   if (loading) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Финансовая аналитика" subtitle="Загрузка данных..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg" backPath="/finance" />
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Анализируем финансы...</p>
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Финансовая аналитика" subtitle="Загрузка данных..." imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg" backPath="/finance" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="text-sm text-muted-foreground">Анализируем финансы...</p>
+          </div>
         </div>
       </div>
     );
@@ -311,15 +313,17 @@ export default function FinanceAnalytics() {
   // --- Error ---
   if (error || !data) {
     return (
-      <div className="space-y-4 pb-24">
-        <SectionHero title="Финансовая аналитика" subtitle="Ошибка загрузки" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg" backPath="/finance" />
-        <Card className="border-destructive">
-          <CardContent className="py-10 text-center space-y-3">
-            <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
-            <p className="font-medium">{error || 'Не удалось загрузить данные'}</p>
-            <Button onClick={fetchData}>Повторить</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <SectionHero title="Финансовая аналитика" subtitle="Ошибка загрузки" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg" backPath="/finance" />
+          <Card className="border-destructive">
+            <CardContent className="py-10 text-center space-y-3">
+              <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
+              <p className="font-medium">{error || 'Не удалось загрузить данные'}</p>
+              <Button onClick={fetchData}>Повторить</Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -342,7 +346,8 @@ export default function FinanceAnalytics() {
   ].filter(x => x.value > 0);
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
+      <div className="max-w-4xl mx-auto p-4 space-y-5">
       <SectionHero
         title="Финансовая аналитика"
         subtitle="Полный анализ вашей финансовой ситуации"
@@ -832,6 +837,7 @@ export default function FinanceAnalytics() {
           <Icon name="Target" size={20} className="text-amber-500" />
           <span className="text-xs">Цели</span>
         </Button>
+      </div>
       </div>
     </div>
   );
