@@ -26,6 +26,8 @@ interface RecurringItem {
   category_icon: string | null;
   category_color: string | null;
   account_name: string | null;
+  active_months: number[] | null;
+  category_id: string | null;
 }
 
 interface Category {
@@ -51,6 +53,16 @@ const FREQ_LABELS: Record<string, string> = {
   yearly: 'Ежегодно',
 };
 
+const MONTH_NAMES = [
+  'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
+  'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'
+];
+
+const MONTH_FULL_NAMES = [
+  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+];
+
 const PRESETS = [
   { label: 'Зарплата', type: 'income', icon: 'Banknote', desc: 'Зарплата' },
   { label: 'Премия кварт.', type: 'income', icon: 'Award', desc: 'Квартальная премия', freq: 'quarterly' },
@@ -66,23 +78,92 @@ const PRESETS = [
   { label: 'Транспорт', type: 'expense', icon: 'Car', desc: 'Проездной / бензин' },
 ];
 
+interface FormState {
+  type: 'income' | 'expense';
+  amount: string;
+  description: string;
+  frequency: string;
+  day_of_month: string;
+  next_date: string;
+  category_id: string;
+  active_months: number[];
+}
+
+const emptyForm: FormState = {
+  type: 'expense',
+  amount: '',
+  description: '',
+  frequency: 'monthly',
+  day_of_month: '',
+  next_date: '',
+  category_id: '',
+  active_months: [],
+};
+
+/** Считает среднемесячную сумму с учётом active_months */
+function monthlyAmount(item: RecurringItem): number {
+  if (item.frequency === 'monthly' || item.frequency === 'weekly') {
+    return item.amount;
+  }
+  if (item.active_months && item.active_months.length > 0) {
+    return (item.amount * item.active_months.length) / 12;
+  }
+  if (item.frequency === 'quarterly') return item.amount / 3;
+  if (item.frequency === 'yearly') return item.amount / 12;
+  return item.amount;
+}
+
+function MonthPicker({ selected, onChange }: { selected: number[]; onChange: (months: number[]) => void }) {
+  const toggle = (month: number) => {
+    if (selected.includes(month)) {
+      onChange(selected.filter(m => m !== month));
+    } else {
+      onChange([...selected, month].sort((a, b) => a - b));
+    }
+  };
+
+  return (
+    <div>
+      <label className="text-sm font-medium mb-1.5 block">Месяцы начисления</label>
+      <div className="grid grid-cols-6 gap-1">
+        {MONTH_NAMES.map((name, i) => {
+          const monthNum = i + 1;
+          const isSelected = selected.includes(monthNum);
+          return (
+            <button
+              key={monthNum}
+              type="button"
+              onClick={() => toggle(monthNum)}
+              className={`text-xs py-1.5 px-1 rounded-md border transition-all font-medium ${
+                isSelected
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {name}
+            </button>
+          );
+        })}
+      </div>
+      {selected.length > 0 && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Выбрано: {selected.map(m => MONTH_FULL_NAMES[m - 1]).join(', ')}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function FinanceRecurring() {
   const navigate = useNavigate();
   const [items, setItems] = useState<RecurringItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [showAdd, setShowAdd] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState<RecurringItem | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    type: 'expense' as 'income' | 'expense',
-    amount: '',
-    description: '',
-    frequency: 'monthly',
-    day_of_month: '',
-    next_date: '',
-    category_id: '',
-  });
+  const [form, setForm] = useState<FormState>({ ...emptyForm });
 
   const loadData = useCallback(async () => {
     const [r1, r2] = await Promise.all([
@@ -114,35 +195,74 @@ export default function FinanceRecurring() {
     );
   }
 
-  const addItem = async () => {
+  const openAdd = () => {
+    setEditingItem(null);
+    setForm({ ...emptyForm });
+    setShowDialog(true);
+  };
+
+  const openEdit = (item: RecurringItem) => {
+    setEditingItem(item);
+    setForm({
+      type: (item.type as 'income' | 'expense') || 'expense',
+      amount: String(item.amount),
+      description: item.description || '',
+      frequency: item.frequency || 'monthly',
+      day_of_month: item.day_of_month ? String(item.day_of_month) : '',
+      next_date: item.next_date || '',
+      category_id: item.category_id || '',
+      active_months: item.active_months || [],
+    });
+    setShowDialog(true);
+  };
+
+  const saveItem = async () => {
     if (!form.amount || parseFloat(form.amount) <= 0 || !form.description.trim()) {
       toast.error('Укажите сумму и описание');
       return;
     }
     setSaving(true);
+
+    const payload: Record<string, unknown> = {
+      type: form.type,
+      amount: parseFloat(form.amount),
+      description: form.description,
+      frequency: form.frequency,
+      day_of_month: form.day_of_month ? parseInt(form.day_of_month) : null,
+      next_date: form.next_date || new Date().toISOString().split('T')[0],
+      category_id: form.category_id || null,
+      active_months: (form.frequency === 'quarterly' || form.frequency === 'yearly') && form.active_months.length > 0
+        ? form.active_months
+        : null,
+    };
+
+    if (editingItem) {
+      payload.action = 'update_recurring';
+      payload.id = editingItem.id;
+    } else {
+      payload.action = 'add_recurring';
+    }
+
     const res = await fetch(API, {
-      method: 'POST', headers: getHeaders(),
-      body: JSON.stringify({
-        action: 'add_recurring',
-        type: form.type,
-        amount: parseFloat(form.amount),
-        description: form.description,
-        frequency: form.frequency,
-        day_of_month: form.day_of_month ? parseInt(form.day_of_month) : null,
-        next_date: form.next_date || new Date().toISOString().split('T')[0],
-        category_id: form.category_id || null,
-      })
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
     });
+
     setSaving(false);
     if (res.ok) {
-      toast.success('Добавлено');
-      setShowAdd(false);
-      resetForm();
+      toast.success(editingItem ? 'Сохранено' : 'Добавлено');
+      setShowDialog(false);
+      setEditingItem(null);
+      setForm({ ...emptyForm });
       loadData();
-    } else { toast.error('Ошибка'); }
+    } else {
+      toast.error('Ошибка сохранения');
+    }
   };
 
-  const toggleActive = async (item: RecurringItem) => {
+  const toggleActive = async (item: RecurringItem, e: React.MouseEvent) => {
+    e.stopPropagation();
     await fetch(API, {
       method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ action: 'update_recurring', id: item.id, is_active: !item.is_active })
@@ -150,7 +270,8 @@ export default function FinanceRecurring() {
     loadData();
   };
 
-  const deleteItem = async (id: string) => {
+  const deleteItem = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     await fetch(API, {
       method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ action: 'delete_recurring', id })
@@ -165,18 +286,21 @@ export default function FinanceRecurring() {
       type: preset.type as 'income' | 'expense',
       description: preset.desc,
       frequency: (preset as { freq?: string }).freq || 'monthly',
+      active_months: [],
     });
-  };
-
-  const resetForm = () => {
-    setForm({ type: 'expense', amount: '', description: '', frequency: 'monthly', day_of_month: '', next_date: '', category_id: '' });
   };
 
   const activeItems = items.filter(i => i.is_active);
   const inactiveItems = items.filter(i => !i.is_active);
-  const totalIncome = activeItems.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
-  const totalExpense = activeItems.filter(i => i.type === 'expense').reduce((s, i) => s + i.amount, 0);
+  const totalIncome = activeItems
+    .filter(i => i.type === 'income')
+    .reduce((s, i) => s + monthlyAmount(i), 0);
+  const totalExpense = activeItems
+    .filter(i => i.type === 'expense')
+    .reduce((s, i) => s + monthlyAmount(i), 0);
   const filteredCategories = categories.filter(c => c.type === form.type);
+
+  const showMonthPicker = form.frequency === 'quarterly' || form.frequency === 'yearly';
 
   if (loading) {
     return (
@@ -185,6 +309,19 @@ export default function FinanceRecurring() {
       </div>
     );
   }
+
+  const renderMonthBadges = (item: RecurringItem) => {
+    if (!item.active_months || item.active_months.length === 0) return null;
+    return (
+      <div className="flex flex-wrap gap-0.5 mt-0.5">
+        {item.active_months.map(m => (
+          <Badge key={m} variant="outline" className="text-[10px] px-1 py-0 h-4 font-normal text-muted-foreground border-gray-200">
+            {MONTH_NAMES[m - 1]}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-24">
@@ -195,7 +332,7 @@ export default function FinanceRecurring() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cf1049c8-3a33-48d3-9b33-e69aa6cdfcb6.jpg"
           backPath="/finance/budget"
           rightAction={
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { resetForm(); setShowAdd(true); }}>
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={openAdd}>
               <Icon name="Plus" size={16} className="mr-1" /> Добавить
             </Button>
           }
@@ -206,13 +343,13 @@ export default function FinanceRecurring() {
             <Card className="border-green-200 bg-green-50/50">
               <CardContent className="p-3 text-center">
                 <p className="text-xs text-green-600">Доходы/мес</p>
-                <p className="text-lg font-bold text-green-700">+{formatMoney(totalIncome)} ₽</p>
+                <p className="text-lg font-bold text-green-700">+{formatMoney(Math.round(totalIncome))} ₽</p>
               </CardContent>
             </Card>
             <Card className="border-red-200 bg-red-50/50">
               <CardContent className="p-3 text-center">
                 <p className="text-xs text-red-600">Расходы/мес</p>
-                <p className="text-lg font-bold text-red-700">−{formatMoney(totalExpense)} ₽</p>
+                <p className="text-lg font-bold text-red-700">-{formatMoney(Math.round(totalExpense))} ₽</p>
               </CardContent>
             </Card>
           </div>
@@ -227,7 +364,8 @@ export default function FinanceRecurring() {
         ) : (
           <div className="space-y-2">
             {activeItems.map(item => (
-              <Card key={item.id} className="overflow-hidden">
+              <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => openEdit(item)}>
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="w-12 h-12 flex items-center justify-center flex-shrink-0"
@@ -242,19 +380,29 @@ export default function FinanceRecurring() {
                         {item.day_of_month && <span>· {item.day_of_month}-е число</span>}
                         {item.category_name && <span>· {item.category_name}</span>}
                       </div>
+                      {renderMonthBadges(item)}
                     </div>
                     <div className="pr-1 text-right flex-shrink-0">
                       <p className={`font-bold text-sm ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                        {item.type === 'income' ? '+' : '−'}{formatMoney(item.amount)} ₽
+                        {item.type === 'income' ? '+' : '-'}{formatMoney(item.amount)} ₽
                       </p>
+                      {(item.frequency === 'quarterly' || item.frequency === 'yearly') && (
+                        <p className="text-[10px] text-muted-foreground">
+                          ~{formatMoney(Math.round(monthlyAmount(item)))} ₽/мес
+                        </p>
+                      )}
                     </div>
                     <div className="flex flex-col pr-1">
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-blue-500"
+                        onClick={(e) => { e.stopPropagation(); openEdit(item); }}>
+                        <Icon name="Pencil" size={12} />
+                      </Button>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-amber-500"
-                        onClick={() => toggleActive(item)}>
+                        onClick={(e) => toggleActive(item, e)}>
                         <Icon name="Pause" size={12} />
                       </Button>
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-red-500"
-                        onClick={() => deleteItem(item.id)}>
+                        onClick={(e) => deleteItem(item.id, e)}>
                         <Icon name="Trash2" size={12} />
                       </Button>
                     </div>
@@ -267,11 +415,12 @@ export default function FinanceRecurring() {
               <>
                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide pt-2">Приостановлены</p>
                 {inactiveItems.map(item => (
-                  <Card key={item.id} className="opacity-50">
+                  <Card key={item.id} className="opacity-50 cursor-pointer hover:opacity-70 transition-opacity"
+                    onClick={() => openEdit(item)}>
                     <CardContent className="p-3 flex items-center gap-3">
                       <span className="text-sm flex-1 truncate">{item.description}</span>
                       <span className="text-sm text-muted-foreground">{formatMoney(item.amount)} ₽</span>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => toggleActive(item)}>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={(e) => toggleActive(item, e)}>
                         <Icon name="Play" size={12} />
                       </Button>
                     </CardContent>
@@ -283,24 +432,31 @@ export default function FinanceRecurring() {
         )}
       </div>
 
-      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+      <Dialog open={showDialog} onOpenChange={(open) => {
+        setShowDialog(open);
+        if (!open) { setEditingItem(null); setForm({ ...emptyForm }); }
+      }}>
         <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Регулярный платёж</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editingItem ? 'Редактировать платёж' : 'Регулярный платёж'}</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Быстрый выбор</label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {PRESETS.map(p => (
-                  <button key={p.label} onClick={() => applyPreset(p)}
-                    className={`text-xs p-2 rounded-lg border transition-all text-center ${
-                      form.description === p.desc ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:bg-gray-50'
-                    }`}>
-                    <Icon name={p.icon} size={16} className={`mx-auto mb-0.5 ${p.type === 'income' ? 'text-green-600' : 'text-red-500'}`} />
-                    {p.label}
-                  </button>
-                ))}
+            {!editingItem && (
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Быстрый выбор</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {PRESETS.map(p => (
+                    <button key={p.label} onClick={() => applyPreset(p)}
+                      className={`text-xs p-2 rounded-lg border transition-all text-center ${
+                        form.description === p.desc ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:bg-gray-50'
+                      }`}>
+                      <Icon name={p.icon} size={16} className={`mx-auto mb-0.5 ${p.type === 'income' ? 'text-green-600' : 'text-red-500'}`} />
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-2">
               <Button variant={form.type === 'expense' ? 'default' : 'outline'}
@@ -329,7 +485,7 @@ export default function FinanceRecurring() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Частота</label>
-                <Select value={form.frequency} onValueChange={v => setForm({ ...form, frequency: v })}>
+                <Select value={form.frequency} onValueChange={v => setForm({ ...form, frequency: v, active_months: [] })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(FREQ_LABELS).map(([k, v]) => (
@@ -339,6 +495,13 @@ export default function FinanceRecurring() {
                 </Select>
               </div>
             </div>
+
+            {showMonthPicker && (
+              <MonthPicker
+                selected={form.active_months}
+                onChange={months => setForm({ ...form, active_months: months })}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -363,11 +526,21 @@ export default function FinanceRecurring() {
                 </Select>
               </div>
             </div>
+
+            {showMonthPicker && form.active_months.length > 0 && form.amount && (
+              <div className="p-2.5 bg-blue-50 rounded-lg border border-blue-100">
+                <p className="text-xs text-blue-700">
+                  <Icon name="Info" size={12} className="inline mr-1" />
+                  {form.active_months.length}x в год по {formatMoney(parseFloat(form.amount))} ₽
+                  = ~{formatMoney(Math.round((parseFloat(form.amount) * form.active_months.length) / 12))} ₽/мес в среднем
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button onClick={addItem} disabled={saving}
+            <Button onClick={saveItem} disabled={saving}
               className="bg-emerald-600 hover:bg-emerald-700 w-full">
-              {saving ? 'Сохраняю...' : 'Добавить'}
+              {saving ? 'Сохраняю...' : (editingItem ? 'Сохранить' : 'Добавить')}
             </Button>
           </DialogFooter>
         </DialogContent>

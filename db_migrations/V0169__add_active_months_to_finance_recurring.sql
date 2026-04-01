@@ -1,0 +1,1 @@
+ALTER TABLE finance_recurring ADD COLUMN active_months integer[] NULL;

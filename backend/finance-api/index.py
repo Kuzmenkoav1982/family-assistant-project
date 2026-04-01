@@ -1352,7 +1352,7 @@ def get_recurring(family_id):
             SELECT fr.id, fr.amount, fr.transaction_type, fr.description, fr.frequency,
                    fr.day_of_month, fr.next_date, fr.is_active, fr.member_id,
                    fc.name as cat_name, fc.icon as cat_icon, fc.color as cat_color,
-                   fa.name as acc_name
+                   fa.name as acc_name, fr.active_months, fr.category_id
             FROM finance_recurring fr
             LEFT JOIN finance_categories fc ON fr.category_id = fc.id
             LEFT JOIN finance_accounts fa ON fr.account_id = fa.id
@@ -1366,7 +1366,9 @@ def get_recurring(family_id):
                 'day_of_month': r[5], 'next_date': str(r[6]) if r[6] else None,
                 'is_active': r[7], 'member_id': str(r[8]) if r[8] else None,
                 'category_name': r[9], 'category_icon': r[10], 'category_color': r[11],
-                'account_name': r[12]
+                'account_name': r[12],
+                'active_months': r[13] if r[13] else None,
+                'category_id': str(r[14]) if r[14] else None
             }
             for r in cur.fetchall()
         ]
@@ -1379,13 +1381,19 @@ def add_recurring(family_id, body):
     amount = body.get('amount')
     if not amount or float(amount) <= 0:
         return respond(400, {'error': 'Укажите сумму'})
+    active_months = body.get('active_months')
+    active_months_sql = 'NULL'
+    if active_months and isinstance(active_months, list) and len(active_months) > 0:
+        months_ints = [str(int(m)) for m in active_months if 1 <= int(m) <= 12]
+        if months_ints:
+            active_months_sql = "ARRAY[%s]::integer[]" % ','.join(months_ints)
     conn = get_db()
     try:
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO finance_recurring
-            (family_id, account_id, category_id, amount, transaction_type, description, frequency, day_of_month, next_date, member_id)
-            VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', %s, '%s', %s)
+            (family_id, account_id, category_id, amount, transaction_type, description, frequency, day_of_month, next_date, member_id, active_months)
+            VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', %s, '%s', %s, %s)
             RETURNING id
         """ % (
             str(family_id),
@@ -1397,7 +1405,8 @@ def add_recurring(family_id, body):
             safe(body.get('frequency', 'monthly')),
             int(body['day_of_month']) if body.get('day_of_month') else 'NULL',
             safe(body.get('next_date', '')),
-            "'%s'" % safe(body['member_id']) if body.get('member_id') else 'NULL'
+            "'%s'" % safe(body['member_id']) if body.get('member_id') else 'NULL',
+            active_months_sql
         ))
         new_id = str(cur.fetchone()[0])
         conn.commit()
@@ -1424,6 +1433,28 @@ def update_recurring(family_id, body):
             sets.append("is_active = %s" % body['is_active'])
         if 'next_date' in body:
             sets.append("next_date = '%s'" % safe(body['next_date']))
+        if 'day_of_month' in body:
+            if body['day_of_month']:
+                sets.append("day_of_month = %s" % int(body['day_of_month']))
+            else:
+                sets.append("day_of_month = NULL")
+        if 'category_id' in body:
+            if body['category_id']:
+                sets.append("category_id = '%s'" % safe(body['category_id']))
+            else:
+                sets.append("category_id = NULL")
+        if 'type' in body:
+            sets.append("transaction_type = '%s'" % safe(body['type']))
+        if 'active_months' in body:
+            am = body['active_months']
+            if am and isinstance(am, list) and len(am) > 0:
+                months_ints = [str(int(m)) for m in am if 1 <= int(m) <= 12]
+                if months_ints:
+                    sets.append("active_months = ARRAY[%s]::integer[]" % ','.join(months_ints))
+                else:
+                    sets.append("active_months = NULL")
+            else:
+                sets.append("active_months = NULL")
         if not sets:
             return respond(400, {'error': 'Нечего обновлять'})
         cur.execute(
