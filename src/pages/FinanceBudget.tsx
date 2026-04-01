@@ -13,6 +13,7 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, Line, CartesianGrid } from 'recharts';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -128,6 +129,14 @@ export default function FinanceBudget() {
 
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
+
+  const [cashGapWarning, setCashGapWarning] = useState<{
+    show: boolean;
+    gapDate: string;
+    gapAmount: number;
+    action: 'add' | 'edit' | 'confirm';
+    confirmData?: PlannedItem;
+  } | null>(null);
 
   const loadCategories = useCallback(async () => {
     const res = await fetch(`${API}?section=categories`, { headers: getHeaders() });
@@ -348,49 +357,75 @@ export default function FinanceBudget() {
     );
   }
 
-  const confirmPlanned = async (item: PlannedItem) => {
-    setConfirmingIds(prev => new Set(prev).add(item.id));
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({
-        action: 'confirm_planned',
-        source: item.source,
-        source_id: item.source_id,
-        amount: item.amount,
-        type: item.type,
-        description: item.description,
-        date: item.date
-      })
-    });
-    if (res.ok) {
-      toast.success('Операция подтверждена');
-      // Задержка перед обновлением, чтобы пользователь увидел галочку
-      setTimeout(() => {
-        loadTransactions();
-        loadBudgets();
-        loadHistory();
-        setConfirmingIds(prev => {
-          const next = new Set(prev);
-          next.delete(item.id);
-          return next;
+  const checkCashGap = (
+    newAmount: number,
+    newDate: string,
+    newType: string,
+    editTxId?: string
+  ): { willCauseGap: boolean; gapDate: string; gapAmount: number } => {
+    // Build all timeline items (unfiltered — we need all items for accurate balance)
+    type SimItem = { date: string; amount: number; type: string; id: string };
+    const items: SimItem[] = [];
+
+    // Add planned items
+    plannedItems.forEach(p => items.push({
+      id: 'p_' + p.id,
+      date: p.date,
+      amount: p.amount,
+      type: p.type,
+    }));
+
+    // Add actual transactions (replacing edited one if applicable)
+    transactions.forEach(tx => {
+      if (editTxId && tx.id === editTxId) {
+        // Replace with new values
+        items.push({
+          id: 'tx_' + tx.id,
+          date: newDate,
+          amount: newAmount,
+          type: newType,
         });
-      }, 600);
-    } else {
-      toast.error('Ошибка при подтверждении');
-      setConfirmingIds(prev => {
-        const next = new Set(prev);
-        next.delete(item.id);
-        return next;
+      } else {
+        items.push({
+          id: 'tx_' + tx.id,
+          date: tx.date,
+          amount: tx.amount,
+          type: tx.type,
+        });
+      }
+    });
+
+    // If adding a new transaction (not editing), insert the hypothetical one
+    if (!editTxId) {
+      items.push({
+        id: 'hypothetical_new',
+        date: newDate,
+        amount: newAmount,
+        type: newType,
       });
     }
+
+    // Sort by date ascending
+    items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Calculate running balance
+    let balance = accountBalance;
+    for (const item of items) {
+      if (item.type === 'income') {
+        balance += item.amount;
+      } else {
+        balance -= item.amount;
+      }
+      if (balance < 0) {
+        const dateStr = new Date(item.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+        return { willCauseGap: true, gapDate: dateStr, gapAmount: balance };
+      }
+    }
+
+    return { willCauseGap: false, gapDate: '', gapAmount: 0 };
   };
 
-  const addTransaction = async () => {
-    if (!txAmount || parseFloat(txAmount) <= 0) {
-      toast.error('Укажите сумму');
-      return;
-    }
+  const executeAddTransaction = async () => {
     setSaving(true);
     const res = await fetch(API, {
       method: 'POST',
@@ -419,26 +454,8 @@ export default function FinanceBudget() {
     }
   };
 
-  const deleteTransaction = async (id: string) => {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ action: 'delete_transaction', id })
-    });
-    if (res.ok) {
-      toast.success('Удалено');
-      loadTransactions();
-      loadBudgets();
-      loadHistory();
-    }
-  };
-
-  const updateTransaction = async () => {
+  const executeUpdateTransaction = async () => {
     if (!editTx) return;
-    if (!txAmount || parseFloat(txAmount) <= 0) {
-      toast.error('Укажите сумму');
-      return;
-    }
     setSaving(true);
     const res = await fetch(API, {
       method: 'POST',
@@ -465,6 +482,115 @@ export default function FinanceBudget() {
     } else {
       toast.error('Ошибка');
     }
+  };
+
+  const executeConfirmPlanned = async (item: PlannedItem) => {
+    setConfirmingIds(prev => new Set(prev).add(item.id));
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        action: 'confirm_planned',
+        source: item.source,
+        source_id: item.source_id,
+        amount: item.amount,
+        type: item.type,
+        description: item.description,
+        date: item.date
+      })
+    });
+    if (res.ok) {
+      toast.success('Операция подтверждена');
+      setTimeout(() => {
+        loadTransactions();
+        loadBudgets();
+        loadHistory();
+        setConfirmingIds(prev => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
+      }, 600);
+    } else {
+      toast.error('Ошибка при подтверждении');
+      setConfirmingIds(prev => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
+
+  const confirmPlanned = async (item: PlannedItem) => {
+    if (item.type === 'expense') {
+      const gap = checkCashGap(item.amount, item.date, item.type);
+      if (gap.willCauseGap) {
+        setCashGapWarning({
+          show: true,
+          gapDate: gap.gapDate,
+          gapAmount: gap.gapAmount,
+          action: 'confirm',
+          confirmData: item,
+        });
+        return;
+      }
+    }
+    executeConfirmPlanned(item);
+  };
+
+  const addTransaction = async () => {
+    if (!txAmount || parseFloat(txAmount) <= 0) {
+      toast.error('Укажите сумму');
+      return;
+    }
+    if (txType === 'expense') {
+      const gap = checkCashGap(parseFloat(txAmount), txDate, txType);
+      if (gap.willCauseGap) {
+        setCashGapWarning({
+          show: true,
+          gapDate: gap.gapDate,
+          gapAmount: gap.gapAmount,
+          action: 'add',
+        });
+        return;
+      }
+    }
+    executeAddTransaction();
+  };
+
+  const deleteTransaction = async (id: string) => {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ action: 'delete_transaction', id })
+    });
+    if (res.ok) {
+      toast.success('Удалено');
+      loadTransactions();
+      loadBudgets();
+      loadHistory();
+    }
+  };
+
+  const updateTransaction = async () => {
+    if (!editTx) return;
+    if (!txAmount || parseFloat(txAmount) <= 0) {
+      toast.error('Укажите сумму');
+      return;
+    }
+    if (editTx.type === 'expense') {
+      const gap = checkCashGap(parseFloat(txAmount), txDate, editTx.type, editTx.id);
+      if (gap.willCauseGap) {
+        setCashGapWarning({
+          show: true,
+          gapDate: gap.gapDate,
+          gapAmount: gap.gapAmount,
+          action: 'edit',
+        });
+        return;
+      }
+    }
+    executeUpdateTransaction();
   };
 
   const openEditTx = (tx: Transaction) => {
@@ -1346,6 +1472,47 @@ export default function FinanceBudget() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={cashGapWarning?.show === true} onOpenChange={(open) => { if (!open) setCashGapWarning(null); }}>
+        <AlertDialogContent className="max-w-sm z-[100]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Icon name="AlertTriangle" size={20} className="text-red-500" />
+              Внимание: кассовый разрыв!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              Этот расход приведёт к отрицательному балансу{' '}
+              <span className="font-bold text-red-600">
+                {cashGapWarning ? formatMoney(cashGapWarning.gapAmount) : 0} ₽
+              </span>{' '}
+              на дату{' '}
+              <span className="font-bold">{cashGapWarning?.gapDate}</span>.
+              {' '}Это значит, что на счетах может не хватить средств для покрытия всех расходов.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCashGapWarning(null)}>
+              Отменить
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                const warning = cashGapWarning;
+                setCashGapWarning(null);
+                if (warning?.action === 'add') {
+                  executeAddTransaction();
+                } else if (warning?.action === 'edit') {
+                  executeUpdateTransaction();
+                } else if (warning?.action === 'confirm' && warning.confirmData) {
+                  executeConfirmPlanned(warning.confirmData);
+                }
+              }}
+            >
+              Всё равно добавить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
