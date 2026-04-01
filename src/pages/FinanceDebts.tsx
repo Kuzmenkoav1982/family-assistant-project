@@ -35,6 +35,7 @@ interface Debt {
   min_payment_pct?: number | null;
   bank_name?: string | null;
   show_in_budget?: boolean;
+  is_priority?: boolean;
 }
 
 interface Payment {
@@ -142,7 +143,8 @@ export default function FinanceDebts() {
     next_payment_date: '', start_date: '', end_date: '', notes: '',
     credit_limit: '', grace_period_days: '', grace_period_end: '',
     grace_amount: '', min_payment_pct: '', bank_name: '',
-    show_in_budget: false as boolean
+    show_in_budget: false as boolean,
+    is_priority: false as boolean
   });
 
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -243,14 +245,15 @@ export default function FinanceDebts() {
           grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
           min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
           bank_name: form.bank_name || null,
-          show_in_budget: form.show_in_budget
+          show_in_budget: form.show_in_budget,
+          is_priority: form.is_priority
         })
       });
       setSaving(false);
       if (res.ok) {
         toast.success('Долг добавлен');
         setShowAdd(false);
-        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '', show_in_budget: false });
+        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '', show_in_budget: false, is_priority: false });
         loadDebts();
       } else {
         const data = await res.json().catch(() => null);
@@ -314,14 +317,15 @@ export default function FinanceDebts() {
           grace_amount: form.grace_amount ? parseFloat(form.grace_amount) : null,
           min_payment_pct: form.min_payment_pct ? parseFloat(form.min_payment_pct) : null,
           bank_name: form.bank_name || null,
-          show_in_budget: form.show_in_budget
+          show_in_budget: form.show_in_budget,
+          is_priority: form.is_priority
         })
       });
       setSaving(false);
       if (res.ok) {
         toast.success('Сохранено');
         setEditDebt(null);
-        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '', show_in_budget: false });
+        setForm({ name: '', debt_type: 'credit', creditor: '', original_amount: '', remaining_amount: '', interest_rate: '', monthly_payment: '', next_payment_date: '', start_date: '', end_date: '', notes: '', credit_limit: '', grace_period_days: '', grace_period_end: '', grace_amount: '', min_payment_pct: '', bank_name: '', show_in_budget: false, is_priority: false });
         loadDebts();
         if (selectedDebt && selectedDebt.id === editDebt.id) {
           setSelectedDebt(null);
@@ -355,7 +359,8 @@ export default function FinanceDebts() {
       grace_amount: debt.grace_amount ? String(debt.grace_amount) : '',
       min_payment_pct: debt.min_payment_pct ? String(debt.min_payment_pct) : '',
       bank_name: debt.bank_name || '',
-      show_in_budget: debt.show_in_budget || false
+      show_in_budget: debt.show_in_budget || false,
+      is_priority: debt.is_priority || false
     });
     setEditDebt(debt);
   };
@@ -392,6 +397,21 @@ export default function FinanceDebts() {
     }
   };
 
+  const togglePriority = async (debt: Debt) => {
+    const newVal = !debt.is_priority;
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'update_debt', id: debt.id, is_priority: newVal })
+    });
+    if (res.ok) {
+      toast.success(newVal ? 'Приоритетный долг установлен' : 'Приоритет снят');
+      loadDebts();
+      if (selectedDebt && selectedDebt.id === debt.id) {
+        setSelectedDebt({ ...selectedDebt, is_priority: newVal });
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex items-center justify-center">
@@ -413,6 +433,11 @@ export default function FinanceDebts() {
               <Icon name="ArrowLeft" size={18} />
             </Button>
             <h1 className="text-xl font-bold flex-1 truncate">{selectedDebt.name}</h1>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); togglePriority(selectedDebt); }}
+              className={selectedDebt.is_priority ? 'text-amber-500' : 'text-gray-400'}
+              title={selectedDebt.is_priority ? 'Снять приоритет' : 'Сделать приоритетным'}>
+              <Icon name="Star" size={16} className={selectedDebt.is_priority ? 'fill-amber-500' : ''} />
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => openEditDebt(selectedDebt)}>
               <Icon name="Pencil" size={16} />
             </Button>
@@ -421,15 +446,22 @@ export default function FinanceDebts() {
             </Button>
           </div>
 
-          <Card className="overflow-hidden">
-            <div className={`h-2`} style={{ backgroundColor: meta.color }} />
+          <Card className={`overflow-hidden ${selectedDebt.is_priority ? 'ring-2 ring-amber-400' : ''}`}>
+            <div className={`h-2`} style={{ backgroundColor: selectedDebt.is_priority ? '#F59E0B' : meta.color }} />
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: meta.color + '20' }}>
                   <Icon name={meta.icon} size={20} style={{ color: meta.color }} />
                 </div>
-                <div>
-                  <Badge variant="outline" className="text-xs">{meta.label}</Badge>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">{meta.label}</Badge>
+                    {selectedDebt.is_priority && (
+                      <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-300">
+                        <Icon name="Star" size={10} className="fill-amber-500 mr-0.5" /> Приоритет к выплате
+                      </Badge>
+                    )}
+                  </div>
                   {selectedDebt.creditor && <p className="text-sm text-muted-foreground mt-0.5">{selectedDebt.creditor}</p>}
                 </div>
               </div>
@@ -884,6 +916,13 @@ export default function FinanceDebts() {
                 </div>
                 <span className="text-sm" onClick={() => setForm(f => ({ ...f, show_in_budget: !f.show_in_budget }))}>Показывать платёж в бюджете</span>
               </label>
+              <label className="flex items-center gap-2 cursor-pointer py-1">
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${form.is_priority ? 'bg-amber-500 border-amber-500' : 'border-gray-300'}`}
+                  onClick={() => setForm(f => ({ ...f, is_priority: !f.is_priority }))}>
+                  {form.is_priority && <Icon name="Star" size={12} className="text-white" />}
+                </div>
+                <span className="text-sm" onClick={() => setForm(f => ({ ...f, is_priority: !f.is_priority }))}>Приоритетный к выплате</span>
+              </label>
             </div>
             <DialogFooter>
               <Button onClick={updateDebt} disabled={saving}
@@ -1001,17 +1040,23 @@ export default function FinanceDebts() {
 
               return (
                 <Card key={debt.id}
-                  className={`overflow-hidden cursor-pointer hover:shadow-lg transition-all ${isPaid ? 'opacity-60' : ''}`}
+                  className={`overflow-hidden cursor-pointer hover:shadow-lg transition-all ${isPaid ? 'opacity-60' : ''} ${debt.is_priority ? 'ring-2 ring-amber-400 border-amber-300' : ''}`}
                   onClick={() => setSelectedDebt(debt)}>
                   <CardContent className="p-0">
                     <div className="flex items-stretch">
-                      <div className="w-14 flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: meta.color + '15' }}>
+                      <div className="w-14 flex items-center justify-center flex-shrink-0 relative"
+                        style={{ backgroundColor: debt.is_priority ? '#FEF3C7' : meta.color + '15' }}>
                         <Icon name={meta.icon} size={24} style={{ color: meta.color }} />
+                        {debt.is_priority && (
+                          <div className="absolute -top-0.5 -right-0.5">
+                            <Icon name="Star" size={12} className="text-amber-500 fill-amber-500" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-bold text-sm truncate">{debt.name}</span>
+                          {debt.is_priority && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-300">Приоритет</Badge>}
                           {isPaid && <Badge className="text-[10px] bg-green-100 text-green-700">Погашен</Badge>}
                           <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
                         </div>
@@ -1213,6 +1258,13 @@ export default function FinanceDebts() {
                 {form.show_in_budget && <Icon name="Check" size={14} className="text-white" />}
               </div>
               <span className="text-sm" onClick={() => setForm({...form, show_in_budget: !form.show_in_budget})}>Показывать платёж в бюджете</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${form.is_priority ? 'bg-amber-500 border-amber-500' : 'border-gray-300'}`}
+                onClick={() => setForm({...form, is_priority: !form.is_priority})}>
+                {form.is_priority && <Icon name="Star" size={12} className="text-white" />}
+              </div>
+              <span className="text-sm" onClick={() => setForm({...form, is_priority: !form.is_priority})}>Приоритетный к выплате</span>
             </label>
           </div>
           <DialogFooter>

@@ -359,7 +359,7 @@ def get_transactions(family_id, params):
             cur.execute("""
                 SELECT fr.id, fr.amount, fr.transaction_type, fr.description,
                        fr.day_of_month, fr.frequency,
-                       fc.name, fc.icon, fc.color, fa.name
+                       fc.name, fc.icon, fc.color, fa.name, fr.active_months
                 FROM finance_recurring fr
                 LEFT JOIN finance_categories fc ON fr.category_id = fc.id
                 LEFT JOIN finance_accounts fa ON fr.account_id = fa.id
@@ -367,15 +367,22 @@ def get_transactions(family_id, params):
             """ % fid)
             for r in cur.fetchall():
                 freq = r[5] or 'monthly'
+                active_months = r[10]
                 include = False
                 if freq == 'monthly':
                     include = True
                 elif freq == 'weekly':
                     include = True
-                elif freq == 'quarterly' and mo in (1, 4, 7, 10):
-                    include = True
-                elif freq == 'yearly' and mo == 1:
-                    include = True
+                elif freq == 'quarterly':
+                    if active_months and isinstance(active_months, list):
+                        include = mo in active_months
+                    else:
+                        include = mo in (1, 4, 7, 10)
+                elif freq == 'yearly':
+                    if active_months and isinstance(active_months, list):
+                        include = mo in active_months
+                    else:
+                        include = mo == 1
                 if not include:
                     continue
                 day = r[4] or 1
@@ -832,10 +839,10 @@ def get_debts(family_id):
                    interest_rate, monthly_payment, next_payment_date, start_date, end_date,
                    status, notes, account_id,
                    credit_limit, grace_period_days, grace_period_end, grace_amount,
-                   min_payment_pct, bank_name, show_in_budget
+                   min_payment_pct, bank_name, show_in_budget, is_priority
             FROM finance_debts
             WHERE family_id = '%s'
-            ORDER BY status, next_payment_date NULLS LAST
+            ORDER BY status, is_priority DESC NULLS LAST, next_payment_date NULLS LAST
         """ % str(family_id))
         items = [
             {
@@ -854,7 +861,8 @@ def get_debts(family_id):
                 'grace_amount': float(r[17]) if r[17] else None,
                 'min_payment_pct': float(r[18]) if r[18] else None,
                 'bank_name': r[19],
-                'show_in_budget': r[20]
+                'show_in_budget': r[20],
+                'is_priority': r[21] if r[21] else False
             }
             for r in cur.fetchall()
         ]
@@ -991,9 +999,16 @@ def update_debt(family_id, body):
             sets.append("bank_name = %s" % ("'%s'" % safe(body['bank_name']) if body['bank_name'] else 'NULL'))
         if 'show_in_budget' in body:
             sets.append("show_in_budget = %s" % ('true' if body['show_in_budget'] else 'false'))
+        if 'is_priority' in body:
+            sets.append("is_priority = %s" % ('true' if body['is_priority'] else 'false'))
         if not sets:
             return respond(400, {'error': 'Нечего обновлять'})
         sets.append("updated_at = NOW()")
+        if body.get('is_priority'):
+            cur.execute(
+                "UPDATE finance_debts SET is_priority = false WHERE family_id = '%s' AND id != '%s'"
+                % (fid, safe(did))
+            )
         cur.execute(
             "UPDATE finance_debts SET %s WHERE id = '%s' AND family_id = '%s'"
             % (', '.join(sets), safe(did), fid)
