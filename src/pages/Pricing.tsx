@@ -653,20 +653,68 @@ export default function Pricing() {
                     )}
                   </CardContent>
                   <CardFooter>
-                    <Button 
-                      className="w-full"
-                      variant={plan.popular ? 'default' : 'outline'}
-                      onClick={() => handleSubscribe(plan.id)}
-                      disabled={loading === plan.id || plan.id === 'free'}
-                    >
-                      {loading === plan.id ? (
-                        <Icon name="Loader2" className="animate-spin" size={16} />
-                      ) : plan.id === 'free' ? (
-                        'Текущий план'
-                      ) : (
-                        'Подключить'
-                      )}
-                    </Button>
+                    {(() => {
+                      const hasSub = currentSubscription?.has_subscription;
+                      const samePlan = hasSub && currentSubscription?.plan === plan.id;
+                      const isPremium = hasSub && currentSubscription?.plan?.startsWith('premium_');
+                      const planIsPremium = plan.id.startsWith('premium_');
+                      const isFree = plan.id === 'free' || plan.id === 'free_2026';
+                      
+                      if (isFree) {
+                        return (
+                          <Button className="w-full" variant="outline" disabled>
+                            {hasSub ? 'Бесплатный' : 'Текущий план'}
+                          </Button>
+                        );
+                      }
+                      
+                      if (samePlan) {
+                        return (
+                          <Button 
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                            onClick={() => handleSubscribe(plan.id, 'extend')}
+                            disabled={loading === plan.id}
+                          >
+                            {loading === plan.id ? (
+                              <Icon name="Loader2" className="animate-spin" size={16} />
+                            ) : (
+                              <>
+                                <Icon name="CalendarPlus" size={16} className="mr-1" />
+                                Продлить
+                              </>
+                            )}
+                          </Button>
+                        );
+                      }
+                      
+                      if (hasSub && isPremium && planIsPremium) {
+                        return (
+                          <Button 
+                            className="w-full"
+                            variant={plan.popular ? 'default' : 'outline'}
+                            onClick={() => handleSubscribe(plan.id)}
+                            disabled={loading === plan.id}
+                          >
+                            {loading === plan.id ? (
+                              <Icon name="Loader2" className="animate-spin" size={16} />
+                            ) : 'Сменить тариф'}
+                          </Button>
+                        );
+                      }
+                      
+                      return (
+                        <Button 
+                          className="w-full"
+                          variant={plan.popular ? 'default' : 'outline'}
+                          onClick={() => handleSubscribe(plan.id)}
+                          disabled={loading === plan.id}
+                        >
+                          {loading === plan.id ? (
+                            <Icon name="Loader2" className="animate-spin" size={16} />
+                          ) : 'Подключить'}
+                        </Button>
+                      );
+                    })()}
                   </CardFooter>
                 </Card>
               ))}

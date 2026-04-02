@@ -215,7 +215,7 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
             'message': 'У семьи уже есть активная подписка',
             'current_subscription': current_subscription,
             'upgrade_available': current_subscription['plan'] == 'ai_assistant' and plan_type == 'full',
-            'extend_available': current_subscription['plan'] == plan_type
+            'extend_available': True
         }
     
     plan = PLANS[plan_type]
@@ -298,7 +298,7 @@ def create_subscription(family_id: str, user_id: str, plan_type: str, return_url
         conn.close()
         return {'error': str(e)}
 
-def extend_subscription(family_id: str, user_id: str, return_url: str) -> Dict[str, Any]:
+def extend_subscription(family_id: str, user_id: str, return_url: str, payment_method: str = None) -> Dict[str, Any]:
     """Продлевает текущую подписку на месяц"""
     current_subscription = get_subscription_status(family_id)
     
@@ -309,7 +309,6 @@ def extend_subscription(family_id: str, user_id: str, return_url: str) -> Dict[s
     plan = PLANS[plan_type]
     user_email = get_user_email(user_id)
     
-    # Создаём платёж
     payment_result = create_yookassa_payment(
         plan['price'],
         f"Продление подписки {plan['name']} - Семейный Органайзер",
@@ -320,7 +319,8 @@ def extend_subscription(family_id: str, user_id: str, return_url: str) -> Dict[s
             'plan_type': plan_type,
             'action': 'extend',
             'user_email': user_email
-        }
+        },
+        payment_method=payment_method
     )
     
     if 'error' in payment_result:
@@ -330,14 +330,12 @@ def extend_subscription(family_id: str, user_id: str, return_url: str) -> Dict[s
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        # Новая дата окончания = текущая end_date + 30 дней
         safe_family_id = family_id.replace("'", "''")
-        safe_plan_type = plan_type.replace("'", "''")
         
         cur.execute(
             f"""
             SELECT end_date FROM {SCHEMA}.subscriptions
-            WHERE family_id = '{safe_family_id}' AND status = 'active' AND plan_type = '{safe_plan_type}'
+            WHERE family_id = '{safe_family_id}' AND status IN ('active', 'pending') AND end_date > CURRENT_TIMESTAMP
             ORDER BY end_date DESC LIMIT 1
             """
         )
@@ -1045,9 +1043,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             # Продлить подписку
             elif action == 'extend':
                 return_url = body.get('return_url', 'https://nasha-semiya.ru/pricing?status=success')
+                payment_method = body.get('payment_method')
                 
                 print(f'[DEBUG] Extending subscription for family_id: {family_id}')
-                result = extend_subscription(family_id, user_id, return_url)
+                result = extend_subscription(family_id, user_id, return_url, payment_method)
                 
                 if 'error' in result:
                     return {
