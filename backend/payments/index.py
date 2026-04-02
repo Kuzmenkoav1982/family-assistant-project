@@ -883,6 +883,8 @@ def try_activate_pending_subscriptions(family_id: str) -> bool:
 
 def get_subscription_status(family_id: str) -> Dict[str, Any]:
     """Получает активную подписку семьи с информацией о покупателе"""
+    try_activate_pending_subscriptions(family_id)
+
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -902,26 +904,6 @@ def get_subscription_status(family_id: str) -> Dict[str, Any]:
     
     cur.close()
     conn.close()
-    
-    if not subscription:
-        activated = try_activate_pending_subscriptions(family_id)
-        if activated:
-            conn2 = get_db_connection()
-            cur2 = conn2.cursor(cursor_factory=RealDictCursor)
-            cur2.execute(
-                f"""
-                SELECT s.id, s.plan_type, s.status, s.amount, s.start_date, s.end_date, s.auto_renew,
-                       p.user_id, u.name as buyer_name, u.email as buyer_email, p.paid_at
-                FROM {SCHEMA}.subscriptions s
-                LEFT JOIN {SCHEMA}.payments p ON p.subscription_id = s.id AND p.status = 'paid'
-                LEFT JOIN {SCHEMA}.users u ON u.id = p.user_id
-                WHERE s.family_id = '{safe_family_id}' AND s.status = 'active' AND s.end_date > CURRENT_TIMESTAMP
-                ORDER BY s.end_date DESC LIMIT 1
-                """
-            )
-            subscription = cur2.fetchone()
-            cur2.close()
-            conn2.close()
     
     if not subscription:
         return {
