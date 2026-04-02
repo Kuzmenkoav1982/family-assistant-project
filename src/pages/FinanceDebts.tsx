@@ -72,6 +72,22 @@ function isCC(type: string) {
   return type === 'credit_card';
 }
 
+const DEFAULT_RATES: Record<string, number> = {
+  credit_card: 30,
+  microloan: 292,
+  credit: 18,
+  car_loan: 18,
+  mortgage: 12,
+  personal: 0,
+  installment: 0,
+};
+
+function getEffectiveRate(d: Debt): { rate: number; estimated: boolean } {
+  if (d.interest_rate > 0) return { rate: d.interest_rate, estimated: false };
+  const defaultRate = DEFAULT_RATES[d.debt_type] || 0;
+  return { rate: defaultRate, estimated: defaultRate > 0 };
+}
+
 function calcLoanPayoff(remaining: number, rate: number, monthly: number) {
   if (monthly <= 0 || remaining <= 0) return null;
   const monthlyRate = rate / 100 / 12;
@@ -119,11 +135,12 @@ function formatMonths(m: number) {
 
 function getDebtPayoff(d: Debt) {
   if (d.status === 'paid' || d.remaining_amount <= 0) return null;
+  const { rate } = getEffectiveRate(d);
   if (isCC(d.debt_type) && d.min_payment_pct) {
-    return calcCreditCardPayoff(d.remaining_amount, d.interest_rate, d.min_payment_pct);
+    return calcCreditCardPayoff(d.remaining_amount, rate, d.min_payment_pct);
   }
   if (d.monthly_payment > 0) {
-    return calcLoanPayoff(d.remaining_amount, d.interest_rate, d.monthly_payment);
+    return calcLoanPayoff(d.remaining_amount, rate, d.monthly_payment);
   }
   return null;
 }
@@ -512,7 +529,7 @@ export default function FinanceDebts() {
                         )}
                         {selectedDebt.grace_period_end && new Date(selectedDebt.grace_period_end) < new Date() && (
                           <p className="text-[11px] text-red-700 bg-red-50 rounded px-2 py-1 flex items-center gap-1">
-                            <Icon name="AlertTriangle" size={12} /> Льготный период истёк — начисляются {selectedDebt.interest_rate}% годовых
+                            <Icon name="AlertTriangle" size={12} /> Льготный период истёк — начисляются {getEffectiveRate(selectedDebt).rate}% годовых
                           </p>
                         )}
                       </CardContent>
@@ -520,12 +537,20 @@ export default function FinanceDebts() {
                   )}
 
                   <div className="grid grid-cols-2 gap-3">
-                    {selectedDebt.interest_rate > 0 && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Ставка</p>
-                        <p className="font-medium">{selectedDebt.interest_rate}% годовых</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const { rate, estimated } = getEffectiveRate(selectedDebt);
+                      if (rate <= 0) return null;
+                      return (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Ставка</p>
+                          {estimated ? (
+                            <p className="font-medium text-orange-600">≈{rate}% <span className="text-[10px] text-muted-foreground">(средняя)</span></p>
+                          ) : (
+                            <p className="font-medium">{rate}% годовых</p>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {selectedDebt.min_payment_pct && (
                       <div>
                         <p className="text-xs text-muted-foreground">Мин. платёж</p>
@@ -585,12 +610,20 @@ export default function FinanceDebts() {
                       <p className="text-xs text-muted-foreground">Остаток</p>
                       <p className="font-bold text-red-600">{formatMoney(selectedDebt.remaining_amount)} ₽</p>
                     </div>
-                    {selectedDebt.interest_rate > 0 && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Ставка</p>
-                        <p className="font-medium">{selectedDebt.interest_rate}%</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const { rate, estimated } = getEffectiveRate(selectedDebt);
+                      if (rate <= 0) return null;
+                      return (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Ставка</p>
+                          {estimated ? (
+                            <p className="font-medium text-orange-600">≈{rate}% <span className="text-[10px] text-muted-foreground">(средняя)</span></p>
+                          ) : (
+                            <p className="font-medium">{rate}%</p>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {selectedDebt.monthly_payment > 0 && (
                       <div>
                         <p className="text-xs text-muted-foreground">Ежемесячный платёж</p>
@@ -630,10 +663,11 @@ export default function FinanceDebts() {
             if (selectedDebt.status === 'paid' || selectedDebt.remaining_amount <= 0) return null;
             const payoff = getDebtPayoff(selectedDebt);
             const isInf = payoff ? payoff.months === Infinity : false;
+            const { rate: effRate, estimated: rateEstimated } = getEffectiveRate(selectedDebt);
 
             const simAmt = simPayment ? parseFloat(simPayment) : 0;
             const simResult = simAmt > 0
-              ? calcLoanPayoff(selectedDebt.remaining_amount, selectedDebt.interest_rate, simAmt)
+              ? calcLoanPayoff(selectedDebt.remaining_amount, effRate, simAmt)
               : null;
             const simValid = simResult && simResult.months !== Infinity;
             const savedMonths = simValid && payoff && !isInf ? payoff.months - simResult!.months : 0;
@@ -673,6 +707,12 @@ export default function FinanceDebts() {
                       <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
                         <Icon name="AlertTriangle" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
                         <p className="text-[11px] text-amber-700">При минимальных платежах переплата составит <b>{formatMoney(Math.round(payoff.overpayment))} ₽</b>. Платите больше минимума, чтобы сэкономить.</p>
+                      </div>
+                    )}
+                    {rateEstimated && (
+                      <div className="bg-blue-50 rounded-lg p-2.5 flex items-start gap-2">
+                        <Icon name="Info" size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-[11px] text-blue-700">Расчёт по средней ставке ≈{effRate}%. Укажите реальную ставку вашей карты для точного прогноза (кнопка ✏️ сверху).</p>
                       </div>
                     )}
                     {!isInf && (
@@ -957,8 +997,11 @@ export default function FinanceDebts() {
             const p = getDebtPayoff(d);
             return sum + (p && p.overpayment !== Infinity ? p.overpayment : 0);
           }, 0);
-          const highestRate = active.reduce((max, d) => Math.max(max, d.interest_rate || 0), 0);
-          const highestRateDebt = active.find(d => d.interest_rate === highestRate);
+          const highestRate = active.reduce((max, d) => Math.max(max, getEffectiveRate(d).rate), 0);
+          const highestRateDebt = active.reduce((best: Debt | null, d) => {
+            const r = getEffectiveRate(d).rate;
+            return !best || r > getEffectiveRate(best).rate ? d : best;
+          }, null as Debt | null);
           const ccDebts = active.filter(d => isCC(d.debt_type));
           const ccTotal = ccDebts.reduce((s, d) => s + d.remaining_amount, 0);
 
@@ -1071,9 +1114,13 @@ export default function FinanceDebts() {
                           {isCC(debt.debt_type) && debt.min_payment_pct && debt.remaining_amount > 0 && (
                             <span className="text-orange-600 font-medium">мин. {formatMoney(Math.ceil(debt.remaining_amount * (debt.min_payment_pct / 100)))} ₽</span>
                           )}
-                          {debt.interest_rate > 0 && (
-                            <span className="text-muted-foreground">{debt.interest_rate}%</span>
-                          )}
+                          {(() => {
+                            const { rate, estimated } = getEffectiveRate(debt);
+                            if (rate <= 0) return null;
+                            return estimated
+                              ? <span className="text-orange-500">≈{rate}%</span>
+                              : <span className="text-muted-foreground">{rate}%</span>;
+                          })()}
                           {isCC(debt.debt_type) && debt.bank_name && (
                             <span className="text-muted-foreground">{debt.bank_name}</span>
                           )}
