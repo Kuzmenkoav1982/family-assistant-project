@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 
@@ -14,39 +14,39 @@ export function useSubscription() {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkSubscription = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setSubscription({ has_subscription: false });
-        setLoading(false);
-        return;
-      }
+  const checkSubscription = useCallback(async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setSubscription({ has_subscription: false });
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const response = await fetch(PAYMENTS_API, {
-          method: 'GET',
-          headers: {
-            'X-Auth-Token': token
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setSubscription(data);
-        } else {
-          setSubscription({ has_subscription: false });
+    try {
+      const response = await fetch(PAYMENTS_API, {
+        method: 'GET',
+        headers: {
+          'X-Auth-Token': token
         }
-      } catch (error) {
-        console.error('Ошибка проверки подписки:', error);
-        setSubscription({ has_subscription: false });
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
 
-    checkSubscription();
+      if (response.ok) {
+        const data = await response.json();
+        setSubscription(data);
+      } else {
+        setSubscription({ has_subscription: false });
+      }
+    } catch (error) {
+      console.error('Ошибка проверки подписки:', error);
+      setSubscription({ has_subscription: false });
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    checkSubscription();
+  }, [checkSubscription]);
 
   const hasAIAccess = subscription?.has_subscription && 
     (subscription.plan === 'ai_assistant' || 
@@ -68,6 +68,7 @@ export function useSubscription() {
     loading,
     hasAIAccess,
     hasFullAccess,
-    hasPlan: subscription?.has_subscription || false
+    hasPlan: subscription?.has_subscription || false,
+    refetch: checkSubscription
   };
 }

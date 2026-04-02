@@ -47,7 +47,7 @@ const AIAssistantWidget = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { assistantType, assistantName, selectedRole } = useAIAssistant();
-  const { hasAIAccess, loading: subscriptionLoading } = useSubscription();
+  const { hasAIAccess, loading: subscriptionLoading, refetch } = useSubscription();
 
   // Перетаскивание виджета (десктоп - для окна чата)
   const [position, setPosition] = useState(() => {
@@ -203,15 +203,7 @@ const AIAssistantWidget = () => {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
 
-    // Проверка подписки перед отправкой
-    if (!subscriptionLoading && !hasAIAccess) {
-      toast({
-        title: '🔒 Требуется подписка',
-        description: 'AI-помощник доступен только с подпиской Premium',
-      });
-      setTimeout(() => navigate('/pricing'), 2000);
-      return;
-    }
+    // Подписка проверяется на бэкенде — не блокируем на фронте
 
     const userMessage: Message = {
       role: 'user',
@@ -269,6 +261,7 @@ const AIAssistantWidget = () => {
           return;
         }
         if (error.error === 'subscription_required') {
+          await refetch();
           toast({
             title: '🔒 Требуется подписка',
             description: 'Подписка неактивна. Подключите Premium для доступа к AI',

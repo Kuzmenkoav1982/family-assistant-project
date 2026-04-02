@@ -816,24 +816,24 @@ export default function Pricing() {
 
       {/* Payment Method Selection Dialog */}
       <Dialog open={showPaymentMethodDialog} onOpenChange={setShowPaymentMethodDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl text-center">Выберите способ оплаты</DialogTitle>
+            <DialogTitle className="text-xl text-center">Выберите способ оплаты</DialogTitle>
             <DialogDescription className="text-center">
               Как вам удобнее оплатить подписку?
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 gap-4 py-4">
+          <div className="grid grid-cols-1 gap-3 py-3">
             <Button
               onClick={() => proceedWithPayment('sbp')}
-              className="h-auto py-6 flex flex-col items-center gap-3 hover:bg-blue-50 hover:border-blue-300"
+              className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-300"
               variant="outline"
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="text-4xl">📱</div>
-                <div className="flex-1 text-left">
-                  <div className="font-bold text-lg">Система Быстрых Платежей (СБП)</div>
+              <div className="flex items-center gap-3 w-full min-w-0">
+                <div className="text-3xl shrink-0">📱</div>
+                <div className="min-w-0 text-left">
+                  <div className="font-bold text-base leading-tight">СБП</div>
                   <div className="text-sm text-muted-foreground">Выберите любой свой банк</div>
                 </div>
               </div>
@@ -841,13 +841,13 @@ export default function Pricing() {
 
             <Button
               onClick={() => proceedWithPayment('card')}
-              className="h-auto py-6 flex flex-col items-center gap-3 hover:bg-green-50 hover:border-green-300"
+              className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-green-50 hover:border-green-300"
               variant="outline"
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="text-4xl">💳</div>
-                <div className="flex-1 text-left">
-                  <div className="font-bold text-lg">Банковская карта</div>
+              <div className="flex items-center gap-3 w-full min-w-0">
+                <div className="text-3xl shrink-0">💳</div>
+                <div className="min-w-0 text-left">
+                  <div className="font-bold text-base leading-tight">Банковская карта</div>
                   <div className="text-sm text-muted-foreground">Visa, MasterCard, МИР</div>
                 </div>
               </div>
