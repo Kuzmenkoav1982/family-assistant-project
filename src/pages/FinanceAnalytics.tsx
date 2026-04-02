@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { FinanceAnalyticsInstructions } from '@/components/finance/FinanceInstructions';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
@@ -368,6 +369,8 @@ export default function FinanceAnalytics() {
           </Button>
         }
       />
+
+      <FinanceAnalyticsInstructions />
 
       {/* === HEALTH GAUGE === */}
       <HealthGauge {...health} />

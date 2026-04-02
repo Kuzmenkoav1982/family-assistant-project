@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { FinanceAccountsInstructions } from '@/components/finance/FinanceInstructions';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -200,6 +201,8 @@ export default function FinanceAccounts() {
             </Button>
           }
         />
+
+        <FinanceAccountsInstructions />
 
         {accounts.length > 0 && (
           <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-0">

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { FinanceRecurringInstructions } from '@/components/finance/FinanceInstructions';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -346,6 +347,8 @@ export default function FinanceRecurring() {
             </Button>
           }
         />
+
+        <FinanceRecurringInstructions />
 
         {activeItems.length > 0 && (
           <div className="grid grid-cols-2 gap-3">

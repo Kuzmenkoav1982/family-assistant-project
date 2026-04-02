@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { FinanceStrategyInstructions } from '@/components/finance/FinanceInstructions';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Legend,
@@ -479,6 +480,8 @@ export default function FinanceStrategy() {
           </Button>
         }
       />
+
+      <FinanceStrategyInstructions />
 
       {/* === 1. STRATEGY COMPARISON === */}
       <section className="space-y-3">

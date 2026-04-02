@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import { FinanceAntiscamInstructions } from '@/components/finance/FinanceInstructions';
 
 interface ScamScheme {
   id: string;
@@ -604,6 +605,8 @@ export default function AntiScam() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e8e3b99f-ee06-4225-bd9e-bbbb2e1a2c07.jpg"
           backPath="/finance"
         />
+
+        <FinanceAntiscamInstructions />
 
         <button
           onClick={() => { setPanicMode(true); setPanicStep(0); }}

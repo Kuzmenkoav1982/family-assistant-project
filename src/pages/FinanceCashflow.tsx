@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { FinanceCashflowInstructions } from '@/components/finance/FinanceInstructions';
 import {
   AreaChart, Area, ComposedChart, Line, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -268,6 +269,8 @@ export default function FinanceCashflow() {
           </Button>
         }
       />
+
+      <FinanceCashflowInstructions />
 
       {/* === 1. TOP SUMMARY === */}
       <div className="grid grid-cols-3 gap-2">

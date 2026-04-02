@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import { FinanceGoalsInstructions } from '@/components/finance/FinanceInstructions';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -157,6 +158,8 @@ export default function FinanceGoals() {
             </Button>
           }
         />
+
+        <FinanceGoalsInstructions />
 
         {activeGoals.length > 0 && (
           <Card className="bg-gradient-to-br from-amber-500 to-orange-600 text-white border-0">

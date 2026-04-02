@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import { FinanceLiteracyInstructions } from '@/components/finance/FinanceInstructions';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -422,6 +423,8 @@ export default function FinanceLiteracy() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dda844a8-299d-4e2a-9c95-2b173c84aeb8.jpg"
           backPath="/finance"
         />
+
+        <FinanceLiteracyInstructions />
 
         <div className="rounded-xl bg-gradient-to-r from-purple-500/10 via-violet-500/5 to-transparent border border-purple-200/50 p-4">
           <div className="flex items-start gap-3">

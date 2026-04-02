@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import { FinanceLoyaltyInstructions } from '@/components/finance/FinanceInstructions';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -228,6 +229,8 @@ export default function FinanceLoyalty() {
             </Button>
           }
         />
+
+        <FinanceLoyaltyInstructions />
 
         {usedCategories.length > 1 && (
           <div className="flex gap-2 overflow-x-auto pb-1">

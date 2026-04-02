@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { FinanceHubInstructions } from '@/components/finance/FinanceInstructions';
 
 interface SubSection {
   id: string;
@@ -184,6 +185,8 @@ export default function FinanceHub() {
           subtitle="Бюджет, счета, долги и финансовые цели семьи"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dda8e6ec-c019-40cd-a6e7-d49428af5b50.jpg"
         />
+
+        <FinanceHubInstructions />
 
         <div className="rounded-xl bg-gradient-to-r from-emerald-500/10 via-green-500/5 to-transparent border border-emerald-200/50 p-4">
           <div className="flex items-start gap-3">
