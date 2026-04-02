@@ -139,6 +139,7 @@ export default function Pricing() {
   const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<'create' | 'extend' | 'upgrade'>('create');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('premium_1m');
 
   useEffect(() => {
     loadPlansFromDB();
@@ -530,10 +531,6 @@ export default function Pricing() {
                     <span><strong>Продление:</strong> Можно продлить подписку на месяц в любой момент — новый срок добавится к текущему</span>
                   </p>
                   <p className="flex items-start gap-2">
-                    <Icon name="TrendingUp" size={16} className="text-orange-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>Апгрейд:</strong> При переходе с "AI-помощник" на "Полный пакет" вернём пропорциональную стоимость за оставшиеся дни</span>
-                  </p>
-                  <p className="flex items-start gap-2">
                     <Icon name="Eye" size={16} className="text-gray-600 mt-0.5 flex-shrink-0" />
                     <span><strong>Прозрачность:</strong> Видно кто купил подписку и когда она истекает</span>
                   </p>
@@ -610,114 +607,121 @@ export default function Pricing() {
               </Card>
             )}
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {subscriptionPlans.map((plan) => (
-                <Card 
-                  key={plan.id}
-                  className={`relative ${plan.popular ? 'border-purple-500 border-2 shadow-xl' : ''}`}
-                >
-                  {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                      🔥 Популярный
-                    </Badge>
-                  )}
-                  <CardHeader>
-                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plan.color} flex items-center justify-center text-white text-2xl mb-4`}>
-                      {plan.id === 'free' && '🆓'}
-                      {plan.id === 'ai_assistant' && '🤖'}
-                      {plan.id === 'full_package' && '🏆'}
-                    </div>
-                    <CardTitle>{plan.name}</CardTitle>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold">{plan.price}₽</span>
-                      <span className="text-gray-500">/{plan.period}</span>
-                    </div>
-                    {plan.savings && (
-                      <Badge variant="outline" className="mt-2 text-green-600 border-green-600">
-                        {plan.savings}
-                      </Badge>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="text-sm flex items-start gap-2">
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {plan.condition && (
-                      <p className="text-xs text-purple-600 mt-4 p-2 bg-purple-50 rounded">
-                        {plan.condition}
-                      </p>
-                    )}
-                  </CardContent>
-                  <CardFooter>
-                    {(() => {
-                      const hasSub = currentSubscription?.has_subscription;
-                      const samePlan = hasSub && currentSubscription?.plan === plan.id;
-                      const isPremium = hasSub && currentSubscription?.plan?.startsWith('premium_');
-                      const planIsPremium = plan.id.startsWith('premium_');
-                      const isFree = plan.id === 'free' || plan.id === 'free_2026';
-                      
-                      if (isFree) {
-                        return (
-                          <Button className="w-full" variant="outline" disabled>
-                            {hasSub ? 'Бесплатный' : 'Текущий план'}
-                          </Button>
-                        );
-                      }
-                      
-                      if (samePlan) {
-                        return (
-                          <Button 
-                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
-                            onClick={() => handleSubscribe(plan.id, 'extend')}
-                            disabled={loading === plan.id}
-                          >
-                            {loading === plan.id ? (
-                              <Icon name="Loader2" className="animate-spin" size={16} />
-                            ) : (
-                              <>
-                                <Icon name="CalendarPlus" size={16} className="mr-1" />
-                                Продлить
-                              </>
-                            )}
-                          </Button>
-                        );
-                      }
-                      
-                      if (hasSub && isPremium && planIsPremium) {
-                        return (
-                          <Button 
-                            className="w-full"
-                            variant={plan.popular ? 'default' : 'outline'}
-                            onClick={() => handleSubscribe(plan.id)}
-                            disabled={loading === plan.id}
-                          >
-                            {loading === plan.id ? (
-                              <Icon name="Loader2" className="animate-spin" size={16} />
-                            ) : 'Сменить тариф'}
-                          </Button>
-                        );
-                      }
-                      
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Free план */}
+              <Card className="border-gray-200">
+                <CardHeader>
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 flex items-center justify-center text-white text-2xl mb-3">🆓</div>
+                  <CardTitle>Free</CardTitle>
+                  <div className="mt-3">
+                    <span className="text-3xl font-bold">0₽</span>
+                    <span className="text-gray-500"> / навсегда</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>✅ 5 AI-запросов в день</li>
+                    <li>✅ До 10 фото</li>
+                    <li>✅ До 2 членов семьи</li>
+                    <li>✅ Календарь и задачи</li>
+                    <li>✅ Списки покупок</li>
+                    <li className="text-gray-400">🚫 Безлимитные AI-запросы</li>
+                    <li className="text-gray-400">🚫 Безлимитные фото</li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full" variant="outline" disabled>
+                    {currentSubscription?.has_subscription ? 'Бесплатный' : 'Текущий план'}
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Premium план с переключателем периода */}
+              <Card className="relative border-purple-500 border-2 shadow-xl">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                  🔥 Premium
+                </Badge>
+                <CardHeader>
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center text-white text-2xl mb-3">👑</div>
+                  <CardTitle>Premium</CardTitle>
+
+                  {/* Переключатель периода */}
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    {[
+                      { id: 'premium_1m', label: '1 мес', price: 299, perMonth: 299 },
+                      { id: 'premium_3m', label: '3 мес', price: 799, perMonth: 266, save: '11%' },
+                      { id: 'premium_6m', label: '6 мес', price: 1499, perMonth: 250, save: '17%' },
+                      { id: 'premium_12m', label: '12 мес', price: 2699, perMonth: 225, save: '25%' },
+                    ].map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => setSelectedPeriod(p.id)}
+                        className={`relative rounded-lg border-2 p-2 text-center transition-all ${
+                          selectedPeriod === p.id 
+                            ? 'border-purple-500 bg-purple-50' 
+                            : 'border-gray-200 hover:border-purple-200'
+                        }`}
+                      >
+                        {p.save && (
+                          <span className="absolute -top-2 right-1 text-[10px] bg-green-500 text-white px-1.5 rounded-full font-medium">
+                            -{p.save}
+                          </span>
+                        )}
+                        <div className="font-bold text-sm">{p.label}</div>
+                        <div className="text-lg font-bold text-purple-600">{p.price}₽</div>
+                        <div className="text-[10px] text-gray-500">{p.perMonth}₽/мес</div>
+                      </button>
+                    ))}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>✅ Безлимитные AI-запросы</li>
+                    <li>✅ Безлимитные фото</li>
+                    <li>✅ Безлимитные члены семьи</li>
+                    <li>✅ Семейный психолог</li>
+                    <li>✅ Путешествия и маршруты</li>
+                    <li>✅ Аналитика и статистика</li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  {(() => {
+                    const hasSub = currentSubscription?.has_subscription;
+                    const isPremium = hasSub && currentSubscription?.plan?.startsWith('premium_');
+                    
+                    if (hasSub && isPremium) {
                       return (
                         <Button 
-                          className="w-full"
-                          variant={plan.popular ? 'default' : 'outline'}
-                          onClick={() => handleSubscribe(plan.id)}
-                          disabled={loading === plan.id}
+                          className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                          onClick={() => handleSubscribe(selectedPeriod, 'extend')}
+                          disabled={loading === selectedPeriod}
                         >
-                          {loading === plan.id ? (
+                          {loading === selectedPeriod ? (
                             <Icon name="Loader2" className="animate-spin" size={16} />
-                          ) : 'Подключить'}
+                          ) : (
+                            <>
+                              <Icon name="CalendarPlus" size={16} className="mr-1" />
+                              Продлить подписку
+                            </>
+                          )}
                         </Button>
                       );
-                    })()}
-                  </CardFooter>
-                </Card>
-              ))}
+                    }
+                    
+                    return (
+                      <Button 
+                        className="w-full bg-gradient-to-r from-purple-500 to-indigo-600"
+                        onClick={() => handleSubscribe(selectedPeriod)}
+                        disabled={loading === selectedPeriod}
+                      >
+                        {loading === selectedPeriod ? (
+                          <Icon name="Loader2" className="animate-spin" size={16} />
+                        ) : 'Подключить Premium'}
+                      </Button>
+                    );
+                  })()}
+                </CardFooter>
+              </Card>
             </div>
           </TabsContent>
 
