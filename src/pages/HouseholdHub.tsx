@@ -35,7 +35,15 @@ const subSections: SubSection[] = [
     gradient: 'from-blue-500 to-indigo-600',
     ready: true,
   },
-
+  {
+    id: 'garage',
+    title: 'Гараж',
+    description: 'Учёт автомобилей, ТО, расходы и напоминания',
+    icon: 'Car',
+    path: '/garage',
+    gradient: 'from-slate-600 to-blue-700',
+    ready: true,
+  },
 ];
 
 export default function HouseholdHub() {
