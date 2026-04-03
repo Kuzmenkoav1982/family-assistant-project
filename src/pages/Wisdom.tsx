@@ -75,14 +75,26 @@ export default function Wisdom() {
     });
   };
 
-  // Copy to clipboard
-  const handleShare = async (w: WisdomType) => {
+  const handleCopy = async (w: WisdomType) => {
     const text = `\u00AB${w.text}\u00BB\n\n${w.meaning}\n\u2014 ${w.source} мудрость`;
     try {
       await navigator.clipboard.writeText(text);
       toast({ title: 'Скопировано', description: 'Мудрость скопирована в буфер обмена' });
     } catch {
       toast({ title: 'Ошибка', description: 'Не удалось скопировать текст' });
+    }
+  };
+
+  const handleShare = async (w: WisdomType) => {
+    const text = `\u00AB${w.text}\u00BB\n\n${w.meaning}\n\u2014 ${w.source} мудрость`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: w.text, text });
+      } catch {
+        /* user cancelled */
+      }
+    } else {
+      handleCopy(w);
     }
   };
 
@@ -181,10 +193,18 @@ export default function Wisdom() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleShare(wisdomOfDay)}
+                  onClick={() => handleCopy(wisdomOfDay)}
                   className="text-amber-600 hover:bg-amber-100"
                 >
                   <Icon name="Copy" size={18} />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleShare(wisdomOfDay)}
+                  className="bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white rounded-full"
+                >
+                  <Icon name="Share2" size={14} className="mr-1" />
+                  <span className="text-xs font-medium">Поделиться</span>
                 </Button>
               </div>
             </div>
@@ -307,6 +327,7 @@ export default function Wisdom() {
                 wisdom={w}
                 isFavorite={favorites.includes(w.id)}
                 onToggleFavorite={() => toggleFavorite(w.id)}
+                onCopy={() => handleCopy(w)}
                 onShare={() => handleShare(w)}
               />
             ))}
@@ -350,10 +371,11 @@ interface WisdomCardProps {
   wisdom: WisdomType;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onCopy: () => void;
   onShare: () => void;
 }
 
-function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onShare }: WisdomCardProps) {
+function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onCopy, onShare }: WisdomCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -437,11 +459,19 @@ function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onShare }: WisdomCar
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onShare}
+                onClick={onCopy}
                 className="h-8 px-2 text-muted-foreground hover:bg-amber-50 hover:text-amber-700"
               >
                 <Icon name="Copy" size={16} className="mr-1" />
                 <span className="text-xs">Копировать</span>
+              </Button>
+              <Button
+                size="sm"
+                onClick={onShare}
+                className="h-8 px-3 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white rounded-full"
+              >
+                <Icon name="Share2" size={14} className="mr-1" />
+                <span className="text-xs font-medium">Поделиться</span>
               </Button>
             </div>
           </div>
