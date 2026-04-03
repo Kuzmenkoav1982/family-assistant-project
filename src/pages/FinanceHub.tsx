@@ -193,11 +193,17 @@ export default function FinanceHub() {
             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
               <Icon name="Shield" size={16} className="text-emerald-600" />
             </div>
-            <div>
+            <div className="space-y-1.5">
               <p className="text-sm font-medium text-emerald-800">Ваши данные защищены</p>
-              <p className="text-xs text-emerald-600/80 mt-0.5">
-                Финансовая информация доступна только членам вашей семьи и не передаётся третьим лицам
+              <p className="text-xs text-emerald-600/80">
+                Финансовая информация не передаётся третьим лицам и хранится в зашифрованном виде.
               </p>
+              <div className="text-xs text-emerald-700/70 space-y-0.5">
+                <p className="font-medium text-emerald-800/80">Доступ только у владельца семьи:</p>
+                <p>Бюджет, Счета и карты, Кредиты и долги, Регулярные платежи, Имущество, Аналитика, Стратегия погашения, Прогноз кэшфлоу</p>
+                <p className="font-medium text-emerald-800/80 mt-1">Доступ для всех членов семьи:</p>
+                <p>Финансовые цели, Грамотность, Скидочные карты, Антимошенник</p>
+              </div>
             </div>
           </div>
         </div>
