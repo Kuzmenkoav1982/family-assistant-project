@@ -16,7 +16,6 @@ import {
 } from '@/data/wisdomData';
 import type { Wisdom as WisdomType } from '@/data/wisdomData';
 
-const APP_URL = 'https://nasha-semiya.ru';
 
 function getDayOfYear(): number {
   const now = new Date();
@@ -114,7 +113,7 @@ export default function Wisdom() {
     await new Promise((r) => setTimeout(r, 300));
 
     const blob = await generateShareImage();
-    const text = `«${w.text}»\n\n${w.meaning}\n— ${w.source} мудрость\n\n📲 Приложение «Наша Семья»: ${APP_URL}`;
+    const text = `«${w.text}»\n\n${w.meaning}\n— ${w.source} мудрость\n\n📲 Приложение «Наша Семья»`;
 
     if (blob && navigator.share && navigator.canShare?.({ files: [new File([blob], 'wisdom.png', { type: 'image/png' })] })) {
       try {
