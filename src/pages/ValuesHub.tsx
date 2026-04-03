@@ -13,7 +13,6 @@ interface SubSection {
   gradient: string;
   badge?: string;
   badgeColor?: string;
-  imageUrl?: string;
   ready: boolean;
 }
 
@@ -43,8 +42,7 @@ const subSections: SubSection[] = [
     description: 'Вековая мудрость разных народов мира',
     icon: 'BookOpen',
     path: '/wisdom',
-    gradient: 'from-amber-600 to-orange-500',
-    imageUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dcb3584d-4a12-4e40-ae35-4e5cd7a3583d.jpg',
+    gradient: 'from-amber-600 to-yellow-500',
     ready: true,
   },
   {
@@ -71,30 +69,7 @@ export default function ValuesHub() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subSections.map((section) =>
-            section.imageUrl ? (
-              <Card
-                key={section.id}
-                className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden md:col-span-2"
-                onClick={() => navigate(section.path)}
-              >
-                <CardContent className="p-0">
-                  <div className="relative h-40 md:h-48">
-                    <img src={section.imageUrl} alt={section.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
-                    <div className="absolute inset-0 flex items-center p-6">
-                      <div className="text-white max-w-md">
-                        <h3 className="font-bold text-xl mb-1">{section.title}</h3>
-                        <p className="text-sm text-white/80 mb-3">{section.description}</p>
-                        <span className="inline-flex items-center gap-1 text-sm bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
-                          Перейти <Icon name="ArrowRight" size={14} />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
+          {subSections.map((section) => (
               <Card
                 key={section.id}
                 className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
@@ -155,8 +130,7 @@ export default function ValuesHub() {
                   </div>
                 </CardContent>
               </Card>
-            )
-          )}
+          ))}
         </div>
       </div>
     </div>
