@@ -559,7 +559,7 @@ function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onCopy, onShare }: W
               )}
             </div>
 
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               <Button
                 variant="ghost"
                 size="sm"
@@ -582,16 +582,16 @@ function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onCopy, onShare }: W
                 onClick={onCopy}
                 className="h-8 px-2 text-muted-foreground hover:bg-amber-50 hover:text-amber-700"
               >
-                <Icon name="Copy" size={16} className="mr-1" />
+                <Icon name="Copy" size={14} className="mr-1" />
                 <span className="text-xs">Копировать</span>
               </Button>
               <Button
                 size="sm"
                 onClick={onShare}
-                className="h-8 px-3 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white rounded-full"
+                className="h-7 px-2.5 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white rounded-full text-[11px]"
               >
-                <Icon name="Share2" size={14} className="mr-1" />
-                <span className="text-xs font-medium">Поделиться</span>
+                <Icon name="Share2" size={12} className="mr-1" />
+                Поделиться
               </Button>
             </div>
           </div>
