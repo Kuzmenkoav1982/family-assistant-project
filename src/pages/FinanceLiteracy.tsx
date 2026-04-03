@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { FinanceLiteracyInstructions } from '@/components/finance/FinanceInstructions';
@@ -83,6 +84,7 @@ const DIFF_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function FinanceLiteracy() {
   const navigate = useNavigate();
+  const { isDemoMode, demoEduCourses, demoEduLessons, demoEduTests, demoEduLessonsProgress, demoEduTestResults } = useDemoMode();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -102,21 +104,30 @@ export default function FinanceLiteracy() {
   const [submitting, setSubmitting] = useState(false);
 
   const loadCourses = useCallback(async () => {
+    if (isDemoMode) {
+      setCourses(demoEduCourses);
+      return;
+    }
     const res = await fetch(`${API}?section=edu_courses`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
       setCourses(data.courses || []);
     }
-  }, []);
+  }, [isDemoMode, demoEduCourses]);
 
   const loadProgress = useCallback(async () => {
+    if (isDemoMode) {
+      setLessonsProgress(demoEduLessonsProgress);
+      setTestResults(demoEduTestResults);
+      return;
+    }
     const res = await fetch(`${API}?section=edu_progress`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
       setLessonsProgress(data.lessons_progress || []);
       setTestResults(data.test_results || []);
     }
-  }, []);
+  }, [isDemoMode, demoEduLessonsProgress, demoEduTestResults]);
 
   useEffect(() => {
     Promise.all([loadCourses(), loadProgress()]).finally(() => setLoading(false));
@@ -124,6 +135,11 @@ export default function FinanceLiteracy() {
 
   const openCourse = async (course: Course) => {
     setSelectedCourse(course);
+    if (isDemoMode) {
+      setLessons(demoEduLessons[course.id] || []);
+      setTests(demoEduTests[course.id] || []);
+      return;
+    }
     const res = await fetch(`${API}?section=edu_course&course_id=${course.id}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
@@ -133,6 +149,10 @@ export default function FinanceLiteracy() {
   };
 
   const openLesson = async (lesson: Lesson) => {
+    if (isDemoMode) {
+      setReadingLesson(lesson);
+      return;
+    }
     const res = await fetch(`${API}?section=edu_lesson&lesson_id=${lesson.id}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
@@ -141,16 +161,27 @@ export default function FinanceLiteracy() {
   };
 
   const completeLesson = async (lessonId: string) => {
-    await fetch(API, {
-      method: 'POST', headers: getHeaders(),
-      body: JSON.stringify({ action: 'complete_lesson', lesson_id: lessonId })
-    });
+    if (!isDemoMode) {
+      await fetch(API, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ action: 'complete_lesson', lesson_id: lessonId })
+      });
+    }
     toast.success('Урок пройден!');
     setReadingLesson(null);
     loadProgress();
   };
 
   const openTest = async (test: Test) => {
+    if (isDemoMode) {
+      setTakingTest(test);
+      setQuestions([
+        { id: 'q1', text: 'Это демо-режим. Тесты доступны после регистрации.', type: 'info', options: [], correct: '', explanation: '', points: 0 }
+      ]);
+      setAnswers({});
+      setTestResult(null);
+      return;
+    }
     const res = await fetch(`${API}?section=edu_test&test_id=${test.id}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
@@ -164,6 +195,11 @@ export default function FinanceLiteracy() {
   const submitTest = async () => {
     if (!takingTest) return;
     setSubmitting(true);
+    if (isDemoMode) {
+      setSubmitting(false);
+      setTestResult({ score: 80, max_score: 100, passed: true, percentage: 80 });
+      return;
+    }
     const res = await fetch(API, {
       method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ action: 'submit_test', test_id: takingTest.id, answers })

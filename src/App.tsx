@@ -369,13 +369,14 @@ const App = () => {
                       <Route path="/refund-policy" element={<RefundPolicy />} />
                       <Route path="/documentation" element={<Documentation />} />
                       <Route path="/installation-guide" element={<InstallationGuide />} />
-                      <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/pricing" element={<Navigate to="/wallet" replace />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/ideas" element={<IdeasBoard />} />
                       <Route path="/ideas-board" element={<IdeasBoard />} />
                       <Route path="/investor-deck" element={<InvestorDeck />} />
                       <Route path="/videos" element={<Videos />} />
-                      <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+                      {/* Подписки временно скрыты — используется кошелёк */}
+                      <Route path="/admin/subscriptions" element={<Navigate to="/" replace />} />
                       <Route path="/admin/domovoy" element={<AdminDomovoy />} />
                       <Route path="/domovoy" element={<DomovoyPage />} />
                       <Route path="/services" element={<TelegramServices />} />

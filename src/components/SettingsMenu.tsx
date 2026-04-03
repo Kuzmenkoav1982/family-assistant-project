@@ -165,7 +165,7 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
           </DialogHeader>
 
           <Tabs defaultValue="invites" className="w-full flex-1 overflow-hidden flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 mx-6 my-2">
+            <TabsList className="grid w-full grid-cols-3 mx-6 my-2">
               <TabsTrigger value="invites" className="text-xs md:text-sm">
                 <Icon name="Users" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Приглашения</span>
@@ -176,11 +176,7 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
                 <span className="hidden sm:inline">Уведомления</span>
                 <span className="sm:hidden">Уведом.</span>
               </TabsTrigger>
-              <TabsTrigger value="subscription" className="text-xs md:text-sm">
-                <Icon name="CreditCard" className="mr-1 md:mr-2" size={14} />
-                <span className="hidden sm:inline">Подписка</span>
-                <span className="sm:hidden">Подписка</span>
-              </TabsTrigger>
+              {/* Подписки временно скрыты — используется кошелёк */}
               <TabsTrigger value="account" className="text-xs md:text-sm">
                 <Icon name="UserCog" className="mr-1 md:mr-2" size={14} />
                 <span className="hidden sm:inline">Аккаунт</span>
@@ -234,14 +230,7 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
               <NotificationTest />
             </TabsContent>
 
-            <TabsContent value="subscription" className="flex-1 overflow-y-auto px-6 pb-6">
-              <SubscriptionSettings
-                subscription={subscription}
-                loadingSubscription={loadingSubscription}
-                onCheckSubscription={checkSubscription}
-                onCreateSubscription={createSubscription}
-              />
-            </TabsContent>
+            {/* Подписки временно скрыты — используется кошелёк */}
 
             <TabsContent value="account" className="flex-1 overflow-y-auto px-6 pb-6">
               <AccountSettings

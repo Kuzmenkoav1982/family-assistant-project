@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { FinanceLoyaltyInstructions } from '@/components/finance/FinanceInstructions';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -76,6 +77,7 @@ function getCatMeta(cat: string) {
 
 export default function FinanceLoyalty() {
   const navigate = useNavigate();
+  const { isDemoMode, demoLoyaltyCards } = useDemoMode();
   const [cards, setCards] = useState<LoyaltyCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -90,9 +92,13 @@ export default function FinanceLoyalty() {
   });
 
   const loadCards = useCallback(async () => {
+    if (isDemoMode) {
+      setCards(demoLoyaltyCards as any);
+      return;
+    }
     const res = await fetch(`${API}?section=loyalty_cards`, { headers: getHeaders() });
     if (res.ok) { const d = await res.json(); setCards(d.cards || []); }
-  }, []);
+  }, [isDemoMode, demoLoyaltyCards]);
 
   useEffect(() => { loadCards().finally(() => setLoading(false)); }, [loadCards]);
 
@@ -108,6 +114,7 @@ export default function FinanceLoyalty() {
   };
 
   const addCard = async () => {
+    if (isDemoMode) { toast.info('В демо-режиме добавление карт недоступно'); return; }
     if (!form.name.trim()) { toast.error('Укажите название'); return; }
     setSaving(true);
     const res = await fetch(API, {
@@ -125,6 +132,7 @@ export default function FinanceLoyalty() {
   };
 
   const deleteCard = async (id: string) => {
+    if (isDemoMode) { toast.info('В демо-режиме удаление карт недоступно'); return; }
     await fetch(API, { method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ action: 'delete_loyalty_card', id }) });
     toast.success('Удалено'); setShowDetail(null); loadCards();

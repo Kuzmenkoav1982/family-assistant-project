@@ -19,6 +19,8 @@ import {
   demoTestStats as testStatsData
 } from '@/data/demoTestResults';
 import { DEMO_CALENDAR_EVENTS } from '@/data/demoChildrenData';
+import { demoCourses, demoLessons, demoTests, demoLessonsProgress, demoTestResults as demoEduTestResults } from '@/data/demoFinancialLiteracy';
+import { demoLoyaltyCards } from '@/data/demoLoyaltyCards';
 import type { FamilyMember, Task, ShoppingItem } from '@/types/family.types';
 
 export interface DemoLocation {
@@ -63,6 +65,12 @@ interface DemoModeContextType {
   demoLocations: DemoLocation[];
   demoGeofences: DemoGeofence[];
   demoTrackerMembers: DemoTrackerMember[];
+  demoEduCourses: typeof demoCourses;
+  demoEduLessons: typeof demoLessons;
+  demoEduTests: typeof demoTests;
+  demoEduLessonsProgress: typeof demoLessonsProgress;
+  demoEduTestResults: typeof demoEduTestResults;
+  demoLoyaltyCards: typeof demoLoyaltyCards;
   updateDemoTask: (taskId: string, updates: Partial<Task>) => void;
   toggleDemoTask: (taskId: string) => void;
 }
@@ -183,6 +191,12 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
         demoLocations,
         demoGeofences,
         demoTrackerMembers,
+        demoEduCourses: demoCourses,
+        demoEduLessons: demoLessons,
+        demoEduTests: demoTests,
+        demoEduLessonsProgress: demoLessonsProgress,
+        demoEduTestResults: demoEduTestResults,
+        demoLoyaltyCards: demoLoyaltyCards,
         updateDemoTask,
         toggleDemoTask,
       }}
@@ -212,6 +226,12 @@ export function useDemoMode() {
       demoLocations: [],
       demoGeofences: [],
       demoTrackerMembers: [],
+      demoEduCourses: [],
+      demoEduLessons: {},
+      demoEduTests: {},
+      demoEduLessonsProgress: [],
+      demoEduTestResults: [],
+      demoLoyaltyCards: [],
       updateDemoTask: () => {},
       toggleDemoTask: () => {}
     };

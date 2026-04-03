@@ -103,7 +103,7 @@ export default function TransactionsTimeline({
                                 {item.type === 'income' ? '+' : '\u2212'}{formatMoney(item.amount)} &#8381;
                               </p>
                               <p className={`text-[10px] font-medium ${item.isGap ? 'text-red-600 font-bold' : 'text-muted-foreground'}`}>
-                                \u2192 {formatMoney(item.runningBalance)} &#8381;
+                                → {formatMoney(item.runningBalance)} &#8381;
                               </p>
                             </div>
                             {item.isPlanned && item.originalPlanned ? (

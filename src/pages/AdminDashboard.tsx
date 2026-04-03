@@ -202,10 +202,11 @@ export default function AdminDashboard() {
               <Icon name="MessageCircle" size={16} className="mr-2" />
               MAX
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/subscriptions'}>
+            {/* Подписки временно скрыты — используется кошелёк */}
+            {/* <Button variant="outline" onClick={() => window.location.href = '/admin/subscriptions'}>
               <Icon name="CreditCard" size={16} className="mr-2" />
               Подписки
-            </Button>
+            </Button> */}
             <Button variant="outline" onClick={() => setShowPasswordDialog(true)}>
               <Icon name="Users" size={16} className="mr-2" />
               Пользователи

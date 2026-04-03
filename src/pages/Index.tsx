@@ -27,7 +27,6 @@ import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { FirstLoginWelcome } from '@/components/FirstLoginWelcome';
 import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
 import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
-import { useSubscriptionReminder } from '@/hooks/useSubscriptionReminder';
 import { useCalendarReminders } from '@/hooks/useCalendarReminders';
 import { useDietReminders } from '@/hooks/useDietReminders';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
@@ -67,7 +66,6 @@ export default function Index({ onLogout }: IndexProps) {
   const tasks = tasksRaw || [];
 
   useBirthdayReminders();
-  useSubscriptionReminder();
   useCalendarReminders();
   useDietReminders();
 

@@ -17,8 +17,6 @@ import {
 } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
-import { useNavigate } from 'react-router-dom';
 import func2url from '../../../backend/func2url.json';
 
 const API_URL = func2url['event-ai-ideas'];
@@ -44,24 +42,6 @@ function getUserId(): string {
 
 export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeasDialogProps) {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  
-  // Получаем familyId из userData
-  const getFamilyId = () => {
-    try {
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        return parsed.family_id || null;
-      }
-      return localStorage.getItem('familyId') || null;
-    } catch {
-      return null;
-    }
-  };
-  
-  const familyId = getFamilyId();
-  const { incrementUsage, isPremium, aiRequestsAllowed, limits } = useSubscriptionLimits(familyId);
 
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState('');
@@ -81,42 +61,10 @@ export default function AIIdeasDialog({ open, onOpenChange, eventType }: AIIdeas
   };
 
   const handleGenerate = async () => {
-    // Логирование для отладки
-    console.log('[AIIdeasDialog] Limits check:', {
-      familyId,
-      aiRequestsAllowed,
-      isPremium,
-      limits: JSON.stringify(limits, null, 2)
-    });
-
-    // Проверка лимитов
-    if (!aiRequestsAllowed) {
-      toast({
-        title: '⚠️ Лимит AI-запросов исчерпан',
-        description: isPremium 
-          ? 'Произошла ошибка. Обратитесь в поддержку.'
-          : `Вы использовали ${limits?.limits?.ai_requests?.used || 0} из ${limits?.limits?.ai_requests?.limit || 5} бесплатных запросов сегодня. Обновитесь до Premium!`,
-        variant: 'destructive',
-        action: !isPremium ? (
-          <Button 
-            size="sm" 
-            onClick={() => { onOpenChange(false); navigate('/pricing'); }}
-            className="bg-gradient-to-r from-purple-500 to-indigo-600"
-          >
-            Перейти на Premium
-          </Button>
-        ) : undefined
-      });
-      return;
-    }
-
     setLoading(true);
     setIdeas('');
 
     try {
-      // Инкрементируем счётчик
-      await incrementUsage('ai_requests');
-
       const userId = getUserId();
       const authToken = localStorage.getItem('authToken');
 

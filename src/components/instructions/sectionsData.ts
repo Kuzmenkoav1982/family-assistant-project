@@ -583,7 +583,7 @@ export const sections: Section[] = [
     title: 'Подписка',
     icon: 'Crown',
     description: 'Премиум возможности',
-    route: '/pricing',
+    route: '/wallet',
     content: {
       purpose: 'Раздел "Подписка" открывает доступ к AI-помощнику Домовой, дополнительному хранилищу и другим возможностям.',
       benefits: [

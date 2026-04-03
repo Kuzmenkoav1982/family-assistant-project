@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -36,9 +35,6 @@ const AIAssistant = () => {
   const userData = localStorage.getItem('userData');
   const userId = userData ? JSON.parse(userData).id : undefined;
 
-  // Проверка лимитов подписки
-  const { limits, incrementUsage, isPremium, aiRequestsAllowed } = useSubscriptionLimits(familyId);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -49,27 +45,6 @@ const AIAssistant = () => {
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
-
-    // Проверка лимитов перед отправкой
-    if (!aiRequestsAllowed) {
-      toast({
-        title: '⚠️ Лимит AI-запросов исчерпан',
-        description: isPremium 
-          ? 'Произошла ошибка. Обратитесь в поддержку.'
-          : `Вы использовали ${limits?.limits?.ai_requests?.used || 0} из ${limits?.limits?.ai_requests?.limit || 5} бесплатных запросов сегодня. Обновитесь до Premium для безлимитного доступа!`,
-        variant: 'destructive',
-        action: !isPremium ? (
-          <Button 
-            size="sm" 
-            onClick={() => navigate('/pricing')}
-            className="bg-gradient-to-r from-purple-500 to-indigo-600"
-          >
-            Перейти на Premium
-          </Button>
-        ) : undefined
-      });
-      return;
-    }
 
     const userMessage: Message = {
       role: 'user',
@@ -82,9 +57,6 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Инкрементируем счётчик AI-запросов
-      await incrementUsage('ai_requests');
-
       const apiUrl = func2url['ai-assistant'];
       
       const response = await fetch(apiUrl, {
@@ -132,16 +104,16 @@ const AIAssistant = () => {
         if (errorData.error === 'daily_limit_reached') {
           toast({
             title: '⚠️ Лимит исчерпан',
-            description: errorData.message || 'Обновитесь до Premium для безлимитного доступа',
+            description: errorData.message || 'Недостаточно средств. Пополните кошелёк.',
           });
-          setTimeout(() => navigate('/pricing'), 2000);
+          setTimeout(() => navigate('/wallet'), 2000);
           return;
         }
         toast({
-          title: '🔒 Требуется подписка',
-          description: 'Подключите Premium для доступа к AI',
+          title: '🔒 Недостаточно средств',
+          description: 'Пополните кошелёк для доступа к AI',
         });
-        setTimeout(() => navigate('/pricing'), 2000);
+        setTimeout(() => navigate('/wallet'), 2000);
         return;
       }
 
@@ -203,31 +175,7 @@ const AIAssistant = () => {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Кузя 🚀🍎</h1>
           <p className="text-gray-600">Ваш семейный AI-помощник и ИИ-диетолог</p>
 
-          {/* Индикатор лимитов */}
-          {!isPremium && limits && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full text-sm">
-              <Icon name="Zap" size={16} className="text-orange-500" />
-              <span className="text-gray-700">
-                Осталось запросов сегодня: <strong>{(limits.limits.ai_requests.limit || 5) - limits.limits.ai_requests.used}</strong> из {limits.limits.ai_requests.limit}
-              </span>
-              <Button 
-                size="sm" 
-                variant="link" 
-                onClick={() => navigate('/pricing')}
-                className="text-purple-600 hover:text-purple-700 p-0 h-auto"
-              >
-                Безлимит →
-              </Button>
-            </div>
-          )}
-          {isPremium && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full text-sm">
-              <Icon name="Crown" size={16} className="text-yellow-500" />
-              <span className="text-gray-700 font-medium">
-                Premium: безлимитные AI-запросы
-              </span>
-            </div>
-          )}
+
         </div>
 
         {/* Инструкция */}
