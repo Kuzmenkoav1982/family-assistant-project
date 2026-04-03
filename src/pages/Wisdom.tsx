@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
+import html2canvas from 'html2canvas';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,8 @@ import {
   TYPES,
 } from '@/data/wisdomData';
 import type { Wisdom as WisdomType } from '@/data/wisdomData';
+
+const APP_URL = 'https://nasha-semiya.ru';
 
 function getDayOfYear(): number {
   const now = new Date();
@@ -85,18 +88,57 @@ export default function Wisdom() {
     }
   };
 
-  const handleShare = async (w: WisdomType) => {
-    const text = `\u00AB${w.text}\u00BB\n\n${w.meaning}\n\u2014 ${w.source} мудрость`;
-    if (navigator.share) {
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [sharingWisdom, setSharingWisdom] = useState<WisdomType | null>(null);
+
+  const generateShareImage = useCallback(async (): Promise<Blob | null> => {
+    const el = shareCardRef.current;
+    if (!el) return null;
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true,
+        logging: false,
+      });
+      return new Promise((resolve) =>
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1)
+      );
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const handleShare = useCallback(async (w: WisdomType) => {
+    setSharingWisdom(w);
+    await new Promise((r) => setTimeout(r, 300));
+
+    const blob = await generateShareImage();
+    const text = `«${w.text}»\n\n${w.meaning}\n— ${w.source} мудрость\n\n📲 Приложение «Наша Семья»: ${APP_URL}`;
+
+    if (blob && navigator.share && navigator.canShare?.({ files: [new File([blob], 'wisdom.png', { type: 'image/png' })] })) {
+      try {
+        const file = new File([blob], 'wisdom.png', { type: 'image/png' });
+        await navigator.share({ title: w.text, text, files: [file] });
+      } catch {
+        /* user cancelled */
+      }
+    } else if (navigator.share) {
       try {
         await navigator.share({ title: w.text, text });
       } catch {
         /* user cancelled */
       }
     } else {
-      handleCopy(w);
+      try {
+        await navigator.clipboard.writeText(text);
+        toast({ title: 'Скопировано', description: 'Текст мудрости скопирован с ссылкой на приложение' });
+      } catch {
+        toast({ title: 'Ошибка', description: 'Не удалось поделиться' });
+      }
     }
-  };
+    setSharingWisdom(null);
+  }, [generateShareImage, toast]);
 
   // Filtered wisdoms
   const filtered = useMemo(() => {
@@ -128,6 +170,76 @@ export default function Wisdom() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
+      {sharingWisdom && (
+        <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+          <div
+            ref={shareCardRef}
+            style={{
+              width: 600,
+              padding: 40,
+              background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBEB 50%, #FEF3C7 100%)',
+              borderRadius: 24,
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{
+              position: 'absolute', top: -40, right: -40,
+              width: 160, height: 160, borderRadius: '50%',
+              background: 'rgba(251, 191, 36, 0.15)',
+            }} />
+            <div style={{
+              position: 'absolute', bottom: -30, left: -30,
+              width: 120, height: 120, borderRadius: '50%',
+              background: 'rgba(251, 146, 60, 0.1)',
+            }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+                <span style={{ fontSize: 28 }}>{getCategoryEmoji(sharingWisdom.category)}</span>
+                <span style={{
+                  fontSize: 14, fontWeight: 600, color: '#92400E',
+                  background: '#FDE68A', padding: '4px 12px', borderRadius: 20,
+                }}>
+                  {sharingWisdom.source} мудрость
+                </span>
+              </div>
+              <p style={{
+                fontSize: 28, fontWeight: 700, lineHeight: 1.35,
+                color: '#78350F', marginBottom: 16,
+              }}>
+                «{sharingWisdom.text}»
+              </p>
+              <p style={{
+                fontSize: 17, lineHeight: 1.5, color: '#A16207',
+                fontStyle: 'italic', marginBottom: 32, opacity: 0.9,
+              }}>
+                {sharingWisdom.meaning}
+              </p>
+              <div style={{
+                borderTop: '2px solid rgba(217, 119, 6, 0.15)',
+                paddingTop: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
+                <div>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#92400E' }}>
+                    Наша Семья
+                  </p>
+                  <p style={{ fontSize: 12, color: '#B45309' }}>
+                    nasha-semiya.ru
+                  </p>
+                </div>
+                <div style={{
+                  fontSize: 11, color: '#B45309', background: '#FEF3C7',
+                  padding: '6px 14px', borderRadius: 12, fontWeight: 500,
+                }}>
+                  {getTypeLabel(sharingWisdom.type)} · {sharingWisdom.age || getCategoryLabel(sharingWisdom.category)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto p-4 space-y-5">
         {/* Hero */}
         <SectionHero
