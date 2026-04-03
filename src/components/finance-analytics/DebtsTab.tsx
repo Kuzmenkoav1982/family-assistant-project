@@ -26,25 +26,24 @@ export default function DebtsTab({ debts_detail, strategies }: DebtsTabProps) {
       ) : (
         <>
           {strategies.recommended && (
-            <Card className="border-0 shadow-md bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
-              <CardContent className="p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Icon name="Zap" size={18} className="text-indigo-600" />
-                  <h3 className="text-sm font-bold">Лучшая стратегия: {strategies.recommended === 'avalanche' ? 'Лавина' : 'Снежный ком'}</h3>
-                </div>
-                {(() => {
-                  const st = strategies.recommended === 'avalanche' ? strategies.avalanche : strategies.snowball;
-                  if (!st) return null;
-                  return (
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div><p className="text-lg font-bold text-indigo-600">{st.total_months}</p><p className="text-[10px] text-muted-foreground">мес. до свободы</p></div>
-                      <div><p className="text-lg font-bold text-green-600">{fm(st.interest_saved)}</p><p className="text-[10px] text-muted-foreground">экономия</p></div>
-                      <div><p className="text-lg font-bold text-amber-600">{st.months_saved}</p><p className="text-[10px] text-muted-foreground">мес. сэкономлено</p></div>
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
+            <details className="rounded-xl border-0 shadow-md bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 group/strategy">
+              <summary className="flex items-center gap-2 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                <Icon name="Zap" size={18} className="text-indigo-600" />
+                <h3 className="text-sm font-bold flex-1">Лучшая стратегия: {strategies.recommended === 'avalanche' ? 'Лавина' : 'Снежный ком'}</h3>
+                <Icon name="ChevronDown" size={14} className="text-indigo-400 transition-transform group-open/strategy:rotate-180" />
+              </summary>
+              {(() => {
+                const st = strategies.recommended === 'avalanche' ? strategies.avalanche : strategies.snowball;
+                if (!st) return null;
+                return (
+                  <div className="grid grid-cols-3 gap-2 text-center px-4 pb-4">
+                    <div><p className="text-lg font-bold text-indigo-600">{st.total_months}</p><p className="text-[10px] text-muted-foreground">мес. до свободы</p></div>
+                    <div><p className="text-lg font-bold text-green-600">{fm(st.interest_saved)}</p><p className="text-[10px] text-muted-foreground">экономия</p></div>
+                    <div><p className="text-lg font-bold text-amber-600">{st.months_saved}</p><p className="text-[10px] text-muted-foreground">мес. сэкономлено</p></div>
+                  </div>
+                );
+              })()}
+            </details>
           )}
 
           <div className="space-y-2">
@@ -94,9 +93,13 @@ export default function DebtsTab({ debts_detail, strategies }: DebtsTabProps) {
           )}
 
           {strategies.avalanche?.closed_order && strategies.avalanche.closed_order.length > 0 && (
-            <Card className="border-0 shadow-md">
-              <CardContent className="p-4 space-y-2">
-                <h3 className="text-sm font-bold">Порядок закрытия долгов</h3>
+            <details className="rounded-xl border-0 shadow-md bg-card group/order">
+              <summary className="flex items-center gap-2 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                <Icon name="ListOrdered" size={16} className="text-green-600" />
+                <h3 className="text-sm font-bold flex-1">Порядок закрытия долгов</h3>
+                <Icon name="ChevronDown" size={14} className="text-muted-foreground transition-transform group-open/order:rotate-180" />
+              </summary>
+              <div className="px-4 pb-4 space-y-2">
                 {strategies.avalanche.closed_order.map((c, i) => (
                   <div key={i} className="flex items-center gap-3 text-xs">
                     <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-[10px] font-bold text-green-700">{i + 1}</div>
@@ -104,8 +107,8 @@ export default function DebtsTab({ debts_detail, strategies }: DebtsTabProps) {
                     <span className="text-muted-foreground">{c.month} мес</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </details>
           )}
         </>
       )}

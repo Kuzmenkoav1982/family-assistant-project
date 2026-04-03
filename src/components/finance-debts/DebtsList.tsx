@@ -46,11 +46,13 @@ export default function DebtsList({ debts, totalRemaining, totalMonthly, onSelec
           </div>
 
           {(totalOverpayment > 0 || ccTotal > 0 || active.length > 1) && (
-            <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
-              <CardContent className="p-4 space-y-3">
-                <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
-                  <Icon name="TrendingUp" size={14} /> Аналитика долгов
-                </p>
+            <details className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 group/analytics">
+              <summary className="flex items-center gap-2 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                <Icon name="TrendingUp" size={14} className="text-purple-600" />
+                <p className="text-xs font-semibold text-purple-700 flex-1">Аналитика долгов</p>
+                <Icon name="ChevronDown" size={14} className="text-purple-400 transition-transform group-open/analytics:rotate-180" />
+              </summary>
+              <div className="px-4 pb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   {totalOverpayment > 0 && (
                     <div>
@@ -79,12 +81,12 @@ export default function DebtsList({ debts, totalRemaining, totalMonthly, onSelec
                   <div className="bg-white/70 rounded-lg p-2.5 flex items-start gap-2">
                     <Icon name="Lightbulb" size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
                     <p className="text-[11px] text-foreground">
-                      <b>Совет:</b> Гасите \u00AB{highestRateDebt.name}\u00BB ({highestRate}%) в первую очередь — это сэкономит больше всего на переплате (метод лавины)
+                      <b>Совет:</b> Гасите «{highestRateDebt.name}» ({highestRate}%) в первую очередь — это сэкономит больше всего на переплате (метод лавины)
                     </p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </details>
           )}
         </>
       )}

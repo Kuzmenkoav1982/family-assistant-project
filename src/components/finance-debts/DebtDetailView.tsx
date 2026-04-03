@@ -77,11 +77,19 @@ export default function DebtDetailView({
               </div>
 
               {(debt.grace_amount != null || debt.grace_period_end) && (
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="p-3 space-y-2">
-                    <p className="text-xs font-semibold text-blue-700 flex items-center gap-1">
-                      <Icon name="Shield" size={14} /> Льготный период
-                    </p>
+                <details className="rounded-xl bg-blue-50 border border-blue-200 group/grace" open={debt.grace_period_end ? new Date(debt.grace_period_end) >= new Date() : false}>
+                  <summary className="flex items-center gap-2 p-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <Icon name="Shield" size={14} className="text-blue-600" />
+                    <p className="text-xs font-semibold text-blue-700 flex-1">Льготный период</p>
+                    {debt.grace_period_end && new Date(debt.grace_period_end) >= new Date() && (
+                      <Badge className="text-[10px] bg-green-100 text-green-700 border-green-300">Активен</Badge>
+                    )}
+                    {debt.grace_period_end && new Date(debt.grace_period_end) < new Date() && (
+                      <Badge className="text-[10px] bg-red-100 text-red-700 border-red-300">Истёк</Badge>
+                    )}
+                    <Icon name="ChevronDown" size={14} className="text-blue-400 transition-transform group-open/grace:rotate-180" />
+                  </summary>
+                  <div className="px-3 pb-3 space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       {debt.grace_amount != null && (
                         <div>
@@ -112,8 +120,8 @@ export default function DebtDetailView({
                         <Icon name="AlertTriangle" size={12} /> Льготный период истёк — начисляются {getEffectiveRate(debt).rate}% годовых
                       </p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </details>
               )}
 
               <div className="grid grid-cols-2 gap-3">
