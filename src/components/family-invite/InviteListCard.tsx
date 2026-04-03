@@ -96,7 +96,7 @@ export function InviteListCard({
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm font-semibold text-gray-800 mb-1">🔗 Если получил ссылку / отсканировал QR:</p>
+                      <p className="text-sm font-semibold text-gray-800 mb-1">🔗 Если получил ссылку:</p>
                       <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
                         <li>Откроется страница приглашения с кодом</li>
                         <li>Нужно войти в аккаунт или зарегистрироваться</li>
@@ -212,24 +212,7 @@ export function InviteListCard({
                       <Icon name="Share2" size={14} />
                       Поделиться
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-[#0088cc] text-white hover:bg-[#0077b3] border-[#0088cc]"
-                      onClick={() => onShareViaTelegram(invite.code)}
-                    >
-                      <Icon name="Send" size={14} />
-                      Telegram
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-[#0077FF] text-white hover:bg-[#0066DD] border-[#0077FF]"
-                      onClick={() => onShareViaMax(invite.code)}
-                    >
-                      <Icon name="MessageCircle" size={14} />
-                      Max
-                    </Button>
+
                   </div>
                 </CardContent>
               </Card>
