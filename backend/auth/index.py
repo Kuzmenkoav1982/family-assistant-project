@@ -262,12 +262,13 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             final_member_name = member_name or phone[-4:]
             insert_member = f"""
                 INSERT INTO {SCHEMA}.family_members 
-                (family_id, user_id, name, role, points, level, workload, avatar, avatar_type) 
+                (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type) 
                 VALUES (
                     {escape_string(family['id'])}, 
                     {escape_string(user['id'])}, 
                     {escape_string(final_member_name)}, 
                     {escape_string('Владелец')}, 
+                    'admin',
                     0, 1, 0, 
                     {escape_string('👤')}, 
                     {escape_string('emoji')}
