@@ -240,7 +240,7 @@ function ServicesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
           <Textarea placeholder="Описание, запчасти" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
           <Button className="w-full" disabled={!form.title} onClick={async () => {
             await g.createService(vehicleId, { ...form, mileage: form.mileage ? Number(form.mileage) : undefined, cost: form.cost ? Number(form.cost) : undefined });
-            const d = await g.loadServices(vehicleId); setItems(d); setShowAdd(false);
+            const d = await g.loadServices(vehicleId); setItems(d); await g.loadVehicles(); setShowAdd(false);
             setForm({ service_type: 'maintenance', title: '', description: '', date: new Date().toISOString().split('T')[0], mileage: '', cost: '', service_station: '', parts_replaced: '' });
           }}>Сохранить</Button>
         </CardContent></Card>
@@ -281,6 +281,11 @@ function ExpensesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
 
   if (loading) return <p className="text-sm text-muted-foreground py-4 text-center">Загрузка...</p>;
 
+  const byCategory = items.reduce<Record<string, number>>((acc, e) => {
+    acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
@@ -289,6 +294,13 @@ function ExpensesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
           <Icon name={showAdd ? 'X' : 'Plus'} size={14} className="mr-1" />{showAdd ? 'Отмена' : 'Добавить'}
         </Button>
       </div>
+      {Object.keys(byCategory).length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          {Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([cat, sum]) => (
+            <Badge key={cat} variant="outline" className="text-xs">{EXPENSE_CATEGORIES[cat] || cat}: {fmt(sum)}</Badge>
+          ))}
+        </div>
+      )}
       {showAdd && (
         <Card><CardContent className="p-3 space-y-2">
           <Select value={form.category} onValueChange={v => setForm(p => ({ ...p, category: v }))}>

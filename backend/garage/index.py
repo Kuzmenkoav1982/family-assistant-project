@@ -104,6 +104,27 @@ def get_vehicle(family_id: str, vehicle_id: str) -> Optional[Dict]:
     return dict(row) if row else None
 
 
+DEFAULT_REMINDERS = [
+    {'reminder_type': 'oil_change', 'title': 'Замена масла', 'description': 'Рекомендуется каждые 10 000 км или раз в год'},
+    {'reminder_type': 'tire_change', 'title': 'Сезонная замена шин', 'description': 'Весна (март-апрель) и осень (октябрь-ноябрь)'},
+    {'reminder_type': 'insurance', 'title': 'Продление ОСАГО', 'description': 'Проверьте срок действия полиса'},
+    {'reminder_type': 'inspection', 'title': 'Техосмотр', 'description': 'Проверьте срок действия диагностической карты'},
+    {'reminder_type': 'maintenance', 'title': 'Плановое ТО', 'description': 'Согласно регламенту производителя'},
+]
+
+
+def create_default_reminders(conn, family_id: str, vehicle_id: str):
+    cur = conn.cursor()
+    for r in DEFAULT_REMINDERS:
+        rid = str(uuid.uuid4())
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.garage_reminders (id, vehicle_id, family_id, reminder_type, title, description)
+            VALUES ({esc(rid)}::uuid, {esc(vehicle_id)}::uuid, {esc(family_id)}::uuid,
+                    {esc(r['reminder_type'])}, {esc(r['title'])}, {esc(r['description'])})
+        """)
+    cur.close()
+
+
 def create_vehicle(family_id: str, data: Dict) -> Dict:
     vid = str(uuid.uuid4())
     conn = get_conn()
@@ -118,6 +139,7 @@ def create_vehicle(family_id: str, data: Dict) -> Dict:
         RETURNING *
     """)
     row = cur.fetchone()
+    create_default_reminders(conn, family_id, vid)
     cur.close()
     conn.close()
     return dict(row)
@@ -188,6 +210,12 @@ def create_service(family_id: str, vehicle_id: str, user_id: str, data: Dict) ->
         RETURNING *
     """)
     row = cur.fetchone()
+    mileage = data.get('mileage')
+    if mileage and int(mileage) > 0:
+        cur.execute(f"""
+            UPDATE {SCHEMA}.garage_vehicles SET mileage = GREATEST(COALESCE(mileage, 0), {int(mileage)}), updated_at = CURRENT_TIMESTAMP
+            WHERE id::text = {esc(vehicle_id)} AND family_id::text = {esc(family_id)}
+        """)
     cur.close()
     conn.close()
     return dict(row)
