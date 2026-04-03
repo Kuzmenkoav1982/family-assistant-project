@@ -1,450 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
-import { useToast } from '@/hooks/use-toast';
-
-const API_URL = 'https://functions.poehali.dev/41c5c664-7ded-4c89-8820-7af2dac89d54';
-const SYNC_API = 'https://functions.poehali.dev/c94d9639-d8fc-4838-a865-1c01c18f3f25';
-
-interface WeightEntry {
-  weight_kg: number;
-  wellbeing: string;
-  measured_at: string;
-}
-
-interface TodayMeal {
-  id: number;
-  day_number: number;
-  meal_type: string;
-  time: string;
-  title: string;
-  calories: number;
-  protein: number;
-  fats: number;
-  carbs: number;
-  completed: boolean;
-  image_url: string | null;
-  recipe: string;
-}
-
-interface DashboardStats {
-  days_elapsed: number;
-  days_remaining: number;
-  completed_meals: number;
-  total_meals: number;
-  adherence_pct: number;
-  weight_lost: number;
-  start_weight: number | null;
-  last_weight: number | null;
-  days_since_log: number;
-  streak: number;
-  is_plateau: boolean;
-}
-
-interface DashboardPlan {
-  id: number;
-  plan_type: string;
-  start_date: string;
-  end_date: string;
-  duration_days: number;
-  target_weight_loss_kg: number | null;
-  target_calories_daily: number;
-  status: string;
-  daily_water_ml: number | null;
-  daily_steps: number | null;
-  exercise_recommendation: string | null;
-}
-
-interface DashboardData {
-  has_plan: boolean;
-  plan: DashboardPlan | null;
-  weight_log: WeightEntry[];
-  today_meals: TodayMeal[];
-  stats: DashboardStats | null;
-  tip: { type: string; title: string; text: string } | null;
-}
-
-const mealTypeLabels: Record<string, string> = {
-  breakfast: 'Завтрак', lunch: 'Обед', dinner: 'Ужин', snack: 'Перекус',
-};
-
-const mealTypeIcons: Record<string, string> = {
-  breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍎',
-};
-
-const sosReasons = [
-  { id: 'strong_hunger', label: 'Сильный голод', icon: '🍔' },
-  { id: 'weakness', label: 'Упадок сил', icon: '😵' },
-  { id: 'psychological', label: 'Психологически тяжело', icon: '😔' },
-  { id: 'want_to_quit', label: 'Хочу бросить', icon: '🏳️' },
-];
+import useDietProgress from '@/hooks/useDietProgress';
+import StatsCards from '@/components/diet-progress/StatsCards';
+import AnalysisCard from '@/components/diet-progress/AnalysisCard';
+import WeightChart from '@/components/diet-progress/WeightChart';
+import TodayMeals from '@/components/diet-progress/TodayMeals';
+import { ActivityCard, ActivityModal, SOSModal, FinalReportModal, NotifSettingsModal } from '@/components/diet-progress/DietModals';
 
 export default function DietProgress() {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<DashboardData | null>(null);
+  const d = useDietProgress();
 
-  const [showWeightForm, setShowWeightForm] = useState(false);
-  const [newWeight, setNewWeight] = useState('');
-  const [wellbeing, setWellbeing] = useState('');
-  const [savingWeight, setSavingWeight] = useState(false);
-
-  const [showSOS, setShowSOS] = useState(false);
-  const [sosComment, setSosComment] = useState('');
-  const [sosResponse, setSosResponse] = useState<string | null>(null);
-  const [sendingSOS, setSendingSOS] = useState(false);
-
-  const [motivation, setMotivation] = useState<string | null>(null);
-  const [loadingMotivation, setLoadingMotivation] = useState(false);
-
-  const [markingMeal, setMarkingMeal] = useState<number | null>(null);
-  const [mealMenu, setMealMenu] = useState<number | null>(null);
-
-  const [showFinalReport, setShowFinalReport] = useState(false);
-  const [finalReport, setFinalReport] = useState<Record<string, unknown> | null>(null);
-  const [loadingReport, setLoadingReport] = useState(false);
-  const [extending, setExtending] = useState(false);
-  const [finishing, setFinishing] = useState(false);
-
-  const [showActivity, setShowActivity] = useState(false);
-  const [actSteps, setActSteps] = useState('');
-  const [actType, setActType] = useState('');
-  const [actDuration, setActDuration] = useState('');
-  const [actNote, setActNote] = useState('');
-  const [savingActivity, setSavingActivity] = useState(false);
-  const [todayActivity, setTodayActivity] = useState<{ steps: number; exercise_type: string; exercise_duration_min: number; exercise_note: string; calories_burned: number } | null>(null);
-
-  const [analysis, setAnalysis] = useState<{
-    has_analysis: boolean;
-    recommendation: string;
-    cal_adjustment: number;
-    new_calories: number;
-    current_calories: number;
-    reason: string;
-    advice: string;
-    actual_loss_kg: number;
-    expected_loss_kg: number;
-    weekly_loss_kg: number;
-    plan_id: number;
-  } | null>(null);
-  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
-  const [adjusting, setAdjusting] = useState(false);
-
-  const [showNotifSettings, setShowNotifSettings] = useState(false);
-  const [notifSettings, setNotifSettings] = useState<Array<{
-    type: string; label: string; enabled: boolean;
-    time_value: string | null; interval_minutes: number | null;
-    channel: string; quiet_start: string; quiet_end: string;
-  }>>([]);
-  const [loadingNotif, setLoadingNotif] = useState(false);
-  const [savingNotif, setSavingNotif] = useState(false);
-
-  const authToken = localStorage.getItem('authToken') || '';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-Auth-Token': authToken,
-  };
-
-  const fetchDashboard = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_URL}?action=dashboard`, { headers: { 'X-Auth-Token': authToken } });
-      const json = await res.json();
-      setData(json);
-    } catch (e) {
-      console.error('[DietProgress] fetch error:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [authToken]);
-
-  useEffect(() => {
-    fetchDashboard();
-  }, [fetchDashboard]);
-
-  useEffect(() => {
-    if (data?.has_plan && !motivation && !loadingMotivation) {
-      const lastMotivation = sessionStorage.getItem('diet_motivation_ts');
-      const now = Date.now();
-      if (!lastMotivation || now - parseInt(lastMotivation) > 3600000) {
-        handleMotivation();
-        sessionStorage.setItem('diet_motivation_ts', String(now));
-      }
-    }
-  }, [data?.has_plan]);
-
-  const handleLogWeight = async () => {
-    if (!newWeight || !data?.plan) return;
-    setSavingWeight(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'log_weight', plan_id: data.plan.id, weight_kg: parseFloat(newWeight), wellbeing }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: 'Вес записан!' });
-        setShowWeightForm(false);
-        setNewWeight('');
-        setWellbeing('');
-        fetchDashboard();
-      }
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setSavingWeight(false); }
-  };
-
-  const handleEatMeal = async (mealId: number) => {
-    setMarkingMeal(mealId);
-    try {
-      const res = await fetch(SYNC_API, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'log_meal_bju', meal_id: mealId }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: 'Записано!', description: json.message });
-      }
-      fetchDashboard();
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setMarkingMeal(null); }
-  };
-
-  const handleUndoMeal = async (mealId: number) => {
-    setMarkingMeal(mealId);
-    try {
-      await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'mark_meal', meal_id: mealId, completed: false }),
-      });
-      fetchDashboard();
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setMarkingMeal(null); }
-  };
-
-  const handleSaveRecipe = async (mealId: number) => {
-    try {
-      const res = await fetch(SYNC_API, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'save_recipe', meal_id: mealId }),
-      });
-      const json = await res.json();
-      toast({ title: json.success ? 'Сохранено!' : 'Ошибка', description: json.message || json.error });
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    setMealMenu(null);
-  };
-
-  const handleAddToShopping = async (mealIds: number[]) => {
-    try {
-      const res = await fetch(SYNC_API, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'add_to_shopping', meal_ids: mealIds }),
-      });
-      const json = await res.json();
-      toast({ title: json.success ? 'Добавлено!' : 'Ошибка', description: json.message || json.error });
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    setMealMenu(null);
-  };
-
-  const handleSOS = async (reason: string) => {
-    if (!data?.plan) return;
-    setSendingSOS(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'sos', plan_id: data.plan.id, reason, comment: sosComment }),
-      });
-      const json = await res.json();
-      setSosResponse(json.message);
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setSendingSOS(false); }
-  };
-
-  const handleMotivation = async () => {
-    setLoadingMotivation(true);
-    try {
-      const hour = new Date().getHours();
-      const time = hour < 14 ? 'morning' : 'evening';
-      const planId = data?.plan?.id;
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'motivation', plan_id: planId, time }),
-      });
-      const json = await res.json();
-      setMotivation(json.message);
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setLoadingMotivation(false); }
-  };
-
-  const handleAnalyze = async () => {
-    setLoadingAnalysis(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'analyze_progress', plan_id: data?.plan?.id }),
-      });
-      const json = await res.json();
-      setAnalysis(json);
-    } catch { toast({ title: 'Ошибка анализа', variant: 'destructive' }); }
-    finally { setLoadingAnalysis(false); }
-  };
-
-  const handleAdjust = async () => {
-    if (!analysis) return;
-    setAdjusting(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'adjust_plan', plan_id: analysis.plan_id, new_calories: analysis.new_calories }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: 'План скорректирован!' });
-        setAnalysis(null);
-        fetchDashboard();
-      }
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setAdjusting(false); }
-  };
-
-  const fetchTodayActivity = async () => {
-    try {
-      const res = await fetch(`${API_URL}?action=today_activity`, { headers: { 'X-Auth-Token': authToken } });
-      const json = await res.json();
-      if (json.activity) {
-        setTodayActivity(json.activity);
-        setActSteps(String(json.activity.steps || ''));
-        setActType(json.activity.exercise_type || '');
-        setActDuration(String(json.activity.exercise_duration_min || ''));
-        setActNote(json.activity.exercise_note || '');
-      }
-    } catch { /* skip */ }
-  };
-
-  const handleSaveActivity = async () => {
-    setSavingActivity(true);
-    try {
-      const estimatedCalories = Math.round((parseInt(actSteps) || 0) * 0.04 + (parseInt(actDuration) || 0) * 7);
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({
-          action: 'log_activity',
-          plan_id: data?.plan?.id,
-          steps: parseInt(actSteps) || 0,
-          exercise_type: actType,
-          exercise_duration_min: parseInt(actDuration) || 0,
-          exercise_note: actNote,
-          calories_burned: estimatedCalories,
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: 'Активность записана!' });
-        setTodayActivity({
-          steps: parseInt(actSteps) || 0,
-          exercise_type: actType,
-          exercise_duration_min: parseInt(actDuration) || 0,
-          exercise_note: actNote,
-          calories_burned: estimatedCalories,
-        });
-        setShowActivity(false);
-      }
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setSavingActivity(false); }
-  };
-
-  const handleFinalReport = async () => {
-    setLoadingReport(true);
-    setShowFinalReport(true);
-    try {
-      const res = await fetch(`${API_URL}?action=final_report&plan_id=${data?.plan?.id}`, { headers: { 'X-Auth-Token': authToken } });
-      const json = await res.json();
-      if (json.report) setFinalReport(json.report);
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setLoadingReport(false); }
-  };
-
-  const handleFinishPlan = async () => {
-    setFinishing(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'finish_plan', plan_id: data?.plan?.id }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: 'План завершён!' });
-        fetchDashboard();
-        setShowFinalReport(false);
-      }
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setFinishing(false); }
-  };
-
-  const handleExtendPlan = async (days: number) => {
-    setExtending(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'extend_plan', plan_id: data?.plan?.id, extra_days: days }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: json.message });
-        fetchDashboard();
-        setShowFinalReport(false);
-      }
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setExtending(false); }
-  };
-
-  useEffect(() => {
-    if (data?.has_plan) fetchTodayActivity();
-  }, [data?.has_plan]);
-
-  const fetchNotifSettings = async () => {
-    setLoadingNotif(true);
-    try {
-      const res = await fetch(`${API_URL}?action=notification_settings`, { headers: { 'X-Auth-Token': authToken } });
-      const json = await res.json();
-      if (json.settings) setNotifSettings(json.settings);
-    } catch { /* skip */ }
-    finally { setLoadingNotif(false); }
-  };
-
-  const saveNotifSettings = async () => {
-    setSavingNotif(true);
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'save_notification_settings', settings: notifSettings }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: 'Настройки сохранены' });
-        setShowNotifSettings(false);
-      }
-    } catch { toast({ title: 'Ошибка', variant: 'destructive' }); }
-    finally { setSavingNotif(false); }
-  };
-
-  const toggleNotif = (type: string) => {
-    setNotifSettings(prev => prev.map(s => s.type === type ? { ...s, enabled: !s.enabled } : s));
-  };
-
-  const updateNotifTime = (type: string, time: string) => {
-    setNotifSettings(prev => prev.map(s => s.type === type ? { ...s, time_value: time } : s));
-  };
-
-  if (loading) {
+  if (d.loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
@@ -452,7 +22,7 @@ export default function DietProgress() {
     );
   }
 
-  if (!data?.has_plan) {
+  if (!d.data?.has_plan) {
     return (
       <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-6" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
@@ -469,11 +39,11 @@ export default function DietProgress() {
               </div>
               <h2 className="text-lg font-bold mb-2">Нет активного плана</h2>
               <p className="text-muted-foreground text-sm mb-4">
-                Создайте план питания, чтобы отслеживать прогресс, получать мотивацию и контролировать вес.
+                Создайте план питания, чтобы отслеживать прогресс
               </p>
-              <Button className="bg-gradient-to-r from-violet-500 to-purple-600" onClick={() => navigate('/nutrition/diet')}>
-                <Icon name="Sparkles" size={16} className="mr-2" />
-                Создать ИИ-диету
+              <Button onClick={() => navigate('/nutrition')} className="bg-violet-600">
+                <Icon name="ArrowLeft" size={16} className="mr-2" />
+                К питанию
               </Button>
             </CardContent>
           </Card>
@@ -482,24 +52,7 @@ export default function DietProgress() {
     );
   }
 
-  const { plan, weight_log, today_meals, stats } = data;
-
-  const weightChartData = weight_log.map(w => ({
-    date: new Date(w.measured_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
-    weight: w.weight_kg,
-  }));
-
-  const targetWeight = stats?.start_weight && plan?.target_weight_loss_kg
-    ? stats.start_weight - plan.target_weight_loss_kg
-    : null;
-
-  const allWeights = [
-    ...weightChartData.map(d => d.weight),
-    ...(targetWeight ? [targetWeight] : []),
-  ];
-  const minW = allWeights.length > 0 ? Math.min(...allWeights) - 1 : 60;
-  const maxW = allWeights.length > 0 ? Math.max(...allWeights) + 1 : 100;
-  const range = maxW - minW || 1;
+  const { plan, stats } = d;
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
@@ -511,284 +64,44 @@ export default function DietProgress() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg"
           backPath="/nutrition"
           rightAction={
-            <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 bg-white/80" onClick={() => setShowSOS(true)}>
+            <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 bg-white/80" onClick={() => d.setShowSOS(true)}>
               <Icon name="LifeBuoy" size={16} />
               <span className="ml-1">SOS</span>
             </Button>
           }
         />
 
-        {stats && stats.days_since_log >= 3 && (
-          <Card className="border-amber-300 bg-amber-50">
-            <CardContent className="p-3 flex items-center gap-3">
-              <Icon name="AlertTriangle" size={20} className="text-amber-600 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-amber-900">Вы {stats.days_since_log} дн. не вносили вес</p>
-                <p className="text-amber-700 text-xs">Без данных невозможно корректировать план</p>
-              </div>
-              <Button size="sm" variant="outline" className="ml-auto border-amber-300" onClick={() => setShowWeightForm(true)}>
-                Внести
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
         {stats && (
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 overflow-hidden">
-              <CardContent className="p-2.5 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-green-700 truncate">
-                  {stats.weight_lost > 0 ? `-${stats.weight_lost}` : stats.weight_lost} кг
-                </div>
-                <div className="text-[11px] sm:text-xs text-green-600">сброшено</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 overflow-hidden">
-              <CardContent className="p-2.5 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-blue-700 truncate">{stats.adherence_pct}%</div>
-                <div className="text-[11px] sm:text-xs text-blue-600">план выполнен</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 overflow-hidden">
-              <CardContent className="p-2.5 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-violet-700 truncate">{stats.last_weight || '—'}</div>
-                <div className="text-[11px] sm:text-xs text-violet-600">текущий вес, кг</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 overflow-hidden">
-              <CardContent className="p-2.5 sm:p-3 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-amber-700 truncate">{stats.streak || 0}</div>
-                <div className="text-[11px] sm:text-xs text-amber-600">дней стрик</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {data.tip && (
-          <Card className={`border ${
-            data.tip.type === 'plateau' ? 'border-amber-200 bg-amber-50/50' :
-            data.tip.type === 'sugar' ? 'border-pink-200 bg-pink-50/50' :
-            data.tip.type === 'success' ? 'border-green-200 bg-green-50/50' :
-            'border-blue-200 bg-blue-50/50'
-          }`}>
-            <CardContent className="p-3">
-              <h4 className="text-sm font-bold mb-1 flex items-center gap-2">
-                <Icon name={data.tip.type === 'plateau' ? 'TrendingUp' : data.tip.type === 'sugar' ? 'Candy' : data.tip.type === 'success' ? 'Trophy' : 'Lightbulb'} size={16} />
-                {data.tip.title}
-              </h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">{data.tip.text}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {stats && (
-          <div className="overflow-hidden">
-            <div className="flex items-center justify-between mb-1 px-0.5">
-              <span className="text-xs text-muted-foreground">День {stats.days_elapsed}</span>
-              <span className="text-xs text-muted-foreground">День {plan?.duration_days}</span>
-            </div>
-            <Progress value={Math.min(100, (stats.days_elapsed / (plan?.duration_days || 1)) * 100)} className="h-2" />
-          </div>
+          <StatsCards stats={stats} plan={plan} tip={d.data!.tip} onWeightFormOpen={() => d.setShowWeightForm(true)} />
         )}
 
         {stats && stats.days_elapsed >= 3 && (
-          <Card className={`border-2 ${
-            analysis?.recommendation === 'ease' ? 'border-amber-300 bg-amber-50/50' :
-            analysis?.recommendation === 'intensify' ? 'border-blue-300 bg-blue-50/50' :
-            analysis ? 'border-green-300 bg-green-50/50' : 'border-violet-200'
-          }`}>
-            <CardContent className="p-4">
-              {!analysis ? (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-sm flex items-center gap-2">
-                      <Icon name="Activity" size={16} className="text-violet-600" />
-                      Анализ прогресса
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Проверю темп и подскажу, нужна ли корректировка
-                    </p>
-                  </div>
-                  <Button size="sm" onClick={handleAnalyze} disabled={loadingAnalysis} className="bg-violet-600">
-                    {loadingAnalysis ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Icon name="BarChart3" size={14} className="mr-1" />
-                        Анализ
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : !analysis.has_analysis ? (
-                <p className="text-sm text-muted-foreground text-center py-2">{analysis.reason || 'Недостаточно данных'}</p>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      name={analysis.recommendation === 'ease' ? 'TrendingDown' : analysis.recommendation === 'intensify' ? 'TrendingUp' : 'Check'}
-                      size={20}
-                      className={
-                        analysis.recommendation === 'ease' ? 'text-amber-600' :
-                        analysis.recommendation === 'intensify' ? 'text-blue-600' : 'text-green-600'
-                      }
-                    />
-                    <h3 className="font-bold text-sm">{analysis.reason}</h3>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-2 rounded-lg bg-white/80">
-                      <div className="text-sm font-bold">{analysis.actual_loss_kg} кг</div>
-                      <div className="text-[10px] text-muted-foreground">фактически</div>
-                    </div>
-                    <div className="p-2 rounded-lg bg-white/80">
-                      <div className="text-sm font-bold">{analysis.expected_loss_kg} кг</div>
-                      <div className="text-[10px] text-muted-foreground">ожидалось</div>
-                    </div>
-                    <div className="p-2 rounded-lg bg-white/80">
-                      <div className="text-sm font-bold">{analysis.weekly_loss_kg} кг</div>
-                      <div className="text-[10px] text-muted-foreground">в неделю</div>
-                    </div>
-                  </div>
-
-                  <p className="text-sm">{analysis.advice}</p>
-
-                  {analysis.cal_adjustment !== 0 && (
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/80 border">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Калории: {analysis.current_calories} kcal</p>
-                        <p className="text-sm font-bold">
-                          {analysis.cal_adjustment > 0 ? '+' : ''}{analysis.cal_adjustment} kcal = {analysis.new_calories} kcal/день
-                        </p>
-                      </div>
-                      <Button size="sm" onClick={handleAdjust} disabled={adjusting}
-                        className={analysis.recommendation === 'ease' ? 'bg-amber-600' : 'bg-blue-600'}
-                      >
-                        {adjusting ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          'Применить'
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                  <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setAnalysis(null)}>
-                    Скрыть
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <AnalysisCard
+            analysis={d.analysis}
+            loadingAnalysis={d.loadingAnalysis}
+            adjusting={d.adjusting}
+            onAnalyze={d.handleAnalyze}
+            onAdjust={d.handleAdjust}
+            onHide={() => d.setAnalysis(null)}
+          />
         )}
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold flex items-center gap-2">
-                <Icon name="TrendingDown" size={18} className="text-green-600" />
-                График веса
-              </h3>
-              <Button size="sm" variant="outline" onClick={() => setShowWeightForm(true)}>
-                <Icon name="Plus" size={14} className="mr-1" />
-                Записать вес
-              </Button>
-            </div>
-
-            {weightChartData.length < 2 ? (
-              <div className="text-center py-6 text-muted-foreground text-sm">
-                <Icon name="BarChart3" size={32} className="mx-auto mb-2 opacity-30" />
-                Нужно минимум 2 записи для графика
-              </div>
-            ) : (
-              <div className="overflow-x-auto -mx-4 px-4">
-                <div style={{ minWidth: Math.max(weightChartData.length * 70, 200) }} className="relative h-44">
-                  <svg
-                    viewBox={`0 0 ${Math.max(weightChartData.length * 70, 200)} 176`}
-                    className="w-full h-full"
-                    preserveAspectRatio="xMidYMid meet"
-                  >
-                    <defs>
-                      <linearGradient id="weightLine" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="rgb(139, 92, 246)" />
-                        <stop offset="100%" stopColor="rgb(124, 58, 237)" />
-                      </linearGradient>
-                    </defs>
-                    {targetWeight && (
-                      <>
-                        <line
-                          x1="0"
-                          y1={140 - ((targetWeight - minW) / range) * 110}
-                          x2={Math.max(weightChartData.length * 70, 200)}
-                          y2={140 - ((targetWeight - minW) / range) * 110}
-                          stroke="rgb(34, 197, 94)"
-                          strokeWidth="1.5"
-                          strokeDasharray="6 4"
-                          opacity="0.7"
-                        />
-                        <text
-                          x={Math.max(weightChartData.length * 70, 200) - 5}
-                          y={140 - ((targetWeight - minW) / range) * 110 - 6}
-                          textAnchor="end"
-                          fontSize="10"
-                          fontWeight="500"
-                          fill="rgb(22, 163, 74)"
-                        >
-                          Цель: {targetWeight} кг
-                        </text>
-                      </>
-                    )}
-                    <polyline
-                      fill="none"
-                      stroke="url(#weightLine)"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      points={weightChartData.map((d, i) => `${i * 70 + 35},${140 - ((d.weight - minW) / range) * 110}`).join(' ')}
-                    />
-                    {weightChartData.map((d, i) => {
-                      const cx = i * 70 + 35;
-                      const cy = 140 - ((d.weight - minW) / range) * 110;
-                      return (
-                        <g key={i}>
-                          <circle cx={cx} cy={cy} r="6" fill="white" stroke="rgb(124, 58, 237)" strokeWidth="2.5" />
-                          <circle cx={cx} cy={cy} r="2.5" fill="rgb(124, 58, 237)" />
-                          <text x={cx} y={cy - 14} textAnchor="middle" fontSize="12" fontWeight="600" fill="#4b5563">{d.weight}</text>
-                          <text x={cx} y={168} textAnchor="middle" fontSize="11" fill="#9ca3af">{d.date}</text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {showWeightForm && (
-          <Card className="border-violet-300 bg-violet-50/50">
-            <CardContent className="p-4 space-y-3">
-              <h3 className="font-bold flex items-center gap-2">
-                <Icon name="Scale" size={18} className="text-violet-600" />
-                Записать вес
-              </h3>
-              <div>
-                <Label>Вес (кг)</Label>
-                <Input type="number" step="0.1" placeholder="75.5" value={newWeight} onChange={e => setNewWeight(e.target.value)} />
-              </div>
-              <div>
-                <Label>Самочувствие (необязательно)</Label>
-                <Textarea placeholder="Как себя чувствуете?" value={wellbeing} onChange={e => setWellbeing(e.target.value)} rows={2} />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleLogWeight} disabled={!newWeight || savingWeight} className="bg-violet-600">
-                  {savingWeight ? 'Сохраняю...' : 'Сохранить'}
-                </Button>
-                <Button variant="outline" onClick={() => setShowWeightForm(false)}>Отмена</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <WeightChart
+          weightChartData={d.weightChartData}
+          targetWeight={d.targetWeight}
+          minW={d.minW}
+          maxW={d.maxW}
+          range={d.range}
+          showWeightForm={d.showWeightForm}
+          newWeight={d.newWeight}
+          setNewWeight={d.setNewWeight}
+          wellbeing={d.wellbeing}
+          setWellbeing={d.setWellbeing}
+          savingWeight={d.savingWeight}
+          onLogWeight={d.handleLogWeight}
+          onShowForm={() => d.setShowWeightForm(true)}
+          onHideForm={() => d.setShowWeightForm(false)}
+        />
 
         <Card>
           <CardContent className="p-4">
@@ -797,192 +110,52 @@ export default function DietProgress() {
                 <Icon name="Sparkles" size={18} className="text-amber-500" />
                 Мотивация
               </h3>
-              <Button size="sm" variant="ghost" onClick={handleMotivation} disabled={loadingMotivation}>
-                {loadingMotivation ? (
+              <Button size="sm" variant="ghost" onClick={d.handleMotivation} disabled={d.loadingMotivation}>
+                {d.loadingMotivation ? (
                   <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Icon name="RefreshCw" size={14} />
                 )}
               </Button>
             </div>
-            {motivation ? (
+            {d.motivation ? (
               <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-                <p className="text-sm leading-relaxed">{motivation}</p>
+                <p className="text-sm leading-relaxed">{d.motivation}</p>
               </div>
             ) : (
-              <Button variant="outline" className="w-full" onClick={handleMotivation} disabled={loadingMotivation}>
+              <Button variant="outline" className="w-full" onClick={d.handleMotivation} disabled={d.loadingMotivation}>
                 <Icon name="Sparkles" size={16} className="mr-2" />
-                {loadingMotivation ? 'Генерирую...' : 'Получить мотивацию от ИИ'}
+                {d.loadingMotivation ? 'Генерирую...' : 'Получить мотивацию от ИИ'}
               </Button>
             )}
           </CardContent>
         </Card>
 
-        {today_meals && today_meals.length > 0 && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold flex items-center gap-2">
-                  <Icon name="UtensilsCrossed" size={18} className="text-green-600" />
-                  Сегодня
-                </h3>
-                <Button size="sm" variant="outline" className="text-xs h-7 shrink-0"
-                  onClick={() => handleAddToShopping(today_meals.filter(m => !m.completed).map(m => m.id))}>
-                  <Icon name="ShoppingCart" size={12} className="mr-1" />
-                  <span className="hidden sm:inline">Всё в </span>покупки
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {today_meals.map(meal => (
-                  <div key={meal.id} className="space-y-1">
-                    <div
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                        meal.completed ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      <div className="text-xl flex-shrink-0">{mealTypeIcons[meal.meal_type] || '🍽'}</div>
-                      <div className="flex-1 min-w-0" onClick={() => setMealMenu(mealMenu === meal.id ? null : meal.id)}>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{meal.time}</span>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {mealTypeLabels[meal.meal_type] || meal.meal_type}
-                          </Badge>
-                        </div>
-                        <p className={`text-sm font-medium truncate ${meal.completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {meal.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{meal.calories} ккал | Б:{meal.protein} Ж:{meal.fats} У:{meal.carbs}</p>
-                      </div>
-                      {meal.completed ? (
-                        <Button size="sm" variant="outline" className="bg-green-100 border-green-300 text-green-700"
-                          disabled={markingMeal === meal.id} onClick={() => handleUndoMeal(meal.id)}>
-                          {markingMeal === meal.id ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Icon name="Check" size={14} />}
-                        </Button>
-                      ) : (
-                        <Button size="sm" className="bg-green-600" disabled={markingMeal === meal.id} onClick={() => handleEatMeal(meal.id)}>
-                          {markingMeal === meal.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <>
-                            <Icon name="UtensilsCrossed" size={14} className="mr-1" />
-                            <span className="text-xs">Съел</span>
-                          </>}
-                        </Button>
-                      )}
-                    </div>
-                    {mealMenu === meal.id && (
-                      <div className="flex gap-1 pl-10">
-                        <Button size="sm" variant="ghost" className="text-xs h-7 px-2" onClick={() => handleSaveRecipe(meal.id)}>
-                          <Icon name="BookOpen" size={12} className="mr-1" />
-                          В рецепты
-                        </Button>
-                        <Button size="sm" variant="ghost" className="text-xs h-7 px-2" onClick={() => handleAddToShopping([meal.id])}>
-                          <Icon name="ShoppingCart" size={12} className="mr-1" />
-                          В покупки
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <TodayMeals
+          meals={d.today_meals}
+          markingMeal={d.markingMeal}
+          mealMenu={d.mealMenu}
+          setMealMenu={d.setMealMenu}
+          onEat={d.handleEatMeal}
+          onUndo={d.handleUndoMeal}
+          onSaveRecipe={d.handleSaveRecipe}
+          onAddToShopping={d.handleAddToShopping}
+        />
+
+        {plan && (
+          <ActivityCard plan={plan} todayActivity={d.todayActivity} onOpen={() => d.setShowActivity(true)} />
         )}
 
-        {(plan?.exercise_recommendation || plan?.daily_steps) && (
-          <Card className="bg-blue-50/50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold flex items-center gap-2 text-blue-900">
-                  <Icon name="Footprints" size={18} className="text-blue-600" />
-                  Активность
-                </h3>
-                <Button size="sm" variant="outline" className="text-xs h-7 border-blue-300 text-blue-700" onClick={() => setShowActivity(true)}>
-                  <Icon name="Plus" size={12} className="mr-1" />
-                  {todayActivity ? 'Обновить' : 'Записать'}
-                </Button>
-              </div>
-              {plan.exercise_recommendation && (
-                <p className="text-sm text-blue-800 mb-2">{plan.exercise_recommendation}</p>
-              )}
-              <div className="grid grid-cols-3 gap-2">
-                {plan.daily_steps && (
-                  <div className="text-center p-2 rounded-lg bg-white/70">
-                    <div className="text-lg font-bold text-blue-700">{todayActivity?.steps?.toLocaleString() || 0}</div>
-                    <div className="text-[10px] text-muted-foreground">/ {plan.daily_steps.toLocaleString()} шагов</div>
-                    <Progress value={Math.min(100, ((todayActivity?.steps || 0) / plan.daily_steps) * 100)} className="h-1 mt-1" />
-                  </div>
-                )}
-                <div className="text-center p-2 rounded-lg bg-white/70">
-                  <div className="text-lg font-bold text-blue-700">{todayActivity?.exercise_duration_min || 0}</div>
-                  <div className="text-[10px] text-muted-foreground">мин тренировки</div>
-                </div>
-                <div className="text-center p-2 rounded-lg bg-white/70">
-                  <div className="text-lg font-bold text-orange-600">{todayActivity?.calories_burned || 0}</div>
-                  <div className="text-[10px] text-muted-foreground">ккал сожжено</div>
-                </div>
-              </div>
-              {plan.daily_water_ml && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-blue-700">
-                  <Icon name="Droplets" size={14} />
-                  <span>{(plan.daily_water_ml / 1000).toFixed(1)} л воды/день</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {showActivity && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-            <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto">
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Icon name="Footprints" size={20} className="text-blue-600" />
-                    Активность сегодня
-                  </h3>
-                  <Button variant="ghost" size="sm" onClick={() => setShowActivity(false)}>
-                    <Icon name="X" size={18} />
-                  </Button>
-                </div>
-                <div>
-                  <Label className="text-sm">Шаги</Label>
-                  <Input type="number" placeholder="0" value={actSteps} onChange={e => setActSteps(e.target.value)} />
-                </div>
-                <div>
-                  <Label className="text-sm">Тип тренировки</Label>
-                  <div className="grid grid-cols-3 gap-2 mt-1">
-                    {[
-                      { id: 'walking', label: 'Ходьба', icon: '🚶' },
-                      { id: 'running', label: 'Бег', icon: '🏃' },
-                      { id: 'gym', label: 'Зал', icon: '🏋️' },
-                      { id: 'cycling', label: 'Вело', icon: '🚴' },
-                      { id: 'swimming', label: 'Плавание', icon: '🏊' },
-                      { id: 'yoga', label: 'Йога', icon: '🧘' },
-                    ].map(t => (
-                      <button
-                        key={t.id}
-                        className={`p-2 rounded-lg border text-center text-xs transition-all ${actType === t.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                        onClick={() => setActType(t.id)}
-                      >
-                        <div className="text-lg">{t.icon}</div>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm">Продолжительность (мин)</Label>
-                  <Input type="number" placeholder="0" value={actDuration} onChange={e => setActDuration(e.target.value)} />
-                </div>
-                <div>
-                  <Label className="text-sm">Заметка (необязательно)</Label>
-                  <Textarea rows={2} placeholder="Как прошла тренировка..." value={actNote} onChange={e => setActNote(e.target.value)} />
-                </div>
-                <Button className="w-full bg-blue-600" onClick={handleSaveActivity} disabled={savingActivity}>
-                  {savingActivity ? 'Сохраняю...' : 'Сохранить активность'}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <ActivityModal
+          show={d.showActivity}
+          onClose={() => d.setShowActivity(false)}
+          actSteps={d.actSteps} setActSteps={d.setActSteps}
+          actType={d.actType} setActType={d.setActType}
+          actDuration={d.actDuration} setActDuration={d.setActDuration}
+          actNote={d.actNote} setActNote={d.setActNote}
+          savingActivity={d.savingActivity}
+          onSave={d.handleSaveActivity}
+        />
 
         {stats && stats.days_remaining <= 3 && stats.days_remaining >= 0 && (
           <Card className="border-2 border-amber-300 bg-amber-50/50">
@@ -997,11 +170,11 @@ export default function DietProgress() {
                   : 'Скоро финиш! Можно посмотреть промежуточные результаты.'}
               </p>
               <div className="flex gap-2">
-                <Button size="sm" className="bg-amber-600" onClick={handleFinalReport}>
+                <Button size="sm" className="bg-amber-600" onClick={d.handleFinalReport}>
                   <Icon name="BarChart3" size={14} className="mr-1" />
                   Итоговый отчёт
                 </Button>
-                <Button size="sm" variant="outline" className="border-amber-400" onClick={() => handleExtendPlan(7)} disabled={extending}>
+                <Button size="sm" variant="outline" className="border-amber-400" onClick={() => d.handleExtendPlan(7)} disabled={d.extending}>
                   <Icon name="Plus" size={14} className="mr-1" />
                   +7 дней
                 </Button>
@@ -1018,7 +191,7 @@ export default function DietProgress() {
                   <Icon name="Bell" size={16} className="text-violet-600" />
                   Уведомления
                 </h3>
-                <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setShowNotifSettings(true); fetchNotifSettings(); }}>
+                <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { d.setShowNotifSettings(true); d.fetchNotifSettings(); }}>
                   <Icon name="Settings" size={12} className="mr-1" />
                   Настроить
                 </Button>
@@ -1027,247 +200,46 @@ export default function DietProgress() {
           </Card>
           <Card className="shrink-0">
             <CardContent className="p-4">
-              <Button size="sm" variant="ghost" className="text-xs h-auto py-0" onClick={handleFinalReport}>
+              <Button size="sm" variant="ghost" className="text-xs h-auto py-0" onClick={d.handleFinalReport}>
                 <Icon name="FileText" size={16} className="text-muted-foreground" />
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {showNotifSettings && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-            <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto">
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Icon name="Bell" size={20} className="text-violet-600" />
-                    Уведомления диеты
-                  </h3>
-                  <Button variant="ghost" size="sm" onClick={() => setShowNotifSettings(false)}>
-                    <Icon name="X" size={18} />
-                  </Button>
-                </div>
+        <NotifSettingsModal
+          show={d.showNotifSettings}
+          onClose={() => d.setShowNotifSettings(false)}
+          settings={d.notifSettings}
+          loadingNotif={d.loadingNotif}
+          savingNotif={d.savingNotif}
+          onToggle={d.toggleNotif}
+          onUpdateTime={d.updateNotifTime}
+          onUpdateInterval={(type, minutes) => d.setNotifSettings(prev => prev.map(x => x.type === type ? { ...x, interval_minutes: minutes } : x))}
+          onSave={d.saveNotifSettings}
+        />
 
-                {loadingNotif ? (
-                  <div className="flex justify-center py-8">
-                    <div className="w-8 h-8 border-3 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {notifSettings.map(s => {
-                      const icons: Record<string, string> = {
-                        weight_reminder: 'Scale', meal_reminder: 'UtensilsCrossed', water_reminder: 'Droplets',
-                        motivation: 'Sparkles', weekly_report: 'BarChart3', sos_followup: 'Heart', plan_ending: 'Flag',
-                      };
-                      return (
-                        <div key={s.type} className={`p-3 rounded-lg border transition-all ${s.enabled ? 'bg-violet-50/50 border-violet-200' : 'bg-gray-50 border-gray-200'}`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Icon name={icons[s.type] || 'Bell'} size={16} className={s.enabled ? 'text-violet-600' : 'text-gray-400'} />
-                              <span className="text-sm font-medium">{s.label}</span>
-                            </div>
-                            <button
-                              className={`w-10 h-5 rounded-full transition-colors relative ${s.enabled ? 'bg-violet-500' : 'bg-gray-300'}`}
-                              onClick={() => toggleNotif(s.type)}
-                            >
-                              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${s.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                            </button>
-                          </div>
-                          {s.enabled && s.time_value !== undefined && s.type !== 'meal_reminder' && s.type !== 'sos_followup' && (
-                            <div className="mt-2 flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">Время:</span>
-                              <input
-                                type="time"
-                                className="text-xs border rounded px-2 py-1 w-24"
-                                value={s.time_value || ''}
-                                onChange={e => updateNotifTime(s.type, e.target.value)}
-                              />
-                            </div>
-                          )}
-                          {s.enabled && s.type === 'water_reminder' && (
-                            <div className="mt-2 flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">Каждые:</span>
-                              <select
-                                className="text-xs border rounded px-2 py-1"
-                                value={s.interval_minutes || 120}
-                                onChange={e => setNotifSettings(prev => prev.map(x => x.type === s.type ? { ...x, interval_minutes: parseInt(e.target.value) } : x))}
-                              >
-                                <option value={60}>1 час</option>
-                                <option value={90}>1.5 часа</option>
-                                <option value={120}>2 часа</option>
-                                <option value={180}>3 часа</option>
-                              </select>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+        <FinalReportModal
+          show={d.showFinalReport}
+          onClose={() => d.setShowFinalReport(false)}
+          loadingReport={d.loadingReport}
+          finalReport={d.finalReport}
+          extending={d.extending}
+          finishing={d.finishing}
+          onExtend={d.handleExtendPlan}
+          onFinish={d.handleFinishPlan}
+        />
 
-                    <div className="pt-2">
-                      <Button className="w-full bg-violet-600" onClick={saveNotifSettings} disabled={savingNotif}>
-                        {savingNotif ? 'Сохраняю...' : 'Сохранить настройки'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {showFinalReport && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-            <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Icon name="Trophy" size={20} className="text-amber-500" />
-                    Итоги диеты
-                  </h3>
-                  <Button variant="ghost" size="sm" onClick={() => setShowFinalReport(false)}>
-                    <Icon name="X" size={18} />
-                  </Button>
-                </div>
-
-                {loadingReport ? (
-                  <div className="flex justify-center py-12">
-                    <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : finalReport ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="text-center p-3 rounded-xl bg-gradient-to-b from-green-50 to-green-100 border border-green-200">
-                        <div className="text-2xl font-bold text-green-700">{String(finalReport.actual_loss)} кг</div>
-                        <div className="text-xs text-green-600">сброшено</div>
-                        {Number(finalReport.target_loss) > 0 && (
-                          <div className="text-[10px] text-muted-foreground mt-1">цель: {String(finalReport.target_loss)} кг ({String(finalReport.goal_pct)}%)</div>
-                        )}
-                      </div>
-                      <div className="text-center p-3 rounded-xl bg-gradient-to-b from-violet-50 to-violet-100 border border-violet-200">
-                        <div className="text-2xl font-bold text-violet-700">{String(finalReport.adherence)}%</div>
-                        <div className="text-xs text-violet-600">соблюдение плана</div>
-                        <div className="text-[10px] text-muted-foreground mt-1">{String(finalReport.meals_done)} из {String(finalReport.meals_total)} приёмов</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="text-center p-2 rounded-lg bg-blue-50 border border-blue-200">
-                        <div className="text-lg font-bold text-blue-700">{String(finalReport.days_active)}</div>
-                        <div className="text-[10px] text-muted-foreground">дней</div>
-                      </div>
-                      <div className="text-center p-2 rounded-lg bg-orange-50 border border-orange-200">
-                        <div className="text-lg font-bold text-orange-700">{Number(finalReport.total_steps).toLocaleString()}</div>
-                        <div className="text-[10px] text-muted-foreground">шагов</div>
-                      </div>
-                      <div className="text-center p-2 rounded-lg bg-red-50 border border-red-200">
-                        <div className="text-lg font-bold text-red-600">{String(finalReport.total_cal_burned)}</div>
-                        <div className="text-[10px] text-muted-foreground">ккал сожжено</div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 text-center">
-                      <div className="flex-1 p-2 rounded-lg bg-gray-50">
-                        <div className="text-sm font-bold">{String(finalReport.streak)}</div>
-                        <div className="text-[10px] text-muted-foreground">дней стрик</div>
-                      </div>
-                      <div className="flex-1 p-2 rounded-lg bg-gray-50">
-                        <div className="text-sm font-bold">{String(finalReport.weigh_in_days)}</div>
-                        <div className="text-[10px] text-muted-foreground">дней взвешивания</div>
-                      </div>
-                      <div className="flex-1 p-2 rounded-lg bg-gray-50">
-                        <div className="text-sm font-bold">{String(finalReport.sos_count)}</div>
-                        <div className="text-[10px] text-muted-foreground">SOS</div>
-                      </div>
-                    </div>
-
-                    {finalReport.ai_summary && (
-                      <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-                        <p className="text-sm leading-relaxed">{String(finalReport.ai_summary)}</p>
-                      </div>
-                    )}
-
-                    {finalReport.plan_status === 'active' && (
-                      <div className="space-y-2 pt-2">
-                        <p className="text-xs text-muted-foreground text-center font-medium">Что дальше?</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[7, 14, 30].map(d => (
-                            <Button key={d} size="sm" variant="outline" className="text-xs" disabled={extending} onClick={() => handleExtendPlan(d)}>
-                              +{d} дней
-                            </Button>
-                          ))}
-                        </div>
-                        <Button className="w-full bg-green-600" size="sm" onClick={handleFinishPlan} disabled={finishing}>
-                          {finishing ? 'Завершаю...' : 'Завершить и закрепить'}
-                        </Button>
-                        <p className="text-[10px] text-muted-foreground text-center">
-                          Стабилизация: +200 ккал/день ({String(finalReport.stabilization_calories)} ккал) для закрепления результата
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">Не удалось загрузить отчёт</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {showSOS && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-            <Card className="w-full max-w-md border-red-200 max-h-[85vh] overflow-y-auto">
-              <CardContent className="p-5 space-y-4">
-                {sosResponse ? (
-                  <>
-                    <div className="text-center">
-                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center">
-                        <Icon name="Heart" size={28} className="text-green-600" />
-                      </div>
-                      <h3 className="font-bold text-lg mb-2">Я рядом!</h3>
-                      <p className="text-sm leading-relaxed">{sosResponse}</p>
-                    </div>
-                    <Button className="w-full" onClick={() => { setShowSOS(false); setSosResponse(null); setSosComment(''); }}>
-                      Спасибо, продолжаю!
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-lg flex items-center gap-2">
-                        <Icon name="LifeBuoy" size={20} className="text-red-500" />
-                        Что случилось?
-                      </h3>
-                      <Button variant="ghost" size="sm" onClick={() => setShowSOS(false)}>
-                        <Icon name="X" size={18} />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {sosReasons.map(r => (
-                        <Button
-                          key={r.id}
-                          variant="outline"
-                          className="h-auto py-3 flex-col gap-1"
-                          disabled={sendingSOS}
-                          onClick={() => handleSOS(r.id)}
-                        >
-                          <span className="text-xl">{r.icon}</span>
-                          <span className="text-xs">{r.label}</span>
-                        </Button>
-                      ))}
-                    </div>
-                    <div>
-                      <Label className="text-xs">Комментарий (необязательно)</Label>
-                      <Textarea rows={2} placeholder="Расскажите подробнее..." value={sosComment} onChange={e => setSosComment(e.target.value)} />
-                    </div>
-                    {sendingSOS && (
-                      <div className="text-center text-sm text-muted-foreground animate-pulse">Обрабатываю...</div>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <SOSModal
+          show={d.showSOS}
+          sosResponse={d.sosResponse}
+          sosComment={d.sosComment}
+          setSosComment={d.setSosComment}
+          sendingSOS={d.sendingSOS}
+          onSOS={d.handleSOS}
+          onClose={() => d.setShowSOS(false)}
+          onDismiss={() => { d.setShowSOS(false); d.setSosResponse(null); d.setSosComment(''); }}
+        />
 
       </div>
     </div>
