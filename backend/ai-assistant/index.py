@@ -6,9 +6,6 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 
-SCHEMA = 't_p5815085_family_assistant_pro'
-
-
 def get_db_connection():
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
@@ -16,80 +13,40 @@ def get_db_connection():
     return psycopg2.connect(database_url)
 
 
-def check_subscription_and_limits(family_id: str) -> dict:
-    """
-    Возвращает:
-    - 'allowed': True если можно использовать AI
-    - 'is_premium': True если платная подписка
-    - 'reason': причина отказа если allowed=False
-    """
+def wallet_spend(user_id, family_id, amount, reason, description):
+    """Списание средств с семейного кошелька"""
+    if not family_id:
+        return {'error': 'no_family'}
+    conn = get_db_connection()
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        safe_family_id = family_id.replace("'", "''")
-
-        cursor.execute(f"""
-            SELECT plan_type FROM {SCHEMA}.subscriptions
-            WHERE family_id = '{safe_family_id}'
-            AND status = 'active'
-            AND end_date > CURRENT_TIMESTAMP
-            ORDER BY end_date DESC LIMIT 1
-        """)
-        sub = cursor.fetchone()
-
-        plan_type = sub[0] if sub else None
-        is_premium = bool(plan_type and (
-            plan_type.startswith('premium_') or
-            plan_type in ('ai_assistant', 'full')
-        ))
-
-        if is_premium:
-            cursor.close()
-            conn.close()
-            return {'allowed': True, 'is_premium': True}
-
-        cursor.execute(f"""
-            SELECT ai_requests_used, ai_requests_reset_date
-            FROM {SCHEMA}.subscription_usage
-            WHERE family_id = '{safe_family_id}'
-        """)
-        usage = cursor.fetchone()
-
-        from datetime import date
-        today = date.today()
-
-        if usage:
-            ai_used = usage[0]
-            reset_date = usage[1]
-            if reset_date and reset_date < today:
-                cursor.execute(f"""
-                    UPDATE {SCHEMA}.subscription_usage
-                    SET ai_requests_used = 0, ai_requests_reset_date = CURRENT_DATE
-                    WHERE family_id = '{safe_family_id}'
-                """)
-                conn.commit()
-                ai_used = 0
-        else:
-            cursor.execute(f"""
-                INSERT INTO {SCHEMA}.subscription_usage
-                (family_id, ai_requests_used, photos_used, family_members_count)
-                VALUES ('{safe_family_id}', 0, 0, 0)
-                ON CONFLICT (family_id) DO NOTHING
-            """)
+        cur = conn.cursor()
+        safe_fid = str(family_id).replace("'", "''")
+        cur.execute(
+            "SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % safe_fid
+        )
+        row = cur.fetchone()
+        if not row:
+            cur.execute(
+                "INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub"
+                % safe_fid
+            )
+            row = cur.fetchone()
             conn.commit()
-            ai_used = 0
-
-        cursor.close()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute(
+            "UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d"
+            % (amount, wallet_id)
+        )
+        cur.execute("""
+            INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id)
+            VALUES (%d, 'spend', %s, '%s', '%s', '%s')
+        """ % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
         conn.close()
-
-        if ai_used >= 5:
-            return {'allowed': False, 'is_premium': False, 'reason': 'daily_limit_reached', 'used': ai_used, 'limit': 5}
-
-        return {'allowed': True, 'is_premium': False}
-
-    except Exception as e:
-        print(f'[ERROR] Ошибка проверки подписки: {str(e)}')
-        return {'allowed': False, 'is_premium': False, 'reason': 'error'}
 
 
 def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
@@ -99,7 +56,7 @@ def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
         safe_family_id = family_id.replace("'", "''")
         query = f"""
             SELECT role, content 
-            FROM {SCHEMA}.chat_messages 
+            FROM chat_messages 
             WHERE family_id::text = '{safe_family_id}' 
             ORDER BY created_at DESC 
             LIMIT {int(limit)}
@@ -126,7 +83,7 @@ def save_message(family_id: str, user_id: Optional[int], role: str, content: str
         safe_content = content.replace("'", "''")
         user_id_val = f"'{str(user_id)}'" if user_id else "NULL"
         query = f"""
-            INSERT INTO {SCHEMA}.chat_messages (family_id, sender_id, role, content, type, created_at)
+            INSERT INTO chat_messages (family_id, sender_id, role, content, type, created_at)
             VALUES ('{safe_family_id}'::uuid, {user_id_val}, '{safe_role}', '{safe_content}', 'text', NOW())
         """
         cursor.execute(query)
@@ -186,22 +143,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'auth_required', 'message': 'Для использования AI-помощника необходимо зарегистрироваться'})
             }
 
-        access = check_subscription_and_limits(family_id)
-        if not access['allowed']:
-            reason = access.get('reason', '')
-            if reason == 'daily_limit_reached':
-                used = access.get('used', 5)
-                limit = access.get('limit', 5)
-                message = f'Вы использовали {used} из {limit} бесплатных AI-запросов сегодня. Обновитесь до Premium для безлимитного доступа!'
-                error_code = 'daily_limit_reached'
-            else:
-                message = 'Для использования AI-помощника требуется подписка'
-                error_code = 'subscription_required'
+        PRICE = 3
+        spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_assistant', 'AI-ассистент')
+        if 'error' in spend_result:
+            if spend_result['error'] == 'insufficient_funds':
+                return {
+                    'statusCode': 402,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'error': 'insufficient_funds',
+                        'message': f'Недостаточно средств. Нужно {PRICE} руб, на балансе {spend_result.get("balance", 0):.0f} руб. Пополните кошелёк.',
+                        'balance': spend_result.get('balance', 0),
+                        'required': PRICE
+                    })
+                }
             return {
-                'statusCode': 403,
+                'statusCode': 400,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                'body': json.dumps({'error': error_code, 'message': message})
+                'body': json.dumps({'error': spend_result['error']})
             }
+        print(f"[wallet] Charged {PRICE} rub for ai_assistant, new balance: {spend_result.get('new_balance')}")
 
         api_key = os.environ.get('YANDEX_GPT_API_KEY')
         folder_id = os.environ.get('YANDEX_FOLDER_ID')
@@ -264,22 +225,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             save_message(family_id, user_id, 'user', user_message_content)
         if family_id and ai_text:
             save_message(family_id, user_id, 'assistant', ai_text)
-
-        if family_id and not access.get('is_premium', True):
-            try:
-                conn2 = get_db_connection()
-                cur2 = conn2.cursor()
-                safe_fid = family_id.replace("'", "''")
-                cur2.execute(f"""
-                    UPDATE {SCHEMA}.subscription_usage
-                    SET ai_requests_used = ai_requests_used + 1
-                    WHERE family_id = '{safe_fid}'
-                """)
-                conn2.commit()
-                cur2.close()
-                conn2.close()
-            except Exception as e:
-                print(f'[ERROR] Ошибка инкремента счётчика: {str(e)}')
 
         return {
             'statusCode': 200,

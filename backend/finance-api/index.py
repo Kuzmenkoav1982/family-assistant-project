@@ -70,6 +70,30 @@ def get_user_and_family(event):
         conn.close()
 
 
+def wallet_spend(user_id, family_id, amount, reason, description):
+    if not family_id:
+        return {'error': 'no_family'}
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        safe_fid = str(family_id).replace("'", "''")
+        cur.execute("SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % safe_fid)
+        row = cur.fetchone()
+        if not row:
+            cur.execute("INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub" % safe_fid)
+            row = cur.fetchone()
+            conn.commit()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute("UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d" % (amount, wallet_id))
+        cur.execute("INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id) VALUES (%d, 'spend', %s, '%s', '%s', '%s')" % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
+
 def is_owner(access_role):
     return access_role in ('admin', 'parent')
 
@@ -189,9 +213,16 @@ def handler(event, context):
             return assign_edu(family_id, user_id, body)
         elif action == 'update_assignment':
             return update_assignment(family_id, body)
-        elif action == 'ai_advice':
-            return ai_advice(family_id, body)
-        elif action == 'ai_smart_advice':
+        elif action == 'ai_advice' or action == 'ai_smart_advice':
+            PRICE = 3
+            spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_finance_advice', 'Финансовый совет ИИ')
+            if 'error' in spend_result:
+                if spend_result['error'] == 'insufficient_funds':
+                    return respond(402, {'error': 'insufficient_funds', 'message': f'Недостаточно средств. Нужно {PRICE} руб, на балансе {spend_result.get("balance", 0):.0f} руб', 'balance': spend_result.get('balance', 0), 'required': PRICE})
+                return respond(400, {'error': spend_result['error']})
+            print(f"[wallet] Charged {PRICE} rub for ai_finance_advice")
+            if action == 'ai_advice':
+                return ai_advice(family_id, body)
             return ai_smart_advice(family_id, body)
         elif action == 'add_asset':
             return add_asset(family_id, body)

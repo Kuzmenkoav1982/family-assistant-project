@@ -356,8 +356,15 @@ export default function FamilyWallet() {
                     { icon: 'Image', label: 'Фото блюда от ИИ', cost: '7 руб' },
                     { icon: 'ChefHat', label: 'Рецепт из продуктов', cost: '5 руб' },
                     { icon: 'Gift', label: 'ИИ-открытка', cost: '7 руб' },
-                    { icon: 'BookOpen', label: 'Рецепт (короткий)', cost: '2 руб' },
+                    { icon: 'Plane', label: 'Маршрут путешествия ИИ', cost: '5 руб' },
                     { icon: 'MapPin', label: 'Рекомендации досуга', cost: '4 руб' },
+                    { icon: 'Heart', label: 'Анализ развития ребёнка', cost: '4 руб' },
+                    { icon: 'MessageSquare', label: 'AI-ассистент (запрос)', cost: '3 руб' },
+                    { icon: 'Lightbulb', label: 'Идеи для события ИИ', cost: '3 руб' },
+                    { icon: 'TrendingUp', label: 'Финансовый совет ИИ', cost: '3 руб' },
+                    { icon: 'Baby', label: 'Оценка развития ребёнка', cost: '3 руб' },
+                    { icon: 'Compass', label: 'Рекомендации для поездки', cost: '3 руб' },
+                    { icon: 'BookOpen', label: 'Рецепт (короткий)', cost: '2 руб' },
                   ].map(item => (
                     <div key={item.label} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
                       <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">

@@ -113,6 +113,43 @@ def call_yandex_gpt(prompt: str) -> str:
         print(f'[ERROR] YandexGPT API error: {str(e)}')
         return f"Ошибка при получении рекомендаций: {str(e)}"
 
+def get_family_id_for_user(user_id: str) -> Optional[str]:
+    """Получает family_id для пользователя"""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1" % str(user_id))
+        row = cur.fetchone()
+        return str(row[0]) if row else None
+    finally:
+        cur.close()
+        conn.close()
+
+
+def wallet_spend(user_id, family_id, amount, reason, description):
+    if not family_id:
+        return {'error': 'no_family'}
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        safe_fid = str(family_id).replace("'", "''")
+        cur.execute("SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % safe_fid)
+        row = cur.fetchone()
+        if not row:
+            cur.execute("INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub" % safe_fid)
+            row = cur.fetchone()
+            conn.commit()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute("UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d" % (amount, wallet_id))
+        cur.execute("INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id) VALUES (%d, 'spend', %s, '%s', '%s', '%s')" % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
+
 def fetch_place_image_unsplash(place_name: str, destination: str) -> Optional[str]:
     """Получает изображение через Unsplash API"""
     try:
@@ -448,6 +485,25 @@ def handler(event: dict, context) -> dict:
         
         # GET ?trip_id=X - получить рекомендации
         if method == 'GET':
+            PRICE = 3
+            family_id = get_family_id_for_user(user_id)
+            spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_trip_recommend', 'Рекомендации для путешествия ИИ')
+            if 'error' in spend_result:
+                if spend_result['error'] == 'insufficient_funds':
+                    return {
+                        'statusCode': 402,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'insufficient_funds', 'message': f'Недостаточно средств. Нужно {PRICE} руб, на балансе {spend_result.get("balance", 0):.0f} руб', 'balance': spend_result.get('balance', 0), 'required': PRICE}, ensure_ascii=False),
+                        'isBase64Encoded': False
+                    }
+                return {
+                    'statusCode': 400,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': spend_result['error']}),
+                    'isBase64Encoded': False
+                }
+            print(f"[wallet] Charged {PRICE} rub for ai_trip_recommend")
+            
             preferences = query_params.get('preferences')
             result = get_ai_recommendations(trip_id, preferences)
             

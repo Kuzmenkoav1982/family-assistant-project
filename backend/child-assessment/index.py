@@ -1,7 +1,65 @@
 import json
 import os
 import requests
+import psycopg2
 from typing import Dict, Any
+
+
+CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
+    'Access-Control-Max-Age': '86400'
+}
+
+
+def respond(status, body):
+    return {'statusCode': status, 'headers': {**CORS, 'Content-Type': 'application/json'}, 'body': json.dumps(body, ensure_ascii=False)}
+
+
+def get_user_and_family(event):
+    headers = event.get('headers', {})
+    token = headers.get('X-Auth-Token') or headers.get('x-auth-token', '')
+    if not token:
+        return None, None
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM sessions WHERE token = '%s' AND expires_at > NOW()" % token.replace("'", "''"))
+        row = cur.fetchone()
+        if not row:
+            return None, None
+        user_id = row[0]
+        cur.execute("SELECT family_id FROM family_members WHERE user_id = '%s' LIMIT 1" % str(user_id))
+        fm = cur.fetchone()
+        return user_id, fm[0] if fm else None
+    finally:
+        conn.close()
+
+
+def wallet_spend(user_id, family_id, amount, reason, description):
+    if not family_id:
+        return {'error': 'no_family'}
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    try:
+        cur = conn.cursor()
+        safe_fid = str(family_id).replace("'", "''")
+        cur.execute("SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % safe_fid)
+        row = cur.fetchone()
+        if not row:
+            cur.execute("INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub" % safe_fid)
+            row = cur.fetchone()
+            conn.commit()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        cur.execute("UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d" % (amount, wallet_id))
+        cur.execute("INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id) VALUES (%d, 'spend', %s, '%s', '%s', '%s')" % (wallet_id, amount, reason, description.replace("'", "''"), str(user_id)))
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -57,6 +115,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     }
     
     age_description = age_ranges_map.get(age_range, 'от 1 года до 2 лет')
+    
+    PRICE = 3
+    user_id, family_id = get_user_and_family(event)
+    if not user_id:
+        return respond(401, {'error': 'Не авторизован'})
+    spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_child_assessment', 'Оценка развития ребёнка ИИ')
+    if 'error' in spend_result:
+        if spend_result['error'] == 'insufficient_funds':
+            return respond(402, {'error': 'insufficient_funds', 'message': f'Недостаточно средств. Нужно {PRICE} руб, на балансе {spend_result.get("balance", 0):.0f} руб', 'balance': spend_result.get('balance', 0), 'required': PRICE})
+        return respond(400, {'error': spend_result['error']})
+    print(f"[wallet] Charged {PRICE} rub for ai_child_assessment")
     
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
     # Используем проверенный folder_id из старого каталога (как в trips-ai-recommend)

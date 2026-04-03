@@ -14,16 +14,16 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Test: blank image returns 400 with hint",
+      "name": "Test: image with no auth returns 401",
       "method": "POST",
       "path": "/",
       "body": {
         "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
         "type": "general"
       },
-      "expectedStatus": 400,
+      "expectedStatus": 401,
       "expectedBody": {
-        "error": "Текст не распознан"
+        "error": "string"
       },
       "bodyMatcher": "partial"
     }

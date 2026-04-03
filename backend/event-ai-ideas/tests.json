@@ -9,9 +9,9 @@
         "budget": 50000,
         "requestType": "general"
       },
-      "expectedStatus": 200,
+      "expectedStatus": 401,
       "expectedBody": {
-        "ideas": "string"
+        "error": "string"
       },
       "bodyMatcher": "partial"
     }

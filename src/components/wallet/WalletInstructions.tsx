@@ -54,12 +54,28 @@ export default function WalletInstructions() {
                         <span>ИИ-открытка — 7 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
-                        <Icon name="BookOpen" size={14} className="text-amber-500" />
-                        <span>Рецепт (короткий) — 2 руб</span>
+                        <Icon name="Plane" size={14} className="text-sky-500" />
+                        <span>Маршрут поездки — 5 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
                         <Icon name="MapPin" size={14} className="text-emerald-500" />
                         <span>Рекомендации досуга — 4 руб</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
+                        <Icon name="Heart" size={14} className="text-red-400" />
+                        <span>Анализ развития — 4 руб</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
+                        <Icon name="MessageSquare" size={14} className="text-indigo-500" />
+                        <span>AI-ассистент — 3 руб</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
+                        <Icon name="TrendingUp" size={14} className="text-green-500" />
+                        <span>Финансовый совет — 3 руб</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
+                        <Icon name="BookOpen" size={14} className="text-amber-500" />
+                        <span>Рецепт (короткий) — 2 руб</span>
                       </div>
                     </div>
                   </div>

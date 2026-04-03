@@ -10,12 +10,9 @@
         "interests": ["культура", "искусство"],
         "budget": "medium"
       },
-      "expectedStatus": 200,
+      "expectedStatus": 401,
       "expectedBody": {
-        "title": "string",
-        "description": "string",
-        "days": "array",
-        "metadata": "object"
+        "error": "string"
       },
       "bodyMatcher": "partial"
     },

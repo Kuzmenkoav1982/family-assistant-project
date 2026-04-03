@@ -111,11 +111,41 @@ def handler(event: dict, context) -> dict:
                 return handle_recommend(body, headers)
             elif action == 'search_places':
                 print(f"[INFO] Action: search_places, query={body.get('query')}, city={body.get('city')}")
+                s_user_id, s_family_id = get_user_and_family(event)
+                if s_user_id and s_family_id:
+                    spend_result = wallet_spend(s_user_id, s_family_id, 4, 'ai_leisure_search', 'Поиск мест ИИ')
+                    if spend_result.get('error') == 'insufficient_funds':
+                        return {
+                            'statusCode': 402,
+                            'headers': headers,
+                            'body': json.dumps({
+                                'error': 'insufficient_funds',
+                                'message': 'Недостаточно средств. Нужно 4 руб',
+                                'balance': spend_result.get('balance', 0)
+                            }),
+                            'isBase64Encoded': False
+                        }
+                print(f"[wallet] Charged 4 rub for ai_leisure_search")
                 result = handle_search_places(body, headers)
                 print(f"[INFO] Search result status: {result.get('statusCode')}")
                 return result
             elif action == 'search_restaurants':
                 print(f"[INFO] Action: search_restaurants, query={body.get('query')}")
+                sr_user_id, sr_family_id = get_user_and_family(event)
+                if sr_user_id and sr_family_id:
+                    spend_result = wallet_spend(sr_user_id, sr_family_id, 4, 'ai_leisure_search', 'Поиск мест ИИ')
+                    if spend_result.get('error') == 'insufficient_funds':
+                        return {
+                            'statusCode': 402,
+                            'headers': headers,
+                            'body': json.dumps({
+                                'error': 'insufficient_funds',
+                                'message': 'Недостаточно средств. Нужно 4 руб',
+                                'balance': spend_result.get('balance', 0)
+                            }),
+                            'isBase64Encoded': False
+                        }
+                print(f"[wallet] Charged 4 rub for ai_leisure_search")
                 result = handle_search_restaurants(body, headers)
                 print(f"[INFO] Restaurant search result status: {result.get('statusCode')}")
                 return result
