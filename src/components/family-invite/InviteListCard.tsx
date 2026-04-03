@@ -74,14 +74,9 @@ export function InviteListCard({
                     <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">1</div>
                     <h5 className="font-bold text-lg">Создайте приглашение</h5>
                   </div>
-                  <p className="text-sm text-gray-700 mb-3">
-                    Нажмите кнопку "Создать приглашение" ниже. Вы получите уникальный код (например: ABC123) и QR-код.
+                  <p className="text-sm text-gray-700">
+                    Нажмите кнопку «Создать приглашение» ниже. Вы получите уникальный код (например: ABC123) и QR-код.
                   </p>
-                  <img 
-                    src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a6b6eab2-d66b-46a5-81aa-c9c159310e3e.jpg"
-                    alt="Экран с QR-кодом и кнопками отправки"
-                    className="w-full max-w-md mx-auto rounded-lg shadow-md border border-gray-200 my-3"
-                  />
                 </div>
 
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
@@ -118,16 +113,21 @@ export function InviteListCard({
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm font-semibold text-gray-800 mb-1">🔗 Если получил ссылку / отсканировал QR:</p>
-                      <p className="text-sm text-gray-700">Откроется страница с автозаполненным кодом. Нужно только ввести имя и степень родства.</p>
-                      <img 
-                        src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f04d46b4-a8c4-40dc-870d-f9f9e0f8efed.jpg"
-                        alt="Форма присоединения с автозаполненным кодом"
-                        className="w-full max-w-md mx-auto rounded-lg shadow-md border border-gray-200 my-3"
-                      />
+                      <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
+                        <li>Откроется страница приглашения с кодом</li>
+                        <li>Нужно войти в аккаунт или зарегистрироваться</li>
+                        <li>Ввести своё имя и выбрать степень родства</li>
+                        <li>Нажать «Присоединиться»</li>
+                      </ol>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800 mb-1">📝 Если получил только код (ABC123):</p>
-                      <p className="text-sm text-gray-700">На главной странице → "Присоединиться к семье" → ввести код, имя и родство.</p>
+                      <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
+                        <li>Зайти на сайт и войти/зарегистрироваться</li>
+                        <li>Открыть меню → «Присоединиться к семье»</li>
+                        <li>Ввести код, имя и степень родства</li>
+                        <li>Нажать «Присоединиться»</li>
+                      </ol>
                     </div>
                   </div>
                 </div>

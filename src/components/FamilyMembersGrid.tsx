@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LazyImage } from '@/components/ui/LazyImage';
@@ -114,9 +115,9 @@ const MemberCard = ({
               title: '✅ Ссылка отправлена!',
               description: `Приглашение для ${data.child_name} успешно отправлено`
             });
-          } catch (shareError: any) {
-            // Пользователь отменил Share или ошибка
-            if (shareError.name !== 'AbortError') {
+          } catch (shareError: unknown) {
+            const err = shareError as { name?: string };
+            if (err.name !== 'AbortError') {
               // Fallback: копируем в буфер обмена
               await navigator.clipboard.writeText(inviteUrl);
               toast({
@@ -343,6 +344,29 @@ const MemberCard = ({
   );
 };
 
+const AddMemberCard = () => {
+  const navigate = useNavigate();
+  return (
+    <Card
+      className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-102 border-2 border-dashed border-purple-300 hover:border-purple-500 bg-gradient-to-br from-purple-50/50 to-pink-50/50"
+      onClick={() => navigate('/family-invite')}
+    >
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center gap-3 min-h-[56px] sm:min-h-[64px]">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center border-2 border-purple-300 flex-shrink-0">
+            <Icon name="UserPlus" size={28} className="text-purple-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-sm sm:text-base text-purple-700">Добавить члена семьи</h3>
+            <p className="text-xs text-purple-500 mt-0.5">Создайте приглашение для родственника</p>
+          </div>
+          <Icon name="ChevronRight" size={20} className="text-purple-400 flex-shrink-0" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 function ensureOwnerFirst(members: FamilyMember[]): FamilyMember[] {
   const ownerIdx = members.findIndex(m => (m.role || '').toLowerCase() === 'владелец');
   if (ownerIdx > 0) {
@@ -462,6 +486,7 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
             onAssignTask={onAssignTask}
           />
         ))}
+        <AddMemberCard />
       </div>
     </div>
   );
