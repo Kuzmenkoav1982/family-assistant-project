@@ -268,7 +268,7 @@ export default function Settings() {
   const sections = [
     { id: 'family', icon: 'Users', label: 'Семья', path: '' },
     { id: 'notifications', icon: 'Bell', label: 'Уведомления', path: '' },
-    { id: 'subscription', icon: 'CreditCard', label: 'Подписка', path: '/pricing' },
+    { id: 'subscription', icon: 'Wallet', label: 'Кошелёк', path: '/wallet' },
     { id: 'appearance', icon: 'Palette', label: 'Внешний вид', path: '' },
     { id: 'account', icon: 'UserCog', label: 'Аккаунт', path: '' },
     { id: 'assistants', icon: 'Bot', label: 'Ассистенты', path: '' },
