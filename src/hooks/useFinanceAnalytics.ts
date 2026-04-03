@@ -3,9 +3,12 @@ import { toast } from 'sonner';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import type { AnalysisData } from '@/data/financeAnalyticsTypes';
 import { API, getHeaders } from '@/data/financeAnalyticsTypes';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_ANALYSIS } from '@/data/demoFinanceData';
 
 export default function useFinanceAnalytics() {
   useIsFamilyOwner();
+  const { isDemoMode } = useDemoMode();
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,6 +18,11 @@ export default function useFinanceAnalytics() {
   const aiRef = useRef<HTMLDivElement>(null);
 
   const fetchData = useCallback(async () => {
+    if (isDemoMode) {
+      setData(DEMO_ANALYSIS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -28,7 +36,7 @@ export default function useFinanceAnalytics() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

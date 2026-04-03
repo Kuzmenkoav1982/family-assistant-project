@@ -9,6 +9,8 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceCashflowInstructions } from '@/components/finance/FinanceInstructions';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_ANALYSIS } from '@/data/demoFinanceData';
 import {
   AreaChart, Area, ComposedChart, Line, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -153,12 +155,18 @@ function analyzeData(cf: CashflowItem[]): CashflowInsights {
 export default function FinanceCashflow() {
   const navigate = useNavigate();
   useIsFamilyOwner();
+  const { isDemoMode } = useDemoMode();
 
   const [data, setData] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchData = useCallback(async () => {
+    if (isDemoMode) {
+      setData(DEMO_ANALYSIS as unknown as AnalysisResponse);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -172,7 +180,7 @@ export default function FinanceCashflow() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

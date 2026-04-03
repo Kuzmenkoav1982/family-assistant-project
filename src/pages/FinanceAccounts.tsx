@@ -11,6 +11,8 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceAccountsInstructions } from '@/components/finance/FinanceInstructions';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_ACCOUNTS } from '@/data/demoFinanceData';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -61,6 +63,7 @@ function getTypeLabel(type: string) {
 
 export default function FinanceAccounts() {
   const navigate = useNavigate();
+  const { isDemoMode } = useDemoMode();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [totalBalance, setTotalBalance] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -83,8 +86,14 @@ export default function FinanceAccounts() {
   }, []);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setAccounts(DEMO_ACCOUNTS as Account[]);
+      setTotalBalance(DEMO_ACCOUNTS.filter(a => a.is_active).reduce((s, a) => s + a.balance, 0));
+      setLoading(false);
+      return;
+    }
     loadAccounts().finally(() => setLoading(false));
-  }, [loadAccounts]);
+  }, [isDemoMode, loadAccounts]);
 
   const isOwner = useIsFamilyOwner();
 

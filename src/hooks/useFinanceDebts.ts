@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import type { Debt, Payment, DebtFormState } from '@/data/financeDebtsTypes';
 import { API, getHeaders, isCC, INITIAL_FORM } from '@/data/financeDebtsTypes';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_DEBTS, DEMO_PAYMENTS } from '@/data/demoFinanceData';
 
 export default function useFinanceDebts() {
+  const { isDemoMode } = useDemoMode();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRemaining, setTotalRemaining] = useState(0);
@@ -42,15 +45,27 @@ export default function useFinanceDebts() {
   }, []);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setDebts(DEMO_DEBTS);
+      setTotalRemaining(DEMO_DEBTS.reduce((s, d) => s + d.remaining_amount, 0));
+      setTotalMonthly(DEMO_DEBTS.reduce((s, d) => s + d.monthly_payment, 0));
+      setLoading(false);
+      return;
+    }
     loadDebts().finally(() => setLoading(false));
-  }, [loadDebts]);
+  }, [isDemoMode, loadDebts]);
 
   useEffect(() => {
     if (selectedDebt) {
+      if (isDemoMode) {
+        setPayments(DEMO_PAYMENTS[selectedDebt.id] || []);
+        setSimPayment('');
+        return;
+      }
       loadPayments(selectedDebt.id);
       setSimPayment('');
     }
-  }, [selectedDebt, loadPayments]);
+  }, [selectedDebt, isDemoMode, loadPayments]);
 
   const addDebt = async () => {
     const isCreditCard = form.debt_type === 'credit_card';

@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { FinanceGoalsInstructions } from '@/components/finance/FinanceInstructions';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_GOALS } from '@/data/demoFinanceData';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -50,6 +52,7 @@ const GOAL_PRESETS = [
 
 export default function FinanceGoals() {
   const navigate = useNavigate();
+  const { isDemoMode } = useDemoMode();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,8 +74,13 @@ export default function FinanceGoals() {
   }, []);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setGoals(DEMO_GOALS as Goal[]);
+      setLoading(false);
+      return;
+    }
     loadGoals().finally(() => setLoading(false));
-  }, [loadGoals]);
+  }, [isDemoMode, loadGoals]);
 
   const addGoal = async () => {
     if (!form.name.trim() || !form.target_amount || parseFloat(form.target_amount) <= 0) {

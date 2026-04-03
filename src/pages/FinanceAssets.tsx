@@ -11,6 +11,8 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceAssetsInstructions } from '@/components/finance/FinanceInstructions';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_ASSETS } from '@/data/demoFinanceData';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
 
@@ -55,6 +57,7 @@ function getTypeMeta(type: string) {
 export default function FinanceAssets() {
   const navigate = useNavigate();
   const isOwner = useIsFamilyOwner();
+  const { isDemoMode } = useDemoMode();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [totalValue, setTotalValue] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -76,7 +79,15 @@ export default function FinanceAssets() {
     }
   }, []);
 
-  useEffect(() => { loadAssets().finally(() => setLoading(false)); }, [loadAssets]);
+  useEffect(() => {
+    if (isDemoMode) {
+      setAssets(DEMO_ASSETS as Asset[]);
+      setTotalValue(DEMO_ASSETS.reduce((s, a) => s + (a.current_value || 0), 0));
+      setLoading(false);
+      return;
+    }
+    loadAssets().finally(() => setLoading(false));
+  }, [isDemoMode, loadAssets]);
 
   const resetForm = () => {
     setForm({ name: '', asset_type: 'property', purchase_date: '', purchase_price: '', current_value: '', description: '', location: '', icon: 'Home', color: '#3B82F6' });

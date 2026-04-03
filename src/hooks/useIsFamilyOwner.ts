@@ -1,7 +1,11 @@
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 export function useIsFamilyOwner(): boolean {
   const { members } = useFamilyMembersContext();
+  const { isDemoMode } = useDemoMode();
+
+  if (isDemoMode) return true;
 
   try {
     const userData = localStorage.getItem('userData');

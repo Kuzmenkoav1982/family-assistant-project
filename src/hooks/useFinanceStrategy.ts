@@ -3,9 +3,12 @@ import { toast } from 'sonner';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import type { AnalysisData, DebtDetail } from '@/data/financeStrategyTypes';
 import { API, getHeaders, simulatePayoff, simulateTimeline } from '@/data/financeStrategyTypes';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { DEMO_ANALYSIS } from '@/data/demoFinanceData';
 
 export default function useFinanceStrategy() {
   useIsFamilyOwner();
+  const { isDemoMode } = useDemoMode();
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,6 +17,11 @@ export default function useFinanceStrategy() {
   const [simExtra, setSimExtra] = useState(0);
 
   const fetchData = useCallback(async () => {
+    if (isDemoMode) {
+      setData(DEMO_ANALYSIS as unknown as AnalysisData);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -27,7 +35,7 @@ export default function useFinanceStrategy() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

@@ -4,8 +4,14 @@ import type {
   Transaction, PlannedItem, Category, BudgetItem, CashGapWarning, TimelineData,
 } from '@/data/financeBudgetTypes';
 import { API, MONTH_NAMES, getHeaders, getCurrentMonth } from '@/data/financeBudgetTypes';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import {
+  DEMO_CATEGORIES, DEMO_TRANSACTIONS, DEMO_PLANNED,
+  DEMO_BUDGETS_LIST, DEMO_ACCOUNTS, DEMO_HISTORY,
+} from '@/data/demoFinanceData';
 
 export default function useFinanceBudget() {
+  const { isDemoMode } = useDemoMode();
   const [tab, setTab] = useState('transactions');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -109,9 +115,30 @@ export default function useFinanceBudget() {
   }, [month]);
 
   useEffect(() => {
+    if (isDemoMode) {
+      const filteredTx = txFilter === 'all'
+        ? DEMO_TRANSACTIONS
+        : DEMO_TRANSACTIONS.filter(t => t.type === txFilter);
+      setCategories(DEMO_CATEGORIES);
+      setTransactions(filteredTx);
+      setSumIncome(DEMO_TRANSACTIONS.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0));
+      setSumExpense(DEMO_TRANSACTIONS.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0));
+      setPlannedItems(DEMO_PLANNED);
+      setPlanIncome(DEMO_PLANNED.filter(p => p.type === 'income').reduce((s, p) => s + p.amount, 0));
+      setPlanExpense(DEMO_PLANNED.filter(p => p.type === 'expense').reduce((s, p) => s + p.amount, 0));
+      setBudgets(DEMO_BUDGETS_LIST);
+      setTotalPlanned(DEMO_BUDGETS_LIST.reduce((s, b) => s + b.planned, 0));
+      setTotalSpent(DEMO_BUDGETS_LIST.reduce((s, b) => s + b.spent, 0));
+      const activeAccounts = DEMO_ACCOUNTS.filter(a => a.is_active);
+      setAccountBalance(activeAccounts.reduce((s, a) => s + a.balance, 0));
+      setAccountCount(activeAccounts.length);
+      setHistoryData(DEMO_HISTORY);
+      setLoading(false);
+      return;
+    }
     Promise.all([loadCategories(), loadTransactions(), loadBudgets(), loadHistory(), loadAccountBalance()])
       .finally(() => setLoading(false));
-  }, [loadCategories, loadTransactions, loadBudgets, loadHistory, loadAccountBalance]);
+  }, [isDemoMode, loadCategories, loadTransactions, loadBudgets, loadHistory, loadAccountBalance]);
 
   const pieData = useMemo(() => {
     const map = new Map<string, { name: string; value: number; color: string }>();
