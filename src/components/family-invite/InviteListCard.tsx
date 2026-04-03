@@ -75,7 +75,7 @@ export function InviteListCard({
                     <h5 className="font-bold text-lg">Создайте приглашение</h5>
                   </div>
                   <p className="text-sm text-gray-700">
-                    Нажмите кнопку «Создать приглашение» ниже. Вы получите уникальный код (например: ABC123) и QR-код.
+                    Нажмите кнопку «Создать приглашение» ниже. Вы получите уникальный код (например: ABC123).
                   </p>
                 </div>
 
@@ -84,25 +84,9 @@ export function InviteListCard({
                     <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
                     <h5 className="font-bold text-lg">Отправьте приглашение</h5>
                   </div>
-                  <p className="text-sm text-gray-700 mb-3">Выберите удобный способ:</p>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-start gap-2">
-                      <Icon name="MessageCircle" size={16} className="text-blue-500 mt-0.5" />
-                      <span><strong>Telegram / Max:</strong> Кнопка с логотипом откроет мессенджер со ссылкой</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="Share2" size={16} className="text-green-500 mt-0.5" />
-                      <span><strong>Поделиться:</strong> Системное меню для отправки в любое приложение</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="Copy" size={16} className="text-orange-500 mt-0.5" />
-                      <span><strong>Скопировать код/ссылку:</strong> Отправьте через WhatsApp, Email или SMS</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="QrCode" size={16} className="text-purple-500 mt-0.5" />
-                      <span><strong>QR-код:</strong> Покажите экран для сканирования камерой телефона</span>
-                    </li>
-                  </ul>
+                  <p className="text-sm text-gray-700">
+                    Отправьте код или ссылку родственнику удобным способом: скопируйте, поделитесь через мессенджер или отправьте по SMS/Email.
+                  </p>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
