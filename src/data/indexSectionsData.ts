@@ -141,20 +141,7 @@ export const inDevelopmentSections = [
       { icon: '\u{1F4C8}', title: 'Трекинг настроения', description: 'Отслеживание эмоционального состояния семьи' },
     ]
   },
-  {
-    id: 'garage',
-    icon: 'Car',
-    label: 'Гараж',
-    description: 'Управление автомобилями семьи',
-    features: [
-      { icon: '\u{1F697}', title: 'Учёт автомобилей', description: 'Все авто семьи: марка, модель, год, VIN' },
-      { icon: '\u{1F527}', title: 'График ТО', description: 'Напоминания о техобслуживании' },
-      { icon: '\u{1F6DE}', title: 'Замена шин', description: 'Сезонная смена резины' },
-      { icon: '\u26FD', title: 'Расход топлива', description: 'Журнал заправок и статистика' },
-      { icon: '\u{1F4CB}', title: 'История обслуживания', description: 'Все ремонты и замены запчастей' },
-      { icon: '\u{1F4B0}', title: 'Расходы на авто', description: 'Бензин, ремонт, страховка, штрафы' },
-    ]
-  },
+  
   {
     id: 'health',
     icon: 'HeartPulse',

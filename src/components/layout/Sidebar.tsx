@@ -150,7 +150,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/household-hub',
       items: [
         { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', path: '/shopping' },
-        { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' }
+        { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' },
+        { id: 'garage', label: 'Гараж', icon: 'Car', path: '/garage' }
       ]
     },
     {
