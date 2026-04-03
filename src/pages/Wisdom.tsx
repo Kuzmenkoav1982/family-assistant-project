@@ -221,13 +221,21 @@ export default function Wisdom() {
                 paddingTop: 16,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
-                <div>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#92400E' }}>
-                    Наша Семья
-                  </p>
-                  <p style={{ fontSize: 12, color: '#B45309' }}>
-                    nasha-semiya.ru
-                  </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <img
+                    src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG"
+                    alt="Наша Семья"
+                    style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }}
+                    crossOrigin="anonymous"
+                  />
+                  <div>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: '#92400E', margin: 0 }}>
+                      Наша Семья
+                    </p>
+                    <p style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
+                      nasha-semiya.ru
+                    </p>
+                  </div>
                 </div>
                 <div style={{
                   fontSize: 11, color: '#B45309', background: '#FEF3C7',
