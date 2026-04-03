@@ -61,6 +61,41 @@ export default function useDietQuiz() {
     }
   };
 
+  const pollOperation = async (operationId: string) => {
+    const maxAttempts = 30;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      try {
+        const res = await fetch(DIET_PLAN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'check', operationId }),
+        });
+        const d = await res.json();
+        if (d.status === 'processing') continue;
+        if (d.status === 'done') {
+          if (d.plan?.days) {
+            setGeneratedPlan(d.plan);
+            if (d.diet_plan_id) setSavedPlanId(d.diet_plan_id);
+          } else if (d.rawText) {
+            setRawText(d.rawText);
+          } else {
+            setError('ИИ не смог сгенерировать план. Попробуйте ещё раз.');
+          }
+          return;
+        }
+        if (d.status === 'error') {
+          setError(d.error || 'Ошибка генерации');
+          return;
+        }
+      } catch {
+        setError('Ошибка соединения при проверке статуса.');
+        return;
+      }
+    }
+    setError('Генерация заняла слишком много времени. Попробуйте ещё раз.');
+  };
+
   const handleSubmit = async () => {
     setIsGenerating(true);
     setError(null);
@@ -75,13 +110,13 @@ export default function useDietQuiz() {
       const json = await res.json();
       if (json.error) {
         setError(json.error);
+      } else if (json.operationId) {
+        await pollOperation(json.operationId);
       } else if (json.plan?.days) {
         setGeneratedPlan(json.plan);
         if (json.diet_plan_id) setSavedPlanId(json.diet_plan_id);
-      } else if (json.raw_text) {
-        setRawText(json.raw_text);
       } else {
-        setError('Не удалось распознать план. Попробуйте ещё раз.');
+        setError('Не удалось запустить генерацию. Попробуйте ещё раз.');
       }
     } catch (e) {
       setError('Ошибка связи с сервером. Проверьте интернет и попробуйте снова.');
