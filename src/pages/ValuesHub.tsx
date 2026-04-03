@@ -13,6 +13,7 @@ interface SubSection {
   gradient: string;
   badge?: string;
   badgeColor?: string;
+  imageUrl?: string;
   ready: boolean;
 }
 
@@ -43,6 +44,7 @@ const subSections: SubSection[] = [
     icon: 'BookOpen',
     path: '/wisdom',
     gradient: 'from-amber-600 to-orange-500',
+    imageUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dcb3584d-4a12-4e40-ae35-4e5cd7a3583d.jpg',
     ready: true,
   },
   {
@@ -69,68 +71,92 @@ export default function ValuesHub() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subSections.map((section) => (
-            <Card
-              key={section.id}
-              className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
-                section.ready ? 'border-transparent' : 'border-dashed border-gray-200'
-              } overflow-hidden`}
-              onClick={() => {
-                if (section.ready) {
-                  navigate(section.path);
-                }
-              }}
-            >
-              <CardContent className="p-0">
-                <div className="flex items-stretch">
-                  <div
-                    className={`w-20 min-h-full bg-gradient-to-br ${section.gradient} flex items-center justify-center flex-shrink-0`}
-                  >
-                    <Icon
-                      name={section.icon}
-                      size={32}
-                      className="text-white drop-shadow-sm"
-                    />
-                  </div>
-
-                  <div className="flex-1 p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-base group-hover:text-amber-700 transition-colors">
-                        {section.title}
-                      </h3>
-                      {section.badge && (
-                        <Badge
-                          variant="secondary"
-                          className={`text-[10px] px-1.5 py-0 ${section.badgeColor || ''}`}
-                        >
-                          {section.badge}
-                        </Badge>
-                      )}
-                      {!section.ready && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-600 border-amber-200"
-                        >
-                          Скоро
-                        </Badge>
-                      )}
+          {subSections.map((section) =>
+            section.imageUrl ? (
+              <Card
+                key={section.id}
+                className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden md:col-span-2"
+                onClick={() => navigate(section.path)}
+              >
+                <CardContent className="p-0">
+                  <div className="relative h-40 md:h-48">
+                    <img src={section.imageUrl} alt={section.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+                    <div className="absolute inset-0 flex items-center p-6">
+                      <div className="text-white max-w-md">
+                        <h3 className="font-bold text-xl mb-1">{section.title}</h3>
+                        <p className="text-sm text-white/80 mb-3">{section.description}</p>
+                        <span className="inline-flex items-center gap-1 text-sm bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
+                          Перейти <Icon name="ArrowRight" size={14} />
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-snug">
-                      {section.description}
-                    </p>
                   </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card
+                key={section.id}
+                className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
+                  section.ready ? 'border-transparent' : 'border-dashed border-gray-200'
+                } overflow-hidden`}
+                onClick={() => {
+                  if (section.ready) {
+                    navigate(section.path);
+                  }
+                }}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-stretch">
+                    <div
+                      className={`w-20 min-h-full bg-gradient-to-br ${section.gradient} flex items-center justify-center flex-shrink-0`}
+                    >
+                      <Icon
+                        name={section.icon}
+                        size={32}
+                        className="text-white drop-shadow-sm"
+                      />
+                    </div>
 
-                  <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Icon
-                      name="ChevronRight"
-                      size={20}
-                      className="text-gray-400"
-                    />
+                    <div className="flex-1 p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-base group-hover:text-amber-700 transition-colors">
+                          {section.title}
+                        </h3>
+                        {section.badge && (
+                          <Badge
+                            variant="secondary"
+                            className={`text-[10px] px-1.5 py-0 ${section.badgeColor || ''}`}
+                          >
+                            {section.badge}
+                          </Badge>
+                        )}
+                        {!section.ready && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-600 border-amber-200"
+                          >
+                            Скоро
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-snug">
+                        {section.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Icon
+                        name="ChevronRight"
+                        size={20}
+                        className="text-gray-400"
+                      />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            )
+          )}
         </div>
       </div>
     </div>

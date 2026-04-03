@@ -148,6 +148,19 @@ export default function Wisdom() {
             <p className="text-sm text-muted-foreground italic mb-3">
               {wisdomOfDay.meaning}
             </p>
+            {wisdomOfDay.history && (
+              <div className="p-3 bg-white/60 rounded-lg border border-amber-100 mb-3">
+                <p className="text-sm text-amber-900 leading-relaxed mb-1">
+                  {wisdomOfDay.history}
+                </p>
+                {wisdomOfDay.age && (
+                  <div className="flex items-center gap-1.5">
+                    <Icon name="Clock" size={13} className="text-amber-600" />
+                    <span className="text-xs font-medium text-amber-700">Возраст: {wisdomOfDay.age}</span>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <Badge variant="outline" className="text-amber-700 border-amber-300">
                 {wisdomOfDay.source} мудрость
@@ -160,7 +173,7 @@ export default function Wisdom() {
                   className="text-amber-600 hover:bg-amber-100"
                 >
                   <Icon
-                    name={favorites.includes(wisdomOfDay.id) ? 'Heart' : 'Heart'}
+                    name="Heart"
                     size={18}
                     className={favorites.includes(wisdomOfDay.id) ? 'fill-red-500 text-red-500' : ''}
                   />
@@ -341,11 +354,12 @@ interface WisdomCardProps {
 }
 
 function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onShare }: WisdomCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <Card className="hover:shadow-lg transition-all border border-amber-100">
       <CardContent className="p-4">
         <div className="flex gap-3">
-          {/* Category thumbnail */}
           <img
             src={CATEGORY_IMAGES[wisdom.category]}
             alt={getCategoryLabel(wisdom.category)}
@@ -355,11 +369,36 @@ function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onShare }: WisdomCar
             <p className="font-medium text-base leading-snug text-foreground mb-1.5">
               {wisdom.text}
             </p>
-            <p className="text-sm text-muted-foreground italic mb-3 leading-relaxed">
+            <p className="text-sm text-muted-foreground italic mb-2 leading-relaxed">
               {wisdom.meaning}
             </p>
 
-            {/* Badges row */}
+            {wisdom.history && (
+              <button
+                onClick={() => setExpanded((v) => !v)}
+                className="flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 mb-2 transition-colors"
+              >
+                <Icon name={expanded ? 'ChevronUp' : 'ChevronDown'} size={14} />
+                {expanded ? 'Скрыть историю' : 'История и происхождение'}
+              </button>
+            )}
+
+            {expanded && wisdom.history && (
+              <div className="mb-3 p-3 bg-amber-50/80 rounded-lg border border-amber-100 space-y-2">
+                <p className="text-sm text-amber-900 leading-relaxed">
+                  {wisdom.history}
+                </p>
+                {wisdom.age && (
+                  <div className="flex items-center gap-1.5">
+                    <Icon name="Clock" size={13} className="text-amber-600" />
+                    <span className="text-xs font-medium text-amber-700">
+                      Возраст: {wisdom.age}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-1.5 mb-3">
               <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
                 {wisdom.source}
@@ -370,9 +409,14 @@ function WisdomCard({ wisdom, isFavorite, onToggleFavorite, onShare }: WisdomCar
               <Badge variant="outline" className="text-xs text-muted-foreground">
                 {getTypeLabel(wisdom.type)}
               </Badge>
+              {wisdom.age && (
+                <Badge variant="outline" className="text-xs text-amber-600 border-amber-200">
+                  <Icon name="Clock" size={10} className="mr-1" />
+                  {wisdom.age}
+                </Badge>
+              )}
             </div>
 
-            {/* Actions */}
             <div className="flex gap-1">
               <Button
                 variant="ghost"
