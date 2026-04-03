@@ -136,6 +136,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body = json.loads(raw_body)
     action = body.get('action', 'start')
 
+    if action == 'generate_plan':
+        body['action'] = 'start'
+        action = 'start'
+        quiz_fields = [
+            'height_cm', 'current_weight_kg', 'target_weight_kg', 'age', 'gender',
+            'activity_level', 'smoking', 'alcohol_frequency', 'work_schedule',
+            'wake_time', 'sleep_time', 'medications', 'chronic_diseases',
+            'allergies', 'disliked_foods', 'diet_type', 'cuisine_preferences',
+            'budget', 'cooking_complexity', 'cooking_time_max', 'gym_frequency',
+            'activity_type', 'target_timeframe', 'duration_days'
+        ]
+        quiz_data = {k: body[k] for k in quiz_fields if k in body}
+        if quiz_data and 'quizData' not in body:
+            body['quizData'] = quiz_data
+
     check_actions = ('check', 'check_recipe', 'check_photo', 'check_greeting', 'check_products')
     if action in check_actions:
         if action == 'check':
