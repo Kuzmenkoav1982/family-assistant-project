@@ -144,6 +144,7 @@ const HealthHub = lazy(() => import("./pages/HealthHub"));
 const LeisureHub = lazy(() => import("./pages/LeisureHub"));
 const Values = lazy(() => import("./pages/Values"));
 const Culture = lazy(() => import("./pages/Culture"));
+const Wisdom = lazy(() => import("./pages/Wisdom"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Goals = lazy(() => import("./pages/Goals"));
 const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
@@ -389,6 +390,7 @@ const App = () => {
                       <Route path="/leisure-hub" element={<LeisureHub />} />
                       <Route path="/values" element={<Values />} />
                       <Route path="/culture" element={<Culture />} />
+                      <Route path="/wisdom" element={<Wisdom />} />
                       <Route path="/tasks" element={<Tasks />} />
                       <Route path="/goals" element={<Goals />} />
                       <Route path="/notifications" element={<Notifications />} />

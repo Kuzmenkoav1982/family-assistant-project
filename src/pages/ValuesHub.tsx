@@ -37,6 +37,15 @@ const subSections: SubSection[] = [
   },
 
   {
+    id: 'wisdom',
+    title: 'Мудрость народа',
+    description: 'Вековая мудрость разных народов мира',
+    icon: 'BookOpen',
+    path: '/wisdom',
+    gradient: 'from-amber-600 to-orange-500',
+    ready: true,
+  },
+  {
     id: 'rules',
     title: 'Правила дома',
     description: 'Семейный кодекс: правила, договорённости и границы',
