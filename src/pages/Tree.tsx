@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,18 +50,29 @@ function getGeneration(member: TreeMember, allMembers: TreeMember[]): number {
 
 export default function Tree() {
   const { toast } = useToast();
-  const { members, loading, error, addMember, updateMember, deleteMember } = useFamilyTree();
+  const { members, loading, error, addMember, updateMember, deleteMember, addPhoto, deletePhoto } = useFamilyTree();
   const { upload: uploadFile, uploading: uploadingPhoto } = useFileUpload();
   const [selectedMember, setSelectedMember] = useState<TreeMember | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState<NewTreeMember>({
     name: '',
     relation: '',
     avatar: '👤'
   });
+
+  // Keep selectedMember in sync when members array updates (e.g. after photo add/delete)
+  useEffect(() => {
+    if (selectedMember) {
+      const updated = members.find(m => m.id === selectedMember.id);
+      if (updated && updated !== selectedMember) {
+        setSelectedMember(updated);
+      }
+    }
+  }, [members, selectedMember]);
 
   const generations = new Map<number, TreeMember[]>();
   members.forEach(member => {
@@ -169,6 +180,28 @@ export default function Tree() {
     });
     setPhotoPreview(member.photo_url || null);
     setShowEditForm(true);
+  };
+
+  const handleGalleryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, memberId: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingGalleryPhoto(true);
+    try {
+      const url = await uploadFile(file, 'family-tree');
+      await addPhoto(memberId, url);
+      toast({ title: 'Фото добавлено в галерею' });
+    } catch (err) {
+      toast({ title: 'Ошибка загрузки фото', variant: 'destructive' });
+    } finally {
+      setUploadingGalleryPhoto(false);
+    }
+  };
+
+  const handleDeletePhoto = async (memberId: number, photoId: number) => {
+    const success = await deletePhoto(memberId, photoId);
+    if (success) {
+      toast({ title: 'Фото удалено' });
+    }
   };
 
   if (loading) {
@@ -360,6 +393,36 @@ export default function Tree() {
                   </div>
                 )}
 
+                {selectedMember.photos && selectedMember.photos.length > 0 && (
+                  <div className="border-t pt-3 mt-3">
+                    <p className="text-sm font-medium mb-2 flex items-center gap-1">
+                      <Icon name="Images" size={14} className="text-amber-600" />
+                      Фотографии ({selectedMember.photos.length})
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {selectedMember.photos.map(photo => (
+                        <div key={photo.id} className="relative group">
+                          <img
+                            src={photo.photo_url}
+                            alt={photo.caption || ''}
+                            className="w-full aspect-square object-cover rounded-lg border border-amber-200"
+                          />
+                          <button
+                            type="button"
+                            className="absolute top-1 right-1 w-5 h-5 bg-red-500/80 text-white rounded-full items-center justify-center text-xs hidden group-hover:flex"
+                            onClick={(e) => { e.stopPropagation(); handleDeletePhoto(selectedMember.id, photo.id); }}
+                          >
+                            ×
+                          </button>
+                          {photo.caption && (
+                            <p className="text-[10px] text-amber-600 mt-0.5 truncate">{photo.caption}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {(() => {
                   const children = members.filter(m => m.parent_id === selectedMember.id);
                   if (children.length === 0) return null;
@@ -382,6 +445,13 @@ export default function Tree() {
                   <Icon name="Pencil" className="mr-1" size={14} />
                   Редактировать
                 </Button>
+                <label className="cursor-pointer flex-1">
+                  <div className="flex items-center justify-center gap-1 px-3 py-2 rounded-md border text-sm hover:bg-amber-50 transition-colors">
+                    <Icon name={uploadingGalleryPhoto ? 'Loader2' : 'ImagePlus'} size={14} className={uploadingGalleryPhoto ? 'animate-spin' : ''} />
+                    {uploadingGalleryPhoto ? '...' : 'Фото'}
+                  </div>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleGalleryPhotoUpload(e, selectedMember.id)} disabled={uploadingGalleryPhoto} />
+                </label>
                 <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => handleDelete(selectedMember)}>
                   <Icon name="Trash2" size={14} />
                 </Button>

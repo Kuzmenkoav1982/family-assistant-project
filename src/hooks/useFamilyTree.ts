@@ -19,6 +19,7 @@ interface TreeMember {
   death_date: string | null;
   occupation: string | null;
   avatar: string;
+  photos: Array<{id: number; photo_url: string; caption: string | null; sort_order: number; created_at: string}>;
   created_at: string;
   updated_at: string;
 }
@@ -145,6 +146,62 @@ export function useFamilyTree() {
     }
   };
 
+  const addPhoto = async (memberId: number, photoUrl: string, caption?: string): Promise<boolean> => {
+    const token = getAuthToken();
+    try {
+      const response = await fetch(`${API_URL}?action=add_photo&member_id=${memberId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({ photo_url: photoUrl, caption: caption || null })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.photo) {
+        setMembers(prev => prev.map(m => {
+          if (m.id === memberId) {
+            return { ...m, photos: [...(m.photos || []), data.photo] };
+          }
+          return m;
+        }));
+        return true;
+      }
+      setError(data.error || 'Ошибка добавления фото');
+      return false;
+    } catch {
+      setError('Ошибка соединения');
+      return false;
+    }
+  };
+
+  const deletePhoto = async (memberId: number, photoId: number): Promise<boolean> => {
+    const token = getAuthToken();
+    try {
+      const response = await fetch(`${API_URL}?action=delete_photo&member_id=${memberId}&photo_id=${photoId}`, {
+        method: 'DELETE',
+        headers: { 'X-Auth-Token': token }
+      });
+
+      if (response.ok) {
+        setMembers(prev => prev.map(m => {
+          if (m.id === memberId) {
+            return { ...m, photos: (m.photos || []).filter(p => p.id !== photoId) };
+          }
+          return m;
+        }));
+        return true;
+      }
+      const data = await response.json();
+      setError(data.error || 'Ошибка удаления фото');
+      return false;
+    } catch {
+      setError('Ошибка соединения');
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchTree();
   }, [fetchTree]);
@@ -156,7 +213,9 @@ export function useFamilyTree() {
     fetchTree,
     addMember,
     updateMember,
-    deleteMember
+    deleteMember,
+    addPhoto,
+    deletePhoto
   };
 }
 

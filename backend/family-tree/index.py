@@ -1,5 +1,5 @@
 """
-Управление семейным древом — получение, добавление, редактирование, удаление членов рода
+Управление семейным древом — получение, добавление, редактирование, удаление членов рода и их фотографий
 """
 
 import json
@@ -72,6 +72,16 @@ def get_user_family_id(user_id: str) -> Optional[str]:
     return str(member['family_id']) if member and member['family_id'] else None
 
 
+def get_member_photos(cur, member_id: int) -> List[Dict]:
+    cur.execute(f"""
+        SELECT id, photo_url, caption, sort_order, created_at
+        FROM {SCHEMA}.family_tree_photos
+        WHERE member_id = {int(member_id)}
+        ORDER BY sort_order, created_at
+    """)
+    return [dict(r) for r in cur.fetchall()]
+
+
 def get_tree(family_id: str) -> List[Dict]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -85,9 +95,14 @@ def get_tree(family_id: str) -> List[Dict]:
         ORDER BY COALESCE(birth_year, 9999), created_at
     """)
     rows = cur.fetchall()
+    members = []
+    for r in rows:
+        m = dict(r)
+        m['photos'] = get_member_photos(cur, m['id'])
+        members.append(m)
     cur.close()
     conn.close()
-    return [dict(r) for r in rows]
+    return members
 
 
 def add_member(family_id: str, data: Dict) -> Dict:
@@ -116,9 +131,11 @@ def add_member(family_id: str, data: Dict) -> Dict:
         RETURNING *
     """)
     row = cur.fetchone()
+    member = dict(row)
+    member['photos'] = []
     cur.close()
     conn.close()
-    return dict(row)
+    return member
 
 
 def update_member(family_id: str, member_id: str, data: Dict) -> Optional[Dict]:
@@ -144,9 +161,15 @@ def update_member(family_id: str, member_id: str, data: Dict) -> Optional[Dict]:
         RETURNING *
     """)
     row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return None
+    member = dict(row)
+    member['photos'] = get_member_photos(cur, member['id'])
     cur.close()
     conn.close()
-    return dict(row) if row else None
+    return member
 
 
 def delete_member(family_id: str, member_id: str) -> bool:
@@ -163,6 +186,10 @@ def delete_member(family_id: str, member_id: str) -> bool:
           AND family_id::text = {escape_string(family_id)}
     """)
     cur.execute(f"""
+        DELETE FROM {SCHEMA}.family_tree_photos
+        WHERE member_id::text = {escape_string(member_id)}
+    """)
+    cur.execute(f"""
         DELETE FROM {SCHEMA}.family_tree 
         WHERE id::text = {escape_string(member_id)} 
           AND family_id::text = {escape_string(family_id)}
@@ -173,8 +200,68 @@ def delete_member(family_id: str, member_id: str) -> bool:
     return deleted
 
 
+def add_photo(family_id: str, member_id: str, data: Dict) -> Optional[Dict]:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT id FROM {SCHEMA}.family_tree
+        WHERE id::text = {escape_string(member_id)}
+          AND family_id::text = {escape_string(family_id)}
+    """)
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return None
+
+    cur.execute(f"""
+        SELECT COALESCE(MAX(sort_order), -1) + 1 as next_order
+        FROM {SCHEMA}.family_tree_photos
+        WHERE member_id::text = {escape_string(member_id)}
+    """)
+    next_order = cur.fetchone()['next_order']
+
+    cur.execute(f"""
+        INSERT INTO {SCHEMA}.family_tree_photos (member_id, photo_url, caption, sort_order)
+        VALUES (
+            {escape_string(member_id)},
+            {escape_string(data.get('photo_url'))},
+            {escape_string(data.get('caption'))},
+            {int(next_order)}
+        )
+        RETURNING *
+    """)
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return dict(row) if row else None
+
+
+def delete_photo(family_id: str, member_id: str, photo_id: str) -> bool:
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT ft.id FROM {SCHEMA}.family_tree ft
+        WHERE ft.id::text = {escape_string(member_id)}
+          AND ft.family_id::text = {escape_string(family_id)}
+    """)
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return False
+
+    cur.execute(f"""
+        DELETE FROM {SCHEMA}.family_tree_photos
+        WHERE id::text = {escape_string(photo_id)}
+          AND member_id::text = {escape_string(member_id)}
+    """)
+    deleted = cur.rowcount > 0
+    cur.close()
+    conn.close()
+    return deleted
+
+
 def handler(event: dict, context) -> dict:
-    """Управление семейным древом — CRUD операции с членами рода"""
+    """Управление семейным древом — CRUD операции с членами рода и их фотографиями"""
     
     if event.get('httpMethod') == 'OPTIONS':
         return response(200, '')
@@ -193,6 +280,29 @@ def handler(event: dict, context) -> dict:
 
     method = event.get('httpMethod', 'GET')
     params = event.get('queryStringParameters') or {}
+    action = params.get('action')
+
+    if action == 'add_photo' and method == 'POST':
+        member_id = params.get('member_id')
+        if not member_id:
+            return response(400, {'error': 'Не указан member_id'})
+        body = json.loads(event.get('body', '{}'))
+        if not body.get('photo_url'):
+            return response(400, {'error': 'photo_url обязателен'})
+        photo = add_photo(family_id, member_id, body)
+        if not photo:
+            return response(404, {'error': 'Член древа не найден'})
+        return response(201, {'photo': photo})
+
+    if action == 'delete_photo' and method == 'DELETE':
+        member_id = params.get('member_id')
+        photo_id = params.get('photo_id')
+        if not member_id or not photo_id:
+            return response(400, {'error': 'Не указан member_id или photo_id'})
+        deleted = delete_photo(family_id, member_id, photo_id)
+        if not deleted:
+            return response(404, {'error': 'Фото не найдено'})
+        return response(200, {'success': True})
 
     if method == 'GET':
         tree = get_tree(family_id)
