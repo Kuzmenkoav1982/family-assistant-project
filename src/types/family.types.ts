@@ -1,3 +1,22 @@
+export interface FamilyTreeMember {
+  id: string;
+  name: string;
+  firstName?: string;
+  fullName?: string;
+  role: string;
+  birthYear?: number;
+  birthDate?: string;
+  deathDate?: string;
+  avatar: string;
+  photoUrl?: string;
+  occupation?: string;
+  generation?: number;
+  age?: number;
+  parents?: string[];
+  spouse?: string;
+  children?: string[];
+}
+
 export interface FamilyMember {
   id: string;
   user_id?: string;
