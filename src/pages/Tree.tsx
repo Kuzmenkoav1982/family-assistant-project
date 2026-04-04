@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-import { useNavigate } from 'react-router-dom';
+import SectionHero from '@/components/ui/section-hero';
 import { useFamilyTree, type TreeMember, type NewTreeMember } from '@/hooks/useFamilyTree';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
@@ -49,7 +49,6 @@ function getGeneration(member: TreeMember, allMembers: TreeMember[]): number {
 }
 
 export default function Tree() {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { members, loading, error, addMember, updateMember, deleteMember } = useFamilyTree();
   const { upload: uploadFile, uploading: uploadingPhoto } = useFileUpload();
@@ -184,22 +183,19 @@ export default function Tree() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <Icon name="ArrowLeft" size={20} />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold flex items-center gap-2 text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>
-              <Icon name="TreePine" className="text-amber-700" size={28} />
-              Семейное древо
-            </h1>
-            <p className="text-amber-700 text-sm">История вашего рода</p>
-          </div>
-          <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
-            {members.length} чел.
-          </Badge>
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 pb-24">
+      <div className="p-4">
+        <SectionHero
+          title="Семейное древо"
+          subtitle={`${members.length} чел. · История вашего рода`}
+          imageUrl="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&h=400&fit=crop&crop=center"
+          backPath="/family"
+        />
+      </div>
+
+      <div className="px-4 space-y-4 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-amber-700 font-medium">{members.length > 0 ? `В древе ${members.length} чел.` : 'Начните строить историю рода'}</p>
           <Button
             size="sm"
             className="bg-amber-600 hover:bg-amber-700"
