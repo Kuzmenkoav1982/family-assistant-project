@@ -36,6 +36,15 @@ const subSections: SubSection[] = [
     ready: true,
   },
   {
+    id: 'tree',
+    title: 'Семейное древо',
+    description: 'История рода, родственные связи и биографии',
+    icon: 'TreePine',
+    path: '/tree',
+    gradient: 'from-amber-500 to-orange-600',
+    ready: true,
+  },
+  {
     id: 'tracker',
     title: 'Семейный маячок',
     description: 'Геолокация членов семьи в реальном времени',
@@ -57,7 +66,7 @@ export default function FamilyHub() {
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
           title="Семья"
-          subtitle="Профили, дети и семейный маячок"
+          subtitle="Профили, дети, древо и семейный маячок"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/500fd7ef-3244-4c95-899e-9db5fcb2309d.jpg"
         />
 
