@@ -221,7 +221,7 @@ export default function Tree() {
         <SectionHero
           title="Семейное древо"
           subtitle={`${members.length} чел. · История вашего рода`}
-          imageUrl="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&h=400&fit=crop&crop=center"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
           backPath="/family"
         />
       </div>
