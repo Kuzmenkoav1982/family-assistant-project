@@ -87,7 +87,7 @@ def get_tree(family_id: str) -> List[Dict]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(f"""
         SELECT id, family_id, name, relation, birth_year, death_year, 
-               bio, photo_url, parent_id, spouse_id, gender, 
+               bio, photo_url, parent_id, parent2_id, spouse_id, gender, 
                birth_date, death_date, occupation, avatar,
                created_at, updated_at
         FROM {SCHEMA}.family_tree
@@ -111,7 +111,7 @@ def add_member(family_id: str, data: Dict) -> Dict:
     cur.execute(f"""
         INSERT INTO {SCHEMA}.family_tree 
             (family_id, name, relation, birth_year, death_year, bio, photo_url, 
-             parent_id, spouse_id, gender, birth_date, death_date, occupation, avatar)
+             parent_id, parent2_id, spouse_id, gender, birth_date, death_date, occupation, avatar)
         VALUES (
             {escape_string(family_id)},
             {escape_string(data.get('name'))},
@@ -121,6 +121,7 @@ def add_member(family_id: str, data: Dict) -> Dict:
             {escape_string(data.get('bio'))},
             {escape_string(data.get('photo_url'))},
             {escape_string(data.get('parent_id'))},
+            {escape_string(data.get('parent2_id'))},
             {escape_string(data.get('spouse_id'))},
             {escape_string(data.get('gender'))},
             {escape_string(data.get('birth_date'))},
@@ -141,7 +142,7 @@ def add_member(family_id: str, data: Dict) -> Dict:
 def update_member(family_id: str, member_id: str, data: Dict) -> Optional[Dict]:
     fields = []
     allowed = ['name', 'relation', 'birth_year', 'death_year', 'bio', 'photo_url',
-               'parent_id', 'spouse_id', 'gender', 'birth_date', 'death_date', 'occupation', 'avatar']
+               'parent_id', 'parent2_id', 'spouse_id', 'gender', 'birth_date', 'death_date', 'occupation', 'avatar']
     for key in allowed:
         if key in data:
             fields.append(f"{key} = {escape_string(data[key])}")
@@ -178,6 +179,11 @@ def delete_member(family_id: str, member_id: str) -> bool:
     cur.execute(f"""
         UPDATE {SCHEMA}.family_tree SET parent_id = NULL 
         WHERE parent_id::text = {escape_string(member_id)} 
+          AND family_id::text = {escape_string(family_id)}
+    """)
+    cur.execute(f"""
+        UPDATE {SCHEMA}.family_tree SET parent2_id = NULL 
+        WHERE parent2_id::text = {escape_string(member_id)} 
           AND family_id::text = {escape_string(family_id)}
     """)
     cur.execute(f"""

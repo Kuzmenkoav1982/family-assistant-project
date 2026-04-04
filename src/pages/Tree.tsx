@@ -41,8 +41,8 @@ function getGeneration(member: TreeMember, allMembers: TreeMember[]): number {
   if (member.relation && GENERATION_MAP[member.relation] !== undefined) {
     return GENERATION_MAP[member.relation];
   }
-  if (member.parent_id) {
-    const parent = allMembers.find(m => m.id === member.parent_id);
+  if (member.parent_id || member.parent2_id) {
+    const parent = allMembers.find(m => m.id === (member.parent_id || member.parent2_id));
     if (parent) return getGeneration(parent, allMembers) + 1;
   }
   return 2;
@@ -175,6 +175,7 @@ export default function Tree() {
       avatar: member.avatar || '👤',
       photo_url: member.photo_url || undefined,
       parent_id: member.parent_id || undefined,
+      parent2_id: member.parent2_id || undefined,
       spouse_id: member.spouse_id || undefined,
       gender: member.gender || undefined,
     });
@@ -380,6 +381,18 @@ export default function Tree() {
                   </div>
                 )}
 
+                {(selectedMember.parent_id || selectedMember.parent2_id) && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Icon name="Users" size={16} className="text-amber-600" />
+                    <span>
+                      Родители: {[
+                        selectedMember.parent_id && members.find(m => m.id === selectedMember.parent_id)?.name,
+                        selectedMember.parent2_id && members.find(m => m.id === selectedMember.parent2_id)?.name,
+                      ].filter(Boolean).join(' и ') || 'Не указаны'}
+                    </span>
+                  </div>
+                )}
+
                 {selectedMember.spouse_id && (
                   <div className="flex items-center gap-2 text-sm">
                     <Icon name="Heart" size={16} className="text-pink-500" />
@@ -517,21 +530,38 @@ export default function Tree() {
               </div>
 
               {members.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Родитель</Label>
-                    <Select
-                      value={formData.parent_id?.toString() || 'none'}
-                      onValueChange={v => setFormData(prev => ({ ...prev, parent_id: v === 'none' ? undefined : parseInt(v) }))}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Не указан</SelectItem>
-                        {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
-                          <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Отец</Label>
+                      <Select
+                        value={formData.parent_id?.toString() || 'none'}
+                        onValueChange={v => setFormData(prev => ({ ...prev, parent_id: v === 'none' ? undefined : parseInt(v) }))}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Не указан</SelectItem>
+                          {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
+                            <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Мать</Label>
+                      <Select
+                        value={formData.parent2_id?.toString() || 'none'}
+                        onValueChange={v => setFormData(prev => ({ ...prev, parent2_id: v === 'none' ? undefined : parseInt(v) }))}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Не указана" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Не указана</SelectItem>
+                          {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
+                            <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div>
                     <Label>Супруг(а)</Label>
@@ -548,7 +578,7 @@ export default function Tree() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
+                </>
               )}
 
               <div>

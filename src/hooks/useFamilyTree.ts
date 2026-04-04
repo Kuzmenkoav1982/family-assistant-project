@@ -13,6 +13,7 @@ interface TreeMember {
   bio: string | null;
   photo_url: string | null;
   parent_id: number | null;
+  parent2_id: number | null;
   spouse_id: number | null;
   gender: string | null;
   birth_date: string | null;
@@ -32,6 +33,7 @@ interface NewTreeMember {
   bio?: string;
   photo_url?: string;
   parent_id?: number;
+  parent2_id?: number;
   spouse_id?: number;
   gender?: string;
   birth_date?: string;

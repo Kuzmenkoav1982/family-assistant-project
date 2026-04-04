@@ -1,0 +1,1 @@
+ALTER TABLE t_p5815085_family_assistant_pro.family_tree ADD COLUMN parent2_id integer NULL;
