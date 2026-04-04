@@ -53,6 +53,7 @@ export interface ServiceRecord {
   cost?: number;
   service_station?: string;
   parts_replaced?: string;
+  photo_urls?: string[];
   created_at: string;
 }
 

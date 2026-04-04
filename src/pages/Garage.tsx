@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import useGarage, { type Vehicle, type ServiceRecord, type Expense, type Reminder, type GarageNote } from '@/hooks/useGarage';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useToast } from '@/hooks/use-toast';
 
 const EXPENSE_CATEGORIES: Record<string, string> = {
   fuel: '⛽ Топливо', repair: '🔧 Ремонт', insurance: '📋 Страховка',
@@ -210,9 +212,47 @@ function ServicesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
   const [items, setItems] = useState<ServiceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ service_type: 'maintenance', title: '', description: '', date: new Date().toISOString().split('T')[0], mileage: '', cost: '', service_station: '', parts_replaced: '' });
+  const [attachedFiles, setAttachedFiles] = useState<{ url: string; name: string; type: string }[]>([]);
+  const { upload: uploadFile, uploading } = useFileUpload();
+  const { toast } = useToast();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => { g.loadServices(vehicleId).then((d: ServiceRecord[]) => { setItems(d); setLoading(false); }); }, [vehicleId]);
+
+  const handleFileAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadFile(file, 'garage-service');
+      setAttachedFiles(prev => [...prev, { url, name: file.name, type: file.type }]);
+      toast({ title: 'Файл прикреплён' });
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : 'Ошибка загрузки', variant: 'destructive' });
+    }
+    e.target.value = '';
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const photoUrls = attachedFiles.map(f => f.url);
+    await g.createService(vehicleId, {
+      ...form,
+      mileage: form.mileage ? Number(form.mileage) : undefined,
+      cost: form.cost ? Number(form.cost) : undefined,
+      photo_urls: photoUrls,
+    });
+    const d = await g.loadServices(vehicleId);
+    setItems(d);
+    await g.loadVehicles();
+    setShowAdd(false);
+    setSaving(false);
+    setAttachedFiles([]);
+    setForm({ service_type: 'maintenance', title: '', description: '', date: new Date().toISOString().split('T')[0], mileage: '', cost: '', service_station: '', parts_replaced: '' });
+  };
+
+  const isPdf = (url: string) => url.toLowerCase().endsWith('.pdf');
 
   if (loading) return <p className="text-sm text-muted-foreground py-4 text-center">Загрузка...</p>;
 
@@ -220,7 +260,7 @@ function ServicesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
     <div className="space-y-3">
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">Записей: {items.length}</p>
-        <Button size="sm" variant="outline" onClick={() => setShowAdd(!showAdd)}>
+        <Button size="sm" variant="outline" onClick={() => { setShowAdd(!showAdd); setAttachedFiles([]); }}>
           <Icon name={showAdd ? 'X' : 'Plus'} size={14} className="mr-1" />{showAdd ? 'Отмена' : 'Добавить'}
         </Button>
       </div>
@@ -238,21 +278,71 @@ function ServicesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
           </div>
           <Input placeholder="Автосервис" value={form.service_station} onChange={e => setForm(p => ({ ...p, service_station: e.target.value }))} />
           <Textarea placeholder="Описание, запчасти" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
-          <Button className="w-full" disabled={!form.title} onClick={async () => {
-            await g.createService(vehicleId, { ...form, mileage: form.mileage ? Number(form.mileage) : undefined, cost: form.cost ? Number(form.cost) : undefined });
-            const d = await g.loadServices(vehicleId); setItems(d); await g.loadVehicles(); setShowAdd(false);
-            setForm({ service_type: 'maintenance', title: '', description: '', date: new Date().toISOString().split('T')[0], mileage: '', cost: '', service_station: '', parts_replaced: '' });
-          }}>Сохранить</Button>
+
+          <div>
+            <Label className="text-xs font-medium">Фото / документы</Label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {attachedFiles.map((f, i) => (
+                <div key={i} className="relative group">
+                  {f.type === 'application/pdf' ? (
+                    <div className="w-16 h-16 rounded-lg bg-red-50 border border-red-200 flex flex-col items-center justify-center">
+                      <Icon name="FileText" size={20} className="text-red-500" />
+                      <span className="text-[9px] text-red-600 mt-0.5">PDF</span>
+                    </div>
+                  ) : (
+                    <img src={f.url} alt={f.name} className="w-16 h-16 rounded-lg object-cover border" />
+                  )}
+                  <button
+                    type="button"
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setAttachedFiles(prev => prev.filter((_, idx) => idx !== i))}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <label className={`w-16 h-16 rounded-lg border-2 border-dashed border-slate-300 hover:border-blue-400 flex flex-col items-center justify-center cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <Icon name={uploading ? 'Loader2' : 'Paperclip'} size={18} className={`text-slate-400 ${uploading ? 'animate-spin' : ''}`} />
+                <span className="text-[9px] text-slate-400 mt-0.5">{uploading ? '...' : 'Файл'}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={handleFileAttach} disabled={uploading} />
+              </label>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Фото работ, акт ТО, чеки (JPG, PNG, PDF до 10 МБ)</p>
+          </div>
+
+          <Button className="w-full" disabled={!form.title || saving || uploading} onClick={handleSave}>
+            {saving ? 'Сохранение...' : 'Сохранить'}
+          </Button>
         </CardContent></Card>
       )}
       {items.length === 0 ? <p className="text-sm text-muted-foreground text-center py-6">Нет записей об обслуживании</p> : items.map(s => (
         <Card key={s.id}>
           <CardContent className="p-3">
             <div className="flex justify-between items-start">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm">{SERVICE_TYPES[s.service_type] || s.service_type} — {s.title}</p>
                 <p className="text-xs text-muted-foreground">{fmtDate(s.date)}{s.mileage ? ` · ${s.mileage.toLocaleString('ru-RU')} км` : ''}{s.service_station ? ` · ${s.service_station}` : ''}</p>
                 {s.description && <p className="text-xs mt-1">{s.description}</p>}
+                {s.photo_urls && s.photo_urls.length > 0 && (
+                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                    {s.photo_urls.map((url, i) => (
+                      isPdf(url) ? (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded bg-red-50 border border-red-200 flex flex-col items-center justify-center hover:bg-red-100 transition-colors">
+                          <Icon name="FileText" size={14} className="text-red-500" />
+                          <span className="text-[8px] text-red-600">PDF</span>
+                        </a>
+                      ) : (
+                        <img
+                          key={i}
+                          src={url}
+                          alt={`Фото ${i + 1}`}
+                          className="w-10 h-10 rounded object-cover border cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all"
+                          onClick={() => setPreviewUrl(url)}
+                        />
+                      )
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="text-right flex-shrink-0">
                 {(s.cost ?? 0) > 0 && <Badge variant="secondary" className="text-xs">{fmt(s.cost ?? 0)}</Badge>}
@@ -264,6 +354,14 @@ function ServicesTab({ vehicleId, garage: g }: { vehicleId: string; garage: any 
           </CardContent>
         </Card>
       ))}
+
+      {previewUrl && (
+        <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
+          <DialogContent className="max-w-2xl p-2">
+            <img src={previewUrl} alt="Просмотр" className="w-full rounded-lg" />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

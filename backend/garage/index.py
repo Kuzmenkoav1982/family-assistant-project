@@ -199,14 +199,17 @@ def list_services(family_id: str, vehicle_id: str) -> List[Dict]:
 
 def create_service(family_id: str, vehicle_id: str, user_id: str, data: Dict) -> Dict:
     sid = str(uuid.uuid4())
+    photo_urls = data.get('photo_urls', [])
+    photo_arr = "'{" + ",".join('"' + str(u).replace("'", "''").replace('"', '\\"') + '"' for u in photo_urls) + "}'" if photo_urls else "'{}'::text[]"
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(f"""
-        INSERT INTO {SCHEMA}.garage_service_records (id, vehicle_id, family_id, service_type, title, description, date, mileage, cost, service_station, parts_replaced, created_by)
+        INSERT INTO {SCHEMA}.garage_service_records (id, vehicle_id, family_id, service_type, title, description, date, mileage, cost, service_station, parts_replaced, created_by, photo_urls)
         VALUES ({esc(sid)}::uuid, {esc(vehicle_id)}::uuid, {esc(family_id)}::uuid,
                 {esc(data.get('service_type', 'maintenance'))}, {esc(data.get('title'))}, {esc(data.get('description'))},
                 {esc(data.get('date'))}, {esc(data.get('mileage'))}, {esc(data.get('cost', 0))},
-                {esc(data.get('service_station'))}, {esc(data.get('parts_replaced'))}, {esc(user_id)}::uuid)
+                {esc(data.get('service_station'))}, {esc(data.get('parts_replaced'))}, {esc(user_id)}::uuid,
+                {photo_arr})
         RETURNING *
     """)
     row = cur.fetchone()

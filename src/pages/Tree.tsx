@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useFamilyTree, type TreeMember, type NewTreeMember } from '@/hooks/useFamilyTree';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 
 const RELATION_OPTIONS = [
@@ -51,10 +52,12 @@ export default function Tree() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { members, loading, error, addMember, updateMember, deleteMember } = useFamilyTree();
+  const { upload: uploadFile, uploading: uploadingPhoto } = useFileUpload();
   const [selectedMember, setSelectedMember] = useState<TreeMember | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState<NewTreeMember>({
     name: '',
     relation: '',
@@ -93,6 +96,22 @@ export default function Tree() {
 
   const resetForm = () => {
     setFormData({ name: '', relation: '', avatar: '👤' });
+    setPhotoPreview(null);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const localPreview = URL.createObjectURL(file);
+      setPhotoPreview(localPreview);
+      const url = await uploadFile(file, 'family-tree');
+      setFormData(prev => ({ ...prev, photo_url: url }));
+      toast({ title: 'Фото загружено' });
+    } catch (err) {
+      setPhotoPreview(null);
+      toast({ title: err instanceof Error ? err.message : 'Ошибка загрузки', variant: 'destructive' });
+    }
   };
 
   const handleAdd = async () => {
@@ -144,10 +163,12 @@ export default function Tree() {
       occupation: member.occupation || undefined,
       bio: member.bio || undefined,
       avatar: member.avatar || '👤',
+      photo_url: member.photo_url || undefined,
       parent_id: member.parent_id || undefined,
       spouse_id: member.spouse_id || undefined,
       gender: member.gender || undefined,
     });
+    setPhotoPreview(member.photo_url || null);
     setShowEditForm(true);
   };
 
@@ -465,7 +486,43 @@ export default function Tree() {
               )}
 
               <div>
-                <Label>Аватар</Label>
+                <Label>Фото</Label>
+                <div className="flex items-center gap-3 mt-1">
+                  {(photoPreview || formData.photo_url) ? (
+                    <div className="relative">
+                      <img
+                        src={photoPreview || formData.photo_url}
+                        alt="Фото"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-amber-300"
+                      />
+                      <button
+                        type="button"
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                        onClick={() => { setPhotoPreview(null); setFormData(prev => ({ ...prev, photo_url: undefined })); }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-amber-100 border-2 border-dashed border-amber-300 flex items-center justify-center text-2xl">
+                      {formData.avatar || '👤'}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="cursor-pointer">
+                      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors text-sm ${uploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <Icon name={uploadingPhoto ? 'Loader2' : 'Camera'} size={16} className={uploadingPhoto ? 'animate-spin text-amber-600' : 'text-amber-600'} />
+                        {uploadingPhoto ? 'Загрузка...' : 'Загрузить фото'}
+                      </div>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                    </label>
+                    <p className="text-[10px] text-muted-foreground mt-1">JPG, PNG, WebP до 10 МБ</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Иконка (если без фото)</Label>
                 <div className="flex gap-2 flex-wrap mt-1">
                   {AVATAR_OPTIONS.map(emoji => (
                     <button
@@ -493,7 +550,7 @@ export default function Tree() {
               <Button
                 className="w-full bg-amber-600 hover:bg-amber-700"
                 onClick={showEditForm ? handleEdit : handleAdd}
-                disabled={saving}
+                disabled={saving || uploadingPhoto}
               >
                 {saving ? (
                   <>
