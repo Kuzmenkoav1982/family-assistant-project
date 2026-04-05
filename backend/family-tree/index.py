@@ -82,18 +82,45 @@ def get_member_photos(cur, member_id: int) -> List[Dict]:
     return [dict(r) for r in cur.fetchall()]
 
 
-def get_tree(family_id: str) -> List[Dict]:
+def get_clan_id(family_id: str) -> Optional[str]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(f"""
-        SELECT id, family_id, name, relation, birth_year, death_year, 
-               bio, photo_url, parent_id, parent2_id, spouse_id, gender, 
-               birth_date, death_date, occupation, avatar,
-               created_at, updated_at
-        FROM {SCHEMA}.family_tree
-        WHERE family_id::text = {escape_string(family_id)}
-        ORDER BY COALESCE(birth_year, 9999), created_at
+        SELECT c.id FROM {SCHEMA}.clans c
+        JOIN {SCHEMA}.clan_members cm ON cm.clan_id = c.id
+        WHERE cm.family_id = {escape_string(family_id)} AND cm.status = 'active'
+        LIMIT 1
     """)
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return str(row['id']) if row else None
+
+
+def get_tree(family_id: str) -> List[Dict]:
+    clan_id = get_clan_id(family_id)
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    if clan_id:
+        cur.execute(f"""
+            SELECT id, family_id, name, relation, birth_year, death_year, 
+                   bio, photo_url, parent_id, parent2_id, spouse_id, gender, 
+                   birth_date, death_date, occupation, avatar, clan_id,
+                   created_at, updated_at
+            FROM {SCHEMA}.family_tree
+            WHERE clan_id = {escape_string(clan_id)}::uuid
+            ORDER BY COALESCE(birth_year, 9999), created_at
+        """)
+    else:
+        cur.execute(f"""
+            SELECT id, family_id, name, relation, birth_year, death_year, 
+                   bio, photo_url, parent_id, parent2_id, spouse_id, gender, 
+                   birth_date, death_date, occupation, avatar, clan_id,
+                   created_at, updated_at
+            FROM {SCHEMA}.family_tree
+            WHERE family_id::text = {escape_string(family_id)}
+            ORDER BY COALESCE(birth_year, 9999), created_at
+        """)
     rows = cur.fetchall()
     members = []
     for r in rows:
@@ -106,12 +133,13 @@ def get_tree(family_id: str) -> List[Dict]:
 
 
 def add_member(family_id: str, data: Dict) -> Dict:
+    clan_id = get_clan_id(family_id)
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(f"""
         INSERT INTO {SCHEMA}.family_tree 
             (family_id, name, relation, birth_year, death_year, bio, photo_url, 
-             parent_id, parent2_id, spouse_id, gender, birth_date, death_date, occupation, avatar)
+             parent_id, parent2_id, spouse_id, gender, birth_date, death_date, occupation, avatar, clan_id)
         VALUES (
             {escape_string(family_id)},
             {escape_string(data.get('name'))},
@@ -127,7 +155,8 @@ def add_member(family_id: str, data: Dict) -> Dict:
             {escape_string(data.get('birth_date'))},
             {escape_string(data.get('death_date'))},
             {escape_string(data.get('occupation'))},
-            {escape_string(data.get('avatar', '👤'))}
+            {escape_string(data.get('avatar', '👤'))},
+            {("'" + clan_id + "'::uuid") if clan_id else 'NULL'}
         )
         RETURNING *
     """)

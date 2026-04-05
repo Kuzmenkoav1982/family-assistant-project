@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useFamilyTree, type TreeMember, type NewTreeMember } from '@/hooks/useFamilyTree';
+import { useClanTree } from '@/hooks/useClanTree';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 
@@ -208,11 +209,15 @@ function FamilyUnitBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: T
 
 export default function Tree() {
   const { toast } = useToast();
-  const { members, loading, error, addMember, updateMember, deleteMember, addPhoto, deletePhoto } = useFamilyTree();
+  const { members, loading, error, addMember, updateMember, deleteMember, addPhoto, deletePhoto, fetchTree } = useFamilyTree();
+  const clanHook = useClanTree();
   const { upload: uploadFile, uploading: uploadingPhoto } = useFileUpload();
   const [selectedMember, setSelectedMember] = useState<TreeMember | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showClanPanel, setShowClanPanel] = useState(false);
+  const [clanName, setClanName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -387,15 +392,189 @@ export default function Tree() {
       <div className="px-4 space-y-4 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <p className="text-sm text-amber-700 font-medium">{members.length > 0 ? `В древе ${members.length} чел.` : 'Начните строить историю рода'}</p>
-          <Button
-            size="sm"
-            className="bg-amber-600 hover:bg-amber-700"
-            onClick={() => { resetForm(); setShowAddForm(true); }}
-          >
-            <Icon name="Plus" className="mr-1" size={16} />
-            Добавить
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-amber-300 text-amber-700"
+              onClick={() => setShowClanPanel(!showClanPanel)}
+            >
+              <Icon name="Users" className="mr-1" size={16} />
+              Род
+            </Button>
+            <Button
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => { resetForm(); setShowAddForm(true); }}
+            >
+              <Icon name="Plus" className="mr-1" size={16} />
+              Добавить
+            </Button>
+          </div>
         </div>
+
+        {clanHook.invites.length > 0 && !showClanPanel && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icon name="Mail" size={16} className="text-blue-600" />
+                  <span className="text-sm text-blue-800">
+                    Вас приглашают в род «{clanHook.invites[0].clan_name}»
+                    {clanHook.invites[0].invited_by_name && ` от ${clanHook.invites[0].invited_by_name}`}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 h-7 text-xs" onClick={async () => {
+                    const ok = await clanHook.acceptInvite(clanHook.invites[0].id);
+                    if (ok) { toast({ title: 'Вы присоединились к роду!' }); fetchTree(); }
+                  }}>Принять</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={async () => {
+                    await clanHook.declineInvite(clanHook.invites[0].id);
+                    toast({ title: 'Приглашение отклонено' });
+                  }}>Нет</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {showClanPanel && (
+          <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
+            <CardContent className="py-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+                  <Icon name="Crown" size={18} className="text-amber-600" />
+                  {clanHook.clan ? clanHook.clan.name : 'Общий род'}
+                </h3>
+                <button onClick={() => setShowClanPanel(false)} className="text-amber-400 hover:text-amber-600">
+                  <Icon name="X" size={18} />
+                </button>
+              </div>
+
+              {!clanHook.clan ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-amber-700">Создайте общий род, чтобы родственники из других семей видели и дополняли одно древо.</p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Название рода (напр. Кузьменко)"
+                      value={clanName}
+                      onChange={e => setClanName(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      className="bg-amber-600 hover:bg-amber-700"
+                      disabled={!clanName.trim() || saving}
+                      onClick={async () => {
+                        setSaving(true);
+                        const ok = await clanHook.createClan(clanName.trim());
+                        setSaving(false);
+                        if (ok) {
+                          toast({ title: `Род «${clanName}» создан!` });
+                          setClanName('');
+                          fetchTree();
+                        } else {
+                          toast({ title: 'Ошибка создания', variant: 'destructive' });
+                        }
+                      }}
+                    >
+                      {saving ? <Icon name="Loader2" size={16} className="animate-spin" /> : 'Создать'}
+                    </Button>
+                  </div>
+
+                  {clanHook.invites.length > 0 && (
+                    <div className="space-y-2 border-t border-amber-200 pt-3">
+                      <p className="text-sm font-medium text-amber-800">Приглашения:</p>
+                      {clanHook.invites.map(inv => (
+                        <div key={inv.id} className="flex items-center justify-between bg-white rounded-lg p-2 border border-amber-100">
+                          <div>
+                            <p className="text-sm font-medium">{inv.clan_name}</p>
+                            {inv.invited_by_name && <p className="text-xs text-muted-foreground">от {inv.invited_by_name}</p>}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="sm" className="bg-amber-600 hover:bg-amber-700 h-7 text-xs" onClick={async () => {
+                              const ok = await clanHook.acceptInvite(inv.id);
+                              if (ok) { toast({ title: 'Вы в роду!' }); fetchTree(); }
+                            }}>Принять</Button>
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={async () => {
+                              await clanHook.declineInvite(inv.id);
+                            }}>Отклонить</Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-300">{clanHook.clan.role === 'owner' ? 'Создатель' : 'Участник'}</Badge>
+                    <span className="text-sm text-amber-700">
+                      {clanHook.families.filter(f => f.status === 'active').length} {
+                        (() => {
+                          const n = clanHook.families.filter(f => f.status === 'active').length;
+                          if (n === 1) return 'семья';
+                          if (n >= 2 && n <= 4) return 'семьи';
+                          return 'семей';
+                        })()
+                      } в роду
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    {clanHook.families.filter(f => f.status === 'active').map(f => (
+                      <div key={f.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-amber-100">
+                        <Icon name="Home" size={14} className="text-amber-500" />
+                        <span className="text-sm">{f.user_name || f.user_email || 'Семья'}</span>
+                        {f.role === 'owner' && <Badge className="bg-amber-500 text-white text-[10px] px-1 py-0 ml-auto">Создатель</Badge>}
+                      </div>
+                    ))}
+                    {clanHook.families.filter(f => f.status === 'pending').map(f => (
+                      <div key={f.id} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100 opacity-60">
+                        <Icon name="Clock" size={14} className="text-gray-400" />
+                        <span className="text-sm text-gray-600">{f.user_name || f.user_email || 'Семья'}</span>
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 ml-auto">Ожидает</Badge>
+                      </div>
+                    ))}
+                  </div>
+
+                  {clanHook.clan.role === 'owner' && (
+                    <div className="border-t border-amber-200 pt-3">
+                      <p className="text-sm font-medium text-amber-800 mb-2">Пригласить родственника</p>
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          placeholder="Email родственника"
+                          value={inviteEmail}
+                          onChange={e => setInviteEmail(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          className="bg-amber-600 hover:bg-amber-700"
+                          disabled={!inviteEmail.trim() || saving}
+                          onClick={async () => {
+                            setSaving(true);
+                            const result = await clanHook.inviteByEmail(inviteEmail.trim().toLowerCase());
+                            setSaving(false);
+                            if (result.success) {
+                              toast({ title: 'Приглашение отправлено!' });
+                              setInviteEmail('');
+                            } else {
+                              toast({ title: result.error || 'Ошибка', variant: 'destructive' });
+                            }
+                          }}
+                        >
+                          <Icon name="Send" size={16} />
+                        </Button>
+                      </div>
+                      <p className="text-[10px] text-amber-600 mt-1">Родственник должен быть зарегистрирован в приложении</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {error && (
           <Card className="border-red-200 bg-red-50 mb-4">
