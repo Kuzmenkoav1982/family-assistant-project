@@ -170,43 +170,44 @@ function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; on
   );
 }
 
-function FamilyUnitBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: TreeMember) => void }) {
+function CoupleBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: TreeMember) => void }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center gap-0">
-        <MemberCard member={unit.primary} onClick={() => onSelect(unit.primary)} />
-        {unit.spouse && (
-          <>
-            <div className="flex items-center mx-[-4px] z-10">
-              <div className="w-6 h-0.5 bg-pink-400" />
-              <span className="text-pink-500 text-xs">&#10084;</span>
-              <div className="w-6 h-0.5 bg-pink-400" />
-            </div>
-            <MemberCard member={unit.spouse} onClick={() => onSelect(unit.spouse!)} isHighlighted />
-          </>
-        )}
-      </div>
-      {unit.children.length > 0 && (
-        <div className="flex flex-col items-center mt-1">
-          <div className="w-0.5 h-4 bg-amber-300" />
-          {unit.children.length > 1 && (
-            <div className="relative w-full flex justify-center">
-              <div className="h-0.5 bg-amber-300" style={{ width: `${Math.min(unit.children.length * 80, 300)}px` }} />
-            </div>
-          )}
-          <div className="flex flex-wrap justify-center gap-2 mt-0">
-            {unit.children.map(child => (
-              <div key={child.id} className="flex flex-col items-center">
-                {unit.children.length > 1 && <div className="w-0.5 h-3 bg-amber-300" />}
-                <MemberCard member={child} onClick={() => onSelect(child)} />
-              </div>
-            ))}
+    <div className="flex items-center gap-0">
+      <MemberCard member={unit.primary} onClick={() => onSelect(unit.primary)} />
+      {unit.spouse && (
+        <>
+          <div className="flex items-center mx-[-4px] z-10">
+            <div className="w-6 h-0.5 bg-pink-400" />
+            <span className="text-pink-500 text-xs">&#10084;</span>
+            <div className="w-6 h-0.5 bg-pink-400" />
           </div>
-        </div>
+          <MemberCard member={unit.spouse} onClick={() => onSelect(unit.spouse!)} isHighlighted />
+        </>
       )}
     </div>
   );
 }
+
+type TreeNode = { type: 'unit'; unit: FamilyUnit } | { type: 'single'; member: TreeMember };
+
+function getNodeMemberIds(node: TreeNode): number[] {
+  if (node.type === 'unit') {
+    const ids = [node.unit.primary.id];
+    if (node.unit.spouse) ids.push(node.unit.spouse.id);
+    return ids;
+  }
+  return [node.member.id];
+}
+
+function getChildrenOfNode(node: TreeNode, nextGenNodes: TreeNode[]): TreeNode[] {
+  const parentIds = new Set(getNodeMemberIds(node));
+  return nextGenNodes.filter(child => {
+    const m = child.type === 'unit' ? child.unit.primary : child.member;
+    return (m.parent_id && parentIds.has(m.parent_id)) || (m.parent2_id && parentIds.has(m.parent2_id));
+  });
+}
+
+
 
 export default function Tree() {
   const { toast } = useToast();
@@ -586,20 +587,52 @@ export default function Tree() {
         )}
 
         {members.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-0">
             {(() => {
               const allGenMemberIds = new Set<number>();
               sortedGenerations.forEach(([, gm]) => gm.forEach(m => allGenMemberIds.add(m.id)));
 
-              return sortedGenerations.map(([genIndex, genMembers], sortIdx) => {
+              const genNodesMap = new Map<number, TreeNode[]>();
+              sortedGenerations.forEach(([genIndex, genMembers]) => {
                 const { units, singles } = buildFamilyUnits(genMembers, members, allGenMemberIds);
+                genNodesMap.set(genIndex, [
+                  ...units.map(u => ({ type: 'unit' as const, unit: u })),
+                  ...singles.map(m => ({ type: 'single' as const, member: m })),
+                ]);
+              });
 
-                const visibleSingles = singles;
+              return sortedGenerations.map(([genIndex], sortIdx) => {
+                const nodes = genNodesMap.get(genIndex) || [];
+                if (nodes.length === 0) return null;
 
-                if (units.length === 0 && visibleSingles.length === 0) return null;
+                const prevGenIndex = sortIdx > 0 ? sortedGenerations[sortIdx - 1][0] : null;
+                const prevGenNodes = prevGenIndex !== null ? (genNodesMap.get(prevGenIndex) || []) : [];
+
+                const groupedByParent: { parentNode: TreeNode | null; children: TreeNode[] }[] = [];
+                const claimed = new Set<number>();
+
+                for (const parentNode of prevGenNodes) {
+                  const kids = getChildrenOfNode(parentNode, nodes);
+                  if (kids.length > 0) {
+                    groupedByParent.push({ parentNode, children: kids });
+                    kids.forEach(k => {
+                      const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
+                      claimed.add(id);
+                      if (k.type === 'unit' && k.unit.spouse) claimed.add(k.unit.spouse.id);
+                    });
+                  }
+                }
+
+                const orphans = nodes.filter(n => {
+                  const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
+                  return !claimed.has(id);
+                });
+                if (orphans.length > 0) {
+                  groupedByParent.push({ parentNode: null, children: orphans });
+                }
 
                 return (
-                  <div key={genIndex}>
+                  <div key={genIndex} className="mb-2">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="h-px flex-1 bg-amber-200" />
                       <span className="text-xs font-medium text-amber-600 uppercase tracking-wider px-2">
@@ -608,20 +641,36 @@ export default function Tree() {
                       <div className="h-px flex-1 bg-amber-200" />
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-4">
-                      {units.map((unit, idx) => (
-                        <FamilyUnitBlock key={idx} unit={unit} onSelect={setSelectedMember} />
-                      ))}
-                      {visibleSingles.map(member => (
-                        <MemberCard key={member.id} member={member} onClick={() => setSelectedMember(member)} />
+                    <div className="flex flex-wrap justify-center gap-6">
+                      {groupedByParent.map((group, gIdx) => (
+                        <div key={gIdx} className="flex flex-col items-center">
+                          {group.parentNode && group.children.length > 0 && (
+                            <div className="flex flex-col items-center mb-0">
+                              <div className="w-0.5 h-4 bg-amber-300" />
+                              {group.children.length > 1 && (
+                                <div className="flex justify-center">
+                                  <div className="h-0.5 bg-amber-300" style={{ width: `${Math.max(group.children.length * 144, 160)}px` }} />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap justify-center gap-3">
+                            {group.children.map((child, cIdx) => (
+                              <div key={cIdx} className="flex flex-col items-center">
+                                {group.parentNode && group.children.length > 1 && (
+                                  <div className="w-0.5 h-3 bg-amber-300" />
+                                )}
+                                {child.type === 'unit' ? (
+                                  <CoupleBlock unit={child.unit} onSelect={setSelectedMember} />
+                                ) : (
+                                  <MemberCard member={child.member} onClick={() => setSelectedMember(child.member)} />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
-
-                    {sortIdx < sortedGenerations.length - 1 && (
-                      <div className="flex justify-center mt-3">
-                        <div className="w-0.5 h-6 bg-amber-300" />
-                      </div>
-                    )}
                   </div>
                 );
               });
