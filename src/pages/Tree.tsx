@@ -14,6 +14,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 
 const RELATION_OPTIONS = [
+  'Я',
   'Прадед', 'Прабабушка',
   'Дедушка', 'Бабушка',
   'Отец', 'Мать',
@@ -32,9 +33,9 @@ const GENERATION_MAP: Record<string, number> = {
   'Прадед': 0, 'Прабабушка': 0,
   'Дедушка': 1, 'Бабушка': 1,
   'Отец': 2, 'Мать': 2, 'Дядя': 2, 'Тётя': 2,
-  'Брат': 3, 'Сестра': 3, 'Супруг': 3, 'Супруга': 3,
-  'Сын': 3, 'Дочь': 3, 'Племянник': 3, 'Племянница': 3,
-  'Внук': 4, 'Внучка': 4,
+  'Я': 3, 'Брат': 3, 'Сестра': 3, 'Супруг': 3, 'Супруга': 3,
+  'Сын': 4, 'Дочь': 4, 'Племянник': 4, 'Племянница': 4,
+  'Внук': 5, 'Внучка': 5,
 };
 
 function getGeneration(member: TreeMember, allMembers: TreeMember[]): number {
@@ -45,7 +46,164 @@ function getGeneration(member: TreeMember, allMembers: TreeMember[]): number {
     const parent = allMembers.find(m => m.id === (member.parent_id || member.parent2_id));
     if (parent) return getGeneration(parent, allMembers) + 1;
   }
-  return 2;
+  return 3;
+}
+
+interface FamilyUnit {
+  primary: TreeMember;
+  spouse: TreeMember | null;
+  children: TreeMember[];
+}
+
+function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[]): { units: FamilyUnit[], singles: TreeMember[] } {
+  const used = new Set<number>();
+  const units: FamilyUnit[] = [];
+  const singles: TreeMember[] = [];
+
+  const sorted = [...genMembers].sort((a, b) => {
+    if (a.relation === 'Я') return -1;
+    if (b.relation === 'Я') return 1;
+    return (a.birth_year || 9999) - (b.birth_year || 9999);
+  });
+
+  for (const member of sorted) {
+    if (used.has(member.id)) continue;
+    used.add(member.id);
+
+    let spouse: TreeMember | null = null;
+    if (member.spouse_id) {
+      spouse = genMembers.find(m => m.id === member.spouse_id) || null;
+      if (spouse) used.add(spouse.id);
+    }
+    if (!spouse) {
+      const reverseSpouse = genMembers.find(m => m.spouse_id === member.id && !used.has(m.id));
+      if (reverseSpouse) {
+        spouse = reverseSpouse;
+        used.add(reverseSpouse.id);
+      }
+    }
+
+    const parentIds = new Set<number>();
+    parentIds.add(member.id);
+    if (spouse) parentIds.add(spouse.id);
+
+    const children = allMembers.filter(m =>
+      (m.parent_id && parentIds.has(m.parent_id)) ||
+      (m.parent2_id && parentIds.has(m.parent2_id))
+    );
+
+    if (spouse || children.length > 0) {
+      units.push({ primary: member, spouse, children });
+    } else {
+      singles.push(member);
+    }
+  }
+
+  return { units, singles };
+}
+
+function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; onClick: () => void; isHighlighted?: boolean }) {
+  const isImageUrl = (avatar: string) => avatar?.startsWith('http') || avatar?.startsWith('/');
+  const calculateAge = (birthYear?: number | null, deathYear?: number | null) => {
+    if (!birthYear) return null;
+    return (deathYear || new Date().getFullYear()) - birthYear;
+  };
+  const getAgeText = (age: number) => {
+    if (age % 10 === 1 && age !== 11) return `${age} год`;
+    if (age % 10 >= 2 && age % 10 <= 4 && (age < 10 || age > 20)) return `${age} года`;
+    return `${age} лет`;
+  };
+  const age = calculateAge(member.birth_year, member.death_year);
+  const isMe = member.relation === 'Я';
+
+  return (
+    <Card
+      className={`w-[130px] cursor-pointer hover:shadow-lg transition-all hover:scale-105 relative overflow-hidden ${
+        isMe
+          ? 'border-amber-500 bg-gradient-to-br from-amber-100 to-yellow-100 ring-2 ring-amber-400/50'
+          : isHighlighted
+            ? 'border-pink-300 bg-gradient-to-br from-pink-50 to-rose-50'
+            : 'border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50'
+      }`}
+      onClick={onClick}
+    >
+      {member.death_year && (
+        <div className="absolute top-1 right-1 z-10">
+          <Badge className="bg-gray-600 text-white text-[10px] px-1 py-0">&#10013;</Badge>
+        </div>
+      )}
+      {isMe && (
+        <div className="absolute top-1 left-1 z-10">
+          <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">Я</Badge>
+        </div>
+      )}
+      <CardContent className="p-3 text-center">
+        {member.photo_url && isImageUrl(member.photo_url) ? (
+          <img
+            src={member.photo_url}
+            alt={member.name}
+            className={`w-14 h-14 rounded-full object-cover border-2 mx-auto mb-2 ${isMe ? 'border-amber-500' : 'border-amber-300'}`}
+          />
+        ) : (
+          <div className="text-3xl mb-2">{member.avatar || '👤'}</div>
+        )}
+        <p className="font-semibold text-sm text-amber-900 leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
+          {member.name.split(' ')[0]}
+        </p>
+        {member.relation && member.relation !== 'Я' && (
+          <p className="text-[10px] text-amber-600 mt-0.5">{member.relation}</p>
+        )}
+        {member.birth_year && (
+          <p className="text-[10px] text-amber-500 mt-0.5">
+            {member.death_year ? `${member.birth_year} — ${member.death_year}` : `${member.birth_year} г.р.`}
+          </p>
+        )}
+        {age !== null && (
+          <Badge variant="outline" className="mt-1 text-[10px] border-amber-300 text-amber-700 px-1.5 py-0">
+            {getAgeText(age)}
+          </Badge>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function FamilyUnitBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: TreeMember) => void }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-0">
+        <MemberCard member={unit.primary} onClick={() => onSelect(unit.primary)} />
+        {unit.spouse && (
+          <>
+            <div className="flex items-center mx-[-4px] z-10">
+              <div className="w-6 h-0.5 bg-pink-400" />
+              <span className="text-pink-500 text-xs">&#10084;</span>
+              <div className="w-6 h-0.5 bg-pink-400" />
+            </div>
+            <MemberCard member={unit.spouse} onClick={() => onSelect(unit.spouse!)} isHighlighted />
+          </>
+        )}
+      </div>
+      {unit.children.length > 0 && (
+        <div className="flex flex-col items-center mt-1">
+          <div className="w-0.5 h-4 bg-amber-300" />
+          {unit.children.length > 1 && (
+            <div className="relative w-full flex justify-center">
+              <div className="h-0.5 bg-amber-300" style={{ width: `${Math.min(unit.children.length * 80, 300)}px` }} />
+            </div>
+          )}
+          <div className="flex flex-wrap justify-center gap-2 mt-0">
+            {unit.children.map(child => (
+              <div key={child.id} className="flex flex-col items-center">
+                {unit.children.length > 1 && <div className="w-0.5 h-3 bg-amber-300" />}
+                <MemberCard member={child} onClick={() => onSelect(child)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Tree() {
@@ -64,7 +222,6 @@ export default function Tree() {
     avatar: '👤'
   });
 
-  // Keep selectedMember in sync when members array updates (e.g. after photo add/delete)
   useEffect(() => {
     if (selectedMember) {
       const updated = members.find(m => m.id === selectedMember.id);
@@ -87,13 +244,13 @@ export default function Tree() {
     1: 'Дедушки и бабушки',
     2: 'Родители',
     3: 'Наше поколение',
-    4: 'Дети и внуки',
+    4: 'Дети',
+    5: 'Внуки',
   };
 
   const calculateAge = (birthYear?: number | null, deathYear?: number | null) => {
     if (!birthYear) return null;
-    const endYear = deathYear || new Date().getFullYear();
-    return endYear - birthYear;
+    return (deathYear || new Date().getFullYear()) - birthYear;
   };
 
   const getAgeText = (age: number) => {
@@ -191,7 +348,7 @@ export default function Tree() {
       const url = await uploadFile(file, 'family-tree');
       await addPhoto(memberId, url);
       toast({ title: 'Фото добавлено в галерею' });
-    } catch (err) {
+    } catch {
       toast({ title: 'Ошибка загрузки фото', variant: 'destructive' });
     } finally {
       setUploadingGalleryPhoto(false);
@@ -249,77 +406,39 @@ export default function Tree() {
         )}
 
         {members.length > 0 ? (
-          <div className="space-y-6">
-            {sortedGenerations.map(([genIndex, genMembers]) => (
-              <div key={genIndex}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-px flex-1 bg-amber-200" />
-                  <span className="text-xs font-medium text-amber-600 uppercase tracking-wider px-2">
-                    {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
-                  </span>
-                  <div className="h-px flex-1 bg-amber-200" />
-                </div>
+          <div className="space-y-2">
+            {sortedGenerations.map(([genIndex, genMembers], sortIdx) => {
+              const { units, singles } = buildFamilyUnits(genMembers, members);
+              const childrenShownInUnits = new Set<number>();
+              units.forEach(u => u.children.forEach(c => childrenShownInUnits.add(c.id)));
 
-                <div className="flex flex-wrap justify-center gap-3">
-                  {genMembers.map(member => {
-                    const age = calculateAge(member.birth_year, member.death_year);
-                    const spouse = member.spouse_id ? members.find(m => m.id === member.spouse_id) : null;
-
-                    return (
-                      <Card
-                        key={member.id}
-                        className="w-[140px] cursor-pointer hover:shadow-lg transition-all hover:scale-105 border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 relative overflow-hidden"
-                        onClick={() => setSelectedMember(member)}
-                      >
-                        {member.death_year && (
-                          <div className="absolute top-1 right-1 z-10">
-                            <Badge className="bg-gray-600 text-white text-[10px] px-1 py-0">&#10013;</Badge>
-                          </div>
-                        )}
-                        <CardContent className="p-3 text-center">
-                          {member.photo_url && isImageUrl(member.photo_url) ? (
-                            <img
-                              src={member.photo_url}
-                              alt={member.name}
-                              className="w-14 h-14 rounded-full object-cover border-2 border-amber-300 mx-auto mb-2"
-                            />
-                          ) : (
-                            <div className="text-3xl mb-2">{member.avatar || '👤'}</div>
-                          )}
-                          <p className="font-semibold text-sm text-amber-900 leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
-                            {member.name.split(' ')[0]}
-                          </p>
-                          {member.relation && (
-                            <p className="text-[10px] text-amber-600 mt-0.5">{member.relation}</p>
-                          )}
-                          {member.birth_year && (
-                            <p className="text-[10px] text-amber-500 mt-0.5">
-                              {member.death_year ? `${member.birth_year} — ${member.death_year}` : `${member.birth_year} г.р.`}
-                            </p>
-                          )}
-                          {age !== null && (
-                            <Badge variant="outline" className="mt-1 text-[10px] border-amber-300 text-amber-700 px-1.5 py-0">
-                              {getAgeText(age)}
-                            </Badge>
-                          )}
-                          {spouse && (
-                            <p className="text-[10px] text-pink-500 mt-1 truncate">
-                              &#10084; {spouse.name.split(' ')[0]}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-
-                {genIndex < sortedGenerations[sortedGenerations.length - 1][0] && (
-                  <div className="flex justify-center mt-3">
-                    <div className="w-0.5 h-6 bg-amber-300" />
+              return (
+                <div key={genIndex}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-px flex-1 bg-amber-200" />
+                    <span className="text-xs font-medium text-amber-600 uppercase tracking-wider px-2">
+                      {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
+                    </span>
+                    <div className="h-px flex-1 bg-amber-200" />
                   </div>
-                )}
-              </div>
-            ))}
+
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {units.map((unit, idx) => (
+                      <FamilyUnitBlock key={idx} unit={unit} onSelect={setSelectedMember} />
+                    ))}
+                    {singles.filter(s => !childrenShownInUnits.has(s.id)).map(member => (
+                      <MemberCard key={member.id} member={member} onClick={() => setSelectedMember(member)} />
+                    ))}
+                  </div>
+
+                  {sortIdx < sortedGenerations.length - 1 && (
+                    <div className="flex justify-center mt-3">
+                      <div className="w-0.5 h-6 bg-amber-300" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <Card className="border-dashed border-amber-300 bg-amber-50/50">
@@ -425,11 +544,8 @@ export default function Tree() {
                             className="absolute top-1 right-1 w-5 h-5 bg-red-500/80 text-white rounded-full items-center justify-center text-xs hidden group-hover:flex"
                             onClick={(e) => { e.stopPropagation(); handleDeletePhoto(selectedMember.id, photo.id); }}
                           >
-                            ×
+                            &times;
                           </button>
-                          {photo.caption && (
-                            <p className="text-[10px] text-amber-600 mt-0.5 truncate">{photo.caption}</p>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -437,7 +553,7 @@ export default function Tree() {
                 )}
 
                 {(() => {
-                  const children = members.filter(m => m.parent_id === selectedMember.id);
+                  const children = members.filter(m => m.parent_id === selectedMember.id || m.parent2_id === selectedMember.id);
                   if (children.length === 0) return null;
                   return (
                     <div className="flex items-start gap-2 text-sm">
@@ -596,7 +712,7 @@ export default function Tree() {
                         className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
                         onClick={() => { setPhotoPreview(null); setFormData(prev => ({ ...prev, photo_url: undefined })); }}
                       >
-                        ×
+                        &times;
                       </button>
                     </div>
                   ) : (
