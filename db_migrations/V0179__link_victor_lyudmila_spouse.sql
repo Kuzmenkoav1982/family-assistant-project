@@ -1,0 +1,1 @@
+UPDATE t_p5815085_family_assistant_pro.family_tree SET spouse_id = 3 WHERE id = 2;
