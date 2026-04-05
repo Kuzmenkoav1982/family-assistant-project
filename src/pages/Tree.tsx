@@ -56,7 +56,7 @@ interface FamilyUnit {
   children: TreeMember[];
 }
 
-function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[]): { units: FamilyUnit[], singles: TreeMember[] } {
+function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[], genMemberIds: Set<number>): { units: FamilyUnit[], singles: TreeMember[] } {
   const used = new Set<number>();
   const units: FamilyUnit[] = [];
   const singles: TreeMember[] = [];
@@ -89,8 +89,9 @@ function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[]): {
     if (spouse) parentIds.add(spouse.id);
 
     const children = allMembers.filter(m =>
-      (m.parent_id && parentIds.has(m.parent_id)) ||
-      (m.parent2_id && parentIds.has(m.parent2_id))
+      !genMemberIds.has(m.id) &&
+      ((m.parent_id && parentIds.has(m.parent_id)) ||
+      (m.parent2_id && parentIds.has(m.parent2_id)))
     );
 
     if (spouse || children.length > 0) {
@@ -586,38 +587,45 @@ export default function Tree() {
 
         {members.length > 0 ? (
           <div className="space-y-2">
-            {sortedGenerations.map(([genIndex, genMembers], sortIdx) => {
-              const { units, singles } = buildFamilyUnits(genMembers, members);
-              const childrenShownInUnits = new Set<number>();
-              units.forEach(u => u.children.forEach(c => childrenShownInUnits.add(c.id)));
+            {(() => {
+              const allGenMemberIds = new Set<number>();
+              sortedGenerations.forEach(([, gm]) => gm.forEach(m => allGenMemberIds.add(m.id)));
 
-              return (
-                <div key={genIndex}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="h-px flex-1 bg-amber-200" />
-                    <span className="text-xs font-medium text-amber-600 uppercase tracking-wider px-2">
-                      {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
-                    </span>
-                    <div className="h-px flex-1 bg-amber-200" />
-                  </div>
+              return sortedGenerations.map(([genIndex, genMembers], sortIdx) => {
+                const { units, singles } = buildFamilyUnits(genMembers, members, allGenMemberIds);
 
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {units.map((unit, idx) => (
-                      <FamilyUnitBlock key={idx} unit={unit} onSelect={setSelectedMember} />
-                    ))}
-                    {singles.filter(s => !childrenShownInUnits.has(s.id)).map(member => (
-                      <MemberCard key={member.id} member={member} onClick={() => setSelectedMember(member)} />
-                    ))}
-                  </div>
+                const visibleSingles = singles;
 
-                  {sortIdx < sortedGenerations.length - 1 && (
-                    <div className="flex justify-center mt-3">
-                      <div className="w-0.5 h-6 bg-amber-300" />
+                if (units.length === 0 && visibleSingles.length === 0) return null;
+
+                return (
+                  <div key={genIndex}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="h-px flex-1 bg-amber-200" />
+                      <span className="text-xs font-medium text-amber-600 uppercase tracking-wider px-2">
+                        {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
+                      </span>
+                      <div className="h-px flex-1 bg-amber-200" />
                     </div>
-                  )}
-                </div>
-              );
-            })}
+
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {units.map((unit, idx) => (
+                        <FamilyUnitBlock key={idx} unit={unit} onSelect={setSelectedMember} />
+                      ))}
+                      {visibleSingles.map(member => (
+                        <MemberCard key={member.id} member={member} onClick={() => setSelectedMember(member)} />
+                      ))}
+                    </div>
+
+                    {sortIdx < sortedGenerations.length - 1 && (
+                      <div className="flex justify-center mt-3">
+                        <div className="w-0.5 h-6 bg-amber-300" />
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         ) : (
           <Card className="border-dashed border-amber-300 bg-amber-50/50">
