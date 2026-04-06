@@ -716,6 +716,14 @@ export default function Tree() {
                   groupedByParent.push({ parentNode: null, children: trueOrphans });
                 }
 
+                const reorderedNodes: TreeNode[] = [];
+                for (const group of groupedByParent) {
+                  for (const child of group.children) {
+                    reorderedNodes.push(child);
+                  }
+                }
+                genNodesMap.set(genIndex, reorderedNodes);
+
                 return (
                   <div key={genIndex} className="mb-2">
                     <div className="flex items-center gap-2 mb-3">
