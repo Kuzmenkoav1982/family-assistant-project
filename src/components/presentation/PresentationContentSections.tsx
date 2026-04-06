@@ -165,8 +165,8 @@ export function PresentationContentSections() {
 
       {/* СЛАЙД: 12 разделов платформы */}
       <SectionCard className="bg-gradient-to-br from-purple-50 to-indigo-50">
-        <SectionTitle icon="LayoutGrid" iconColor="bg-purple-600" title="12 разделов — единая экосистема" />
-        <p className="text-sm text-gray-500 mb-6">10 реализованных + 2 в активной разработке</p>
+        <SectionTitle icon="LayoutGrid" iconColor="bg-purple-600" title="13 разделов — единая экосистема" />
+        <p className="text-sm text-gray-500 mb-6">13 реализованных разделов</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {/* 1. Семья */}
@@ -281,10 +281,9 @@ export function PresentationContentSections() {
               <li>• Семейные ценности — определение и поддержание принципов</li>
               <li>• Традиции — сохранение и создание новых</li>
               <li>• Культурное наследие, народы России</li>
-              <li>• Раздел «Вера» — духовная составляющая (в разработке)</li>
-              <li>• Семейное дерево (в разработке)</li>
-              <li>• Семейный фотоальбом (в разработке)</li>
-              <li>• Семейный блог (в разработке)</li>
+              <li>• Мудрость народа — пословицы, поговорки, мудрые изречения</li>
+              <li>• Раздел «Вера» — духовная составляющая</li>
+              <li>• Семейное дерево</li>
             </ul>
           </div>
 
@@ -338,38 +337,54 @@ export function PresentationContentSections() {
           </div>
         </div>
 
-        {/* В разработке */}
-        <div className="mt-4 p-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
-          <h3 className="font-bold text-amber-900 mb-3 flex items-center gap-2">
-            <Icon name="Wrench" size={18} className="text-amber-600" />
-            В активной разработке
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center">
-                  <Icon name="Wallet" size={14} className="text-green-600" />
-                </div>
-                <h4 className="font-bold text-gray-800 text-sm">11. Финансы</h4>
-              </div>
-              <p className="text-xs text-gray-600">
-                Семейный бюджет, учёт трат, финансовые цели, детская финансовая грамотность. 
-                Семейный кошелёк уже работает как платёжный инструмент внутри платформы.
-              </p>
+        {/* 11. Финансы */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-green-100">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+              <Icon name="Wallet" size={16} className="text-green-600" />
             </div>
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
-                  <Icon name="Car" size={14} className="text-slate-600" />
-                </div>
-                <h4 className="font-bold text-gray-800 text-sm">12. Гараж</h4>
-              </div>
-              <p className="text-xs text-gray-600">
-                Учёт автопарка семьи: профили авто, напоминания о ТО, расходы на топливо, 
-                ОСАГО/КАСКО, штрафы ГИБДД, история обслуживания.
-              </p>
-            </div>
+            <h3 className="font-bold text-gray-800">11. Финансы</h3>
           </div>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>• Семейный бюджет, учёт доходов и расходов</li>
+            <li>• Счета и карты, кредиты и долги</li>
+            <li>• Финансовые цели с трекингом прогресса</li>
+            <li>• Детская финансовая грамотность</li>
+            <li>• Имущество, скидочные карты, антимошенник</li>
+            <li>• Семейный кошелёк — платёжный инструмент внутри платформы</li>
+          </ul>
+        </div>
+
+        {/* 12. Гараж */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+              <Icon name="Car" size={16} className="text-slate-600" />
+            </div>
+            <h3 className="font-bold text-gray-800">12. Гараж</h3>
+          </div>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>• Учёт автопарка семьи: профили авто</li>
+            <li>• Напоминания о ТО, расходы на топливо</li>
+            <li>• ОСАГО/КАСКО, штрафы ГИБДД</li>
+            <li>• История обслуживания</li>
+          </ul>
+        </div>
+
+        {/* 13. Мудрость народа */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-100">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+              <Icon name="BookOpen" size={16} className="text-amber-600" />
+            </div>
+            <h3 className="font-bold text-gray-800">13. Мудрость народа</h3>
+          </div>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>• Сборник пословиц, поговорок и мудрых изречений</li>
+            <li>• Категоризация по темам, поиск и фильтрация</li>
+            <li>• Избранное и возможность делиться</li>
+            <li>• Сохранение культурного наследия для семьи</li>
+          </ul>
         </div>
       </SectionCard>
 
@@ -530,13 +545,13 @@ export function PresentationContentSections() {
       <SectionCard>
         <SectionTitle icon="BarChart3" iconColor="bg-indigo-500" title="Текущие показатели (MVP)" />
         <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-5">
-          <StatCard value="90+" label="Экранов" icon="Monitor" />
-          <StatCard value="86" label="API-функций" icon="Server" />
+          <StatCard value="146+" label="Экранов" icon="Monitor" />
+          <StatCard value="90" label="API-функций" icon="Server" />
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard value="151" label="Таблиц БД" icon="Database" />
           <StatCard value="30K+" label="Аналитических событий" icon="Activity" />
-          <StatCard value="12" label="Направлений" icon="LayoutGrid" />
+          <StatCard value="13" label="Направлений" icon="LayoutGrid" />
         </div>
         <div className="mt-5 bg-emerald-50 rounded-xl p-4 text-center">
           <p className="text-sm font-semibold text-emerald-800">
@@ -568,7 +583,7 @@ export function PresentationContentSections() {
               Backend
             </h3>
             <div className="space-y-1.5 text-xs text-gray-600">
-              <p>• Python 3.11 — 86 облачных функций (serverless)</p>
+              <p>• Python 3.11 — 90 облачных функций (serverless)</p>
               <p>• PostgreSQL — 151 таблица</p>
               <p>• Cloud Functions — автомасштабирование</p>
               <p>• S3 Cloud Storage</p>
@@ -728,55 +743,35 @@ export function PresentationContentSections() {
       {/* СЛАЙД: Бизнес-модель */}
       <SectionCard>
         <SectionTitle icon="TrendingUp" iconColor="bg-emerald-600" title="Бизнес-модель" />
-        <p className="text-sm text-gray-500 mb-5">Гибридная модель: подписка + семейный кошелёк</p>
+        <p className="text-sm text-gray-500 mb-5">Семейный кошелёк — pay-per-use модель</p>
         
         <div className="mb-6">
-          <h3 className="font-bold text-gray-800 text-sm mb-3">Подписочные тарифы</h3>
-          <div className="overflow-x-auto -mx-2">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b-2 border-emerald-200">
-                  <th className="text-left py-2 px-2 text-gray-600">Тариф</th>
-                  <th className="text-left py-2 px-2 text-gray-600">Цена</th>
-                  <th className="text-left py-2 px-2 text-gray-600">Описание</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-gray-50/50">
-                  <td className="py-1.5 px-2 font-medium">Free</td>
-                  <td className="py-1.5 px-2">0 ₽</td>
-                  <td className="py-1.5 px-2 text-gray-500">До 2 членов, 5 AI-запросов/день</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-2 font-medium">Premium 1 мес</td>
-                  <td className="py-1.5 px-2">299 ₽/мес</td>
-                  <td className="py-1.5 px-2 text-gray-500">Безлимит: AI, фото, члены семьи</td>
-                </tr>
-                <tr className="bg-gray-50/50">
-                  <td className="py-1.5 px-2 font-medium">Premium 3 мес</td>
-                  <td className="py-1.5 px-2">799 ₽ <span className="text-emerald-600">(267 ₽/мес)</span></td>
-                  <td className="py-1.5 px-2 text-gray-500">Экономия 11%</td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 px-2 font-medium">Premium 6 мес</td>
-                  <td className="py-1.5 px-2">1 499 ₽ <span className="text-emerald-600">(250 ₽/мес)</span></td>
-                  <td className="py-1.5 px-2 text-gray-500">Экономия 17%</td>
-                </tr>
-                <tr className="bg-gray-50/50">
-                  <td className="py-1.5 px-2 font-medium">Premium 12 мес</td>
-                  <td className="py-1.5 px-2">2 699 ₽ <span className="text-emerald-600">(225 ₽/мес)</span></td>
-                  <td className="py-1.5 px-2 text-gray-500">Экономия 25%</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 mb-5">
+            <h3 className="font-bold text-emerald-900 text-sm mb-2 flex items-center gap-2">
+              <Icon name="Wallet" size={16} className="text-emerald-600" />
+              Семейный кошелёк
+            </h3>
+            <p className="text-xs text-gray-600 mb-3">
+              Единый баланс семьи для всех платных сервисов платформы. Пополнение через карту или СБП (от 50 ₽).
+              Прозрачная модель: платишь только за то, чем пользуешься.
+            </p>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-white rounded-xl p-3">
+                <p className="text-lg font-bold text-emerald-700">от 50 ₽</p>
+                <p className="text-xs text-gray-500">мин. пополнение</p>
+              </div>
+              <div className="bg-white rounded-xl p-3">
+                <p className="text-lg font-bold text-emerald-700">СБП + карта</p>
+                <p className="text-xs text-gray-500">способы оплаты</p>
+              </div>
+              <div className="bg-white rounded-xl p-3">
+                <p className="text-lg font-bold text-emerald-700">Pay-per-use</p>
+                <p className="text-xs text-gray-500">платишь за использование</p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="mb-6">
-          <h3 className="font-bold text-gray-800 text-sm mb-3">Семейный кошелёк (pay-per-use для AI)</h3>
-          <p className="text-xs text-gray-500 mb-3">
-            Единый баланс семьи для AI-сервисов. Пополнение через карту или СБП (от 50 ₽).
-          </p>
+          <h3 className="font-bold text-gray-800 text-sm mb-3">Тарификация AI-сервисов</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {[
               { service: 'ИИ-диета', price: '17 ₽', icon: 'Brain' },
@@ -796,33 +791,33 @@ export function PresentationContentSections() {
         </div>
 
         <div>
-          <h3 className="font-bold text-gray-800 text-sm mb-3">Юнит-экономика</h3>
+          <h3 className="font-bold text-gray-800 text-sm mb-3">Юнит-экономика (кошелёк + партнёры)</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-purple-700">13 200 ₽</p>
-              <p className="text-xs text-gray-500">LTV (3 года)</p>
+              <p className="text-lg font-bold text-purple-700">~200 ₽/мес</p>
+              <p className="text-xs text-gray-500">ARPU (ср. чек семьи)</p>
             </div>
             <div className="bg-blue-50 rounded-xl p-3 text-center">
               <p className="text-lg font-bold text-blue-700">500–800 ₽</p>
               <p className="text-xs text-gray-500">CAC</p>
             </div>
             <div className="bg-emerald-50 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-emerald-700">16–26x</p>
-              <p className="text-xs text-gray-500">LTV / CAC</p>
+              <p className="text-lg font-bold text-emerald-700">7 200 ₽</p>
+              <p className="text-xs text-gray-500">LTV (3 года)</p>
             </div>
           </div>
           <div className="mt-3 space-y-1.5 text-xs text-gray-600">
             <div className="flex justify-between bg-gray-50 rounded-lg p-2">
-              <span>10 000 пользователей</span>
-              <span className="font-bold">44 млн ₽/год</span>
+              <span>10 000 семей</span>
+              <span className="font-bold">24 млн ₽/год</span>
             </div>
             <div className="flex justify-between bg-gray-50 rounded-lg p-2">
-              <span>100 000 пользователей</span>
-              <span className="font-bold">440 млн ₽/год</span>
+              <span>100 000 семей</span>
+              <span className="font-bold">240 млн ₽/год</span>
             </div>
             <div className="flex justify-between bg-purple-50 rounded-lg p-2">
-              <span>1 000 000 пользователей</span>
-              <span className="font-bold text-purple-700">4,4 млрд ₽/год</span>
+              <span>1 000 000 семей</span>
+              <span className="font-bold text-purple-700">2,4 млрд ₽/год</span>
             </div>
           </div>
         </div>
@@ -857,7 +852,7 @@ export function PresentationContentSections() {
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="bg-white rounded-xl p-3">
               <p className="text-base font-bold text-amber-700">+20–40%</p>
-              <p className="text-xs text-gray-500">к выручке от подписок</p>
+              <p className="text-xs text-gray-500">к выручке от кошелька</p>
             </div>
             <div className="bg-white rounded-xl p-3">
               <p className="text-base font-bold text-amber-700">0 ₽</p>

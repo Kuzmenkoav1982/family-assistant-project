@@ -52,7 +52,7 @@ const slides = [
       { icon: '🎁', title: 'Бонусные программы семьи', desc: 'Баллы Ozon, WB, банков — в едином кошельке лояльности семьи' },
       { icon: '🔗', title: 'Интеграция с маркетплейсами', desc: 'Список покупок → Ozon/WB, чеки → семейный бюджет, ID → кросс-продажи' },
     ],
-    b2b: 'Банки и маркетплейсы платят за доступ к Семейному ID — это B2B2C монетизация поверх подписки'
+    b2b: 'Банки и маркетплейсы платят за доступ к Семейному ID — это B2B2C монетизация поверх семейного кошелька'
   },
   {
     id: 5,
@@ -61,10 +61,10 @@ const slides = [
     stats: [
       { label: 'Активных семей', value: '51', icon: 'Users' },
       { label: 'Пользователей', value: '40+', icon: 'UserCheck' },
-      { label: 'Backend API', value: '86', icon: 'Server' },
+      { label: 'Backend API', value: '90', icon: 'Server' },
       { label: 'Таблиц БД', value: '151', icon: 'Database' },
-      { label: 'Компонентов', value: '385+', icon: 'Package' },
-      { label: 'Экранов', value: '90+', icon: 'Zap' }
+      { label: 'Направлений', value: '13', icon: 'LayoutGrid' },
+      { label: 'Экранов', value: '146+', icon: 'Zap' }
     ],
     note: "Production-ready MVP · ИС защищена n'RIS №518-830-027"
   },
@@ -74,8 +74,8 @@ const slides = [
     title: '🛠️ Технологии',
     subtitle: 'Современный технологический стек',
     tech: [
-      { name: 'React + TypeScript', desc: '385+ компонентов, 90+ экранов' },
-      { name: 'Python Backend', desc: '86 облачных функций' },
+      { name: 'React + TypeScript', desc: '385+ компонентов, 146+ экранов' },
+      { name: 'Python Backend', desc: '90 облачных функций' },
       { name: 'PostgreSQL', desc: '151 таблица данных' },
       { name: 'PWA', desc: 'Работает как мобильное приложение' },
       { name: 'Яндекс.Алиса', desc: 'Голосовое управление семьёй' },
@@ -102,15 +102,18 @@ const slides = [
     id: 8,
     type: 'business',
     title: '💰 Бизнес-модель',
-    plans: [
-      { name: 'Базовый', price: '₽199/мес', users: 'до 5 членов' },
-      { name: 'Семейный', price: '₽330/мес', users: 'до 10 членов', popular: true },
-      { name: 'Премиум', price: '₽3,960/год', users: 'неограниченно' }
+    subtitle: 'Семейный кошелёк — pay-per-use',
+    walletInfo: 'Единый баланс семьи для AI-сервисов. Пополнение через карту или СБП (от 50 ₽). Прозрачная модель: платишь только за то, чем пользуешься.',
+    services: [
+      { name: 'ИИ-диета', price: '17 ₽' },
+      { name: 'AI-фото блюда', price: '7 ₽' },
+      { name: 'Рецепт из продуктов', price: '5 ₽' },
+      { name: 'ИИ-открытка', price: '7 ₽' },
     ],
     revenue: [
-      { metric: 'LTV (3 года)', value: '₽11,880' },
-      { metric: 'CAC (цель)', value: '₽300–500' },
-      { metric: 'При 10K семей', value: '₽39,6M/год' },
+      { metric: 'ARPU (ср. семья)', value: '~200 ₽/мес' },
+      { metric: 'CAC (цель)', value: '₽500–800' },
+      { metric: 'LTV (3 года)', value: '₽7,200' },
       { metric: 'B2B: Семейный ID API', value: 'банки и маркетплейсы' }
     ]
   },
@@ -132,7 +135,7 @@ const slides = [
       title: 'Потенциал при масштабировании',
       value: '₽1,2B – ₽2B',
       items: [
-        '100K семей → ₽396M годовой выручки',
+        '100K семей → ₽240M годовой выручки (кошелёк + партнёры)',
         'B2B: Семейный ID API для банков и маркетплейсов',
         'Интеграция с маркетплейсами — Ozon, WB, Яндекс',
         'Стратегическая продажа банку: 150–250M ₽'
@@ -146,7 +149,7 @@ const slides = [
     phases: [
       {
         period: 'Q2 2026',
-        goals: ['Запуск платных подписок', '500 платящих семей', 'Партнёрство с банком (ПСБ / Сбер)']
+        goals: ['Масштабирование семейного кошелька', '500 платящих семей', 'Партнёрство с банком (ПСБ / Сбер)']
       },
       {
         period: 'Q3 2026',
@@ -175,7 +178,7 @@ const slides = [
       { item: 'Инфраструктура и масштабирование', amount: '₽1,000,000' }
     ],
     milestones: [
-      '6 месяцев → 2 500 платящих семей, Семейный ID API',
+      '6 месяцев → 2 500 активных семей, Семейный ID API',
       '12 месяцев → 6 000 семей, точка безубыточности',
       '18 месяцев → 10 000+ семей, готовность к Series A'
     ]
@@ -382,16 +385,22 @@ export default function InvestorDeck() {
 
             {slide.type === 'business' && (
               <div>
-                <h2 className="text-4xl font-bold mb-8 text-gray-900">{slide.title}</h2>
-                <div className="grid grid-cols-3 gap-6 mb-8">
-                  {slide.plans?.map((plan, idx) => (
-                    <div key={idx} className={`p-6 rounded-xl border-2 ${plan.popular ? 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-500' : 'bg-gray-50 border-gray-300'}`}>
-                      {plan.popular && <Badge className="mb-3 bg-purple-500">Популярный</Badge>}
-                      <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                      <div className="text-3xl font-bold text-purple-600 mb-3">{plan.price}</div>
-                      <p className="text-gray-600">{plan.users}</p>
-                    </div>
-                  ))}
+                <h2 className="text-4xl font-bold mb-2 text-gray-900">{slide.title}</h2>
+                <p className="text-xl text-gray-600 mb-8">{slide.subtitle}</p>
+                <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-300 mb-8">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Icon name="Wallet" size={28} className="text-emerald-600" />
+                    <h3 className="text-2xl font-bold text-emerald-900">Семейный кошелёк</h3>
+                  </div>
+                  <p className="text-gray-700 mb-4">{slide.walletInfo}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {slide.services?.map((s, idx) => (
+                      <div key={idx} className="bg-white rounded-lg p-3 text-center">
+                        <div className="font-bold text-emerald-700">{s.price}</div>
+                        <div className="text-sm text-gray-600">{s.name}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <h3 className="text-2xl font-bold mb-4">Unit Economics</h3>
                 <div className="grid grid-cols-2 gap-6">
