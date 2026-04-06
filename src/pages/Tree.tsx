@@ -724,7 +724,10 @@ export default function Tree() {
                 const claimed = new Set<number>();
 
                 for (const parentNode of prevGenNodes) {
-                  const kids = getChildrenOfNode(parentNode, nodes);
+                  const kids = getChildrenOfNode(parentNode, nodes).filter(k => {
+                    const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
+                    return !claimed.has(id);
+                  });
                   if (kids.length > 0) {
                     groupedByParent.push({ parentNode, children: kids });
                     kids.forEach(k => {
