@@ -27,6 +27,7 @@ export default function AdminSupport() {
   const [loading, setLoading] = useState(true);
 
   const feedbackUrl = func2url['feedback' as keyof typeof func2url];
+  const adminHeaders = { 'Content-Type': 'application/json', 'X-Admin-Token': 'admin_authenticated' };
 
   useEffect(() => {
     const adminToken = localStorage.getItem('adminToken');
@@ -40,9 +41,9 @@ export default function AdminSupport() {
   const loadAllData = async () => {
     try {
       const [supportRes, feedbackRes, suggestionRes] = await Promise.all([
-        fetch(`${feedbackUrl}?type=support`),
-        fetch(`${feedbackUrl}?type=review`),
-        fetch(`${feedbackUrl}?type=suggestion`)
+        fetch(`${feedbackUrl}?type=support&all_statuses=true`, { headers: adminHeaders }),
+        fetch(`${feedbackUrl}?type=review&all_statuses=true`, { headers: adminHeaders }),
+        fetch(`${feedbackUrl}?type=suggestion&all_statuses=true`, { headers: adminHeaders })
       ]);
 
       const supportData = await supportRes.json();
@@ -56,6 +57,31 @@ export default function AdminSupport() {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      await fetch(feedbackUrl, {
+        method: 'PUT',
+        headers: adminHeaders,
+        body: JSON.stringify({ id, status })
+      });
+      loadAllData();
+    } catch (error) {
+      console.error('Failed to update:', error);
+    }
+  };
+
+  const deleteFeedback = async (id: string) => {
+    try {
+      await fetch(`${feedbackUrl}?id=${id}`, {
+        method: 'DELETE',
+        headers: adminHeaders
+      });
+      loadAllData();
+    } catch (error) {
+      console.error('Failed to delete:', error);
     }
   };
 
@@ -80,14 +106,14 @@ export default function AdminSupport() {
   };
 
   const renderCard = (item: FeedbackItem) => (
-    <Card key={item.id} className="p-6 hover:shadow-lg transition-shadow">
+    <Card key={item.id} className={`p-6 hover:shadow-lg transition-shadow ${item.status === 'resolved' ? 'opacity-50' : ''}`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-lg font-semibold">{item.title}</h3>
             {getStatusBadge(item.status)}
           </div>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
             <span className="flex items-center gap-1">
               <Icon name="User" size={14} />
               {item.user_name}
@@ -127,7 +153,26 @@ export default function AdminSupport() {
         )}
       </div>
       
-      <p className="text-gray-700 whitespace-pre-wrap">{item.description}</p>
+      <p className="text-gray-700 whitespace-pre-wrap mb-4">{item.description}</p>
+
+      <div className="flex gap-2 pt-3 border-t">
+        {item.status !== 'new' && (
+          <Button size="sm" variant="outline" className="gap-1 text-green-600 hover:bg-green-50" onClick={() => updateStatus(item.id, 'new')}>
+            <Icon name="Eye" size={14} />
+            Показать
+          </Button>
+        )}
+        {item.status === 'new' && (
+          <Button size="sm" variant="outline" className="gap-1 text-yellow-600 hover:bg-yellow-50" onClick={() => updateStatus(item.id, 'resolved')}>
+            <Icon name="EyeOff" size={14} />
+            Скрыть
+          </Button>
+        )}
+        <Button size="sm" variant="outline" className="gap-1 text-red-600 hover:bg-red-50" onClick={() => deleteFeedback(item.id)}>
+          <Icon name="Trash2" size={14} />
+          Удалить
+        </Button>
+      </div>
     </Card>
   );
 
