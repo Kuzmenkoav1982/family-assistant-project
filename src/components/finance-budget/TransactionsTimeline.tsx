@@ -81,7 +81,7 @@ export default function TransactionsTimeline({
           </Button>
           {!showConfirmed && (
             <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs">
-              <Icon name="CheckCircle" size={14} className="text-emerald-500 flex-shrink-0" />
+              <Icon name="CheckSquare" size={14} className="text-emerald-500 flex-shrink-0" />
               <span className="text-emerald-700">
                 Учтено: {confirmedIncome > 0 && <span className="text-green-600 font-medium">+{formatMoney(confirmedIncome)} ₽</span>}
                 {confirmedIncome > 0 && confirmedExpense > 0 && ', '}
