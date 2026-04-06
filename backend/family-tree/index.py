@@ -163,6 +163,13 @@ def add_member(family_id: str, data: Dict) -> Dict:
     row = cur.fetchone()
     member = dict(row)
     member['photos'] = []
+
+    if member.get('spouse_id'):
+        cur.execute(f"""
+            UPDATE {SCHEMA}.family_tree SET spouse_id = {member['id']}, updated_at = CURRENT_TIMESTAMP
+            WHERE id = {int(member['spouse_id'])} AND family_id::text = {escape_string(family_id)} AND (spouse_id IS NULL OR spouse_id != {member['id']})
+        """)
+
     cur.close()
     conn.close()
     return member
@@ -197,6 +204,18 @@ def update_member(family_id: str, member_id: str, data: Dict) -> Optional[Dict]:
         return None
     member = dict(row)
     member['photos'] = get_member_photos(cur, member['id'])
+
+    if 'spouse_id' in data:
+        cur.execute(f"""
+            UPDATE {SCHEMA}.family_tree SET spouse_id = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE spouse_id = {int(member_id)} AND family_id::text = {escape_string(family_id)}
+        """)
+        if member.get('spouse_id'):
+            cur.execute(f"""
+                UPDATE {SCHEMA}.family_tree SET spouse_id = {int(member_id)}, updated_at = CURRENT_TIMESTAMP
+                WHERE id = {int(member['spouse_id'])} AND family_id::text = {escape_string(family_id)}
+            """)
+
     cur.close()
     conn.close()
     return member

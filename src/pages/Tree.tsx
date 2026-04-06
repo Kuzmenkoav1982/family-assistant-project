@@ -1041,57 +1041,81 @@ export default function Tree() {
                 />
               </div>
 
-              {members.length > 0 && (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
+              {members.length > 0 && (() => {
+                const hasContextLinks = !showEditForm && addFromMemberId && (formData.parent_id || formData.parent2_id || formData.spouse_id);
+                if (hasContextLinks) {
+                  const links: string[] = [];
+                  if (formData.spouse_id) {
+                    const s = members.find(m => m.id === formData.spouse_id);
+                    if (s) links.push(`Супруг(а): ${s.name}`);
+                  }
+                  if (formData.parent_id) {
+                    const p = members.find(m => m.id === formData.parent_id);
+                    if (p) links.push(`Родитель: ${p.name}`);
+                  }
+                  if (formData.parent2_id) {
+                    const p2 = members.find(m => m.id === formData.parent2_id);
+                    if (p2) links.push(`Родитель: ${p2.name}`);
+                  }
+                  return links.length > 0 ? (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">
+                      <Icon name="Check" size={14} className="text-green-600 shrink-0" />
+                      <span>Связи заполнены: {links.join(', ')}</span>
+                    </div>
+                  ) : null;
+                }
+                return (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Отец</Label>
+                        <Select
+                          value={formData.parent_id?.toString() || 'none'}
+                          onValueChange={v => setFormData(prev => ({ ...prev, parent_id: v === 'none' ? undefined : parseInt(v) }))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Не указан</SelectItem>
+                            {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
+                              <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Мать</Label>
+                        <Select
+                          value={formData.parent2_id?.toString() || 'none'}
+                          onValueChange={v => setFormData(prev => ({ ...prev, parent2_id: v === 'none' ? undefined : parseInt(v) }))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Не указана" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Не указана</SelectItem>
+                            {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
+                              <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     <div>
-                      <Label>Отец</Label>
+                      <Label>Супруг(а)</Label>
                       <Select
-                        value={formData.parent_id?.toString() || 'none'}
-                        onValueChange={v => setFormData(prev => ({ ...prev, parent_id: v === 'none' ? undefined : parseInt(v) }))}
+                        value={formData.spouse_id?.toString() || 'none'}
+                        onValueChange={v => setFormData(prev => ({ ...prev, spouse_id: v === 'none' ? undefined : parseInt(v) }))}
                       >
-                        <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Не указан(а)" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">Не указан</SelectItem>
+                          <SelectItem value="none">Не указан(а)</SelectItem>
                           {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
                             <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <Label>Мать</Label>
-                      <Select
-                        value={formData.parent2_id?.toString() || 'none'}
-                        onValueChange={v => setFormData(prev => ({ ...prev, parent2_id: v === 'none' ? undefined : parseInt(v) }))}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Не указана" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Не указана</SelectItem>
-                          {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
-                            <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Супруг(а)</Label>
-                    <Select
-                      value={formData.spouse_id?.toString() || 'none'}
-                      onValueChange={v => setFormData(prev => ({ ...prev, spouse_id: v === 'none' ? undefined : parseInt(v) }))}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Не указан(а)" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Не указан(а)</SelectItem>
-                        {members.filter(m => !showEditForm || m.id !== selectedMember?.id).map(m => (
-                          <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
+                  </>
+                );
+              })()}
 
               <div>
                 <Label>Фото</Label>
