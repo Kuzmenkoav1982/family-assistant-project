@@ -625,6 +625,28 @@ export default function Tree() {
                   }
                 }
 
+                for (const group of groupedByParent) {
+                  const SIBLING_RELATIONS = new Set(['Брат', 'Сестра']);
+                  const meIdx = group.children.findIndex(c => {
+                    const m = c.type === 'unit' ? c.unit.primary : c.member;
+                    return m.relation === 'Я';
+                  });
+                  if (meIdx >= 0) {
+                    const siblings: TreeNode[] = [];
+                    const others: TreeNode[] = [];
+                    group.children.forEach((c, i) => {
+                      if (i === meIdx) return;
+                      const m = c.type === 'unit' ? c.unit.primary : c.member;
+                      if (SIBLING_RELATIONS.has(m.relation || '')) {
+                        siblings.push(c);
+                      } else {
+                        others.push(c);
+                      }
+                    });
+                    group.children = [...siblings, group.children[meIdx], ...others];
+                  }
+                }
+
                 const orphans = nodes.filter(n => {
                   const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
                   return !claimed.has(id);
