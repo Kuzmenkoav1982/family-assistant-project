@@ -1,0 +1,1 @@
+UPDATE t_p5815085_family_assistant_pro.feedback SET status = 'resolved' WHERE id IN (1, 6);
