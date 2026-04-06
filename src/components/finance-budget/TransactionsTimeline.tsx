@@ -42,9 +42,12 @@ export default function TransactionsTimeline({
     })
   })).filter(group => group.items.length > 0);
 
-  const confirmedCount = timeline.groups.reduce((acc, g) =>
-    acc + g.items.filter(i => !i.isPlanned && i.originalTx?.is_confirmed).length, 0
+  const confirmedItems = timeline.groups.flatMap(g =>
+    g.items.filter(i => !i.isPlanned && i.originalTx?.is_confirmed)
   );
+  const confirmedCount = confirmedItems.length;
+  const confirmedIncome = confirmedItems.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
+  const confirmedExpense = confirmedItems.filter(i => i.type === 'expense').reduce((s, i) => s + i.amount, 0);
 
   return (
     <div className="space-y-1">
@@ -66,15 +69,28 @@ export default function TransactionsTimeline({
       </div>
 
       {confirmedCount > 0 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs h-7 text-muted-foreground"
-          onClick={() => setShowConfirmed(!showConfirmed)}
-        >
-          <Icon name={showConfirmed ? "EyeOff" : "Eye"} size={14} className="mr-1" />
-          {showConfirmed ? 'Скрыть подтверждённые' : `Показать подтверждённые (${confirmedCount})`}
-        </Button>
+        <div className="space-y-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs h-7 text-muted-foreground"
+            onClick={() => setShowConfirmed(!showConfirmed)}
+          >
+            <Icon name={showConfirmed ? "EyeOff" : "Eye"} size={14} className="mr-1" />
+            {showConfirmed ? 'Скрыть подтверждённые' : `Показать подтверждённые (${confirmedCount})`}
+          </Button>
+          {!showConfirmed && (
+            <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs">
+              <Icon name="CheckCircle" size={14} className="text-emerald-500 flex-shrink-0" />
+              <span className="text-emerald-700">
+                Учтено: {confirmedIncome > 0 && <span className="text-green-600 font-medium">+{formatMoney(confirmedIncome)} ₽</span>}
+                {confirmedIncome > 0 && confirmedExpense > 0 && ', '}
+                {confirmedExpense > 0 && <span className="text-red-600 font-medium">−{formatMoney(confirmedExpense)} ₽</span>}
+                {' '}→ баланс {formatMoney(accountBalance + confirmedIncome - confirmedExpense)} ₽
+              </span>
+            </div>
+          )}
+        </div>
       )}
 
       {filteredGroups.length === 0 && confirmedCount === 0 ? (
