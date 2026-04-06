@@ -61,7 +61,7 @@ export function useClanTree() {
     finally { setLoading(false); }
   }, []);
 
-  const createClan = async (name: string, description?: string): Promise<boolean> => {
+  const createClan = async (name: string, description?: string): Promise<{ success: boolean; error?: string }> => {
     const token = getAuthToken();
     try {
       const res = await fetch(`${API_URL}?action=create`, {
@@ -69,9 +69,10 @@ export function useClanTree() {
         headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
         body: JSON.stringify({ name, description })
       });
-      if (res.ok) { await fetchClan(); return true; }
-      return false;
-    } catch { return false; }
+      const data = await res.json();
+      if (res.ok) { await fetchClan(); return { success: true }; }
+      return { success: false, error: data.error };
+    } catch { return { success: false, error: 'Ошибка соединения' }; }
   };
 
   const inviteByEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {

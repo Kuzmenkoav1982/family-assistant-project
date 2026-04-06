@@ -215,6 +215,7 @@ export default function Tree() {
   const clanHook = useClanTree();
   const { upload: uploadFile, uploading: uploadingPhoto } = useFileUpload();
   const [selectedMember, setSelectedMember] = useState<TreeMember | null>(null);
+  const [addFromMemberId, setAddFromMemberId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showClanPanel, setShowClanPanel] = useState(false);
@@ -271,6 +272,7 @@ export default function Tree() {
   const resetForm = () => {
     setFormData({ name: '', relation: '', avatar: '👤' });
     setPhotoPreview(null);
+    setAddFromMemberId(null);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -469,14 +471,14 @@ export default function Tree() {
                       disabled={!clanName.trim() || saving}
                       onClick={async () => {
                         setSaving(true);
-                        const ok = await clanHook.createClan(clanName.trim());
+                        const result = await clanHook.createClan(clanName.trim());
                         setSaving(false);
-                        if (ok) {
+                        if (result.success) {
                           toast({ title: `Род «${clanName}» создан!` });
                           setClanName('');
                           fetchTree();
                         } else {
-                          toast({ title: 'Ошибка создания', variant: 'destructive' });
+                          toast({ title: result.error || 'Ошибка создания', variant: 'destructive' });
                         }
                       }}
                     >
@@ -641,35 +643,39 @@ export default function Tree() {
                       <div className="h-px flex-1 bg-amber-200" />
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-6">
-                      {groupedByParent.map((group, gIdx) => (
-                        <div key={gIdx} className="flex flex-col items-center">
-                          {group.parentNode && group.children.length > 0 && (
-                            <div className="flex flex-col items-center mb-0">
-                              <div className="w-0.5 h-4 bg-amber-300" />
-                              {group.children.length > 1 && (
-                                <div className="flex justify-center">
-                                  <div className="h-0.5 bg-amber-300" style={{ width: `${Math.max(group.children.length * 144, 160)}px` }} />
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap justify-center gap-3">
-                            {group.children.map((child, cIdx) => (
-                              <div key={cIdx} className="flex flex-col items-center">
-                                {group.parentNode && group.children.length > 1 && (
-                                  <div className="w-0.5 h-3 bg-amber-300" />
-                                )}
-                                {child.type === 'unit' ? (
-                                  <CoupleBlock unit={child.unit} onSelect={setSelectedMember} />
-                                ) : (
-                                  <MemberCard member={child.member} onClick={() => setSelectedMember(child.member)} />
+                    <div className="overflow-x-auto pb-2">
+                      <div className="flex flex-nowrap justify-start items-end gap-6 min-w-max px-2">
+                        {groupedByParent.map((group, gIdx) => (
+                          <div key={gIdx} className="flex flex-col items-center">
+                            {group.parentNode && group.children.length > 0 ? (
+                              <div className="flex flex-col items-center mb-0">
+                                <div className="w-0.5 h-4 bg-amber-300" />
+                                {group.children.length > 1 && (
+                                  <div className="flex justify-center">
+                                    <div className="h-0.5 bg-amber-300" style={{ width: `${Math.max(group.children.length * 144, 160)}px` }} />
+                                  </div>
                                 )}
                               </div>
-                            ))}
+                            ) : (
+                              <div className="h-[28px]" />
+                            )}
+                            <div className="flex flex-nowrap items-start gap-3">
+                              {group.children.map((child, cIdx) => (
+                                <div key={cIdx} className="flex flex-col items-center">
+                                  {group.parentNode && group.children.length > 1 && (
+                                    <div className="w-0.5 h-3 bg-amber-300" />
+                                  )}
+                                  {child.type === 'unit' ? (
+                                    <CoupleBlock unit={child.unit} onSelect={setSelectedMember} />
+                                  ) : (
+                                    <MemberCard member={child.member} onClick={() => setSelectedMember(child.member)} />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 );
@@ -805,7 +811,23 @@ export default function Tree() {
                 })()}
               </div>
 
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-4 flex-wrap">
+                <Button
+                  size="sm"
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 min-w-[140px]"
+                  onClick={() => {
+                    const fromMember = selectedMember;
+                    setSelectedMember(null);
+                    setAddFromMemberId(fromMember.id);
+                    resetForm();
+                    setShowAddForm(true);
+                  }}
+                >
+                  <Icon name="UserPlus" className="mr-1" size={14} />
+                  Добавить родственника
+                </Button>
+              </div>
+              <div className="flex gap-2 mt-2">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditForm(selectedMember)}>
                   <Icon name="Pencil" className="mr-1" size={14} />
                   Редактировать
@@ -825,11 +847,21 @@ export default function Tree() {
           </Dialog>
         )}
 
-        <Dialog open={showAddForm || showEditForm} onOpenChange={() => { setShowAddForm(false); setShowEditForm(false); }}>
+        <Dialog open={showAddForm || showEditForm} onOpenChange={() => { setShowAddForm(false); setShowEditForm(false); resetForm(); }}>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{showEditForm ? 'Редактировать' : 'Добавить в древо'}</DialogTitle>
             </DialogHeader>
+
+            {!showEditForm && addFromMemberId && (() => {
+              const fromMember = members.find(m => m.id === addFromMemberId);
+              return fromMember ? (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
+                  <Icon name="Link" size={14} className="text-amber-600 shrink-0" />
+                  <span>Добавляется как родственник: <strong>{fromMember.name}</strong></span>
+                </div>
+              ) : null;
+            })()}
 
             <div className="space-y-4">
               <div>
