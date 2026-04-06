@@ -191,7 +191,7 @@ export default function Presentation() {
         }
       `}</style>
 
-      <div id="presentation-content" className="max-w-4xl mx-auto px-6 py-12">
+      <div id="presentation-content" className="max-w-4xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16">
         <PresentationTitleSlide />
         <PresentationContentSections />
         <PresentationFooter />

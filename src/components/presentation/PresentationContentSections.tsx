@@ -2,7 +2,7 @@ import Icon from '@/components/ui/icon';
 
 function SectionCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <section data-pdf-slide className={`bg-white rounded-3xl shadow-xl p-8 md:p-10 mb-8 ${className}`}>
+    <section data-pdf-slide className={`bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 md:p-10 mb-6 sm:mb-8 ${className}`}>
       {children}
     </section>
   );
@@ -10,18 +10,19 @@ function SectionCard({ children, className = '' }: { children: React.ReactNode; 
 
 function SectionTitle({ icon, iconColor, title }: { icon: string; iconColor: string; title: string }) {
   return (
-    <div className="flex items-center gap-4 mb-6">
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${iconColor}`}>
-        <Icon name={icon} size={28} className="text-white" />
+    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 ${iconColor}`}>
+        <Icon name={icon} size={22} className="text-white sm:hidden" />
+        <Icon name={icon} size={28} className="text-white hidden sm:block" />
       </div>
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-800">{title}</h2>
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{title}</h2>
     </div>
   );
 }
 
 function StatCard({ value, label, icon }: { value: string; label: string; icon: string }) {
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-5 border border-slate-100 text-center">
+    <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-3 sm:p-5 border border-slate-100 text-center">
       <Icon name={icon} size={24} className="text-purple-500 mx-auto mb-2" />
       <p className="text-2xl font-bold text-slate-800">{value}</p>
       <p className="text-sm text-slate-500">{label}</p>
@@ -58,24 +59,24 @@ function ComparisonTable() {
   ];
 
   return (
-    <div className="overflow-x-auto -mx-2">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto -mx-2 sm:-mx-2">
+      <table className="w-full text-xs sm:text-sm">
         <thead>
           <tr className="border-b-2 border-purple-200">
-            <th className="text-left py-2 px-2 text-gray-600 font-medium">Критерий</th>
-            <th className="text-center py-2 px-1 text-purple-700 font-bold text-xs">Наша семья</th>
-            <th className="text-center py-2 px-1 text-gray-500 font-medium text-xs">Зарубежные</th>
-            <th className="text-center py-2 px-1 text-gray-500 font-medium text-xs">Todoist</th>
-            <th className="text-center py-2 px-1 text-gray-500 font-medium text-xs">Банки</th>
+            <th className="text-left py-2 px-1.5 sm:px-2 text-gray-600 font-medium text-[10px] sm:text-xs">Критерий</th>
+            <th className="text-center py-2 px-1 text-purple-700 font-bold text-[10px] sm:text-xs">Наша семья</th>
+            <th className="text-center py-2 px-1 text-gray-500 font-medium text-[10px] sm:text-xs hidden sm:table-cell">Зарубежные</th>
+            <th className="text-center py-2 px-1 text-gray-500 font-medium text-[10px] sm:text-xs hidden sm:table-cell">Todoist</th>
+            <th className="text-center py-2 px-1 text-gray-500 font-medium text-[10px] sm:text-xs">Банки</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
             <tr key={i} className={i % 2 === 0 ? 'bg-gray-50/50' : ''}>
-              <td className="py-1.5 px-2 text-gray-700 text-xs">{row.label}</td>
+              <td className="py-1.5 px-1.5 sm:px-2 text-gray-700 text-[10px] sm:text-xs">{row.label}</td>
               <td className="text-center py-1.5">{row.us ? '✅' : '❌'}</td>
-              <td className="text-center py-1.5">{row.foreign ? '✅' : '❌'}</td>
-              <td className="text-center py-1.5">{row.todo ? '✅' : '❌'}</td>
+              <td className="text-center py-1.5 hidden sm:table-cell">{row.foreign ? '✅' : '❌'}</td>
+              <td className="text-center py-1.5 hidden sm:table-cell">{row.todo ? '✅' : '❌'}</td>
               <td className="text-center py-1.5">{row.bank ? '✅' : '❌'}</td>
             </tr>
           ))}
@@ -170,7 +171,7 @@ export function PresentationContentSections() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {/* 1. Семья */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-purple-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                 <Icon name="Users" size={16} className="text-purple-600" />
@@ -186,7 +187,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 2. Планирование */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-blue-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-blue-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                 <Icon name="CalendarCheck" size={16} className="text-blue-600" />
@@ -203,7 +204,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 3. Питание */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-orange-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                 <Icon name="UtensilsCrossed" size={16} className="text-orange-600" />
@@ -220,7 +221,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 4. Здоровье */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-red-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
                 <Icon name="HeartPulse" size={16} className="text-red-600" />
@@ -237,7 +238,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 5. Быт */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-amber-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                 <Icon name="Home" size={16} className="text-amber-600" />
@@ -253,7 +254,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 6. Путешествия и досуг */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-cyan-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-cyan-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center">
                 <Icon name="Plane" size={16} className="text-cyan-600" />
@@ -270,7 +271,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 7. Ценности */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-rose-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-rose-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center">
                 <Icon name="Gem" size={16} className="text-rose-600" />
@@ -288,7 +289,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 8. Развитие */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-violet-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-violet-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
                 <Icon name="TrendingUp" size={16} className="text-violet-600" />
@@ -305,7 +306,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 9. Государство */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-emerald-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-emerald-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <Icon name="Landmark" size={16} className="text-emerald-600" />
@@ -321,7 +322,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* 10. AI */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-indigo-100">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-indigo-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                 <Icon name="Brain" size={16} className="text-indigo-600" />
@@ -338,7 +339,7 @@ export function PresentationContentSections() {
         </div>
 
         {/* 11. Финансы */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-green-100">
+        <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-green-100">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
               <Icon name="Wallet" size={16} className="text-green-600" />
@@ -356,7 +357,7 @@ export function PresentationContentSections() {
         </div>
 
         {/* 12. Гараж */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
               <Icon name="Car" size={16} className="text-slate-600" />
@@ -372,7 +373,7 @@ export function PresentationContentSections() {
         </div>
 
         {/* 13. Мудрость народа */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-100">
+        <div className="bg-white rounded-2xl p-3 sm:p-5 shadow-sm border border-amber-100">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
               <Icon name="BookOpen" size={16} className="text-amber-600" />
@@ -395,7 +396,7 @@ export function PresentationContentSections() {
 
         <div className="space-y-4">
           {/* Цепочка 1: Питание */}
-          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-5 border border-orange-100">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-3 sm:p-5 border border-orange-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
                 <Icon name="UtensilsCrossed" size={14} className="text-white" />
@@ -414,7 +415,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* Цепочка 2: Ребёнок */}
-          <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-5 border border-pink-100">
+          <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-3 sm:p-5 border border-pink-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-pink-500 flex items-center justify-center flex-shrink-0">
                 <Icon name="Baby" size={14} className="text-white" />
@@ -433,7 +434,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* Цепочка 3: Путешествие */}
-          <div className="bg-gradient-to-r from-cyan-50 to-teal-50 rounded-2xl p-5 border border-cyan-100">
+          <div className="bg-gradient-to-r from-cyan-50 to-teal-50 rounded-2xl p-3 sm:p-5 border border-cyan-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-cyan-600 flex items-center justify-center flex-shrink-0">
                 <Icon name="Plane" size={14} className="text-white" />
@@ -452,7 +453,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* Цепочка 4: Развитие + ИИ */}
-          <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-5 border border-violet-100">
+          <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-3 sm:p-5 border border-violet-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
                 <Icon name="Brain" size={14} className="text-white" />
@@ -471,7 +472,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* Цепочка 5: Авто */}
-          <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-5 border border-slate-200">
+          <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-3 sm:p-5 border border-slate-200">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0">
                 <Icon name="Car" size={14} className="text-white" />
@@ -516,18 +517,18 @@ export function PresentationContentSections() {
         </div>
         <div className="bg-white rounded-xl p-4">
           <h4 className="font-bold text-gray-800 text-sm mb-3">Рынок</h4>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
             <div>
-              <p className="text-xl font-bold text-purple-600">50 млн</p>
-              <p className="text-xs text-gray-500">TAM — семей в России</p>
+              <p className="text-lg sm:text-xl font-bold text-purple-600">50 млн</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">TAM — семей в России</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-blue-600">15 млн</p>
-              <p className="text-xs text-gray-500">SAM — городских с детьми</p>
+              <p className="text-lg sm:text-xl font-bold text-blue-600">15 млн</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">SAM — городских с детьми</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-emerald-600">1,5 млн</p>
-              <p className="text-xs text-gray-500">SOM — цель (3 года)</p>
+              <p className="text-lg sm:text-xl font-bold text-emerald-600">1,5 млн</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">SOM — цель (3 года)</p>
             </div>
           </div>
           <div className="mt-3 pt-2 border-t border-gray-100">
@@ -544,11 +545,11 @@ export function PresentationContentSections() {
       {/* СЛАЙД: Текущие показатели */}
       <SectionCard>
         <SectionTitle icon="BarChart3" iconColor="bg-indigo-500" title="Текущие показатели (MVP)" />
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-5">
           <StatCard value="146+" label="Экранов" icon="Monitor" />
           <StatCard value="90" label="API-функций" icon="Server" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           <StatCard value="151" label="Таблиц БД" icon="Database" />
           <StatCard value="30K+" label="Аналитических событий" icon="Activity" />
           <StatCard value="13" label="Направлений" icon="LayoutGrid" />
@@ -653,7 +654,7 @@ export function PresentationContentSections() {
       {/* СЛАЙД: Реестр ПО */}
       <SectionCard className="bg-gradient-to-br from-sky-50 to-blue-50">
         <SectionTitle icon="FileCheck" iconColor="bg-sky-600" title="Реестр российского ПО" />
-        <div className="bg-white rounded-2xl p-5 border border-sky-200 mb-4">
+        <div className="bg-white rounded-2xl p-3 sm:p-5 border border-sky-200 mb-4">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
               <Icon name="Clock" size={20} className="text-amber-600" />
@@ -746,7 +747,7 @@ export function PresentationContentSections() {
         <p className="text-sm text-gray-500 mb-5">Семейный кошелёк — pay-per-use модель</p>
         
         <div className="mb-6">
-          <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 mb-5">
+          <div className="bg-emerald-50 rounded-2xl p-3 sm:p-5 border border-emerald-200 mb-5">
             <h3 className="font-bold text-emerald-900 text-sm mb-2 flex items-center gap-2">
               <Icon name="Wallet" size={16} className="text-emerald-600" />
               Семейный кошелёк
@@ -755,18 +756,18 @@ export function PresentationContentSections() {
               Единый баланс семьи для всех платных сервисов платформы. Пополнение через карту или СБП (от 50 ₽).
               Прозрачная модель: платишь только за то, чем пользуешься.
             </p>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-white rounded-xl p-3">
-                <p className="text-lg font-bold text-emerald-700">от 50 ₽</p>
-                <p className="text-xs text-gray-500">мин. пополнение</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
+              <div className="bg-white rounded-xl p-2 sm:p-3">
+                <p className="text-base sm:text-lg font-bold text-emerald-700">от 50 ₽</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">мин. пополнение</p>
               </div>
-              <div className="bg-white rounded-xl p-3">
-                <p className="text-lg font-bold text-emerald-700">СБП + карта</p>
-                <p className="text-xs text-gray-500">способы оплаты</p>
+              <div className="bg-white rounded-xl p-2 sm:p-3">
+                <p className="text-base sm:text-lg font-bold text-emerald-700">СБП + карта</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">способы оплаты</p>
               </div>
-              <div className="bg-white rounded-xl p-3">
-                <p className="text-lg font-bold text-emerald-700">Pay-per-use</p>
-                <p className="text-xs text-gray-500">платишь за использование</p>
+              <div className="bg-white rounded-xl p-2 sm:p-3">
+                <p className="text-base sm:text-lg font-bold text-emerald-700">Pay-per-use</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">платишь за использование</p>
               </div>
             </div>
           </div>
@@ -792,18 +793,18 @@ export function PresentationContentSections() {
 
         <div>
           <h3 className="font-bold text-gray-800 text-sm mb-3">Юнит-экономика (кошелёк + партнёры)</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-purple-700">~200 ₽/мес</p>
-              <p className="text-xs text-gray-500">ARPU (ср. чек семьи)</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="bg-purple-50 rounded-xl p-2 sm:p-3 text-center">
+              <p className="text-base sm:text-lg font-bold text-purple-700">~200 ₽/мес</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">ARPU (ср. чек)</p>
             </div>
-            <div className="bg-blue-50 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-blue-700">500–800 ₽</p>
-              <p className="text-xs text-gray-500">CAC</p>
+            <div className="bg-blue-50 rounded-xl p-2 sm:p-3 text-center">
+              <p className="text-base sm:text-lg font-bold text-blue-700">500–800 ₽</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">CAC</p>
             </div>
-            <div className="bg-emerald-50 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-emerald-700">7 200 ₽</p>
-              <p className="text-xs text-gray-500">LTV (3 года)</p>
+            <div className="bg-emerald-50 rounded-xl p-2 sm:p-3 text-center">
+              <p className="text-base sm:text-lg font-bold text-emerald-700">7 200 ₽</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">LTV (3 года)</p>
             </div>
           </div>
           <div className="mt-3 space-y-1.5 text-xs text-gray-600">
@@ -823,7 +824,7 @@ export function PresentationContentSections() {
         </div>
 
         {/* Партнёрская выручка */}
-        <div className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-200">
+        <div className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-3 sm:p-5 border border-amber-200">
           <h3 className="font-bold text-amber-900 text-sm mb-3 flex items-center gap-2">
             <Icon name="Handshake" size={16} className="text-amber-600" />
             Партнёрская выручка (% от транзакций)
@@ -849,18 +850,18 @@ export function PresentationContentSections() {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-white rounded-xl p-3">
-              <p className="text-base font-bold text-amber-700">+20–40%</p>
-              <p className="text-xs text-gray-500">к выручке от кошелька</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
+            <div className="bg-white rounded-xl p-2 sm:p-3">
+              <p className="text-sm sm:text-base font-bold text-amber-700">+20–40%</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">к выручке от кошелька</p>
             </div>
-            <div className="bg-white rounded-xl p-3">
-              <p className="text-base font-bold text-amber-700">0 ₽</p>
-              <p className="text-xs text-gray-500">доп. затрат на привлечение</p>
+            <div className="bg-white rounded-xl p-2 sm:p-3">
+              <p className="text-sm sm:text-base font-bold text-amber-700">0 ₽</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">доп. затрат</p>
             </div>
-            <div className="bg-white rounded-xl p-3">
-              <p className="text-base font-bold text-amber-700">Win-Win</p>
-              <p className="text-xs text-gray-500">партнёр платит за конверсию</p>
+            <div className="bg-white rounded-xl p-2 sm:p-3">
+              <p className="text-sm sm:text-base font-bold text-amber-700">Win-Win</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">партнёр платит за конверсию</p>
             </div>
           </div>
         </div>
@@ -877,7 +878,7 @@ export function PresentationContentSections() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           {/* Банки */}
-          <div className="bg-white rounded-2xl p-5 border border-blue-100 shadow-sm">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 border border-blue-100 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                 <Icon name="Landmark" size={16} className="text-white" />
@@ -895,7 +896,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* Маркетплейсы */}
-          <div className="bg-white rounded-2xl p-5 border border-violet-100 shadow-sm">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 border border-violet-100 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
                 <Icon name="ShoppingCart" size={16} className="text-white" />
@@ -913,9 +914,9 @@ export function PresentationContentSections() {
         </div>
 
         {/* Ценности для партнёра */}
-        <div className="bg-gradient-to-r from-indigo-100 to-blue-100 rounded-2xl p-5">
+        <div className="bg-gradient-to-r from-indigo-100 to-blue-100 rounded-2xl p-3 sm:p-5">
           <h4 className="font-bold text-indigo-900 text-sm mb-3">Почему это выгодно партнёру:</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-center">
             {[
               { icon: 'Heart', label: 'Ценности семьи', sub: 'лояльность на годы' },
               { icon: 'Sparkles', label: 'Гармония и порядок', sub: 'снижение стресса клиента' },
@@ -950,7 +951,7 @@ export function PresentationContentSections() {
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-amber-200">
+        <div className="bg-white rounded-2xl p-3 sm:p-5 border border-amber-200">
           <h3 className="font-bold text-amber-900 text-sm mb-3 flex items-center gap-2">
             <Icon name="Lightbulb" size={16} className="text-amber-500" />
             Раздел «Финансы» — стратегическая возможность
@@ -1013,7 +1014,7 @@ export function PresentationContentSections() {
           </div>
 
           {/* Бот */}
-          <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-5 border border-slate-200">
+          <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-3 sm:p-5 border border-slate-200">
             <div className="flex items-center gap-4 mb-4">
               <img 
                 src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/94fa0fe5-a480-435c-9ffd-909d10b3e26e.jpeg"
@@ -1084,7 +1085,7 @@ export function PresentationContentSections() {
       {/* СЛАЙД: Юридическая информация */}
       <SectionCard>
         <SectionTitle icon="Building2" iconColor="bg-gray-600" title="Юридическая информация" />
-        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+        <div className="bg-slate-50 rounded-2xl p-3 sm:p-5 border border-slate-200">
           <div className="space-y-2 text-sm text-gray-700">
             <p><span className="font-medium text-gray-500">Наименование:</span> ИП Кузьменко А.В.</p>
             <p><span className="font-medium text-gray-500">ОГРНИП:</span> 325774600908955</p>

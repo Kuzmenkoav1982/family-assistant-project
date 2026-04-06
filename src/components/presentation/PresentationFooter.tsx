@@ -3,18 +3,18 @@ import Icon from '@/components/ui/icon';
 export function PresentationFooter() {
   return (
     <>
-      <section data-pdf-slide className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl shadow-2xl p-10 mb-8 text-white">
+      <section data-pdf-slide className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl shadow-2xl p-5 sm:p-10 mb-8 text-white">
         <div className="text-center space-y-5">
-          <h2 className="text-3xl font-bold">
+          <h2 className="text-2xl sm:text-3xl font-bold">
             «Наша семья» — это:
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left max-w-2xl mx-auto">
             {[
               'Единственная в России комплексная семейная платформа',
-              '12 направлений жизни семьи в одном приложении',
+              '13 направлений жизни семьи в одном приложении',
               'AI-ассистент «Домовой» + голосовое управление (Алиса)',
-              '86 backend-функций, 151 таблица БД, 90+ экранов',
+              '90 backend-функций, 151 таблица БД, 146+ экранов',
               'Полностью российский продукт, на стадии включения в реестр ПО',
               'Работающий MVP в production',
               'Готовый раздел «Финансы» — открытая площадка для продуктов партнёра',

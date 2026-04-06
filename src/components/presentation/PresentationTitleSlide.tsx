@@ -13,14 +13,14 @@ export function PresentationTitleSlide() {
           className="h-36 w-36 object-contain rounded-2xl shadow-lg"
         />
       </div>
-      <h1 className="text-5xl font-bold mb-3 text-slate-800 tracking-tight">
+      <h1 className="text-3xl sm:text-5xl font-bold mb-3 text-slate-800 tracking-tight">
         Наша Семья
       </h1>
-      <p className="text-xl text-slate-500 mb-1">
+      <p className="text-base sm:text-xl text-slate-500 mb-1">
         Цифровая платформа благополучия семейной жизни
       </p>
-      <p className="text-base font-semibold text-slate-600 mb-3 tracking-wide uppercase">элемент семейной экосистемы</p>
-      <p className="text-2xl font-semibold text-emerald-700 mb-6">
+      <p className="text-sm sm:text-base font-semibold text-slate-600 mb-3 tracking-wide uppercase">элемент семейной экосистемы</p>
+      <p className="text-xl sm:text-2xl font-semibold text-emerald-700 mb-6">
         Объединяем семьи. Укрепляем общество.
       </p>
 
