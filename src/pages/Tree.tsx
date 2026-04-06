@@ -629,28 +629,46 @@ export default function Tree() {
                   const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
                   return !claimed.has(id);
                 });
+
                 const SIBLING_RELATIONS = new Set(['Брат', 'Сестра']);
                 const siblingOrphans: TreeNode[] = [];
                 const trueOrphans: TreeNode[] = [];
                 orphans.forEach(n => {
                   const m = n.type === 'unit' ? n.unit.primary : n.member;
-                  if (SIBLING_RELATIONS.has(m.relation || '') && groupedByParent.length > 0) {
+                  if (SIBLING_RELATIONS.has(m.relation || '')) {
                     siblingOrphans.push(n);
                   } else {
                     trueOrphans.push(n);
                   }
                 });
-                if (siblingOrphans.length > 0 && groupedByParent.length > 0) {
-                  const meIdx = groupedByParent[0].children.findIndex(c => {
-                    const m = c.type === 'unit' ? c.unit.primary : c.member;
-                    return m.relation === 'Я';
-                  });
-                  if (meIdx >= 0) {
-                    groupedByParent[0].children.splice(meIdx, 0, ...siblingOrphans);
-                  } else {
-                    groupedByParent[0].children.unshift(...siblingOrphans);
+
+                if (siblingOrphans.length > 0) {
+                  let inserted = false;
+                  for (const group of groupedByParent) {
+                    const meIdx = group.children.findIndex(c => {
+                      const m = c.type === 'unit' ? c.unit.primary : c.member;
+                      return m.relation === 'Я';
+                    });
+                    if (meIdx >= 0) {
+                      group.children.splice(meIdx, 0, ...siblingOrphans);
+                      inserted = true;
+                      break;
+                    }
+                  }
+                  if (!inserted) {
+                    const meInOrphans = trueOrphans.findIndex(n => {
+                      const m = n.type === 'unit' ? n.unit.primary : n.member;
+                      return m.relation === 'Я';
+                    });
+                    if (meInOrphans >= 0) {
+                      const meNode = trueOrphans.splice(meInOrphans, 1)[0];
+                      groupedByParent.push({ parentNode: prevGenNodes[0] || null, children: [...siblingOrphans, meNode] });
+                    } else {
+                      groupedByParent.push({ parentNode: prevGenNodes[0] || null, children: siblingOrphans });
+                    }
                   }
                 }
+
                 if (trueOrphans.length > 0) {
                   groupedByParent.push({ parentNode: null, children: trueOrphans });
                 }
