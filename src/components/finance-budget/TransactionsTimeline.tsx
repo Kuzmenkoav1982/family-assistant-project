@@ -146,7 +146,7 @@ export default function TransactionsTimeline({
                                 style={{ backgroundColor: item.isPlanned && item.source === 'debt' ? '#EF444420' : (item.category_color || (item.isPlanned ? '#F59E0B' : '#6B7280')) + '20' }}>
                                 <Icon name={
                                   item.isPlanned && item.source === 'debt'
-                                    ? (item.debt_type === 'mortgage' ? 'Home' : item.debt_type === 'car_loan' ? 'Car' : 'CheckSquare')
+                                    ? (item.debt_type === 'mortgage' ? 'Home' : item.debt_type === 'car_loan' ? 'Car' : 'Landmark')
                                     : (item.category_icon || (item.type === 'income' ? 'TrendingUp' : 'TrendingDown'))
                                 } size={18} style={{ color: item.isPlanned && item.source === 'debt' ? '#EF4444' : (item.category_color || (item.isPlanned ? '#F59E0B' : '#6B7280')) }} />
                               </div>
