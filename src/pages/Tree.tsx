@@ -641,7 +641,15 @@ export default function Tree() {
                   }
                 });
                 if (siblingOrphans.length > 0 && groupedByParent.length > 0) {
-                  groupedByParent[0].children.push(...siblingOrphans);
+                  const meIdx = groupedByParent[0].children.findIndex(c => {
+                    const m = c.type === 'unit' ? c.unit.primary : c.member;
+                    return m.relation === 'Я';
+                  });
+                  if (meIdx >= 0) {
+                    groupedByParent[0].children.splice(meIdx, 0, ...siblingOrphans);
+                  } else {
+                    groupedByParent[0].children.unshift(...siblingOrphans);
+                  }
                 }
                 if (trueOrphans.length > 0) {
                   groupedByParent.push({ parentNode: null, children: trueOrphans });
