@@ -360,7 +360,7 @@ export default function FamilyInviteManager() {
         onDelete={deleteInvite}
       />
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <CreateInviteDialog
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}

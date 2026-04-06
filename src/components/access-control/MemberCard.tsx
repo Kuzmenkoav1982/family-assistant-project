@@ -30,8 +30,8 @@ export default function MemberCard({
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="shrink-0">
             {(member.avatarUrl || member.avatar) ? (
               <img 
                 src={member.avatarUrl || member.avatar} 
@@ -43,26 +43,25 @@ export default function MemberCard({
                 {member.name.charAt(0).toUpperCase()}
               </div>
             )}
-            
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-semibold text-gray-900">{member.name}</h4>
-                {member.role && ROLES[member.role] && (
-                  <Badge variant="outline" className={ROLES[member.role].color}>
-                    <Icon name={ROLES[member.role].icon as any} size={12} className="mr-1" />
-                    {ROLES[member.role].label}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-gray-500">{member.relationship}</p>
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h4 className="font-semibold text-gray-900 truncate">{member.name}</h4>
+              {member.role && ROLES[member.role] && (
+                <Badge variant="outline" className={`${ROLES[member.role].color} shrink-0`}>
+                  <Icon name={ROLES[member.role].icon as any} size={12} className="mr-1" />
+                  {ROLES[member.role].label}
+                </Badge>
+              )}
             </div>
+            <p className="text-sm text-gray-500 truncate">{member.relationship}</p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {savingMemberId === member.id && (
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <Icon name="Loader2" size={16} className="animate-spin" />
-                Сохранение...
+              <div className="flex items-center gap-1 text-xs text-blue-600">
+                <Icon name="Loader2" size={14} className="animate-spin" />
               </div>
             )}
             <Dialog open={isDialogOpen && selectedMemberId === member.id} onOpenChange={onDialogChange}>
@@ -71,11 +70,11 @@ export default function MemberCard({
                   variant="outline" 
                   size="sm"
                   onClick={() => onOpenDialog(member)}
-                  className="gap-2"
+                  className="gap-1.5 shrink-0"
                   disabled={savingMemberId === member.id}
                 >
                   <Icon name="Settings" size={16} />
-                  Настроить
+                  <span className="hidden sm:inline">Настроить</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
