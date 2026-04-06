@@ -97,8 +97,14 @@ function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[], ge
 
     if (spouse || children.length > 0) {
       const SIBLING_RELS = new Set(['Брат', 'Сестра']);
-      const isSpouseLeft = SIBLING_RELS.has(member.relation || '') && spouse !== null;
-      units.push({ primary: member, spouse, children, spouseLeft: isSpouseLeft });
+      let finalPrimary = member;
+      let finalSpouse = spouse;
+      if (spouse && !SIBLING_RELS.has(member.relation || '') && !['Я'].includes(member.relation || '') && SIBLING_RELS.has(spouse.relation || '')) {
+        finalPrimary = spouse;
+        finalSpouse = member;
+      }
+      const isSpouseLeft = SIBLING_RELS.has(finalPrimary.relation || '') && finalSpouse !== null;
+      units.push({ primary: finalPrimary, spouse: finalSpouse, children, spouseLeft: isSpouseLeft });
     } else {
       singles.push(member);
     }
@@ -632,6 +638,12 @@ export default function Tree() {
 
                 for (const group of groupedByParent) {
                   const SIBLING_RELATIONS = new Set(['Брат', 'Сестра']);
+                  const isSiblingNode = (c: TreeNode) => {
+                    if (c.type === 'unit') {
+                      return SIBLING_RELATIONS.has(c.unit.primary.relation || '') || (c.unit.spouse && SIBLING_RELATIONS.has(c.unit.spouse.relation || ''));
+                    }
+                    return SIBLING_RELATIONS.has(c.member.relation || '');
+                  };
                   const meIdx = group.children.findIndex(c => {
                     const m = c.type === 'unit' ? c.unit.primary : c.member;
                     return m.relation === 'Я';
@@ -641,8 +653,7 @@ export default function Tree() {
                     const others: TreeNode[] = [];
                     group.children.forEach((c, i) => {
                       if (i === meIdx) return;
-                      const m = c.type === 'unit' ? c.unit.primary : c.member;
-                      if (SIBLING_RELATIONS.has(m.relation || '')) {
+                      if (isSiblingNode(c)) {
                         siblings.push(c);
                       } else {
                         others.push(c);
@@ -657,12 +668,17 @@ export default function Tree() {
                   return !claimed.has(id);
                 });
 
-                const SIBLING_RELATIONS = new Set(['Брат', 'Сестра']);
+                const SIBLING_RELATIONS2 = new Set(['Брат', 'Сестра']);
+                const isSiblingOrphan = (n: TreeNode) => {
+                  if (n.type === 'unit') {
+                    return SIBLING_RELATIONS2.has(n.unit.primary.relation || '') || (n.unit.spouse && SIBLING_RELATIONS2.has(n.unit.spouse.relation || ''));
+                  }
+                  return SIBLING_RELATIONS2.has(n.member.relation || '');
+                };
                 const siblingOrphans: TreeNode[] = [];
                 const trueOrphans: TreeNode[] = [];
                 orphans.forEach(n => {
-                  const m = n.type === 'unit' ? n.unit.primary : n.member;
-                  if (SIBLING_RELATIONS.has(m.relation || '')) {
+                  if (isSiblingOrphan(n)) {
                     siblingOrphans.push(n);
                   } else {
                     trueOrphans.push(n);
