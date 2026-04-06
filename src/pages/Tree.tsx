@@ -30,6 +30,21 @@ const RELATION_OPTIONS = [
 
 const AVATAR_OPTIONS = ['👤', '👨', '👩', '👴', '👵', '👦', '👧', '🧒', '👶', '🧓'];
 
+const MONTHS = [
+  { value: '01', label: 'Январь' },
+  { value: '02', label: 'Февраль' },
+  { value: '03', label: 'Март' },
+  { value: '04', label: 'Апрель' },
+  { value: '05', label: 'Май' },
+  { value: '06', label: 'Июнь' },
+  { value: '07', label: 'Июль' },
+  { value: '08', label: 'Август' },
+  { value: '09', label: 'Сентябрь' },
+  { value: '10', label: 'Октябрь' },
+  { value: '11', label: 'Ноябрь' },
+  { value: '12', label: 'Декабрь' },
+];
+
 const GENERATION_MAP: Record<string, number> = {
   'Прадед': 0, 'Прабабушка': 0,
   'Дедушка': 1, 'Бабушка': 1,
@@ -115,16 +130,30 @@ function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[], ge
 
 function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; onClick: () => void; isHighlighted?: boolean }) {
   const isImageUrl = (avatar: string) => avatar?.startsWith('http') || avatar?.startsWith('/');
-  const calculateAge = (birthYear?: number | null, deathYear?: number | null) => {
-    if (!birthYear) return null;
-    return (deathYear || new Date().getFullYear()) - birthYear;
+  const calculateAge = (m: TreeMember) => {
+    const endDate = m.death_date ? new Date(m.death_date) :
+                    m.death_year ? new Date(m.death_year, 11, 31) : new Date();
+
+    if (m.birth_date) {
+      const birth = new Date(m.birth_date);
+      let age = endDate.getFullYear() - birth.getFullYear();
+      const monthDiff = endDate.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age;
+    }
+    if (m.birth_year) {
+      return (m.death_year || new Date().getFullYear()) - m.birth_year;
+    }
+    return null;
   };
   const getAgeText = (age: number) => {
     if (age % 10 === 1 && age !== 11) return `${age} год`;
     if (age % 10 >= 2 && age % 10 <= 4 && (age < 10 || age > 20)) return `${age} года`;
     return `${age} лет`;
   };
-  const age = calculateAge(member.birth_year, member.death_year);
+  const age = calculateAge(member);
   const isMe = member.relation === 'Я';
 
   return (
@@ -164,9 +193,21 @@ function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; on
         {member.relation && member.relation !== 'Я' && (
           <p className="text-[10px] text-amber-600 mt-0.5">{member.relation}</p>
         )}
-        {member.birth_year && (
+        {(member.birth_date || member.birth_year) && (
           <p className="text-[10px] text-amber-500 mt-0.5">
-            {member.death_year ? `${member.birth_year} — ${member.death_year}` : `${member.birth_year} г.р.`}
+            {(() => {
+              const birthStr = member.birth_date
+                ? new Date(member.birth_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+                : `${member.birth_year} г.р.`;
+              if (member.death_date) {
+                const deathStr = new Date(member.death_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+                return `${birthStr} — ${deathStr}`;
+              }
+              if (member.death_year) {
+                return `${member.birth_year} — ${member.death_year}`;
+              }
+              return birthStr;
+            })()}
           </p>
         )}
         {age !== null && (
@@ -240,6 +281,10 @@ export default function Tree() {
     relation: '',
     avatar: '👤'
   });
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [deathDay, setDeathDay] = useState('');
+  const [deathMonth, setDeathMonth] = useState('');
 
   useEffect(() => {
     if (selectedMember) {
@@ -267,9 +312,23 @@ export default function Tree() {
     5: 'Внуки',
   };
 
-  const calculateAge = (birthYear?: number | null, deathYear?: number | null) => {
-    if (!birthYear) return null;
-    return (deathYear || new Date().getFullYear()) - birthYear;
+  const calculateAge = (member: TreeMember) => {
+    const endDate = member.death_date ? new Date(member.death_date) :
+                    member.death_year ? new Date(member.death_year, 11, 31) : new Date();
+
+    if (member.birth_date) {
+      const birth = new Date(member.birth_date);
+      let age = endDate.getFullYear() - birth.getFullYear();
+      const monthDiff = endDate.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age;
+    }
+    if (member.birth_year) {
+      return (member.death_year || new Date().getFullYear()) - member.birth_year;
+    }
+    return null;
   };
 
   const getAgeText = (age: number) => {
@@ -284,6 +343,10 @@ export default function Tree() {
     setFormData({ name: '', relation: '', avatar: '👤' });
     setPhotoPreview(null);
     setAddFromMemberId(null);
+    setBirthDay('');
+    setBirthMonth('');
+    setDeathDay('');
+    setDeathMonth('');
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,7 +370,14 @@ export default function Tree() {
       return;
     }
     setSaving(true);
-    const result = await addMember(formData);
+    const dataToSend = { ...formData };
+    if (birthDay && birthMonth && dataToSend.birth_year) {
+      dataToSend.birth_date = `${dataToSend.birth_year}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+    }
+    if (deathDay && deathMonth && dataToSend.death_year) {
+      dataToSend.death_date = `${dataToSend.death_year}-${deathMonth.padStart(2, '0')}-${deathDay.padStart(2, '0')}`;
+    }
+    const result = await addMember(dataToSend);
     setSaving(false);
     if (result) {
       toast({ title: `${formData.name} добавлен(а) в древо` });
@@ -321,7 +391,18 @@ export default function Tree() {
   const handleEdit = async () => {
     if (!selectedMember || !formData.name.trim()) return;
     setSaving(true);
-    const success = await updateMember(selectedMember.id, formData);
+    const dataToSend = { ...formData };
+    if (birthDay && birthMonth && dataToSend.birth_year) {
+      dataToSend.birth_date = `${dataToSend.birth_year}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+    } else {
+      dataToSend.birth_date = undefined;
+    }
+    if (deathDay && deathMonth && dataToSend.death_year) {
+      dataToSend.death_date = `${dataToSend.death_year}-${deathMonth.padStart(2, '0')}-${deathDay.padStart(2, '0')}`;
+    } else {
+      dataToSend.death_date = undefined;
+    }
+    const success = await updateMember(selectedMember.id, dataToSend);
     setSaving(false);
     if (success) {
       toast({ title: 'Данные обновлены' });
@@ -347,6 +428,8 @@ export default function Tree() {
       relation: member.relation || '',
       birth_year: member.birth_year || undefined,
       death_year: member.death_year || undefined,
+      birth_date: member.birth_date || undefined,
+      death_date: member.death_date || undefined,
       occupation: member.occupation || undefined,
       bio: member.bio || undefined,
       avatar: member.avatar || '👤',
@@ -356,6 +439,22 @@ export default function Tree() {
       spouse_id: member.spouse_id || undefined,
       gender: member.gender || undefined,
     });
+    if (member.birth_date) {
+      const parts = member.birth_date.split('-');
+      setBirthMonth(parts[1] || '');
+      setBirthDay(parts[2] ? String(parseInt(parts[2])) : '');
+    } else {
+      setBirthDay('');
+      setBirthMonth('');
+    }
+    if (member.death_date) {
+      const parts = member.death_date.split('-');
+      setDeathMonth(parts[1] || '');
+      setDeathDay(parts[2] ? String(parseInt(parts[2])) : '');
+    } else {
+      setDeathDay('');
+      setDeathMonth('');
+    }
     setPhotoPreview(member.photo_url || null);
     setShowEditForm(true);
   };
@@ -815,21 +914,34 @@ export default function Tree() {
               </DialogHeader>
 
               <div className="space-y-3">
-                {selectedMember.birth_year && (
+                {(selectedMember.birth_date || selectedMember.birth_year) && (
                   <div className="flex items-center gap-2 text-sm">
                     <Icon name="Calendar" size={16} className="text-amber-600" />
                     <span>
-                      {selectedMember.death_year
-                        ? `${selectedMember.birth_year} — ${selectedMember.death_year}`
-                        : `Год рождения: ${selectedMember.birth_year}`}
+                      {(() => {
+                        const birthStr = selectedMember.birth_date
+                          ? new Date(selectedMember.birth_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+                          : `Год рождения: ${selectedMember.birth_year}`;
+                        if (selectedMember.death_date) {
+                          const deathStr = new Date(selectedMember.death_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                          return `${birthStr} — ${deathStr}`;
+                        }
+                        if (selectedMember.death_year) {
+                          if (selectedMember.birth_date) {
+                            return `${birthStr} — ${selectedMember.death_year}`;
+                          }
+                          return `${selectedMember.birth_year} — ${selectedMember.death_year}`;
+                        }
+                        return birthStr;
+                      })()}
                     </span>
                   </div>
                 )}
 
-                {calculateAge(selectedMember.birth_year, selectedMember.death_year) !== null && (
+                {calculateAge(selectedMember) !== null && (
                   <div className="flex items-center gap-2 text-sm">
                     <Icon name="Clock" size={16} className="text-amber-600" />
-                    <span>Возраст: {getAgeText(calculateAge(selectedMember.birth_year, selectedMember.death_year)!)}</span>
+                    <span>Возраст: {getAgeText(calculateAge(selectedMember)!)}</span>
                   </div>
                 )}
 
@@ -1052,24 +1164,70 @@ export default function Tree() {
                 );
               })()}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div>
-                  <Label>Год рождения</Label>
-                  <Input
-                    type="number"
-                    placeholder="1950"
-                    value={formData.birth_year || ''}
-                    onChange={e => setFormData(prev => ({ ...prev, birth_year: e.target.value ? parseInt(e.target.value) : undefined }))}
-                  />
+                  <Label>Дата рождения</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      type="number"
+                      placeholder="Д"
+                      min={1}
+                      max={31}
+                      className="w-16"
+                      value={birthDay}
+                      onChange={e => setBirthDay(e.target.value)}
+                    />
+                    <Select value={birthMonth || 'none'} onValueChange={v => setBirthMonth(v === 'none' ? '' : v)}>
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue placeholder="Месяц" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {MONTHS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      placeholder="Год"
+                      className="flex-1"
+                      value={formData.birth_year || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, birth_year: e.target.value ? parseInt(e.target.value) : undefined }))}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <Label>Год смерти</Label>
-                  <Input
-                    type="number"
-                    placeholder="Если нет в живых"
-                    value={formData.death_year || ''}
-                    onChange={e => setFormData(prev => ({ ...prev, death_year: e.target.value ? parseInt(e.target.value) : undefined }))}
-                  />
+                  <Label>Дата смерти</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      type="number"
+                      placeholder="Д"
+                      min={1}
+                      max={31}
+                      className="w-16"
+                      value={deathDay}
+                      onChange={e => setDeathDay(e.target.value)}
+                    />
+                    <Select value={deathMonth || 'none'} onValueChange={v => setDeathMonth(v === 'none' ? '' : v)}>
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue placeholder="Месяц" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {MONTHS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      placeholder="Если нет в живых"
+                      className="flex-1"
+                      value={formData.death_year || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, death_year: e.target.value ? parseInt(e.target.value) : undefined }))}
+                    />
+                  </div>
                 </div>
               </div>
 
