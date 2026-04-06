@@ -76,6 +76,8 @@ export default function FinanceBudget() {
           accountCount={budget.accountCount}
           planIncome={budget.planIncome}
           planExpense={budget.planExpense}
+          sumIncome={budget.sumIncome}
+          sumExpense={budget.sumExpense}
         />
 
         <SummaryCards
