@@ -10,6 +10,7 @@ export interface Transaction {
   category_icon: string | null;
   category_color: string | null;
   account_name: string | null;
+  is_confirmed?: boolean;
 }
 
 export interface PlannedItem {

@@ -114,6 +114,7 @@ export default function FinanceBudget() {
               accountBalance={budget.accountBalance}
               confirmingIds={budget.confirmingIds}
               onConfirmPlanned={budget.confirmPlanned}
+              onConfirmTx={budget.confirmTransaction}
               onEditTx={budget.openEditTx}
               onDeleteTx={budget.deleteTransaction}
               onAddNew={() => { budget.setTxType('expense'); budget.setShowAddTx(true); }}

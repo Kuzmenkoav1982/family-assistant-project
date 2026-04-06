@@ -29,7 +29,7 @@ def get_db():
 
 OWNER_ONLY_SECTIONS = {'budgets', 'debts', 'debt_payments', 'accounts', 'recurring', 'assets', 'dashboard', 'transactions', 'categories', 'financial_analysis'}
 OWNER_ONLY_ACTIONS = {
-    'add_transaction', 'delete_transaction', 'update_transaction', 'confirm_planned',
+    'add_transaction', 'delete_transaction', 'update_transaction', 'confirm_planned', 'confirm_transaction',
     'add_category', 'delete_category',
     'set_budget', 'delete_budget',
     'add_debt', 'update_debt', 'delete_debt', 'add_debt_payment',
@@ -169,6 +169,8 @@ def handler(event, context):
             return update_transaction(family_id, body)
         elif action == 'confirm_planned':
             return confirm_planned(user_id, family_id, body)
+        elif action == 'confirm_transaction':
+            return confirm_transaction(family_id, body)
         elif action == 'add_category':
             return add_category(family_id, body)
         elif action == 'delete_category':
@@ -346,7 +348,7 @@ def get_transactions(family_id, params):
             SELECT ft.id, ft.amount, ft.transaction_type, ft.description, ft.transaction_date,
                    ft.member_id, ft.account_id, ft.is_recurring,
                    fc.name as cat_name, fc.icon as cat_icon, fc.color as cat_color,
-                   fa.name as acc_name
+                   fa.name as acc_name, ft.is_confirmed
             FROM finance_transactions ft
             LEFT JOIN finance_categories fc ON ft.category_id = fc.id
             LEFT JOIN finance_accounts fa ON ft.account_id = fa.id
@@ -363,7 +365,7 @@ def get_transactions(family_id, params):
                 'account_id': str(r[6]) if r[6] else None,
                 'is_recurring': r[7],
                 'category_name': r[8], 'category_icon': r[9], 'category_color': r[10],
-                'account_name': r[11]
+                'account_name': r[11], 'is_confirmed': r[12]
             }
             for r in cur.fetchall()
         ]
@@ -578,8 +580,8 @@ def confirm_planned(user_id, family_id, body):
 
         cur.execute("""
             INSERT INTO finance_transactions
-            (family_id, account_id, category_id, amount, transaction_type, description, transaction_date, member_id, is_recurring, recurring_id)
-            VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', NULL, %s, %s)
+            (family_id, account_id, category_id, amount, transaction_type, description, transaction_date, member_id, is_recurring, recurring_id, is_confirmed)
+            VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', NULL, %s, %s, true)
             RETURNING id
         """ % (
             fid, acc_id, cat_id, float(amount),
@@ -669,6 +671,28 @@ def update_transaction(family_id, body):
             "UPDATE finance_transactions SET %s WHERE id = '%s' AND family_id = '%s'"
             % (', '.join(sets), safe(tid), fid)
         )
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
+
+
+def confirm_transaction(family_id, body):
+    """Подтвердить (или снять подтверждение) фактическую транзакцию"""
+    tid = body.get('id')
+    if not tid:
+        return respond(400, {'error': 'Укажите id'})
+    confirmed = body.get('is_confirmed', True)
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        fid = str(family_id)
+        cur.execute(
+            "UPDATE finance_transactions SET is_confirmed = %s, updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
+            % ('true' if confirmed else 'false', safe(tid), fid)
+        )
+        if cur.rowcount == 0:
+            return respond(404, {'error': 'Транзакция не найдена'})
         conn.commit()
         return respond(200, {'success': True})
     finally:

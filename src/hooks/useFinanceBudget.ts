@@ -470,6 +470,19 @@ export default function useFinanceBudget() {
     setExporting(false);
   };
 
+  const confirmTransaction = async (txId: string, isConfirmed: boolean) => {
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'confirm_transaction', id: txId, is_confirmed: isConfirmed })
+    });
+    if (res.ok) {
+      toast.success(isConfirmed ? 'Платёж подтверждён' : 'Отметка снята');
+      loadTransactions();
+    } else {
+      toast.error('Ошибка');
+    }
+  };
+
   const formatMoney = (n: number) => n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   return {
@@ -490,7 +503,7 @@ export default function useFinanceBudget() {
     filteredCategories, expenseCategories, monthLabel,
     prevMonth, nextMonth, exportPDF,
     addTransaction, deleteTransaction, updateTransaction,
-    openEditTx, confirmPlanned, saveBudget, deleteBudget,
+    openEditTx, confirmPlanned, confirmTransaction, saveBudget, deleteBudget,
     openEditBudget, closeBudgetDialog,
     executeAddTransaction, executeUpdateTransaction, executeConfirmPlanned,
   };

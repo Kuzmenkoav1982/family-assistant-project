@@ -1,0 +1,2 @@
+ALTER TABLE t_p5815085_family_assistant_pro.finance_transactions
+ADD COLUMN is_confirmed BOOLEAN NOT NULL DEFAULT false;
