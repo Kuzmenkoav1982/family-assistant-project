@@ -892,8 +892,8 @@ export default function Tree() {
                   onClick={() => {
                     const fromMember = selectedMember;
                     setSelectedMember(null);
-                    setAddFromMemberId(fromMember.id);
                     resetForm();
+                    setAddFromMemberId(fromMember.id);
                     setShowAddForm(true);
                   }}
                 >
@@ -947,15 +947,69 @@ export default function Tree() {
                 />
               </div>
 
-              <div>
-                <Label>Кем приходится</Label>
-                <Select value={formData.relation || ''} onValueChange={v => setFormData(prev => ({ ...prev, relation: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Выберите родство" /></SelectTrigger>
-                  <SelectContent>
-                    {RELATION_OPTIONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+              {(() => {
+                const fromMember = addFromMemberId ? members.find(m => m.id === addFromMemberId) : null;
+                if (fromMember && !showEditForm) {
+                  const contextOptions: { label: string; relation: string; auto: Partial<typeof formData> }[] = [];
+                  const rel = fromMember.relation || '';
+
+                  contextOptions.push({ label: `Супруг(а) — ${fromMember.name}`, relation: 'Супруг', auto: { spouse_id: fromMember.id } });
+
+                  if (['Я', 'Брат', 'Сестра', 'Супруг', 'Супруга'].includes(rel)) {
+                    contextOptions.push({ label: `Сын — ${fromMember.name}`, relation: 'Сын', auto: { parent_id: fromMember.id } });
+                    contextOptions.push({ label: `Дочь — ${fromMember.name}`, relation: 'Дочь', auto: { parent_id: fromMember.id } });
+                    contextOptions.push({ label: `Брат / Сестра`, relation: 'Брат', auto: { parent_id: fromMember.parent_id || undefined, parent2_id: fromMember.parent2_id || undefined } });
+                  }
+
+                  if (['Отец', 'Мать'].includes(rel)) {
+                    contextOptions.push({ label: `Сын / Дочь (ребёнок)`, relation: 'Сын', auto: { parent_id: fromMember.id } });
+                    contextOptions.push({ label: `Брат / Сестра (${fromMember.name})`, relation: 'Брат', auto: {} });
+                  }
+
+                  if (['Дедушка', 'Бабушка'].includes(rel)) {
+                    contextOptions.push({ label: `Сын / Дочь (ребёнок)`, relation: rel === 'Дедушка' ? 'Отец' : 'Мать', auto: { parent_id: fromMember.id } });
+                  }
+
+                  if (['Сын', 'Дочь'].includes(rel)) {
+                    contextOptions.push({ label: `Брат / Сестра (${fromMember.name})`, relation: 'Сын', auto: { parent_id: fromMember.parent_id || undefined, parent2_id: fromMember.parent2_id || undefined } });
+                    contextOptions.push({ label: `Внук / Внучка`, relation: 'Внук', auto: { parent_id: fromMember.id } });
+                  }
+
+                  contextOptions.push({ label: `Отец — ${fromMember.name}`, relation: 'Отец', auto: {} });
+                  contextOptions.push({ label: `Мать — ${fromMember.name}`, relation: 'Мать', auto: {} });
+
+                  return (
+                    <div>
+                      <Label>Кем приходится для {fromMember.name}</Label>
+                      <div className="grid gap-2 mt-1">
+                        {contextOptions.map(o => (
+                          <button
+                            key={o.label}
+                            type="button"
+                            className={`text-left px-3 py-2 rounded-lg border text-sm transition-colors ${
+                              formData.relation === o.relation ? 'bg-amber-100 border-amber-400 text-amber-900' : 'border-gray-200 hover:bg-amber-50 hover:border-amber-300'
+                            }`}
+                            onClick={() => setFormData(prev => ({ ...prev, relation: o.relation, ...o.auto }))}
+                          >
+                            {o.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div>
+                    <Label>Кем приходится</Label>
+                    <Select value={formData.relation || ''} onValueChange={v => setFormData(prev => ({ ...prev, relation: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Выберите родство" /></SelectTrigger>
+                      <SelectContent>
+                        {RELATION_OPTIONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })()}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
