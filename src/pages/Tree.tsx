@@ -629,8 +629,22 @@ export default function Tree() {
                   const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
                   return !claimed.has(id);
                 });
-                if (orphans.length > 0) {
-                  groupedByParent.push({ parentNode: null, children: orphans });
+                const SIBLING_RELATIONS = new Set(['Брат', 'Сестра']);
+                const siblingOrphans: TreeNode[] = [];
+                const trueOrphans: TreeNode[] = [];
+                orphans.forEach(n => {
+                  const m = n.type === 'unit' ? n.unit.primary : n.member;
+                  if (SIBLING_RELATIONS.has(m.relation || '') && groupedByParent.length > 0) {
+                    siblingOrphans.push(n);
+                  } else {
+                    trueOrphans.push(n);
+                  }
+                });
+                if (siblingOrphans.length > 0 && groupedByParent.length > 0) {
+                  groupedByParent[0].children.push(...siblingOrphans);
+                }
+                if (trueOrphans.length > 0) {
+                  groupedByParent.push({ parentNode: null, children: trueOrphans });
                 }
 
                 return (
@@ -659,17 +673,24 @@ export default function Tree() {
                             ) : (
                               <div className="h-[28px]" />
                             )}
-                            <div className="flex flex-nowrap items-start gap-3">
+                            <div className="flex flex-nowrap items-start">
                               {group.children.map((child, cIdx) => (
-                                <div key={cIdx} className="flex flex-col items-center">
-                                  {group.parentNode && group.children.length > 1 && (
-                                    <div className="w-0.5 h-3 bg-amber-300" />
+                                <div key={cIdx} className="flex items-start">
+                                  {cIdx > 0 && group.children.length > 1 && (
+                                    <div className="flex flex-col items-center justify-center self-stretch pt-6">
+                                      <div className="w-4 h-0.5 bg-amber-300" />
+                                    </div>
                                   )}
-                                  {child.type === 'unit' ? (
-                                    <CoupleBlock unit={child.unit} onSelect={setSelectedMember} />
-                                  ) : (
-                                    <MemberCard member={child.member} onClick={() => setSelectedMember(child.member)} />
-                                  )}
+                                  <div className="flex flex-col items-center">
+                                    {group.parentNode && group.children.length > 1 && (
+                                      <div className="w-0.5 h-3 bg-amber-300" />
+                                    )}
+                                    {child.type === 'unit' ? (
+                                      <CoupleBlock unit={child.unit} onSelect={setSelectedMember} />
+                                    ) : (
+                                      <MemberCard member={child.member} onClick={() => setSelectedMember(child.member)} />
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
