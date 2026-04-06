@@ -829,9 +829,26 @@ export default function Tree() {
                 )}
 
                 {selectedMember.spouse_id && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Icon name="Heart" size={16} className="text-pink-500" />
-                    <span>Супруг(а): {members.find(m => m.id === selectedMember.spouse_id)?.name}</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Heart" size={16} className="text-pink-500" />
+                      <span>Супруг(а): {members.find(m => m.id === selectedMember.spouse_id)?.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                      onClick={async () => {
+                        if (!confirm('Расторгнуть брак? Связь будет убрана у обоих.')) return;
+                        const success = await updateMember(selectedMember.id, { spouse_id: null });
+                        if (success) {
+                          toast({ title: 'Брак расторгнут' });
+                          setSelectedMember(null);
+                          fetchTree();
+                        }
+                      }}
+                    >
+                      <Icon name="HeartOff" size={14} />
+                    </button>
                   </div>
                 )}
 

@@ -34,7 +34,7 @@ interface NewTreeMember {
   photo_url?: string;
   parent_id?: number;
   parent2_id?: number;
-  spouse_id?: number;
+  spouse_id?: number | null;
   gender?: string;
   birth_date?: string;
   death_date?: string;
