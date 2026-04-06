@@ -54,6 +54,7 @@ interface FamilyUnit {
   primary: TreeMember;
   spouse: TreeMember | null;
   children: TreeMember[];
+  spouseLeft?: boolean;
 }
 
 function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[], genMemberIds: Set<number>): { units: FamilyUnit[], singles: TreeMember[] } {
@@ -95,7 +96,9 @@ function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[], ge
     );
 
     if (spouse || children.length > 0) {
-      units.push({ primary: member, spouse, children });
+      const SIBLING_RELS = new Set(['Брат', 'Сестра']);
+      const isSpouseLeft = SIBLING_RELS.has(member.relation || '') && spouse !== null;
+      units.push({ primary: member, spouse, children, spouseLeft: isSpouseLeft });
     } else {
       singles.push(member);
     }
@@ -171,17 +174,19 @@ function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; on
 }
 
 function CoupleBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: TreeMember) => void }) {
+  const left = unit.spouseLeft && unit.spouse ? unit.spouse : unit.primary;
+  const right = unit.spouseLeft && unit.spouse ? unit.primary : unit.spouse;
   return (
     <div className="flex items-center gap-0">
-      <MemberCard member={unit.primary} onClick={() => onSelect(unit.primary)} />
-      {unit.spouse && (
+      <MemberCard member={left} onClick={() => onSelect(left)} />
+      {right && (
         <>
           <div className="flex items-center mx-[-4px] z-10">
             <div className="w-6 h-0.5 bg-pink-400" />
             <span className="text-pink-500 text-xs">&#10084;</span>
             <div className="w-6 h-0.5 bg-pink-400" />
           </div>
-          <MemberCard member={unit.spouse} onClick={() => onSelect(unit.spouse!)} isHighlighted />
+          <MemberCard member={right} onClick={() => onSelect(right)} isHighlighted />
         </>
       )}
     </div>
