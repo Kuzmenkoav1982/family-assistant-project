@@ -108,7 +108,7 @@ export function InviteListCard({
                       <p className="text-sm font-semibold text-gray-800 mb-1">📝 Если получил только код (ABC123):</p>
                       <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
                         <li>Зайти на сайт и войти/зарегистрироваться</li>
-                        <li>Открыть меню → «Присоединиться к семье»</li>
+                        <li>Открыть Настройки → Семья → «Присоединиться к семье»</li>
                         <li>Ввести код, имя и степень родства</li>
                         <li>Нажать «Присоединиться»</li>
                       </ol>
