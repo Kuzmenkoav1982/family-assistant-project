@@ -191,18 +191,10 @@ export function InviteListCard({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onCopyCode(invite.code)}
-                    >
-                      <Icon name="Copy" size={14} />
-                      Код
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => onCopyLink(invite.code)}
                     >
                       <Icon name="Link" size={14} />
-                      Ссылка
+                      Скопировать ссылку
                     </Button>
                     <Button
                       variant="outline"
@@ -212,7 +204,6 @@ export function InviteListCard({
                       <Icon name="Share2" size={14} />
                       Поделиться
                     </Button>
-
                   </div>
                 </CardContent>
               </Card>
