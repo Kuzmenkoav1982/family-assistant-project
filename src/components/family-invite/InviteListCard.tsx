@@ -98,7 +98,7 @@ export function InviteListCard({
                     <div>
                       <p className="text-sm font-semibold text-gray-800 mb-1">🔗 Если получил ссылку:</p>
                       <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
-                        <li>Откроется страница приглашения с кодом</li>
+                        <li>Откроется страница приглашения (код подставится автоматически)</li>
                         <li>Нужно войти в аккаунт или зарегистрироваться</li>
                         <li>Ввести своё имя и выбрать степень родства</li>
                         <li>Нажать «Присоединиться»</li>

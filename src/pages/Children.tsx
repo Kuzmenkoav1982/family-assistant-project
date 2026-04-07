@@ -154,11 +154,29 @@ export default function Children() {
                 Детские профили не найдены
               </h2>
               <p className="text-gray-600">
-                Добавьте детей в раздел "Семья", чтобы начать использовать этот раздел
+                Добавьте ребёнка, чтобы начать использовать этот раздел
               </p>
-              <Button onClick={() => navigate('/')} className="mt-4">
-                Перейти на главную
+              <Button 
+                onClick={() => setShowAddChildDialog(true)} 
+                className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              >
+                <Icon name="Baby" className="mr-2" size={18} />
+                Добавить ребёнка
               </Button>
+              <Dialog open={showAddChildDialog} onOpenChange={setShowAddChildDialog}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Добавить ребёнка</DialogTitle>
+                  </DialogHeader>
+                  <AddFamilyMemberForm 
+                    isChild={true}
+                    onSubmit={async (newChild) => {
+                      await addMember(newChild);
+                      setShowAddChildDialog(false);
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
@@ -291,7 +309,7 @@ export default function Children() {
                         <p className="font-medium mb-2">📝 Как добавить ребёнка?</p>
                         <div className="space-y-3">
                           <ol className="text-sm space-y-1.5 list-decimal list-inside">
-                            <li>Нажмите на кнопку "Добавить ребёнка" ниже или перейдите на главную страницу → вкладка <strong>"Семья"</strong></li>
+                            <li>Нажмите на кнопку "Добавить ребёнка" ниже, или на вкладке <strong>"Семья"</strong> на главной</li>
                             <li>Заполните форму: <strong>имя</strong>, <strong>роль</strong> (Сын/Дочь/Ребёнок), <strong>возраст</strong> (необязательно)</li>
                             <li>Выберите <strong>аватар</strong> или загрузите фото профиля</li>
                             <li>Нажмите "Добавить" — профиль появится автоматически в разделе "Дети"</li>

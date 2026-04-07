@@ -484,6 +484,8 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
               <CollapsibleContent className="mt-3">
                 <AlertDescription className="text-blue-800">
                   <ul className="space-y-1 text-sm">
+                    <li>• <strong>Добавить ребёнка</strong> — кнопка вверху страницы для создания детского профиля</li>
+                    <li>• <strong>Добавить члена семьи</strong> — карточка внизу списка, отправляет в настройки приглашений</li>
                     <li>• <strong>Прогресс-бар загруженности</strong> показывает, насколько занят член семьи</li>
                     <li>• <strong>Метрики</strong>: 📋 активные задачи, ✅ завершено сегодня, 📅 события, 🏆 достижения</li>
                     <li>• <strong>Кнопка "+ Задача"</strong> позволяет быстро назначить задание</li>
