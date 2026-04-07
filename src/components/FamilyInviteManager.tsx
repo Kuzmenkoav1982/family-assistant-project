@@ -122,7 +122,7 @@ export default function FamilyInviteManager() {
       const data = await response.json();
       
       if (data.success) {
-        alert(`✅ Код приглашения создан: ${data.invite.code}`);
+        alert(`✅ Приглашение создано! Скопируйте ссылку и отправьте родственнику.`);
         fetchInvites();
         setShowCreateDialog(false);
       } else {

@@ -49,7 +49,7 @@ export function InviteListCard({
           Приглашения в семью
         </CardTitle>
         <CardDescription>
-          Создавайте коды для приглашения родственников
+          Создавайте ссылки для приглашения родственников
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -75,17 +75,17 @@ export function InviteListCard({
                     <h5 className="font-bold text-lg">Создайте приглашение</h5>
                   </div>
                   <p className="text-sm text-gray-700">
-                    Нажмите кнопку «Создать приглашение» ниже. Вы получите уникальный код (например: ABC123).
+                    Нажмите кнопку «Создать приглашение» ниже. Система сгенерирует ссылку для вашего родственника.
                   </p>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
-                    <h5 className="font-bold text-lg">Отправьте приглашение</h5>
+                    <h5 className="font-bold text-lg">Отправьте ссылку</h5>
                   </div>
                   <p className="text-sm text-gray-700">
-                    Отправьте код или ссылку родственнику удобным способом: скопируйте, поделитесь через мессенджер или отправьте по SMS/Email.
+                    Скопируйте ссылку или поделитесь ей через мессенджер (Telegram, WhatsApp, MAX и другие).
                   </p>
                 </div>
 
@@ -94,26 +94,12 @@ export function InviteListCard({
                     <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">3</div>
                     <h5 className="font-bold text-lg">Родственник присоединяется</h5>
                   </div>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800 mb-1">🔗 Если получил ссылку:</p>
-                      <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
-                        <li>Откроется страница приглашения (код подставится автоматически)</li>
-                        <li>Нужно войти в аккаунт или зарегистрироваться</li>
-                        <li>Ввести своё имя и выбрать степень родства</li>
-                        <li>Нажать «Присоединиться»</li>
-                      </ol>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800 mb-1">📝 Если получил только код (ABC123):</p>
-                      <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
-                        <li>Зайти на сайт и войти/зарегистрироваться</li>
-                        <li>Открыть Настройки → Семья → «Присоединиться к семье»</li>
-                        <li>Ввести код, имя и степень родства</li>
-                        <li>Нажать «Присоединиться»</li>
-                      </ol>
-                    </div>
-                  </div>
+                  <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside ml-1">
+                    <li>Родственник переходит по ссылке</li>
+                    <li>Входит в аккаунт или создаёт новый</li>
+                    <li>Вводит своё имя и выбирает степень родства</li>
+                    <li>Нажимает «Присоединиться» — и он в семье!</li>
+                  </ol>
                 </div>
 
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-300">
@@ -133,8 +119,8 @@ export function InviteListCard({
                   </div>
                   <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
                     <li>Приглашение действует 7 дней (настраивается при создании)</li>
-                    <li>Можно ограничить количество использований кода</li>
-                    <li>Удаляйте неиспользованные коды для безопасности</li>
+                    <li>Можно ограничить количество использований ссылки</li>
+                    <li>Удаляйте неиспользованные приглашения для безопасности</li>
                     <li>Один человек может быть только в одной семье одновременно</li>
                   </ul>
                 </div>
