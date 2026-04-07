@@ -24,6 +24,7 @@ export default function JoinFamily() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const codeFromUrl = searchParams.get('code');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [familyInfo, setFamilyInfo] = useState<any>(null);
@@ -301,21 +302,30 @@ export default function JoinFamily() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="inviteCode">Код приглашения</Label>
-              <div className="relative mt-2">
-                <Icon name="Key" size={18} className="absolute left-3 top-3 text-gray-400" />
-                <Input
-                  id="inviteCode"
-                  type="text"
-                  placeholder="Введите код"
-                  value={formData.inviteCode}
-                  onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value.toUpperCase() })}
-                  className="pl-10 uppercase"
-                  disabled={isLoading}
-                />
+            {codeFromUrl ? (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <Icon name="CheckCircle" size={18} className="text-green-600 flex-shrink-0" />
+                <span className="text-sm text-green-800">
+                  Код приглашения: <strong>{formData.inviteCode}</strong>
+                </span>
               </div>
-            </div>
+            ) : (
+              <div>
+                <Label htmlFor="inviteCode">Код приглашения</Label>
+                <div className="relative mt-2">
+                  <Icon name="Key" size={18} className="absolute left-3 top-3 text-gray-400" />
+                  <Input
+                    id="inviteCode"
+                    type="text"
+                    placeholder="Введите код"
+                    value={formData.inviteCode}
+                    onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value.toUpperCase() })}
+                    className="pl-10 uppercase"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="relationship">Степень родства</Label>

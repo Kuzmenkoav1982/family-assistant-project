@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,6 +11,7 @@ import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
 import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
+import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { calculateMemberWorkload, getWorkloadDescription } from '@/utils/memberWorkload';
 import { loadWidgetSettings } from '@/types/widgetSettings';
 import type { FamilyMember } from '@/types/family.types';
@@ -377,6 +379,7 @@ function ensureOwnerFirst(members: FamilyMember[]): FamilyMember[] {
 export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = [], events = [], onAssignTask }: FamilyMembersGridProps) {
   const members = ensureOwnerFirst(rawMembers);
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [showAddChildDialog, setShowAddChildDialog] = useState(false);
   
   if (members.length > 50) {
     return (
@@ -435,9 +438,33 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end mb-2">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <Button 
+          variant="outline"
+          size="sm"
+          className="border-blue-400 text-blue-600 hover:bg-blue-50 gap-1.5"
+          onClick={() => setShowAddChildDialog(true)}
+        >
+          <Icon name="Baby" size={14} />
+          Добавить ребёнка
+        </Button>
         <WidgetSettingsDialog />
       </div>
+
+      <Dialog open={showAddChildDialog} onOpenChange={setShowAddChildDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Добавить ребёнка</DialogTitle>
+          </DialogHeader>
+          <AddFamilyMemberForm 
+            isChild={true}
+            onSubmit={() => {
+              setShowAddChildDialog(false);
+              window.location.reload();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
       
       <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
         <Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
