@@ -10,7 +10,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { LazyImage } from '@/components/ui/LazyImage';
 import Icon from '@/components/ui/icon';
 import { VirtualizedList } from '@/components/VirtualizedList';
-import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { calculateMemberWorkload, getWorkloadDescription } from '@/utils/memberWorkload';
 import { loadWidgetSettings } from '@/types/widgetSettings';
@@ -438,19 +437,6 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2 gap-2">
-        <Button 
-          variant="outline"
-          size="sm"
-          className="border-blue-400 text-blue-600 hover:bg-blue-50 gap-1.5"
-          onClick={() => setShowAddChildDialog(true)}
-        >
-          <Icon name="Baby" size={14} />
-          Добавить ребёнка
-        </Button>
-        <WidgetSettingsDialog />
-      </div>
-
       <Dialog open={showAddChildDialog} onOpenChange={setShowAddChildDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -484,8 +470,8 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
               <CollapsibleContent className="mt-3">
                 <AlertDescription className="text-blue-800">
                   <ul className="space-y-1 text-sm">
-                    <li>• <strong>Добавить ребёнка</strong> — кнопка вверху страницы для создания детского профиля</li>
-                    <li>• <strong>Добавить члена семьи</strong> — карточка внизу списка, отправляет в настройки приглашений</li>
+                    <li>• <strong>Добавить ребёнка</strong> — кнопка под карточками для создания детского профиля</li>
+                    <li>• <strong>Добавить члена семьи</strong> — кнопка под карточками, отправляет в настройки приглашений</li>
                     <li>• <strong>Прогресс-бар загруженности</strong> показывает, насколько занят член семьи</li>
                     <li>• <strong>Метрики</strong>: 📋 активные задачи, ✅ завершено сегодня, 📅 события, 🏆 достижения</li>
                     <li>• <strong>Кнопка "+ Задача"</strong> позволяет быстро назначить задание</li>
@@ -511,7 +497,23 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
             onAssignTask={onAssignTask}
           />
         ))}
+      </div>
+
+      <div className="space-y-2">
         <AddMemberCard />
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all duration-200 border border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/30"
+          onClick={() => setShowAddChildDialog(true)}
+        >
+          <CardContent className="p-2.5 sm:p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Icon name="Baby" size={16} className="text-blue-500" />
+              </div>
+              <span className="text-xs sm:text-sm text-blue-600 font-medium">Добавить ребёнка</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
