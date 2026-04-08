@@ -361,9 +361,21 @@ def list_invites(user_id: str) -> Dict[str, Any]:
     cur.close()
     conn.close()
     
+    result = []
+    for invite in invites:
+        d = dict(invite)
+        d['code'] = d.pop('invite_code', '')
+        if d.get('id'):
+            d['id'] = str(d['id'])
+        if d.get('expires_at'):
+            d['expires_at'] = d['expires_at'].isoformat()
+        if d.get('created_at'):
+            d['created_at'] = d['created_at'].isoformat()
+        result.append(d)
+    
     return {
         'success': True,
-        'invites': [dict(invite) for invite in invites]
+        'invites': result
     }
 
 def delete_invite(user_id: str, invite_id: str) -> Dict[str, Any]:
