@@ -57,7 +57,6 @@ export function InviteListCard({
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg overflow-hidden">
             <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-purple-100 transition-colors">
               <div className="flex items-center gap-2">
-                <Icon name="BookOpen" size={18} className="text-purple-600" />
                 <h4 className="font-semibold">📖 Инструкция: Как пригласить родственников?</h4>
               </div>
               <Icon 
@@ -128,6 +127,16 @@ export function InviteListCard({
             </CollapsibleContent>
           </div>
         </Collapsible>
+
+        <a
+          href="https://rutube.ru/shorts/884201303f316e621dfd740cbb7135dc/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 w-full justify-center bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+        >
+          <Icon name="PlayCircle" size={18} />
+          Видео инструкция
+        </a>
 
         <div className="space-y-3">
           {invites.length === 0 ? (
