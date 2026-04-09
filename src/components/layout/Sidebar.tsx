@@ -195,6 +195,16 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       ]
     },
     {
+      id: 'articles',
+      title: 'Полезные статьи',
+      icon: 'BookOpen',
+      iconColor: 'text-orange-600',
+      accentBg: 'bg-orange-50 dark:bg-orange-950/40',
+      items: [
+        { id: 'articles', label: 'Все статьи', icon: 'FileText', path: '/articles' }
+      ]
+    },
+    {
       id: 'in-dev',
       title: 'В разработке',
       icon: 'Wrench',

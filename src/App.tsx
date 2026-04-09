@@ -149,6 +149,8 @@ const Tasks = lazy(() => import("./pages/Tasks"));
 const Goals = lazy(() => import("./pages/Goals"));
 const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
 const MarketingSale = lazy(() => import("./pages/MarketingSale"));
+const Articles = lazy(() => import("./pages/Articles"));
+const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -317,6 +319,8 @@ const App = () => {
                       <Route path="/family-policy" element={<FamilyPolicy />} />
                       <Route path="/what-is-family" element={<WhatIsFamily />} />
                       <Route path="/family-news" element={<FamilyNews />} />
+                      <Route path="/articles" element={<Articles />} />
+                      <Route path="/articles/:slug" element={<ArticleDetail />} />
                       <Route path="/family-invite" element={<FamilyInvite />} />
                       <Route path="/presentation" element={<Presentation />} />
                       <Route path="/psychologist" element={<FamilyPsychologist />} />
