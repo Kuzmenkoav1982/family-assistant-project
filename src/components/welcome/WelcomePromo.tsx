@@ -109,7 +109,7 @@ const sections = [
     description: 'Семейный кошелёк, доходы, расходы и бюджет по категориям',
     gradient: 'from-emerald-500 to-teal-500',
     features: ['Кошелёк', 'Бюджет', 'Расходы', 'Аналитика'],
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1cf4ea7b-53fb-497f-be19-04cf4d44bc7e.jpg',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/948ca762-0ad1-414a-970c-851acc55dec5.PNG',
   },
   {
     icon: 'Car',
@@ -119,7 +119,7 @@ const sections = [
     description: 'Обслуживание авто, ремонты, документы и напоминания',
     gradient: 'from-slate-500 to-gray-600',
     features: ['Авто', 'Ремонты', 'Документы', 'Напоминания'],
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/66635d21-f97e-4e9a-9782-ccbf35ed3940.jpg',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/bf052582-efcb-4967-b89f-1a9caa5f50bf.PNG',
   },
   {
     icon: 'BookOpen',
@@ -129,7 +129,7 @@ const sections = [
     description: 'Народные пословицы, семейные заповеди и жизненные принципы',
     gradient: 'from-yellow-500 to-amber-600',
     features: ['Пословицы', 'Заповеди', 'Традиции'],
-    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/07e15a1e-c994-426c-9adf-64f8e5b4ea91.jpg',
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/b1090113-d464-4a57-8f29-fde89a843e20.PNG',
   },
 ];
 
