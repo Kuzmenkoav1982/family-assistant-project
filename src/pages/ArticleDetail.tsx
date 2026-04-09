@@ -124,6 +124,32 @@ export default function ArticleDetail() {
             </Card>
           </article>
 
+          {article.sources && article.sources.length > 0 && (
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon name="BookCheck" size={20} className="text-blue-600" />
+                  <h3 className="font-bold text-blue-900">Источники и ссылки</h3>
+                </div>
+                <ul className="space-y-2">
+                  {article.sources.map((source, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <Icon name="ExternalLink" size={14} className="text-blue-400 mt-1 flex-shrink-0" />
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-700 hover:text-blue-900 hover:underline"
+                      >
+                        {source.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
             <CardContent className="p-6 text-center space-y-3">
               <div className="bg-orange-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
