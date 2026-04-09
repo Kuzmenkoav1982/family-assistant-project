@@ -98,6 +98,11 @@ export default function ArticleDetail() {
                 {article.description}
               </p>
 
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Icon name="User" size={14} />
+                <span>{article.author}</span>
+              </div>
+
               <div className="flex flex-wrap gap-2">
                 {article.tags.map(tag => (
                   <span key={tag} className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
