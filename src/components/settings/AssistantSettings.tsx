@@ -8,12 +8,10 @@ import Icon from '@/components/ui/icon';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { useToast } from '@/hooks/use-toast';
 import AssistantTypeSelectorDialog from '@/components/AssistantTypeSelectorDialog';
-import { useDemoMode } from '@/contexts/DemoModeContext';
 
 export default function AssistantSettings() {
   const { assistantType, assistantName, assistantLevel, setAssistantName, resetSelection } = useAIAssistant();
   const { toast } = useToast();
-  const { isDemoMode } = useDemoMode();
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(assistantName);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
@@ -35,7 +33,6 @@ export default function AssistantSettings() {
   };
 
   if (!assistantType) {
-    if (isDemoMode) return null;
     return (
       <Card>
         <CardHeader>
@@ -157,21 +154,19 @@ export default function AssistantSettings() {
           )}
 
           {/* Смена типа */}
-          {!isDemoMode && (
-            <div className="pt-4 border-t">
-              <Button
-                onClick={handleChangeType}
-                variant="outline"
-                className="w-full"
-              >
-                <Icon name="RefreshCw" className="mr-2" size={18} />
-                Сменить тип ассистента
-              </Button>
-              <p className="text-xs text-gray-500 text-center mt-2">
-                История общения сохранится
-              </p>
-            </div>
-          )}
+          <div className="pt-4 border-t">
+            <Button
+              onClick={handleChangeType}
+              variant="outline"
+              className="w-full"
+            >
+              <Icon name="RefreshCw" className="mr-2" size={18} />
+              Сменить тип ассистента
+            </Button>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              История общения сохранится
+            </p>
+          </div>
         </CardContent>
       </Card>
 
