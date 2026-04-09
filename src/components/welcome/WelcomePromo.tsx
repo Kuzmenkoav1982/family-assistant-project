@@ -101,6 +101,36 @@ const sections = [
     features: ['Домовой AI', 'Яндекс Алиса', 'Голос'],
     image: 'https://cdn.poehali.dev/files/437f51fb-d436-4fec-ba39-34c62f8f8cbc.PNG',
   },
+  {
+    icon: 'Wallet',
+    title: 'Финансы',
+    alt: 'Мобильное приложение для семейных финансов',
+    imgTitle: 'Семейное приложение функция «Финансы»',
+    description: 'Семейный кошелёк, доходы, расходы и бюджет по категориям',
+    gradient: 'from-emerald-500 to-teal-500',
+    features: ['Кошелёк', 'Бюджет', 'Расходы', 'Аналитика'],
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1cf4ea7b-53fb-497f-be19-04cf4d44bc7e.jpg',
+  },
+  {
+    icon: 'Car',
+    title: 'Гараж',
+    alt: 'Мобильное приложение для автомобиля и гаража',
+    imgTitle: 'Семейное приложение функция «Гараж»',
+    description: 'Обслуживание авто, ремонты, документы и напоминания',
+    gradient: 'from-slate-500 to-gray-600',
+    features: ['Авто', 'Ремонты', 'Документы', 'Напоминания'],
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/66635d21-f97e-4e9a-9782-ccbf35ed3940.jpg',
+  },
+  {
+    icon: 'BookOpen',
+    title: 'Мудрость народа',
+    alt: 'Мобильное приложение народная мудрость и пословицы',
+    imgTitle: 'Семейное приложение функция «Мудрость народа»',
+    description: 'Народные пословицы, семейные заповеди и жизненные принципы',
+    gradient: 'from-yellow-500 to-amber-600',
+    features: ['Пословицы', 'Заповеди', 'Традиции'],
+    image: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/07e15a1e-c994-426c-9adf-64f8e5b4ea91.jpg',
+  },
 ];
 
 export default function WelcomePromo() {
@@ -110,7 +140,7 @@ export default function WelcomePromo() {
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Icon name="LayoutGrid" size={16} />
-            10 разделов в одном приложении
+            13 разделов в одном приложении
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
             Мобильное приложение со всеми необходимыми функциями
