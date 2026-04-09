@@ -106,6 +106,9 @@ export default function useIndexEffects({ state, tasks, hasCompletedSetup, searc
   }, []);
 
   useEffect(() => {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) return;
+
     const userData = localStorage.getItem('userData');
     let hasFamilySetup = false;
 
