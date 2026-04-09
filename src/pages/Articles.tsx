@@ -48,7 +48,7 @@ export default function Articles() {
           <SectionHero
             title="Полезные статьи"
             subtitle="Экспертные советы для счастливой семейной жизни"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d5779686-8c50-4133-926f-a8290f3fab9b.jpg"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fe98fb-bcd0-45d1-b08b-60dad7fd867a.jpg"
             backPath="/"
           />
 
