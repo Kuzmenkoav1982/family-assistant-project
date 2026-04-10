@@ -117,6 +117,9 @@ const FamilyCodeHub = lazy(() => import("./pages/FamilyCodeHub"));
 const FamilyMatrixPersonal = lazy(() => import("./pages/FamilyMatrixPersonal"));
 const FamilyMatrixCouple = lazy(() => import("./pages/FamilyMatrixCouple"));
 const FamilyMatrixFamily = lazy(() => import("./pages/FamilyMatrixFamily"));
+const FamilyMatrixRituals = lazy(() => import("./pages/FamilyMatrixRituals"));
+const FamilyMatrixChild = lazy(() => import("./pages/FamilyMatrixChild"));
+const FamilyMatrixName = lazy(() => import("./pages/FamilyMatrixName"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
@@ -327,6 +330,9 @@ const App = () => {
                       <Route path="/family-matrix/personal" element={<FamilyMatrixPersonal />} />
                       <Route path="/family-matrix/couple" element={<FamilyMatrixCouple />} />
                       <Route path="/family-matrix/family" element={<FamilyMatrixFamily />} />
+                      <Route path="/family-matrix/rituals" element={<FamilyMatrixRituals />} />
+                      <Route path="/family-matrix/child" element={<FamilyMatrixChild />} />
+                      <Route path="/family-matrix/name" element={<FamilyMatrixName />} />
                       <Route path="/articles" element={<Articles />} />
                       <Route path="/articles/:slug" element={<ArticleDetail />} />
                       <Route path="/family-invite" element={<FamilyInvite />} />
