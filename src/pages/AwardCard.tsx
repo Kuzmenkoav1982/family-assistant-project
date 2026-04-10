@@ -33,16 +33,48 @@ export default function AwardCard() {
     setIsDownloading(true);
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
+        imageTimeout: 0,
+        removeContainer: false,
       });
+
+      const tryExport = (quality: number): string => {
+        return canvas.toDataURL('image/png');
+      };
+
+      let dataUrl = tryExport(1);
+
+      const getFileSize = (url: string) => {
+        const base64 = url.split(',')[1];
+        return Math.ceil(base64.length * 0.75);
+      };
+
+      let fileSize = getFileSize(dataUrl);
+
+      if (fileSize > 2 * 1024 * 1024) {
+        const targetCanvas = document.createElement('canvas');
+        const ratio = Math.sqrt((2 * 1024 * 1024) / fileSize) * 0.95;
+        targetCanvas.width = Math.floor(canvas.width * ratio);
+        targetCanvas.height = Math.floor(canvas.height * ratio);
+        const ctx = targetCanvas.getContext('2d');
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(canvas, 0, 0, targetCanvas.width, targetCanvas.height);
+          dataUrl = targetCanvas.toDataURL('image/png');
+          fileSize = getFileSize(dataUrl);
+        }
+      }
+
+      console.log(`Карточка: ${canvas.width}x${canvas.height}px, размер файла: ${(fileSize / 1024 / 1024).toFixed(2)} МБ`);
 
       const link = document.createElement('a');
       link.download = 'Nasha-Semya-Award-Card.png';
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.click();
     } catch (e) {
       console.error('Ошибка при скачивании карточки:', e);
