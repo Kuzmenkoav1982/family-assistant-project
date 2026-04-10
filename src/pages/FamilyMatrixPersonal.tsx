@@ -8,10 +8,14 @@ import { Helmet } from 'react-helmet-async';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateNumerologyProfile } from '@/lib/numerology';
 import { calculatePythagorasSquare } from '@/lib/pythagoras-square';
+import { calculateAstrologyProfile } from '@/lib/astrology';
+import { calculateDestinyMatrix } from '@/lib/tarot-arcana';
 import NumerologyCard from '@/components/family-code/NumerologyCard';
 import PythagorasGrid from '@/components/family-code/PythagorasGrid';
 import PythagorasLines from '@/components/family-code/PythagorasLines';
 import PersonalSummary from '@/components/family-code/PersonalSummary';
+import AstrologyCard from '@/components/family-code/AstrologyCard';
+import TarotMatrix from '@/components/family-code/TarotMatrix';
 import type { FamilyMember } from '@/types/family.types';
 
 function getMemberBirthDate(member: FamilyMember): string | null {
@@ -78,7 +82,9 @@ export default function FamilyMatrixPersonal() {
     try {
       const numerology = calculateNumerologyProfile(selectedMember.name, birthDate);
       const pythagoras = calculatePythagorasSquare(birthDate);
-      return { numerology, pythagoras };
+      const astrology = calculateAstrologyProfile(birthDate);
+      const destinyMatrix = calculateDestinyMatrix(birthDate);
+      return { numerology, pythagoras, astrology, destinyMatrix };
     } catch {
       return null;
     }
@@ -163,6 +169,8 @@ export default function FamilyMatrixPersonal() {
                 memberName={selectedMember.name}
                 numerology={analysis.numerology}
                 pythagoras={analysis.pythagoras}
+                astrology={analysis.astrology}
+                destinyMatrix={analysis.destinyMatrix}
               />
 
               <div>
@@ -188,6 +196,26 @@ export default function FamilyMatrixPersonal() {
                   diagonals={analysis.pythagoras.diagonals}
                 />
               </div>
+
+              {analysis.astrology && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    <Icon name="Star" size={20} className="text-indigo-600" />
+                    Астрология
+                  </h3>
+                  <AstrologyCard profile={analysis.astrology} />
+                </div>
+              )}
+
+              {analysis.destinyMatrix && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    <Icon name="Wand2" size={20} className="text-amber-600" />
+                    Матрица Судьбы — Арканы Таро
+                  </h3>
+                  <TarotMatrix matrix={analysis.destinyMatrix} />
+                </div>
+              )}
             </div>
           )}
         </div>

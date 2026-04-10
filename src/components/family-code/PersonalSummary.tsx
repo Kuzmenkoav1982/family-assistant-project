@@ -1,15 +1,17 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import type { NumerologyProfile, PythagorasSquare } from '@/types/family-code.types';
+import type { NumerologyProfile, PythagorasSquare, AstrologyProfile, DestinyMatrix } from '@/types/family-code.types';
 
 interface PersonalSummaryProps {
   memberName: string;
   numerology: NumerologyProfile;
   pythagoras: PythagorasSquare;
+  astrology?: AstrologyProfile | null;
+  destinyMatrix?: DestinyMatrix | null;
 }
 
-export default function PersonalSummary({ memberName, numerology, pythagoras }: PersonalSummaryProps) {
+export default function PersonalSummary({ memberName, numerology, pythagoras, astrology, destinyMatrix }: PersonalSummaryProps) {
   const topTraits = [
     ...pythagoras.dominantTraits.map(t => ({ label: t, type: 'strong' as const })),
     ...pythagoras.weakTraits.map(t => ({ label: t, type: 'weak' as const })),
@@ -28,7 +30,9 @@ export default function PersonalSummary({ memberName, numerology, pythagoras }: 
           <div>
             <h2 className="text-lg font-bold text-gray-900">{memberName}</h2>
             <p className="text-sm text-purple-700 font-medium">
-              {mainNumber.title} • Число жизненного пути {mainNumber.value}
+              {mainNumber.title} • Число {mainNumber.value}
+              {astrology && ` • ${astrology.zodiacEmoji} ${astrology.zodiacSignLabel}`}
+              {astrology && ` • ${astrology.chineseAnimalEmoji} ${astrology.chineseAnimalLabel}`}
             </p>
           </div>
         </div>
@@ -80,15 +84,14 @@ export default function PersonalSummary({ memberName, numerology, pythagoras }: 
           <p className="text-xs text-gray-600 leading-relaxed">{pythagoras.summary}</p>
         </div>
 
-        <div className="mt-3 p-3 bg-violet-100/60 rounded-lg border border-violet-200">
-          <p className="text-xs font-semibold text-violet-800 mb-1 flex items-center gap-1">
-            <Icon name="Clock" size={12} /> Следующие этапы
-          </p>
-          <p className="text-xs text-violet-700 leading-relaxed">
-            В ближайших обновлениях добавим: западную и восточную астрологию, арканы Таро, детальный психопортрет
-            и совместимость с другими членами семьи.
-          </p>
-        </div>
+        {destinyMatrix && (
+          <div className="mt-3 p-3 bg-amber-50/60 rounded-lg border border-amber-200">
+            <p className="text-xs font-semibold text-amber-800 mb-1 flex items-center gap-1">
+              <Icon name="Wand2" size={12} /> Миссия жизни
+            </p>
+            <p className="text-xs text-amber-700 leading-relaxed">{destinyMatrix.mission}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
