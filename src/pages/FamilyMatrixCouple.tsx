@@ -7,6 +7,7 @@ import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateCoupleCompatibility } from '@/lib/compatibility';
 import CompatibilityGauge from '@/components/family-code/CompatibilityGauge';
 import CompatibilityBreakdown from '@/components/family-code/CompatibilityBreakdown';
+import MemberAvatar from '@/components/ui/member-avatar';
 import type { FamilyMember } from '@/types/family.types';
 
 function getMemberBirthDate(m: FamilyMember): string | null {
@@ -32,7 +33,7 @@ function MemberButton({ member, isSelected, onClick, disabled }: {
             : 'border-dashed border-gray-200 bg-gray-50 opacity-40 cursor-not-allowed'
       }`}
     >
-      <span className="text-lg">{member.avatar_type === 'emoji' || !member.photo_url ? member.avatar : '👤'}</span>
+      <MemberAvatar member={member} size="sm" />
       <div className="text-left">
         <p className={`text-xs font-medium ${isSelected ? 'text-purple-800' : 'text-gray-800'}`}>{member.name}</p>
         <p className="text-[10px] text-gray-400">{hasBirth ? member.role : 'Нет даты рождения'}</p>

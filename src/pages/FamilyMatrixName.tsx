@@ -7,6 +7,7 @@ import SectionHero from '@/components/ui/section-hero';
 import { Helmet } from 'react-helmet-async';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { analyzeName, getTopNames, type NameAnalysis } from '@/lib/name-calculator';
+import MemberAvatar from '@/components/ui/member-avatar';
 import type { FamilyMember } from '@/types/family.types';
 
 function getBd(m: FamilyMember): string | null { return m.birth_date || m.birthDate || null; }
@@ -100,9 +101,9 @@ export default function FamilyMatrixName() {
               <Card><CardContent className="p-4 space-y-3">
                 <div className="flex items-center gap-3">
                   <p className="text-sm text-gray-600">Родители:</p>
-                  <Badge variant="outline">{p1.avatar_type === 'emoji' ? p1.avatar : '👤'} {p1.name}</Badge>
+                  <Badge variant="outline" className="flex items-center gap-1.5"><MemberAvatar member={p1} size="xs" /> {p1.name}</Badge>
                   <span className="text-gray-400">&</span>
-                  <Badge variant="outline">{p2.avatar_type === 'emoji' ? p2.avatar : '👤'} {p2.name}</Badge>
+                  <Badge variant="outline" className="flex items-center gap-1.5"><MemberAvatar member={p2} size="xs" /> {p2.name}</Badge>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant={gender === 'male' ? 'default' : 'outline'} onClick={() => setGender('male')}>👦 Мальчик</Button>

@@ -6,6 +6,7 @@ import SectionHero from '@/components/ui/section-hero';
 import { Helmet } from 'react-helmet-async';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateChildCode } from '@/lib/child-code';
+import MemberAvatar from '@/components/ui/member-avatar';
 import type { FamilyMember } from '@/types/family.types';
 
 function getBd(m: FamilyMember): string | null { return m.birth_date || m.birthDate || null; }
@@ -39,7 +40,7 @@ export default function FamilyMatrixChild() {
                 {(children.length > 0 ? children : allWithBirth).map(m => (
                   <button key={m.id} onClick={() => setSelectedId(selectedId === m.id ? null : m.id)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${selectedId === m.id ? 'border-sky-500 bg-sky-50 shadow-md' : 'border-gray-200 hover:border-sky-300'}`}>
-                    <span className="text-lg">{m.avatar_type === 'emoji' ? m.avatar : '👤'}</span>
+                    <MemberAvatar member={m} size="sm" />
                     <span className="text-xs font-medium">{m.name}</span>
                   </button>
                 ))}

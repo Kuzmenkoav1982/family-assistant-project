@@ -16,6 +16,7 @@ import PythagorasLines from '@/components/family-code/PythagorasLines';
 import PersonalSummary from '@/components/family-code/PersonalSummary';
 import AstrologyCard from '@/components/family-code/AstrologyCard';
 import TarotMatrix from '@/components/family-code/TarotMatrix';
+import MemberAvatar from '@/components/ui/member-avatar';
 import type { FamilyMember } from '@/types/family.types';
 
 function getMemberBirthDate(member: FamilyMember): string | null {
@@ -48,7 +49,7 @@ function MemberSelector({
                   : 'border-dashed border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
             }`}
           >
-            <span className="text-lg">{m.avatar_type === 'emoji' || !m.photo_url ? m.avatar : '👤'}</span>
+            <MemberAvatar member={m} size="sm" />
             <div className="text-left">
               <p className={`text-xs font-medium ${isSelected ? 'text-purple-800' : 'text-gray-800'}`}>
                 {m.name}

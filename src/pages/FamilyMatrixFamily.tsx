@@ -10,6 +10,7 @@ import { calculateAstrologyProfile, getElementLabel } from '@/lib/astrology';
 import { getFamilyEnergy } from '@/lib/biorhythms';
 import FamilyRelationMatrix from '@/components/family-code/FamilyRelationMatrix';
 import BiorhythmChart from '@/components/family-code/BiorhythmChart';
+import MemberAvatar from '@/components/ui/member-avatar';
 import type { FamilyMember } from '@/types/family.types';
 
 function getBd(m: FamilyMember): string | null {
@@ -166,9 +167,7 @@ export default function FamilyMatrixFamily() {
                     <Card key={member.id} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-2xl">
-                            {member.avatar_type === 'emoji' || !member.photo_url ? member.avatar : '👤'}
-                          </span>
+                          <MemberAvatar member={member} size="md" />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 truncate">{member.name}</p>
                             <p className="text-xs text-gray-500">{member.role}</p>
