@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -86,6 +87,51 @@ const subSections: SubSection[] = [
   },
 ];
 
+function CollapsibleBlock({
+  icon,
+  iconBg,
+  title,
+  borderColor,
+  bgGradient,
+  defaultOpen = false,
+  children,
+}: {
+  icon: string;
+  iconBg: string;
+  title: string;
+  borderColor: string;
+  bgGradient: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card className={`border-2 ${borderColor} ${bgGradient} overflow-hidden`}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-3 p-4 md:p-5 text-left hover:bg-white/20 transition-colors"
+      >
+        <div className={`${iconBg} p-2 rounded-xl flex-shrink-0`}>
+          <Icon name={icon} size={18} className="text-inherit" />
+        </div>
+        <h3 className="font-bold text-sm flex-1">{title}</h3>
+        <Icon
+          name="ChevronDown"
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="px-4 pb-4 md:px-5 md:pb-5">{children}</div>
+      </div>
+    </Card>
+  );
+}
+
 export default function FamilyCodeHub() {
   const navigate = useNavigate();
 
@@ -108,65 +154,142 @@ export default function FamilyCodeHub() {
             backPath="/"
           />
 
-          <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 via-violet-50 to-fuchsia-50">
-            <CardContent className="p-5 md:p-6">
-              <div className="flex items-start gap-3">
-                <div className="bg-purple-100 p-2.5 rounded-xl flex-shrink-0">
-                  <Icon name="Sparkles" size={22} className="text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-purple-900 mb-2">Что такое Код Семьи?</h3>
-                  <p className="text-sm text-purple-800/80 leading-relaxed mb-3">
-                    Это единый раздел глубокого анализа членов вашей семьи. Система рассчитывает и комбинирует
-                    все пласты информации о человеке для максимально точного портрета и анализа совместимости:
+          <CollapsibleBlock
+            icon="Info"
+            iconBg="bg-amber-100 text-amber-600"
+            title="Как это работает?"
+            borderColor="border-amber-200"
+            bgGradient="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50"
+          >
+            <div className="space-y-3">
+              <p className="text-sm text-amber-900/80 leading-relaxed">
+                «Код Семьи» — это система глубокого анализа каждого члена вашей семьи и их совместимости.
+                Всё рассчитывается автоматически на основе имени и даты рождения.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
+                  <p className="text-xs font-semibold text-amber-900 mb-1.5 flex items-center gap-1.5">
+                    <Icon name="UserCircle2" size={14} className="text-amber-600" />
+                    Шаг 1. Заполните профили
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Icon name="Calculator" size={14} className="text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-900">Нумерология</span>
-                      </div>
-                      <p className="text-[11px] text-purple-800/70 leading-tight">
-                        Числа судьбы, квадрат Пифагора
-                      </p>
-                    </div>
-                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Icon name="Star" size={14} className="text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-900">Астрология</span>
-                      </div>
-                      <p className="text-[11px] text-purple-800/70 leading-tight">
-                        Зодиак, Бацзы, стихии
-                      </p>
-                    </div>
-                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Icon name="Wand2" size={14} className="text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-900">Арканы</span>
-                      </div>
-                      <p className="text-[11px] text-purple-800/70 leading-tight">
-                        Таро-расклад судьбы
-                      </p>
-                    </div>
-                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Icon name="Heart" size={14} className="text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-900">Психология</span>
-                      </div>
-                      <p className="text-[11px] text-purple-800/70 leading-tight">
-                        Языки любви, психотипы
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-purple-800/80 leading-relaxed mt-3">
-                    Совместимость супругов анализируется по <strong>всем четырём пластам одновременно</strong>:
-                    числа, знаки зодиака, арканы и психотипы. Получаете оценку 0-100% по каждому направлению
-                    и общий вердикт с конкретными рекомендациями.
+                  <p className="text-[11px] text-amber-800/70 leading-relaxed">
+                    Укажите дату рождения и ФИО каждого члена семьи в разделе «Семья». Этого достаточно для полного расчёта нумерологии, астрологии и арканов.
+                  </p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
+                  <p className="text-xs font-semibold text-amber-900 mb-1.5 flex items-center gap-1.5">
+                    <Icon name="Calculator" size={14} className="text-amber-600" />
+                    Шаг 2. Автоматический расчёт
+                  </p>
+                  <p className="text-[11px] text-amber-800/70 leading-relaxed">
+                    Система рассчитает все числа судьбы, квадрат Пифагора, знак зодиака, стихию Бацзы и 4 аркана Таро — полностью автоматически.
+                  </p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
+                  <p className="text-xs font-semibold text-amber-900 mb-1.5 flex items-center gap-1.5">
+                    <Icon name="Heart" size={14} className="text-amber-600" />
+                    Шаг 3. Совместимость пары
+                  </p>
+                  <p className="text-[11px] text-amber-800/70 leading-relaxed">
+                    Совместимость считается по 4 пластам одновременно: числа + стихии + арканы + психотипы. Оценка 0-100% по каждому направлению.
+                  </p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
+                  <p className="text-xs font-semibold text-amber-900 mb-1.5 flex items-center gap-1.5">
+                    <Icon name="MessageCircle" size={14} className="text-amber-600" />
+                    Шаг 4. Персональные советы
+                  </p>
+                  <p className="text-[11px] text-amber-800/70 leading-relaxed">
+                    Домовой даёт рекомендации на основе ВСЕХ расчётов и данных анкет. Советы адаптируются под ваши уникальные числа и стихии.
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
+                <p className="text-xs font-semibold text-amber-900 mb-2">Что анализируется:</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {[
+                    { icon: 'Calculator', label: 'Нумерология', desc: '6 чисел судьбы, квадрат Пифагора, линии силы' },
+                    { icon: 'Star', label: 'Астрология', desc: 'Зодиак, стихия, Бацзы (китайская астрология)' },
+                    { icon: 'Wand2', label: 'Арканы Таро', desc: '4 аркана: личность, судьба, год, отношения' },
+                    { icon: 'Heart', label: 'Психология', desc: 'Языки любви, психотипы, мотивация' },
+                  ].map(item => (
+                    <div key={item.label} className="text-center">
+                      <Icon name={item.icon} size={18} className="text-amber-600 mx-auto mb-1" />
+                      <p className="text-[11px] font-semibold text-amber-900">{item.label}</p>
+                      <p className="text-[10px] text-amber-800/60 leading-tight">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <ul className="text-xs text-amber-900/70 space-y-1">
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" size={12} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                  <span>Все расчёты происходят мгновенно — ничего не нужно ждать</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" size={12} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                  <span>Чем больше данных в анкете — тем точнее анализ и советы</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Icon name="Check" size={12} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                  <span>Доступ можно отключить в настройках → Права доступа</span>
+                </li>
+              </ul>
+            </div>
+          </CollapsibleBlock>
+
+          <CollapsibleBlock
+            icon="Sparkles"
+            iconBg="bg-purple-100 text-purple-600"
+            title="Что такое Код Семьи?"
+            borderColor="border-purple-200"
+            bgGradient="bg-gradient-to-r from-purple-50 via-violet-50 to-fuchsia-50"
+          >
+            <div className="space-y-3">
+              <p className="text-sm text-purple-800/80 leading-relaxed">
+                Это единый раздел глубокого анализа членов вашей семьи. Система рассчитывает и комбинирует
+                все пласты информации о человеке для максимально точного портрета и анализа совместимости:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Icon name="Calculator" size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-900">Нумерология</span>
+                  </div>
+                  <p className="text-[11px] text-purple-800/70 leading-tight">Числа судьбы, квадрат Пифагора</p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Icon name="Star" size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-900">Астрология</span>
+                  </div>
+                  <p className="text-[11px] text-purple-800/70 leading-tight">Зодиак, Бацзы, стихии</p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Icon name="Wand2" size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-900">Арканы</span>
+                  </div>
+                  <p className="text-[11px] text-purple-800/70 leading-tight">Таро-расклад судьбы</p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Icon name="Heart" size={14} className="text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-900">Психология</span>
+                  </div>
+                  <p className="text-[11px] text-purple-800/70 leading-tight">Языки любви, психотипы</p>
+                </div>
+              </div>
+              <p className="text-sm text-purple-800/80 leading-relaxed">
+                Совместимость супругов анализируется по <strong>всем четырём пластам одновременно</strong>:
+                числа, знаки зодиака, арканы и психотипы. Получаете оценку 0-100% по каждому направлению
+                и общий вердикт с конкретными рекомендациями.
+              </p>
+            </div>
+          </CollapsibleBlock>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {subSections.map((section) => (
@@ -221,41 +344,6 @@ export default function FamilyCodeHub() {
               </Card>
             ))}
           </div>
-
-          <Card className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-2 border-amber-200">
-            <CardContent className="p-5 md:p-6">
-              <div className="flex items-start gap-3">
-                <div className="bg-amber-100 p-2.5 rounded-xl flex-shrink-0">
-                  <Icon name="Info" size={22} className="text-amber-600" />
-                </div>
-                <div className="flex-1 space-y-2">
-                  <h3 className="font-bold text-amber-900">Как это работает?</h3>
-                  <ul className="text-sm text-amber-900/80 space-y-1.5 list-none">
-                    <li className="flex items-start gap-2">
-                      <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Укажите дату рождения и ФИО в профиле — этого достаточно для полного расчёта нумерологии, астрологии и арканов</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Система рассчитает все числа, квадрат Пифагора, зодиак, Бацзы и Таро-расклад автоматически</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Совместимость пары считается по всем пластам одновременно: числа + стихии + арканы + психотипы</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Домовой будет давать советы с учётом ВСЕХ расчётов и данных анкет обоих участников</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Доступ можно отключить в настройках → Права доступа</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </>
