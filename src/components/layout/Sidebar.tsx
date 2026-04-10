@@ -67,22 +67,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       ]
     },
     {
-      id: 'family-matrix',
-      title: 'Нумерология',
-      icon: 'Sparkles',
-      iconColor: 'text-purple-600',
-      accentBg: 'bg-purple-50 dark:bg-purple-950/40',
-      hubPath: '/family-matrix',
-      items: [
-        { id: 'family-matrix-personal', label: 'Личный код', icon: 'UserCircle2', path: '/family-matrix/personal' },
-        { id: 'family-matrix-couple', label: 'Код пары', icon: 'Heart', path: '/family-matrix/couple' },
-        { id: 'family-matrix-family', label: 'Код семьи', icon: 'Users', path: '/family-matrix/family' },
-        { id: 'family-matrix-rituals', label: 'Ритуалы примирения', icon: 'Flame', path: '/family-matrix/rituals' },
-        { id: 'family-matrix-child', label: 'Детский код', icon: 'Baby', path: '/family-matrix/child' },
-        { id: 'family-matrix-name', label: 'Имя для малыша', icon: 'Sparkles', path: '/family-matrix/name' }
-      ]
-    },
-    {
       id: 'health',
       title: 'Здоровье',
       icon: 'HeartPulse',
@@ -91,6 +75,23 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/health-hub',
       items: [
         { id: 'health', label: 'Здоровье семьи', icon: 'HeartPulse', path: '/health' }
+      ]
+    },
+    {
+      id: 'nutrition',
+      title: 'Питание',
+      icon: 'Apple',
+      iconColor: 'text-emerald-600',
+      accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      hubPath: '/nutrition',
+      items: [
+        { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
+        { id: 'diet-ai', label: 'ИИ-Диета', icon: 'Brain', path: '/nutrition/diet' },
+        { id: 'diet-preset', label: 'Готовые режимы', icon: 'ListChecks', path: '/nutrition/programs' },
+        { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products' },
+        { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
+        { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
+        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' }
       ]
     },
     {
@@ -120,23 +121,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'calendar', label: 'Календарь', icon: 'Calendar', path: '/calendar' },
         { id: 'purchases', label: 'План покупок', icon: 'ShoppingBag', path: '/purchases' },
         { id: 'analytics', label: 'Аналитика', icon: 'BarChart3', path: '/analytics' }
-      ]
-    },
-    {
-      id: 'nutrition',
-      title: 'Питание',
-      icon: 'Apple',
-      iconColor: 'text-emerald-600',
-      accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
-      hubPath: '/nutrition',
-      items: [
-        { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
-        { id: 'diet-ai', label: 'ИИ-Диета', icon: 'Brain', path: '/nutrition/diet' },
-        { id: 'diet-preset', label: 'Готовые режимы', icon: 'ListChecks', path: '/nutrition/programs' },
-        { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products' },
-        { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
-        { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
-        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' }
       ]
     },
     {
@@ -193,6 +177,22 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/development-hub',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
+      ]
+    },
+    {
+      id: 'family-matrix',
+      title: 'Нумерология',
+      icon: 'Sparkles',
+      iconColor: 'text-purple-600',
+      accentBg: 'bg-purple-50 dark:bg-purple-950/40',
+      hubPath: '/family-matrix',
+      items: [
+        { id: 'family-matrix-personal', label: 'Личный код', icon: 'UserCircle2', path: '/family-matrix/personal' },
+        { id: 'family-matrix-couple', label: 'Код пары', icon: 'Heart', path: '/family-matrix/couple' },
+        { id: 'family-matrix-family', label: 'Код семьи', icon: 'Users', path: '/family-matrix/family' },
+        { id: 'family-matrix-rituals', label: 'Ритуалы примирения', icon: 'Flame', path: '/family-matrix/rituals' },
+        { id: 'family-matrix-child', label: 'Детский код', icon: 'Baby', path: '/family-matrix/child' },
+        { id: 'family-matrix-name', label: 'Имя для малыша', icon: 'Sparkles', path: '/family-matrix/name' }
       ]
     },
     {
