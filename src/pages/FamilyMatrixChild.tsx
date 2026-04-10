@@ -30,7 +30,7 @@ export default function FamilyMatrixChild() {
       <Helmet><title>Детский код | Код Семьи</title></Helmet>
       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 p-4 lg:p-8 pb-20">
         <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero title="Детский код" subtitle="Таланты, склонности и рекомендации для родителей" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b01853ff-894d-4bfc-98e1-e32b7c13a7bc.jpg" backPath="/family-matrix" />
+          <SectionHero title="Детский код" subtitle="Таланты, склонности и рекомендации для родителей" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fab06202-41cb-4c97-bb9b-1d03d9e95e8f.jpg" backPath="/family-matrix" />
 
           <Card>
             <CardContent className="p-4">

@@ -74,7 +74,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-purple-50 dark:bg-purple-950/40',
       hubPath: '/family-matrix',
       items: [
-        { id: 'family-matrix-hub', label: 'Обзор раздела', icon: 'LayoutGrid', path: '/family-matrix' },
         { id: 'family-matrix-personal', label: 'Личный код', icon: 'UserCircle2', path: '/family-matrix/personal' },
         { id: 'family-matrix-couple', label: 'Код пары', icon: 'Heart', path: '/family-matrix/couple' },
         { id: 'family-matrix-family', label: 'Код семьи', icon: 'Users', path: '/family-matrix/family' },

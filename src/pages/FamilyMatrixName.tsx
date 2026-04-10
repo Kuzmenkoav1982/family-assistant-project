@@ -87,7 +87,7 @@ export default function FamilyMatrixName() {
       <Helmet><title>Имя для малыша | Код Семьи</title></Helmet>
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-4 lg:p-8 pb-20">
         <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero title="Имя для малыша" subtitle="Нумерологическая совместимость имени с родителями" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b01853ff-894d-4bfc-98e1-e32b7c13a7bc.jpg" backPath="/family-matrix" />
+          <SectionHero title="Имя для малыша" subtitle="Нумерологическая совместимость имени с родителями" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b25dcedf-1426-49a5-bab9-8060c6d36ffc.jpg" backPath="/family-matrix" />
 
           {!hasPair ? (
             <Card className="border-amber-200 bg-amber-50"><CardContent className="p-6 text-center">

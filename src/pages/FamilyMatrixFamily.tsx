@@ -90,7 +90,7 @@ export default function FamilyMatrixFamily() {
           <SectionHero
             title="Код семьи"
             subtitle="Энергетика семьи, взаимоотношения и биоритмы"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b01853ff-894d-4bfc-98e1-e32b7c13a7bc.jpg"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/193201a8-24e3-4c7a-ba2d-09da9c5381f1.jpg"
             backPath="/family-matrix"
           />
 

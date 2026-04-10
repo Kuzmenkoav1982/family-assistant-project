@@ -112,7 +112,7 @@ export default function FamilyMatrixPersonal() {
           <SectionHero
             title="Личный код"
             subtitle="Нумерологический расклад по дате рождения и имени"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b01853ff-894d-4bfc-98e1-e32b7c13a7bc.jpg"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/460c88cf-fc6e-4eff-99f8-9b5d71e7b34d.jpg"
             backPath="/family-matrix"
           />
 
