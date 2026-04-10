@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { buildFamilyContext } from '@/lib/domovoy-context';
 import Icon from '@/components/ui/icon';
 import {
   DropdownMenu,
@@ -46,6 +48,7 @@ const AIAssistantWidget = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { assistantType, assistantName, selectedRole } = useAIAssistant();
+  const { members } = useFamilyMembersContext();
 
   // Перетаскивание виджета (десктоп - для окна чата)
   const [position, setPosition] = useState(() => {
@@ -157,7 +160,19 @@ const AIAssistantWidget = () => {
       'astrologer': `${basePrompt} Ты астролог и специалист по восточной астрологии. Составляешь гороскопы, даёшь прогнозы на день/неделю/месяц, анализируешь совместимость знаков зодиака, учитываешь влияние планет на семейную жизнь и отношения. Используй данные о датах рождения членов семьи для персонализированных прогнозов.`
     };
 
-    return rolePrompts[role] || rolePrompts['family-assistant'];
+    let prompt = rolePrompts[role] || rolePrompts['family-assistant'];
+
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const familyCtx = buildFamilyContext(members, userData.id);
+      if (familyCtx) {
+        prompt += '\n\n' + familyCtx;
+      }
+    } catch {
+      // ignore context build errors
+    }
+
+    return prompt;
   };
 
   const scrollToBottom = () => {
