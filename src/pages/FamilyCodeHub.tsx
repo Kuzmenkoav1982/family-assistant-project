@@ -32,13 +32,13 @@ const subSections: SubSection[] = [
   {
     id: 'couple',
     title: 'Код пары',
-    description: 'Совместимость супругов: нумерологическая, астрологическая и психологическая. Сильные стороны и зоны роста',
+    description: 'Совместимость по всем 4 пластам: нумерология, астрология, арканы, психология. Оценка 0-100% и советы',
     icon: 'Heart',
     path: '/family-matrix/couple',
     gradient: 'from-rose-500 via-pink-500 to-red-500',
-    badge: 'Скоро',
-    badgeColor: 'bg-amber-100 text-amber-700',
-    ready: false,
+    badge: 'Совместимость',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
   },
   {
     id: 'family',
