@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import MemberAvatar from '@/components/ui/member-avatar';
 import type { FamilyMember } from '@/types/family.types';
 import { calculateCoupleCompatibility } from '@/lib/compatibility';
 
@@ -26,16 +27,14 @@ export default function FamilyRelationMatrix({ members }: FamilyRelationMatrixPr
   const membersWithBirth = members.filter(m => m.birth_date || m.birthDate);
 
   const matrix = useMemo(() => {
-    const results: { m1: string; m2: string; n1: string; n2: string; score: number }[] = [];
+    const results: { member1: FamilyMember; member2: FamilyMember; score: number }[] = [];
     for (let i = 0; i < membersWithBirth.length; i++) {
       for (let j = i + 1; j < membersWithBirth.length; j++) {
         const r = calculateCoupleCompatibility(membersWithBirth[i], membersWithBirth[j]);
         if (r) {
           results.push({
-            m1: membersWithBirth[i].id,
-            m2: membersWithBirth[j].id,
-            n1: membersWithBirth[i].name,
-            n2: membersWithBirth[j].name,
+            member1: membersWithBirth[i],
+            member2: membersWithBirth[j],
             score: r.score.overall,
           });
         }
@@ -71,12 +70,16 @@ export default function FamilyRelationMatrix({ members }: FamilyRelationMatrixPr
         <div className="space-y-2">
           {matrix.map((pair) => (
             <div
-              key={`${pair.m1}-${pair.m2}`}
+              key={`${pair.member1.id}-${pair.member2.id}`}
               className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-purple-50 transition-colors"
             >
+              <div className="flex items-center -space-x-1.5 flex-shrink-0">
+                <MemberAvatar member={pair.member1} size="xs" className="ring-2 ring-white" />
+                <MemberAvatar member={pair.member2} size="xs" className="ring-2 ring-white" />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">
-                  {pair.n1} & {pair.n2}
+                  {pair.member1.name} & {pair.member2.name}
                 </p>
               </div>
               <div className="flex items-center gap-2">
