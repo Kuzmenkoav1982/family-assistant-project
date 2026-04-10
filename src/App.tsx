@@ -59,6 +59,7 @@ const Community = lazy(() => import("./pages/Community"));
 const MemberProfile = lazy(() => import("./pages/MemberProfile"));
 const FamilyCode = lazy(() => import("./pages/FamilyCode"));
 const Presentation = lazy(() => import("./pages/Presentation"));
+const AwardCard = lazy(() => import("./pages/AwardCard"));
 const FamilyPsychologist = lazy(() => import("./pages/FamilyPsychologist"));
 const FamilyRules = lazy(() => import("./pages/FamilyRules"));
 const LaunchPlan = lazy(() => import("./pages/LaunchPlan"));
@@ -337,6 +338,7 @@ const App = () => {
                       <Route path="/articles/:slug" element={<ArticleDetail />} />
                       <Route path="/family-invite" element={<FamilyInvite />} />
                       <Route path="/presentation" element={<Presentation />} />
+                      <Route path="/award-card" element={<AwardCard />} />
                       <Route path="/psychologist" element={<FamilyPsychologist />} />
                       <Route path="/rules" element={<FamilyRules />} />
                       <Route path="/voting" element={<VotingPage />} />
