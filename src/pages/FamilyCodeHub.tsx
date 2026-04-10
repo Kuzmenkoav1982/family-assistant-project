@@ -43,13 +43,13 @@ const subSections: SubSection[] = [
   {
     id: 'family',
     title: 'Код семьи',
-    description: 'Энергетика всей семьи, матрица взаимоотношений, биоритмы и дни силы для каждого',
+    description: 'Энергетика семьи сегодня, матрица взаимоотношений, биоритмы и дни силы для каждого',
     icon: 'Users',
     path: '/family-matrix/family',
     gradient: 'from-amber-500 via-orange-500 to-red-500',
-    badge: 'Скоро',
-    badgeColor: 'bg-amber-100 text-amber-700',
-    ready: false,
+    badge: 'Энергетика',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
   },
   {
     id: 'rituals',
