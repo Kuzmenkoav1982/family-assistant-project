@@ -67,7 +67,7 @@ export default function FamilyMatrixRituals() {
 
   return (
     <>
-      <Helmet><title>Ритуалы примирения | Код Семьи</title></Helmet>
+      <Helmet><title>Ритуалы примирения | Нумерология</title></Helmet>
       <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-4 lg:p-8 pb-20">
         <div className="max-w-4xl mx-auto space-y-5">
           <SectionHero title="Ритуалы примирения" subtitle="Персональные сценарии после ссор на основе ваших данных" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b20738ad-2590-49b8-aedf-a34483b659c2.jpg" backPath="/family-matrix" />

@@ -26,7 +26,7 @@ const subSections: SubSection[] = [
     icon: 'UserCircle2',
     path: '/family-matrix/personal',
     gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
-    badge: 'Нумерология',
+    badge: 'Расклад',
     badgeColor: 'bg-emerald-100 text-emerald-700',
     ready: true,
   },
@@ -138,18 +138,18 @@ export default function FamilyCodeHub() {
   return (
     <>
       <Helmet>
-        <title>Код Семьи — Нумерология, астрология и совместимость | Наша Семья</title>
+        <title>Нумерология — Астрология и совместимость | Наша Семья</title>
         <meta
           name="description"
-          content="Полный расклад на каждого члена семьи: нумерология, квадрат Пифагора, астрология, арканы судьбы. Совместимость супругов и анализ семьи."
+          content="Полный нумерологический расклад на каждого члена семьи: числа судьбы, квадрат Пифагора, астрология, арканы Таро. Совместимость супругов и анализ семьи."
         />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-4 lg:p-8 pb-20">
         <div className="max-w-7xl mx-auto space-y-6">
           <SectionHero
-            title="Код Семьи"
-            subtitle="Нумерология, астрология и совместимость членов семьи"
+            title="Нумерология"
+            subtitle="Числа судьбы, астрология, совместимость и арканы Таро"
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b01853ff-894d-4bfc-98e1-e32b7c13a7bc.jpg"
             backPath="/"
           />
@@ -163,7 +163,7 @@ export default function FamilyCodeHub() {
           >
             <div className="space-y-3">
               <p className="text-sm text-amber-900/80 leading-relaxed">
-                «Код Семьи» — это система глубокого анализа каждого члена вашей семьи и их совместимости.
+                «Нумерология» — система глубокого анализа каждого члена вашей семьи и их совместимости.
                 Всё рассчитывается автоматически на основе имени и даты рождения.
               </p>
 
@@ -244,7 +244,7 @@ export default function FamilyCodeHub() {
           <CollapsibleBlock
             icon="Sparkles"
             iconBg="bg-purple-100 text-purple-600"
-            title="Что такое Код Семьи?"
+            title="Что входит в раздел «Нумерология»?"
             borderColor="border-purple-200"
             bgGradient="bg-gradient-to-r from-purple-50 via-violet-50 to-fuchsia-50"
           >

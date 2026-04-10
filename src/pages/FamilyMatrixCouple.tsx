@@ -67,7 +67,7 @@ export default function FamilyMatrixCouple() {
   return (
     <>
       <Helmet>
-        <title>Код пары — Совместимость | Код Семьи</title>
+        <title>Код пары — Совместимость | Нумерология</title>
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 lg:p-8 pb-20">

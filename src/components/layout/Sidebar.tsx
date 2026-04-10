@@ -68,7 +68,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'family-matrix',
-      title: 'Код Семьи',
+      title: 'Нумерология',
       icon: 'Sparkles',
       iconColor: 'text-purple-600',
       accentBg: 'bg-purple-50 dark:bg-purple-950/40',
