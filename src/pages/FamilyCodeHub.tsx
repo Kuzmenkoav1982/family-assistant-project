@@ -291,6 +291,17 @@ export default function FamilyCodeHub() {
             </div>
           </CollapsibleBlock>
 
+          <div className="flex items-start gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+            <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+              <Icon name="Info" size={16} className="text-blue-600" />
+            </div>
+            <p className="text-xs text-blue-800/80 leading-relaxed">
+              Раздел «Нумерология» носит <strong>развлекательно-познавательный характер</strong> и основан на традиционных эзотерических системах (пифагорейская нумерология, астрология, Таро). 
+              Результаты не являются научно доказанными и <strong>не заменяют консультацию психолога, врача или другого специалиста</strong>. 
+              Используйте как инструмент для самопознания и вдохновения.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {subSections.map((section) => (
               <Card
