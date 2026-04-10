@@ -11,6 +11,9 @@ const MODULE_LABELS: Record<string, string> = {
   education: 'Образование',
   diary: 'Дневник',
   family: 'Семья',
+  tasks: 'Задачи',
+  events: 'События',
+  familymatrix: 'Код Семьи',
 };
 
 const ACTION_LABELS: Record<string, string> = {
@@ -35,6 +38,11 @@ const ACTION_LABELS: Record<string, string> = {
   invite: 'Приглашения',
   remove: 'Удаление участников',
   roles: 'Управление ролями',
+  assign: 'Назначение',
+  complete: 'Завершение',
+  complete_own: 'Завершение (своё)',
+  view_couple: 'Просмотр совместимости',
+  view_family: 'Просмотр семьи',
 };
 
 export default function PermissionsMatrix() {

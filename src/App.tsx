@@ -113,6 +113,7 @@ const StateSupport = lazy(() => import("./pages/StateSupport"));
 const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
 const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
 const FamilyNews = lazy(() => import("./pages/FamilyNews"));
+const FamilyCodeHub = lazy(() => import("./pages/FamilyCodeHub"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
@@ -319,6 +320,7 @@ const App = () => {
                       <Route path="/family-policy" element={<FamilyPolicy />} />
                       <Route path="/what-is-family" element={<WhatIsFamily />} />
                       <Route path="/family-news" element={<FamilyNews />} />
+                      <Route path="/family-matrix" element={<FamilyCodeHub />} />
                       <Route path="/articles" element={<Articles />} />
                       <Route path="/articles/:slug" element={<ArticleDetail />} />
                       <Route path="/family-invite" element={<FamilyInvite />} />

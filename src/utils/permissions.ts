@@ -1,7 +1,7 @@
 export type Role = 'admin' | 'parent' | 'guardian' | 'viewer' | 'child';
 
 export type Permission = {
-  module: 'profile' | 'health' | 'dreams' | 'finance' | 'education' | 'diary' | 'family' | 'tasks' | 'events';
+  module: 'profile' | 'health' | 'dreams' | 'finance' | 'education' | 'diary' | 'family' | 'tasks' | 'events' | 'familymatrix';
   action: string;
 };
 
@@ -15,7 +15,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     diary: ['view', 'add', 'edit', 'delete'],
     family: ['invite', 'remove', 'roles', 'delete'],
     tasks: ['view', 'add', 'edit', 'delete', 'assign', 'complete'],
-    events: ['view', 'add', 'edit', 'delete']
+    events: ['view', 'add', 'edit', 'delete'],
+    familymatrix: ['view', 'view_couple', 'view_family', 'edit']
   },
   parent: {
     profile: ['view', 'edit'],
@@ -26,7 +27,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     diary: ['view', 'add', 'edit', 'delete'],
     family: [],
     tasks: ['view', 'add', 'edit', 'assign', 'complete'],
-    events: ['view', 'add', 'edit']
+    events: ['view', 'add', 'edit'],
+    familymatrix: ['view', 'view_couple', 'view_family', 'edit']
   },
   guardian: {
     profile: ['view'],
@@ -37,7 +39,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     diary: ['view', 'add'],
     family: [],
     tasks: ['view', 'add', 'complete'],
-    events: ['view', 'add']
+    events: ['view', 'add'],
+    familymatrix: ['view', 'view_family']
   },
   viewer: {
     profile: ['view'],
@@ -48,7 +51,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     diary: ['view'],
     family: [],
     tasks: ['view'],
-    events: ['view']
+    events: ['view'],
+    familymatrix: ['view']
   },
   child: {
     profile: ['view_own', 'edit_own'],
@@ -59,7 +63,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<string, string[]>> = {
     diary: ['view_own', 'add_own', 'edit_own'],
     family: [],
     tasks: ['view_own', 'complete_own'],
-    events: ['view']
+    events: ['view'],
+    familymatrix: ['view_own']
   }
 };
 
