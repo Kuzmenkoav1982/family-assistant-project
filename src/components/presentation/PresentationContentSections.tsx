@@ -1564,6 +1564,27 @@ export function PresentationContentSections() {
           <p className="text-xs text-white/80">Generation AI Awards 2026 · Лучший стартап в области генеративного AI</p>
         </div>
       </SectionCard>
+
+      {/* AI-СЛАЙД 8: КАРТОЧКА ПРОЕКТА ДЛЯ ЗАЯВКИ */}
+      <SectionCard className="bg-gradient-to-br from-purple-100 via-indigo-50 to-pink-100 p-0 overflow-hidden">
+        <div className="relative">
+          <img
+            src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/60e64101-0695-4262-b77a-f8950122d4b4.jpg"
+            alt="Карточка проекта «Наша Семья» — Generation AI Awards 2026"
+            className="w-full h-auto block"
+          />
+        </div>
+        <div className="p-4 sm:p-6 bg-white border-t border-purple-100">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Image" size={16} className="text-purple-600" />
+            <h4 className="font-bold text-gray-800 text-sm">Карточка проекта для заявки</h4>
+          </div>
+          <p className="text-xs text-gray-600">
+            Горизонтальное изображение с логотипом, названием проекта и номинацией — 
+            для загрузки в поле «Карточка проекта» формы заявки Generation AI Awards 2026.
+          </p>
+        </div>
+      </SectionCard>
     </>
   );
 }
