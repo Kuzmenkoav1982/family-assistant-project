@@ -25,9 +25,9 @@ const subSections: SubSection[] = [
     icon: 'UserCircle2',
     path: '/family-matrix/personal',
     gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
-    badge: 'Скоро',
-    badgeColor: 'bg-amber-100 text-amber-700',
-    ready: false,
+    badge: 'Нумерология',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
   },
   {
     id: 'couple',
