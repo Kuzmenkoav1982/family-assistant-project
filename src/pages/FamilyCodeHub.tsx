@@ -115,11 +115,53 @@ export default function FamilyCodeHub() {
                   <Icon name="Sparkles" size={22} className="text-purple-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-purple-900 mb-1">Что такое Код Семьи?</h3>
-                  <p className="text-sm text-purple-800/80 leading-relaxed">
-                    Это единый раздел для глубокого анализа каждого члена вашей семьи через нумерологию,
-                    астрологию и психологию. Система рассчитывает персональные профили, анализирует совместимость
-                    супругов и даёт конкретные советы по взаимоотношениям на основе данных из анкет членов семьи.
+                  <h3 className="font-bold text-purple-900 mb-2">Что такое Код Семьи?</h3>
+                  <p className="text-sm text-purple-800/80 leading-relaxed mb-3">
+                    Это единый раздел глубокого анализа членов вашей семьи. Система рассчитывает и комбинирует
+                    все пласты информации о человеке для максимально точного портрета и анализа совместимости:
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon name="Calculator" size={14} className="text-purple-600" />
+                        <span className="text-xs font-semibold text-purple-900">Нумерология</span>
+                      </div>
+                      <p className="text-[11px] text-purple-800/70 leading-tight">
+                        Числа судьбы, квадрат Пифагора
+                      </p>
+                    </div>
+                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon name="Star" size={14} className="text-purple-600" />
+                        <span className="text-xs font-semibold text-purple-900">Астрология</span>
+                      </div>
+                      <p className="text-[11px] text-purple-800/70 leading-tight">
+                        Зодиак, Бацзы, стихии
+                      </p>
+                    </div>
+                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon name="Wand2" size={14} className="text-purple-600" />
+                        <span className="text-xs font-semibold text-purple-900">Арканы</span>
+                      </div>
+                      <p className="text-[11px] text-purple-800/70 leading-tight">
+                        Таро-расклад судьбы
+                      </p>
+                    </div>
+                    <div className="bg-white/60 rounded-lg p-2.5 border border-purple-100">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon name="Heart" size={14} className="text-purple-600" />
+                        <span className="text-xs font-semibold text-purple-900">Психология</span>
+                      </div>
+                      <p className="text-[11px] text-purple-800/70 leading-tight">
+                        Языки любви, психотипы
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-purple-800/80 leading-relaxed mt-3">
+                    Совместимость супругов анализируется по <strong>всем четырём пластам одновременно</strong>:
+                    числа, знаки зодиака, арканы и психотипы. Получаете оценку 0-100% по каждому направлению
+                    и общий вердикт с конкретными рекомендациями.
                   </p>
                 </div>
               </div>
@@ -191,15 +233,19 @@ export default function FamilyCodeHub() {
                   <ul className="text-sm text-amber-900/80 space-y-1.5 list-none">
                     <li className="flex items-start gap-2">
                       <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Заполните анкеты членов семьи в разделе «Семья» — укажите дату рождения, тип личности, языки любви</span>
+                      <span>Укажите дату рождения и ФИО в профиле — этого достаточно для полного расчёта нумерологии, астрологии и арканов</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Система автоматически рассчитает персональные профили и совместимость</span>
+                      <span>Система рассчитает все числа, квадрат Пифагора, зодиак, Бацзы и Таро-расклад автоматически</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span>Домовой-ассистент будет давать персонализированные советы с учётом этих данных</span>
+                      <span>Совместимость пары считается по всем пластам одновременно: числа + стихии + арканы + психотипы</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                      <span>Домовой будет давать советы с учётом ВСЕХ расчётов и данных анкет обоих участников</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="Check" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
