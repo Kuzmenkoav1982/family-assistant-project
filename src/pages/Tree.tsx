@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -397,42 +397,100 @@ function buildLayout(
   return { gens, totalW: maxRowW, totalH: curY };
 }
 
-interface SvgLine { x1: number; y1: number; x2: number; y2: number; key: string }
+// ── SVG-пути связи ───────────────────────────────────────────────────────────
 
-function buildLines(gens: GenLayout[]): SvgLine[] {
-  const lines: SvgLine[] = [];
+interface SvgPath {
+  points: [number, number][];  // последовательность точек ломаной
+  key: string;
+  isSibling?: boolean;
+}
+
+/**
+ * Строит SVG-пути (ломаные):
+ * - ствол: от центра родителя вниз до горизонтальной шины
+ * - шина: горизонталь, объединяющая всех братьев/сестёр
+ * - отростки: от шины вниз к каждому ребёнку
+ */
+function buildPaths(gens: GenLayout[]): SvgPath[] {
+  const paths: SvgPath[] = [];
+
   for (let gi = 1; gi < gens.length; gi++) {
     const prevGen = gens[gi - 1];
-    const curGen = gens[gi];
+    const curGen  = gens[gi];
+
+    // Группируем дочерние узлы по родительскому layout-узлу
+    const byParent = new Map<string, { parentLayout: NodeLayout; childLayouts: NodeLayout[] }>();
 
     curGen.nodes.forEach((childLayout) => {
-      const childNode = childLayout.node;
-      const childMember = childNode.type === 'unit' ? childNode.unit.primary : childNode.member;
-      const parentIds = new Set([childMember.parent_id, childMember.parent2_id].filter(Boolean) as number[]);
+      const childMember = childLayout.node.type === 'unit'
+        ? childLayout.node.unit.primary
+        : childLayout.node.member;
+
+      const parentIds = new Set(
+        [childMember.parent_id, childMember.parent2_id].filter(Boolean) as number[]
+      );
       if (parentIds.size === 0) return;
 
-      // Найти родительский узел
-      const parentLayout = prevGen.nodes.find(pl => {
-        const ids = getNodeMemberIds(pl.node);
-        return ids.some(id => parentIds.has(id));
-      });
+      const parentLayout = prevGen.nodes.find(pl =>
+        getNodeMemberIds(pl.node).some(id => parentIds.has(id))
+      );
       if (!parentLayout) return;
 
-      const px = parentLayout.cx;
-      const py = parentLayout.y + CARD_H; // низ родительской карточки
-      const cy = childLayout.y;           // верх дочерней карточки
-      const midY = (py + cy) / 2;
+      // Ключ — cx родителя (уникально для каждого родительского блока)
+      const pKey = String(Math.round(parentLayout.cx * 100));
+      if (!byParent.has(pKey)) byParent.set(pKey, { parentLayout, childLayouts: [] });
+      byParent.get(pKey)!.childLayouts.push(childLayout);
+    });
 
-      // Вертикаль вниз от родителя до середины
-      lines.push({ x1: px, y1: py, x2: px, y2: midY, key: `v-p-${childMember.id}` });
-      // Горизонталь до центра ребёнка
-      lines.push({ x1: px, y1: midY, x2: childLayout.cx, y2: midY, key: `h-${childMember.id}` });
-      // Вертикаль вниз к ребёнку
-      lines.push({ x1: childLayout.cx, y1: midY, x2: childLayout.cx, y2: cy, key: `v-c-${childMember.id}` });
+    byParent.forEach(({ parentLayout, childLayouts }, pKey) => {
+      const fromX = parentLayout.cx;
+      const fromY = parentLayout.y + CARD_H;
+      const toY   = childLayouts[0].y;
+      const busY  = fromY + (toY - fromY) * 0.45;
+
+      // Ствол от родителя до шины
+      paths.push({
+        key: `stem-${pKey}-${gi}`,
+        points: [[fromX, fromY], [fromX, busY]],
+      });
+
+      const xs   = childLayouts.map(cl => cl.cx);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+
+      if (childLayouts.length > 1) {
+        // Горизонтальная шина (братья/сёстры)
+        paths.push({
+          key: `bus-${pKey}-${gi}`,
+          points: [[minX, busY], [maxX, busY]],
+          isSibling: true,
+        });
+      }
+
+      // Отростки от шины к каждому ребёнку
+      childLayouts.forEach(cl => {
+        paths.push({
+          key: `drop-${Math.round(cl.cx)}-${gi}`,
+          points: [[cl.cx, busY], [cl.cx, cl.y]],
+        });
+      });
     });
   }
-  return lines;
+
+  return paths;
 }
+
+function pointsToD(points: [number, number][], pad: number): string {
+  return points
+    .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x + pad} ${y + pad}`)
+    .join(' ');
+}
+
+// ── Canvas компонент ─────────────────────────────────────────────────────────
+
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 2.0;
+const ZOOM_STEP = 0.12;
 
 function FamilyTreeCanvas({
   members,
@@ -445,34 +503,39 @@ function FamilyTreeCanvas({
   genLabels: Record<number, string>;
   onSelectMember: (m: TreeMember) => void;
 }) {
-  const { gens, totalW, totalH } = buildLayout(sortedGenerations, members);
-  const lines = buildLines(gens);
+  const { gens, totalW, totalH } = useMemo(
+    () => buildLayout(sortedGenerations, members),
+    [sortedGenerations, members],
+  );
+  const paths = useMemo(() => buildPaths(gens), [gens]);
 
-  const PADDING = 24;
+  const PADDING = 32;
   const canvasW = totalW + PADDING * 2;
   const canvasH = totalH + PADDING * 2;
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isPanning = useRef(false);
-  const startPos = useRef({ x: 0, y: 0 });
-  const scrollPos = useRef({ left: 0, top: 0 });
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const isPanning     = useRef(false);
+  const startPos      = useRef({ x: 0, y: 0 });
+  const scrollPos     = useRef({ left: 0, top: 0 });
+  const [zoom, setZoom] = useState(1);
+  // pinch state
+  const lastPinchDist = useRef<number | null>(null);
 
+  // ── mouse pan ────────────────────────────────────────────────────────────
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     isPanning.current = true;
-    startPos.current = { x: e.clientX, y: e.clientY };
+    startPos.current  = { x: e.clientX, y: e.clientY };
     scrollPos.current = {
       left: containerRef.current?.scrollLeft || 0,
-      top: containerRef.current?.scrollTop || 0,
+      top:  containerRef.current?.scrollTop  || 0,
     };
     if (containerRef.current) containerRef.current.style.cursor = 'grabbing';
   }, []);
 
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning.current || !containerRef.current) return;
-    const dx = e.clientX - startPos.current.x;
-    const dy = e.clientY - startPos.current.y;
-    containerRef.current.scrollLeft = scrollPos.current.left - dx;
-    containerRef.current.scrollTop = scrollPos.current.top - dy;
+    containerRef.current.scrollLeft = scrollPos.current.left - (e.clientX - startPos.current.x);
+    containerRef.current.scrollTop  = scrollPos.current.top  - (e.clientY - startPos.current.y);
   }, []);
 
   const onMouseUp = useCallback(() => {
@@ -480,98 +543,161 @@ function FamilyTreeCanvas({
     if (containerRef.current) containerRef.current.style.cursor = 'grab';
   }, []);
 
-  // Центрируем на «Я» при первом рендере
+  // ── wheel zoom ───────────────────────────────────────────────────────────
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    setZoom(z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP))));
+  }, []);
+
+  // ── pinch zoom (touch) ───────────────────────────────────────────────────
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      if (lastPinchDist.current !== null) {
+        const delta = dist - lastPinchDist.current;
+        setZoom(z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z + delta * 0.005)));
+      }
+      lastPinchDist.current = dist;
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    lastPinchDist.current = null;
+  }, []);
+
+  // ── центрируем на «Я» при первом рендере ────────────────────────────────
   useEffect(() => {
     if (!containerRef.current || gens.length === 0) return;
     const me = members.find(m => m.relation === 'Я');
     if (!me) return;
     let meLayout: NodeLayout | null = null;
     for (const gen of gens) {
-      const found = gen.nodes.find(nl => {
-        if (nl.node.type === 'unit') return nl.node.unit.primary.id === me.id || nl.node.unit.spouse?.id === me.id;
-        return nl.node.member.id === me.id;
-      });
+      const found = gen.nodes.find(nl =>
+        nl.node.type === 'unit'
+          ? nl.node.unit.primary.id === me.id || nl.node.unit.spouse?.id === me.id
+          : nl.node.member.id === me.id
+      );
       if (found) { meLayout = found; break; }
     }
     if (!meLayout) return;
-    const container = containerRef.current;
-    const targetScrollLeft = meLayout.cx + PADDING - container.clientWidth / 2;
-    const targetScrollTop = meLayout.y + PADDING - container.clientHeight / 2;
-    container.scrollLeft = Math.max(0, targetScrollLeft);
-    container.scrollTop = Math.max(0, targetScrollTop);
-  }, [members, gens]);
+    const c = containerRef.current;
+    c.scrollLeft = Math.max(0, (meLayout.cx + PADDING) * zoom - c.clientWidth  / 2);
+    c.scrollTop  = Math.max(0, (meLayout.y  + PADDING) * zoom - c.clientHeight / 2);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [members.length]);
 
   return (
-    <div
-      ref={containerRef}
-      className="overflow-auto rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 select-none"
-      style={{ maxHeight: '70vh', cursor: 'grab' }}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-    >
-      <div style={{ position: 'relative', width: canvasW, height: canvasH, minWidth: canvasW }}>
-        {/* SVG-линии связи */}
-        <svg
-          style={{ position: 'absolute', top: 0, left: 0, width: canvasW, height: canvasH, pointerEvents: 'none' }}
+    <div className="space-y-2">
+      {/* Кнопки масштаба */}
+      <div className="flex items-center gap-2 justify-end pr-1">
+        <button
+          className="w-7 h-7 rounded-full border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold transition-colors"
+          onClick={() => setZoom(z => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
+          title="Уменьшить"
+        >−</button>
+        <span className="text-xs text-amber-600 w-10 text-center">{Math.round(zoom * 100)}%</span>
+        <button
+          className="w-7 h-7 rounded-full border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold transition-colors"
+          onClick={() => setZoom(z => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
+          title="Увеличить"
+        >+</button>
+        <button
+          className="text-xs text-amber-500 hover:text-amber-700 border border-amber-200 rounded px-2 py-0.5 hover:bg-amber-50 transition-colors"
+          onClick={() => setZoom(1)}
+          title="Сбросить"
+        >100%</button>
+      </div>
+
+      {/* Канвас */}
+      <div
+        ref={containerRef}
+        className="overflow-auto rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 select-none"
+        style={{ maxHeight: '72vh', cursor: 'grab' }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        onWheel={onWheel}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Масштабируемый внутренний слой */}
+        <div
+          style={{
+            transformOrigin: '0 0',
+            transform: `scale(${zoom})`,
+            width: canvasW,
+            height: canvasH,
+            position: 'relative',
+          }}
         >
-          {lines.map(l => (
-            <line
-              key={l.key}
-              x1={l.x1 + PADDING}
-              y1={l.y1 + PADDING}
-              x2={l.x2 + PADDING}
-              y2={l.y2 + PADDING}
-              stroke="#d97706"
-              strokeWidth={1.5}
-              strokeOpacity={0.5}
-            />
-          ))}
-        </svg>
+          {/* SVG линии связи */}
+          <svg
+            style={{ position: 'absolute', top: 0, left: 0, width: canvasW, height: canvasH, pointerEvents: 'none', overflow: 'visible' }}
+          >
+            <defs>
+              <marker id="dot" markerWidth="4" markerHeight="4" refX="2" refY="2">
+                <circle cx="2" cy="2" r="1.5" fill="#d97706" fillOpacity="0.6" />
+              </marker>
+            </defs>
+            {paths.map(p => (
+              <path
+                key={p.key}
+                d={pointsToD(p.points, PADDING)}
+                stroke={p.isSibling ? '#f59e0b' : '#d97706'}
+                strokeWidth={p.isSibling ? 2.5 : 1.8}
+                strokeOpacity={p.isSibling ? 0.75 : 0.6}
+                fill="none"
+                strokeLinecap="round"
+              />
+            ))}
+          </svg>
 
-        {/* Поколения */}
-        {gens.map(({ genIndex, y, nodes }) => (
-          <div key={genIndex}>
-            {/* Лейбл поколения */}
-            <div
-              style={{
-                position: 'absolute',
-                top: y + PADDING,
-                left: PADDING,
-                width: totalW,
-                height: LABEL_H,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <div style={{ flex: 1, height: 1, background: '#fcd34d' }} />
-              <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest whitespace-nowrap px-2">
-                {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
-              </span>
-              <div style={{ flex: 1, height: 1, background: '#fcd34d' }} />
-            </div>
-
-            {/* Карточки */}
-            {nodes.map((nl, ni) => (
+          {/* Поколения + карточки */}
+          {gens.map(({ genIndex, y, nodes }) => (
+            <div key={genIndex}>
+              {/* Лейбл поколения */}
               <div
-                key={ni}
                 style={{
                   position: 'absolute',
-                  top: nl.y + PADDING,
-                  left: nl.x + PADDING,
+                  top: y + PADDING,
+                  left: PADDING,
+                  width: totalW,
+                  height: LABEL_H,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                 }}
               >
-                {nl.node.type === 'unit' ? (
-                  <CoupleBlock unit={nl.node.unit} onSelect={onSelectMember} />
-                ) : (
-                  <MemberCard member={nl.node.member} onClick={() => onSelectMember(nl.node.member)} />
-                )}
+                <div style={{ flex: 1, height: 1, background: '#fcd34d' }} />
+                <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest whitespace-nowrap px-2">
+                  {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
+                </span>
+                <div style={{ flex: 1, height: 1, background: '#fcd34d' }} />
               </div>
-            ))}
-          </div>
-        ))}
+
+              {/* Карточки */}
+              {nodes.map((nl, ni) => (
+                <div
+                  key={ni}
+                  style={{
+                    position: 'absolute',
+                    top:  nl.y + PADDING,
+                    left: nl.x + PADDING,
+                  }}
+                >
+                  {nl.node.type === 'unit' ? (
+                    <CoupleBlock unit={nl.node.unit} onSelect={onSelectMember} />
+                  ) : (
+                    <MemberCard member={nl.node.member} onClick={() => onSelectMember(nl.node.member)} />
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
