@@ -140,6 +140,18 @@ function OverviewTab({
   religion: string; setReligion: (r: string) => void; onSaveSettings: () => void;
   holidays: Holiday[]; fasting: FastingPeriod[]; saving: boolean; setActiveTab: (t: string) => void;
 }) {
+  const [religionOpen, setReligionOpen] = useState(() => {
+    const saved = localStorage.getItem('faith_religion_open');
+    if (saved !== null) return saved === '1';
+    return true;
+  });
+
+  const toggleReligion = () => {
+    const next = !religionOpen;
+    setReligionOpen(next);
+    localStorage.setItem('faith_religion_open', next ? '1' : '0');
+  };
+
   const upcoming = holidays
     .filter(h => daysUntil(h.event_date) >= 0)
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
@@ -149,42 +161,64 @@ function OverviewTab({
 
   return (
     <div className="space-y-4">
-      <Card className="border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-orange-50/60">
-        <CardContent className="p-4 space-y-3">
+      <Card className="border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-orange-50/60 overflow-hidden">
+        <button
+          onClick={toggleReligion}
+          className="w-full p-4 pb-2 flex items-center justify-between cursor-pointer"
+        >
           <div className="flex items-center gap-2">
             <Icon name="Heart" size={18} className="text-amber-600" />
-            <h3 className="font-semibold text-amber-900">Выберите вероисповедание</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {RELIGIONS.map(r => (
-              <button
-                key={r.key}
-                onClick={() => setReligion(r.key)}
-                className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                  religion === r.key
-                    ? 'bg-amber-600 text-white shadow-md scale-105'
-                    : 'bg-white/80 text-amber-800 hover:bg-amber-100 border border-amber-200'
-                }`}
-              >
-                <span className="mr-1.5">{r.emoji}</span>
-                {r.label}
-              </button>
-            ))}
-          </div>
-          <Button
-            size="sm"
-            onClick={onSaveSettings}
-            disabled={saving}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            {saving ? (
-              <Icon name="Loader2" size={16} className="animate-spin mr-1" />
-            ) : (
-              <Icon name="Save" size={16} className="mr-1" />
+            <h3 className="font-semibold text-amber-900">Вероисповедание</h3>
+            {!religionOpen && (
+              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] ml-1">
+                {getReligionEmoji(religion)} {getReligionLabel(religion)}
+              </Badge>
             )}
-            Сохранить выбор
-          </Button>
-        </CardContent>
+          </div>
+          <div className={`w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center transition-transform duration-300 ${religionOpen ? 'rotate-180' : ''}`}>
+            <Icon name="ChevronDown" size={16} className="text-amber-600" />
+          </div>
+        </button>
+
+        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${religionOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}>
+          <CardContent className="px-4 pb-4 pt-1 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {RELIGIONS.map(r => (
+                <button
+                  key={r.key}
+                  onClick={() => setReligion(r.key)}
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    religion === r.key
+                      ? 'bg-amber-600 text-white shadow-md scale-105'
+                      : 'bg-white/80 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                  }`}
+                >
+                  <span className="mr-1.5">{r.emoji}</span>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <Button
+              size="sm"
+              onClick={onSaveSettings}
+              disabled={saving}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {saving ? (
+                <Icon name="Loader2" size={16} className="animate-spin mr-1" />
+              ) : (
+                <Icon name="Save" size={16} className="mr-1" />
+              )}
+              Сохранить выбор
+            </Button>
+          </CardContent>
+        </div>
+
+        {!religionOpen && (
+          <div className="px-4 pb-2">
+            <div className="h-1 w-10 rounded-full bg-amber-200 mx-auto" />
+          </div>
+        )}
       </Card>
 
       {activeFasting.length > 0 && (
