@@ -121,6 +121,7 @@ const FamilyMatrixFamily = lazy(() => import("./pages/FamilyMatrixFamily"));
 const FamilyMatrixRituals = lazy(() => import("./pages/FamilyMatrixRituals"));
 const FamilyMatrixChild = lazy(() => import("./pages/FamilyMatrixChild"));
 const FamilyMatrixName = lazy(() => import("./pages/FamilyMatrixName"));
+const FamilyMatrixAstrology = lazy(() => import("./pages/FamilyMatrixAstrology"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
@@ -334,6 +335,7 @@ const App = () => {
                       <Route path="/family-matrix/rituals" element={<FamilyMatrixRituals />} />
                       <Route path="/family-matrix/child" element={<FamilyMatrixChild />} />
                       <Route path="/family-matrix/name" element={<FamilyMatrixName />} />
+                      <Route path="/family-matrix/astrology" element={<FamilyMatrixAstrology />} />
                       <Route path="/articles" element={<Articles />} />
                       <Route path="/articles/:slug" element={<ArticleDetail />} />
                       <Route path="/family-invite" element={<FamilyInvite />} />

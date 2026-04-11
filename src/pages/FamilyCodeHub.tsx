@@ -85,6 +85,17 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-emerald-100 text-emerald-700',
     ready: true,
   },
+  {
+    id: 'astrology',
+    title: 'Астрология',
+    description: 'Знаки зодиака, китайский гороскоп, прогноз на день, совместимость знаков и планетарное влияние',
+    icon: 'Moon',
+    path: '/family-matrix/astrology',
+    gradient: 'from-indigo-500 via-violet-500 to-purple-600',
+    badge: 'Прогнозы',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
+  },
 ];
 
 function CollapsibleBlock({

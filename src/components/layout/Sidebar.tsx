@@ -192,7 +192,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'family-matrix-family', label: 'Код семьи', icon: 'Users', path: '/family-matrix/family' },
         { id: 'family-matrix-rituals', label: 'Ритуалы примирения', icon: 'Flame', path: '/family-matrix/rituals' },
         { id: 'family-matrix-child', label: 'Детский код', icon: 'Baby', path: '/family-matrix/child' },
-        { id: 'family-matrix-name', label: 'Имя для малыша', icon: 'Sparkles', path: '/family-matrix/name' }
+        { id: 'family-matrix-name', label: 'Имя для малыша', icon: 'Sparkles', path: '/family-matrix/name' },
+        { id: 'family-matrix-astrology', label: 'Астрология', icon: 'Moon', path: '/family-matrix/astrology' }
       ]
     },
     {
