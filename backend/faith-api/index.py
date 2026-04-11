@@ -499,6 +499,37 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if action == 'get_library':
         religion = body.get('religion', 'orthodox')
         data = FAITH_LIBRARY.get(religion, {'basics': [], 'books': []})
-        return resp(200, {'basics': data.get('basics', []), 'books': data.get('books', [])})
+        progress = []
+        if family_id and user:
+            conn = get_db()
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            try:
+                member_id = str(user.get('member_id', ''))
+                cur.execute(f"SELECT item_type, item_title, is_read, bookmark_position FROM {SCHEMA}.faith_reading_progress WHERE family_id = {escape_string(family_id)} AND member_id = {escape_string(member_id)} AND religion = {escape_string(religion)}")
+                progress = [{'type': r['item_type'], 'title': r['item_title'], 'isRead': r['is_read'], 'bookmark': r['bookmark_position']} for r in cur.fetchall()]
+            finally:
+                cur.close()
+                conn.close()
+        return resp(200, {'basics': data.get('basics', []), 'books': data.get('books', []), 'progress': progress})
+
+    if action == 'save_reading_progress':
+        if not family_id or not user:
+            return resp(403, {'error': 'auth_required'})
+        item_type = body.get('itemType', 'book')
+        item_title = body.get('itemTitle', '')
+        is_read = body.get('isRead', False)
+        bookmark = body.get('bookmark', '')
+        member_id = str(user.get('member_id', ''))
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            cur.execute(f"""INSERT INTO {SCHEMA}.faith_reading_progress (family_id, member_id, religion, item_type, item_title, is_read, bookmark_position, updated_at)
+                VALUES ({escape_string(family_id)}, {escape_string(member_id)}, {escape_string(body.get('religion', 'orthodox'))}, {escape_string(item_type)}, {escape_string(item_title)}, {is_read}, {escape_string(bookmark)}, NOW())
+                ON CONFLICT (family_id, member_id, religion, item_type, item_title)
+                DO UPDATE SET is_read = {is_read}, bookmark_position = {escape_string(bookmark)}, updated_at = NOW()""")
+        finally:
+            cur.close()
+            conn.close()
+        return resp(200, {'success': True})
 
     return resp(400, {'error': 'Unknown action', 'action': action})
