@@ -1,337 +1,1409 @@
-import { useState, useContext } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import Icon from '@/components/ui/icon';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import Icon from "@/components/ui/icon";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import func2url from "../../backend/func2url.json";
 
-interface Consultation {
+interface ConsultationRecord {
   id: string;
   topic: string;
-  situation: string;
-  participants: string[];
+  question: string;
+  answer: string;
   date: string;
-  status: 'active' | 'resolved';
-  aiAdvice: {
-    analysis: string;
-    recommendations: string[];
-    actions: string[];
-  };
 }
 
-const mockConsultations: Consultation[] = [
+interface ExerciseRecord {
+  exerciseId: string;
+  completedDate: string;
+}
+
+interface RelaxationRecord {
+  techniqueId: string;
+  completedDate: string;
+}
+
+interface RelaxationTechnique {
+  id: string;
+  title: string;
+  icon: string;
+  duration: string;
+  difficulty: string;
+  description: string;
+  steps: string[];
+}
+
+interface FamilyExercise {
+  id: string;
+  title: string;
+  icon: string;
+  duration: string;
+  description: string;
+  benefits: string[];
+  steps: string[];
+  frequency: string;
+}
+
+interface PsychTest {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  questions: number;
+}
+
+const SYSTEM_PROMPT = `Ты — профессиональный семейный психолог с 20-летним опытом. Ты помогаешь семьям решать проблемы в отношениях, воспитании детей, конфликтах.
+
+ПРАВИЛА:
+1. Анализируй ситуацию с позиции каждого участника
+2. Используй научные подходы (КПТ, системная семейная терапия, позитивная психология)
+3. Давай конкретные, практичные рекомендации
+4. Предлагай упражнения для улучшения ситуации
+5. Будь эмпатичным, но объективным
+6. Если ситуация серьёзная — рекомендуй обратиться к реальному специалисту
+
+ФОРМАТ ОТВЕТА:
+📋 **Анализ ситуации** — краткий анализ
+🎯 **Рекомендации** — 3-5 конкретных советов
+🏋️ **Упражнение** — одно практическое упражнение
+💡 **Совет дня** — ободряющее напутствие`;
+
+const QUICK_TOPICS: { label: string; template: string }[] = [
   {
-    id: '1',
-    topic: 'Конфликт из-за времени у компьютера',
-    situation: 'Максим проводит много времени за компьютером, София жалуется что он не играет с ней. Родители переживают за здоровье сына.',
-    participants: ['Максим', 'София', 'Александр', 'Елена'],
-    date: '2 дня назад',
-    status: 'resolved',
-    aiAdvice: {
-      analysis: 'Данная ситуация типична для семей с детьми разного возраста. Максиму 11 лет - возраст активного освоения цифрового пространства, София младше и нуждается во внимании брата. Важно найти баланс между интересами обоих детей.',
-      recommendations: [
-        'Установите чёткое расписание использования техники для Максима',
-        'Выделите специальное время для совместных игр брата и сестры',
-        'Найдите общие интересы детей (настольные игры, прогулки)',
-        'Объясните Максиму важность общения с сестрой для её развития',
-        'Хвалите Максима когда он проводит время с Софией'
-      ],
-      actions: [
-        '📅 Создать в календаре "Час семейных игр" каждый вечер',
-        '⏰ Установить таймер использования компьютера для Максима (2 часа в день)',
-        '🎮 Купить новую настольную игру, интересную обоим детям',
-        '✅ Добавить задачу Максиму "Поиграть с Софией" (20 баллов)'
-      ]
-    }
+    label: "Конфликт между детьми",
+    template:
+      "В нашей семье часто возникают конфликты между детьми. Они ссорятся из-за игрушек, внимания родителей и личного пространства. Опишите, пожалуйста, как нам помочь детям научиться решать конфликты мирно.",
   },
   {
-    id: '2',
-    topic: 'Распределение домашних обязанностей',
-    situation: 'Елена чувствует что выполняет слишком много работы по дому. Александр работает допоздна и считает что вносит вклад зарабатывая деньги.',
-    participants: ['Александр', 'Елена'],
-    date: '1 неделю назад',
-    status: 'active',
-    aiAdvice: {
-      analysis: 'Классическая ситуация дисбаланса в семейных обязанностях. Важно понимать, что и работа вне дома, и домашние дела - это вклад в семью. Необходимо открытое обсуждение и справедливое перераспределение задач.',
-      recommendations: [
-        'Составьте список всех домашних дел за неделю',
-        'Оцените время выполнения каждой задачи',
-        'Учтите рабочее время обоих супругов',
-        'Перераспределите обязанности более равномерно',
-        'Привлеките детей к помощи по дому',
-        'Рассмотрите автоматизацию задач (робот-пылесос, посудомойка)'
-      ],
-      actions: [
-        '📝 Создать общий список домашних дел в разделе "Задачи"',
-        '⚖️ Распределить задачи между всеми членами семьи',
-        '🎯 Максиму: уборка своей комнаты, выгул собаки',
-        '🎯 Софии: полив цветов, складывание игрушек',
-        '🎯 Александру: покупка продуктов, вынос мусора, помощь с уроками',
-        '🗣️ Провести семейное собрание для обсуждения'
-      ]
-    }
+    label: "Сложности в отношениях",
+    template:
+      "Мы с партнёром переживаем сложный период в отношениях. Стало меньше общения, чаще возникают разногласия, чувствуется эмоциональная дистанция. Как нам восстановить близость?",
   },
   {
-    id: '3',
-    topic: 'София не хочет ходить в школу',
-    situation: 'София каждое утро плачет и не хочет идти в школу. Говорит что у неё нет друзей, а учительница строгая.',
-    participants: ['София', 'Елена', 'Александр'],
-    date: '3 дня назад',
-    status: 'active',
-    aiAdvice: {
-      analysis: 'Отказ ребёнка ходить в школу - серьёзный сигнал. Возможные причины: сложности в адаптации, конфликты со сверстниками, страх перед учителем или трудности в учёбе. Важно выяснить истинную причину через доверительный разговор.',
-      recommendations: [
-        'Поговорите с Софией в спокойной обстановке',
-        'Не обесценивайте её чувства ("Это ерунда")',
-        'Свяжитесь с учительницей, узнайте её видение ситуации',
-        'Понаблюдайте за поведением дочери дома',
-        'Организуйте встречу с одноклассниками вне школы',
-        'При необходимости обратитесь к школьному психологу'
-      ],
-      actions: [
-        '📞 Записаться на встречу с учителем',
-        '🎈 Организовать домашний праздник и пригласить одноклассниц',
-        '📚 Помочь Софии с подготовкой к урокам (снизить тревожность)',
-        '🎨 Записать на кружок по интересам (уверенность в себе)',
-        '💬 Ежедневно интересоваться как прошёл день в школе'
-      ]
-    }
-  }
+    label: "Проблемы с учёбой",
+    template:
+      "Наш ребёнок потерял интерес к учёбе, не хочет делать домашние задания, успеваемость снизилась. Как мотивировать ребёнка учиться без давления и конфликтов?",
+  },
+  {
+    label: "Тревожность ребёнка",
+    template:
+      "Ребёнок стал тревожным: боится оставаться один, плохо засыпает, часто плачет без видимой причины. Как помочь ребёнку справиться с тревогой?",
+  },
+  {
+    label: "Выгорание родителя",
+    template:
+      "Я чувствую сильное эмоциональное выгорание от родительских обязанностей. Нет сил, раздражительность, чувство вины. Как восстановить ресурс и не срываться на близких?",
+  },
+  {
+    label: "Подростковый кризис",
+    template:
+      "Наш подросток стал замкнутым, грубит, не хочет общаться с семьёй, проводит всё время в телефоне. Как наладить контакт с подростком и сохранить доверительные отношения?",
+  },
 ];
+
+const RELAXATION_TECHNIQUES: RelaxationTechnique[] = [
+  {
+    id: "breathing-478",
+    title: "Дыхание 4-7-8",
+    icon: "Wind",
+    duration: "5 мин",
+    difficulty: "Начинающий",
+    description:
+      "Техника дыхания, разработанная доктором Эндрю Вейлом. Помогает быстро успокоиться, снять тревогу и подготовиться ко сну.",
+    steps: [
+      "Сядьте удобно, выпрямите спину. Расслабьте плечи.",
+      "Полностью выдохните через рот со звуком.",
+      "Закройте рот и тихо вдохните через нос, считая до 4.",
+      "Задержите дыхание, считая до 7.",
+      "Полностью выдохните через рот со звуком, считая до 8.",
+      "Это один цикл. Повторите ещё 3 раза (всего 4 цикла).",
+      "Со временем увеличивайте до 8 циклов за одну практику.",
+    ],
+  },
+  {
+    id: "muscle-relaxation",
+    title: "Прогрессивная мышечная релаксация",
+    icon: "Dumbbell",
+    duration: "15 мин",
+    difficulty: "Начинающий",
+    description:
+      "Метод Эдмунда Джекобсона. Последовательно напрягаете и расслабляете группы мышц, снимая физическое и эмоциональное напряжение.",
+    steps: [
+      "Лягте или сядьте удобно. Закройте глаза. Сделайте 3 глубоких вдоха.",
+      "Начните с ног: сильно сожмите пальцы ног на 5 секунд, затем расслабьте на 10 секунд. Почувствуйте разницу.",
+      "Переходите выше: напрягите икры, бёдра, ягодицы — каждую группу на 5 секунд, расслабляя на 10.",
+      "Продолжите с животом, грудью, руками (сожмите кулаки), плечами (поднимите к ушам), лицом (нахмурьтесь сильно).",
+      "После всех групп полежите спокойно 2-3 минуты, наслаждаясь полным расслаблением тела.",
+    ],
+  },
+  {
+    id: "grounding-54321",
+    title: "Техника заземления 5-4-3-2-1",
+    icon: "TreePine",
+    duration: "5 мин",
+    difficulty: "Начинающий",
+    description:
+      "Техника для быстрого выхода из состояния тревоги или паники. Использует все 5 чувств для возвращения в настоящий момент.",
+    steps: [
+      "Остановитесь. Сделайте глубокий вдох.",
+      "5 — ЗРЕНИЕ: Назовите 5 предметов, которые видите вокруг. Рассмотрите их детали.",
+      "4 — ОСЯЗАНИЕ: Потрогайте 4 предмета. Опишите их текстуру (гладкий стол, мягкий свитер).",
+      "3 — СЛУХ: Прислушайтесь к 3 звукам вокруг вас (тиканье часов, птицы за окном, дыхание).",
+      "2 — ОБОНЯНИЕ: Найдите 2 запаха (кофе, свежий воздух, мыло на руках).",
+      "1 — ВКУС: Сосредоточьтесь на 1 вкусе (выпейте воды или съешьте что-то маленькое).",
+      "Сделайте ещё один глубокий вдох. Вы здесь и сейчас.",
+    ],
+  },
+  {
+    id: "safe-place",
+    title: "Визуализация безопасного места",
+    icon: "Mountain",
+    duration: "10 мин",
+    difficulty: "Средний",
+    description:
+      "Управляемая медитация-визуализация. Создаёте в воображении безопасное, спокойное место, куда можно возвращаться в моменты стресса.",
+    steps: [
+      "Устройтесь удобно, закройте глаза. Сделайте 5 медленных глубоких вдохов.",
+      "Представьте место, где вы чувствуете себя абсолютно спокойно и безопасно. Это может быть реальное или выдуманное место.",
+      "Рассмотрите детали: какие цвета вас окружают? Какой свет? Какая погода?",
+      "Добавьте звуки: шум волн, пение птиц, шелест листвы или тишина.",
+      "Почувствуйте ощущения: тёплый ветерок, мягкая трава, солнце на коже.",
+      "Добавьте запахи: цветы, морской воздух, свежесть после дождя.",
+      "Побудьте в этом месте 3-5 минут. Запомните его — вы можете вернуться сюда в любой момент.",
+      "Медленно возвращайтесь: пошевелите пальцами, потянитесь, откройте глаза.",
+    ],
+  },
+  {
+    id: "body-scan",
+    title: "Боди-скан медитация",
+    icon: "User",
+    duration: "10 мин",
+    difficulty: "Средний",
+    description:
+      "Медитация сканирования тела. Последовательно направляете внимание на каждую часть тела, замечая ощущения без оценки.",
+    steps: [
+      "Лягте на спину, руки вдоль тела ладонями вверх. Закройте глаза.",
+      "Сделайте 3 глубоких вдоха. Позвольте дыханию стать естественным.",
+      "Направьте внимание на макушку головы. Замечайте любые ощущения: тепло, покалывание, давление. Не оценивайте.",
+      "Медленно перемещайте внимание вниз: лоб, глаза, щёки, челюсть (расслабьте!), шея.",
+      "Далее: плечи, руки до кончиков пальцев. Замечайте напряжение и мягко отпускайте его.",
+      "Грудь и живот: наблюдайте как они поднимаются и опускаются с дыханием.",
+      "Спина, поясница, бёдра, колени, голени, стопы до кончиков пальцев ног.",
+      "Теперь охватите вниманием всё тело целиком. Почувствуйте его как единое целое.",
+      "Полежите в этом состоянии 1-2 минуты. Затем медленно пошевелитесь и откройте глаза.",
+    ],
+  },
+];
+
+const FAMILY_EXERCISES: FamilyExercise[] = [
+  {
+    id: "family-checkin",
+    title: "Семейный чек-ин",
+    icon: "MessageCircle",
+    duration: "5 мин",
+    description:
+      "Каждый вечер каждый член семьи делится тремя вещами: лучший момент дня, главная трудность и за что благодарен.",
+    benefits: [
+      "Развивает эмоциональный интеллект",
+      "Укрепляет доверие между членами семьи",
+      "Помогает замечать проблемы на ранней стадии",
+      "Формирует привычку благодарности",
+    ],
+    steps: [
+      "Соберитесь за ужином или перед сном — без телефонов.",
+      "По кругу каждый отвечает на 3 вопроса:",
+      "Какой был лучший момент сегодня?",
+      "Что было сложным или расстроило?",
+      "За что ты благодарен сегодня?",
+      "Слушайте без критики и советов — просто принимайте.",
+      "Заканчивайте чем-то тёплым: обнимашками или добрыми словами.",
+    ],
+    frequency: "Каждый день",
+  },
+  {
+    id: "compliment-jar",
+    title: "Банка комплиментов",
+    icon: "Heart",
+    duration: "10 мин (настройка)",
+    description:
+      "Семья ведёт банку с записками-комплиментами друг другу. Раз в неделю достаёте и читаете вместе.",
+    benefits: [
+      "Учит замечать хорошее в других",
+      "Повышает самооценку каждого члена семьи",
+      "Создаёт позитивную атмосферу дома",
+      "Развивает навык выражения чувств",
+    ],
+    steps: [
+      "Найдите красивую банку или коробку и маленькие цветные листочки.",
+      "Объясните правила: каждый может написать комплимент, благодарность или доброе слово любому члену семьи.",
+      "Поставьте банку на видное место с ручкой и бумажками.",
+      "В течение недели каждый пишет минимум 2-3 записки.",
+      "В воскресенье вечером соберитесь и по очереди доставайте записки и читайте вслух.",
+      "Обсудите свои чувства: что было приятнее всего услышать?",
+    ],
+    frequency: "Читать раз в неделю",
+  },
+  {
+    id: "mirror-listening",
+    title: "Зеркальное слушание",
+    icon: "Ear",
+    duration: "15 мин",
+    description:
+      "Упражнение на активное слушание. Один говорит, другой повторяет услышанное своими словами, пока первый не подтвердит: Да, ты меня понял.",
+    benefits: [
+      "Развивает навыки активного слушания",
+      "Уменьшает недопонимание в семье",
+      "Помогает чувствовать себя услышанным",
+      "Снижает количество конфликтов",
+    ],
+    steps: [
+      "Разбейтесь на пары (родитель-ребёнок, супруги).",
+      "Человек А говорит 2-3 минуты на любую тему: что его волнует, радует, беспокоит.",
+      "Человек Б слушает без перебивания, кивая и поддерживая контакт глазами.",
+      "Когда А закончил, Б пересказывает услышанное: Если я правильно понял, ты чувствуешь...",
+      "А подтверждает: Да, именно так или поправляет: Нет, я имел в виду...",
+      "Поменяйтесь ролями.",
+      "Обсудите: каково было слушать без желания ответить? Что вы заметили?",
+    ],
+    frequency: "2-3 раза в неделю",
+  },
+  {
+    id: "feelings-map",
+    title: "Карта чувств",
+    icon: "Palette",
+    duration: "20 мин",
+    description:
+      "Каждый рисует карту своих эмоций за день, используя цвета и символы. Потом обсуждаете вместе.",
+    benefits: [
+      "Помогает осознавать и называть свои эмоции",
+      "Развивает творческое самовыражение",
+      "Подходит для детей, которым сложно говорить о чувствах",
+      "Укрепляет эмоциональную связь в семье",
+    ],
+    steps: [
+      "Подготовьте бумагу, цветные карандаши или фломастеры для каждого.",
+      "Каждый рисует контур тела (простой — можно обвести руку или нарисовать фигурку).",
+      "Выберите цвета для эмоций: красный — злость, синий — грусть, жёлтый — радость, зелёный — спокойствие и т.д.",
+      "Раскрасьте фигурку: где в теле вы сегодня чувствовали какие эмоции? Например, тревога в животе, радость в груди.",
+      "По очереди покажите свои карты и расскажите о них.",
+      "Спрашивайте друг друга: Что вызвало эту эмоцию? Как тебе помочь?",
+    ],
+    frequency: "Раз в неделю",
+  },
+  {
+    id: "family-council",
+    title: "Семейный совет",
+    icon: "Users",
+    duration: "30 мин",
+    description:
+      "Еженедельное семейное собрание с повесткой: обсуждение проблем, планирование, распределение обязанностей.",
+    benefits: [
+      "Учит демократичному принятию решений",
+      "Даёт каждому голос, включая детей",
+      "Предотвращает накопление обид",
+      "Развивает навыки переговоров",
+    ],
+    steps: [
+      "Назначьте постоянное время: например, воскресенье после обеда.",
+      "Выберите ведущего (роль ротируется каждую неделю).",
+      "Повестка: 1) Комплименты — каждый говорит что-то хорошее о каждом. 2) Благодарности за неделю.",
+      "Далее: 3) Нерешённые вопросы с прошлой недели. 4) Новые проблемы и предложения.",
+      "Правила: говорит только тот, у кого слово; критикуем идеи, не людей; ищем решение, а не виноватых.",
+      "Решения принимаются консенсусом — все должны быть согласны.",
+      "Завершите планированием приятных семейных дел на неделю.",
+      "Запишите решения, чтобы вернуться к ним на следующем совете.",
+    ],
+    frequency: "Раз в неделю",
+  },
+  {
+    id: "gratitude-letter",
+    title: "Письмо благодарности",
+    icon: "Mail",
+    duration: "15 мин",
+    description:
+      "Напишите письмо благодарности одному из членов семьи. Расскажите, за что вы ему благодарны и почему он важен для вас.",
+    benefits: [
+      "Глубоко укрепляет эмоциональную связь",
+      "Повышает уровень счастья у автора и получателя",
+      "Помогает выразить чувства, которые сложно сказать вслух",
+      "Создаёт семейные ценные артефакты",
+    ],
+    steps: [
+      "Выберите одного члена семьи, которому давно хотели сказать спасибо.",
+      "Возьмите красивую бумагу и ручку (не телефон!).",
+      "Напишите: За что конкретно вы благодарны? Приведите примеры ситуаций.",
+      "Опишите: как этот человек повлиял на вашу жизнь? Что изменилось благодаря ему?",
+      "Добавьте: что вы чувствуете к этому человеку прямо сейчас?",
+      "Прочитайте письмо вслух получателю — лицом к лицу. Это важнее, чем просто отдать.",
+      "Обнимитесь. Сохраните письмо — через годы его будет бесценно перечитать.",
+    ],
+    frequency: "Раз в месяц",
+  },
+];
+
+const PSYCH_TESTS: PsychTest[] = [
+  {
+    id: "family-climate",
+    title: "Климат в семье",
+    icon: "Thermometer",
+    description:
+      "Оцените эмоциональную атмосферу в вашей семье по 10 параметрам",
+    questions: 10,
+  },
+  {
+    id: "parenting-style",
+    title: "Стиль воспитания",
+    icon: "GraduationCap",
+    description:
+      "Определите ваш преобладающий стиль: авторитарный, либеральный или демократичный",
+    questions: 15,
+  },
+  {
+    id: "stress-level",
+    title: "Уровень стресса",
+    icon: "Activity",
+    description:
+      "Измерьте уровень родительского стресса и получите рекомендации",
+    questions: 12,
+  },
+  {
+    id: "communication",
+    title: "Качество общения",
+    icon: "MessageSquare",
+    description:
+      "Насколько эффективно вы общаетесь внутри семьи?",
+    questions: 10,
+  },
+  {
+    id: "attachment",
+    title: "Тип привязанности",
+    icon: "Link",
+    description:
+      "Определите тип привязанности между вами и ребёнком",
+    questions: 20,
+  },
+  {
+    id: "burnout",
+    title: "Родительское выгорание",
+    icon: "Flame",
+    description:
+      "Проверьте, нет ли у вас признаков эмоционального выгорания",
+    questions: 14,
+  },
+  {
+    id: "child-anxiety",
+    title: "Тревожность ребёнка",
+    icon: "AlertCircle",
+    description:
+      "Оцените уровень тревожности вашего ребёнка по шкале наблюдений",
+    questions: 16,
+  },
+  {
+    id: "conflict-style",
+    title: "Стиль конфликтов",
+    icon: "Swords",
+    description:
+      "Узнайте как вы и ваш партнёр решаете разногласия",
+    questions: 12,
+  },
+];
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveToStorage(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage full or unavailable */
+  }
+}
+
+function formatDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
 
 export default function FamilyPsychologist() {
   const navigate = useNavigate();
-  const [consultations, setConsultations] = useState<Consultation[]>(mockConsultations);
-  const [newTopic, setNewTopic] = useState('');
-  const [newSituation, setNewSituation] = useState('');
-  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const responseRef = useRef<HTMLDivElement>(null);
 
-  const familyMembers = ['Александр', 'Елена', 'Максим', 'София', 'Бабушка Анна', 'Дедушка Николай'];
+  const [activeTab, setActiveTab] = useState("consultation");
+  const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [currentResponse, setCurrentResponse] = useState("");
+  const [consultationHistory, setConsultationHistory] = useState<ConsultationRecord[]>(() =>
+    loadFromStorage<ConsultationRecord[]>("psychologist_history", [])
+  );
 
-  const handleCreateConsultation = () => {
-    if (!newTopic || !newSituation) return;
+  const [expandedTechnique, setExpandedTechnique] = useState<string | null>(null);
+  const [activeTimer, setActiveTimer] = useState<string | null>(null);
+  const [timerSeconds, setTimerSeconds] = useState(0);
 
-    const newConsultation: Consultation = {
-      id: String(consultations.length + 1),
-      topic: newTopic,
-      situation: newSituation,
-      participants: selectedParticipants,
-      date: 'только что',
-      status: 'active',
-      aiAdvice: {
-        analysis: 'ИИ анализирует вашу ситуацию и готовит рекомендации...',
-        recommendations: [
-          'Проанализируйте глубинные причины ситуации',
-          'Проведите открытый диалог со всеми участниками',
-          'Найдите компромиссное решение'
-        ],
-        actions: [
-          '🗣️ Провести семейную встречу',
-          '📝 Записать договорённости',
-          '✅ Отслеживать выполнение решений'
-        ]
+  const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
+
+  const [exercisesCompleted, setExercisesCompleted] = useState<ExerciseRecord[]>(() =>
+    loadFromStorage<ExerciseRecord[]>("psychologist_exercises", [])
+  );
+  const [relaxationSessions, setRelaxationSessions] = useState<RelaxationRecord[]>(() =>
+    loadFromStorage<RelaxationRecord[]>("psychologist_relaxation", [])
+  );
+
+  useEffect(() => {
+    if (!activeTimer) return;
+    if (timerSeconds <= 0) {
+      setActiveTimer(null);
+      toast({
+        title: "Практика завершена!",
+        description: "Отличная работа! Вы завершили сеанс релаксации.",
+      });
+      const record: RelaxationRecord = {
+        techniqueId: activeTimer,
+        completedDate: new Date().toISOString(),
+      };
+      const updated = [...relaxationSessions, record];
+      setRelaxationSessions(updated);
+      saveToStorage("psychologist_relaxation", updated);
+      return;
+    }
+    const interval = setInterval(() => {
+      setTimerSeconds((s) => s - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activeTimer, timerSeconds]);
+
+  const getUserData = useCallback(() => {
+    try {
+      return JSON.parse(localStorage.getItem("userData") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const handleSendConsultation = async () => {
+    if (question.trim().length < 20) {
+      toast({
+        title: "Слишком коротко",
+        description: "Опишите ситуацию подробнее (минимум 20 символов)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setCurrentResponse("");
+
+    const userData = getUserData();
+
+    try {
+      const res = await fetch(
+        (func2url as Record<string, string>)["ai-assistant"],
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: question }],
+            systemPrompt: SYSTEM_PROMPT,
+            familyId: userData.familyId || "",
+            userId: userData.id || "",
+          }),
+        }
+      );
+
+      if (res.status === 402) {
+        toast({
+          title: "Недостаточно средств",
+          description: "Пополните баланс для использования ИИ-консультаций",
+          variant: "destructive",
+        });
+        navigate("/wallet");
+        return;
       }
-    };
 
-    setConsultations([newConsultation, ...consultations]);
-    setNewTopic('');
-    setNewSituation('');
-    setSelectedParticipants([]);
-    setIsDialogOpen(false);
+      if (res.status === 403) {
+        toast({
+          title: "Требуется авторизация",
+          description: "Войдите в аккаунт для использования консультаций",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const answer = data.response || "Не удалось получить ответ. Попробуйте ещё раз.";
+
+      setCurrentResponse(answer);
+
+      const topicLabel =
+        QUICK_TOPICS.find((t) => t.template === question)?.label || "Консультация";
+
+      const record: ConsultationRecord = {
+        id: Date.now().toString(),
+        topic: topicLabel,
+        question: question,
+        answer: answer,
+        date: new Date().toISOString(),
+      };
+
+      const updated = [record, ...consultationHistory].slice(0, 50);
+      setConsultationHistory(updated);
+      saveToStorage("psychologist_history", updated);
+
+      setTimeout(() => {
+        responseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (err) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить консультацию. Проверьте подключение к интернету.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleParticipant = (name: string) => {
-    setSelectedParticipants(prev =>
-      prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]
-    );
+  const startTimer = (techniqueId: string, minutes: number) => {
+    setActiveTimer(techniqueId);
+    setTimerSeconds(minutes * 60);
+  };
+
+  const stopTimer = () => {
+    setActiveTimer(null);
+    setTimerSeconds(0);
+  };
+
+  const formatTimer = (seconds: number): string => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const markExerciseComplete = (exerciseId: string) => {
+    const record: ExerciseRecord = {
+      exerciseId,
+      completedDate: new Date().toISOString(),
+    };
+    const updated = [...exercisesCompleted, record];
+    setExercisesCompleted(updated);
+    saveToStorage("psychologist_exercises", updated);
+    toast({
+      title: "Упражнение выполнено!",
+      description: "Результат сохранён в вашем прогрессе.",
+    });
+  };
+
+  const getExerciseCompletionCount = (exerciseId: string): number => {
+    return exercisesCompleted.filter((e) => e.exerciseId === exerciseId).length;
+  };
+
+  const getTechniqueCompletionCount = (techniqueId: string): number => {
+    return relaxationSessions.filter((r) => r.techniqueId === techniqueId).length;
+  };
+
+  const getWeeklyActivity = (): boolean[] => {
+    const now = new Date();
+    const days: boolean[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dayStr = date.toISOString().slice(0, 10);
+      const hasConsultation = consultationHistory.some(
+        (c) => c.date.slice(0, 10) === dayStr
+      );
+      const hasExercise = exercisesCompleted.some(
+        (e) => e.completedDate.slice(0, 10) === dayStr
+      );
+      const hasRelaxation = relaxationSessions.some(
+        (r) => r.completedDate.slice(0, 10) === dayStr
+      );
+      days.push(hasConsultation || hasExercise || hasRelaxation);
+    }
+    return days;
+  };
+
+  const getStreak = (): number => {
+    const activity = getWeeklyActivity();
+    let streak = 0;
+    for (let i = activity.length - 1; i >= 0; i--) {
+      if (activity[i]) streak++;
+      else break;
+    }
+    return streak;
+  };
+
+  const getDayLabel = (daysAgo: number): string => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return d.toLocaleDateString("ru-RU", { weekday: "short" }).slice(0, 2);
+  };
+
+  const renderResponseText = (text: string) => {
+    const lines = text.split("\n");
+    return lines.map((line, i) => {
+      const boldLine = line.replace(
+        /\*\*(.*?)\*\*/g,
+        '<strong class="font-semibold">$1</strong>'
+      );
+      if (line.startsWith("- ") || line.startsWith("* ")) {
+        return (
+          <li
+            key={i}
+            className="ml-4 mb-1 text-gray-700"
+            dangerouslySetInnerHTML={{ __html: boldLine.slice(2) }}
+          />
+        );
+      }
+      if (line.match(/^\d+\.\s/)) {
+        return (
+          <li
+            key={i}
+            className="ml-4 mb-1 text-gray-700 list-decimal"
+            dangerouslySetInnerHTML={{ __html: boldLine.replace(/^\d+\.\s/, "") }}
+          />
+        );
+      }
+      if (line.trim() === "") {
+        return <br key={i} />;
+      }
+      return (
+        <p
+          key={i}
+          className="mb-2 text-gray-700 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: boldLine }}
+        />
+      );
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-4 lg:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <header className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-3 lg:p-8">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <header className="flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-1">
               Семейный психолог ИИ
             </h1>
-            <p className="text-muted-foreground max-w-2xl">
-              Помощь в решении конфликтов, поиске компромиссов и укреплении семейных отношений
+            <p className="text-sm text-gray-500">
+              Консультации, техники релаксации, упражнения для семьи
             </p>
           </div>
-          <Button onClick={() => navigate('/')} variant="outline">
-            <Icon name="Home" className="mr-2" size={16} />
-            На главную
+          <Button
+            onClick={() => navigate("/")}
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0"
+          >
+            <Icon name="Home" size={16} className="mr-1" />
+            <span className="hidden sm:inline">Главная</span>
           </Button>
         </header>
 
-        <Card className="border-2 border-teal-200 bg-teal-50/50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                <Icon name="Brain" size={24} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg mb-2">Как работает семейный психолог?</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  ИИ-психолог анализирует вашу ситуацию и предлагает научно обоснованные рекомендации для разрешения конфликтов.
-                  Это не замена реального психолога, но помощник для повседневных семейных вопросов.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Анализ ситуации</Badge>
-                  <Badge variant="secondary">Практические советы</Badge>
-                  <Badge variant="secondary">План действий</Badge>
-                  <Badge variant="secondary">Конфиденциально</Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full overflow-x-auto flex justify-start gap-0.5 bg-white/60 backdrop-blur-sm p-1 h-auto">
+            <TabsTrigger value="consultation" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+              <Icon name="MessageCircle" size={14} className="mr-1" />
+              Консультация
+            </TabsTrigger>
+            <TabsTrigger value="relaxation" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+              <Icon name="Flower2" size={14} className="mr-1" />
+              Релаксация
+            </TabsTrigger>
+            <TabsTrigger value="exercises" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+              <Icon name="Target" size={14} className="mr-1" />
+              Упражнения
+            </TabsTrigger>
+            <TabsTrigger value="tests" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+              <Icon name="ClipboardList" size={14} className="mr-1" />
+              Тесты
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+              <Icon name="TrendingUp" size={14} className="mr-1" />
+              Прогресс
+            </TabsTrigger>
+          </TabsList>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600" size="lg">
-              <Icon name="Plus" className="mr-2" size={20} />
-              Обратиться за советом
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Новая консультация</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Тема обращения</label>
-                <input
-                  type="text"
-                  value={newTopic}
-                  onChange={(e) => setNewTopic(e.target.value)}
-                  placeholder="Например: Конфликт между детьми"
-                  className="w-full border rounded-md p-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Опишите ситуацию подробно</label>
-                <Textarea
-                  value={newSituation}
-                  onChange={(e) => setNewSituation(e.target.value)}
-                  placeholder="Расскажите что произошло, как давно это началось, что вы уже пробовали..."
-                  className="min-h-[120px]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Кто вовлечён в ситуацию?</label>
-                <div className="flex flex-wrap gap-2">
-                  {familyMembers.map((member) => (
-                    <Badge
-                      key={member}
-                      variant={selectedParticipants.includes(member) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => toggleParticipant(member)}
+          <TabsContent value="consultation" className="space-y-4 mt-4">
+            <Card className="border-teal-200/60 bg-white/80 backdrop-blur-sm">
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                    <Icon name="Brain" size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Опишите ситуацию</h3>
+                    <p className="text-xs text-gray-500">
+                      ИИ-психолог проанализирует и даст рекомендации
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_TOPICS.map((topic) => (
+                    <button
+                      key={topic.label}
+                      onClick={() => setQuestion(topic.template)}
+                      className="text-xs px-2.5 py-1.5 rounded-full bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200/60 transition-colors"
                     >
-                      {member}
-                    </Badge>
+                      {topic.label}
+                    </button>
                   ))}
                 </div>
-              </div>
-              <Button
-                onClick={handleCreateConsultation}
-                disabled={!newTopic || !newSituation}
-                className="w-full bg-gradient-to-r from-teal-500 to-cyan-500"
-              >
-                Получить рекомендации ИИ
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Icon name="MessageSquare" size={20} className="text-teal-600" />
-            <h2 className="text-xl font-bold">История консультаций</h2>
-          </div>
+                <Textarea
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Опишите вашу семейную ситуацию подробно. Чем больше деталей, тем точнее будет совет..."
+                  className="min-h-[120px] resize-none bg-white"
+                  disabled={loading}
+                />
 
-          {consultations.map((consultation) => (
-            <Card key={consultation.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CardTitle className="text-lg">{consultation.topic}</CardTitle>
-                      <Badge variant={consultation.status === 'resolved' ? 'default' : 'secondary'}>
-                        {consultation.status === 'resolved' ? 'Решено' : 'В процессе'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{consultation.situation}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Icon name="Users" size={14} />
-                      <span>{consultation.participants.join(', ')}</span>
-                      <span>•</span>
-                      <span>{consultation.date}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <div className="flex items-start gap-2 mb-2">
-                    <Icon name="Lightbulb" size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-bold text-sm mb-1">Анализ ситуации</h4>
-                      <p className="text-sm">{consultation.aiAdvice.analysis}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-sm mb-2 flex items-center gap-2">
-                    <Icon name="CheckCircle2" size={16} className="text-green-600" />
-                    Рекомендации
-                  </h4>
-                  <ul className="space-y-1">
-                    {consultation.aiAdvice.recommendations.map((rec, idx) => (
-                      <li key={idx} className="text-sm flex items-start gap-2">
-                        <span className="text-green-600 flex-shrink-0">•</span>
-                        <span>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <h4 className="font-bold text-sm mb-2 flex items-center gap-2">
-                    <Icon name="Zap" size={16} className="text-purple-600" />
-                    Конкретные действия
-                  </h4>
-                  <div className="space-y-2">
-                    {consultation.aiAdvice.actions.map((action, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <span>{action}</span>
-                      </div>
-                    ))}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400">
+                    {question.length < 20
+                      ? `Минимум 20 символов (${question.length}/20)`
+                      : `${question.length} символов`}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <Icon name="Coins" size={12} />
+                      3 &#x20BD;
+                    </span>
+                    <Button
+                      onClick={handleSendConsultation}
+                      disabled={loading || question.trim().length < 20}
+                      className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
+                    >
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <Icon name="Loader2" size={16} className="animate-spin" />
+                          Анализирую...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Icon name="Send" size={16} />
+                          Получить совет
+                        </span>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
 
-        <Card className="border-2 border-amber-200 bg-amber-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Icon name="AlertCircle" size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium mb-1">Когда нужен настоящий психолог?</p>
-                <p className="text-muted-foreground">
-                  ИИ-психолог помогает с повседневными вопросами, но не заменяет профессионала. Обратитесь к психологу при серьёзных конфликтах, 
-                  признаках депрессии, агрессии, затяжных проблемах в отношениях.
+            {loading && (
+              <Card className="border-teal-200/60 bg-white/80 backdrop-blur-sm">
+                <CardContent className="py-8 flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center animate-pulse">
+                    <Icon name="Brain" size={24} className="text-teal-600" />
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Психолог анализирует вашу ситуацию...
+                  </p>
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {currentResponse && (
+              <div ref={responseRef}>
+                <Card className="border-teal-300/60 bg-white/90 backdrop-blur-sm shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2 text-teal-800">
+                      <Icon name="Sparkles" size={18} className="text-teal-500" />
+                      Рекомендация психолога
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose prose-sm max-w-none">
+                    {renderResponseText(currentResponse)}
+                  </CardContent>
+                  <div className="px-6 pb-4 flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCurrentResponse("");
+                        setQuestion("");
+                      }}
+                    >
+                      <Icon name="Plus" size={14} className="mr-1" />
+                      Новый вопрос
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {consultationHistory.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                  <Icon name="History" size={14} />
+                  Последние консультации
+                </h3>
+                {consultationHistory.slice(0, 5).map((record) => (
+                  <Card
+                    key={record.id}
+                    className="border-gray-200/60 bg-white/60 backdrop-blur-sm cursor-pointer hover:bg-white/80 transition-colors"
+                    onClick={() => {
+                      setCurrentResponse(record.answer);
+                      setQuestion(record.question);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    <CardContent className="py-3 px-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {record.topic}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                            {record.question.slice(0, 120)}...
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
+                          {formatDate(record.date)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="relaxation" className="space-y-3 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
+                <Icon name="Flower2" size={16} className="text-violet-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800 text-sm">Техники релаксации</h3>
+                <p className="text-xs text-gray-500">Научно обоснованные методы снятия стресса</p>
+              </div>
+            </div>
+
+            {RELAXATION_TECHNIQUES.map((tech) => {
+              const isExpanded = expandedTechnique === tech.id;
+              const isTimerActive = activeTimer === tech.id;
+              const completions = getTechniqueCompletionCount(tech.id);
+              const durationMinutes = parseInt(tech.duration);
+
+              return (
+                <Card
+                  key={tech.id}
+                  className={`border-violet-200/60 transition-all ${
+                    isTimerActive
+                      ? "bg-violet-50/80 border-violet-300"
+                      : "bg-white/80 backdrop-blur-sm"
+                  }`}
+                >
+                  <CardContent className="py-3 px-4">
+                    <div
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() =>
+                        setExpandedTechnique(isExpanded ? null : tech.id)
+                      }
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                        <Icon name={tech.icon} size={20} className="text-violet-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-gray-800 text-sm">
+                            {tech.title}
+                          </h4>
+                          {completions > 0 && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              {completions}x
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-gray-500 flex items-center gap-1">
+                            <Icon name="Clock" size={10} />
+                            {tech.duration}
+                          </span>
+                          <span className="text-xs text-gray-400">|</span>
+                          <span className="text-xs text-gray-500">{tech.difficulty}</span>
+                        </div>
+                      </div>
+                      <Icon
+                        name={isExpanded ? "ChevronUp" : "ChevronDown"}
+                        size={16}
+                        className="text-gray-400 flex-shrink-0"
+                      />
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-3 pt-3 border-t border-violet-100">
+                        <p className="text-sm text-gray-600 mb-3">{tech.description}</p>
+                        <ol className="space-y-2 mb-4">
+                          {tech.steps.map((step, i) => (
+                            <li key={i} className="flex gap-2 text-sm">
+                              <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                                {i + 1}
+                              </span>
+                              <span className="text-gray-700">{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+
+                        {isTimerActive ? (
+                          <div className="flex flex-col items-center gap-3 py-3">
+                            <div className="text-3xl font-mono font-bold text-violet-700">
+                              {formatTimer(timerSeconds)}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Следуйте инструкциям выше
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                stopTimer();
+                              }}
+                              className="border-violet-300 text-violet-700"
+                            >
+                              <Icon name="Square" size={14} className="mr-1" />
+                              Остановить
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startTimer(tech.id, durationMinutes || 5);
+                            }}
+                            className="w-full bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600"
+                            size="sm"
+                          >
+                            <Icon name="Play" size={14} className="mr-1" />
+                            Начать практику ({tech.duration})
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </TabsContent>
+
+          <TabsContent value="exercises" className="space-y-3 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                <Icon name="Target" size={16} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800 text-sm">
+                  Упражнения для семьи
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Практики для укрепления семейных связей
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {FAMILY_EXERCISES.map((ex) => {
+              const isExpanded = expandedExercise === ex.id;
+              const completions = getExerciseCompletionCount(ex.id);
+
+              return (
+                <Card
+                  key={ex.id}
+                  className="border-amber-200/60 bg-white/80 backdrop-blur-sm"
+                >
+                  <CardContent className="py-3 px-4">
+                    <div
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() =>
+                        setExpandedExercise(isExpanded ? null : ex.id)
+                      }
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center flex-shrink-0">
+                        <Icon name={ex.icon} size={20} className="text-amber-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-gray-800 text-sm">
+                            {ex.title}
+                          </h4>
+                          {completions > 0 && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              {completions}x
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-gray-500 flex items-center gap-1">
+                            <Icon name="Clock" size={10} />
+                            {ex.duration}
+                          </span>
+                          <span className="text-xs text-gray-400">|</span>
+                          <span className="text-xs text-gray-500">{ex.frequency}</span>
+                        </div>
+                      </div>
+                      <Icon
+                        name={isExpanded ? "ChevronUp" : "ChevronDown"}
+                        size={16}
+                        className="text-gray-400 flex-shrink-0"
+                      />
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-3 pt-3 border-t border-amber-100">
+                        <p className="text-sm text-gray-600 mb-3">{ex.description}</p>
+
+                        <div className="mb-3">
+                          <p className="text-xs font-semibold text-gray-700 mb-1.5">
+                            Польза:
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ex.benefits.map((b, i) => (
+                              <span
+                                key={i}
+                                className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200/60"
+                              >
+                                {b}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="mb-4">
+                          <p className="text-xs font-semibold text-gray-700 mb-1.5">
+                            Как выполнять:
+                          </p>
+                          <ol className="space-y-2">
+                            {ex.steps.map((step, i) => (
+                              <li key={i} className="flex gap-2 text-sm">
+                                <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                                  {i + 1}
+                                </span>
+                                <span className="text-gray-700">{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500 flex items-center gap-1">
+                            <Icon name="Repeat" size={12} />
+                            {ex.frequency}
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markExerciseComplete(ex.id);
+                            }}
+                            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                          >
+                            <Icon name="Check" size={14} className="mr-1" />
+                            Выполнено
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </TabsContent>
+
+          <TabsContent value="tests" className="space-y-3 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                <Icon name="ClipboardList" size={16} className="text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800 text-sm">
+                  Психологические тесты
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Оцените различные аспекты семейной жизни
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {PSYCH_TESTS.map((test) => (
+                <Card
+                  key={test.id}
+                  className="border-blue-200/60 bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-colors"
+                >
+                  <CardContent className="py-3 px-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <Icon
+                          name={test.icon}
+                          size={20}
+                          className="text-blue-600"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-800 text-sm">
+                          {test.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                          {test.description}
+                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-gray-400">
+                            {test.questions} вопросов
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate("/development")}
+                            className="text-xs h-7 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          >
+                            Пройти тест
+                            <Icon name="ArrowRight" size={12} className="ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="border-blue-200/40 bg-blue-50/50 backdrop-blur-sm">
+              <CardContent className="py-3 px-4">
+                <div className="flex items-center gap-2">
+                  <Icon name="Info" size={14} className="text-blue-500 flex-shrink-0" />
+                  <p className="text-xs text-blue-700">
+                    Тесты находятся в разделе &laquo;Развитие&raquo;. После
+                    прохождения результаты сохраняются в вашем профиле.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="progress" className="space-y-4 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+                <Icon name="TrendingUp" size={16} className="text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800 text-sm">Ваш прогресс</h3>
+                <p className="text-xs text-gray-500">
+                  Статистика использования инструментов психолога
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Card className="border-teal-200/60 bg-white/80 backdrop-blur-sm">
+                <CardContent className="py-3 px-3 text-center">
+                  <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-1.5">
+                    <Icon name="MessageCircle" size={18} className="text-teal-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-teal-700">
+                    {consultationHistory.length}
+                  </p>
+                  <p className="text-xs text-gray-500">Консультаций</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-amber-200/60 bg-white/80 backdrop-blur-sm">
+                <CardContent className="py-3 px-3 text-center">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-1.5">
+                    <Icon name="Target" size={18} className="text-amber-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-amber-700">
+                    {exercisesCompleted.length}
+                  </p>
+                  <p className="text-xs text-gray-500">Упражнений</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-violet-200/60 bg-white/80 backdrop-blur-sm">
+                <CardContent className="py-3 px-3 text-center">
+                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-1.5">
+                    <Icon name="Flower2" size={18} className="text-violet-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-violet-700">
+                    {relaxationSessions.length}
+                  </p>
+                  <p className="text-xs text-gray-500">Релаксаций</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-emerald-200/60 bg-white/80 backdrop-blur-sm">
+                <CardContent className="py-3 px-3 text-center">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-1.5">
+                    <Icon name="Flame" size={18} className="text-emerald-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-700">
+                    {getStreak()}
+                  </p>
+                  <p className="text-xs text-gray-500">Дней подряд</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-gray-200/60 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-2 pt-4">
+                <CardTitle className="text-sm text-gray-700 flex items-center gap-2">
+                  <Icon name="CalendarDays" size={14} />
+                  Активность за неделю
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="flex items-end justify-between gap-1 px-2">
+                  {getWeeklyActivity().map((active, i) => (
+                    <div key={i} className="flex flex-col items-center gap-1.5">
+                      <div
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors ${
+                          active
+                            ? "bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        {active ? (
+                          <Icon name="Check" size={14} className="text-white" />
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-gray-300" />
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-400 capitalize">
+                        {getDayLabel(6 - i)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {consultationHistory.length > 0 && (
+              <Card className="border-gray-200/60 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm text-gray-700 flex items-center gap-2">
+                    <Icon name="History" size={14} />
+                    Последние действия
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4 space-y-2">
+                  {consultationHistory.slice(0, 3).map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                        <Icon name="MessageCircle" size={12} className="text-teal-600" />
+                      </div>
+                      <span className="text-gray-700 truncate flex-1">
+                        {c.topic}
+                      </span>
+                      <span className="text-xs text-gray-400 flex-shrink-0">
+                        {formatDate(c.date)}
+                      </span>
+                    </div>
+                  ))}
+                  {exercisesCompleted.slice(0, 3).map((e, i) => {
+                    const ex = FAMILY_EXERCISES.find(
+                      (f) => f.id === e.exerciseId
+                    );
+                    return (
+                      <div
+                        key={`ex-${i}`}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                          <Icon name="Target" size={12} className="text-amber-600" />
+                        </div>
+                        <span className="text-gray-700 truncate flex-1">
+                          {ex?.title || "Упражнение"}
+                        </span>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {formatDate(e.completedDate)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {relaxationSessions.slice(0, 3).map((r, i) => {
+                    const tech = RELAXATION_TECHNIQUES.find(
+                      (t) => t.id === r.techniqueId
+                    );
+                    return (
+                      <div
+                        key={`rel-${i}`}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                          <Icon name="Flower2" size={12} className="text-violet-600" />
+                        </div>
+                        <span className="text-gray-700 truncate flex-1">
+                          {tech?.title || "Релаксация"}
+                        </span>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {formatDate(r.completedDate)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {consultationHistory.length === 0 &&
+              exercisesCompleted.length === 0 &&
+              relaxationSessions.length === 0 && (
+                <Card className="border-gray-200/60 bg-white/60 backdrop-blur-sm">
+                  <CardContent className="py-8 flex flex-col items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Icon name="Sparkles" size={24} className="text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-500 text-center max-w-xs">
+                      Пока нет данных. Начните с консультации, попробуйте
+                      технику релаксации или выполните упражнение для семьи.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveTab("consultation")}
+                    >
+                      Начать консультацию
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
