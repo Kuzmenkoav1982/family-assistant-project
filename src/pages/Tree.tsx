@@ -289,6 +289,24 @@ interface GenLayout {
   nodes: NodeLayout[];
 }
 
+/** Все member-id внутри узла */
+function getAllNodeMemberIds(node: TreeNode): number[] {
+  if (node.type === 'unit') {
+    const ids = [node.unit.primary.id];
+    if (node.unit.spouse) ids.push(node.unit.spouse.id);
+    return ids;
+  }
+  return [node.member.id];
+}
+
+/** Находим родительский узел для дочернего члена */
+function findParentNodeIndex(childNode: TreeNode, parentGenNodes: TreeNode[]): number {
+  const child = childNode.type === 'unit' ? childNode.unit.primary : childNode.member;
+  const pids = [child.parent_id, child.parent2_id].filter(Boolean) as number[];
+  if (pids.length === 0) return -1;
+  return parentGenNodes.findIndex(pn => getAllNodeMemberIds(pn).some(id => pids.includes(id)));
+}
+
 function buildLayout(
   sortedGenerations: [number, TreeMember[]][],
   members: TreeMember[],
@@ -296,7 +314,7 @@ function buildLayout(
   const allGenMemberIds = new Set<number>();
   sortedGenerations.forEach(([, gm]) => gm.forEach(m => allGenMemberIds.add(m.id)));
 
-  // Строим узлы по поколениям
+  // 1. Строим узлы (unit/single) по поколениям
   const genNodesMap = new Map<number, TreeNode[]>();
   sortedGenerations.forEach(([genIndex, genMembers]) => {
     const { units, singles } = buildFamilyUnits(genMembers, members, allGenMemberIds);
@@ -306,171 +324,227 @@ function buildLayout(
     ]);
   });
 
-  // Упорядочиваем узлы с учётом parent-child связей
-  sortedGenerations.forEach(([genIndex], sortIdx) => {
+  // 2. Сортируем узлы каждого поколения: дети группируются под родителями
+  for (let si = 1; si < sortedGenerations.length; si++) {
+    const [genIndex] = sortedGenerations[si];
+    const [prevGenIndex] = sortedGenerations[si - 1];
     const nodes = genNodesMap.get(genIndex) || [];
-    if (nodes.length === 0) return;
-    const prevGenIndex = sortIdx > 0 ? sortedGenerations[sortIdx - 1][0] : null;
-    const prevGenNodes = prevGenIndex !== null ? (genNodesMap.get(prevGenIndex) || []) : [];
+    const prevNodes = genNodesMap.get(prevGenIndex) || [];
+    if (nodes.length === 0 || prevNodes.length === 0) continue;
 
-    const claimed = new Set<number>();
-    const groupedByParent: { parentNode: TreeNode | null; children: TreeNode[] }[] = [];
+    // Группируем по индексу родительского узла
+    const groups = new Map<number, TreeNode[]>(); // parentIdx -> children
+    const orphans: TreeNode[] = [];
 
-    for (const parentNode of prevGenNodes) {
-      const kids = getChildrenOfNode(parentNode, nodes).filter(k => {
-        const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
-        return !claimed.has(id);
-      });
-      if (kids.length > 0) {
-        groupedByParent.push({ parentNode, children: kids });
-        kids.forEach(k => {
-          const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
-          claimed.add(id);
-          if (k.type === 'unit' && k.unit.spouse) claimed.add(k.unit.spouse.id);
-        });
+    nodes.forEach(n => {
+      const pIdx = findParentNodeIndex(n, prevNodes);
+      if (pIdx >= 0) {
+        if (!groups.has(pIdx)) groups.set(pIdx, []);
+        groups.get(pIdx)!.push(n);
+      } else {
+        orphans.push(n);
       }
-    }
-
-    // Сортируем детей: братья/сёстры рядом с «Я»
-    const SIBLING_RELS = new Set(['Брат', 'Сестра']);
-    for (const group of groupedByParent) {
-      const meIdx = group.children.findIndex(c => {
-        const m = c.type === 'unit' ? c.unit.primary : c.member;
-        return m.relation === 'Я';
-      });
-      if (meIdx >= 0) {
-        const siblings = group.children.filter((c, i) => {
-          if (i === meIdx) return false;
-          const m = c.type === 'unit' ? c.unit.primary : c.member;
-          return SIBLING_RELS.has(m.relation || '');
-        });
-        const others = group.children.filter((c, i) => {
-          if (i === meIdx) return false;
-          const m = c.type === 'unit' ? c.unit.primary : c.member;
-          return !SIBLING_RELS.has(m.relation || '');
-        });
-        group.children = [...siblings, group.children[meIdx], ...others];
-      }
-    }
-
-    const orphans = nodes.filter(n => {
-      const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
-      return !claimed.has(id);
     });
-    if (orphans.length > 0) groupedByParent.push({ parentNode: null, children: orphans });
 
-    const reordered: TreeNode[] = [];
-    for (const g of groupedByParent) reordered.push(...g.children);
-    genNodesMap.set(genIndex, reordered);
+    // Раскладываем в порядке родителей
+    const sorted: TreeNode[] = [];
+    prevNodes.forEach((_, pi) => {
+      const kids = groups.get(pi);
+      if (kids) sorted.push(...kids);
+    });
+    sorted.push(...orphans);
+    genNodesMap.set(genIndex, sorted);
+  }
+
+  // 3. Двухпроходный layout: сначала снизу-вверх (ширина), потом сверху-вниз (позиции)
+  // 3a. Посчитаем ширину каждого узла «поддерева»
+  const subtreeWidth = new Map<string, number>(); // "genIdx:nodeIdx" → width
+  const nodeKey = (gi: number, ni: number) => `${gi}:${ni}`;
+
+  // Снизу вверх
+  for (let si = sortedGenerations.length - 1; si >= 0; si--) {
+    const [genIndex] = sortedGenerations[si];
+    const nodes = genNodesMap.get(genIndex) || [];
+    const nextGenIndex = si < sortedGenerations.length - 1 ? sortedGenerations[si + 1][0] : null;
+    const nextNodes = nextGenIndex !== null ? (genNodesMap.get(nextGenIndex) || []) : [];
+
+    nodes.forEach((node, ni) => {
+      const ownW = nodeWidth(node);
+      // Найти детей этого узла в следующем поколении
+      const childIndices: number[] = [];
+      if (nextNodes.length > 0) {
+        nextNodes.forEach((cn, ci) => {
+          if (findParentNodeIndex(cn, nodes) === ni) childIndices.push(ci);
+        });
+      }
+      if (childIndices.length === 0) {
+        subtreeWidth.set(nodeKey(genIndex, ni), ownW);
+      } else {
+        const childrenTotalW = childIndices.reduce((sum, ci, i) => {
+          return sum + (subtreeWidth.get(nodeKey(nextGenIndex!, ci)) || nodeWidth(nextNodes[ci])) + (i > 0 ? COL_GAP : 0);
+        }, 0);
+        subtreeWidth.set(nodeKey(genIndex, ni), Math.max(ownW, childrenTotalW));
+      }
+    });
+  }
+
+  // 3b. Общая ширина — сумма поддеревьев верхнего поколения
+  const topGenIndex = sortedGenerations[0][0];
+  const topNodes = genNodesMap.get(topGenIndex) || [];
+  const totalW = topNodes.reduce((sum, _, ni) => {
+    return sum + (subtreeWidth.get(nodeKey(topGenIndex, ni)) || CARD_W) + (ni > 0 ? COL_GAP : 0);
+  }, 0);
+
+  // 3c. Сверху вниз: раскладываем X-позиции рекурсивно
+  const nodePositions = new Map<string, { x: number; cx: number }>();
+
+  function layoutGen(genIdx: number, startX: number, nodeIndices: number[]) {
+    const nodes = genNodesMap.get(genIdx) || [];
+    let x = startX;
+    nodeIndices.forEach(ni => {
+      const node = nodes[ni];
+      const stW = subtreeWidth.get(nodeKey(genIdx, ni)) || nodeWidth(node);
+      const ownW = nodeWidth(node);
+      const nodeX = x + (stW - ownW) / 2;
+      nodePositions.set(nodeKey(genIdx, ni), { x: nodeX, cx: nodeX + ownW / 2 });
+
+      // Найти детей в следующем поколении и layout их
+      const nextSI = sortedGenerations.findIndex(([gi]) => gi === genIdx);
+      if (nextSI >= 0 && nextSI < sortedGenerations.length - 1) {
+        const [nextGenIdx] = sortedGenerations[nextSI + 1];
+        const nextNodes = genNodesMap.get(nextGenIdx) || [];
+        const childIndices: number[] = [];
+        nextNodes.forEach((cn, ci) => {
+          if (findParentNodeIndex(cn, nodes) === ni) childIndices.push(ci);
+        });
+        if (childIndices.length > 0) {
+          layoutGen(nextGenIdx, x, childIndices);
+        }
+      }
+
+      x += stW + COL_GAP;
+    });
+  }
+
+  layoutGen(topGenIndex, 0, topNodes.map((_, i) => i));
+
+  // Также layout любые узлы без позиции (orphans в нижних поколениях)
+  sortedGenerations.forEach(([genIndex]) => {
+    const nodes = genNodesMap.get(genIndex) || [];
+    let maxX = 0;
+    nodes.forEach((_, ni) => {
+      const pos = nodePositions.get(nodeKey(genIndex, ni));
+      if (pos) maxX = Math.max(maxX, pos.x + nodeWidth(nodes[ni]) + COL_GAP);
+    });
+    nodes.forEach((node, ni) => {
+      if (!nodePositions.has(nodeKey(genIndex, ni))) {
+        const w = nodeWidth(node);
+        nodePositions.set(nodeKey(genIndex, ni), { x: maxX, cx: maxX + w / 2 });
+        maxX += w + COL_GAP;
+      }
+    });
   });
 
-  // Считаем X-позиции для каждого поколения (сначала самое широкое)
-  let maxRowW = 0;
-  const genWidths = new Map<number, number>();
-  genNodesMap.forEach((nodes, genIndex) => {
-    const w = nodes.reduce((acc, n, i) => acc + nodeWidth(n) + (i > 0 ? COL_GAP : 0), 0);
-    genWidths.set(genIndex, w);
-    if (w > maxRowW) maxRowW = w;
-  });
-
+  // 4. Собираем GenLayout[]
   const gens: GenLayout[] = [];
   let curY = 0;
 
   sortedGenerations.forEach(([genIndex]) => {
     const nodes = genNodesMap.get(genIndex) || [];
     if (nodes.length === 0) return;
-    const rowW = genWidths.get(genIndex) || 0;
-    const startX = Math.max(0, (maxRowW - rowW) / 2);
 
-    let x = startX;
-    const layouts: NodeLayout[] = [];
-    nodes.forEach(node => {
-      const w = nodeWidth(node);
-      layouts.push({ node, x, y: curY + LABEL_H, cx: x + w / 2 });
-      x += w + COL_GAP;
+    const layouts: NodeLayout[] = nodes.map((node, ni) => {
+      const pos = nodePositions.get(nodeKey(genIndex, ni))!;
+      return { node, x: pos.x, y: curY + LABEL_H, cx: pos.cx };
     });
 
     gens.push({ genIndex, y: curY, nodes: layouts });
     curY += LABEL_H + CARD_H + ROW_GAP;
   });
 
-  return { gens, totalW: maxRowW, totalH: curY };
+  // Пересчитаем реальную ширину
+  let realMaxW = 0;
+  gens.forEach(g => g.nodes.forEach(nl => {
+    realMaxW = Math.max(realMaxW, nl.x + nodeWidth(nl.node));
+  }));
+
+  return { gens, totalW: Math.max(totalW, realMaxW), totalH: curY };
 }
 
 // ── SVG-пути связи ───────────────────────────────────────────────────────────
 
 interface SvgPath {
-  points: [number, number][];  // последовательность точек ломаной
+  points: [number, number][];
   key: string;
   isSibling?: boolean;
 }
 
 /**
- * Строит SVG-пути (ломаные):
- * - ствол: от центра родителя вниз до горизонтальной шины
- * - шина: горизонталь, объединяющая всех братьев/сестёр
- * - отростки: от шины вниз к каждому ребёнку
+ * Строит SVG-пути между поколениями:
+ * 1. Находит все дочерние узлы для каждого родительского узла
+ * 2. Рисует ствол от центра родителя вниз
+ * 3. Рисует горизонтальную шину, объединяющую братьев/сестёр
+ * 4. Рисует отростки от шины вниз к каждому ребёнку
  */
 function buildPaths(gens: GenLayout[]): SvgPath[] {
   const paths: SvgPath[] = [];
 
+  // Для каждого поколения (кроме первого) группируем дочерние узлы по их родительскому layout-узлу
   for (let gi = 1; gi < gens.length; gi++) {
-    const prevGen = gens[gi - 1];
-    const curGen  = gens[gi];
+    const curGen = gens[gi];
 
-    // Группируем дочерние узлы по родительскому layout-узлу
-    const byParent = new Map<string, { parentLayout: NodeLayout; childLayouts: NodeLayout[] }>();
+    // parentLayoutKey → { parentNl, childNls }
+    const byParent = new Map<string, { parentNl: NodeLayout; childNls: NodeLayout[] }>();
 
-    curGen.nodes.forEach((childLayout) => {
-      const childMember = childLayout.node.type === 'unit'
-        ? childLayout.node.unit.primary
-        : childLayout.node.member;
+    curGen.nodes.forEach((childNl) => {
+      const child = childNl.node.type === 'unit' ? childNl.node.unit.primary : childNl.node.member;
+      const pids = [child.parent_id, child.parent2_id].filter(Boolean) as number[];
+      if (pids.length === 0) return;
 
-      const parentIds = new Set(
-        [childMember.parent_id, childMember.parent2_id].filter(Boolean) as number[]
-      );
-      if (parentIds.size === 0) return;
+      // Найти родительский layout-узел (ищем по всем предыдущим поколениям)
+      let parentNl: NodeLayout | null = null;
+      for (let pi = gi - 1; pi >= 0; pi--) {
+        const found = gens[pi].nodes.find(pnl =>
+          getAllNodeMemberIds(pnl.node).some(id => pids.includes(id))
+        );
+        if (found) { parentNl = found; break; }
+      }
+      if (!parentNl) return;
 
-      const parentLayout = prevGen.nodes.find(pl =>
-        getNodeMemberIds(pl.node).some(id => parentIds.has(id))
-      );
-      if (!parentLayout) return;
-
-      // Ключ — cx родителя (уникально для каждого родительского блока)
-      const pKey = String(Math.round(parentLayout.cx * 100));
-      if (!byParent.has(pKey)) byParent.set(pKey, { parentLayout, childLayouts: [] });
-      byParent.get(pKey)!.childLayouts.push(childLayout);
+      const pKey = `${Math.round(parentNl.cx)}-${Math.round(parentNl.y)}`;
+      if (!byParent.has(pKey)) byParent.set(pKey, { parentNl, childNls: [] });
+      byParent.get(pKey)!.childNls.push(childNl);
     });
 
-    byParent.forEach(({ parentLayout, childLayouts }, pKey) => {
-      const fromX = parentLayout.cx;
-      const fromY = parentLayout.y + CARD_H;
-      const toY   = childLayouts[0].y;
+    byParent.forEach(({ parentNl, childNls }, pKey) => {
+      const fromX = parentNl.cx;
+      const fromY = parentNl.y + CARD_H;
+      const toY   = childNls[0].y;
       const busY  = fromY + (toY - fromY) * 0.45;
 
-      // Ствол от родителя до шины
+      // Ствол: вертикаль вниз от родителя до шины
       paths.push({
-        key: `stem-${pKey}-${gi}`,
+        key: `stem-${pKey}`,
         points: [[fromX, fromY], [fromX, busY]],
       });
 
-      const xs   = childLayouts.map(cl => cl.cx);
+      const xs   = childNls.map(cl => cl.cx);
       const minX = Math.min(...xs);
       const maxX = Math.max(...xs);
 
-      if (childLayouts.length > 1) {
-        // Горизонтальная шина (братья/сёстры)
+      if (childNls.length > 1) {
+        // Горизонтальная шина — братья/сёстры
         paths.push({
-          key: `bus-${pKey}-${gi}`,
+          key: `bus-${pKey}`,
           points: [[minX, busY], [maxX, busY]],
           isSibling: true,
         });
       }
 
-      // Отростки от шины к каждому ребёнку
-      childLayouts.forEach(cl => {
+      // Отростки: от шины вниз к каждому ребёнку
+      childNls.forEach((cl, i) => {
         paths.push({
-          key: `drop-${Math.round(cl.cx)}-${gi}`,
+          key: `drop-${pKey}-${i}`,
           points: [[cl.cx, busY], [cl.cx, cl.y]],
         });
       });
@@ -480,10 +554,8 @@ function buildPaths(gens: GenLayout[]): SvgPath[] {
   return paths;
 }
 
-function pointsToD(points: [number, number][], pad: number): string {
-  return points
-    .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x + pad} ${y + pad}`)
-    .join(' ');
+function pointsToD(pts: [number, number][], pad: number): string {
+  return pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x + pad} ${y + pad}`).join(' ');
 }
 
 // ── Canvas компонент ─────────────────────────────────────────────────────────
