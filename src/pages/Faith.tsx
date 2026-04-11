@@ -135,16 +135,23 @@ function daysUntil(dateStr: string): number {
 }
 
 function OverviewTab({
-  religion, setReligion, onSaveSettings, holidays, fasting, saving, setActiveTab,
+  religion, setReligion, onSaveSettings, holidays, fasting, saving, setActiveTab, collapseReligion,
 }: {
   religion: string; setReligion: (r: string) => void; onSaveSettings: () => void;
   holidays: Holiday[]; fasting: FastingPeriod[]; saving: boolean; setActiveTab: (t: string) => void;
+  collapseReligion: boolean;
 }) {
   const [religionOpen, setReligionOpen] = useState(() => {
     const saved = localStorage.getItem('faith_religion_open');
     if (saved !== null) return saved === '1';
     return true;
   });
+
+  useEffect(() => {
+    if (collapseReligion) {
+      setReligionOpen(false);
+    }
+  }, [collapseReligion]);
 
   const toggleReligion = () => {
     const next = !religionOpen;
@@ -916,6 +923,7 @@ export default function Faith() {
   const [fasting, setFasting] = useState<FastingPeriod[]>([]);
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [templeData, setTempleData] = useState({ name: '', address: '', schedule: '', contacts: '' });
+  const [collapseReligion, setCollapseReligion] = useState(false);
 
   const loadSettings = useCallback(async () => {
     try {
@@ -965,6 +973,8 @@ export default function Faith() {
     setSaving(true);
     try {
       await apiFetch('save_settings', { religion });
+      localStorage.setItem('faith_religion_open', '0');
+      setCollapseReligion(true);
       toast({ title: 'Сохранено', description: `${getReligionEmoji(religion)} ${getReligionLabel(religion)} выбрано как ваше вероисповедание` });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Ошибка сохранения';
@@ -1092,6 +1102,7 @@ export default function Faith() {
                 <OverviewTab
                   religion={religion} setReligion={setReligion} onSaveSettings={saveSettings}
                   holidays={holidays} fasting={fasting} saving={saving} setActiveTab={setActiveTab}
+                  collapseReligion={collapseReligion}
                 />
               </TabsContent>
               <TabsContent value="holidays">
