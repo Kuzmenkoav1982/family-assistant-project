@@ -128,7 +128,7 @@ function buildFamilyUnits(genMembers: TreeMember[], allMembers: TreeMember[], ge
   return { units, singles };
 }
 
-function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; onClick: () => void; isHighlighted?: boolean }) {
+function MemberCard({ member, onClick, isHighlighted, branchColor }: { member: TreeMember; onClick: () => void; isHighlighted?: boolean; branchColor?: string }) {
   const isImageUrl = (avatar: string) => avatar?.startsWith('http') || avatar?.startsWith('/');
   const calculateAge = (m: TreeMember) => {
     const endDate = m.death_date ? new Date(m.death_date) :
@@ -160,11 +160,12 @@ function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; on
     <Card
       className={`w-[130px] cursor-pointer hover:shadow-lg transition-all hover:scale-105 relative overflow-hidden ${
         isMe
-          ? 'border-amber-500 bg-gradient-to-br from-amber-100 to-yellow-100 ring-2 ring-amber-400/50'
+          ? 'bg-gradient-to-br from-amber-100 to-yellow-100 ring-2 ring-amber-400/50'
           : isHighlighted
-            ? 'border-pink-300 bg-gradient-to-br from-pink-50 to-rose-50'
-            : 'border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50'
+            ? 'bg-gradient-to-br from-pink-50 to-rose-50'
+            : 'bg-gradient-to-br from-amber-50 to-yellow-50'
       }`}
+      style={branchColor ? { borderColor: branchColor, borderWidth: 2 } : undefined}
       onClick={onClick}
     >
       {member.death_year && (
@@ -182,7 +183,8 @@ function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; on
           <img
             src={member.photo_url}
             alt={member.name}
-            className={`w-14 h-14 rounded-full object-cover border-2 mx-auto mb-2 ${isMe ? 'border-amber-500' : 'border-amber-300'}`}
+            className="w-14 h-14 rounded-full object-cover border-2 mx-auto mb-2"
+            style={{ borderColor: branchColor || (isMe ? '#f59e0b' : '#fcd34d') }}
           />
         ) : (
           <div className="text-3xl mb-2">{member.avatar || '👤'}</div>
@@ -220,12 +222,14 @@ function MemberCard({ member, onClick, isHighlighted }: { member: TreeMember; on
   );
 }
 
-function CoupleBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: TreeMember) => void }) {
+function CoupleBlock({ unit, onSelect, memberColors }: { unit: FamilyUnit; onSelect: (m: TreeMember) => void; memberColors?: Map<number, string> }) {
   const left = unit.spouseLeft && unit.spouse ? unit.spouse : unit.primary;
   const right = unit.spouseLeft && unit.spouse ? unit.primary : unit.spouse;
+  const leftColor = memberColors?.get(left.id);
+  const rightColor = right ? memberColors?.get(right.id) : undefined;
   return (
     <div className="flex items-center gap-0">
-      <MemberCard member={left} onClick={() => onSelect(left)} />
+      <MemberCard member={left} onClick={() => onSelect(left)} branchColor={leftColor} />
       {right && (
         <>
           <div className="flex items-center mx-[-4px] z-10">
@@ -233,7 +237,7 @@ function CoupleBlock({ unit, onSelect }: { unit: FamilyUnit; onSelect: (m: TreeM
             <span className="text-pink-500 text-xs">&#10084;</span>
             <div className="w-6 h-0.5 bg-pink-400" />
           </div>
-          <MemberCard member={right} onClick={() => onSelect(right)} isHighlighted />
+          <MemberCard member={right} onClick={() => onSelect(right)} isHighlighted branchColor={rightColor} />
         </>
       )}
     </div>
@@ -487,27 +491,35 @@ interface SvgPath {
   points: [number, number][];
   key: string;
   isSibling?: boolean;
+  color?: string;
 }
 
-/**
- * Строит SVG-пути между поколениями:
- * 1. Находит все дочерние узлы для каждого родительского узла
- * 2. Рисует ствол от центра родителя вниз
- * 3. Рисует горизонтальную шину, объединяющую братьев/сестёр
- * 4. Рисует отростки от шины вниз к каждому ребёнку
- */
-function buildPaths(gens: GenLayout[]): SvgPath[] {
-  const paths: SvgPath[] = [];
+const BRANCH_COLORS = [
+  '#b45309', // amber-700
+  '#7c3aed', // violet-600
+  '#0891b2', // cyan-600
+  '#16a34a', // green-600
+  '#dc2626', // red-600
+  '#2563eb', // blue-600
+  '#d97706', // amber-600
+  '#9333ea', // purple-600
+  '#059669', // emerald-600
+  '#e11d48', // rose-600
+];
 
-  // Для каждого поколения (кроме первого) группируем дочерние узлы по их родительскому layout-узлу
+type BranchColorMap = Map<string, string>; // parentKey → color
+
+function buildPaths(gens: GenLayout[]): { paths: SvgPath[]; branchColors: BranchColorMap; memberColors: Map<number, string> } {
+  const paths: SvgPath[] = [];
+  const branchColors: BranchColorMap = new Map();
+  const memberColors = new Map<number, string>();
+  let colorIdx = 0;
+
   for (let gi = 1; gi < gens.length; gi++) {
     const curGen = gens[gi];
-
-    // parentLayoutKey → { parentNl, childNls }
     const byParent = new Map<string, { parentNl: NodeLayout; childNls: NodeLayout[] }>();
 
     curGen.nodes.forEach((childNl) => {
-      // Собираем всех членов узла — для unit это и primary, и spouse
       const membersToCheck: TreeMember[] = [];
       if (childNl.node.type === 'unit') {
         membersToCheck.push(childNl.node.unit.primary);
@@ -516,7 +528,6 @@ function buildPaths(gens: GenLayout[]): SvgPath[] {
         membersToCheck.push(childNl.node.member);
       }
 
-      // Для каждого члена узла ищем его родительский layout
       membersToCheck.forEach(child => {
         const pids = [child.parent_id, child.parent2_id].filter(Boolean) as number[];
         if (pids.length === 0) return;
@@ -532,7 +543,6 @@ function buildPaths(gens: GenLayout[]): SvgPath[] {
 
         const pKey = `${Math.round(parentNl.cx)}-${Math.round(parentNl.y)}`;
         if (!byParent.has(pKey)) byParent.set(pKey, { parentNl, childNls: [] });
-        // Не дублируем один и тот же дочерний узел
         const existing = byParent.get(pKey)!.childNls;
         if (!existing.includes(childNl)) {
           existing.push(childNl);
@@ -540,16 +550,35 @@ function buildPaths(gens: GenLayout[]): SvgPath[] {
       });
     });
 
-    byParent.forEach(({ parentNl, childNls }, pKey) => {
+    const parentEntries = Array.from(byParent.entries());
+    const BUS_OFFSET = 12;
+
+    parentEntries.forEach(([pKey, { parentNl, childNls }], idx) => {
+      if (!branchColors.has(pKey)) {
+        branchColors.set(pKey, BRANCH_COLORS[colorIdx % BRANCH_COLORS.length]);
+        colorIdx++;
+      }
+      const color = branchColors.get(pKey)!;
+
+      getAllNodeMemberIds(parentNl.node).forEach(id => {
+        if (!memberColors.has(id)) memberColors.set(id, color);
+      });
+      childNls.forEach(cl => {
+        getAllNodeMemberIds(cl.node).forEach(id => {
+          if (!memberColors.has(id)) memberColors.set(id, color);
+        });
+      });
+
       const fromX = parentNl.cx;
       const fromY = parentNl.y + CARD_H;
       const toY   = childNls[0].y;
-      const busY  = fromY + (toY - fromY) * 0.45;
+      const baseBusY = fromY + (toY - fromY) * 0.45;
+      const busY = baseBusY + idx * BUS_OFFSET - ((parentEntries.length - 1) * BUS_OFFSET) / 2;
 
-      // Ствол: вертикаль вниз от родителя до шины
       paths.push({
         key: `stem-${pKey}`,
         points: [[fromX, fromY], [fromX, busY]],
+        color,
       });
 
       const xs   = childNls.map(cl => cl.cx);
@@ -557,25 +586,25 @@ function buildPaths(gens: GenLayout[]): SvgPath[] {
       const maxX = Math.max(...xs);
 
       if (childNls.length > 1) {
-        // Горизонтальная шина — братья/сёстры
         paths.push({
           key: `bus-${pKey}`,
           points: [[minX, busY], [maxX, busY]],
           isSibling: true,
+          color,
         });
       }
 
-      // Отростки: от шины вниз к каждому ребёнку
       childNls.forEach((cl, i) => {
         paths.push({
           key: `drop-${pKey}-${i}`,
           points: [[cl.cx, busY], [cl.cx, cl.y]],
+          color,
         });
       });
     });
   }
 
-  return paths;
+  return { paths, branchColors, memberColors };
 }
 
 function pointsToD(pts: [number, number][], pad: number): string {
@@ -603,7 +632,7 @@ function FamilyTreeCanvas({
     () => buildLayout(sortedGenerations, members),
     [sortedGenerations, members],
   );
-  const paths = useMemo(() => buildPaths(gens), [gens]);
+  const { paths, memberColors } = useMemo(() => buildPaths(gens), [gens]);
 
   const PADDING = 32;
   const canvasW = totalW + PADDING * 2;
@@ -742,9 +771,9 @@ function FamilyTreeCanvas({
               <path
                 key={p.key}
                 d={pointsToD(p.points, PADDING)}
-                stroke={p.isSibling ? '#f59e0b' : '#d97706'}
-                strokeWidth={p.isSibling ? 2.5 : 1.8}
-                strokeOpacity={p.isSibling ? 0.75 : 0.6}
+                stroke={p.color || '#d97706'}
+                strokeWidth={p.isSibling ? 2.8 : 2}
+                strokeOpacity={0.75}
                 fill="none"
                 strokeLinecap="round"
               />
@@ -785,9 +814,9 @@ function FamilyTreeCanvas({
                   }}
                 >
                   {nl.node.type === 'unit' ? (
-                    <CoupleBlock unit={nl.node.unit} onSelect={onSelectMember} />
+                    <CoupleBlock unit={nl.node.unit} onSelect={onSelectMember} memberColors={memberColors} />
                   ) : (
-                    <MemberCard member={nl.node.member} onClick={() => onSelectMember(nl.node.member)} />
+                    <MemberCard member={nl.node.member} onClick={() => onSelectMember(nl.node.member)} branchColor={memberColors.get(nl.node.member.id)} />
                   )}
                 </div>
               ))}
