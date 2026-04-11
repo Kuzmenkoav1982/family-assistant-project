@@ -61,6 +61,26 @@ interface NameDay {
   description?: string;
 }
 
+interface BasicArticle {
+  title: string;
+  text: string;
+}
+
+interface SacredBook {
+  title: string;
+  author: string;
+  description: string;
+  category: string;
+}
+
+const BOOK_CATEGORIES: Record<string, { label: string; icon: string; color: string }> = {
+  sacred: { label: 'Священное Писание', icon: 'BookMarked', color: 'amber' },
+  study: { label: 'Для изучения', icon: 'GraduationCap', color: 'blue' },
+  classic: { label: 'Классика', icon: 'Library', color: 'violet' },
+  modern: { label: 'Современные', icon: 'Sparkles', color: 'emerald' },
+  prayer: { label: 'Молитвословы', icon: 'Heart', color: 'rose' },
+};
+
 const RELIGIONS = [
   { key: 'orthodox', label: 'Православие', emoji: '☦️' },
   { key: 'islam', label: 'Ислам', emoji: '☪️' },
@@ -302,6 +322,7 @@ function OverviewTab({
           { tab: 'holidays', icon: 'CalendarDays', label: 'Праздники', desc: 'Все даты и события', color: 'amber' },
           { tab: 'fasting', icon: 'Flame', label: 'Посты', desc: 'Правила питания', color: 'orange' },
           { tab: 'prayers', icon: 'BookOpen', label: 'Молитвы', desc: 'Тексты и правила', color: 'rose' },
+          { tab: 'library', icon: 'Library', label: 'Основы веры', desc: 'Книги и знания', color: 'blue' },
           { tab: 'namedays', icon: 'Baby', label: 'Именины', desc: 'Дни ангела семьи', color: 'violet' },
           { tab: 'temple', icon: 'Church', label: 'Мой храм', desc: 'Адрес, расписание', color: 'amber' },
         ].map(item => (
@@ -601,6 +622,153 @@ function PrayersTab({ prayers, religion }: { prayers: Prayer[]; religion: string
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function LibraryTab({ religion }: { religion: string }) {
+  const [basics, setBasics] = useState<BasicArticle[]>([]);
+  const [books, setBooks] = useState<SacredBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedBasic, setExpandedBasic] = useState<number | null>(0);
+  const [bookFilter, setBookFilter] = useState('all');
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await apiFetch('get_library', { religion });
+        setBasics(data.basics || []);
+        setBooks(data.books || []);
+      } catch {
+        setBasics([]);
+        setBooks([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [religion]);
+
+  const filteredBooks = bookFilter === 'all' ? books : books.filter(b => b.category === bookFilter);
+  const availableCategories = ['all', ...new Set(books.map(b => b.category))];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-10">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-3 border-amber-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+          <Icon name="Lightbulb" size={18} className="text-amber-500" />
+          Основы веры — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+        </h3>
+        <p className="text-xs text-amber-700/70 -mt-2">Простым и доступным языком о самом важном</p>
+
+        <div className="space-y-2">
+          {basics.map((article, i) => (
+            <Card
+              key={i}
+              className={`border-amber-100 overflow-hidden transition-all ${expandedBasic === i ? 'ring-1 ring-amber-300 shadow-md' : 'hover:shadow-sm'}`}
+            >
+              <button
+                onClick={() => setExpandedBasic(expandedBasic === i ? null : i)}
+                className="w-full p-3 flex items-center gap-3 text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-amber-700">{i + 1}</span>
+                </div>
+                <p className="text-sm font-medium text-amber-900 flex-1">{article.title}</p>
+                <Icon
+                  name={expandedBasic === i ? 'ChevronUp' : 'ChevronDown'}
+                  size={16}
+                  className="text-amber-400 shrink-0"
+                />
+              </button>
+              {expandedBasic === i && (
+                <div className="px-4 pb-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 border border-amber-100">
+                    <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-line">{article.text}</p>
+                  </div>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-amber-200" />
+          <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Icon name="BookOpen" size={14} />
+            Священные книги и литература
+          </span>
+          <div className="h-px flex-1 bg-amber-200" />
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {availableCategories.map(cat => {
+            const info = cat === 'all'
+              ? { label: 'Все', icon: 'Library', color: 'amber' }
+              : BOOK_CATEGORIES[cat] || { label: cat, icon: 'Book', color: 'gray' };
+            return (
+              <button
+                key={cat}
+                onClick={() => setBookFilter(cat)}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
+                  bookFilter === cat
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200'
+                }`}
+              >
+                <Icon name={info.icon} size={11} />
+                {info.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="space-y-2">
+          {filteredBooks.map((book, i) => {
+            const catInfo = BOOK_CATEGORIES[book.category] || { label: '', icon: 'Book', color: 'gray' };
+            return (
+              <Card key={i} className="border-amber-100 hover:shadow-sm transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-11 h-14 rounded-lg bg-gradient-to-br from-${catInfo.color}-100 to-${catInfo.color}-200 flex items-center justify-center shrink-0`}>
+                      <Icon name={catInfo.icon} size={20} className={`text-${catInfo.color}-600`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-amber-900 text-sm">{book.title}</p>
+                      {book.author && (
+                        <p className="text-xs text-amber-600 mt-0.5">{book.author}</p>
+                      )}
+                      <p className="text-xs text-amber-700/70 mt-1.5 leading-relaxed">{book.description}</p>
+                      <Badge className={`mt-2 bg-${catInfo.color}-50 text-${catInfo.color}-700 border-${catInfo.color}-200 text-[9px]`}>
+                        {catInfo.label}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {filteredBooks.length === 0 && (
+          <Card className="border-dashed border-amber-200">
+            <CardContent className="py-8 text-center text-amber-600/60">
+              <Icon name="BookX" size={36} className="mx-auto mb-2 text-amber-300" />
+              <p className="text-sm">Нет книг в этой категории</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
@@ -1071,12 +1239,13 @@ export default function Faith() {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-6 h-auto bg-amber-100/80 rounded-xl p-1">
+          <TabsList className="w-full grid grid-cols-7 h-auto bg-amber-100/80 rounded-xl p-1">
             {[
               { value: 'overview', icon: 'Home', label: 'Главная' },
               { value: 'holidays', icon: 'CalendarDays', label: 'Праздники' },
               { value: 'fasting', icon: 'Flame', label: 'Посты' },
               { value: 'prayers', icon: 'BookOpen', label: 'Молитвы' },
+              { value: 'library', icon: 'Library', label: 'Основы' },
               { value: 'namedays', icon: 'Baby', label: 'Именины' },
               { value: 'temple', icon: 'Church', label: 'Мой храм' },
             ].map(tab => (
@@ -1113,6 +1282,9 @@ export default function Faith() {
               </TabsContent>
               <TabsContent value="prayers">
                 <PrayersTab prayers={prayers} religion={religion} />
+              </TabsContent>
+              <TabsContent value="library">
+                <LibraryTab religion={religion} />
               </TabsContent>
               <TabsContent value="namedays">
                 <NameDaysTab religion={religion} />
