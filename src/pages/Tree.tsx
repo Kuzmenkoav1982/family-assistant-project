@@ -299,12 +299,22 @@ function getAllNodeMemberIds(node: TreeNode): number[] {
   return [node.member.id];
 }
 
-/** Находим родительский узел для дочернего члена */
+/** Находим родительский узел для дочернего — проверяем и primary, и spouse */
 function findParentNodeIndex(childNode: TreeNode, parentGenNodes: TreeNode[]): number {
-  const child = childNode.type === 'unit' ? childNode.unit.primary : childNode.member;
-  const pids = [child.parent_id, child.parent2_id].filter(Boolean) as number[];
-  if (pids.length === 0) return -1;
-  return parentGenNodes.findIndex(pn => getAllNodeMemberIds(pn).some(id => pids.includes(id)));
+  const members: TreeMember[] = [];
+  if (childNode.type === 'unit') {
+    members.push(childNode.unit.primary);
+    if (childNode.unit.spouse) members.push(childNode.unit.spouse);
+  } else {
+    members.push(childNode.member);
+  }
+  const allPids: number[] = [];
+  members.forEach(m => {
+    if (m.parent_id) allPids.push(m.parent_id);
+    if (m.parent2_id) allPids.push(m.parent2_id);
+  });
+  if (allPids.length === 0) return -1;
+  return parentGenNodes.findIndex(pn => getAllNodeMemberIds(pn).some(id => allPids.includes(id)));
 }
 
 function buildLayout(
@@ -497,23 +507,37 @@ function buildPaths(gens: GenLayout[]): SvgPath[] {
     const byParent = new Map<string, { parentNl: NodeLayout; childNls: NodeLayout[] }>();
 
     curGen.nodes.forEach((childNl) => {
-      const child = childNl.node.type === 'unit' ? childNl.node.unit.primary : childNl.node.member;
-      const pids = [child.parent_id, child.parent2_id].filter(Boolean) as number[];
-      if (pids.length === 0) return;
-
-      // Найти родительский layout-узел (ищем по всем предыдущим поколениям)
-      let parentNl: NodeLayout | null = null;
-      for (let pi = gi - 1; pi >= 0; pi--) {
-        const found = gens[pi].nodes.find(pnl =>
-          getAllNodeMemberIds(pnl.node).some(id => pids.includes(id))
-        );
-        if (found) { parentNl = found; break; }
+      // Собираем всех членов узла — для unit это и primary, и spouse
+      const membersToCheck: TreeMember[] = [];
+      if (childNl.node.type === 'unit') {
+        membersToCheck.push(childNl.node.unit.primary);
+        if (childNl.node.unit.spouse) membersToCheck.push(childNl.node.unit.spouse);
+      } else {
+        membersToCheck.push(childNl.node.member);
       }
-      if (!parentNl) return;
 
-      const pKey = `${Math.round(parentNl.cx)}-${Math.round(parentNl.y)}`;
-      if (!byParent.has(pKey)) byParent.set(pKey, { parentNl, childNls: [] });
-      byParent.get(pKey)!.childNls.push(childNl);
+      // Для каждого члена узла ищем его родительский layout
+      membersToCheck.forEach(child => {
+        const pids = [child.parent_id, child.parent2_id].filter(Boolean) as number[];
+        if (pids.length === 0) return;
+
+        let parentNl: NodeLayout | null = null;
+        for (let pi = gi - 1; pi >= 0; pi--) {
+          const found = gens[pi].nodes.find(pnl =>
+            getAllNodeMemberIds(pnl.node).some(id => pids.includes(id))
+          );
+          if (found) { parentNl = found; break; }
+        }
+        if (!parentNl) return;
+
+        const pKey = `${Math.round(parentNl.cx)}-${Math.round(parentNl.y)}`;
+        if (!byParent.has(pKey)) byParent.set(pKey, { parentNl, childNls: [] });
+        // Не дублируем один и тот же дочерний узел
+        const existing = byParent.get(pKey)!.childNls;
+        if (!existing.includes(childNl)) {
+          existing.push(childNl);
+        }
+      });
     });
 
     byParent.forEach(({ parentNl, childNls }, pKey) => {
