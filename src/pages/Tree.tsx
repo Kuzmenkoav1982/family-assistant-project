@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -260,6 +260,324 @@ function getChildrenOfNode(node: TreeNode, nextGenNodes: TreeNode[]): TreeNode[]
 }
 
 
+
+// ─── Единый канвас с pan-скроллом и SVG-линиями связи ──────────────────────
+
+const CARD_W = 130;
+const CARD_H = 145;
+const COUPLE_GAP = 52; // ширина сердечка-линии между супругами
+const COL_GAP = 20;    // горизонтальный зазор между узлами
+const ROW_GAP = 80;    // вертикальный зазор между поколениями
+const LABEL_H = 28;    // высота подписи поколения
+
+/** Ширина одного узла (карточка или пара) */
+function nodeWidth(node: TreeNode): number {
+  if (node.type === 'unit' && node.unit.spouse) return CARD_W * 2 + COUPLE_GAP;
+  return CARD_W;
+}
+
+interface NodeLayout {
+  node: TreeNode;
+  x: number; // левый край
+  y: number; // верхний край карточки (после лейбла поколения)
+  cx: number; // центр X
+}
+
+interface GenLayout {
+  genIndex: number;
+  y: number;
+  nodes: NodeLayout[];
+}
+
+function buildLayout(
+  sortedGenerations: [number, TreeMember[]][],
+  members: TreeMember[],
+): { gens: GenLayout[]; totalW: number; totalH: number } {
+  const allGenMemberIds = new Set<number>();
+  sortedGenerations.forEach(([, gm]) => gm.forEach(m => allGenMemberIds.add(m.id)));
+
+  // Строим узлы по поколениям
+  const genNodesMap = new Map<number, TreeNode[]>();
+  sortedGenerations.forEach(([genIndex, genMembers]) => {
+    const { units, singles } = buildFamilyUnits(genMembers, members, allGenMemberIds);
+    genNodesMap.set(genIndex, [
+      ...units.map(u => ({ type: 'unit' as const, unit: u })),
+      ...singles.map(m => ({ type: 'single' as const, member: m })),
+    ]);
+  });
+
+  // Упорядочиваем узлы с учётом parent-child связей
+  sortedGenerations.forEach(([genIndex], sortIdx) => {
+    const nodes = genNodesMap.get(genIndex) || [];
+    if (nodes.length === 0) return;
+    const prevGenIndex = sortIdx > 0 ? sortedGenerations[sortIdx - 1][0] : null;
+    const prevGenNodes = prevGenIndex !== null ? (genNodesMap.get(prevGenIndex) || []) : [];
+
+    const claimed = new Set<number>();
+    const groupedByParent: { parentNode: TreeNode | null; children: TreeNode[] }[] = [];
+
+    for (const parentNode of prevGenNodes) {
+      const kids = getChildrenOfNode(parentNode, nodes).filter(k => {
+        const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
+        return !claimed.has(id);
+      });
+      if (kids.length > 0) {
+        groupedByParent.push({ parentNode, children: kids });
+        kids.forEach(k => {
+          const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
+          claimed.add(id);
+          if (k.type === 'unit' && k.unit.spouse) claimed.add(k.unit.spouse.id);
+        });
+      }
+    }
+
+    // Сортируем детей: братья/сёстры рядом с «Я»
+    const SIBLING_RELS = new Set(['Брат', 'Сестра']);
+    for (const group of groupedByParent) {
+      const meIdx = group.children.findIndex(c => {
+        const m = c.type === 'unit' ? c.unit.primary : c.member;
+        return m.relation === 'Я';
+      });
+      if (meIdx >= 0) {
+        const siblings = group.children.filter((c, i) => {
+          if (i === meIdx) return false;
+          const m = c.type === 'unit' ? c.unit.primary : c.member;
+          return SIBLING_RELS.has(m.relation || '');
+        });
+        const others = group.children.filter((c, i) => {
+          if (i === meIdx) return false;
+          const m = c.type === 'unit' ? c.unit.primary : c.member;
+          return !SIBLING_RELS.has(m.relation || '');
+        });
+        group.children = [...siblings, group.children[meIdx], ...others];
+      }
+    }
+
+    const orphans = nodes.filter(n => {
+      const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
+      return !claimed.has(id);
+    });
+    if (orphans.length > 0) groupedByParent.push({ parentNode: null, children: orphans });
+
+    const reordered: TreeNode[] = [];
+    for (const g of groupedByParent) reordered.push(...g.children);
+    genNodesMap.set(genIndex, reordered);
+  });
+
+  // Считаем X-позиции для каждого поколения (сначала самое широкое)
+  let maxRowW = 0;
+  const genWidths = new Map<number, number>();
+  genNodesMap.forEach((nodes, genIndex) => {
+    const w = nodes.reduce((acc, n, i) => acc + nodeWidth(n) + (i > 0 ? COL_GAP : 0), 0);
+    genWidths.set(genIndex, w);
+    if (w > maxRowW) maxRowW = w;
+  });
+
+  const gens: GenLayout[] = [];
+  let curY = 0;
+
+  sortedGenerations.forEach(([genIndex]) => {
+    const nodes = genNodesMap.get(genIndex) || [];
+    if (nodes.length === 0) return;
+    const rowW = genWidths.get(genIndex) || 0;
+    const startX = Math.max(0, (maxRowW - rowW) / 2);
+
+    let x = startX;
+    const layouts: NodeLayout[] = [];
+    nodes.forEach(node => {
+      const w = nodeWidth(node);
+      layouts.push({ node, x, y: curY + LABEL_H, cx: x + w / 2 });
+      x += w + COL_GAP;
+    });
+
+    gens.push({ genIndex, y: curY, nodes: layouts });
+    curY += LABEL_H + CARD_H + ROW_GAP;
+  });
+
+  return { gens, totalW: maxRowW, totalH: curY };
+}
+
+interface SvgLine { x1: number; y1: number; x2: number; y2: number; key: string }
+
+function buildLines(gens: GenLayout[]): SvgLine[] {
+  const lines: SvgLine[] = [];
+  for (let gi = 1; gi < gens.length; gi++) {
+    const prevGen = gens[gi - 1];
+    const curGen = gens[gi];
+
+    curGen.nodes.forEach((childLayout) => {
+      const childNode = childLayout.node;
+      const childMember = childNode.type === 'unit' ? childNode.unit.primary : childNode.member;
+      const parentIds = new Set([childMember.parent_id, childMember.parent2_id].filter(Boolean) as number[]);
+      if (parentIds.size === 0) return;
+
+      // Найти родительский узел
+      const parentLayout = prevGen.nodes.find(pl => {
+        const ids = getNodeMemberIds(pl.node);
+        return ids.some(id => parentIds.has(id));
+      });
+      if (!parentLayout) return;
+
+      const px = parentLayout.cx;
+      const py = parentLayout.y + CARD_H; // низ родительской карточки
+      const cy = childLayout.y;           // верх дочерней карточки
+      const midY = (py + cy) / 2;
+
+      // Вертикаль вниз от родителя до середины
+      lines.push({ x1: px, y1: py, x2: px, y2: midY, key: `v-p-${childMember.id}` });
+      // Горизонталь до центра ребёнка
+      lines.push({ x1: px, y1: midY, x2: childLayout.cx, y2: midY, key: `h-${childMember.id}` });
+      // Вертикаль вниз к ребёнку
+      lines.push({ x1: childLayout.cx, y1: midY, x2: childLayout.cx, y2: cy, key: `v-c-${childMember.id}` });
+    });
+  }
+  return lines;
+}
+
+function FamilyTreeCanvas({
+  members,
+  sortedGenerations,
+  genLabels,
+  onSelectMember,
+}: {
+  members: TreeMember[];
+  sortedGenerations: [number, TreeMember[]][];
+  genLabels: Record<number, string>;
+  onSelectMember: (m: TreeMember) => void;
+}) {
+  const { gens, totalW, totalH } = buildLayout(sortedGenerations, members);
+  const lines = buildLines(gens);
+
+  const PADDING = 24;
+  const canvasW = totalW + PADDING * 2;
+  const canvasH = totalH + PADDING * 2;
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isPanning = useRef(false);
+  const startPos = useRef({ x: 0, y: 0 });
+  const scrollPos = useRef({ left: 0, top: 0 });
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    isPanning.current = true;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    scrollPos.current = {
+      left: containerRef.current?.scrollLeft || 0,
+      top: containerRef.current?.scrollTop || 0,
+    };
+    if (containerRef.current) containerRef.current.style.cursor = 'grabbing';
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanning.current || !containerRef.current) return;
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    containerRef.current.scrollLeft = scrollPos.current.left - dx;
+    containerRef.current.scrollTop = scrollPos.current.top - dy;
+  }, []);
+
+  const onMouseUp = useCallback(() => {
+    isPanning.current = false;
+    if (containerRef.current) containerRef.current.style.cursor = 'grab';
+  }, []);
+
+  // Центрируем на «Я» при первом рендере
+  useEffect(() => {
+    if (!containerRef.current || gens.length === 0) return;
+    const me = members.find(m => m.relation === 'Я');
+    if (!me) return;
+    let meLayout: NodeLayout | null = null;
+    for (const gen of gens) {
+      const found = gen.nodes.find(nl => {
+        if (nl.node.type === 'unit') return nl.node.unit.primary.id === me.id || nl.node.unit.spouse?.id === me.id;
+        return nl.node.member.id === me.id;
+      });
+      if (found) { meLayout = found; break; }
+    }
+    if (!meLayout) return;
+    const container = containerRef.current;
+    const targetScrollLeft = meLayout.cx + PADDING - container.clientWidth / 2;
+    const targetScrollTop = meLayout.y + PADDING - container.clientHeight / 2;
+    container.scrollLeft = Math.max(0, targetScrollLeft);
+    container.scrollTop = Math.max(0, targetScrollTop);
+  }, [members, gens]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="overflow-auto rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 select-none"
+      style={{ maxHeight: '70vh', cursor: 'grab' }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+    >
+      <div style={{ position: 'relative', width: canvasW, height: canvasH, minWidth: canvasW }}>
+        {/* SVG-линии связи */}
+        <svg
+          style={{ position: 'absolute', top: 0, left: 0, width: canvasW, height: canvasH, pointerEvents: 'none' }}
+        >
+          {lines.map(l => (
+            <line
+              key={l.key}
+              x1={l.x1 + PADDING}
+              y1={l.y1 + PADDING}
+              x2={l.x2 + PADDING}
+              y2={l.y2 + PADDING}
+              stroke="#d97706"
+              strokeWidth={1.5}
+              strokeOpacity={0.5}
+            />
+          ))}
+        </svg>
+
+        {/* Поколения */}
+        {gens.map(({ genIndex, y, nodes }) => (
+          <div key={genIndex}>
+            {/* Лейбл поколения */}
+            <div
+              style={{
+                position: 'absolute',
+                top: y + PADDING,
+                left: PADDING,
+                width: totalW,
+                height: LABEL_H,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <div style={{ flex: 1, height: 1, background: '#fcd34d' }} />
+              <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest whitespace-nowrap px-2">
+                {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
+              </span>
+              <div style={{ flex: 1, height: 1, background: '#fcd34d' }} />
+            </div>
+
+            {/* Карточки */}
+            {nodes.map((nl, ni) => (
+              <div
+                key={ni}
+                style={{
+                  position: 'absolute',
+                  top: nl.y + PADDING,
+                  left: nl.x + PADDING,
+                }}
+              >
+                {nl.node.type === 'unit' ? (
+                  <CoupleBlock unit={nl.node.unit} onSelect={onSelectMember} />
+                ) : (
+                  <MemberCard member={nl.node.member} onClick={() => onSelectMember(nl.node.member)} />
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 export default function Tree() {
   const { toast } = useToast();
@@ -699,189 +1017,12 @@ export default function Tree() {
         )}
 
         {members.length > 0 ? (
-          <div className="space-y-0">
-            {(() => {
-              const allGenMemberIds = new Set<number>();
-              sortedGenerations.forEach(([, gm]) => gm.forEach(m => allGenMemberIds.add(m.id)));
-
-              const genNodesMap = new Map<number, TreeNode[]>();
-              sortedGenerations.forEach(([genIndex, genMembers]) => {
-                const { units, singles } = buildFamilyUnits(genMembers, members, allGenMemberIds);
-                genNodesMap.set(genIndex, [
-                  ...units.map(u => ({ type: 'unit' as const, unit: u })),
-                  ...singles.map(m => ({ type: 'single' as const, member: m })),
-                ]);
-              });
-
-              return sortedGenerations.map(([genIndex], sortIdx) => {
-                const nodes = genNodesMap.get(genIndex) || [];
-                if (nodes.length === 0) return null;
-
-                const prevGenIndex = sortIdx > 0 ? sortedGenerations[sortIdx - 1][0] : null;
-                const prevGenNodes = prevGenIndex !== null ? (genNodesMap.get(prevGenIndex) || []) : [];
-
-                const groupedByParent: { parentNode: TreeNode | null; children: TreeNode[] }[] = [];
-                const claimed = new Set<number>();
-
-                for (const parentNode of prevGenNodes) {
-                  const kids = getChildrenOfNode(parentNode, nodes).filter(k => {
-                    const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
-                    return !claimed.has(id);
-                  });
-                  if (kids.length > 0) {
-                    groupedByParent.push({ parentNode, children: kids });
-                    kids.forEach(k => {
-                      const id = k.type === 'unit' ? k.unit.primary.id : k.member.id;
-                      claimed.add(id);
-                      if (k.type === 'unit' && k.unit.spouse) claimed.add(k.unit.spouse.id);
-                    });
-                  }
-                }
-
-                for (const group of groupedByParent) {
-                  const SIBLING_RELATIONS = new Set(['Брат', 'Сестра']);
-                  const isSiblingNode = (c: TreeNode) => {
-                    if (c.type === 'unit') {
-                      return SIBLING_RELATIONS.has(c.unit.primary.relation || '') || (c.unit.spouse && SIBLING_RELATIONS.has(c.unit.spouse.relation || ''));
-                    }
-                    return SIBLING_RELATIONS.has(c.member.relation || '');
-                  };
-                  const meIdx = group.children.findIndex(c => {
-                    const m = c.type === 'unit' ? c.unit.primary : c.member;
-                    return m.relation === 'Я';
-                  });
-                  if (meIdx >= 0) {
-                    const siblings: TreeNode[] = [];
-                    const others: TreeNode[] = [];
-                    group.children.forEach((c, i) => {
-                      if (i === meIdx) return;
-                      if (isSiblingNode(c)) {
-                        siblings.push(c);
-                      } else {
-                        others.push(c);
-                      }
-                    });
-                    group.children = [...siblings, group.children[meIdx], ...others];
-                  }
-                }
-
-                const orphans = nodes.filter(n => {
-                  const id = n.type === 'unit' ? n.unit.primary.id : n.member.id;
-                  return !claimed.has(id);
-                });
-
-                const SIBLING_RELATIONS2 = new Set(['Брат', 'Сестра']);
-                const isSiblingOrphan = (n: TreeNode) => {
-                  if (n.type === 'unit') {
-                    return SIBLING_RELATIONS2.has(n.unit.primary.relation || '') || (n.unit.spouse && SIBLING_RELATIONS2.has(n.unit.spouse.relation || ''));
-                  }
-                  return SIBLING_RELATIONS2.has(n.member.relation || '');
-                };
-                const siblingOrphans: TreeNode[] = [];
-                const trueOrphans: TreeNode[] = [];
-                orphans.forEach(n => {
-                  if (isSiblingOrphan(n)) {
-                    siblingOrphans.push(n);
-                  } else {
-                    trueOrphans.push(n);
-                  }
-                });
-
-                if (siblingOrphans.length > 0) {
-                  let inserted = false;
-                  for (const group of groupedByParent) {
-                    const meIdx = group.children.findIndex(c => {
-                      const m = c.type === 'unit' ? c.unit.primary : c.member;
-                      return m.relation === 'Я';
-                    });
-                    if (meIdx >= 0) {
-                      group.children.splice(meIdx, 0, ...siblingOrphans);
-                      inserted = true;
-                      break;
-                    }
-                  }
-                  if (!inserted) {
-                    const meInOrphans = trueOrphans.findIndex(n => {
-                      const m = n.type === 'unit' ? n.unit.primary : n.member;
-                      return m.relation === 'Я';
-                    });
-                    if (meInOrphans >= 0) {
-                      const meNode = trueOrphans.splice(meInOrphans, 1)[0];
-                      groupedByParent.push({ parentNode: prevGenNodes[0] || null, children: [...siblingOrphans, meNode] });
-                    } else {
-                      groupedByParent.push({ parentNode: prevGenNodes[0] || null, children: siblingOrphans });
-                    }
-                  }
-                }
-
-                if (trueOrphans.length > 0) {
-                  groupedByParent.push({ parentNode: null, children: trueOrphans });
-                }
-
-                const reorderedNodes: TreeNode[] = [];
-                for (const group of groupedByParent) {
-                  for (const child of group.children) {
-                    reorderedNodes.push(child);
-                  }
-                }
-                genNodesMap.set(genIndex, reorderedNodes);
-
-                return (
-                  <div key={genIndex} className="mb-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="h-px flex-1 bg-amber-200" />
-                      <span className="text-xs font-medium text-amber-600 uppercase tracking-wider px-2">
-                        {genLabels[genIndex] || `Поколение ${genIndex + 1}`}
-                      </span>
-                      <div className="h-px flex-1 bg-amber-200" />
-                    </div>
-
-                    <div className="overflow-x-auto pb-2">
-                      <div className="flex flex-nowrap justify-start items-end gap-6 min-w-max px-2">
-                        {groupedByParent.map((group, gIdx) => (
-                          <div key={gIdx} className="flex flex-col items-center">
-                            {group.parentNode && group.children.length > 0 ? (
-                              <div className="flex flex-col items-center mb-0">
-                                <div className="w-0.5 h-4 bg-amber-300" />
-                                {group.children.length > 1 && (
-                                  <div className="flex justify-center">
-                                    <div className="h-0.5 bg-amber-300" style={{ width: `${Math.max(group.children.length * 144, 160)}px` }} />
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="h-[28px]" />
-                            )}
-                            <div className="flex flex-nowrap items-start">
-                              {group.children.map((child, cIdx) => (
-                                <div key={cIdx} className="flex items-start">
-                                  {cIdx > 0 && group.children.length > 1 && (
-                                    <div className="flex flex-col items-center justify-center self-stretch pt-6">
-                                      <div className="w-4 h-0.5 bg-amber-300" />
-                                    </div>
-                                  )}
-                                  <div className="flex flex-col items-center">
-                                    {group.parentNode && group.children.length > 1 && (
-                                      <div className="w-0.5 h-3 bg-amber-300" />
-                                    )}
-                                    {child.type === 'unit' ? (
-                                      <CoupleBlock unit={child.unit} onSelect={setSelectedMember} />
-                                    ) : (
-                                      <MemberCard member={child.member} onClick={() => setSelectedMember(child.member)} />
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
+          <FamilyTreeCanvas
+            members={members}
+            sortedGenerations={sortedGenerations}
+            genLabels={genLabels}
+            onSelectMember={setSelectedMember}
+          />
         ) : (
           <Card className="border-dashed border-amber-300 bg-amber-50/50">
             <CardContent className="py-12 text-center">
