@@ -27,6 +27,17 @@ const subSections: SubSection[] = [
     ready: true,
   },
   {
+    id: 'faith',
+    title: 'Вера',
+    description: 'Религиозные праздники, посты, молитвы, дни ангела и ИИ-помощник с учётом вашей конфессии',
+    icon: 'Church',
+    path: '/faith',
+    gradient: 'from-amber-500 via-yellow-500 to-orange-500',
+    badge: 'Новое',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
+  },
+  {
     id: 'traditions',
     title: 'Традиции и культура',
     description: 'Национальные традиции, обычаи и культурное наследие',

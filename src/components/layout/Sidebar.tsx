@@ -103,6 +103,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/values-hub',
       items: [
         { id: 'values', label: 'Ценности', icon: 'Heart', path: '/values' },
+        { id: 'faith', label: 'Вера', icon: 'Church', path: '/faith' },
         { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/culture' },
         { id: 'wisdom', label: 'Мудрость народа', icon: 'BookOpen', path: '/wisdom' },
         { id: 'house-rules', label: 'Правила дома', icon: 'FileText', path: '/rules' }
