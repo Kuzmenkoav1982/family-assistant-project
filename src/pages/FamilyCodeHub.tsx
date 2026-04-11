@@ -22,7 +22,7 @@ const subSections: SubSection[] = [
   {
     id: 'personal',
     title: 'Личный код',
-    description: 'Полный расклад на каждого члена семьи: нумерология, квадрат Пифагора, астрология и арканы судьбы',
+    description: 'Полный расклад на каждого члена семьи: числа судьбы, квадрат Пифагора, знаки зодиака, карта Бацзы и арканы Таро',
     icon: 'UserCircle2',
     path: '/family-matrix/personal',
     gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
@@ -55,12 +55,12 @@ const subSections: SubSection[] = [
   {
     id: 'rituals',
     title: 'Ритуалы примирения',
-    description: 'Персональные сценарии после ссор на основе языков любви, стихий и нумерологии',
+    description: 'Персональные сценарии после ссор + ИИ-анализ конкретных конфликтов с учётом нумерологии и астрологии обоих участников',
     icon: 'Flame',
     path: '/family-matrix/rituals',
     gradient: 'from-teal-500 via-cyan-500 to-blue-500',
-    badge: 'Сценарии',
-    badgeColor: 'bg-emerald-100 text-emerald-700',
+    badge: 'ИИ-советник',
+    badgeColor: 'bg-violet-100 text-violet-700',
     ready: true,
   },
   {
@@ -88,12 +88,12 @@ const subSections: SubSection[] = [
   {
     id: 'astrology',
     title: 'Астрология',
-    description: 'Знаки зодиака, китайский гороскоп, прогноз на день, совместимость знаков и планетарное влияние',
+    description: 'Знаки зодиака, китайский гороскоп, карта Бацзы (4 столпа судьбы), прогнозы на день/неделю/месяц и ИИ-прогноз от Домового',
     icon: 'Moon',
     path: '/family-matrix/astrology',
     gradient: 'from-indigo-500 via-violet-500 to-purple-600',
-    badge: 'Прогнозы',
-    badgeColor: 'bg-emerald-100 text-emerald-700',
+    badge: 'Бацзы + ИИ',
+    badgeColor: 'bg-violet-100 text-violet-700',
     ready: true,
   },
 ];
@@ -149,18 +149,18 @@ export default function FamilyCodeHub() {
   return (
     <>
       <Helmet>
-        <title>Нумерология — Астрология и совместимость | Наша Семья</title>
+        <title>Семейный код — Нумерология, Астрология, Бацзы, Таро | Наша Семья</title>
         <meta
           name="description"
-          content="Полный нумерологический расклад на каждого члена семьи: числа судьбы, квадрат Пифагора, астрология, арканы Таро. Совместимость супругов и анализ семьи."
+          content="Семейный код — полный эзотерический портрет вашей семьи: числа судьбы, квадрат Пифагора, зодиак, карта Бацзы, арканы Таро, ИИ-анализ конфликтов и персональные прогнозы."
         />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-4 lg:p-8 pb-20">
         <div className="max-w-7xl mx-auto space-y-6">
           <SectionHero
-            title="Нумерология"
-            subtitle="Числа судьбы, астрология, совместимость и арканы Таро"
+            title="Семейный код"
+            subtitle="Нумерология, астрология, Бацзы, арканы Таро и ИИ-советник"
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b01853ff-894d-4bfc-98e1-e32b7c13a7bc.jpg"
             backPath="/"
           />
@@ -174,8 +174,8 @@ export default function FamilyCodeHub() {
           >
             <div className="space-y-3">
               <p className="text-sm text-amber-900/80 leading-relaxed">
-                «Нумерология» — система глубокого анализа каждого члена вашей семьи и их совместимости.
-                Всё рассчитывается автоматически на основе имени и даты рождения.
+                «Семейный код» — объединённая система глубокого эзотерического анализа: нумерология, астрология,
+                карта Бацзы, арканы Таро и ИИ-советник. Всё рассчитывается автоматически на основе имени и даты рождения.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -194,7 +194,7 @@ export default function FamilyCodeHub() {
                     Шаг 2. Автоматический расчёт
                   </p>
                   <p className="text-[11px] text-amber-800/70 leading-relaxed">
-                    Система рассчитает все числа судьбы, квадрат Пифагора, знак зодиака, стихию Бацзы и 4 аркана Таро — полностью автоматически.
+                    Система рассчитает все числа судьбы, квадрат Пифагора, знак зодиака, карту Бацзы (4 столпа судьбы) и 4 аркана Таро — полностью автоматически.
                   </p>
                 </div>
                 <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
@@ -212,7 +212,7 @@ export default function FamilyCodeHub() {
                     Шаг 4. Персональные советы
                   </p>
                   <p className="text-[11px] text-amber-800/70 leading-relaxed">
-                    Домовой даёт рекомендации на основе ВСЕХ расчётов и данных анкет. Советы адаптируются под ваши уникальные числа и стихии.
+                    Домовой даёт рекомендации, анализирует конфликты и составляет персональные прогнозы на основе ВСЕХ расчётов. ИИ учитывает ваши уникальные числа, стихии и Бацзы.
                   </p>
                 </div>
               </div>
@@ -222,9 +222,9 @@ export default function FamilyCodeHub() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {[
                     { icon: 'Calculator', label: 'Нумерология', desc: '6 чисел судьбы, квадрат Пифагора, линии силы' },
-                    { icon: 'Star', label: 'Астрология', desc: 'Зодиак, стихия, Бацзы (китайская астрология)' },
+                    { icon: 'Star', label: 'Астрология', desc: 'Зодиак, планеты, прогнозы, Бацзы — 4 столпа' },
                     { icon: 'Wand2', label: 'Арканы Таро', desc: '4 аркана: личность, судьба, год, отношения' },
-                    { icon: 'Heart', label: 'Психология', desc: 'Языки любви, психотипы, мотивация' },
+                    { icon: 'Brain', label: 'ИИ-советник', desc: 'Анализ конфликтов и персональные прогнозы' },
                   ].map(item => (
                     <div key={item.label} className="text-center">
                       <Icon name={item.icon} size={18} className="text-amber-600 mx-auto mb-1" />

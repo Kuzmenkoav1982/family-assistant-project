@@ -105,7 +105,7 @@ export default function FamilyMatrixPersonal() {
   return (
     <>
       <Helmet>
-        <title>Личный код{selectedMember ? ` — ${selectedMember.name}` : ''} | Нумерология</title>
+        <title>Личный код{selectedMember ? ` — ${selectedMember.name}` : ''} | Семейный код</title>
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-4 lg:p-8 pb-20">

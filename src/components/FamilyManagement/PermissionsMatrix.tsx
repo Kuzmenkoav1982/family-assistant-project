@@ -13,7 +13,7 @@ const MODULE_LABELS: Record<string, string> = {
   family: 'Семья',
   tasks: 'Задачи',
   events: 'События',
-  familymatrix: 'Нумерология',
+  familymatrix: 'Семейный код',
 };
 
 const ACTION_LABELS: Record<string, string> = {

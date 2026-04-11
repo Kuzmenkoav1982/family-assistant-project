@@ -83,7 +83,7 @@ export default function FamilyMatrixFamily() {
   return (
     <>
       <Helmet>
-        <title>Код семьи — Общая энергетика и взаимоотношения | Нумерология</title>
+        <title>Код семьи — Общая энергетика и взаимоотношения | Семейный код</title>
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-4 lg:p-8 pb-20">
