@@ -509,10 +509,17 @@ const BRANCH_COLORS = [
 
 type BranchColorMap = Map<string, string>; // parentKey → color
 
-function buildPaths(gens: GenLayout[]): { paths: SvgPath[]; branchColors: BranchColorMap; memberColors: Map<number, string> } {
+interface LegendItem {
+  color: string;
+  parentNames: string;
+  childNames: string[];
+}
+
+function buildPaths(gens: GenLayout[]): { paths: SvgPath[]; branchColors: BranchColorMap; memberColors: Map<number, string>; legend: LegendItem[] } {
   const paths: SvgPath[] = [];
   const branchColors: BranchColorMap = new Map();
   const memberColors = new Map<number, string>();
+  const legend: LegendItem[] = [];
   let colorIdx = 0;
 
   for (let gi = 1; gi < gens.length; gi++) {
@@ -569,6 +576,26 @@ function buildPaths(gens: GenLayout[]): { paths: SvgPath[]; branchColors: Branch
         });
       });
 
+      const getNodeName = (node: TreeNode): string => {
+        if (node.type === 'unit') {
+          const names = [node.unit.primary.name.split(' ')[0]];
+          if (node.unit.spouse) names.push(node.unit.spouse.name.split(' ')[0]);
+          return names.join(' и ');
+        }
+        return node.member.name.split(' ')[0];
+      };
+      const childNamesList = childNls.map(cl => {
+        const allMembers: string[] = [];
+        if (cl.node.type === 'unit') {
+          allMembers.push(cl.node.unit.primary.name.split(' ')[0]);
+          if (cl.node.unit.spouse) allMembers.push(cl.node.unit.spouse.name.split(' ')[0]);
+        } else {
+          allMembers.push(cl.node.member.name.split(' ')[0]);
+        }
+        return allMembers.join(', ');
+      });
+      legend.push({ color, parentNames: getNodeName(parentNl.node), childNames: childNamesList });
+
       const fromX = parentNl.cx;
       const fromY = parentNl.y + CARD_H;
       const toY   = childNls[0].y;
@@ -604,7 +631,7 @@ function buildPaths(gens: GenLayout[]): { paths: SvgPath[]; branchColors: Branch
     });
   }
 
-  return { paths, branchColors, memberColors };
+  return { paths, branchColors, memberColors, legend };
 }
 
 function pointsToD(pts: [number, number][], pad: number): string {
@@ -632,7 +659,7 @@ function FamilyTreeCanvas({
     () => buildLayout(sortedGenerations, members),
     [sortedGenerations, members],
   );
-  const { paths, memberColors } = useMemo(() => buildPaths(gens), [gens]);
+  const { paths, memberColors, legend } = useMemo(() => buildPaths(gens), [gens]);
 
   const PADDING = 32;
   const canvasW = totalW + PADDING * 2;
@@ -734,6 +761,20 @@ function FamilyTreeCanvas({
           title="Сбросить"
         >100%</button>
       </div>
+
+      {legend.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 px-2 py-1.5 bg-white/60 rounded-lg border border-amber-100">
+          <span className="text-[10px] text-amber-500 font-semibold uppercase tracking-wider self-center">Ветки:</span>
+          {legend.map((item, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+              <span className="text-[11px] text-gray-700">
+                {item.parentNames} → {item.childNames.join(', ')}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Канвас */}
       <div
