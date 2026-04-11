@@ -255,7 +255,7 @@ export default function FamilyCodeHub() {
           <CollapsibleBlock
             icon="Sparkles"
             iconBg="bg-purple-100 text-purple-600"
-            title="Что входит в раздел «Нумерология»?"
+            title="Что входит в «Семейный код»?"
             borderColor="border-purple-200"
             bgGradient="bg-gradient-to-r from-purple-50 via-violet-50 to-fuchsia-50"
           >
@@ -310,7 +310,7 @@ export default function FamilyCodeHub() {
             bgGradient="bg-gradient-to-r from-blue-50 to-indigo-50"
           >
             <p className="text-xs text-blue-800/80 leading-relaxed">
-              Раздел «Нумерология» носит <strong>развлекательно-познавательный характер</strong> и основан на традиционных эзотерических системах (пифагорейская нумерология, астрология, Таро). 
+              «Семейный код» носит <strong>развлекательно-познавательный характер</strong> и основан на традиционных эзотерических системах (пифагорейская нумерология, астрология, Бацзы, Таро). 
               Результаты не являются научно доказанными и <strong>не заменяют консультацию психолога, врача или другого специалиста</strong>. 
               Используйте как инструмент для самопознания и вдохновения.
             </p>
