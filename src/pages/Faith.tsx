@@ -1913,23 +1913,26 @@ export default function Faith() {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-7 h-auto bg-amber-100/80 rounded-xl p-1">
+          <TabsList className="w-full flex overflow-x-auto h-auto bg-amber-100/80 rounded-xl p-1 gap-0.5">
             {[
               { value: 'overview', icon: 'Home', label: 'Главная' },
+              { value: 'texts', icon: 'BookText', label: 'Тексты' },
+              { value: 'saint', icon: 'Crown', label: 'Святые' },
+              { value: 'icon', icon: 'Image', label: 'Икона' },
               { value: 'holidays', icon: 'CalendarDays', label: 'Праздники' },
               { value: 'fasting', icon: 'Flame', label: 'Посты' },
               { value: 'prayers', icon: 'BookOpen', label: 'Молитвы' },
               { value: 'library', icon: 'Library', label: 'Основы' },
               { value: 'namedays', icon: 'Baby', label: 'Именины' },
-              { value: 'temple', icon: 'Church', label: 'Мой храм' },
+              { value: 'temple', icon: 'Church', label: 'Храм' },
             ].map(tab => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="text-[11px] py-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm text-amber-700"
+                className="text-[10px] py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm text-amber-700 shrink-0 flex flex-col items-center gap-0.5"
               >
-                <Icon name={tab.icon} size={14} className="mr-1" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <Icon name={tab.icon} size={14} />
+                <span className="leading-none">{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -1956,6 +1959,15 @@ export default function Faith() {
               </TabsContent>
               <TabsContent value="prayers">
                 <PrayersTab prayers={prayers} religion={religion} />
+              </TabsContent>
+              <TabsContent value="texts">
+                <SacredTextsTab religion={religion} />
+              </TabsContent>
+              <TabsContent value="saint">
+                <SaintOfDayTab religion={religion} />
+              </TabsContent>
+              <TabsContent value="icon">
+                <IconOfDayTab religion={religion} />
               </TabsContent>
               <TabsContent value="library">
                 <LibraryTab religion={religion} />
