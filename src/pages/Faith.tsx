@@ -319,6 +319,9 @@ function OverviewTab({
 
       <div className="grid grid-cols-2 gap-3">
         {[
+          { tab: 'texts', icon: 'BookText', label: 'Священные тексты', desc: 'Библия, молитвы, заповеди', color: 'amber' },
+          { tab: 'saint', icon: 'Crown', label: 'Святой дня', desc: 'Жития и подвиги', color: 'rose' },
+          { tab: 'icon', icon: 'Image', label: 'Икона дня', desc: 'Почитаемые образы', color: 'violet' },
           { tab: 'holidays', icon: 'CalendarDays', label: 'Праздники', desc: 'Все даты и события', color: 'amber' },
           { tab: 'fasting', icon: 'Flame', label: 'Посты', desc: 'Правила питания', color: 'orange' },
           { tab: 'prayers', icon: 'BookOpen', label: 'Молитвы', desc: 'Тексты и правила', color: 'rose' },
@@ -1232,6 +1235,522 @@ function NameDaysTab({ religion }: { religion: string }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const SACRED_TEXTS: Record<string, { category: string; title: string; excerpt: string; fullText: string; source: string; sourceUrl: string }[]> = {
+  orthodox: [
+    {
+      category: 'prayer',
+      title: 'Символ веры',
+      excerpt: 'Верую во единаго Бога Отца, Вседержителя, Творца небу и земли, видимым же всем и невидимым...',
+      fullText: 'Верую во единаго Бога Отца, Вседержителя, Творца небу и земли, видимым же всем и невидимым.\n\nИ во единаго Господа Иисуса Христа, Сына Божия, Единороднаго, Иже от Отца рожденнаго прежде всех век; Света от Света, Бога истинна от Бога истинна, рожденна, несотворенна, единосущна Отцу, Имже вся быша.\n\nНас ради человек и нашего ради спасения сшедшаго с небес и воплотившагося от Духа Свята и Марии Девы и вочеловечшася.\n\nРаспятаго же за ны при Понтийстем Пилате, и страдавша, и погребенна.\n\nИ воскресшаго в третий день по Писанием.\n\nИ возшедшаго на небеса, и седяща одесную Отца.\n\nИ паки грядущаго со славою судити живым и мертвым, Егоже Царствию не будет конца.\n\nИ в Духа Святаго, Господа, Животворящаго, Иже от Отца исходящаго, Иже со Отцем и Сыном спокланяема и сславима, глаголавшаго пророки.\n\nВо едину Святую, Соборную и Апостольскую Церковь.\n\nИсповедую едино крещение во оставление грехов.\n\nЧаю воскресения мертвых,\n\nи жизни будущаго века. Аминь.',
+      source: 'Азбука веры',
+      sourceUrl: 'https://azbyka.ru/simvol-very',
+    },
+    {
+      category: 'prayer',
+      title: 'Отче наш',
+      excerpt: 'Отче наш, Иже еси на небесех! Да святится имя Твое, да приидет Царствие Твое...',
+      fullText: 'Отче наш, Иже еси на небесех!\nДа святится имя Твое,\nда приидет Царствие Твое,\nда будет воля Твоя, яко на небеси и на земли.\nХлеб наш насущный даждь нам днесь;\nи остави нам долги наша,\nякоже и мы оставляем должником нашим;\nи не введи нас во искушение,\nно избави нас от лукаваго.\nАминь.',
+      source: 'Азбука веры',
+      sourceUrl: 'https://azbyka.ru/otche-nash',
+    },
+    {
+      category: 'commandment',
+      title: 'Десять заповедей',
+      excerpt: 'Я Господь, Бог твой; да не будет у тебя других богов пред лицем Моим...',
+      fullText: '1. Я Господь, Бог твой; да не будет у тебя других богов пред лицем Моим.\n\n2. Не делай себе кумира и никакого изображения того, что на небе вверху, что на земле внизу, и что в воде ниже земли; не поклоняйся им и не служи им.\n\n3. Не произноси имени Господа, Бога твоего, напрасно.\n\n4. Помни день субботний, чтобы святить его; шесть дней работай и делай всякие дела твои, а день седьмой — суббота Господу, Богу твоему.\n\n5. Почитай отца твоего и мать твою, чтобы продлились дни твои на земле.\n\n6. Не убивай.\n\n7. Не прелюбодействуй.\n\n8. Не кради.\n\n9. Не произноси ложного свидетельства на ближнего твоего.\n\n10. Не желай дома ближнего твоего; не желай жены ближнего твоего, ни раба его, ни рабыни его, ни вола его, ни осла его, ничего, что у ближнего твоего.',
+      source: 'Библия (Исход 20)',
+      sourceUrl: 'https://bible.by/syn/2/20/',
+    },
+    {
+      category: 'commandment',
+      title: 'Заповеди Блаженств',
+      excerpt: 'Блаженны нищие духом, ибо их есть Царство Небесное. Блаженны плачущие, ибо они утешатся...',
+      fullText: 'Блаженны нищие духом, ибо их есть Царство Небесное.\n\nБлаженны плачущие, ибо они утешатся.\n\nБлаженны кроткие, ибо они наследуют землю.\n\nБлаженны алчущие и жаждущие правды, ибо они насытятся.\n\nБлаженны милостивые, ибо они помилованы будут.\n\nБлаженны чистые сердцем, ибо они Бога узрят.\n\nБлаженны миротворцы, ибо они будут наречены сынами Божиими.\n\nБлаженны изгнанные за правду, ибо их есть Царство Небесное.\n\nБлаженны вы, когда будут поносить вас и гнать и всячески неправедно злословить за Меня. Радуйтесь и веселитесь, ибо велика ваша награда на небесах.',
+      source: 'Евангелие от Матфея 5:3-12',
+      sourceUrl: 'https://bible.by/syn/40/5/',
+    },
+    {
+      category: 'bible',
+      title: 'Бытие, глава 1 — Сотворение мира',
+      excerpt: 'В начале сотворил Бог небо и землю. Земля же была безвидна и пуста, и тьма над бездною...',
+      fullText: 'В начале сотворил Бог небо и землю.\nЗемля же была безвидна и пуста, и тьма над бездною, и Дух Божий носился над водою.\n\nИ сказал Бог: да будет свет. И стал свет.\nИ увидел Бог свет, что он хорош, и отделил Бог свет от тьмы.\nИ назвал Бог свет днём, а тьму ночью. И был вечер, и было утро: день один.\n\nИ сказал Бог: да будет твердь посреди воды, и да отделяет она воду от воды.\nИ создал Бог твердь, и отделил воду, которая под твердью, от воды, которая над твердью. И стало так.\nИ назвал Бог твердь небом. И был вечер, и было утро: день второй.\n\nПолный текст читайте по ссылке на источник.',
+      source: 'Библия (Бытие 1)',
+      sourceUrl: 'https://bible.by/syn/1/1/',
+    },
+    {
+      category: 'bible',
+      title: 'Псалом 50 — Покаянный',
+      excerpt: 'Помилуй мя, Боже, по великой милости Твоей, и по множеству щедрот Твоих изгладь беззакония мои...',
+      fullText: 'Помилуй мя, Боже, по велицей милости Твоей,\nи по множеству щедрот Твоих очисти беззаконие мое.\nНаипаче омый мя от беззакония моего, и от греха моего очисти мя.\nЯко беззаконие мое аз знаю, и грех мой предо мною есть выну.\nТебе Единому согреших и лукавое пред Тобою сотворих.\nЯко да оправдишися во словесех Твоих и победиши внегда судити Ти.\nСе бо, в беззакониих зачат есмь, и во гресех роди мя мати моя.\nСе бо, истину возлюбил еси; безвестная и тайная премудрости Твоея явил ми еси.\nОкропиши мя иссопом, и очищуся; омыеши мя, и паче снега убелюся.\nСлуху моему даси радость и веселие; возрадуются кости смиренныя.\nОтврати лице Твое от грех моих и вся беззакония моя очисти.\nСердце чисто созижди во мне, Боже, и дух прав обнови во утробе моей.\nНе отвержи мене от лица Твоего и Духа Твоего Святаго не отыми от мене.\nВоздаждь ми радость спасения Твоего и Духом Владычним утверди мя.\nНаучу беззаконныя путем Твоим, и нечестивии к Тебе обратятся.\nИзбави мя от кровей, Боже, Боже спасения моего; возрадуется язык мой правде Твоей.\nГосподи, устне мои отверзеши, и уста моя возвестят хвалу Твою.\nЯко аще бы восхотел еси жертвы, дал бых убо: всесожжения не благоволиши.\nЖертва Богу дух сокрушен; сердце сокрушенно и смиренно Бог не уничижит.\nУблажи, Господи, благоволением Твоим Сиона, и да созиждутся стены Иерусалимския.\nТогда благоволиши жертву правды, возношение и всесожегаемая; тогда возложат на олтарь Твой тельцы.',
+      source: 'Псалтирь (Псалом 50)',
+      sourceUrl: 'https://bible.by/syn/19/50/',
+    },
+    {
+      category: 'bible',
+      title: 'Нагорная проповедь (Мф 5-7)',
+      excerpt: 'Увидев народ, Он взошёл на гору; и когда сел, приступили к Нему ученики Его. И Он, отверзши уста Свои, учил их...',
+      fullText: 'Увидев народ, Он взошёл на гору; и когда сел, приступили к Нему ученики Его. И Он, отверзши уста Свои, учил их, говоря:\n\nБлаженны нищие духом, ибо их есть Царство Небесное.\nБлаженны плачущие, ибо они утешатся.\nБлаженны кроткие, ибо они наследуют землю.\n\nВы — соль земли. Если же соль потеряет силу, то чем сделаешь её солёною?\nВы — свет мира. Не может укрыться город, стоящий на верху горы.\n\nНе судите, да не судимы будете, ибо каким судом судите, таким будете судимы.\n\nИтак во всём, как хотите, чтобы с вами поступали люди, так поступайте и вы с ними, ибо в этом закон и пророки.\n\nПолный текст Нагорной проповеди читайте по ссылке на источник.',
+      source: 'Евангелие от Матфея 5-7',
+      sourceUrl: 'https://bible.by/syn/40/5/',
+    },
+    {
+      category: 'bible',
+      title: 'Евангелие от Иоанна, глава 1',
+      excerpt: 'В начале было Слово, и Слово было у Бога, и Слово было Бог. Оно было в начале у Бога...',
+      fullText: 'В начале было Слово, и Слово было у Бога, и Слово было Бог.\nОно было в начале у Бога.\nВсё чрез Него начало быть, и без Него ничто не начало быть, что начало быть.\nВ Нём была жизнь, и жизнь была свет человеков.\nИ свет во тьме светит, и тьма не объяла его.\n\nБыл человек, посланный от Бога; имя ему Иоанн.\nОн пришёл для свидетельства, чтобы свидетельствовать о Свете, дабы все уверовали чрез него.\nОн не был свет, но был послан, чтобы свидетельствовать о Свете.\n\nБыл Свет истинный, Который просвещает всякого человека, приходящего в мир.\nВ мире был, и мир чрез Него начал быть, и мир Его не познал.\n\nИ Слово стало плотию, и обитало с нами, полное благодати и истины; и мы видели славу Его, славу, как Единородного от Отца.\n\nПолный текст читайте по ссылке на источник.',
+      source: 'Евангелие от Иоанна 1',
+      sourceUrl: 'https://bible.by/syn/43/1/',
+    },
+  ],
+  islam: [
+    {
+      category: 'quran',
+      title: 'Сура Аль-Фатиха (Открывающая)',
+      excerpt: 'Во имя Аллаха, Милостивого, Милосердного! Хвала Аллаху, Господу миров...',
+      fullText: 'Во имя Аллаха, Милостивого, Милосердного!\nХвала Аллаху, Господу миров,\nМилостивому, Милосердному,\nВластелину Дня воздаяния!\nТебе одному мы поклоняемся\nи Тебя одного молим о помощи.\nВеди нас прямым путём,\nпутём тех, кого Ты облагодетельствовал,\nне тех, на кого пал гнев,\nи не заблудших.',
+      source: 'Коран (Сура 1)',
+      sourceUrl: 'https://quran-online.ru/1',
+    },
+    {
+      category: 'quran',
+      title: 'Сура Аль-Ихлас (Очищение веры)',
+      excerpt: 'Скажи: «Он — Аллах Единый, Аллах Самодостаточный...»',
+      fullText: 'Во имя Аллаха, Милостивого, Милосердного!\nСкажи: «Он — Аллах Единый,\nАллах Самодостаточный.\nОн не родил и не был рождён,\nи нет никого, равного Ему».',
+      source: 'Коран (Сура 112)',
+      sourceUrl: 'https://quran-online.ru/112',
+    },
+  ],
+  catholic: [
+    {
+      category: 'prayer',
+      title: 'Аве Мария (Радуйся, Мария)',
+      excerpt: 'Радуйся, Мария, благодати полная! Господь с Тобою; благословенна Ты между жёнами...',
+      fullText: 'Радуйся, Мария, благодати полная!\nГосподь с Тобою;\nблагословенна Ты между жёнами,\nи благословен плод чрева Твоего Иисус.\nСвятая Мария, Матерь Божия,\nмолись о нас, грешных,\nныне и в час смерти нашей.\nАминь.',
+      source: 'Католический катехизис',
+      sourceUrl: 'https://catholic.ru/modules.php?name=Encyclopedia&op=content&tid=243',
+    },
+  ],
+  judaism: [
+    {
+      category: 'torah',
+      title: 'Шма Исраэль',
+      excerpt: 'Слушай, Израиль: Господь — Бог наш, Господь один!',
+      fullText: 'Слушай, Израиль: Господь — Бог наш, Господь один!\nИ люби Господа, Бога твоего, всем сердцем твоим, и всею душою твоею, и всеми силами твоими.\nИ да будут слова сии, которые Я заповедую тебе сегодня, в сердце твоём.\nИ внушай их детям твоим, и говори о них, сидя в доме твоём, и идя дорогою, и ложась, и вставая.',
+      source: 'Тора (Дварим 6:4-7)',
+      sourceUrl: 'https://toldot.com/Shma.html',
+    },
+  ],
+  buddhism: [
+    {
+      category: 'sutra',
+      title: 'Сутра Сердца',
+      excerpt: 'Форма есть пустота, пустота есть форма. Форма не отличается от пустоты, пустота не отличается от формы...',
+      fullText: 'Бодхисаттва Авалокитешвара, практикуя глубокую Праджняпарамиту, ясно увидел, что все пять скандх пусты, и преодолел все страдания.\n\nФорма есть пустота, пустота есть форма.\nФорма не отличается от пустоты, пустота не отличается от формы.\nТо же относится к ощущениям, представлениям, волениям и сознанию.\n\nВсе дхармы отмечены пустотой: они не возникают и не исчезают, не загрязнены и не чисты, не увеличиваются и не уменьшаются.',
+      source: 'Буддийские тексты',
+      sourceUrl: 'https://dharma.ru/sutra-serdca/',
+    },
+  ],
+  protestant: [
+    {
+      category: 'bible',
+      title: 'Послание к Римлянам 8',
+      excerpt: 'Итак нет ныне никакого осуждения тем, которые во Христе Иисусе...',
+      fullText: 'Итак нет ныне никакого осуждения тем, которые во Христе Иисусе живут не по плоти, но по духу.\n\nПотому что закон духа жизни во Христе Иисусе освободил меня от закона греха и смерти.\n\nИбо я уверен, что ни смерть, ни жизнь, ни Ангелы, ни Начала, ни Силы, ни настоящее, ни будущее, ни высота, ни глубина, ни другая какая тварь не может отлучить нас от любви Божией во Христе Иисусе, Господе нашем.\n\nПолный текст читайте по ссылке на источник.',
+      source: 'Послание к Римлянам 8',
+      sourceUrl: 'https://bible.by/syn/45/8/',
+    },
+  ],
+  hinduism: [
+    {
+      category: 'scripture',
+      title: 'Бхагавад-гита (глава 2, избранное)',
+      excerpt: 'Душа не рождается и не умирает. Она не возникла однажды в прошлом и никогда не перестанет существовать...',
+      fullText: 'Душа не рождается и не умирает. Она не возникла однажды в прошлом и никогда не перестанет существовать. Она — нерождённая, вечная, всегда существующая, изначальная. Она не уничтожается, когда погибает тело.\n\nКак человек надевает новые одежды, сбросив старые, так и душа принимает новое тело, оставив старое и бесполезное.\n\nТы имеешь право только на исполнение своего долга, но не на плоды своих действий. Никогда не считай себя причиной результатов своей деятельности и не пытайся уклоняться от исполнения долга.',
+      source: 'Бхагавад-гита',
+      sourceUrl: 'https://www.holy-bhagavad-gita.org/chapter/2/lang/ru',
+    },
+  ],
+};
+
+const TEXT_CATEGORIES: Record<string, { label: string; icon: string }> = {
+  all: { label: 'Все', icon: 'BookOpen' },
+  prayer: { label: 'Молитвы', icon: 'Heart' },
+  commandment: { label: 'Заповеди', icon: 'ScrollText' },
+  bible: { label: 'Библия', icon: 'BookMarked' },
+  quran: { label: 'Коран', icon: 'BookMarked' },
+  torah: { label: 'Тора', icon: 'BookMarked' },
+  sutra: { label: 'Сутры', icon: 'BookMarked' },
+  scripture: { label: 'Писание', icon: 'BookMarked' },
+};
+
+function SacredTextsTab({ religion }: { religion: string }) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [filter, setFilter] = useState('all');
+  const [readItems, setReadItems] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('faith_texts_read') || '{}'); } catch { return {}; }
+  });
+
+  const texts = SACRED_TEXTS[religion] || SACRED_TEXTS.orthodox;
+  const categories = ['all', ...Array.from(new Set(texts.map(t => t.category)))];
+  const filtered = filter === 'all' ? texts : texts.filter(t => t.category === filter);
+
+  const toggleRead = (title: string) => {
+    const next = { ...readItems, [title]: !readItems[title] };
+    setReadItems(next);
+    localStorage.setItem('faith_texts_read', JSON.stringify(next));
+  };
+
+  const readCount = texts.filter(t => readItems[t.title]).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+          <Icon name="BookText" size={18} className="text-amber-600" />
+          Священные тексты — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+        </h3>
+        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">
+          {readCount}/{texts.length} прочитано
+        </Badge>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {categories.map(cat => {
+          const info = TEXT_CATEGORIES[cat] || { label: cat, icon: 'Book' };
+          return (
+            <button
+              key={cat}
+              onClick={() => setFilter(cat)}
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
+                filter === cat
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200'
+              }`}
+            >
+              <Icon name={info.icon} size={11} />
+              {info.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="space-y-2">
+        {filtered.map((text, i) => {
+          const isExpanded = expanded === i;
+          const isRead = readItems[text.title];
+          return (
+            <Card key={i} className={`border-amber-100 overflow-hidden transition-all ${isExpanded ? 'ring-1 ring-amber-300 shadow-md' : 'hover:shadow-sm'} ${isRead ? 'opacity-75' : ''}`}>
+              <button
+                onClick={() => setExpanded(isExpanded ? null : i)}
+                className="w-full p-3 flex items-center gap-3 text-left"
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isRead ? 'bg-emerald-100' : 'bg-gradient-to-br from-amber-100 to-yellow-100'}`}>
+                  {isRead ? (
+                    <Icon name="Check" size={16} className="text-emerald-600" />
+                  ) : (
+                    <Icon name="BookText" size={16} className="text-amber-700" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium ${isRead ? 'text-amber-700 line-through' : 'text-amber-900'}`}>{text.title}</p>
+                  <p className="text-xs text-amber-600/70 mt-0.5 line-clamp-1">{text.excerpt}</p>
+                </div>
+                <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-amber-400 shrink-0" />
+              </button>
+              {isExpanded && (
+                <div className="px-4 pb-4 space-y-3">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 border border-amber-100">
+                    <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-line">{text.fullText}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant={isRead ? 'outline' : 'default'}
+                      onClick={(e) => { e.stopPropagation(); toggleRead(text.title); }}
+                      className={isRead ? 'border-emerald-300 text-emerald-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
+                    >
+                      <Icon name={isRead ? 'RotateCcw' : 'Check'} size={14} className="mr-1" />
+                      {isRead ? 'Прочитано' : 'Прочитал'}
+                    </Button>
+                    <a
+                      href={text.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+                    >
+                      <Icon name="ExternalLink" size={12} />
+                      Источник: {text.source}
+                    </a>
+                  </div>
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card className="border-blue-200/60 bg-blue-50/50">
+        <CardContent className="p-3">
+          <p className="text-xs text-blue-700 flex items-center gap-1.5">
+            <Icon name="Info" size={14} className="shrink-0" />
+            Тексты приведены в сокращённом виде. Полные версии доступны по ссылкам на первоисточники.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+const SAINTS_DATA: { name: string; title: string; period: string; description: string; source: string; sourceUrl: string }[] = [
+  { name: 'Серафим Саровский', title: 'Преподобный', period: '1754–1833', description: 'Один из наиболее почитаемых русских святых. Провёл тысячу дней и ночей в молитве на камне. Учил, что цель жизни христианской — стяжание Духа Святого. Принимал тысячи паломников, обращаясь к каждому: «Радость моя!»', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/otechnik/Serafim_Sarovskij/' },
+  { name: 'Николай Чудотворец', title: 'Святитель', period: '270–345', description: 'Архиепископ Мирликийский, один из самых почитаемых святых во всём христианском мире. Известен множеством чудес при жизни и по смерти. Покровитель путешественников, моряков и детей.', source: 'Православие.ру', sourceUrl: 'https://pravoslavie.ru/31375.html' },
+  { name: 'Матрона Московская', title: 'Блаженная', period: '1881–1952', description: 'Родилась слепой, но с детства имела дар духовного зрения. Помогала людям молитвой, исцеляла больных. К ней приходили тысячи людей за советом и утешением. Канонизирована в 1999 году.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/sv-matrona-moskovskaja' },
+  { name: 'Сергий Радонежский', title: 'Преподобный', period: '1314–1392', description: 'Основатель Троице-Сергиевой лавры, духовный собиратель русского народа. Благословил Дмитрия Донского на Куликовскую битву. Величайший подвижник земли Русской.', source: 'Православие.ру', sourceUrl: 'https://pravoslavie.ru/1702.html' },
+  { name: 'Ксения Петербургская', title: 'Блаженная', period: '1720–1803', description: 'После смерти мужа приняла подвиг юродства Христа ради. Скиталась по улицам Петербурга, помогая людям. Её молитвы творили чудеса. Почитается как покровительница Санкт-Петербурга.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/sv-ksenija-peterburgskaja' },
+  { name: 'Иоанн Кронштадтский', title: 'Праведный', period: '1829–1908', description: 'Настоятель Андреевского собора в Кронштадте. Великий проповедник и молитвенник. Основал Дом трудолюбия для бедных. Его дневник «Моя жизнь во Христе» стал духовной классикой.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/otechnik/Ioann_Kronshtadtskij/' },
+  { name: 'Спиридон Тримифунтский', title: 'Святитель', period: '270–348', description: 'Епископ города Тримифунта на Кипре. Участник I Вселенского Собора, где наглядно доказал единство Святой Троицы, сжав в руке кирпич, из которого вышли огонь и вода. Покровитель нуждающихся.', source: 'Православие.ру', sourceUrl: 'https://pravoslavie.ru/28415.html' },
+  { name: 'Лука Крымский', title: 'Святитель', period: '1877–1961', description: 'Архиепископ Симферопольский и Крымский, выдающийся хирург и учёный. Лауреат Сталинской премии за труды по гнойной хирургии. Совмещал служение Церкви и медицину, спас тысячи жизней.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/sv-luka-krymskij' },
+  { name: 'Мария Египетская', title: 'Преподобная', period: 'V век', description: 'Бывшая блудница, которая раскаялась у дверей храма Гроба Господня в Иерусалиме. Ушла в пустыню, где провела 47 лет в молитве и покаянии. Образец покаяния и преображения.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/sv-marija-egipetskaja' },
+  { name: 'Пантелеимон Целитель', title: 'Великомученик', period: '275–305', description: 'Врач, бесплатно лечивший больных. Исцелял именем Христа безнадёжных пациентов. Принял мученическую смерть за веру. Почитается как покровитель врачей и болящих.', source: 'Православие.ру', sourceUrl: 'https://pravoslavie.ru/56374.html' },
+];
+
+function SaintOfDayTab({ religion }: { religion: string }) {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const todaySaint = SAINTS_DATA[dayOfYear % SAINTS_DATA.length];
+  const [favorites, setFavorites] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('faith_saint_favorites') || '{}'); } catch { return {}; }
+  });
+
+  const toggleFavorite = (name: string) => {
+    const next = { ...favorites, [name]: !favorites[name] };
+    setFavorites(next);
+    localStorage.setItem('faith_saint_favorites', JSON.stringify(next));
+  };
+
+  if (religion !== 'orthodox' && religion !== 'catholic' && religion !== 'protestant') {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+          <Icon name="Crown" size={18} className="text-amber-600" />
+          Святые — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+        </h3>
+        <Card className="border-amber-200/60 bg-amber-50/50">
+          <CardContent className="py-8 text-center">
+            <span className="text-4xl mb-3 block">🙏</span>
+            <p className="text-sm text-amber-800 font-medium">Раздел святых доступен для христианских конфессий</p>
+            <p className="text-xs text-amber-600/70 mt-1">Выберите Православие, Католицизм или Протестантизм на главной вкладке</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+        <Icon name="Crown" size={18} className="text-amber-600" />
+        Святой дня — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+      </h3>
+
+      <Card className="border-amber-300/80 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-md">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+              {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </Badge>
+            <button onClick={() => toggleFavorite(todaySaint.name)} className="p-1.5 rounded-lg hover:bg-amber-100 transition-colors">
+              <Icon name={favorites[todaySaint.name] ? 'HeartHandshake' : 'Heart'} size={18} className={favorites[todaySaint.name] ? 'text-rose-500' : 'text-amber-400'} />
+            </button>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center shrink-0">
+              <span className="text-2xl">🙏</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-bold text-amber-900">{todaySaint.name}</p>
+              <p className="text-xs text-amber-700 font-medium">{todaySaint.title} · {todaySaint.period}</p>
+            </div>
+          </div>
+          <p className="text-sm text-amber-900 leading-relaxed">{todaySaint.description}</p>
+          <a
+            href={todaySaint.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+          >
+            <Icon name="ExternalLink" size={12} />
+            Подробнее: {todaySaint.source}
+          </a>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center gap-2">
+        <div className="h-px flex-1 bg-amber-200" />
+        <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Другие святые</span>
+        <div className="h-px flex-1 bg-amber-200" />
+      </div>
+
+      <div className="space-y-2">
+        {SAINTS_DATA.filter(s => s.name !== todaySaint.name).map((saint, i) => (
+          <Card key={i} className="border-amber-100 hover:shadow-sm transition-shadow">
+            <CardContent className="p-3">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center shrink-0">
+                  <span className="text-lg">🙏</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-amber-900">{saint.name}</p>
+                    <button onClick={() => toggleFavorite(saint.name)} className="p-0.5">
+                      <Icon name={favorites[saint.name] ? 'HeartHandshake' : 'Heart'} size={14} className={favorites[saint.name] ? 'text-rose-500' : 'text-amber-300'} />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-amber-600 font-medium">{saint.title} · {saint.period}</p>
+                  <p className="text-xs text-amber-700/70 mt-1 line-clamp-2">{saint.description}</p>
+                  <a
+                    href={saint.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-1.5"
+                  >
+                    <Icon name="ExternalLink" size={10} />
+                    {saint.source}
+                  </a>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const ICONS_DATA: { name: string; description: string; feast: string; prayer: string; source: string; sourceUrl: string }[] = [
+  { name: 'Казанская икона Божией Матери', description: 'Одна из самых почитаемых икон Богородицы в России. Явлена в 1579 году в Казани. Перед ней молились ополченцы Минина и Пожарского. Считается покровительницей России.', feast: '21 июля / 4 ноября', prayer: 'О Пресвятая Госпоже Владычице Богородице! Со страхом, верою и любовию припадающе пред честною иконою Твоею, молим Тя: не отврати лица Твоего от прибегающих к Тебе.', source: 'Правикон', sourceUrl: 'https://pravicon.com/icon-137' },
+  { name: 'Владимирская икона Божией Матери', description: 'Написана евангелистом Лукой. Главная святыня России на протяжении многих веков. Трижды спасала Москву от нашествий. Хранится в храме-музее Святителя Николая в Толмачах при Третьяковской галерее.', feast: '3 июня / 6 июля / 8 сентября', prayer: 'О Всемилостивая Госпоже Богородице, Небесная Царице, Всемощная Заступнице! Утешь нас, грешных и смиренных.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/ikona-vladimirskaja' },
+  { name: 'Иверская икона Божией Матери', description: 'Одна из наиболее известных и почитаемых в православном мире. По преданию, написана евангелистом Лукой. Оригинал хранится в Иверском монастыре на Афоне.', feast: '25 февраля / 26 октября', prayer: 'О Пресвятая Дево, Мати Христа Бога нашего, Царице Небесе и земли! Вонми многоболезненному воздыханию душ наших.', source: 'Правикон', sourceUrl: 'https://pravicon.com/icon-104' },
+  { name: 'Икона «Троица» Андрея Рублёва', description: 'Величайший шедевр русской иконописи, написанный в XV веке. Изображает трёх ангелов — символ Святой Троицы. Является вершиной русского искусства и духовным символом единения.', feast: 'День Святой Троицы (переходящий)', prayer: 'Пресвятая Троице, помилуй нас; Господи, очисти грехи наша; Владыко, прости беззакония наша; Святый, посети и исцели немощи наша, имене Твоего ради.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/ikona-troica' },
+  { name: 'Икона «Спас Нерукотворный»', description: 'По преданию, первая икона — отпечаток лица Христа на полотенце (убрусе), посланном царю Авгарю. Один из основных типов изображения Христа в православной иконографии.', feast: '29 августа', prayer: 'Пречистому Твоему образу покланяемся, Благий, просяще прощения прегрешений наших, Христе Боже.', source: 'Православие.ру', sourceUrl: 'https://pravoslavie.ru/65536.html' },
+  { name: 'Икона «Умиление» Серафимо-Дивеевская', description: 'Келейная икона преподобного Серафима Саровского. Перед ней он молился и перед ней скончался. Называется также «Радость всех радостей». Является одной из главных святынь Дивеевского монастыря.', feast: '1 августа / 10 августа', prayer: 'О Пресвятая Госпоже, Владычице Богородице! Приими недостойную молитву нашу, и сохрани нас от навета злых человек и от внезапныя смерти.', source: 'Правикон', sourceUrl: 'https://pravicon.com/icon-329' },
+  { name: 'Тихвинская икона Божией Матери', description: 'По преданию, написана евангелистом Лукой. Явилась на Руси в 1383 году. Почитается как покровительница Северо-Запада России. Хранится в Тихвинском Богородичном Успенском монастыре.', feast: '9 июля', prayer: 'О Пресвятая Дево, Мати Господа вышних сил, Небесе и земли Царице! Град и страну нашу сию от всякаго навета вражия избави.', source: 'Азбука веры', sourceUrl: 'https://azbyka.ru/days/ikona-tihvinskaja' },
+];
+
+function IconOfDayTab({ religion }: { religion: string }) {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const todayIcon = ICONS_DATA[dayOfYear % ICONS_DATA.length];
+  const [showPrayer, setShowPrayer] = useState(false);
+
+  if (religion !== 'orthodox' && religion !== 'catholic') {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+          <Icon name="Image" size={18} className="text-amber-600" />
+          Икона дня — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+        </h3>
+        <Card className="border-amber-200/60 bg-amber-50/50">
+          <CardContent className="py-8 text-center">
+            <span className="text-4xl mb-3 block">🖼️</span>
+            <p className="text-sm text-amber-800 font-medium">Раздел икон доступен для Православия и Католицизма</p>
+            <p className="text-xs text-amber-600/70 mt-1">Выберите соответствующую конфессию на главной вкладке</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+        <Icon name="Image" size={18} className="text-amber-600" />
+        Икона дня — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+      </h3>
+
+      <Card className="border-amber-300/80 bg-gradient-to-br from-amber-50 to-orange-50/60 shadow-md">
+        <CardContent className="p-4 space-y-3">
+          <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+            {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </Badge>
+          <div className="flex items-start gap-3">
+            <div className="w-16 h-20 rounded-xl bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center shrink-0 border border-amber-300">
+              <span className="text-3xl">🖼️</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-bold text-amber-900">{todayIcon.name}</p>
+              <p className="text-xs text-amber-600 font-medium flex items-center gap-1 mt-1">
+                <Icon name="Calendar" size={11} />
+                Празднование: {todayIcon.feast}
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-amber-900 leading-relaxed">{todayIcon.description}</p>
+
+          <button
+            onClick={() => setShowPrayer(!showPrayer)}
+            className="w-full flex items-center justify-between p-3 rounded-xl bg-white/70 border border-amber-200 hover:bg-amber-50 transition-colors"
+          >
+            <span className="text-sm font-medium text-amber-800 flex items-center gap-2">
+              <Icon name="BookOpen" size={14} className="text-amber-600" />
+              Молитва перед иконой
+            </span>
+            <Icon name={showPrayer ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-amber-400" />
+          </button>
+
+          {showPrayer && (
+            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 to-yellow-50/40 border border-amber-100">
+              <p className="text-sm text-amber-900 leading-relaxed italic">{todayIcon.prayer}</p>
+            </div>
+          )}
+
+          <a
+            href={todayIcon.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+          >
+            <Icon name="ExternalLink" size={12} />
+            Подробнее: {todayIcon.source}
+          </a>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center gap-2">
+        <div className="h-px flex-1 bg-amber-200" />
+        <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Почитаемые иконы</span>
+        <div className="h-px flex-1 bg-amber-200" />
+      </div>
+
+      <div className="space-y-2">
+        {ICONS_DATA.filter(ic => ic.name !== todayIcon.name).map((icon, i) => (
+          <Card key={i} className="border-amber-100 hover:shadow-sm transition-shadow">
+            <CardContent className="p-3">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-12 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0">
+                  <span className="text-lg">🖼️</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-amber-900">{icon.name}</p>
+                  <p className="text-[10px] text-amber-600 font-medium">Празднование: {icon.feast}</p>
+                  <p className="text-xs text-amber-700/70 mt-1 line-clamp-2">{icon.description}</p>
+                  <a
+                    href={icon.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-1.5"
+                  >
+                    <Icon name="ExternalLink" size={10} />
+                    {icon.source}
+                  </a>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
