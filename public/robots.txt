@@ -23,7 +23,7 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 2
 
-User-agent: Twitterbot
+User-agent: vkshare
 Allow: /
 
 User-agent: facebookexternalhit

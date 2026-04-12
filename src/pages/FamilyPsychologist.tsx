@@ -832,7 +832,7 @@ export default function FamilyPsychologist() {
           body: JSON.stringify({
             messages: [{ role: "user", content: question }],
             systemPrompt: SYSTEM_PROMPT,
-            familyId: userData.familyId || "",
+            familyId: userData.family_id || "",
             userId: userData.id || "",
           }),
         }

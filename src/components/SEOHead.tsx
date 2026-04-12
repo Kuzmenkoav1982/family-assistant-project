@@ -27,12 +27,14 @@ const SEOHead = ({
       <meta name="description" content={description} />
       <link rel="canonical" href={canonicalUrl} />
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={OG_IMAGE} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta property="og:locale" content="ru_RU" />
+      <meta property="vk:image" content={OG_IMAGE} />
     </Helmet>
   );
 };
