@@ -971,6 +971,42 @@ export default function FamilyPsychologist() {
     return d.toLocaleDateString("ru-RU", { weekday: "short" }).slice(0, 2);
   };
 
+  const stripMarkdown = (text: string): string => {
+    return text.replace(/\*\*(.*?)\*\*/g, "$1");
+  };
+
+  const handleShareConsultation = async (q: string, answer: string, topic?: string) => {
+    const cleanAnswer = stripMarkdown(answer);
+    const title = topic || "Консультация психолога";
+    const shareText = `🧠 ${title}\n\n❓ ${q.slice(0, 200)}${q.length > 200 ? "..." : ""}\n\n💡 Рекомендация психолога:\n${cleanAnswer}\n\n📲 Приложение «Наша Семья» — nasha-semiya.ru`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: shareText });
+      } catch {
+        /* user cancelled */
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast({ title: "Скопировано", description: "Рекомендация скопирована в буфер обмена" });
+      } catch {
+        toast({ title: "Ошибка", description: "Не удалось поделиться", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleCopyConsultation = async (q: string, answer: string) => {
+    const cleanAnswer = stripMarkdown(answer);
+    const text = `❓ ${q}\n\n💡 Рекомендация:\n${cleanAnswer}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: "Скопировано", description: "Текст консультации скопирован" });
+    } catch {
+      toast({ title: "Ошибка", description: "Не удалось скопировать", variant: "destructive" });
+    }
+  };
+
   const renderResponseText = (text: string) => {
     const lines = text.split("\n");
     return lines.map((line, i) => {
@@ -1211,7 +1247,7 @@ export default function FamilyPsychologist() {
                   <CardContent className="prose prose-sm max-w-none">
                     {renderResponseText(currentResponse)}
                   </CardContent>
-                  <div className="px-6 pb-4 flex gap-2">
+                  <div className="px-6 pb-4 flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1222,6 +1258,23 @@ export default function FamilyPsychologist() {
                     >
                       <Icon name="Plus" size={14} className="mr-1" />
                       Новый вопрос
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleShareConsultation(question, currentResponse)}
+                      className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                    >
+                      <Icon name="Share2" size={14} className="mr-1" />
+                      Поделиться
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyConsultation(question, currentResponse)}
+                      className="text-gray-500"
+                    >
+                      <Icon name="Copy" size={14} className="mr-1" />
+                      Копировать
                     </Button>
                   </div>
                 </Card>
@@ -1237,15 +1290,17 @@ export default function FamilyPsychologist() {
                 {consultationHistory.slice(0, 5).map((record) => (
                   <Card
                     key={record.id}
-                    className="border-gray-200/60 bg-white/60 backdrop-blur-sm cursor-pointer hover:bg-white/80 transition-colors"
-                    onClick={() => {
-                      setCurrentResponse(record.answer);
-                      setQuestion(record.question);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
+                    className="border-gray-200/60 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-colors"
                   >
                     <CardContent className="py-3 px-4">
-                      <div className="flex items-start justify-between gap-2">
+                      <div
+                        className="flex items-start justify-between gap-2 cursor-pointer"
+                        onClick={() => {
+                          setCurrentResponse(record.answer);
+                          setQuestion(record.question);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                      >
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {record.topic}
@@ -1257,6 +1312,22 @@ export default function FamilyPsychologist() {
                         <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
                           {formatDate(record.date)}
                         </span>
+                      </div>
+                      <div className="flex gap-1.5 mt-2 pt-2 border-t border-gray-100">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleShareConsultation(record.question, record.answer, record.topic); }}
+                          className="text-[11px] px-2 py-1 rounded-full bg-teal-50 text-teal-600 hover:bg-teal-100 flex items-center gap-1 transition-colors"
+                        >
+                          <Icon name="Share2" size={11} />
+                          Поделиться
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleCopyConsultation(record.question, record.answer); }}
+                          className="text-[11px] px-2 py-1 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 flex items-center gap-1 transition-colors"
+                        >
+                          <Icon name="Copy" size={11} />
+                          Копировать
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
