@@ -52,7 +52,7 @@ export default function HouseholdHub() {
 
   return (
     <>
-    <SEOHead title="Быт — покупки, голосования и гараж" description="Списки покупок, семейные голосования, управление автомобилем. Организация повседневного быта семьи." path="/household-hub" />
+    <SEOHead title="Быт — покупки, голосования и гараж" description="Списки покупок, семейные голосования, управление автомобилем. Организация повседневного быта семьи." path="/household-hub" breadcrumbs={[{ name: "Быт", path: "/household-hub" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

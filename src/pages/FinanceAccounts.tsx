@@ -198,7 +198,7 @@ export default function FinanceAccounts() {
 
   return (
     <>
-    <SEOHead title="Счета и карты — банковские счета семьи" description="Управление банковскими счетами и картами семьи. Отслеживание остатков, переводы между счетами." path="/finance/accounts" />
+    <SEOHead title="Счета и карты — банковские счета семьи" description="Управление банковскими счетами и картами семьи. Отслеживание остатков, переводы между счетами." path="/finance/accounts" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Счета", path: "/finance/accounts" }]} />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero

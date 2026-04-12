@@ -317,7 +317,7 @@ export default function Recipes() {
 
   return (
     <>
-    <SEOHead title="Рецепты — кулинарная книга семьи" description="Семейная кулинарная книга: любимые рецепты, новые блюда, рецепты по ингредиентам. Сохраняйте и делитесь рецептами." path="/recipes" />
+    <SEOHead title="Рецепты — кулинарная книга семьи" description="Семейная кулинарная книга: любимые рецепты, новые блюда, рецепты по ингредиентам. Сохраняйте и делитесь рецептами." path="/recipes" breadcrumbs={[{ name: "Питание", path: "/nutrition" }, { name: "Рецепты", path: "/recipes" }]} />
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <SectionHero

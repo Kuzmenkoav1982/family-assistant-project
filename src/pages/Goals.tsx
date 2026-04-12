@@ -53,7 +53,7 @@ export default function Goals() {
 
   return (
     <>
-    <SEOHead title="Семейные цели — планы и достижения" description="Ставьте семейные цели, отслеживайте прогресс, празднуйте достижения вместе. Долгосрочное планирование для семьи." path="/goals" />
+    <SEOHead title="Семейные цели — планы и достижения" description="Ставьте семейные цели, отслеживайте прогресс, празднуйте достижения вместе. Долгосрочное планирование для семьи." path="/goals" breadcrumbs={[{ name: "Планирование", path: "/planning-hub" }, { name: "Цели", path: "/goals" }]} />
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

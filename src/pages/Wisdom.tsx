@@ -170,7 +170,7 @@ export default function Wisdom() {
 
   return (
     <>
-    <SEOHead title="Мудрость народа — пословицы и притчи о семье" description="Народная мудрость о семье: пословицы, поговорки, притчи, цитаты великих людей. Вдохновение для семейной жизни." path="/wisdom" />
+    <SEOHead title="Мудрость народа — пословицы и притчи о семье" description="Народная мудрость о семье: пословицы, поговорки, притчи, цитаты великих людей. Вдохновение для семейной жизни." path="/wisdom" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Мудрость", path: "/wisdom" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       {sharingWisdom && (
         <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>

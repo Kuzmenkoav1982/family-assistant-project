@@ -108,7 +108,7 @@ export default function NutritionHub() {
 
   return (
     <>
-    <SEOHead title="Питание — центр здорового питания семьи" description="Всё о питании семьи: рационы, диеты, рецепты, меню на неделю, счётчик калорий. Персональные рекомендации от ИИ." path="/nutrition" />
+    <SEOHead title="Питание — центр здорового питания семьи" description="Всё о питании семьи: рационы, диеты, рецепты, меню на неделю, счётчик калорий. Персональные рекомендации от ИИ." path="/nutrition" breadcrumbs={[{ name: "Питание", path: "/nutrition" }]} />
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

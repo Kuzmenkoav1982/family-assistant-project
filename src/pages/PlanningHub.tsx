@@ -73,7 +73,7 @@ export default function PlanningHub() {
 
   return (
     <>
-    <SEOHead title="Планирование — цели, задачи и календарь семьи" description="Семейные цели, задачи, календарь событий, план покупок, аналитика. Эффективное планирование жизни семьи." path="/planning-hub" />
+    <SEOHead title="Планирование — цели, задачи и календарь семьи" description="Семейные цели, задачи, календарь событий, план покупок, аналитика. Эффективное планирование жизни семьи." path="/planning-hub" breadcrumbs={[{ name: "Планирование", path: "/planning-hub" }]} />
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

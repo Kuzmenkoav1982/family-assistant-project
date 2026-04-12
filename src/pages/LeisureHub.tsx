@@ -52,7 +52,7 @@ export default function LeisureHub() {
 
   return (
     <>
-    <SEOHead title="Досуг — путешествия, события и отдых" description="Планирование путешествий, организация досуга, семейные праздники и события. Яркий отдых для всей семьи." path="/leisure-hub" />
+    <SEOHead title="Досуг — путешествия, события и отдых" description="Планирование путешествий, организация досуга, семейные праздники и события. Яркий отдых для всей семьи." path="/leisure-hub" breadcrumbs={[{ name: "Досуг", path: "/leisure-hub" }]} />
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-blue-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

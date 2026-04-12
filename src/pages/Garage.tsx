@@ -55,7 +55,7 @@ export default function Garage() {
 
   return (
     <>
-    <SEOHead title="Гараж — учёт автомобилей семьи" description="Управление семейным автопарком: техобслуживание, страховки, расходы на топливо, напоминания о ТО." path="/garage" />
+    <SEOHead title="Гараж — учёт автомобилей семьи" description="Управление семейным автопарком: техобслуживание, страховки, расходы на топливо, напоминания о ТО." path="/garage" breadcrumbs={[{ name: "Быт", path: "/household-hub" }, { name: "Гараж", path: "/garage" }]} />
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-4">
       <SectionHero title="Гараж" subtitle={subtitle} imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/627133e5-d460-4cd0-9bcb-91e6f0f9ed48.jpg" backPath="/" />

@@ -44,7 +44,7 @@ export default function FinanceBudget() {
 
   return (
     <>
-    <SEOHead title="Семейный бюджет — доходы и расходы" description="Планирование семейного бюджета: учёт доходов и расходов, категории трат, лимиты. Контролируйте финансы семьи." path="/finance/budget" />
+    <SEOHead title="Семейный бюджет — доходы и расходы" description="Планирование семейного бюджета: учёт доходов и расходов, категории трат, лимиты. Контролируйте финансы семьи." path="/finance/budget" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Бюджет", path: "/finance/budget" }]} />
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero

@@ -46,7 +46,7 @@ export default function Values() {
 
   return (
     <>
-    <SEOHead title="Семейные ценности — основа крепкой семьи" description="Определите и укрепите семейные ценности: любовь, доверие, уважение, традиции. Создайте фундамент счастливой семьи." path="/values" />
+    <SEOHead title="Семейные ценности — основа крепкой семьи" description="Определите и укрепите семейные ценности: любовь, доверие, уважение, традиции. Создайте фундамент счастливой семьи." path="/values" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Семейные ценности", path: "/values" }]} />
     <div className="min-h-screen bg-gradient-to-b from-rose-50 via-pink-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

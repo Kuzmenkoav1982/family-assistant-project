@@ -1105,7 +1105,7 @@ export default function Tree() {
 
   return (
     <>
-    <SEOHead title="Семейное древо — родословная вашей семьи" description="Создайте генеалогическое древо семьи: добавляйте родственников, стройте связи между поколениями, сохраняйте историю рода." path="/tree" />
+    <SEOHead title="Семейное древо — родословная вашей семьи" description="Создайте генеалогическое древо семьи: добавляйте родственников, стройте связи между поколениями, сохраняйте историю рода." path="/tree" breadcrumbs={[{ name: "Семья", path: "/family-hub" }, { name: "Семейное древо", path: "/tree" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 pb-24">
       <div className="p-4">
         <SectionHero

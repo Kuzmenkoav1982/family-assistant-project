@@ -84,7 +84,7 @@ export default function FinanceDebts() {
 
   return (
     <>
-    <SEOHead title="Кредиты и долги — управление задолженностями" description="Учёт кредитов, ипотеки и долгов семьи. График платежей, остаток долга, стратегии погашения." path="/finance/debts" />
+    <SEOHead title="Кредиты и долги — управление задолженностями" description="Учёт кредитов, ипотеки и долгов семьи. График платежей, остаток долга, стратегии погашения." path="/finance/debts" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Кредиты и долги", path: "/finance/debts" }]} />
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero

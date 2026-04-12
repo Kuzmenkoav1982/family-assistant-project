@@ -537,7 +537,7 @@ export default function Calendar() {
 
   return (
     <>
-    <SEOHead title="Семейный календарь — события и напоминания" description="Общий календарь семьи: дни рождения, праздники, визиты к врачу, школьные мероприятия. Синхронизация для всех членов семьи." path="/calendar" />
+    <SEOHead title="Семейный календарь — события и напоминания" description="Общий календарь семьи: дни рождения, праздники, визиты к врачу, школьные мероприятия. Синхронизация для всех членов семьи." path="/calendar" breadcrumbs={[{ name: "Планирование", path: "/planning-hub" }, { name: "Календарь", path: "/calendar" }]} />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

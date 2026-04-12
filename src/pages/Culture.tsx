@@ -73,7 +73,7 @@ export default function Culture() {
 
   return (
     <>
-    <SEOHead title="Традиции семьи — обычаи и ритуалы" description="Семейные традиции и обычаи: праздничные ритуалы, кулинарные тр��диции, семейные игры. Сохраняйте и передавайте поколениям." path="/culture" />
+    <SEOHead title="Традиции семьи — обычаи и ритуалы" description="Семейные традиции и обычаи: праздничные ритуалы, кулинарные тр��диции, семейные игры. Сохраняйте и передавайте поколениям." path="/culture" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Традиции", path: "/culture" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

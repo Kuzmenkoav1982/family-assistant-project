@@ -158,7 +158,7 @@ export default function FinanceAssets() {
 
   return (
     <>
-    <SEOHead title="Имущество семьи — недвижимость и активы" description="Учёт имущества семьи: недвижимость, автомобили, ценные вещи. Оценка стоимости и страхование." path="/finance/assets" />
+    <SEOHead title="Имущество семьи — недвижимость и активы" description="Учёт имущества семьи: недвижимость, автомобили, ценные вещи. Оценка стоимости и страхование." path="/finance/assets" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Имущество", path: "/finance/assets" }]} />
     <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero

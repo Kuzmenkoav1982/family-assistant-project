@@ -73,7 +73,7 @@ export default function ValuesHub() {
 
   return (
     <>
-    <SEOHead title="Ценности — духовное развитие семьи" description="Семейные ценности, вера, традиции, мудрость народа, правила дома. Укрепление духовных основ семьи." path="/values-hub" />
+    <SEOHead title="Ценности — духовное развитие семьи" description="Семейные ценности, вера, традиции, мудрость народа, правила дома. Укрепление духовных основ семьи." path="/values-hub" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

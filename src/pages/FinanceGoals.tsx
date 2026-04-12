@@ -155,7 +155,7 @@ export default function FinanceGoals() {
 
   return (
     <>
-    <SEOHead title="Финансовые цели — накопления семьи" description="Финансовые цели семьи: накопления на отпуск, образование, жильё. Отслеживание прогресса и автоматические расчёты." path="/finance/goals" />
+    <SEOHead title="Финансовые цели — накопления семьи" description="Финансовые цели семьи: накопления на отпуск, образование, жильё. Отслеживание прогресса и автоматические расчёты." path="/finance/goals" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Финансовые цели", path: "/finance/goals" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero

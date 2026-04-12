@@ -309,7 +309,7 @@ export default function Trips() {
 
   return (
     <>
-    <SEOHead title="Путешествия семьи — планирование поездок" description="Планирование семейных путешествий: маршруты, бюджет, список вещей, бронирования. ИИ-рекомендации для идеального отдыха." path="/trips" />
+    <SEOHead title="Путешествия семьи — планирование поездок" description="Планирование семейных путешествий: маршруты, бюджет, список вещей, бронирования. ИИ-рекомендации для идеального отдыха." path="/trips" breadcrumbs={[{ name: "Досуг", path: "/leisure-hub" }, { name: "Путешествия", path: "/trips" }]} />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-sky-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

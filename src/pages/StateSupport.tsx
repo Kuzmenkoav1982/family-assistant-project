@@ -300,7 +300,7 @@ export default function StateSupport() {
 
   return (
     <>
-    <SEOHead title="Господдержка семей — льготы и выплаты" description="Государственная поддержка семей в России: материнский капитал, пособия, льготы, субсидии. Актуальная информация о выплатах." path="/state-support" />
+    <SEOHead title="Господдержка семей — льготы и выплаты" description="Государственная поддержка семей в России: материнский капитал, пособия, льготы, субсидии. Актуальная информация о выплатах." path="/state-support" breadcrumbs={[{ name: "Госуслуги", path: "/state-hub" }, { name: "Господдержка", path: "/state-support" }]} />
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 lg:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
         <SectionHero

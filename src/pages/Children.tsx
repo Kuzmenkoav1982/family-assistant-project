@@ -190,7 +190,7 @@ export default function Children() {
 
   return (
     <>
-    <SEOHead title="Дети — профили и развитие детей" description="Профили детей, отслеживание развития, оценка навыков, планы развития. Всё для заботливых родителей." path="/children" />
+    <SEOHead title="Дети — профили и развитие детей" description="Профили детей, отслеживание развития, оценка навыков, планы развития. Всё для заботливых родителей." path="/children" breadcrumbs={[{ name: "Семья", path: "/family-hub" }, { name: "Дети", path: "/children" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero

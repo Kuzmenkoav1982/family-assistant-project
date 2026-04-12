@@ -34,7 +34,7 @@ export default function HealthHub() {
 
   return (
     <>
-      <SEOHead title="Здоровье — центр управления здоровьем семьи" description="Медицинские карты, прививки, лекарства, телемедицина, страховки. Полный контроль здоровья всей семьи." path="/health-hub" />
+      <SEOHead title="Здоровье — центр управления здоровьем семьи" description="Медицинские карты, прививки, лекарства, телемедицина, страховки. Полный контроль здоровья всей семьи." path="/health-hub" breadcrumbs={[{ name: "Здоровье", path: "/health-hub" }]} />
       <div className="min-h-screen bg-gradient-to-b from-rose-50 via-red-50/30 to-white pb-24">
         <div className="max-w-5xl mx-auto p-4 space-y-6">
           <SectionHero

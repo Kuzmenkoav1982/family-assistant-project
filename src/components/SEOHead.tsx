@@ -1,10 +1,16 @@
 import { Helmet } from "react-helmet-async";
 
+interface BreadcrumbItem {
+  name: string;
+  path: string;
+}
+
 interface SEOHeadProps {
   title?: string;
   description?: string;
   path?: string;
   noIndex?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 const SITE_NAME = "Наша Семья";
@@ -17,9 +23,26 @@ const SEOHead = ({
   description = DEFAULT_DESCRIPTION,
   path = "",
   noIndex = false,
+  breadcrumbs,
 }: SEOHeadProps) => {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Управление семьей онлайн`;
   const canonicalUrl = `${BASE_URL}${path}`;
+
+  const breadcrumbList = breadcrumbs && breadcrumbs.length > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Главная", "item": BASE_URL + "/" },
+          ...breadcrumbs.map((item, i) => ({
+            "@type": "ListItem",
+            "position": i + 2,
+            "name": item.name,
+            "item": BASE_URL + item.path,
+          })),
+        ],
+      }
+    : null;
 
   return (
     <Helmet>
@@ -35,6 +58,11 @@ const SEOHead = ({
       <meta property="og:image" content={OG_IMAGE} />
       <meta property="og:locale" content="ru_RU" />
       <meta property="vk:image" content={OG_IMAGE} />
+      {breadcrumbList && (
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbList)}
+        </script>
+      )}
     </Helmet>
   );
 };
