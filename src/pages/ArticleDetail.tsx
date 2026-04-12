@@ -59,9 +59,52 @@ export default function ArticleDetail() {
       <Helmet>
         <title>{article.title} — Наша Семья</title>
         <meta name="description" content={article.description} />
+        <link rel="canonical" href={`https://nasha-semiya.ru/articles/${article.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Наша Семья" />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.description} />
-        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://nasha-semiya.ru/articles/${article.slug}`} />
+        <meta property="og:locale" content="ru_RU" />
+        <meta property="article:published_time" content={article.date} />
+        <meta property="article:author" content={article.author} />
+        <meta property="article:section" content={getCategoryName(article.category)} />
+        {article.tags.map(tag => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
+        <meta property="vk:image" content="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": article.title,
+            "description": article.description,
+            "author": { "@type": "Person", "name": article.author },
+            "datePublished": article.date,
+            "publisher": {
+              "@type": "Organization",
+              "name": "Наша Семья",
+              "url": "https://nasha-semiya.ru",
+              "logo": { "@type": "ImageObject", "url": "https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" }
+            },
+            "mainEntityOfPage": `https://nasha-semiya.ru/articles/${article.slug}`,
+            "articleSection": getCategoryName(article.category),
+            "keywords": article.tags.join(", "),
+            "inLanguage": "ru",
+            "wordCount": article.content.replace(/<[^>]*>/g, '').split(/\s+/).length
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://nasha-semiya.ru/" },
+              { "@type": "ListItem", "position": 2, "name": "Статьи", "item": "https://nasha-semiya.ru/articles" },
+              { "@type": "ListItem", "position": 3, "name": article.title, "item": `https://nasha-semiya.ru/articles/${article.slug}` }
+            ]
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8 pb-20">

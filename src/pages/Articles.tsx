@@ -41,6 +41,45 @@ export default function Articles() {
       <Helmet>
         <title>Полезные статьи для семьи — Наша Семья</title>
         <meta name="description" content="Экспертные статьи о семейном бюджете, воспитании детей, здоровом питании, отношениях и планировании. Полезные советы для всей семьи." />
+        <link rel="canonical" href="https://nasha-semiya.ru/articles" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Наша Семья" />
+        <meta property="og:title" content="Полезные статьи для семьи — Наша Семья" />
+        <meta property="og:description" content="Экспертные статьи о семейном бюджете, воспитании детей, здоровом питании, отношениях и планировании." />
+        <meta property="og:url" content="https://nasha-semiya.ru/articles" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta property="vk:image" content="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Полезные статьи для семьи",
+            "description": "Экспертные статьи о семейном бюджете, воспитании детей, здоровом питании, отношениях и планировании.",
+            "url": "https://nasha-semiya.ru/articles",
+            "publisher": { "@type": "Organization", "name": "Наша Семья", "url": "https://nasha-semiya.ru" },
+            "inLanguage": "ru",
+            "mainEntity": {
+              "@type": "ItemList",
+              "numberOfItems": articles.length,
+              "itemListElement": articles.slice(0, 10).map((a, i) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "url": `https://nasha-semiya.ru/articles/${a.slug}`,
+                "name": a.title
+              }))
+            }
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://nasha-semiya.ru/" },
+              { "@type": "ListItem", "position": 2, "name": "Статьи", "item": "https://nasha-semiya.ru/articles" }
+            ]
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8 pb-20">

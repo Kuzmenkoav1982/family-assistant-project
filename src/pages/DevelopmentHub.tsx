@@ -27,7 +27,17 @@ const subSections: SubSection[] = [
     gradient: 'from-emerald-500 to-teal-600',
     ready: true,
   },
-
+  {
+    id: 'psychologist',
+    title: 'Семейный психолог',
+    description: 'ИИ-консультации, техники релаксации, упражнения для семьи, справочник кризисов',
+    icon: 'Brain',
+    path: '/psychologist',
+    gradient: 'from-violet-500 to-purple-600',
+    badge: 'ИИ',
+    badgeColor: 'bg-violet-100 text-violet-700',
+    ready: true,
+  },
 ];
 
 export default function DevelopmentHub() {
@@ -41,7 +51,7 @@ export default function DevelopmentHub() {
         <SectionHero
           title="Развитие"
           subtitle="Образование, рост и путь жизни"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/files/5f143ca9-8610-4d6c-acd2-456d264789b1.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/364dd778-d8dc-4105-a314-da0ca595ed73.jpg"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
