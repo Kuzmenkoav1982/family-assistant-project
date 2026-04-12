@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -226,6 +227,8 @@ export default function Purchases() {
     .reduce((sum, p) => sum + (p.estimated_cost || 0), 0);
 
   return (
+    <>
+    <SEOHead title="План покупок — список необходимого" description="Планирование крупных и мелких покупок для семьи. Приоритеты, бюджет, отслеживание." path="/purchases" />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-blue-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -623,5 +626,6 @@ export default function Purchases() {
         </Dialog>
       </div>
     </div>
+    </>
   );
 }

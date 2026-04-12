@@ -1,4 +1,5 @@
 import InDevelopment from '@/components/InDevelopment';
+import SEOHead from "@/components/SEOHead";
 
 export default function Health() {
   const features = [
@@ -65,11 +66,14 @@ export default function Health() {
   ];
 
   return (
-    <InDevelopment
-      title="Здоровье"
-      description="Медицинские карты и здоровье семьи"
-      icon="Heart"
-      features={features}
-    />
+    <>
+      <SEOHead title="Здоровье семьи — медицинские карты и отслеживание" description="Медицинские карты семьи, отслеживание здоровья, история визитов к врачам, прививки, лекарства и анализы. Всё здоровье семьи в одном месте." path="/health" />
+      <InDevelopment
+        title="Здоровье"
+        description="Медицинские карты и здоровье семьи"
+        icon="Heart"
+        features={features}
+      />
+    </>
   );
 }

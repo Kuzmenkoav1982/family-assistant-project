@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,8 @@ export default function FamilyCode() {
   };
 
   return (
+    <>
+    <SEOHead title="Семейный кодекс РФ — права и обязанности" description="Основные положения Семейного кодекса РФ: брак, развод, права детей, алименты, опека. Доступным языком для каждой семьи." path="/family-code" />
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <SectionHero
@@ -174,5 +177,6 @@ export default function FamilyCode() {
         )}
       </div>
     </div>
+    </>
   );
 }

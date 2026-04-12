@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -200,6 +201,8 @@ export default function FamilyWallet() {
   }
 
   return (
+    <>
+    <SEOHead title="Семейный кошелёк — баланс и операции" description="Баланс семейного кошелька, история операций, пополнение счёта для использования ИИ-сервисов." path="/wallet" />
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
 
@@ -534,5 +537,6 @@ export default function FamilyWallet() {
 
       </div>
     </div>
+    </>
   );
 }

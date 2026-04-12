@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import SEOHead from "@/components/SEOHead";
 import html2canvas from 'html2canvas';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -168,6 +169,8 @@ export default function Wisdom() {
   }, [search, activeCategory, activeSource, showFavorites, favorites]);
 
   return (
+    <>
+    <SEOHead title="Мудрость народа — пословицы и притчи о семье" description="Народная мудрость о семье: пословицы, поговорки, притчи, цитаты великих людей. Вдохновение для семейной жизни." path="/wisdom" />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       {sharingWisdom && (
         <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
@@ -479,6 +482,7 @@ export default function Wisdom() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEOHead from "@/components/SEOHead";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -224,6 +225,8 @@ export default function FinanceLoyalty() {
   }
 
   return (
+    <>
+    <SEOHead title="Скидочные карты — экономия для семьи" description="Хранение скидочных и бонусных карт семьи в одном месте. Штрих-коды, баланс бонусов, напоминания об акциях." path="/finance/loyalty" />
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero
@@ -385,5 +388,6 @@ export default function FinanceLoyalty() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }

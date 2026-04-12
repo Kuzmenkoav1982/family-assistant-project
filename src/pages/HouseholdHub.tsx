@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import SEOHead from "@/components/SEOHead";
 
 interface SubSection {
   id: string;
@@ -50,6 +51,8 @@ export default function HouseholdHub() {
   const navigate = useNavigate();
 
   return (
+    <>
+    <SEOHead title="Быт — покупки, голосования и гараж" description="Списки покупок, семейные голосования, управление автомобилем. Организация повседневного быта семьи." path="/household-hub" />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -124,5 +127,6 @@ export default function HouseholdHub() {
         </div>
       </div>
     </div>
+    </>
   );
 }

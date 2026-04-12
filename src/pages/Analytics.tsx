@@ -1,4 +1,5 @@
 import { useMemo, useState, useContext, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { AnalyticsSkeleton } from '@/components/skeletons/AnalyticsSkeleton';
@@ -262,6 +263,8 @@ export default function Analytics() {
   const hasData = activeMembers > 0 || totalTasks > 0 || calendarEvents.length > 0 || blogPosts.length > 0;
 
   return (
+    <>
+    <SEOHead title="Аналитика семьи — статистика и отчёты" description="Аналитика активности семьи: статистика задач, финансов, здоровья, развития. Визуальные отчёты и графики." path="/analytics" />
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-indigo-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -319,5 +322,6 @@ export default function Analytics() {
         )}
       </div>
     </div>
+    </>
   );
 }

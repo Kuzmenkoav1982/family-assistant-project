@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEOHead from "@/components/SEOHead";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -597,6 +598,8 @@ export default function AntiScam() {
   }
 
   return (
+    <>
+    <SEOHead title="Антимошенник — защита семьи от мошенников" description="Защита семьи от финансового мошенничества: распознавание схем, проверка звонков, безопасность в интернете." path="/finance/antiscam" />
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-white pb-24">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <SectionHero
@@ -771,5 +774,6 @@ export default function AntiScam() {
         </div>
       </div>
     </div>
+    </>
   );
 }

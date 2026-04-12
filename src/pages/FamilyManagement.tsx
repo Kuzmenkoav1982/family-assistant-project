@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,8 @@ export default function FamilyManagement() {
   };
 
   return (
+    <>
+    <SEOHead title="Управление семьёй — настройки и участники" description="Управление составом семьи, приглашение новых участников, настройки семейного аккаунта." path="/family-management" />
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
@@ -162,5 +165,6 @@ export default function FamilyManagement() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import SectionHero from '@/components/ui/section-hero';
 import { FamilyDefinitions } from '@/components/family-policy/FamilyDefinitions';
@@ -7,6 +8,8 @@ export default function WhatIsFamily() {
   const navigate = useNavigate();
 
   return (
+    <>
+    <SEOHead title="Что такое семья — определение и виды семей" description="Что такое семья в современном обществе: определение, виды семей, функции семьи, семейные ценности по законодательству РФ." path="/what-is-family" />
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-4 lg:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-8">
         <SectionHero
@@ -19,5 +22,6 @@ export default function WhatIsFamily() {
         <FamilyHistory />
       </div>
     </div>
+    </>
   );
 }

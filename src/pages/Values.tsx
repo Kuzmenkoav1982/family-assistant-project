@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +45,8 @@ export default function Values() {
   };
 
   return (
+    <>
+    <SEOHead title="Семейные ценности — основа крепкой семьи" description="Определите и укрепите семейные ценности: любовь, доверие, уважение, традиции. Создайте фундамент счастливой семьи." path="/values" />
     <div className="min-h-screen bg-gradient-to-b from-rose-50 via-pink-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -184,5 +187,6 @@ export default function Values() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,11 +189,13 @@ export default function Children() {
   const selectedChild = children.find(c => c.id === selectedChildId) || children[0];
 
   return (
+    <>
+    <SEOHead title="Дети — профили и развитие детей" description="Профили детей, отслеживание развития, оценка навыков, планы развития. Всё для заботливых родителей." path="/children" />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
           title="Дети"
-          subtitle="Развитие и контроль"
+          subtitle="Развитие и ��онтроль"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c284ef36-f2eb-45cb-95cc-7e8f735dbd0d.jpg"
           backPath="/family-hub"
         />
@@ -455,5 +458,6 @@ export default function Children() {
 
       <Footer />
     </div>
+    </>
   );
 }

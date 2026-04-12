@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -535,6 +536,8 @@ export default function Calendar() {
   const upcomingReminders = getUpcomingReminders();
 
   return (
+    <>
+    <SEOHead title="Семейный календарь — события и напоминания" description="Общий календарь семьи: дни рождения, праздники, визиты к врачу, школьные мероприятия. Синхронизация для всех членов семьи." path="/calendar" />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -716,5 +719,6 @@ export default function Calendar() {
         )}
       </div>
     </div>
+    </>
   );
 }

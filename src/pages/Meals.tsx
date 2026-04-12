@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -320,6 +321,8 @@ export default function Meals() {
   };
 
   return (
+    <>
+    <SEOHead title="Меню на неделю — план питания семьи" description="Планирование меню на неделю для всей семьи. Завтраки, обеды, ужины с учётом предпочтений и диет каждого." path="/meals" />
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <SectionHero
@@ -404,5 +407,6 @@ export default function Meals() {
 
       </div>
     </div>
+    </>
   );
 }

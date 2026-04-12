@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -136,6 +137,8 @@ export default function EventsPage() {
   }
 
   return (
+    <>
+    <SEOHead title="Семейные праздники — организация событий" description="Организация семейных праздников: дни рождения, юбилеи, Новый год. Списки гостей, подарки, бюджет мероприятия." path="/events" />
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-rose-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -333,5 +336,6 @@ export default function EventsPage() {
       )}
       </div>
     </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +11,8 @@ export default function VotingPage() {
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   return (
+    <>
+    <SEOHead title="Семейные голосования — решаем вместе" description="Семейные голосования для совместного принятия решений. Демократичный способ решить куда поехать, что купить, как назвать питомца." path="/voting" />
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -86,5 +89,6 @@ export default function VotingPage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

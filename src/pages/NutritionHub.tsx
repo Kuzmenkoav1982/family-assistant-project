@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import NutritionHubInstructions from '@/components/nutrition/NutritionHubInstructions';
+import SEOHead from "@/components/SEOHead";
 
 interface SubSection {
   id: string;
@@ -106,6 +107,8 @@ export default function NutritionHub() {
   const navigate = useNavigate();
 
   return (
+    <>
+    <SEOHead title="Питание — центр здорового питания семьи" description="Всё о питании семьи: рационы, диеты, рецепты, меню на неделю, счётчик калорий. Персональные рекомендации от ИИ." path="/nutrition" />
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -184,5 +187,6 @@ export default function NutritionHub() {
 
       </div>
     </div>
+    </>
   );
 }

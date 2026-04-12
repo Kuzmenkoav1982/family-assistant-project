@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import SEOHead from "@/components/SEOHead";
 
 interface SubSection {
   id: string;
@@ -71,6 +72,8 @@ export default function ValuesHub() {
   const navigate = useNavigate();
 
   return (
+    <>
+    <SEOHead title="Ценности — духовное развитие семьи" description="Семейные ценности, вера, традиции, мудрость народа, правила дома. Укрепление духовных основ семьи." path="/values-hub" />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -145,5 +148,6 @@ export default function ValuesHub() {
         </div>
       </div>
     </div>
+    </>
   );
 }

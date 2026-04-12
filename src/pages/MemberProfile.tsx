@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
@@ -129,6 +130,8 @@ export default function MemberProfile() {
   };
 
   return (
+    <>
+    <SEOHead title="Профиль члена семьи" description="Подробный профиль члена семьи: личные данные, нумерологический код, развитие, здоровье." path="/member" />
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <MemberProfileHeader />
@@ -151,5 +154,6 @@ export default function MemberProfile() {
         />
       </div>
     </div>
+    </>
   );
 }

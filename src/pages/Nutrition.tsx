@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SEOHead from "@/components/SEOHead";
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { NutritionHeader } from '@/components/nutrition/NutritionHeader';
@@ -288,10 +289,12 @@ export default function Nutrition() {
   if (!nutritionData) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white p-4 pb-24">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <>
+      <SEOHead title="Питание семьи — рацион, диеты и рецепты" description="Планирование питания семьи: ИИ-диеты, готовые программы, рецепты из продуктов, счётчик калорий и БЖУ. Здоровое питание для всей семьи." path="/nutrition" />
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white p-4 pb-24">
+        <div className="max-w-6xl mx-auto space-y-6">
         
-        <SectionHero
+          <SectionHero
           title="Счётчик БЖУ"
           subtitle="Дневник питания с подсчётом калорий и нутриентов"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3783739b-09dd-451c-9fac-a95c55db2792.jpg"
@@ -336,7 +339,8 @@ export default function Nutrition() {
           onUpdate={handleUpdateEntry}
         />
 
+        </div>
       </div>
-    </div>
+    </>
   );
 }

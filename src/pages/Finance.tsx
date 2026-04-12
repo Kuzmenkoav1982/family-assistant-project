@@ -1,4 +1,5 @@
 import InDevelopment from '@/components/InDevelopment';
+import SEOHead from "@/components/SEOHead";
 
 export default function Finance() {
   const features = [
@@ -65,11 +66,14 @@ export default function Finance() {
   ];
 
   return (
-    <InDevelopment
-      title="Финансы"
-      description="Семейный бюджет и финансовое планирование"
-      icon="Wallet"
-      features={features}
-    />
+    <>
+      <SEOHead title="Финансы семьи — бюджет и учёт расходов" description="Семейный бюджет, учёт доходов и расходов, финансовые цели, кредиты и долги. Полный контроль финансов семьи." path="/finance" />
+      <InDevelopment
+        title="Финансы"
+        description="Семейный бюджет и финансовое планирование"
+        icon="Wallet"
+        features={features}
+      />
+    </>
   );
 }

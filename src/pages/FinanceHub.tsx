@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -178,6 +179,8 @@ export default function FinanceHub() {
   };
 
   return (
+    <>
+    <SEOHead title="Финансы — центр управления семейным бюджетом" description="Бюджет, счета, кредиты, финансовые цели, имущество, скидочные карты. Всё для финансового благополучия семьи." path="/finance" />
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-green-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -347,5 +350,6 @@ export default function FinanceHub() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }

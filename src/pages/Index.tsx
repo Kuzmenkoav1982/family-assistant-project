@@ -1,3 +1,4 @@
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -136,6 +137,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   return (
     <>
+      <SEOHead title="Главная — управление семьёй онлайн" description="Единая платформа для семьи: профили, задачи, здоровье, питание, финансы, путешествия, развитие. ИИ-помощник Кузя и Домовой для всей семьи." path="/" />
       <IndexDialogs
         showFamilyInvite={state.showFamilyInvite}
         showAssistantSelector={state.showAssistantSelector}

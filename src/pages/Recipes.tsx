@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -315,6 +316,8 @@ export default function Recipes() {
   };
 
   return (
+    <>
+    <SEOHead title="Рецепты — кулинарная книга семьи" description="Семейная кулинарная книга: любимые рецепты, новые блюда, рецепты по ингредиентам. Сохраняйте и делитесь рецептами." path="/recipes" />
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <SectionHero
@@ -615,5 +618,6 @@ export default function Recipes() {
         />
       </div>
     </div>
+    </>
   );
 }

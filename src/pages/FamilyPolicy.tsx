@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -191,6 +192,8 @@ export default function FamilyPolicy() {
   };
 
   return (
+    <>
+    <SEOHead title="Семейная политика России — программы и инициативы" description="Семейная политика государства: национальные проекты, демографические программы, поддержка многодетных семей." path="/family-policy" />
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 p-4 lg:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-6">
         <SectionHero
@@ -401,5 +404,6 @@ export default function FamilyPolicy() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

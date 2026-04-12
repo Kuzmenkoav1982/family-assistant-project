@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,6 +90,8 @@ export default function Shopping() {
   }
 
   return (
+    <>
+    <SEOHead title="Список покупок — совместные покупки семьи" description="Общий список покупок для всей семьи. Добавляйте товары, отмечайте купленное, распределяйте по магазинам." path="/shopping" />
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -319,5 +322,6 @@ export default function Shopping() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

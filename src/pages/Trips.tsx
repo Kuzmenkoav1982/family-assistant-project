@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { TripsList } from '@/components/trips/TripsList';
 import { CreateTripDialog } from '@/components/trips/CreateTripDialog';
@@ -307,6 +308,8 @@ export default function Trips() {
   ];
 
   return (
+    <>
+    <SEOHead title="Путешествия семьи — планирование поездок" description="Планирование семейных путешествий: маршруты, бюджет, список вещей, бронирования. ИИ-рекомендации для идеального отдыха." path="/trips" />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-sky-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -382,5 +385,6 @@ export default function Trips() {
         <Icon name="Plus" size={24} />
       </Button>
     </div>
+    </>
   );
 }

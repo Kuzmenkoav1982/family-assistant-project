@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -1103,10 +1104,12 @@ export default function Tree() {
   }
 
   return (
+    <>
+    <SEOHead title="Семейное древо — родословная вашей семьи" description="Создайте генеалогическое древо семьи: добавляйте родственников, стройте связи между поколениями, сохраняйте историю рода." path="/tree" />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 pb-24">
       <div className="p-4">
         <SectionHero
-          title="Семейное древо"
+          title="Семей��ое древо"
           subtitle={`${members.length} чел. · История вашего рода`}
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
           backPath="/family"
@@ -1831,5 +1834,6 @@ export default function Tree() {
         </Dialog>
       </div>
     </div>
+    </>
   );
 }

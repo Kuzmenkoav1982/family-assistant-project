@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import SEOHead from "@/components/SEOHead";
 
 interface SubSection {
   id: string;
@@ -62,6 +63,8 @@ export default function FamilyHub() {
   const navigate = useNavigate();
 
   return (
+    <>
+    <SEOHead title="Семья — профили и управление семьёй" description="Профили членов семьи, семейное древо, дети, семейный маячок. Центр управления вашей семьёй." path="/family-hub" />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -136,5 +139,6 @@ export default function FamilyHub() {
         </div>
       </div>
     </div>
+    </>
   );
 }

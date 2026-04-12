@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -14,6 +15,8 @@ export default function FamilyTracker() {
   const t = useFamilyTracker();
 
   return (
+    <>
+    <SEOHead title="Семейный маячок — где находятся близкие" description="Отслеживание местоположения членов семьи в реальном времени. Безопасность детей, геозоны, история перемещений." path="/family-tracker" />
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -101,5 +104,6 @@ export default function FamilyTracker() {
         </Card>
       </div>
     </div>
+    </>
   );
 }
