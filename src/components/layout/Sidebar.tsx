@@ -177,7 +177,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-violet-50 dark:bg-violet-950/40',
       hubPath: '/development-hub',
       items: [
-        { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' }
+        { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
+        { id: 'psychologist', label: 'Психолог ИИ', icon: 'BrainCircuit', path: '/psychologist' }
       ]
     },
     {

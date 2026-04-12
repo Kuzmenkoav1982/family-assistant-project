@@ -4,6 +4,7 @@ export const availableSections = [
   { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
   { id: 'trips', icon: 'Plane', label: 'Путешествия' },
   { id: 'health', icon: 'Heart', label: 'Здоровье' },
+  { id: 'psychologist', icon: 'BrainCircuit', label: 'Психолог ИИ' },
   { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
   { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
   { id: 'goals', icon: 'Target', label: 'Цели' },
@@ -127,21 +128,6 @@ export const inDevelopmentSections = [
       { icon: '\u{1F4A1}', title: 'Предложения улучшений', description: 'Не только жалобы, но и идеи' },
     ]
   },
-  {
-    id: 'psychologist',
-    icon: 'Brain',
-    label: 'Психолог ИИ',
-    description: 'Искусственный интеллект для консультаций и эмоциональной поддержки',
-    features: [
-      { icon: '\u{1F916}', title: 'ИИ-консультант 24/7', description: 'Помощь в любое время дня и ночи' },
-      { icon: '\u{1F4AC}', title: 'Конфиденциальные беседы', description: 'Поговорите о проблемах анонимно' },
-      { icon: '\u{1F9E0}', title: 'Анализ эмоций', description: 'ИИ распознаёт эмоциональное состояние' },
-      { icon: '\u{1F4DA}', title: 'База знаний', description: 'Советы по воспитанию, отношениям, стрессу' },
-      { icon: '\u{1F3AF}', title: 'Персональные рекомендации', description: 'Советы основанные на вашей ситуации' },
-      { icon: '\u{1F4C8}', title: 'Трекинг настроения', description: 'Отслеживание эмоционального состояния семьи' },
-    ]
-  },
-  
   {
     id: 'health',
     icon: 'HeartPulse',
