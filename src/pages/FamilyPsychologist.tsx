@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Icon from "@/components/ui/icon";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -752,6 +754,7 @@ export default function FamilyPsychologist() {
   const responseRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState("consultation");
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState("");
@@ -1008,25 +1011,72 @@ export default function FamilyPsychologist() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-3 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-4">
-        <header className="flex justify-between items-start gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/development-hub")}
+          className="mb-2"
+        >
+          <Icon name="ArrowLeft" size={18} className="mr-1" />
+          Развитие
+        </Button>
+
+        <div className="relative rounded-2xl overflow-hidden mb-2">
+          <img
+            src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2760770a-4c93-462f-8458-4e964ee731f5.jpg"
+            alt="Семейный психолог ИИ"
+            className="w-full h-36 sm:h-48 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 p-4">
+            <h1 className="text-xl sm:text-3xl font-bold text-white mb-0.5">
               Семейный психолог ИИ
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs sm:text-sm text-white/80">
               Консультации, техники релаксации, упражнения для семьи
             </p>
           </div>
-          <Button
-            onClick={() => navigate("/")}
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0"
-          >
-            <Icon name="Home" size={16} className="mr-1" />
-            <span className="hidden sm:inline">Главная</span>
-          </Button>
-        </header>
+        </div>
+
+        <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+          <Alert className="bg-gradient-to-r from-teal-50 to-cyan-50 border-teal-200">
+            <div className="flex items-start gap-3">
+              <Icon name="Brain" className="h-5 w-5 text-teal-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
+                  <h3 className="font-semibold text-teal-900 text-sm">Как пользоваться</h3>
+                  <Icon name={isInstructionOpen ? "ChevronUp" : "ChevronDown"} className="h-5 w-5 text-teal-600 transition-transform group-hover:scale-110" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <AlertDescription className="text-teal-800">
+                    <div className="space-y-2 text-xs">
+                      <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
+                        <p className="font-medium">1. Консультация</p>
+                        <p className="text-[11px] text-teal-700">Опишите семейную ситуацию — ИИ-психолог проанализирует и даст рекомендации. Стоимость: 3 руб.</p>
+                      </div>
+                      <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
+                        <p className="font-medium">2. Релаксация</p>
+                        <p className="text-[11px] text-teal-700">5 техник снятия стресса с таймером: дыхание, медитация, заземление</p>
+                      </div>
+                      <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
+                        <p className="font-medium">3. Упражнения</p>
+                        <p className="text-[11px] text-teal-700">Семейные практики для укрепления отношений: чек-ин, зеркальное слушание, семейный совет</p>
+                      </div>
+                      <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
+                        <p className="font-medium">4. Возрастные кризисы</p>
+                        <p className="text-[11px] text-teal-700">Справочник по кризисам детей от 0 до 19 лет: признаки, помощь, когда к врачу</p>
+                      </div>
+                      <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
+                        <p className="font-medium">5. Тесты и прогресс</p>
+                        <p className="text-[11px] text-teal-700">Психологические тесты и отслеживание вашей активности</p>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </CollapsibleContent>
+              </div>
+            </div>
+          </Alert>
+        </Collapsible>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full overflow-x-auto flex justify-start gap-0.5 bg-white/60 backdrop-blur-sm p-1 h-auto">
