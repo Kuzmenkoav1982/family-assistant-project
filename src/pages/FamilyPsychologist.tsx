@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Icon from "@/components/ui/icon";
 import { useNavigate } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 import { useToast } from "@/hooks/use-toast";
 import func2url from "../../backend/func2url.json";
 
@@ -1009,6 +1010,12 @@ export default function FamilyPsychologist() {
   };
 
   return (
+    <>
+    <SEOHead
+      title="Семейный психолог ИИ — консультации, упражнения, релаксация"
+      description="Бесплатный семейный психолог онлайн: ИИ-консультации по воспитанию детей, решению конфликтов, техники релаксации, упражнения для укрепления семьи, справочник возрастных кризисов от 0 до 19 лет."
+      path="/psychologist"
+    />
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-3 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-4">
         <Button
@@ -1944,5 +1951,6 @@ export default function FamilyPsychologist() {
         </Card>
       </div>
     </div>
+    </>
   );
 }
