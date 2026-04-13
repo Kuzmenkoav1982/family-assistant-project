@@ -1643,12 +1643,40 @@ function SaintOfDayTab({ religion }: { religion: string }) {
     other: 'Другие мудрецы',
   };
 
+  const [showStats, setShowStats] = useState(false);
+
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-amber-900 flex items-center gap-2">
         <Icon name="Crown" size={18} className="text-amber-600" />
         {sectionLabel[religion] || 'Мудрец дня'} — {getReligionEmoji(religion)} {getReligionLabel(religion)}
       </h3>
+
+      <button
+        onClick={() => setShowStats(!showStats)}
+        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+      >
+        <span className="text-xs font-medium text-amber-800 flex items-center gap-2">
+          <Icon name="BarChart2" size={14} className="text-amber-500" />
+          В базе: <span className="font-bold text-amber-900">{saintsList.length}</span> {saintsList.length === 1 ? 'персоны' : saintsList.length < 5 ? 'персоны' : 'персон'}
+        </span>
+        <Icon name={showStats ? 'ChevronUp' : 'ChevronDown'} size={15} className="text-amber-400" />
+      </button>
+
+      {showStats && (
+        <div className="grid grid-cols-2 gap-2 px-1">
+          {Object.entries(SAINTS_BY_RELIGION).map(([rel, list]) => (
+            <div
+              key={rel}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${rel === religion ? 'bg-amber-100 border-amber-400 font-semibold' : 'bg-white border-amber-100'}`}
+            >
+              <span>{getReligionEmoji(rel)}</span>
+              <span className="text-amber-800 truncate">{getReligionLabel(rel)}</span>
+              <span className="ml-auto font-bold text-amber-700">{list.length}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Card className="border-amber-300/80 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-md">
         <CardContent className="p-4 space-y-3">
@@ -1746,6 +1774,7 @@ function IconOfDayTab({ religion }: { religion: string }) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
   const todayIcon = ICONS_DATA[dayOfYear % ICONS_DATA.length];
   const [showPrayer, setShowPrayer] = useState(false);
+  const [showIconStats, setShowIconStats] = useState(false);
 
   if (religion !== 'orthodox' && religion !== 'catholic') {
     return (
@@ -1771,6 +1800,29 @@ function IconOfDayTab({ religion }: { religion: string }) {
         <Icon name="Image" size={18} className="text-amber-600" />
         Икона дня — {getReligionEmoji(religion)} {getReligionLabel(religion)}
       </h3>
+
+      <button
+        onClick={() => setShowIconStats(!showIconStats)}
+        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+      >
+        <span className="text-xs font-medium text-amber-800 flex items-center gap-2">
+          <Icon name="Image" size={14} className="text-amber-500" />
+          Православных икон в базе: <span className="font-bold text-amber-900">{ICONS_DATA.length}</span>
+        </span>
+        <Icon name={showIconStats ? 'ChevronUp' : 'ChevronDown'} size={15} className="text-amber-400" />
+      </button>
+
+      {showIconStats && (
+        <div className="grid grid-cols-1 gap-1.5 px-1">
+          {ICONS_DATA.map((icon, i) => (
+            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${icon.name === todayIcon.name ? 'bg-amber-100 border-amber-400 font-semibold' : 'bg-white border-amber-100'}`}>
+              <Icon name="ImageIcon" fallback="Image" size={12} className="text-amber-400 shrink-0" />
+              <span className="text-amber-800 truncate">{icon.name}</span>
+              {icon.name === todayIcon.name && <span className="ml-auto text-[10px] text-amber-600 shrink-0">сегодня</span>}
+            </div>
+          ))}
+        </div>
+      )}
 
       <Card className="border-amber-300/80 bg-gradient-to-br from-amber-50 to-orange-50/60 shadow-md">
         <CardContent className="p-4 space-y-3">
