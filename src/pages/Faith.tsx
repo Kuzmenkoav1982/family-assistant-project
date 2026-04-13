@@ -1658,23 +1658,37 @@ function SaintOfDayTab({ religion }: { religion: string }) {
       >
         <span className="text-xs font-medium text-amber-800 flex items-center gap-2">
           <Icon name="BarChart2" size={14} className="text-amber-500" />
-          В базе: <span className="font-bold text-amber-900">{saintsList.length}</span> {saintsList.length === 1 ? 'персоны' : saintsList.length < 5 ? 'персоны' : 'персон'}
+          Святых в мире: <span className="font-bold text-amber-900">~10 000+</span>
         </span>
         <Icon name={showStats ? 'ChevronUp' : 'ChevronDown'} size={15} className="text-amber-400" />
       </button>
 
       {showStats && (
-        <div className="grid grid-cols-2 gap-2 px-1">
-          {Object.entries(SAINTS_BY_RELIGION).map(([rel, list]) => (
-            <div
-              key={rel}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${rel === religion ? 'bg-amber-100 border-amber-400 font-semibold' : 'bg-white border-amber-100'}`}
-            >
-              <span>{getReligionEmoji(rel)}</span>
-              <span className="text-amber-800 truncate">{getReligionLabel(rel)}</span>
-              <span className="ml-auto font-bold text-amber-700">{list.length}</span>
-            </div>
-          ))}
+        <div className="space-y-2 px-1">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { rel: 'orthodox', label: 'Православие', total: '~5 000', ours: SAINTS_BY_RELIGION.orthodox?.length || 0 },
+              { rel: 'catholic', label: 'Католицизм', total: '~7 000', ours: SAINTS_BY_RELIGION.catholic?.length || 0 },
+              { rel: 'protestant', label: 'Протестантизм', total: '~500', ours: SAINTS_BY_RELIGION.protestant?.length || 0 },
+              { rel: 'islam', label: 'Ислам', total: '~124 000', ours: SAINTS_BY_RELIGION.islam?.length || 0 },
+              { rel: 'judaism', label: 'Иудаизм', total: '~300', ours: SAINTS_BY_RELIGION.judaism?.length || 0 },
+              { rel: 'buddhism', label: 'Буддизм', total: '~500', ours: SAINTS_BY_RELIGION.buddhism?.length || 0 },
+              { rel: 'hinduism', label: 'Индуизм', total: '~330 млн', ours: SAINTS_BY_RELIGION.hinduism?.length || 0 },
+            ].map(({ rel, label, total, ours }) => (
+              <div
+                key={rel}
+                className={`flex flex-col gap-0.5 px-3 py-2 rounded-lg border text-xs ${rel === religion ? 'bg-amber-100 border-amber-400' : 'bg-white border-amber-100'}`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span>{getReligionEmoji(rel)}</span>
+                  <span className="text-amber-800 font-medium truncate">{label}</span>
+                </div>
+                <span className="font-bold text-amber-900">{total}</span>
+                <span className="text-[10px] text-amber-500">у нас: {ours}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-amber-500 text-center px-2">Мы постепенно добавляем всех — база пополняется ✨</p>
         </div>
       )}
 
@@ -1807,20 +1821,23 @@ function IconOfDayTab({ religion }: { religion: string }) {
       >
         <span className="text-xs font-medium text-amber-800 flex items-center gap-2">
           <Icon name="Image" size={14} className="text-amber-500" />
-          Православных икон в базе: <span className="font-bold text-amber-900">{ICONS_DATA.length}</span>
+          Православных икон в мире: <span className="font-bold text-amber-900">~50 000+</span>
         </span>
         <Icon name={showIconStats ? 'ChevronUp' : 'ChevronDown'} size={15} className="text-amber-400" />
       </button>
 
       {showIconStats && (
-        <div className="grid grid-cols-1 gap-1.5 px-1">
-          {ICONS_DATA.map((icon, i) => (
-            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${icon.name === todayIcon.name ? 'bg-amber-100 border-amber-400 font-semibold' : 'bg-white border-amber-100'}`}>
-              <Icon name="ImageIcon" fallback="Image" size={12} className="text-amber-400 shrink-0" />
-              <span className="text-amber-800 truncate">{icon.name}</span>
-              {icon.name === todayIcon.name && <span className="ml-auto text-[10px] text-amber-600 shrink-0">сегодня</span>}
-            </div>
-          ))}
+        <div className="space-y-2 px-1">
+          <div className="grid grid-cols-1 gap-1.5">
+            {ICONS_DATA.map((icon, i) => (
+              <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${icon.name === todayIcon.name ? 'bg-amber-100 border-amber-400 font-semibold' : 'bg-white border-amber-100'}`}>
+                <Icon name="ImageIcon" fallback="Image" size={12} className="text-amber-400 shrink-0" />
+                <span className="text-amber-800 truncate">{icon.name}</span>
+                {icon.name === todayIcon.name && <span className="ml-auto text-[10px] text-amber-600 shrink-0">сегодня</span>}
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-amber-500 text-center px-2">У нас сейчас {ICONS_DATA.length} икон — пополняем постепенно ✨</p>
         </div>
       )}
 
