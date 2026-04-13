@@ -30,15 +30,15 @@ function TarotCardDisplay({ card, position, isSelected, onSelect }: {
           : 'border-gray-200 bg-white hover:border-purple-300 hover:shadow-md'
       }`}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <div className={`bg-gradient-to-br ${position.color} w-8 h-8 rounded-lg flex items-center justify-center shadow`}>
+      <div className="flex items-start gap-2 mb-1">
+        <div className={`bg-gradient-to-br ${position.color} w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center shadow`}>
           <Icon name={position.icon} size={16} className="text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] text-gray-500 leading-tight">{position.label}</p>
-          <p className="text-xs font-bold text-gray-900 truncate">{card.name}</p>
+          <p className="text-xs font-bold text-gray-900 leading-snug break-words">{card.name}</p>
         </div>
-        <span className="text-2xl">{card.emoji}</span>
+        <span className="text-xl flex-shrink-0">{card.emoji}</span>
       </div>
       <p className="text-[10px] text-gray-400">{position.sublabel}</p>
     </button>

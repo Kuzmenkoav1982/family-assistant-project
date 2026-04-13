@@ -108,8 +108,8 @@ export default function FamilyMatrixPersonal() {
         <title>Личный код{selectedMember ? ` — ${selectedMember.name}` : ''} | Семейный код</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-3 sm:p-4 lg:p-8 pb-24">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
           <SectionHero
             title="Личный код"
             subtitle="Нумерологический расклад по дате рождения и имени"
@@ -175,11 +175,11 @@ export default function FamilyMatrixPersonal() {
               />
 
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <Icon name="Calculator" size={20} className="text-purple-600" />
                   Нумерологические числа
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <NumerologyCard label="Число Жизненного Пути" icon="Route" number={analysis.numerology.lifePath} />
                   <NumerologyCard label="Число Судьбы" icon="Compass" number={analysis.numerology.destiny} />
                   <NumerologyCard label="Число Души" icon="Heart" number={analysis.numerology.soul} />
@@ -189,7 +189,7 @@ export default function FamilyMatrixPersonal() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <PythagorasGrid square={analysis.pythagoras} />
                 <PythagorasLines
                   rows={analysis.pythagoras.rows}
@@ -200,7 +200,7 @@ export default function FamilyMatrixPersonal() {
 
               {analysis.astrology && (
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                     <Icon name="Star" size={20} className="text-indigo-600" />
                     Астрология
                   </h3>
@@ -210,7 +210,7 @@ export default function FamilyMatrixPersonal() {
 
               {analysis.destinyMatrix && (
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                     <Icon name="Wand2" size={20} className="text-amber-600" />
                     Матрица Судьбы — Арканы Таро
                   </h3>
