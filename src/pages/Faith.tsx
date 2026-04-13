@@ -1609,7 +1609,8 @@ const SAINTS_BY_RELIGION: Record<string, SaintEntry[]> = {
 
 function SaintOfDayTab({ religion }: { religion: string }) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-  const todaySaint = SAINTS_DATA[dayOfYear % SAINTS_DATA.length];
+  const saintsList = SAINTS_BY_RELIGION[religion] || SAINTS_BY_RELIGION['orthodox'];
+  const todaySaint = saintsList[dayOfYear % saintsList.length];
   const [favorites, setFavorites] = useState<Record<string, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem('faith_saint_favorites') || '{}'); } catch { return {}; }
   });
@@ -1620,29 +1621,33 @@ function SaintOfDayTab({ religion }: { religion: string }) {
     localStorage.setItem('faith_saint_favorites', JSON.stringify(next));
   };
 
-  if (religion !== 'orthodox' && religion !== 'catholic' && religion !== 'protestant') {
-    return (
-      <div className="space-y-4">
-        <h3 className="font-semibold text-amber-900 flex items-center gap-2">
-          <Icon name="Crown" size={18} className="text-amber-600" />
-          Святые — {getReligionEmoji(religion)} {getReligionLabel(religion)}
-        </h3>
-        <Card className="border-amber-200/60 bg-amber-50/50">
-          <CardContent className="py-8 text-center">
-            <span className="text-4xl mb-3 block">🙏</span>
-            <p className="text-sm text-amber-800 font-medium">Раздел святых доступен для христианских конфессий</p>
-            <p className="text-xs text-amber-600/70 mt-1">Выберите Православие, Католицизм или Протестантизм на главной вкладке</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const sectionLabel: Record<string, string> = {
+    orthodox: 'Святой дня',
+    catholic: 'Святой дня',
+    protestant: 'Реформатор дня',
+    islam: 'Мудрец дня',
+    judaism: 'Мудрец дня',
+    buddhism: 'Учитель дня',
+    hinduism: 'Учитель дня',
+    other: 'Мудрец дня',
+  };
+
+  const otherLabel: Record<string, string> = {
+    orthodox: 'Другие святые',
+    catholic: 'Другие святые',
+    protestant: 'Другие реформаторы',
+    islam: 'Другие мудрецы',
+    judaism: 'Другие мудрецы',
+    buddhism: 'Другие учителя',
+    hinduism: 'Другие учителя',
+    other: 'Другие мудрецы',
+  };
 
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-amber-900 flex items-center gap-2">
         <Icon name="Crown" size={18} className="text-amber-600" />
-        Святой дня — {getReligionEmoji(religion)} {getReligionLabel(religion)}
+        {sectionLabel[religion] || 'Мудрец дня'} — {getReligionEmoji(religion)} {getReligionLabel(religion)}
       </h3>
 
       <Card className="border-amber-300/80 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-md">
@@ -1679,14 +1684,16 @@ function SaintOfDayTab({ religion }: { religion: string }) {
         </CardContent>
       </Card>
 
+      {saintsList.length > 1 && (
+      <>
       <div className="flex items-center gap-2">
         <div className="h-px flex-1 bg-amber-200" />
-        <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Другие святые</span>
+        <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">{otherLabel[religion] || 'Другие'}</span>
         <div className="h-px flex-1 bg-amber-200" />
       </div>
 
       <div className="space-y-2">
-        {SAINTS_DATA.filter(s => s.name !== todaySaint.name).map((saint, i) => (
+        {saintsList.filter((s: SaintEntry) => s.name !== todaySaint.name).map((saint: SaintEntry, i: number) => (
           <Card key={i} className="border-amber-100 hover:shadow-sm transition-shadow">
             <CardContent className="p-3">
               <div className="flex items-start gap-3">
@@ -1719,6 +1726,8 @@ function SaintOfDayTab({ religion }: { religion: string }) {
           </Card>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }
