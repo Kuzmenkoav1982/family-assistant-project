@@ -45,13 +45,13 @@ export default function PersonalSummary({ memberName, numerology, pythagoras, as
             { label: 'Душа', num: numerology.soul },
             { label: 'Личность', num: numerology.personality },
             { label: 'День', num: numerology.birthDay },
-            { label: 'Экспрессия', num: numerology.expression },
+            { label: 'Экспр.', num: numerology.expression },
           ].map(item => (
             <div key={item.label} className="text-center bg-white/60 rounded-lg p-1.5 sm:p-2 border border-purple-100">
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 mx-auto rounded-lg bg-gradient-to-br ${item.num.color} flex items-center justify-center mb-1`}>
-                <span className="text-white text-[10px] sm:text-xs font-bold">{item.num.value}</span>
+              <div className={`w-7 h-7 mx-auto rounded-lg bg-gradient-to-br ${item.num.color} flex items-center justify-center mb-1`}>
+                <span className="text-white text-xs font-bold">{item.num.value}</span>
               </div>
-              <p className="text-[9px] sm:text-[10px] text-gray-600 font-medium leading-tight">{item.label}</p>
+              <p className="text-[9px] text-gray-600 font-medium leading-tight">{item.label}</p>
             </div>
           ))}
         </div>

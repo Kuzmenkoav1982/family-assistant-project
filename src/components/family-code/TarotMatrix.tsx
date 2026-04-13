@@ -34,11 +34,13 @@ function TarotCardDisplay({ card, position, isSelected, onSelect }: {
         <div className={`bg-gradient-to-br ${position.color} w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center shadow`}>
           <Icon name={position.icon} size={16} className="text-white" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] text-gray-500 leading-tight">{position.label}</p>
-          <p className="text-xs font-bold text-gray-900 leading-snug break-words">{card.name}</p>
+        <div className="flex-1 min-w-0 pr-1">
+          <p className="text-[10px] text-gray-500 leading-tight mb-0.5">{position.label}</p>
+          <div className="flex items-center gap-1">
+            <p className="text-xs font-bold text-gray-900 leading-snug">{card.name}</p>
+            <span className="text-base leading-none flex-shrink-0">{card.emoji}</span>
+          </div>
         </div>
-        <span className="text-xl flex-shrink-0">{card.emoji}</span>
       </div>
       <p className="text-[10px] text-gray-400">{position.sublabel}</p>
     </button>
