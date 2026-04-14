@@ -42,7 +42,7 @@ export default function DebtDetailView({
           </Button>
           {debt.status !== 'paid' && (
             <Button variant="ghost" size="sm" className="text-green-600" onClick={onMarkPaid}>
-              <Icon name="CheckCircle" size={14} />
+              <Icon name="CheckSquare" size={14} />
             </Button>
           )}
           <Button variant="ghost" size="sm" className="text-red-500" onClick={onDelete}>
@@ -132,7 +132,7 @@ export default function DebtDetailView({
                     <div>
                       <p className="text-xs text-muted-foreground">Ставка</p>
                       {estimated ? (
-                        <p className="font-medium text-orange-600">\u2248{rate}% <span className="text-[10px] text-muted-foreground">(средняя)</span></p>
+                        <p className="font-medium text-orange-600">≈{rate}% <span className="text-[10px] text-muted-foreground">(средняя)</span></p>
                       ) : (
                         <p className="font-medium">{rate}% годовых</p>
                       )}
@@ -205,7 +205,7 @@ export default function DebtDetailView({
                     <div>
                       <p className="text-xs text-muted-foreground">Ставка</p>
                       {estimated ? (
-                        <p className="font-medium text-orange-600">\u2248{rate}% <span className="text-[10px] text-muted-foreground">(средняя)</span></p>
+                        <p className="font-medium text-orange-600">≈{rate}% <span className="text-[10px] text-muted-foreground">(средняя)</span></p>
                       ) : (
                         <p className="font-medium">{rate}%</p>
                       )}
@@ -339,7 +339,7 @@ function PayoffForecast({ debt, simPayment, setSimPayment }: { debt: Debt; simPa
             {rateEstimated && (
               <div className="bg-blue-50 rounded-lg p-2.5 flex items-start gap-2">
                 <Icon name="Info" size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-[11px] text-blue-700">Расчёт по средней ставке \u2248{effRate}%. Укажите реальную ставку вашей карты для точного прогноза (кнопка \u270F\uFE0F сверху).</p>
+                <p className="text-[11px] text-blue-700">Расчёт по средней ставке ≈{effRate}%. Укажите реальную ставку вашей карты для точного прогноза (кнопка редактирования сверху).</p>
               </div>
             )}
             {!isInf && (

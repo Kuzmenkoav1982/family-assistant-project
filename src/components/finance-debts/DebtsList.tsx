@@ -141,7 +141,7 @@ export default function DebtsList({ debts, totalRemaining, totalMonthly, onSelec
                           const { rate, estimated } = getEffectiveRate(debt);
                           if (rate <= 0) return null;
                           return estimated
-                            ? <span className="text-orange-500">\u2248{rate}%</span>
+                            ? <span className="text-orange-500">≈{rate}%</span>
                             : <span className="text-muted-foreground">{rate}%</span>;
                         })()}
                         {isCC(debt.debt_type) && debt.bank_name && (
