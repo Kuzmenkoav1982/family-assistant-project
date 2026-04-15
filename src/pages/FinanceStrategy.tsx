@@ -78,7 +78,7 @@ export default function FinanceStrategy() {
           <h2 className="text-base font-bold flex items-center gap-2">
             <Icon name="Swords" size={18} className="text-indigo-500" /> Сравнение стратегий
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <StrategyCard strategy={s.strategies?.avalanche || null} label="Лавина" description="Сначала самые дорогие долги" icon="TrendingDown" theme="blue" isRecommended={s.recommended === 'avalanche'} isWinner={s.recommended === 'avalanche'} />
             <StrategyCard strategy={s.strategies?.snowball || null} label="Снежный ком" description="Сначала самые маленькие долги" icon="Snowflake" theme="purple" isRecommended={s.recommended === 'snowball'} isWinner={s.recommended === 'snowball'} />
           </div>

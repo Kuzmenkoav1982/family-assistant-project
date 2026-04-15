@@ -42,10 +42,10 @@ export function StrategyCard({ strategy, label, description, icon, theme, isReco
           <div><h3 className="text-sm font-bold">{label}</h3><p className="text-[10px] text-muted-foreground">{description}</p></div>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="rounded-lg bg-background/60 p-2"><p className="text-lg font-bold" style={{ color: colors.accent }}>{strategy.total_months}</p><p className="text-[10px] text-muted-foreground">месяцев</p></div>
-          <div className="rounded-lg bg-background/60 p-2"><p className="text-lg font-bold text-green-600">{fm(strategy.interest_saved)}</p><p className="text-[10px] text-muted-foreground">экономия</p></div>
-          <div className="rounded-lg bg-background/60 p-2"><p className="text-sm font-semibold">{fm(strategy.total_interest)}</p><p className="text-[10px] text-muted-foreground">проценты</p></div>
-          <div className="rounded-lg bg-background/60 p-2"><p className="text-sm font-semibold text-amber-600">{strategy.months_saved} мес</p><p className="text-[10px] text-muted-foreground">сэкономлено</p></div>
+          <div className="rounded-lg bg-background/60 p-2"><p className="text-xl font-bold leading-tight" style={{ color: colors.accent }}>{strategy.total_months}</p><p className="text-[10px] text-muted-foreground">месяцев</p></div>
+          <div className="rounded-lg bg-background/60 p-2 min-w-0"><p className="text-base font-bold text-green-600 break-all leading-tight">{fm(strategy.interest_saved)}</p><p className="text-[10px] text-muted-foreground">экономия</p></div>
+          <div className="rounded-lg bg-background/60 p-2 min-w-0"><p className="text-sm font-semibold break-all leading-tight">{fm(strategy.total_interest)}</p><p className="text-[10px] text-muted-foreground">проценты</p></div>
+          <div className="rounded-lg bg-background/60 p-2"><p className="text-sm font-semibold text-amber-600 leading-tight">{strategy.months_saved} мес</p><p className="text-[10px] text-muted-foreground">сэкономлено</p></div>
         </div>
       </CardContent>
     </Card>
