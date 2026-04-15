@@ -25,6 +25,7 @@ export default function DebtsList({ debts, totalRemaining, totalMonthly, onSelec
   }, null as Debt | null);
   const ccDebts = active.filter(d => isCC(d.debt_type));
   const ccTotal = ccDebts.reduce((s, d) => s + d.remaining_amount, 0);
+  const unknownRateDebts = active.filter(d => d.interest_rate <= 0 && getEffectiveRate(d).estimated);
 
   return (
     <>
@@ -82,6 +83,14 @@ export default function DebtsList({ debts, totalRemaining, totalMonthly, onSelec
                     <Icon name="Lightbulb" size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
                     <p className="text-[11px] text-foreground">
                       <b>Совет:</b> Гасите «{highestRateDebt.name}» ({highestRate}%) в первую очередь — это сэкономит больше всего на переплате (метод лавины)
+                    </p>
+                  </div>
+                )}
+                {unknownRateDebts.length > 0 && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-2.5 flex items-start gap-2">
+                    <Icon name="AlertCircle" size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-[11px] text-orange-800">
+                      У {unknownRateDebts.length === 1 ? `«${unknownRateDebts[0].name}»` : `${unknownRateDebts.length} долгов`} не указана ставка — прогноз считается приблизительно. Откройте {unknownRateDebts.length === 1 ? 'карточку' : 'карточки'} и укажите реальный процент из договора.
                     </p>
                   </div>
                 )}
