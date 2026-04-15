@@ -293,21 +293,34 @@ function PayoffForecast({ debt, simPayment, setSimPayment }: { debt: Debt; simPa
   const payoff = getDebtPayoff(debt);
   const isInf = payoff ? payoff.months === Infinity : false;
   const { rate: effRate, estimated: rateEstimated } = getEffectiveRate(debt);
+  const isZeroRate = debt.interest_rate === 0 && !rateEstimated;
+  const noPaymentData = !payoff && debt.remaining_amount > 0;
 
   const simAmt = simPayment ? parseFloat(simPayment) : 0;
-  const simResult = simAmt > 0 ? calcLoanPayoff(debt.remaining_amount, effRate, simAmt) : null;
+  const simResult = simAmt > 0 ? calcLoanPayoff(debt.remaining_amount, isZeroRate ? 0 : effRate, simAmt) : null;
   const simValid = simResult && simResult.months !== Infinity;
   const savedMonths = simValid && payoff && !isInf ? payoff.months - simResult!.months : 0;
   const savedMoney = simValid && payoff && !isInf ? payoff.overpayment - simResult!.overpayment : 0;
 
   return (
     <>
-      {payoff && (
+      {noPaymentData ? (
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardContent className="p-4 flex items-start gap-3">
+            <Icon name="Info" size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Прогноз недоступен</p>
+              <p className="text-[11px] text-amber-700 mt-1">Укажите ежемесячный платёж или минимальный % в настройках карты — тогда рассчитаем, когда закроете долг.</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : payoff && (
         <Card className={isInf ? 'border-red-200 bg-red-50/50' : 'border-purple-200 bg-purple-50/50'}>
           <CardContent className="p-4 space-y-3">
             <p className="text-xs font-semibold text-purple-700 flex items-center gap-1">
               <Icon name="Calculator" size={14} />
               {isCC(debt.debt_type) ? 'Прогноз при минимальных платежах' : 'Прогноз погашения'}
+              {isZeroRate && <span className="ml-1 text-[10px] font-normal text-emerald-600 bg-emerald-100 rounded px-1.5 py-0.5">беспроцентный</span>}
             </p>
             {isInf ? (
               <div className="text-center py-2">
@@ -315,22 +328,30 @@ function PayoffForecast({ debt, simPayment, setSimPayment }: { debt: Debt; simPa
                 <p className="text-xs text-red-500 mt-1">Увеличьте ежемесячный платёж, чтобы начать гасить долг</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className={`grid gap-3 text-center ${isZeroRate ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 <div>
                   <p className="text-xs text-muted-foreground">До погашения</p>
                   <p className="font-bold text-sm">{formatMonths(payoff.months)}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Переплата</p>
-                  <p className="font-bold text-sm text-red-600">{formatMoney(Math.round(payoff.overpayment))} &#8381;</p>
-                </div>
+                {!isZeroRate && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Переплата</p>
+                    <p className="font-bold text-sm text-red-600">{formatMoney(Math.round(payoff.overpayment))} &#8381;</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground">Всего выплатите</p>
                   <p className="font-bold text-sm">{formatMoney(Math.round(payoff.totalPaid))} &#8381;</p>
                 </div>
               </div>
             )}
-            {!isInf && isCC(debt.debt_type) && payoff.overpayment > 0 && (
+            {isZeroRate && (
+              <div className="bg-emerald-50 rounded-lg p-2.5 flex items-start gap-2">
+                <Icon name="CheckCircle" size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                <p className="text-[11px] text-emerald-700">Беспроцентный долг — переплаты нет. Продолжайте платить по графику.</p>
+              </div>
+            )}
+            {!isInf && !isZeroRate && isCC(debt.debt_type) && payoff.overpayment > 0 && (
               <div className="bg-amber-50 rounded-lg p-2.5 flex items-start gap-2">
                 <Icon name="AlertTriangle" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-[11px] text-amber-700">При минимальных платежах переплата составит <b>{formatMoney(Math.round(payoff.overpayment))} &#8381;</b>. Платите больше минимума, чтобы сэкономить.</p>
