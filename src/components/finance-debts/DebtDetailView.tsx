@@ -293,11 +293,11 @@ function PayoffForecast({ debt, simPayment, setSimPayment }: { debt: Debt; simPa
   const payoff = getDebtPayoff(debt);
   const isInf = payoff ? payoff.months === Infinity : false;
   const { rate: effRate, estimated: rateEstimated } = getEffectiveRate(debt);
-  const isZeroRate = debt.interest_rate === 0 && !rateEstimated;
+  const isZeroRate = effRate === 0;
   const noPaymentData = !payoff && debt.remaining_amount > 0;
 
   const simAmt = simPayment ? parseFloat(simPayment) : 0;
-  const simResult = simAmt > 0 ? calcLoanPayoff(debt.remaining_amount, isZeroRate ? 0 : effRate, simAmt) : null;
+  const simResult = simAmt > 0 ? calcLoanPayoff(debt.remaining_amount, effRate, simAmt) : null;
   const simValid = simResult && simResult.months !== Infinity;
   const savedMonths = simValid && payoff && !isInf ? payoff.months - simResult!.months : 0;
   const savedMoney = simValid && payoff && !isInf ? payoff.overpayment - simResult!.overpayment : 0;
