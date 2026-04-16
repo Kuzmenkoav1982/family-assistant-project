@@ -48,6 +48,9 @@ export default function useFinanceBudget() {
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
   const [cashGapWarning, setCashGapWarning] = useState<CashGapWarning | null>(null);
+  const [hidePastPlanned, setHidePastPlanned] = useState<boolean>(() => {
+    try { return localStorage.getItem('hidePastPlanned') === '1'; } catch { return false; }
+  });
 
   const loadCategories = useCallback(async () => {
     const res = await fetch(`${API}?section=categories`, { headers: getHeaders() });
@@ -60,6 +63,7 @@ export default function useFinanceBudget() {
   const loadTransactions = useCallback(async () => {
     const params = new URLSearchParams({ section: 'transactions', month, limit: '200' });
     if (txFilter !== 'all') params.set('type', txFilter);
+    if (hidePastPlanned) params.set('hide_past_planned', '1');
     const res = await fetch(`${API}?${params}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
@@ -70,7 +74,7 @@ export default function useFinanceBudget() {
       setPlanIncome(data.plan_income || 0);
       setPlanExpense(data.plan_expense || 0);
     }
-  }, [month, txFilter]);
+  }, [month, txFilter, hidePastPlanned]);
 
   const loadBudgets = useCallback(async () => {
     const res = await fetch(`${API}?section=budgets&month=${month}`, { headers: getHeaders() });
@@ -398,6 +402,14 @@ export default function useFinanceBudget() {
     }
   };
 
+  const toggleHidePastPlanned = () => {
+    setHidePastPlanned(prev => {
+      const next = !prev;
+      try { localStorage.setItem('hidePastPlanned', next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
   const pausePlannedRecurring = async (sourceId: string) => {
     const res = await fetch(API, {
       method: 'POST', headers: getHeaders(),
@@ -555,5 +567,6 @@ export default function useFinanceBudget() {
     openEditBudget, closeBudgetDialog,
     executeAddTransaction, executeUpdateTransaction, executeConfirmPlanned,
     deletePlannedRecurring, pausePlannedRecurring, loadTransactions, loadBudgets, loadHistory, loadAccountBalance,
+    hidePastPlanned, toggleHidePastPlanned,
   };
 }

@@ -336,6 +336,9 @@ def get_transactions(family_id, params):
         tx_type = params.get('type', '')
         month = params.get('month', '')
         category_id = params.get('category_id', '')
+        hide_past_planned = params.get('hide_past_planned', '') in ('1', 'true', 'True')
+        from datetime import date as _date
+        today_str = _date.today().isoformat()
 
         where = "ft.family_id = '%s'" % fid
         if tx_type:
@@ -424,6 +427,8 @@ def get_transactions(family_id, params):
                         plan_date = wd.strftime('%Y-%m-%d')
                         if start_date_str and plan_date < start_date_str:
                             continue
+                        if hide_past_planned and plan_date < today_str:
+                            continue
                         amt = float(r[1])
                         already = any(
                             t['is_recurring'] and t['description'] == r[3]
@@ -473,6 +478,8 @@ def get_transactions(family_id, params):
                 plan_date = '%s-%02d-%02d' % (yr, mo, day)
                 if start_date_str and plan_date < start_date_str:
                     continue
+                if hide_past_planned and plan_date < today_str:
+                    continue
                 already = any(
                     t['is_recurring'] and t['description'] == r[3]
                     and abs(t['amount'] - float(r[1])) < 0.01
@@ -515,6 +522,8 @@ def get_transactions(family_id, params):
                 if day > 28:
                     day = 28
                 plan_date = '%s-%02d-%02d' % (yr, mo, day)
+                if hide_past_planned and plan_date < today_str:
+                    continue
                 amt = float(r[2])
                 desc = r[1] or 'Платёж по долгу'
                 already = any(

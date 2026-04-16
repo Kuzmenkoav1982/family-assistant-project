@@ -18,12 +18,15 @@ interface TransactionsTimelineProps {
   onEditPlannedRecurring?: () => void;
   onDeletePlannedRecurring?: (sourceId: string) => void;
   onPausePlannedRecurring?: (sourceId: string) => void;
+  hidePastPlanned?: boolean;
+  onToggleHidePastPlanned?: () => void;
 }
 
 export default function TransactionsTimeline({
   timeline, accountBalance, confirmingIds,
   onConfirmPlanned, onConfirmTx, onEditTx, onDeleteTx, onAddNew,
   onEditPlannedRecurring, onDeletePlannedRecurring, onPausePlannedRecurring,
+  hidePastPlanned, onToggleHidePastPlanned,
 }: TransactionsTimelineProps) {
   const [showConfirmed, setShowConfirmed] = useState(false);
   const [confirmingTxIds, setConfirmingTxIds] = useState<Set<string>>(new Set());
@@ -71,6 +74,19 @@ export default function TransactionsTimeline({
         <span>Начальный баланс на счетах:</span>
         <span className="font-bold text-foreground">{formatMoney(accountBalance)} &#8381;</span>
       </div>
+
+      {onToggleHidePastPlanned && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs h-7 text-muted-foreground w-full justify-start"
+          onClick={onToggleHidePastPlanned}
+          title="Скрыть/показать регулярные платежи и платежи по долгам за прошедшие даты"
+        >
+          <Icon name={hidePastPlanned ? 'EyeOff' : 'Eye'} size={14} className="mr-1.5" />
+          {hidePastPlanned ? 'Показать прошлые плановые' : 'Скрыть прошлые плановые'}
+        </Button>
+      )}
 
       {confirmedCount > 0 && (
         <div className="space-y-1">

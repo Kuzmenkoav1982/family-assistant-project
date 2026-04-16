@@ -126,6 +126,8 @@ export default function FinanceBudget() {
               onEditPlannedRecurring={() => navigate('/finance/recurring')}
               onDeletePlannedRecurring={budget.deletePlannedRecurring}
               onPausePlannedRecurring={budget.pausePlannedRecurring}
+              hidePastPlanned={budget.hidePastPlanned}
+              onToggleHidePastPlanned={budget.toggleHidePastPlanned}
             />
           </TabsContent>
 
