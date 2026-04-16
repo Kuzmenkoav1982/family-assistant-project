@@ -4,6 +4,7 @@ import json
 import os
 import psycopg2
 import urllib.request
+import calendar
 
 
 CORS = {
@@ -401,10 +402,53 @@ def get_transactions(family_id, params):
             for r in cur.fetchall():
                 freq = r[5] or 'monthly'
                 active_months = r[10]
+                
+                if freq == 'weekly':
+                    # Generate all weekly occurrences in this month
+                    day_of_week = r[4]  # 1=Mon, 7=Sun -> Python: 0=Mon, 6=Sun
+                    if day_of_week and 1 <= day_of_week <= 7:
+                        py_dow = day_of_week - 1  # convert to Python's 0=Monday
+                    else:
+                        py_dow = 0  # default Monday
+                    
+                    cal = calendar.Calendar()
+                    week_dates = []
+                    for d in cal.itermonthdates(int(yr), mo):
+                        if d.month == mo and d.weekday() == py_dow:
+                            week_dates.append(d)
+                    
+                    for wd in week_dates:
+                        plan_date = wd.strftime('%Y-%m-%d')
+                        amt = float(r[1])
+                        already = any(
+                            t['is_recurring'] and t['description'] == r[3]
+                            and abs(t['amount'] - amt) < 0.01
+                            and t['date'] == plan_date
+                            for t in items
+                        )
+                        if already:
+                            continue
+                        p = {
+                            'id': 'recurring_%s_%s' % (str(r[0]), plan_date),
+                            'source_id': str(r[0]),
+                            'source': 'recurring',
+                            'amount': amt,
+                            'type': r[2],
+                            'description': r[3] or '',
+                            'date': plan_date,
+                            'is_planned': True,
+                            'category_name': r[6], 'category_icon': r[7], 'category_color': r[8],
+                            'account_name': r[9]
+                        }
+                        planned.append(p)
+                        if r[2] == 'income':
+                            plan_income += amt
+                        else:
+                            plan_expense += amt
+                    continue
+                
                 include = False
                 if freq == 'monthly':
-                    include = True
-                elif freq == 'weekly':
                     include = True
                 elif freq == 'quarterly':
                     if active_months and isinstance(active_months, list):

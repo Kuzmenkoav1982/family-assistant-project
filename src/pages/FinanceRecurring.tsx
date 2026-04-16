@@ -65,6 +65,26 @@ const MONTH_FULL_NAMES = [
   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
 ];
 
+const DAY_OF_WEEK_LABELS: Record<number, string> = {
+  1: 'Понедельник',
+  2: 'Вторник',
+  3: 'Среда',
+  4: 'Четверг',
+  5: 'Пятница',
+  6: 'Суббота',
+  7: 'Воскресенье',
+};
+
+const DAY_OF_WEEK_SHORT: Record<number, string> = {
+  1: 'Пн',
+  2: 'Вт',
+  3: 'Ср',
+  4: 'Чт',
+  5: 'Пт',
+  6: 'Сб',
+  7: 'Вс',
+};
+
 const PRESETS = [
   { label: 'Зарплата', type: 'income', icon: 'Banknote', desc: 'Зарплата' },
   { label: 'Премия кварт.', type: 'income', icon: 'Award', desc: 'Квартальная премия', freq: 'quarterly' },
@@ -104,8 +124,11 @@ const emptyForm: FormState = {
 
 /** Считает среднемесячную сумму с учётом active_months */
 function monthlyAmount(item: RecurringItem): number {
-  if (item.frequency === 'monthly' || item.frequency === 'weekly') {
+  if (item.frequency === 'monthly') {
     return item.amount;
+  }
+  if (item.frequency === 'weekly') {
+    return item.amount * 4.33;
   }
   if (item.active_months && item.active_months.length > 0) {
     return (item.amount * item.active_months.length) / 12;
@@ -116,7 +139,8 @@ function monthlyAmount(item: RecurringItem): number {
 }
 
 function monthlyExplanation(item: RecurringItem): string | null {
-  if (item.frequency === 'monthly' || item.frequency === 'weekly') return null;
+  if (item.frequency === 'monthly') return null;
+  if (item.frequency === 'weekly') return `${formatMoney(item.amount)} x 4.33 нед`;
   if (item.active_months && item.active_months.length > 0) {
     return `${formatMoney(item.amount)} x ${item.active_months.length} мес / 12`;
   }
@@ -473,7 +497,11 @@ export default function FinanceRecurring() {
                       <span className="text-sm font-medium truncate block">{item.description || 'Без описания'}</span>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{FREQ_LABELS[item.frequency] || item.frequency}</span>
-                        {item.day_of_month && <span>· {item.day_of_month}-е число</span>}
+                        {item.day_of_month && (
+                          item.frequency === 'weekly' 
+                            ? <span>· {DAY_OF_WEEK_SHORT[item.day_of_month] || item.day_of_month}</span>
+                            : <span>· {item.day_of_month}-е число</span>
+                        )}
                         {item.category_name && <span>· {item.category_name}</span>}
                       </div>
                       {renderMonthBadges(item)}
@@ -482,7 +510,7 @@ export default function FinanceRecurring() {
                       <p className={`font-bold text-sm ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                         {item.type === 'income' ? '+' : '-'}{formatMoney(item.amount)} ₽
                       </p>
-                      {(item.frequency === 'quarterly' || item.frequency === 'yearly') && (
+                      {(item.frequency === 'weekly' || item.frequency === 'quarterly' || item.frequency === 'yearly') && (
                         <p className="text-[10px] text-muted-foreground">
                           ~{formatMoney(Math.round(monthlyAmount(item)))} ₽/мес
                         </p>
@@ -581,7 +609,7 @@ export default function FinanceRecurring() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Частота</label>
-                <Select value={form.frequency} onValueChange={v => setForm({ ...form, frequency: v, active_months: [] })}>
+                <Select value={form.frequency} onValueChange={v => setForm({ ...form, frequency: v, active_months: [], day_of_month: '' })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(FREQ_LABELS).map(([k, v]) => (
@@ -601,9 +629,25 @@ export default function FinanceRecurring() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium mb-1 block">Число месяца</label>
-                <Input type="number" min={1} max={31} placeholder="10" value={form.day_of_month}
-                  onChange={e => setForm({ ...form, day_of_month: e.target.value })} />
+                {form.frequency === 'weekly' ? (
+                  <>
+                    <label className="text-sm font-medium mb-1 block">День недели</label>
+                    <Select value={form.day_of_month || ''} onValueChange={v => setForm({ ...form, day_of_month: v })}>
+                      <SelectTrigger><SelectValue placeholder="Выбрать" /></SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(DAY_OF_WEEK_LABELS).map(([k, v]) => (
+                          <SelectItem key={k} value={k}>{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                ) : (
+                  <>
+                    <label className="text-sm font-medium mb-1 block">Число месяца</label>
+                    <Input type="number" min={1} max={31} placeholder="10" value={form.day_of_month}
+                      onChange={e => setForm({ ...form, day_of_month: e.target.value })} />
+                  </>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Категория</label>
