@@ -167,10 +167,13 @@ export default function FinanceBudget() {
         setTxDesc={budget.setTxDesc}
         txCategoryId={budget.txCategoryId}
         setTxCategoryId={budget.setTxCategoryId}
+        txAccountId={budget.txAccountId}
+        setTxAccountId={budget.setTxAccountId}
         txDate={budget.txDate}
         setTxDate={budget.setTxDate}
         saving={budget.saving}
         filteredCategories={budget.filteredCategories}
+        accounts={budget.accounts}
         addTransaction={budget.addTransaction}
         showBudgetDialog={budget.showBudgetDialog}
         closeBudgetDialog={budget.closeBudgetDialog}
@@ -189,6 +192,8 @@ export default function FinanceBudget() {
         executeAddTransaction={budget.executeAddTransaction}
         executeUpdateTransaction={budget.executeUpdateTransaction}
         executeConfirmPlanned={budget.executeConfirmPlanned}
+        confirmAccountDialog={budget.confirmAccountDialog}
+        setConfirmAccountDialog={budget.setConfirmAccountDialog}
       />
     </div>
     </>

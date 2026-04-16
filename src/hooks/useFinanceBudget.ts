@@ -27,6 +27,7 @@ export default function useFinanceBudget() {
   const [month, setMonth] = useState(getCurrentMonth());
   const [accountBalance, setAccountBalance] = useState(0);
   const [accountCount, setAccountCount] = useState(0);
+  const [accounts, setAccounts] = useState<{ id: string; name: string; is_active: boolean; balance?: number }[]>([]);
   const [txFilter, setTxFilter] = useState<'all' | 'income' | 'expense'>('all');
 
   const [showAddTx, setShowAddTx] = useState(false);
@@ -34,6 +35,7 @@ export default function useFinanceBudget() {
   const [txAmount, setTxAmount] = useState('');
   const [txDesc, setTxDesc] = useState('');
   const [txCategoryId, setTxCategoryId] = useState('');
+  const [txAccountId, setTxAccountId] = useState('');
   const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
 
@@ -48,6 +50,7 @@ export default function useFinanceBudget() {
   const [historyData, setHistoryData] = useState<{ month: string; income: number; expense: number }[]>([]);
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
   const [cashGapWarning, setCashGapWarning] = useState<CashGapWarning | null>(null);
+  const [confirmAccountDialog, setConfirmAccountDialog] = useState<{ item: PlannedItem; accountId: string } | null>(null);
   const [hidePastPlanned, setHidePastPlanned] = useState<boolean>(() => {
     try { return localStorage.getItem('hidePastPlanned') === '1'; } catch { return false; }
   });
@@ -92,7 +95,9 @@ export default function useFinanceBudget() {
       if (res.ok) {
         const data = await res.json();
         setAccountBalance(data.total_balance || 0);
-        setAccountCount((data.accounts || []).filter((a: { is_active: boolean }) => a.is_active).length);
+        const list = (data.accounts || []) as { id: string; name: string; is_active: boolean; balance?: number }[];
+        setAccounts(list);
+        setAccountCount(list.filter(a => a.is_active).length);
       }
     } catch { /* ignore */ }
   }, []);
@@ -136,6 +141,7 @@ export default function useFinanceBudget() {
       const activeAccounts = DEMO_ACCOUNTS.filter(a => a.is_active);
       setAccountBalance(activeAccounts.reduce((s, a) => s + a.balance, 0));
       setAccountCount(activeAccounts.length);
+      setAccounts(DEMO_ACCOUNTS.map(a => ({ id: a.id, name: a.name, is_active: a.is_active, balance: a.balance })));
       setHistoryData(DEMO_HISTORY);
       setLoading(false);
       return;
@@ -297,14 +303,15 @@ export default function useFinanceBudget() {
       body: JSON.stringify({
         action: 'add_transaction', type: txType,
         amount: parseFloat(txAmount), description: txDesc,
-        category_id: txCategoryId || null, date: txDate
+        category_id: txCategoryId || null, date: txDate,
+        account_id: txAccountId || null,
       })
     });
     setSaving(false);
     if (res.ok) {
       toast.success(txType === 'income' ? 'Доход добавлен' : 'Расход добавлен');
-      setShowAddTx(false); setTxAmount(''); setTxDesc(''); setTxCategoryId('');
-      loadTransactions(); loadBudgets(); loadHistory();
+      setShowAddTx(false); setTxAmount(''); setTxDesc(''); setTxCategoryId(''); setTxAccountId('');
+      loadTransactions(); loadBudgets(); loadHistory(); loadAccountBalance();
     } else {
       toast.error('Ошибка при сохранении');
     }
@@ -331,7 +338,7 @@ export default function useFinanceBudget() {
     }
   };
 
-  const executeConfirmPlanned = async (item: PlannedItem) => {
+  const executeConfirmPlanned = async (item: PlannedItem, accountId?: string) => {
     if (confirmingIds.has(item.id)) return;
     setConfirmingIds(prev => new Set(prev).add(item.id));
     const res = await fetch(API, {
@@ -344,6 +351,7 @@ export default function useFinanceBudget() {
         amount: item.amount,
         description: item.description || 'Платёж',
         date: item.date,
+        account_id: accountId || null,
       })
     });
     if (res.ok) {
@@ -365,6 +373,11 @@ export default function useFinanceBudget() {
         setCashGapWarning({ show: true, gapDate: gap.gapDate, gapAmount: gap.gapAmount, action: 'confirm', confirmData: item });
         return;
       }
+    }
+    const activeAccounts = accounts.filter(a => a.is_active);
+    if (activeAccounts.length > 1) {
+      setConfirmAccountDialog({ item, accountId: activeAccounts[0].id });
+      return;
     }
     executeConfirmPlanned(item);
   };
@@ -549,17 +562,18 @@ export default function useFinanceBudget() {
   return {
     tab, setTab, transactions, categories, budgets, loading,
     sumIncome, sumExpense, plannedItems, planIncome, planExpense,
-    totalPlanned, totalSpent, month, accountBalance, accountCount,
+    totalPlanned, totalSpent, month, accountBalance, accountCount, accounts,
     txFilter, setTxFilter,
     showAddTx, setShowAddTx, txType, setTxType,
     txAmount, setTxAmount, txDesc, setTxDesc,
-    txCategoryId, setTxCategoryId, txDate, setTxDate, saving,
+    txCategoryId, setTxCategoryId, txAccountId, setTxAccountId, txDate, setTxDate, saving,
     showBudgetDialog, setShowBudgetDialog,
     budgetCategoryId, setBudgetCategoryId,
     budgetAmount, setBudgetAmount,
     exporting, editTx, setEditTx, editBudget,
     analyticsRef, historyData, confirmingIds,
     cashGapWarning, setCashGapWarning,
+    confirmAccountDialog, setConfirmAccountDialog,
     pieData, budgetChartData, timeline,
     filteredCategories, expenseCategories, monthLabel,
     prevMonth, nextMonth, exportPDF,

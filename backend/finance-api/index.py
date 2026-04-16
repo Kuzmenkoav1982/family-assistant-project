@@ -638,6 +638,11 @@ def confirm_planned(user_id, family_id, body):
         is_recurring = 'false'
         recurring_id = 'NULL'
 
+        # Счёт из запроса имеет приоритет (выбрал пользователь в диалоге)
+        body_account_id = body.get('account_id')
+        if body_account_id:
+            acc_id = "'%s'" % safe(body_account_id)
+
         if source == 'recurring' and source_id:
             cur.execute(
                 "SELECT category_id, account_id FROM finance_recurring WHERE id = '%s' AND family_id = '%s'"
@@ -647,12 +652,12 @@ def confirm_planned(user_id, family_id, body):
             if rr:
                 if rr[0]:
                     cat_id = "'%s'" % str(rr[0])
-                if rr[1]:
+                if rr[1] and acc_id == 'NULL':
                     acc_id = "'%s'" % str(rr[1])
             is_recurring = 'true'
             recurring_id = "'%s'" % safe(source_id)
 
-        # Фолбэк: если счёт не указан в источнике — берём первый активный счёт семьи
+        # Фолбэк: если счёт не указан — берём первый активный счёт семьи
         if acc_id == 'NULL':
             default_acc = get_default_account_id(cur, fid)
             if default_acc:

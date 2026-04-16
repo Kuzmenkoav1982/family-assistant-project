@@ -18,10 +18,13 @@ interface BudgetDialogsProps {
   setTxDesc: (v: string) => void;
   txCategoryId: string;
   setTxCategoryId: (v: string) => void;
+  txAccountId: string;
+  setTxAccountId: (v: string) => void;
   txDate: string;
   setTxDate: (v: string) => void;
   saving: boolean;
   filteredCategories: Category[];
+  accounts: { id: string; name: string; is_active: boolean }[];
   addTransaction: () => void;
 
   showBudgetDialog: boolean;
@@ -42,14 +45,19 @@ interface BudgetDialogsProps {
   setCashGapWarning: (v: CashGapWarning | null) => void;
   executeAddTransaction: () => void;
   executeUpdateTransaction: () => void;
-  executeConfirmPlanned: (item: PlannedItem) => void;
+  executeConfirmPlanned: (item: PlannedItem, accountId?: string) => void;
+
+  confirmAccountDialog: { item: PlannedItem; accountId: string } | null;
+  setConfirmAccountDialog: (v: { item: PlannedItem; accountId: string } | null) => void;
 }
 
 export default function BudgetDialogs({
   showAddTx, setShowAddTx, txType, setTxType,
   txAmount, setTxAmount, txDesc, setTxDesc,
-  txCategoryId, setTxCategoryId, txDate, setTxDate,
-  saving, filteredCategories, addTransaction,
+  txCategoryId, setTxCategoryId,
+  txAccountId, setTxAccountId,
+  txDate, setTxDate,
+  saving, filteredCategories, accounts, addTransaction,
   showBudgetDialog, closeBudgetDialog,
   budgetCategoryId, setBudgetCategoryId,
   budgetAmount, setBudgetAmount,
@@ -57,6 +65,7 @@ export default function BudgetDialogs({
   editTx, setEditTx, updateTransaction,
   cashGapWarning, setCashGapWarning,
   executeAddTransaction, executeUpdateTransaction, executeConfirmPlanned,
+  confirmAccountDialog, setConfirmAccountDialog,
 }: BudgetDialogsProps) {
   return (
     <>
@@ -99,6 +108,20 @@ export default function BudgetDialogs({
                 </SelectContent>
               </Select>
             </div>
+            {accounts.filter(a => a.is_active).length > 1 && (
+              <div>
+                <label className="text-sm font-medium mb-1 block">Счёт</label>
+                <Select value={txAccountId || 'auto'} onValueChange={v => setTxAccountId(v === 'auto' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="По умолчанию" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">По умолчанию</SelectItem>
+                    {accounts.filter(a => a.is_active).map(a => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">Описание</label>
               <Input placeholder="Комментарий (необязательно)"
@@ -241,6 +264,46 @@ export default function BudgetDialogs({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!confirmAccountDialog} onOpenChange={(open) => { if (!open) setConfirmAccountDialog(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Выберите счёт</DialogTitle>
+          </DialogHeader>
+          {confirmAccountDialog && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {confirmAccountDialog.item.type === 'income' ? 'Куда зачислить' : 'С какого счёта списать'}{' '}
+                <span className="font-semibold">{formatMoney(confirmAccountDialog.item.amount)} ₽</span>
+                {confirmAccountDialog.item.description ? ` (${confirmAccountDialog.item.description})` : ''}?
+              </p>
+              <Select
+                value={confirmAccountDialog.accountId}
+                onValueChange={(v) => setConfirmAccountDialog({ ...confirmAccountDialog, accountId: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {accounts.filter(a => a.is_active).map(a => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setConfirmAccountDialog(null)}>Отмена</Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => {
+                if (!confirmAccountDialog) return;
+                const { item, accountId } = confirmAccountDialog;
+                setConfirmAccountDialog(null);
+                executeConfirmPlanned(item, accountId);
+              }}>
+              Подтвердить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
