@@ -333,15 +333,19 @@ export default function useFinanceBudget() {
     const res = await fetch(API, {
       method: 'POST', headers: getHeaders(),
       body: JSON.stringify({
-        action: 'add_transaction', type: item.type,
-        amount: item.amount, description: item.description || 'Платёж',
-        category_id: null, date: item.date
+        action: 'confirm_planned',
+        source: item.source,
+        source_id: item.source_id,
+        type: item.type,
+        amount: item.amount,
+        description: item.description || 'Платёж',
+        date: item.date,
       })
     });
     if (res.ok) {
       toast.success('Операция подтверждена');
       setTimeout(() => {
-        loadTransactions(); loadBudgets(); loadHistory();
+        loadTransactions(); loadBudgets(); loadHistory(); loadAccountBalance();
         setConfirmingIds(prev => { const next = new Set(prev); next.delete(item.id); return next; });
       }, 600);
     } else {
