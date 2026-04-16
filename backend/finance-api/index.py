@@ -393,7 +393,8 @@ def get_transactions(family_id, params):
             cur.execute("""
                 SELECT fr.id, fr.amount, fr.transaction_type, fr.description,
                        fr.day_of_month, fr.frequency,
-                       fc.name, fc.icon, fc.color, fa.name, fr.active_months
+                       fc.name, fc.icon, fc.color, fa.name, fr.active_months,
+                       fr.next_date
                 FROM finance_recurring fr
                 LEFT JOIN finance_categories fc ON fr.category_id = fc.id
                 LEFT JOIN finance_accounts fa ON fr.account_id = fa.id
@@ -402,6 +403,8 @@ def get_transactions(family_id, params):
             for r in cur.fetchall():
                 freq = r[5] or 'monthly'
                 active_months = r[10]
+                start_date = r[11]
+                start_date_str = str(start_date) if start_date else None
                 
                 if freq == 'weekly':
                     # Generate all weekly occurrences in this month
@@ -419,6 +422,8 @@ def get_transactions(family_id, params):
                     
                     for wd in week_dates:
                         plan_date = wd.strftime('%Y-%m-%d')
+                        if start_date_str and plan_date < start_date_str:
+                            continue
                         amt = float(r[1])
                         already = any(
                             t['is_recurring'] and t['description'] == r[3]
@@ -466,6 +471,8 @@ def get_transactions(family_id, params):
                 if day > 28:
                     day = 28
                 plan_date = '%s-%02d-%02d' % (yr, mo, day)
+                if start_date_str and plan_date < start_date_str:
+                    continue
                 already = any(
                     t['is_recurring'] and t['description'] == r[3]
                     and abs(t['amount'] - float(r[1])) < 0.01

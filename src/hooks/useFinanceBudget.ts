@@ -140,6 +140,24 @@ export default function useFinanceBudget() {
       .finally(() => setLoading(false));
   }, [isDemoMode, loadCategories, loadTransactions, loadBudgets, loadHistory, loadAccountBalance]);
 
+  // Auto-refresh when PWA becomes visible (fixes sync issue between mobile/desktop)
+  useEffect(() => {
+    if (isDemoMode) return;
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadTransactions();
+        loadBudgets();
+        loadAccountBalance();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [isDemoMode, loadTransactions, loadBudgets, loadAccountBalance]);
+
   const pieData = useMemo(() => {
     const map = new Map<string, { name: string; value: number; color: string }>();
     transactions.filter(t => t.type === 'expense').forEach(tx => {
@@ -363,6 +381,32 @@ export default function useFinanceBudget() {
     if (res.ok) { toast.success('Удалено'); loadTransactions(); loadBudgets(); loadHistory(); }
   };
 
+  const deletePlannedRecurring = async (sourceId: string) => {
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'delete_recurring', id: sourceId })
+    });
+    if (res.ok) {
+      toast.success('Регулярный платёж удалён');
+      loadTransactions(); loadBudgets(); loadHistory();
+    } else {
+      toast.error('Ошибка при удалении');
+    }
+  };
+
+  const pausePlannedRecurring = async (sourceId: string) => {
+    const res = await fetch(API, {
+      method: 'POST', headers: getHeaders(),
+      body: JSON.stringify({ action: 'update_recurring', id: sourceId, is_active: false })
+    });
+    if (res.ok) {
+      toast.success('Платёж приостановлен');
+      loadTransactions(); loadBudgets(); loadHistory();
+    } else {
+      toast.error('Ошибка');
+    }
+  };
+
   const updateTransaction = async () => {
     if (!editTx) return;
     if (!txAmount || parseFloat(txAmount) <= 0) { toast.error('Укажите сумму'); return; }
@@ -506,5 +550,6 @@ export default function useFinanceBudget() {
     openEditTx, confirmPlanned, confirmTransaction, saveBudget, deleteBudget,
     openEditBudget, closeBudgetDialog,
     executeAddTransaction, executeUpdateTransaction, executeConfirmPlanned,
+    deletePlannedRecurring, pausePlannedRecurring, loadTransactions, loadBudgets, loadHistory, loadAccountBalance,
   };
 }

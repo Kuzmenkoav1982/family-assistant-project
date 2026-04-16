@@ -123,6 +123,9 @@ export default function FinanceBudget() {
               onEditTx={budget.openEditTx}
               onDeleteTx={budget.deleteTransaction}
               onAddNew={() => { budget.setTxType('expense'); budget.setShowAddTx(true); }}
+              onEditPlannedRecurring={() => navigate('/finance/recurring')}
+              onDeletePlannedRecurring={budget.deletePlannedRecurring}
+              onPausePlannedRecurring={budget.pausePlannedRecurring}
             />
           </TabsContent>
 

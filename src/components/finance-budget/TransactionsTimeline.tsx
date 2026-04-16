@@ -15,11 +15,15 @@ interface TransactionsTimelineProps {
   onEditTx: (tx: Transaction) => void;
   onDeleteTx: (id: string) => void;
   onAddNew: () => void;
+  onEditPlannedRecurring?: () => void;
+  onDeletePlannedRecurring?: (sourceId: string) => void;
+  onPausePlannedRecurring?: (sourceId: string) => void;
 }
 
 export default function TransactionsTimeline({
   timeline, accountBalance, confirmingIds,
   onConfirmPlanned, onConfirmTx, onEditTx, onDeleteTx, onAddNew,
+  onEditPlannedRecurring, onDeletePlannedRecurring, onPausePlannedRecurring,
 }: TransactionsTimelineProps) {
   const [showConfirmed, setShowConfirmed] = useState(false);
   const [confirmingTxIds, setConfirmingTxIds] = useState<Set<string>>(new Set());
@@ -176,13 +180,34 @@ export default function TransactionsTimeline({
                                 </p>
                               </div>
                               {item.isPlanned && item.originalPlanned ? (
-                                <Button variant="ghost" size="sm"
-                                  className={`mr-1 p-0 h-8 w-8 transition-all duration-300 ${confirmingIds.has(item.originalPlanned.id) ? 'text-emerald-600 scale-110' : 'text-gray-400 hover:text-emerald-600'}`}
-                                  title="Подтвердить"
-                                  disabled={confirmingIds.has(item.originalPlanned.id)}
-                                  onClick={() => onConfirmPlanned(item.originalPlanned!)}>
-                                  <Icon name={confirmingIds.has(item.originalPlanned.id) ? "CheckSquare" : "Square"} size={18} />
-                                </Button>
+                                <div className="flex flex-shrink-0 items-center">
+                                  <Button variant="ghost" size="sm"
+                                    className={`p-0 h-8 w-8 transition-all duration-300 ${confirmingIds.has(item.originalPlanned.id) ? 'text-emerald-600 scale-110' : 'text-gray-400 hover:text-emerald-600'}`}
+                                    title="Подтвердить"
+                                    disabled={confirmingIds.has(item.originalPlanned.id)}
+                                    onClick={() => onConfirmPlanned(item.originalPlanned!)}>
+                                    <Icon name={confirmingIds.has(item.originalPlanned.id) ? "CheckSquare" : "Square"} size={18} />
+                                  </Button>
+                                  {item.source === 'recurring' && onEditPlannedRecurring && (
+                                    <Button variant="ghost" size="sm" className="p-0 h-7 w-7 text-gray-400 hover:text-blue-500"
+                                      title="Изменить регулярный платёж"
+                                      onClick={(e) => { e.stopPropagation(); onEditPlannedRecurring(); }}>
+                                      <Icon name="Pencil" size={13} />
+                                    </Button>
+                                  )}
+                                  {item.source === 'recurring' && item.originalPlanned.source_id && onDeletePlannedRecurring && (
+                                    <Button variant="ghost" size="sm" className="mr-1 p-0 h-7 w-7 text-gray-400 hover:text-red-500"
+                                      title="Удалить регулярный платёж"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Удалить регулярный платёж? Все будущие записи исчезнут из бюджета.')) {
+                                          onDeletePlannedRecurring(item.originalPlanned!.source_id);
+                                        }
+                                      }}>
+                                      <Icon name="Trash2" size={13} />
+                                    </Button>
+                                  )}
+                                </div>
                               ) : item.originalTx ? (
                                 <div className="flex flex-shrink-0 items-center">
                                   <Button variant="ghost" size="sm"

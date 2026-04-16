@@ -117,7 +117,7 @@ const emptyForm: FormState = {
   description: '',
   frequency: 'monthly',
   day_of_month: '',
-  next_date: '',
+  next_date: new Date().toISOString().split('T')[0],
   category_id: '',
   active_months: [],
 };
@@ -665,6 +665,16 @@ export default function FinanceRecurring() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">Начиная с</label>
+              <Input type="date" value={form.next_date}
+                onChange={e => setForm({ ...form, next_date: e.target.value })} />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                <Icon name="Info" size={11} className="inline mr-0.5" />
+                Платёж не будет появляться в бюджете до этой даты
+              </p>
             </div>
 
             {showMonthPicker && form.active_months.length > 0 && form.amount && (
