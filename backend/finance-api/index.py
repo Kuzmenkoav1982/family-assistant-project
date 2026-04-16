@@ -562,6 +562,16 @@ def get_transactions(family_id, params):
         conn.close()
 
 
+def get_default_account_id(cur, family_id):
+    """Возвращает id первого активного счёта семьи (для фолбэка, когда счёт не указан)"""
+    cur.execute(
+        "SELECT id FROM finance_accounts WHERE family_id = '%s' AND COALESCE(is_active, true) = true ORDER BY created_at ASC LIMIT 1"
+        % str(family_id)
+    )
+    r = cur.fetchone()
+    return str(r[0]) if r else None
+
+
 def add_transaction(user_id, family_id, body):
     amount = body.get('amount')
     if not amount or float(amount) <= 0:
@@ -571,6 +581,10 @@ def add_transaction(user_id, family_id, body):
     try:
         cur = conn.cursor()
         fid = str(family_id)
+
+        account_id = body.get('account_id') or get_default_account_id(cur, fid)
+        acc_sql = "'%s'" % safe(account_id) if account_id else 'NULL'
+
         cur.execute("""
             INSERT INTO finance_transactions
             (family_id, account_id, category_id, amount, transaction_type, description, transaction_date, member_id, is_recurring, recurring_id)
@@ -578,7 +592,7 @@ def add_transaction(user_id, family_id, body):
             RETURNING id
         """ % (
             fid,
-            "'%s'" % safe(body.get('account_id')) if body.get('account_id') else 'NULL',
+            acc_sql,
             "'%s'" % safe(body.get('category_id')) if body.get('category_id') else 'NULL',
             float(amount),
             safe(body.get('type', 'expense')),
@@ -590,11 +604,11 @@ def add_transaction(user_id, family_id, body):
         ))
         new_id = str(cur.fetchone()[0])
 
-        if body.get('account_id'):
+        if account_id:
             sign = 1 if body.get('type', 'expense') == 'income' else -1
             cur.execute(
                 "UPDATE finance_accounts SET balance = balance + %s, updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
-                % (float(amount) * sign, safe(body['account_id']), fid)
+                % (float(amount) * sign, safe(account_id), fid)
             )
 
         conn.commit()
@@ -637,6 +651,12 @@ def confirm_planned(user_id, family_id, body):
                     acc_id = "'%s'" % str(rr[1])
             is_recurring = 'true'
             recurring_id = "'%s'" % safe(source_id)
+
+        # Фолбэк: если счёт не указан в источнике — берём первый активный счёт семьи
+        if acc_id == 'NULL':
+            default_acc = get_default_account_id(cur, fid)
+            if default_acc:
+                acc_id = "'%s'" % default_acc
 
         cur.execute("""
             INSERT INTO finance_transactions
@@ -738,21 +758,49 @@ def update_transaction(family_id, body):
 
 
 def confirm_transaction(family_id, body):
-    """Подтвердить (или снять подтверждение) фактическую транзакцию"""
+    """Подтвердить (или снять подтверждение) фактическую транзакцию.
+    Баланс счёта меняется при создании транзакции (add_transaction/confirm_planned),
+    флаг is_confirmed — только маркер учёта пользователем, баланс не трогаем.
+    Если у транзакции не было счёта — привязываем первый активный счёт семьи.
+    """
     tid = body.get('id')
     if not tid:
         return respond(400, {'error': 'Укажите id'})
-    confirmed = body.get('is_confirmed', True)
+    confirmed = bool(body.get('is_confirmed', True))
     conn = get_db()
     try:
         cur = conn.cursor()
         fid = str(family_id)
         cur.execute(
+            "SELECT amount, transaction_type, account_id FROM finance_transactions WHERE id = '%s' AND family_id = '%s'"
+            % (safe(tid), fid)
+        )
+        row = cur.fetchone()
+        if not row:
+            return respond(404, {'error': 'Транзакция не найдена'})
+        amount = float(row[0])
+        ttype = row[1]
+        acc_id = str(row[2]) if row[2] else None
+
+        if not acc_id:
+            default_acc = get_default_account_id(cur, fid)
+            if default_acc:
+                acc_id = default_acc
+                cur.execute(
+                    "UPDATE finance_transactions SET account_id = '%s' WHERE id = '%s' AND family_id = '%s'"
+                    % (acc_id, safe(tid), fid)
+                )
+                # Применяем сумму к балансу счёта (раньше она никуда не шла)
+                sign = 1 if ttype == 'income' else -1
+                cur.execute(
+                    "UPDATE finance_accounts SET balance = balance + %s, updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
+                    % (amount * sign, acc_id, fid)
+                )
+
+        cur.execute(
             "UPDATE finance_transactions SET is_confirmed = %s, updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
             % ('true' if confirmed else 'false', safe(tid), fid)
         )
-        if cur.rowcount == 0:
-            return respond(404, {'error': 'Транзакция не найдена'})
         conn.commit()
         return respond(200, {'success': True})
     finally:

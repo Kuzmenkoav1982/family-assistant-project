@@ -538,6 +538,7 @@ export default function useFinanceBudget() {
     if (res.ok) {
       toast.success(isConfirmed ? 'Платёж подтверждён' : 'Отметка снята');
       loadTransactions();
+      loadAccountBalance();
     } else {
       toast.error('Ошибка');
     }
