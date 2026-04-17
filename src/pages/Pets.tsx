@@ -407,54 +407,94 @@ export default function Pets() {
 
           {/* Карточка питомца */}
           {selectedPet && (
-            <Card className="mb-4 overflow-hidden border-violet-200">
-              <div className="relative h-32" style={{background: 'linear-gradient(135deg, #2d2d3a 0%, #3d3d52 35%, #4a4a62 65%, #383845 100%)', boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.25)'}}>
-                <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse at 25% 35%, rgba(255,255,255,0.07) 0%, transparent 55%), radial-gradient(ellipse at 75% 15%, rgba(160,160,200,0.08) 0%, transparent 50%)'}} />
-                <div className="absolute top-2 right-2 flex gap-1">
-                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white text-violet-700 hover:bg-violet-50 shadow" onClick={() => openEdit(selectedPet)}>
-                    <Icon name="Pencil" size={14} />
-                  </Button>
-                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white text-rose-600 hover:bg-rose-50 shadow" onClick={() => removePet(selectedPet.id)}>
-                    <Icon name="Trash2" size={14} />
-                  </Button>
-                </div>
-                <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
-                  <div>
-                    <h2 className="text-white text-xl font-bold drop-shadow-lg flex items-center gap-2">
+            <Card className="mb-4 overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm rounded-2xl">
+              <CardContent className="p-4">
+                {/* Верхняя часть: аватар + имя + действия */}
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-violet-100 dark:ring-violet-900/40 bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/40 dark:to-fuchsia-900/40 flex items-center justify-center">
                       {selectedPet.photo_url ? (
-                        <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-10 h-10 rounded-full object-cover border-2 border-white/80 flex-shrink-0 shadow-md" />
+                        <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-3xl drop-shadow">{speciesEmoji(selectedPet.species)}</span>
+                        <span className="text-5xl">{speciesEmoji(selectedPet.species)}</span>
                       )}
-                      {selectedPet.name}
-                    </h2>
-                    <p className="text-white/90 text-xs drop-shadow">
-                      {[selectedPet.breed, petAge(selectedPet.birth_date)].filter(Boolean).join(' · ')}
-                    </p>
+                    </div>
+                    {selectedPet.species && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-white text-[10px] font-bold shadow-md whitespace-nowrap">
+                        {selectedPet.species}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h2 className="text-2xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words">
+                        {selectedPet.name}
+                      </h2>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200" onClick={() => openEdit(selectedPet)}>
+                          <Icon name="Pencil" size={14} />
+                        </Button>
+                        <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200" onClick={() => removePet(selectedPet.id)}>
+                          <Icon name="Trash2" size={14} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {selectedPet.breed && (
+                        <Badge className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                          {selectedPet.breed}
+                        </Badge>
+                      )}
+                      {petAge(selectedPet.birth_date) && (
+                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs border-gray-200 text-gray-700">
+                          {petAge(selectedPet.birth_date)}
+                        </Badge>
+                      )}
+                      {selectedPet.gender && (
+                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs border-gray-200 text-gray-700">
+                          {selectedPet.gender === 'male' ? '♂ Мальчик' : '♀ Девочка'}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <CardContent className="p-3">
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30">
-                    <div className="text-lg font-bold text-rose-600">{stats?.upcoming_vaccines ?? 0}</div>
+
+                {/* Статистика */}
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 text-center">
+                    <div className="flex justify-center mb-0.5">
+                      <Icon name="Syringe" size={16} className="text-rose-500" />
+                    </div>
+                    <div className="text-xl font-extrabold text-rose-600">{stats?.upcoming_vaccines ?? 0}</div>
                     <div className="text-[10px] text-muted-foreground leading-tight">Прививки скоро</div>
                   </div>
-                  <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
-                    <div className="text-lg font-bold text-emerald-600">{stats?.active_medications ?? 0}</div>
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 text-center">
+                    <div className="flex justify-center mb-0.5">
+                      <Icon name="Pill" size={16} className="text-emerald-500" />
+                    </div>
+                    <div className="text-xl font-extrabold text-emerald-600">{stats?.active_medications ?? 0}</div>
                     <div className="text-[10px] text-muted-foreground leading-tight">Курсы лекарств</div>
                   </div>
-                  <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30">
-                    <div className="text-lg font-bold text-amber-600">{Math.round(stats?.month_expenses ?? 0)}</div>
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 text-center">
+                    <div className="flex justify-center mb-0.5">
+                      <Icon name="Wallet" size={16} className="text-amber-500" />
+                    </div>
+                    <div className="text-xl font-extrabold text-amber-600">{Math.round(stats?.month_expenses ?? 0)}</div>
                     <div className="text-[10px] text-muted-foreground leading-tight">₽ в месяц</div>
                   </div>
-                  <div className="p-2 rounded-lg bg-violet-50 dark:bg-violet-950/30">
-                    <div className="text-lg font-bold text-violet-600">{Math.round(stats?.total_expenses ?? 0)}</div>
+                  <div className="p-2.5 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 text-center">
+                    <div className="flex justify-center mb-0.5">
+                      <Icon name="TrendingUp" size={16} className="text-violet-500" />
+                    </div>
+                    <div className="text-xl font-extrabold text-violet-600">{Math.round(stats?.total_expenses ?? 0)}</div>
                     <div className="text-[10px] text-muted-foreground leading-tight">₽ всего</div>
                   </div>
                 </div>
+
                 {selectedPet.allergies && (
-                  <div className="mt-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30 flex items-start gap-2">
+                  <div className="mt-3 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-start gap-2 border border-rose-200 dark:border-rose-900/40">
                     <Icon name="AlertTriangle" size={14} className="text-rose-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="text-xs font-semibold text-rose-700 dark:text-rose-300">Аллергии: </span>
