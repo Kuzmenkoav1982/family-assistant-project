@@ -53,17 +53,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
 
   const menuSections: MenuSection[] = [
     {
-      id: 'pets',
-      title: 'Питомцы',
-      icon: 'PawPrint',
-      iconColor: 'text-violet-600',
-      accentBg: 'bg-violet-50 dark:bg-violet-950/40',
-      hubPath: '/pets',
-      items: [
-        { id: 'pets-hub', label: 'Питомцы', icon: 'PawPrint', path: '/pets' }
-      ]
-    },
-    {
       id: 'family',
       title: 'Семья',
       icon: 'Users',
@@ -207,6 +196,27 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'family-matrix-child', label: 'Детский код', icon: 'Baby', path: '/family-matrix/child' },
         { id: 'family-matrix-name', label: 'Имя для малыша', icon: 'Sparkles', path: '/family-matrix/name' },
         { id: 'family-matrix-astrology', label: 'Астрология', icon: 'Moon', path: '/family-matrix/astrology' }
+      ]
+    },
+    {
+      id: 'pets',
+      title: 'Питомцы',
+      icon: 'PawPrint',
+      iconColor: 'text-violet-600',
+      accentBg: 'bg-violet-50 dark:bg-violet-950/40',
+      hubPath: '/pets',
+      items: [
+        { id: 'pets-hub', label: 'Питомцы', icon: 'PawPrint', path: '/pets' },
+        { id: 'pets-vaccines', label: 'Вакцинация', icon: 'Syringe', path: '/pets?tab=vaccines' },
+        { id: 'pets-vet', label: 'Визиты к ветеринару', icon: 'Stethoscope', path: '/pets?tab=vet' },
+        { id: 'pets-meds', label: 'Лекарства', icon: 'Pill', path: '/pets?tab=meds' },
+        { id: 'pets-food', label: 'Питание', icon: 'Bone', path: '/pets?tab=food' },
+        { id: 'pets-grooming', label: 'Груминг', icon: 'Scissors', path: '/pets?tab=grooming' },
+        { id: 'pets-activity', label: 'Активность', icon: 'Activity', path: '/pets?tab=activity' },
+        { id: 'pets-expenses', label: 'Расходы', icon: 'Wallet', path: '/pets?tab=expenses' },
+        { id: 'pets-health', label: 'Показатели здоровья', icon: 'LineChart', path: '/pets?tab=health' },
+        { id: 'pets-items', label: 'Вещи и игрушки', icon: 'Package', path: '/pets?tab=items' },
+        { id: 'pets-photos', label: 'Фотоальбом', icon: 'Camera', path: '/pets?tab=photos' }
       ]
     },
     {
