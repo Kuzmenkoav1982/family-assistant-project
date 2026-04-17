@@ -60,7 +60,7 @@ const navigationGroups: NavigationGroup[] = [
       { id: 'education', label: 'Образование', icon: 'GraduationCap', variant: 'dev', route: '/education' },
       { id: 'travel', label: 'Путешествия', icon: 'Plane', route: '/trips' },
       { id: 'leisure', label: 'Досуг', icon: 'MapPin', route: '/leisure' },
-      { id: 'pets', label: 'Питомцы', icon: 'PawPrint', variant: 'dev', route: '/pets' },
+      { id: 'pets', label: 'Питомцы', icon: 'PawPrint', route: '/pets' },
     ],
   },
 ];

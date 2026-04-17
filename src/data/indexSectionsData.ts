@@ -170,20 +170,6 @@ export const inDevelopmentSections = [
       { icon: '\u{1F4B0}', title: 'Расходы на образование', description: 'Учебники, форма, кружки' },
     ]
   },
-  {
-    id: 'pets',
-    icon: 'PawPrint',
-    label: 'Питомцы',
-    description: 'Уход за домашними животными',
-    features: [
-      { icon: '\u{1F43E}', title: 'Профили питомцев', description: 'Кличка, порода, возраст, фото' },
-      { icon: '\u{1F489}', title: 'Вакцинация', description: 'График прививок с напоминаниями' },
-      { icon: '\u{1F468}\u200D\u2695\uFE0F', title: 'Визиты к ветеринару', description: 'История осмотров' },
-      { icon: '\u{1F356}', title: 'Питание', description: 'Рацион, любимый корм' },
-      { icon: '\u{1F4B0}', title: 'Расходы', description: 'Корм, ветеринар, игрушки' },
-      { icon: '\u{1F4F8}', title: 'Фотоальбом', description: 'Милые фото питомцев' },
-    ]
-  },
 ];
 
 export const moodOptions = [

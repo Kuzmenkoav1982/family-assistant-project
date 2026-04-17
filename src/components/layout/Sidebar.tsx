@@ -53,6 +53,17 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
 
   const menuSections: MenuSection[] = [
     {
+      id: 'pets',
+      title: 'Питомцы',
+      icon: 'PawPrint',
+      iconColor: 'text-violet-600',
+      accentBg: 'bg-violet-50 dark:bg-violet-950/40',
+      hubPath: '/pets',
+      items: [
+        { id: 'pets-hub', label: 'Питомцы', icon: 'PawPrint', path: '/pets' }
+      ]
+    },
+    {
       id: 'family',
       title: 'Семья',
       icon: 'Users',
