@@ -10,7 +10,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-const OWNER_ONLY_FINANCE_ITEMS = ['finance-budget', 'finance-accounts', 'finance-debts', 'finance-recurring', 'finance-assets'];
+const OWNER_ONLY_FINANCE_ITEMS = ['finance-analytics', 'finance-strategy', 'finance-cashflow', 'finance-budget', 'finance-accounts', 'finance-debts', 'finance-recurring', 'finance-assets'];
 
 interface MenuSection {
   id: string;
@@ -132,6 +132,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
       hubPath: '/finance',
       items: [
+        { id: 'finance-analytics', label: 'Финансовый пульс', icon: 'Activity', path: '/finance/analytics' },
+        { id: 'finance-strategy', label: 'Стратегия погашения', icon: 'Swords', path: '/finance/strategy' },
+        { id: 'finance-cashflow', label: 'Кэш-флоу прогноз', icon: 'TrendingUp', path: '/finance/cashflow' },
         { id: 'finance-budget', label: 'Бюджет', icon: 'PieChart', path: '/finance/budget' },
         { id: 'finance-accounts', label: 'Счета и карты', icon: 'CreditCard', path: '/finance/accounts' },
         { id: 'finance-debts', label: 'Кредиты и долги', icon: 'Receipt', path: '/finance/debts' },
