@@ -383,7 +383,11 @@ export default function Pets() {
                     : 'bg-white dark:bg-gray-800 border-gray-200 hover:border-violet-300'
                 }`}
               >
-                <span className="text-lg">{speciesEmoji(p.species)}</span>
+                {p.photo_url ? (
+                  <img src={p.photo_url} alt={p.name} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <span className="text-lg">{speciesEmoji(p.species)}</span>
+                )}
                 <span className="font-semibold text-sm">{p.name}</span>
                 {p.birth_date && (
                   <span className={`text-xs ${selectedPetId === p.id ? 'text-white/80' : 'text-muted-foreground'}`}>
@@ -419,7 +423,11 @@ export default function Pets() {
                 <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
                   <div>
                     <h2 className="text-white text-xl font-bold drop-shadow-lg flex items-center gap-2">
-                      <span>{speciesEmoji(selectedPet.species)}</span>
+                      {selectedPet.photo_url ? (
+                        <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-8 h-8 rounded-full object-cover border-2 border-white/60 flex-shrink-0" />
+                      ) : (
+                        <span>{speciesEmoji(selectedPet.species)}</span>
+                      )}
                       {selectedPet.name}
                     </h2>
                     <p className="text-white/90 text-xs drop-shadow">
