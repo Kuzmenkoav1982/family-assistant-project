@@ -510,12 +510,12 @@ export default function Pets() {
           )}
 
           {/* Вкладки функций */}
-          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+          <div className="flex flex-wrap gap-1.5 pb-2 mb-4">
             {TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => changeTab(t.key)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all ${
                   tab === t.key
                     ? `bg-gradient-to-r ${t.gradient} text-white border-transparent shadow-md`
                     : 'bg-white dark:bg-gray-800 border-gray-200 hover:border-violet-200'
