@@ -1109,7 +1109,7 @@ export default function Tree() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 pb-24">
       <div className="p-4">
         <SectionHero
-          title="Семей��ое древо"
+          title="Семейное древо"
           subtitle={`${members.length} чел. · История вашего рода`}
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
           backPath="/family"
