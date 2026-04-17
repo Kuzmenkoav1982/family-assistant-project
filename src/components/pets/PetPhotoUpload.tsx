@@ -7,9 +7,15 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Props {
   value?: string;
-  onApply: (url: string) => void;
+  onApply?: (url: string) => void;
+  onChange?: (url: string) => void;
   species?: string;
   folder?: string;
+  size?: 'sm' | 'md' | 'lg';
+  shape?: 'circle' | 'square';
+  placeholderIcon?: string;
+  label?: string;
+  skipCrop?: boolean;
 }
 
 function speciesEmoji(s?: string): string {
@@ -20,7 +26,17 @@ function speciesEmoji(s?: string): string {
   return map[s || ''] || '🐾';
 }
 
-export default function PetPhotoUpload({ value, onApply, species, folder = 'pets' }: Props) {
+export default function PetPhotoUpload({
+  value,
+  onApply,
+  onChange,
+  species,
+  folder = 'pets',
+  shape = 'circle',
+  placeholderIcon,
+  label = 'Выбрать фото',
+  skipCrop,
+}: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [tempSrc, setTempSrc] = useState('');
@@ -28,7 +44,27 @@ export default function PetPhotoUpload({ value, onApply, species, folder = 'pets
   const { upload, uploading } = useFileUpload();
   const { toast } = useToast();
 
+  const useDirectMode = !!onChange || skipCrop;
+  const actualSkipCrop = skipCrop ?? !!onChange;
+
   const pickFile = () => fileRef.current?.click();
+
+  const uploadFile = async (file: File) => {
+    try {
+      const url = await upload(file, folder);
+      if (useDirectMode) {
+        setPendingUrl(url);
+        onChange?.(url);
+        onApply?.(url);
+        toast({ title: 'Фото загружено' });
+      } else {
+        setPendingUrl(url);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Не удалось загрузить фото';
+      toast({ title: 'Ошибка загрузки', description: msg, variant: 'destructive' });
+    }
+  };
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,21 +77,26 @@ export default function PetPhotoUpload({ value, onApply, species, folder = 'pets
       toast({ title: 'Файл слишком большой', description: 'Максимальный размер — 5 МБ', variant: 'destructive' });
       return;
     }
+    e.target.value = '';
+
+    if (actualSkipCrop) {
+      uploadFile(file);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       setTempSrc(reader.result as string);
       setCropOpen(true);
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
   };
 
   const onCropDone = async (base64: string) => {
     try {
       const blob = await fetch(base64).then(r => r.blob());
       const file = new File([blob], `pet-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      const url = await upload(file, folder);
-      setPendingUrl(url);
+      await uploadFile(file);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Не удалось загрузить фото';
       toast({ title: 'Ошибка загрузки', description: msg, variant: 'destructive' });
@@ -63,20 +104,26 @@ export default function PetPhotoUpload({ value, onApply, species, folder = 'pets
   };
 
   const handleApply = () => {
-    onApply(pendingUrl);
+    onApply?.(pendingUrl);
+    onChange?.(pendingUrl);
     toast({ title: 'Фото применено' });
   };
 
   const handleDelete = () => {
     setPendingUrl('');
-    onApply('');
+    onApply?.('');
+    onChange?.('');
   };
+
+  const shapeClass = shape === 'square' ? 'rounded-2xl' : 'rounded-full';
 
   return (
     <div className="border-2 border-dashed border-violet-200 rounded-xl bg-violet-50/50 p-4 flex flex-col items-center gap-3">
-      <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-violet-400 via-purple-400 to-fuchsia-400 flex items-center justify-center shadow-md ring-4 ring-violet-300/50">
+      <div className={`relative w-32 h-32 ${shapeClass} overflow-hidden bg-gradient-to-br from-violet-400 via-purple-400 to-fuchsia-400 flex items-center justify-center shadow-md ring-4 ring-violet-300/50`}>
         {pendingUrl ? (
-          <img src={pendingUrl} alt="Питомец" className="w-full h-full object-cover" />
+          <img src={pendingUrl} alt="Фото" className="w-full h-full object-cover" />
+        ) : placeholderIcon ? (
+          <Icon name={placeholderIcon} size={48} className="text-white" />
         ) : (
           <span className="text-5xl">{speciesEmoji(species)}</span>
         )}
@@ -89,10 +136,12 @@ export default function PetPhotoUpload({ value, onApply, species, folder = 'pets
 
       {pendingUrl ? (
         <>
-          <Button type="button" onClick={handleApply} disabled={uploading} className="w-full bg-green-600 hover:bg-green-700 text-white">
-            <Icon name="Check" size={16} className="mr-2" />
-            Применить фото
-          </Button>
+          {!useDirectMode && (
+            <Button type="button" onClick={handleApply} disabled={uploading} className="w-full bg-green-600 hover:bg-green-700 text-white">
+              <Icon name="Check" size={16} className="mr-2" />
+              Применить фото
+            </Button>
+          )}
           <Button type="button" variant="outline" onClick={pickFile} disabled={uploading} className="w-full">
             <Icon name="Upload" size={16} className="mr-2" />
             Изменить
@@ -105,18 +154,20 @@ export default function PetPhotoUpload({ value, onApply, species, folder = 'pets
       ) : (
         <Button type="button" variant="outline" onClick={pickFile} disabled={uploading} className="w-full border-violet-300 text-violet-700 hover:bg-violet-50">
           <Icon name="Camera" size={16} className="mr-2" />
-          Выбрать фото
+          {label}
         </Button>
       )}
 
       <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
 
-      <ImageCropDialog
-        open={cropOpen}
-        onOpenChange={setCropOpen}
-        imageSrc={tempSrc}
-        onCropComplete={onCropDone}
-      />
+      {!actualSkipCrop && (
+        <ImageCropDialog
+          open={cropOpen}
+          onOpenChange={setCropOpen}
+          imageSrc={tempSrc}
+          onCropComplete={onCropDone}
+        />
+      )}
     </div>
   );
 }
