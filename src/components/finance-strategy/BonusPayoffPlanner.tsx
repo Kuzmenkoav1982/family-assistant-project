@@ -11,6 +11,14 @@ interface Props {
   debts: DebtDetail[];
 }
 
+type PriorityMode = 'rate' | 'relief' | 'size';
+
+const PRIORITY_MODES: { key: PriorityMode; label: string; short: string; icon: string; hint: string }[] = [
+  { key: 'rate', label: 'Меньше переплата', short: 'По ставке', icon: 'Percent', hint: 'Сначала кредиты с самой высокой ставкой — максимум экономии на процентах' },
+  { key: 'relief', label: 'Легче платить', short: 'Макс. снижение платежа', icon: 'HeartPulse', hint: 'Сначала кредиты, где закрытие больше всего уменьшит ежемесячный платёж' },
+  { key: 'size', label: 'Быстрый результат', short: 'Снежный ком', icon: 'Snowflake', hint: 'Сначала самые маленькие долги — быстрее закрывать, освобождая средства' },
+];
+
 export default function BonusPayoffPlanner({ debts }: Props) {
   const activeDebts = useMemo(
     () => debts.filter(d => d.remaining > 0 && d.payment > 0),
@@ -19,6 +27,7 @@ export default function BonusPayoffPlanner({ debts }: Props) {
 
   const [budget, setBudget] = useState<number>(0);
   const [allocations, setAllocations] = useState<Record<string, number>>({});
+  const [priorityMode, setPriorityMode] = useState<PriorityMode>('rate');
 
   const totalAllocated = useMemo(
     () => Object.values(allocations).reduce((sum, v) => sum + (v || 0), 0),
@@ -42,11 +51,32 @@ export default function BonusPayoffPlanner({ debts }: Props) {
     setAllocations({});
   };
 
-  // Сортировка: сначала самые обременительные (по ставке)
-  const sortedDebts = useMemo(
-    () => [...activeDebts].sort((a, b) => b.rate - a.rate),
-    [activeDebts]
-  );
+  // Сортировка по выбранному приоритету
+  const sortedDebts = useMemo(() => {
+    const arr = [...activeDebts];
+    if (priorityMode === 'rate') {
+      return arr.sort((a, b) => b.rate - a.rate);
+    }
+    if (priorityMode === 'size') {
+      return arr.sort((a, b) => a.remaining - b.remaining);
+    }
+    // 'relief' — эффективность снижения платежа: платёж / остаток долга
+    // чем выше, тем больше снижение/рубль вложений при полном закрытии
+    return arr.sort((a, b) => (b.payment / b.remaining) - (a.payment / a.remaining));
+  }, [activeDebts, priorityMode]);
+
+  const autoDistribute = () => {
+    if (budget <= 0 || sortedDebts.length === 0) return;
+    const next: Record<string, number> = {};
+    let left = budget;
+    for (const d of sortedDebts) {
+      if (left <= 0) break;
+      const take = Math.min(d.remaining, left);
+      next[d.id] = take;
+      left -= take;
+    }
+    setAllocations(next);
+  };
 
   const rows = sortedDebts.map(d => {
     const lump = allocations[d.id] || 0;
@@ -125,9 +155,43 @@ export default function BonusPayoffPlanner({ debts }: Props) {
             Нет активных кредитов для погашения
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Приоритет погашения</p>
+              <div className="flex flex-wrap gap-1.5">
+                {PRIORITY_MODES.map(m => (
+                  <Button
+                    key={m.key}
+                    size="sm"
+                    variant={priorityMode === m.key ? 'default' : 'outline'}
+                    className="h-8 text-[11px] gap-1"
+                    onClick={() => setPriorityMode(m.key)}
+                  >
+                    <Icon name={m.icon} size={12} />
+                    {m.label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground italic">
+                {PRIORITY_MODES.find(m => m.key === priorityMode)?.hint}
+              </p>
+              {budget > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-[11px] gap-1.5 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                  onClick={autoDistribute}
+                >
+                  <Icon name="Wand2" size={12} />
+                  Распределить автоматически по этому приоритету
+                </Button>
+              )}
+            </div>
+
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-muted-foreground">Ваши кредиты (отсортированы по ставке)</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Ваши кредиты ({PRIORITY_MODES.find(m => m.key === priorityMode)?.short})
+              </p>
               {totalAllocated > 0 && (
                 <Button size="sm" variant="ghost" className="h-6 text-[11px] text-muted-foreground" onClick={reset}>
                   Сбросить
