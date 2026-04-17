@@ -94,17 +94,33 @@ export default function PetsAI({ pet }: Props) {
     setLoading(true);
     setAnswer('');
     try {
-      const userId = localStorage.getItem('userId') || '';
-      const familyId = localStorage.getItem('familyId') || '';
+      let userId: string | undefined;
+      try {
+        const raw = localStorage.getItem('userData');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.id) userId = String(parsed.id);
+        }
+      } catch {
+        userId = undefined;
+      }
+      if (!userId) {
+        const legacy = localStorage.getItem('userId');
+        if (legacy) userId = legacy;
+      }
+      const familyId = localStorage.getItem('familyId') || undefined;
+
+      const payload: Record<string, unknown> = {
+        messages: [{ role: 'user', content: contextLine ? `${contextLine}\n\nВопрос: ${q}` : q }],
+        systemPrompt: SYSTEM_PROMPT,
+      };
+      if (userId) payload.userId = userId;
+      if (familyId) payload.familyId = familyId;
+
       const res = await fetch(func2url['ai-assistant'], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: contextLine ? `${contextLine}\n\nВопрос: ${q}` : q }],
-          systemPrompt: SYSTEM_PROMPT,
-          familyId,
-          userId,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
