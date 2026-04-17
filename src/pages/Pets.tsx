@@ -437,7 +437,7 @@ export default function Pets() {
                   </div>
 
                   <div className="flex-1 min-w-0 pt-1">
-                    <h2 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words">
+                    <h2 className="text-3xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words">
                       {selectedPet.name}
                     </h2>
 
