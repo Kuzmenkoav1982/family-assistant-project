@@ -408,8 +408,8 @@ export default function Pets() {
           {/* Карточка питомца */}
           {selectedPet && (
             <Card className="mb-4 overflow-hidden border-violet-200">
-              <div className="relative h-32" style={{background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 30%, #ec4899 60%, #f97316 100%)', boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.15)'}}>
-                <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.18) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(255,200,255,0.15) 0%, transparent 50%)'}} />
+              <div className="relative h-32" style={{background: 'linear-gradient(135deg, #2d2d3a 0%, #3d3d52 35%, #4a4a62 65%, #383845 100%)', boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.25)'}}>
+                <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse at 25% 35%, rgba(255,255,255,0.07) 0%, transparent 55%), radial-gradient(ellipse at 75% 15%, rgba(160,160,200,0.08) 0%, transparent 50%)'}} />
                 <div className="absolute top-2 right-2 flex gap-1">
                   <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white text-violet-700 hover:bg-violet-50 shadow" onClick={() => openEdit(selectedPet)}>
                     <Icon name="Pencil" size={14} />
