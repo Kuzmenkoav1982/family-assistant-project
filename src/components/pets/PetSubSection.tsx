@@ -142,9 +142,20 @@ export default function PetSubSection({
           {items.map(item => {
             const badge = renderBadge?.(item);
             const sub = renderSubtitle?.(item);
+            const photoUrl = typeof item.photo_url === 'string' ? item.photo_url : '';
             return (
-              <Card key={String(item.id)} className="hover:shadow-md transition-shadow">
+              <Card key={String(item.id)} className="hover:shadow-md transition-shadow overflow-hidden">
                 <CardContent className="p-3 flex items-start justify-between gap-2">
+                  {photoUrl && (
+                    <a href={photoUrl} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                      <img
+                        src={photoUrl}
+                        alt={renderTitle(item)}
+                        className="w-20 h-20 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                        loading="lazy"
+                      />
+                    </a>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
