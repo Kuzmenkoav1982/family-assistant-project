@@ -408,15 +408,13 @@ export default function Pets() {
           {/* Карточка питомца */}
           {selectedPet && (
             <Card className="mb-4 overflow-hidden border-violet-200">
-              <div className="relative h-32 bg-gradient-to-br from-violet-400 via-purple-400 to-fuchsia-400">
-                {selectedPet.photo_url && (
-                  <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-full h-full object-cover" />
-                )}
+              <div className="relative h-32" style={{background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 30%, #ec4899 60%, #f97316 100%)', boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.15)'}}>
+                <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.18) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(255,200,255,0.15) 0%, transparent 50%)'}} />
                 <div className="absolute top-2 right-2 flex gap-1">
-                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white/90" onClick={() => openEdit(selectedPet)}>
+                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white text-violet-700 hover:bg-violet-50 shadow" onClick={() => openEdit(selectedPet)}>
                     <Icon name="Pencil" size={14} />
                   </Button>
-                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white/90 text-rose-600" onClick={() => removePet(selectedPet.id)}>
+                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-white text-rose-600 hover:bg-rose-50 shadow" onClick={() => removePet(selectedPet.id)}>
                     <Icon name="Trash2" size={14} />
                   </Button>
                 </div>
@@ -424,9 +422,9 @@ export default function Pets() {
                   <div>
                     <h2 className="text-white text-xl font-bold drop-shadow-lg flex items-center gap-2">
                       {selectedPet.photo_url ? (
-                        <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-8 h-8 rounded-full object-cover border-2 border-white/60 flex-shrink-0" />
+                        <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-10 h-10 rounded-full object-cover border-2 border-white/80 flex-shrink-0 shadow-md" />
                       ) : (
-                        <span>{speciesEmoji(selectedPet.species)}</span>
+                        <span className="text-3xl drop-shadow">{speciesEmoji(selectedPet.species)}</span>
                       )}
                       {selectedPet.name}
                     </h2>
