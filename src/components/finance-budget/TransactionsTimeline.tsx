@@ -71,7 +71,7 @@ export default function TransactionsTimeline({
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
         <Icon name="Wallet" size={14} />
-        <span>Начальный баланс на счетах:</span>
+        <span>Текущий баланс на счетах:</span>
         <span className="font-bold text-foreground">{formatMoney(accountBalance)} &#8381;</span>
       </div>
 
@@ -103,10 +103,9 @@ export default function TransactionsTimeline({
             <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs">
               <Icon name="CheckSquare" size={14} className="text-emerald-500 flex-shrink-0" />
               <span className="text-emerald-700">
-                Учтено: {confirmedIncome > 0 && <span className="text-green-600 font-medium">+{formatMoney(confirmedIncome)} ₽</span>}
+                Учтено за месяц: {confirmedIncome > 0 && <span className="text-green-600 font-medium">+{formatMoney(confirmedIncome)} ₽</span>}
                 {confirmedIncome > 0 && confirmedExpense > 0 && ', '}
                 {confirmedExpense > 0 && <span className="text-red-600 font-medium">−{formatMoney(confirmedExpense)} ₽</span>}
-                {' '}→ баланс {formatMoney(accountBalance + confirmedIncome - confirmedExpense)} ₽
               </span>
             </div>
           )}

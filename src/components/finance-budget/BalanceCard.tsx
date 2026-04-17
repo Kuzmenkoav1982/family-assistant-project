@@ -15,7 +15,9 @@ interface BalanceCardProps {
 export default function BalanceCard({ accountBalance, accountCount, planIncome, planExpense, sumIncome, sumExpense }: BalanceCardProps) {
   if (accountCount <= 0) return null;
 
-  const currentBalance = accountBalance + sumIncome - sumExpense;
+  // accountBalance уже отражает все реальные операции месяца (бэк обновляет его сразу).
+  // Не суммируем sumIncome/sumExpense повторно — это приводило к двойному учёту.
+  const currentBalance = accountBalance;
   const forecastBalance = currentBalance + planIncome - planExpense;
   const pendingChange = planIncome - planExpense;
 
@@ -35,18 +37,18 @@ export default function BalanceCard({ accountBalance, accountCount, planIncome, 
               <PopoverContent className="w-72 p-3" side="bottom">
                 <div className="space-y-2">
                   <p className="font-semibold text-sm">Текущий баланс</p>
-                  <p className="text-xs text-muted-foreground">Начальный баланс на счетах + совершённые доходы − совершённые расходы за этот месяц.</p>
+                  <p className="text-xs text-muted-foreground">Сумма остатков на всех активных счетах. Обновляется автоматически при добавлении операций.</p>
                   <div className="border-t pt-2 space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Начальный баланс</span>
+                      <span className="text-muted-foreground">Остаток на счетах</span>
                       <span className="font-medium">{formatMoney(accountBalance)} &#8381;</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">+ Доходы</span>
+                      <span className="text-muted-foreground">За месяц: доходы</span>
                       <span className="font-medium text-green-600">+{formatMoney(sumIncome)} &#8381;</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">− Расходы</span>
+                      <span className="text-muted-foreground">За месяц: расходы</span>
                       <span className="font-medium text-red-600">−{formatMoney(sumExpense)} &#8381;</span>
                     </div>
                   </div>

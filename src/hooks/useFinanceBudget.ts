@@ -233,15 +233,19 @@ export default function useFinanceBudget() {
 
     items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    // accountBalance уже отражает все фактические операции (бэк обновляет его сразу при add/confirm_planned).
+    // Поэтому running-balance сдвигают только ПЛАНОВЫЕ операции (то, чего ещё нет в таблице транзакций).
     let balance = accountBalance;
     const today = new Date().toISOString().split('T')[0];
     let cashGap: { date: string; amount: number } | null = null;
 
     const withBalance = items.map((item) => {
-      if (item.type === 'income') balance += item.amount;
-      else balance -= item.amount;
+      if (item.isPlanned) {
+        if (item.type === 'income') balance += item.amount;
+        else balance -= item.amount;
+      }
       const runningBalance = balance;
-      const isGap = runningBalance < 0;
+      const isGap = item.isPlanned && runningBalance < 0;
       if (isGap && !cashGap) cashGap = { date: item.dateStr, amount: runningBalance };
       return { ...item, runningBalance, isGap };
     });
@@ -273,16 +277,23 @@ export default function useFinanceBudget() {
     newAmount: number, newDate: string, newType: string, editTxId?: string
   ): { willCauseGap: boolean; gapDate: string; gapAmount: number } => {
     type SimItem = { date: string; amount: number; type: string; id: string };
+    // accountBalance уже учитывает все реальные транзакции. Сравниваем будущий баланс,
+    // двигаемый только плановыми операциями + гипотетической новой/изменённой транзакцией.
     const items: SimItem[] = [];
     plannedItems.forEach(p => items.push({ id: 'p_' + p.id, date: p.date, amount: p.amount, type: p.type }));
-    transactions.forEach(tx => {
-      if (editTxId && tx.id === editTxId) {
-        items.push({ id: 'tx_' + tx.id, date: newDate, amount: newAmount, type: newType });
-      } else {
-        items.push({ id: 'tx_' + tx.id, date: tx.date, amount: tx.amount, type: tx.type });
+
+    if (editTxId) {
+      // Редактирование: считаем, что старая запись уже в accountBalance — её нужно "откатить" и применить новую.
+      const prev = transactions.find(t => t.id === editTxId);
+      if (prev) {
+        // откатим прежнюю (обратный знак), применив на старой дате
+        items.push({ id: 'tx_rev_' + prev.id, date: prev.date, amount: prev.amount, type: prev.type === 'income' ? 'expense' : 'income' });
       }
-    });
-    if (!editTxId) items.push({ id: 'hypothetical_new', date: newDate, amount: newAmount, type: newType });
+      items.push({ id: 'tx_new_' + editTxId, date: newDate, amount: newAmount, type: newType });
+    } else {
+      items.push({ id: 'hypothetical_new', date: newDate, amount: newAmount, type: newType });
+    }
+
     items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     let balance = accountBalance;
     for (const item of items) {
