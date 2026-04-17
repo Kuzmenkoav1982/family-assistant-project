@@ -11,6 +11,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import useFinanceStrategy from '@/hooks/useFinanceStrategy';
 import { StrategyCard, DebtRow, ClosedOrderTimeline, AchievementCard } from '@/components/finance-strategy/StrategyCards';
 import SimulatorSection from '@/components/finance-strategy/SimulatorSection';
+import BonusPayoffPlanner from '@/components/finance-strategy/BonusPayoffPlanner';
 import { fm } from '@/data/financeStrategyTypes';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg';
@@ -153,6 +154,13 @@ export default function FinanceStrategy() {
             </Card>
           </section>
         )}
+
+        <section className="space-y-3">
+          <h2 className="text-base font-bold flex items-center gap-2">
+            <Icon name="Gift" size={18} className="text-emerald-500" /> Калькулятор премии / крупной суммы
+          </h2>
+          <BonusPayoffPlanner debts={s.debts} />
+        </section>
 
         <section className="space-y-3">
           <h2 className="text-base font-bold flex items-center gap-2">

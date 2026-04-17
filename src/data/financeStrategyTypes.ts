@@ -101,6 +101,48 @@ export function simulatePayoff(remaining: number, rate: number, monthlyPayment: 
   return { months, totalInterest: Math.round(totalInterest), totalPaid: Math.round(remaining + totalInterest) };
 }
 
+export function calcNewMonthlyPayment(
+  remaining: number,
+  rate: number,
+  currentPayment: number,
+  extraLumpSum: number
+): { newPayment: number; newRemaining: number; fullyPaid: boolean } {
+  const newRemaining = Math.max(0, remaining - extraLumpSum);
+  if (newRemaining <= 0.01) {
+    return { newPayment: 0, newRemaining: 0, fullyPaid: true };
+  }
+  const monthlyRate = rate / 100 / 12;
+  // Оцениваем исходный срок кредита по текущему платежу (аннуитет)
+  // n = -ln(1 - r*S/P) / ln(1+r)
+  let months = 0;
+  if (monthlyRate > 0 && currentPayment > remaining * monthlyRate) {
+    const ratio = 1 - (monthlyRate * remaining) / currentPayment;
+    if (ratio > 0) {
+      months = Math.ceil(-Math.log(ratio) / Math.log(1 + monthlyRate));
+    }
+  } else if (monthlyRate === 0 && currentPayment > 0) {
+    months = Math.ceil(remaining / currentPayment);
+  }
+  if (months <= 0) {
+    // fallback — симулируем
+    const sim = simulatePayoff(remaining, rate, currentPayment, 0);
+    months = sim.months || 1;
+  }
+  // Новый платёж на тот же срок, но с уменьшенным остатком
+  let newPayment: number;
+  if (monthlyRate > 0) {
+    const denom = 1 - Math.pow(1 + monthlyRate, -months);
+    newPayment = (newRemaining * monthlyRate) / denom;
+  } else {
+    newPayment = newRemaining / months;
+  }
+  return {
+    newPayment: Math.round(Math.min(newPayment, currentPayment)),
+    newRemaining: Math.round(newRemaining),
+    fullyPaid: false,
+  };
+}
+
 export function simulateTimeline(remaining: number, rate: number, monthlyPayment: number, extraPayment: number): { month: number; balance: number }[] {
   const monthlyRate = rate / 100 / 12;
   let balance = remaining;

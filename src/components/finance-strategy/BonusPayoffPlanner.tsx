@@ -1,0 +1,240 @@
+import { useState, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import Icon from '@/components/ui/icon';
+import type { DebtDetail } from '@/data/financeStrategyTypes';
+import { fm, calcNewMonthlyPayment } from '@/data/financeStrategyTypes';
+
+interface Props {
+  debts: DebtDetail[];
+}
+
+export default function BonusPayoffPlanner({ debts }: Props) {
+  const activeDebts = useMemo(
+    () => debts.filter(d => d.remaining > 0 && d.payment > 0),
+    [debts]
+  );
+
+  const [budget, setBudget] = useState<number>(0);
+  const [allocations, setAllocations] = useState<Record<string, number>>({});
+
+  const totalAllocated = useMemo(
+    () => Object.values(allocations).reduce((sum, v) => sum + (v || 0), 0),
+    [allocations]
+  );
+  const remainingBudget = Math.max(0, budget - totalAllocated);
+  const overBudget = totalAllocated > budget && budget > 0;
+
+  const setAlloc = (id: string, value: number, maxForThis: number) => {
+    const v = Math.max(0, Math.min(value, maxForThis));
+    setAllocations(prev => ({ ...prev, [id]: v }));
+  };
+
+  const fillFull = (id: string, remaining: number) => {
+    const otherAllocated = totalAllocated - (allocations[id] || 0);
+    const available = Math.max(0, budget - otherAllocated);
+    setAlloc(id, Math.min(remaining, available), remaining);
+  };
+
+  const reset = () => {
+    setAllocations({});
+  };
+
+  // Сортировка: сначала самые обременительные (по ставке)
+  const sortedDebts = useMemo(
+    () => [...activeDebts].sort((a, b) => b.rate - a.rate),
+    [activeDebts]
+  );
+
+  const rows = sortedDebts.map(d => {
+    const lump = allocations[d.id] || 0;
+    const calc = calcNewMonthlyPayment(d.remaining, d.rate, d.payment, lump);
+    const saved = Math.max(0, d.payment - calc.newPayment);
+    return { debt: d, lump, calc, saved };
+  });
+
+  const totalCurrentPayment = sortedDebts.reduce((s, d) => s + d.payment, 0);
+  const totalNewPayment = rows.reduce((s, r) => s + r.calc.newPayment, 0);
+  const totalMonthlySaved = totalCurrentPayment - totalNewPayment;
+
+  const quickBudgets = [50000, 100000, 200000, 500000];
+
+  return (
+    <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-cyan-500/5">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shrink-0">
+            <Icon name="Gift" size={20} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-base">Распределить премию на погашение</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Введите сумму, которую готовы потратить на досрочное погашение. Распределите её по кредитам — система пересчитает ежемесячные платежи.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">Бюджет на досрочное погашение</label>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1000}
+              value={budget || ''}
+              onChange={e => setBudget(Math.max(0, Number(e.target.value) || 0))}
+              placeholder="Например, 100 000"
+              className="text-base font-semibold"
+            />
+            {budget > 0 && (
+              <Button variant="outline" size="sm" onClick={() => { setBudget(0); reset(); }}>
+                <Icon name="X" size={14} />
+              </Button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {quickBudgets.map(v => (
+              <Button
+                key={v}
+                size="sm"
+                variant={budget === v ? 'default' : 'outline'}
+                className="h-7 text-[11px]"
+                onClick={() => setBudget(v)}
+              >
+                {fm(v)}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center justify-between text-xs pt-1">
+            <span className="text-muted-foreground">Распределено: <b className={overBudget ? 'text-rose-600' : 'text-foreground'}>{fm(totalAllocated)}</b></span>
+            <span className="text-muted-foreground">Остаток: <b className={remainingBudget > 0 ? 'text-emerald-600' : 'text-foreground'}>{fm(remainingBudget)}</b></span>
+          </div>
+          {overBudget && (
+            <div className="text-[11px] text-rose-600 bg-rose-50 dark:bg-rose-950/30 rounded-lg px-2 py-1.5 flex items-center gap-1.5">
+              <Icon name="AlertTriangle" size={12} />
+              Распределено больше, чем есть в бюджете
+            </div>
+          )}
+        </div>
+
+        {activeDebts.length === 0 ? (
+          <div className="text-center py-6 text-sm text-muted-foreground">
+            Нет активных кредитов для погашения
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-muted-foreground">Ваши кредиты (отсортированы по ставке)</p>
+              {totalAllocated > 0 && (
+                <Button size="sm" variant="ghost" className="h-6 text-[11px] text-muted-foreground" onClick={reset}>
+                  Сбросить
+                </Button>
+              )}
+            </div>
+            <div className="space-y-2">
+              {rows.map(({ debt, lump, calc, saved }) => {
+                const otherAllocated = totalAllocated - lump;
+                const availableForThis = Math.max(0, budget - otherAllocated);
+                const maxForThis = Math.min(debt.remaining, availableForThis);
+                return (
+                  <div key={debt.id} className="rounded-xl bg-background/80 border p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-semibold text-sm truncate">{debt.name}</p>
+                          <Badge variant="secondary" className={`text-[10px] ${debt.rate >= 20 ? 'bg-rose-100 text-rose-700' : debt.rate >= 10 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                            {debt.rate}%
+                          </Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Долг {fm(debt.remaining)} · платёж {fm(debt.payment)}/мес
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={maxForThis}
+                        step={1000}
+                        value={lump || ''}
+                        onChange={e => setAlloc(debt.id, Number(e.target.value) || 0, maxForThis)}
+                        placeholder="Сумма к погашению"
+                        className="h-9 text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 text-[11px] whitespace-nowrap"
+                        onClick={() => fillFull(debt.id, debt.remaining)}
+                        disabled={budget <= 0}
+                      >
+                        Закрыть
+                      </Button>
+                    </div>
+
+                    {lump > 0 && (
+                      <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-2 space-y-1">
+                        {calc.fullyPaid ? (
+                          <div className="flex items-center gap-2 text-xs">
+                            <Icon name="CheckCircle2" size={14} className="text-emerald-600 shrink-0" />
+                            <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                              Кредит будет полностью закрыт · экономия {fm(debt.payment)}/мес
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Новый платёж:</span>
+                              <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                                {fm(calc.newPayment)}/мес
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-muted-foreground">Было: <s>{fm(debt.payment)}</s></span>
+                              <span className="font-semibold text-emerald-600">−{fm(saved)}/мес</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {totalAllocated > 0 && (
+          <div className="rounded-xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 border border-emerald-200 dark:border-emerald-800 p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Icon name="TrendingDown" size={18} className="text-emerald-600" />
+              <p className="font-bold text-sm">Итог по всем кредитам</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg bg-background/60 p-2">
+                <p className="text-[10px] text-muted-foreground uppercase">Сейчас платите</p>
+                <p className="text-base font-bold">{fm(totalCurrentPayment)}<span className="text-[10px] font-normal text-muted-foreground">/мес</span></p>
+              </div>
+              <div className="rounded-lg bg-emerald-100 dark:bg-emerald-900/30 p-2">
+                <p className="text-[10px] text-muted-foreground uppercase">Станете платить</p>
+                <p className="text-base font-bold text-emerald-700 dark:text-emerald-400">{fm(totalNewPayment)}<span className="text-[10px] font-normal text-muted-foreground">/мес</span></p>
+              </div>
+            </div>
+            {totalMonthlySaved > 0 && (
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-muted-foreground">Экономия каждый месяц:</span>
+                <span className="text-base font-bold text-emerald-700 dark:text-emerald-400">−{fm(totalMonthlySaved)}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

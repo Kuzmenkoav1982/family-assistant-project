@@ -38,29 +38,45 @@ export default function SimulatorSection({
           </div>
         </div>
 
-        {simDebt && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-muted-foreground">Дополнительный платёж</p>
-              <span className="text-sm font-bold text-amber-600">{fm(simExtra)}/мес</span>
+        {simDebt && (() => {
+          const sliderMax = Math.max(simMaxExtra, Math.round(simDebt.payment * 2), 10000);
+          const sliderStep = Math.max(100, Math.round(sliderMax / 50 / 100) * 100) || 100;
+          return (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium text-muted-foreground">Дополнительный платёж</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1000}
+                    value={simExtra || ''}
+                    onChange={e => setSimExtra(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-28 h-8 px-2 rounded-md border text-sm text-right font-bold text-amber-600 bg-background"
+                    placeholder="0"
+                  />
+                  <span className="text-xs text-muted-foreground">{'\u20BD'}/мес</span>
+                </div>
+              </div>
+              <Slider value={[Math.min(simExtra, sliderMax)]} onValueChange={([v]) => setSimExtra(v)} min={0} max={sliderMax} step={sliderStep} />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>0 {'\u20BD'}</span>
+                <span>{fm(sliderMax)}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {incomeScenarios.map((sc, i) => (
+                  <Button key={i} size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setSimExtra(sc.amount)}>
+                    +{sc.label} ({fm(sc.amount)})
+                  </Button>
+                ))}
+                {simExtra > 0 && (
+                  <Button size="sm" variant="ghost" className="h-7 text-[11px] text-muted-foreground" onClick={() => setSimExtra(0)}>Сбросить</Button>
+                )}
+              </div>
             </div>
-            <Slider value={[simExtra]} onValueChange={([v]) => setSimExtra(v)} min={0} max={Math.max(simMaxExtra, 1000)} step={Math.max(100, Math.round(simMaxExtra / 50) * 100) || 100} />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>0 {'\u20BD'}</span>
-              <span>{fm(Math.max(simMaxExtra, 1000))}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {incomeScenarios.map((sc, i) => (
-                <Button key={i} size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setSimExtra(Math.min(sc.amount, Math.max(simMaxExtra, 1000)))}>
-                  +{sc.label} ({fm(sc.amount)})
-                </Button>
-              ))}
-              {simExtra > 0 && (
-                <Button size="sm" variant="ghost" className="h-7 text-[11px] text-muted-foreground" onClick={() => setSimExtra(0)}>Сбросить</Button>
-              )}
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {simDebt && simWithout && (
           <div className="space-y-3">
