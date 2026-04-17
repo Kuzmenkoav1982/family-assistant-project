@@ -409,14 +409,24 @@ export default function Pets() {
           {selectedPet && (
             <Card className="mb-4 overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm rounded-2xl">
               <CardContent className="p-4">
-                {/* Верхняя часть: аватар + имя + действия */}
-                <div className="flex items-start gap-3 mb-4">
+                {/* Кнопки действий - прижаты к правому верхнему углу */}
+                <div className="flex justify-end gap-1.5 mb-2">
+                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200" onClick={() => openEdit(selectedPet)}>
+                    <Icon name="Pencil" size={14} />
+                  </Button>
+                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200" onClick={() => removePet(selectedPet.id)}>
+                    <Icon name="Trash2" size={14} />
+                  </Button>
+                </div>
+
+                {/* Верхняя часть: аватар + имя */}
+                <div className="flex items-start gap-3 mb-4 -mt-6">
                   <div className="relative flex-shrink-0">
-                    <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-violet-100 dark:ring-violet-900/40 bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/40 dark:to-fuchsia-900/40 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-violet-100 dark:ring-violet-900/40 bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/40 dark:to-fuchsia-900/40 flex items-center justify-center">
                       {selectedPet.photo_url ? (
                         <img src={selectedPet.photo_url} alt={selectedPet.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-5xl">{speciesEmoji(selectedPet.species)}</span>
+                        <span className="text-4xl">{speciesEmoji(selectedPet.species)}</span>
                       )}
                     </div>
                     {selectedPet.species && (
@@ -426,20 +436,10 @@ export default function Pets() {
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h2 className="text-2xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words">
-                        {selectedPet.name}
-                      </h2>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200" onClick={() => openEdit(selectedPet)}>
-                          <Icon name="Pencil" size={14} />
-                        </Button>
-                        <Button size="sm" variant="secondary" className="h-8 w-8 p-0 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200" onClick={() => removePet(selectedPet.id)}>
-                          <Icon name="Trash2" size={14} />
-                        </Button>
-                      </div>
-                    </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <h2 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words">
+                      {selectedPet.name}
+                    </h2>
 
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {selectedPet.breed && (
