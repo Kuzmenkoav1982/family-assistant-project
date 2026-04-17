@@ -13,10 +13,11 @@ import Icon from '@/components/ui/icon';
 import usePets, { type Pet, type PetSubKind } from '@/hooks/usePets';
 import PetForm from '@/components/pets/PetForm';
 import PetSubSection, { type FieldDef } from '@/components/pets/PetSubSection';
+import PetsAI from '@/components/pets/PetsAI';
 
 const PETS_HERO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2bc52e5d-939f-4527-a03d-684e81ef60de.jpg';
 
-type TabKey = 'overview' | PetSubKind;
+type TabKey = 'overview' | 'ai' | PetSubKind;
 
 interface TabDef {
   key: TabKey;
@@ -28,6 +29,7 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { key: 'overview', label: 'Обзор', icon: 'LayoutDashboard', gradient: 'from-violet-500 to-purple-500', color: 'text-violet-600' },
+  { key: 'ai', label: 'ИИ-ветеринар', icon: 'Sparkles', gradient: 'from-purple-500 to-fuchsia-500', color: 'text-purple-600' },
   { key: 'vaccines', label: 'Прививки', icon: 'Syringe', gradient: 'from-rose-500 to-pink-500', color: 'text-rose-600' },
   { key: 'vet', label: 'Ветеринар', icon: 'Stethoscope', gradient: 'from-sky-500 to-blue-500', color: 'text-sky-600' },
   { key: 'medications', label: 'Лекарства', icon: 'Pill', gradient: 'from-emerald-500 to-teal-500', color: 'text-emerald-600' },
@@ -201,8 +203,8 @@ export default function Pets() {
       { key: 'notes', label: 'Заметки', type: 'textarea' },
     ],
     photos: [
-      { key: 'photo_url', label: 'URL фото', type: 'text', required: true, placeholder: 'https://...' },
-      { key: 'caption', label: 'Подпись', type: 'text' },
+      { key: 'photo_url', label: 'Фото', type: 'photo', required: true },
+      { key: 'caption', label: 'Подпись', type: 'text', placeholder: 'Первая прогулка в лесу' },
       { key: 'photo_date', label: 'Дата', type: 'date' },
     ],
   };
@@ -495,25 +497,27 @@ export default function Pets() {
                       </h3>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {subMeta[t.key as PetSubKind]?.title}
+                      {t.key === 'ai' ? 'Советы ветеринара на базе ИИ' : subMeta[t.key as PetSubKind]?.title}
                     </p>
                   </CardContent>
                 </Card>
               ))}
             </div>
+          ) : tab === 'ai' ? (
+            <PetsAI pet={selectedPet || null} />
           ) : selectedPetId ? (
             <PetSubSection
-              kind={tab}
+              kind={tab as PetSubKind}
               petId={selectedPetId}
-              title={subMeta[tab].title}
-              emptyText={subMeta[tab].empty}
+              title={subMeta[tab as PetSubKind].title}
+              emptyText={subMeta[tab as PetSubKind].empty}
               icon={TABS.find(t => t.key === tab)?.icon || 'Circle'}
               color={TABS.find(t => t.key === tab)?.color || 'text-gray-500'}
               gradient={TABS.find(t => t.key === tab)?.gradient || 'from-gray-400 to-gray-500'}
-              fields={subFields[tab]}
-              renderTitle={subMeta[tab].renderTitle}
-              renderSubtitle={subMeta[tab].renderSubtitle}
-              renderBadge={subMeta[tab].renderBadge}
+              fields={subFields[tab as PetSubKind]}
+              renderTitle={subMeta[tab as PetSubKind].renderTitle}
+              renderSubtitle={subMeta[tab as PetSubKind].renderSubtitle}
+              renderBadge={subMeta[tab as PetSubKind].renderBadge}
               onChanged={() => loadStats(selectedPetId)}
             />
           ) : null}

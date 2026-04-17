@@ -8,11 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import usePets, { type PetSubKind } from '@/hooks/usePets';
+import PetPhotoUpload from './PetPhotoUpload';
 
 export interface FieldDef {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'bool';
+  type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'bool' | 'photo';
   options?: string[];
   placeholder?: string;
   required?: boolean;
@@ -207,6 +208,18 @@ export default function PetSubSection({
                       className="w-4 h-4"
                     />
                     <span className="text-sm text-muted-foreground">Активно</span>
+                  </div>
+                ) : f.type === 'photo' ? (
+                  <div className="mt-1.5">
+                    <PetPhotoUpload
+                      value={(form[f.key] as string) || ''}
+                      onChange={(url) => setForm(prev => ({ ...prev, [f.key]: url }))}
+                      size="md"
+                      shape="square"
+                      placeholderIcon="Camera"
+                      folder="pets/photos"
+                      label="Выбрать фото"
+                    />
                   </div>
                 ) : (
                   <Input

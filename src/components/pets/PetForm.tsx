@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import type { Pet } from '@/hooks/usePets';
+import PetPhotoUpload from './PetPhotoUpload';
 
 interface Props {
   open: boolean;
@@ -45,6 +46,21 @@ export default function PetForm({ open, onOpenChange, pet, onSave }: Props) {
         </DialogHeader>
 
         <div className="space-y-3 py-2">
+          <div>
+            <Label>Фото питомца</Label>
+            <div className="mt-1.5">
+              <PetPhotoUpload
+                value={form.photo_url || ''}
+                onChange={(url) => set('photo_url', url)}
+                size="lg"
+                shape="circle"
+                placeholderIcon="PawPrint"
+                folder="pets"
+                label="Выбрать из галереи"
+              />
+            </div>
+          </div>
+
           <div>
             <Label>Кличка *</Label>
             <Input value={form.name || ''} onChange={e => set('name', e.target.value)} placeholder="Барсик" />
@@ -100,11 +116,6 @@ export default function PetForm({ open, onOpenChange, pet, onSave }: Props) {
           <div>
             <Label>Номер чипа</Label>
             <Input value={form.chip_number || ''} onChange={e => set('chip_number', e.target.value)} />
-          </div>
-
-          <div>
-            <Label>Фото (URL)</Label>
-            <Input value={form.photo_url || ''} onChange={e => set('photo_url', e.target.value)} placeholder="https://..." />
           </div>
 
           <div>
