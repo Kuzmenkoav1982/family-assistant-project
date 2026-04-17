@@ -51,12 +51,9 @@ export default function PetForm({ open, onOpenChange, pet, onSave }: Props) {
             <div className="mt-1.5">
               <PetPhotoUpload
                 value={form.photo_url || ''}
-                onChange={(url) => set('photo_url', url)}
-                size="lg"
-                shape="circle"
-                placeholderIcon="PawPrint"
+                onApply={(url) => set('photo_url', url)}
+                species={form.species}
                 folder="pets"
-                label="Выбрать из галереи"
               />
             </div>
           </div>

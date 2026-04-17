@@ -161,8 +161,12 @@ export default function PetsAI({ pet }: Props) {
             </div>
           </div>
           {pet && (
-            <div className="mt-2 p-2 rounded-lg bg-white/15 backdrop-blur text-xs">
-              <Icon name="PawPrint" size={12} className="inline mr-1" />
+            <div className="mt-2 p-2 rounded-lg bg-white/15 backdrop-blur text-xs flex items-center gap-2">
+              {pet.photo_url ? (
+                <img src={pet.photo_url} alt={pet.name} className="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-white/40" />
+              ) : (
+                <Icon name="PawPrint" size={12} className="inline mr-1" />
+              )}
               Отвечаю с учётом данных о <span className="font-semibold">{pet.name}</span>
               {pet.species && <span className="opacity-80"> · {pet.species}</span>}
               {pet.breed && <span className="opacity-80"> · {pet.breed}</span>}
