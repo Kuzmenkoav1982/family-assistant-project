@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SectionHero from '@/components/ui/section-hero';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,7 +70,7 @@ function speciesEmoji(s?: string): string {
 }
 
 export default function Pets() {
-  const { pets, loading, stats, loadStats, createPet, updatePet, deletePet } = usePets();
+  const { pets, loading, stats, loadStats, loadPets, createPet, updatePet, deletePet } = usePets();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedPetId, setSelectedPetId] = useState<string>('');
   const [tab, setTab] = useState<TabKey>((searchParams.get('tab') as TabKey) || 'overview');
@@ -89,6 +90,13 @@ export default function Pets() {
   useEffect(() => {
     if (selectedPetId) loadStats(selectedPetId);
   }, [selectedPetId, loadStats]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadPets();
+    if (selectedPetId) await loadStats(selectedPetId);
+  }, [loadPets, loadStats, selectedPetId]);
+
+  const { pulling, pullDistance, refreshing } = usePullToRefresh(handleRefresh);
 
   const selectedPet = useMemo(() => pets.find(p => p.id === selectedPetId), [pets, selectedPetId]);
 
@@ -302,6 +310,16 @@ export default function Pets() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 pb-24">
+      {/* Pull-to-refresh индикатор */}
+      {(pulling || refreshing) && (
+        <div
+          className="flex items-center justify-center gap-2 text-violet-600 text-sm font-medium transition-all"
+          style={{ height: pullDistance || (refreshing ? 48 : 0), overflow: 'hidden' }}
+        >
+          <Icon name="RefreshCw" size={18} className={refreshing ? 'animate-spin' : ''} style={!refreshing ? { transform: `rotate(${(pullDistance / 70) * 180}deg)` } : {}} />
+          {refreshing ? 'Обновляем...' : pullDistance >= 70 ? 'Отпустите для обновления' : 'Потяните для обновления'}
+        </div>
+      )}
       <SectionHero
         title="Питомцы"
         subtitle="Забота о домашних любимцах всей семьёй"
