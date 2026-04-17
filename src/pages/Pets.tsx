@@ -437,7 +437,7 @@ export default function Pets() {
                   </div>
 
                   <div className="flex-1 min-w-0 pt-1">
-                    <h2 className="text-3xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words">
+                    <h2 className="text-2xl font-extrabold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent leading-tight break-words truncate">
                       {selectedPet.name}
                     </h2>
 
@@ -453,8 +453,11 @@ export default function Pets() {
                         </Badge>
                       )}
                       {selectedPet.gender && (
-                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs border-gray-200 text-gray-700">
-                          {selectedPet.gender === 'male' ? '♂ Мальчик' : '♀ Девочка'}
+                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs border-gray-200 text-gray-700 inline-flex items-center gap-1">
+                          <span className={`text-sm leading-none ${selectedPet.gender === 'male' ? 'text-blue-500' : 'text-pink-500'}`}>
+                            {selectedPet.gender === 'male' ? '♂' : '♀'}
+                          </span>
+                          <span>{selectedPet.gender === 'male' ? 'Мальчик' : 'Девочка'}</span>
                         </Badge>
                       )}
                     </div>
