@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 type NavItem = { id: string; path?: string; icon: string; label: string; type?: 'nav' | 'domovoy' };
 
 const HOME_ITEM: NavItem = { id: 'home', path: '/', icon: 'Home', label: 'Главная' };
+const DOMOVOY_IMG = 'https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png';
 
 const HUB_ITEMS: NavItem[] = [
   { id: 'family', path: '/family-hub', icon: 'Users', label: 'Семья' },
@@ -196,7 +197,7 @@ export default function GlobalBottomBar() {
             >
               <div className="relative">
                 <img
-                  src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
+                  src={DOMOVOY_IMG}
                   alt="Домовой"
                   className={`w-7 h-7 rounded-full object-cover bg-white/90 ring-2 transition-all ${
                     domovoyHidden
@@ -324,6 +325,33 @@ export default function GlobalBottomBar() {
                   </div>
                 );
               })}
+
+              <div className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white cursor-not-allowed">
+                <Icon name="GripVertical" size={16} className="text-gray-200" />
+                <div className="w-8 h-8 rounded-lg flex-shrink-0 overflow-hidden ring-1 ring-gray-200">
+                  <img
+                    src={DOMOVOY_IMG}
+                    alt="Домовой"
+                    className={`w-full h-full object-cover bg-gray-100 ${
+                      domovoyHidden ? 'grayscale opacity-60' : ''
+                    }`}
+                  />
+                </div>
+                <span className="text-sm font-medium text-gray-800 truncate flex-1">
+                  Домовой
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleDomovoy}
+                  className={`text-[11px] px-2 py-1 rounded-md font-medium transition-colors ${
+                    domovoyHidden
+                      ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  }`}
+                >
+                  {domovoyHidden ? 'Скрыт' : 'Показан'}
+                </button>
+              </div>
             </div>
           </div>
 
