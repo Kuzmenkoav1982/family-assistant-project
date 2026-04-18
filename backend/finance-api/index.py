@@ -2048,18 +2048,20 @@ def calc_payoff_schedule(remaining, rate, monthly, extra=0):
 
 def calc_strategy_avalanche(debts_data, free_money):
     """Avalanche: pay highest rate first"""
-    if not debts_data or free_money <= 0:
+    if not debts_data:
         return None
+    extra = max(0, free_money or 0)
     debts = sorted(debts_data, key=lambda d: -d['rate'])
-    return _simulate_strategy(debts, free_money, 'avalanche')
+    return _simulate_strategy(debts, extra, 'avalanche')
 
 
 def calc_strategy_snowball(debts_data, free_money):
     """Snowball: pay smallest balance first"""
-    if not debts_data or free_money <= 0:
+    if not debts_data:
         return None
+    extra = max(0, free_money or 0)
     debts = sorted(debts_data, key=lambda d: d['remaining'])
-    return _simulate_strategy(debts, free_money, 'snowball')
+    return _simulate_strategy(debts, extra, 'snowball')
 
 
 def _simulate_strategy(sorted_debts, free_money, name):
