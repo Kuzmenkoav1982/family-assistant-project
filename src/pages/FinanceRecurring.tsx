@@ -558,9 +558,14 @@ export default function FinanceRecurring() {
                         <span className={`text-sm font-bold pr-2 flex-shrink-0 ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                           {item.type === 'income' ? '+' : '-'}{formatMoney(item.amount)} ₽
                         </span>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 mr-1 flex-shrink-0" onClick={(e) => toggleActive(item, e)}>
-                          <Icon name="Play" size={14} />
-                        </Button>
+                        <div className="flex items-center flex-shrink-0 pr-1">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-emerald-600" onClick={(e) => toggleActive(item, e)}>
+                            <Icon name="Play" size={14} />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-red-500" onClick={(e) => deleteItem(item.id, e)}>
+                            <Icon name="Trash2" size={14} />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
