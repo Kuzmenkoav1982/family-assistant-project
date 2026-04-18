@@ -201,8 +201,8 @@ export default function GlobalBottomBar() {
                   aria-label="Домовой"
                   style={{
                     backgroundImage: `url(${DOMOVOY_IMG})`,
-                    backgroundSize: '220%',
-                    backgroundPosition: '50% 12%',
+                    backgroundSize: '130%',
+                    backgroundPosition: '50% 18%',
                     backgroundRepeat: 'no-repeat',
                   }}
                   className={`w-7 h-7 rounded-full bg-white/90 ring-2 transition-all ${
@@ -339,8 +339,8 @@ export default function GlobalBottomBar() {
                   aria-label="Домовой"
                   style={{
                     backgroundImage: `url(${DOMOVOY_IMG})`,
-                    backgroundSize: '220%',
-                    backgroundPosition: '50% 12%',
+                    backgroundSize: '130%',
+                    backgroundPosition: '50% 18%',
                     backgroundRepeat: 'no-repeat',
                   }}
                   className={`w-8 h-8 rounded-lg flex-shrink-0 bg-gray-100 ring-1 ring-gray-200 ${
