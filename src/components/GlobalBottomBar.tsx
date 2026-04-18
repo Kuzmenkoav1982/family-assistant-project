@@ -64,6 +64,8 @@ export default function GlobalBottomBar() {
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem('globalBottomBarVisible', String(isVisible));
@@ -108,6 +110,32 @@ export default function GlobalBottomBar() {
   };
 
   const resetToDefault = () => setSelectedIds(DEFAULT_IDS);
+
+  const moveItem = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    if (fromId === 'home' || toId === 'home') return;
+    setSelectedIds(prev => {
+      const from = prev.indexOf(fromId);
+      const to = prev.indexOf(toId);
+      if (from === -1 || to === -1) return prev;
+      const next = [...prev];
+      const [m] = next.splice(from, 1);
+      next.splice(to, 0, m);
+      return next;
+    });
+  };
+
+  const shiftItem = (id: string, dir: -1 | 1) => {
+    if (id === 'home') return;
+    setSelectedIds(prev => {
+      const idx = prev.indexOf(id);
+      const target = idx + dir;
+      if (idx === -1 || target < 1 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+  };
 
   const middleItems = useMemo(
     () => selectedIds.map(id => ALL_ITEMS.find(i => i.id === id)).filter(Boolean) as NavItem[],
@@ -198,7 +226,103 @@ export default function GlobalBottomBar() {
               Выберите до {MAX_MIDDLE - 1} хабов. «Главная» и «Домовой» закреплены.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-y-auto">
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                Порядок на панели
+              </span>
+              <span className="text-[10px] text-gray-400">перетащи или ↑↓</span>
+            </div>
+            <div className="flex flex-col gap-1.5 bg-gray-50 rounded-xl p-2 max-h-[28vh] overflow-y-auto">
+              {middleItems.map((item, idx) => {
+                const isHome = item.id === 'home';
+                const isDragging = dragId === item.id;
+                const isOver = dragOverId === item.id && !isHome;
+                return (
+                  <div
+                    key={item.id}
+                    draggable={!isHome}
+                    onDragStart={(e) => {
+                      if (isHome) { e.preventDefault(); return; }
+                      setDragId(item.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => {
+                      if (isHome || !dragId) return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverId !== item.id) setDragOverId(item.id);
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverId === item.id) setDragOverId(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragId && !isHome) moveItem(dragId, item.id);
+                      setDragId(null);
+                      setDragOverId(null);
+                    }}
+                    onDragEnd={() => { setDragId(null); setDragOverId(null); }}
+                    className={`flex items-center gap-2 p-2 rounded-lg border bg-white transition-all ${
+                      isDragging ? 'opacity-40' : ''
+                    } ${isOver ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'} ${
+                      isHome ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
+                    }`}
+                  >
+                    <Icon
+                      name="GripVertical"
+                      size={16}
+                      className={isHome ? 'text-gray-200' : 'text-gray-400'}
+                    />
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      isHome ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white'
+                    }`}>
+                      <Icon name={item.icon} size={16} />
+                    </div>
+                    <span className="text-sm font-medium text-gray-800 truncate flex-1">
+                      {item.label}
+                    </span>
+                    {isHome ? (
+                      <span className="text-[10px] text-gray-400 px-1">закр.</span>
+                    ) : (
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => shiftItem(item.id, -1)}
+                          disabled={idx <= 1}
+                          className="w-7 h-7 rounded-md flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                        >
+                          <Icon name="ChevronUp" size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => shiftItem(item.id, 1)}
+                          disabled={idx >= middleItems.length - 1}
+                          className="w-7 h-7 rounded-md flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                        >
+                          <Icon name="ChevronDown" size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleItem(item.id)}
+                          title="Убрать"
+                          className="w-7 h-7 rounded-md flex items-center justify-center text-red-500 hover:bg-red-50"
+                        >
+                          <Icon name="X" size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide pt-1">
+            Все хабы
+          </div>
+          <div className="grid grid-cols-2 gap-2 max-h-[35vh] overflow-y-auto">
             {HUB_ITEMS.map(item => {
               const checked = selectedIds.includes(item.id);
               const disabled = !checked && selectedIds.length >= MAX_MIDDLE;
