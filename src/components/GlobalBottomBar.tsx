@@ -190,14 +190,22 @@ export default function GlobalBottomBar() {
               title={domovoyHidden ? 'Показать Домового' : 'Скрыть Домового'}
               className={`flex flex-col items-center justify-center gap-0.5 w-10 h-12 rounded-lg flex-shrink-0 transition-colors ${
                 domovoyHidden
-                  ? 'text-white/60 hover:text-white hover:bg-white/15'
-                  : 'bg-white/25 text-white'
+                  ? 'hover:bg-white/15'
+                  : 'bg-white/25'
               }`}
             >
               <div className="relative">
-                <Icon name="Sparkles" size={22} />
+                <img
+                  src="https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png"
+                  alt="Домовой"
+                  className={`w-7 h-7 rounded-full object-cover bg-white/90 ring-2 transition-all ${
+                    domovoyHidden
+                      ? 'ring-white/30 opacity-60 grayscale'
+                      : 'ring-white'
+                  }`}
+                />
                 {domovoyHidden && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-400" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-400 ring-1 ring-white" />
                 )}
               </div>
             </button>
