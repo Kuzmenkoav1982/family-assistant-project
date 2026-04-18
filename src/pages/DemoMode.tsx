@@ -148,15 +148,15 @@ export default function DemoMode() {
   if (showRegistrationPrompt) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full p-8 border-2 border-orange-200 shadow-2xl">
+        <Card className="max-w-2xl w-full p-4 sm:p-8 border-2 border-orange-200 shadow-2xl">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Icon name="Clock" className="w-10 h-10 text-white" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <Icon name="Clock" className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
               Время демо-режима истекло! ⏰
             </h2>
-            <p className="text-lg text-gray-700 mb-6">
+            <p className="text-base sm:text-lg text-gray-700 mb-4 sm:mb-6">
               Вам понравилось? Зарегистрируйтесь, чтобы сохранить свои данные навсегда 
               и получить доступ ко всем функциям!
             </p>
@@ -230,16 +230,16 @@ export default function DemoMode() {
               <img 
                 src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG" 
                 alt="Наша Семья логотип" 
-                className="w-24 h-24 rounded-3xl shadow-xl"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-xl"
               />
             </div>
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
               🎭 Добро пожаловать в демо-режим!
             </h1>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-2">
+            <p className="text-base sm:text-xl text-gray-700 max-w-3xl mx-auto mb-2">
               Попробуйте все возможности приложения без регистрации
             </p>
-            <Badge className="bg-orange-500 text-white px-4 py-2 text-base">
+            <Badge className="bg-orange-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base">
               ⏱️ 10 минут бесплатного доступа
             </Badge>
           </div>

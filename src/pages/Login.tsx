@@ -205,13 +205,13 @@ export default function Login() {
             <img 
               src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
               alt="Наша семья"
-              className="w-32 h-32 object-contain"
+              className="w-24 h-24 sm:w-32 sm:h-32 object-contain"
             />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
             Наша семья
           </CardTitle>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Войдите, чтобы управлять семейными делами
           </p>
         </CardHeader>

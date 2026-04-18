@@ -198,11 +198,11 @@ export default function Register() {
             <img 
               src="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" 
               alt="Наша семья"
-              className="h-16 w-16 object-contain"
+              className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
             />
           </div>
-          <CardTitle className="text-2xl">Регистрация</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">Регистрация</CardTitle>
+          <CardDescription className="text-sm">
             Создайте аккаунт и начните управлять семейными делами
           </CardDescription>
         </CardHeader>

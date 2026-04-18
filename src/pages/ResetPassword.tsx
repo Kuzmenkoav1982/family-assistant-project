@@ -127,14 +127,14 @@ export default function ResetPassword() {
       <Card className="max-w-md w-full shadow-2xl border-2 border-purple-200">
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center">
-              <Icon name="KeyRound" size={40} className="text-purple-600" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-purple-100 flex items-center justify-center">
+              <Icon name="KeyRound" size={32} className="sm:w-10 sm:h-10 text-purple-600" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
             Восстановление пароля
           </CardTitle>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             {emailSent 
               ? 'Письмо с инструкцией отправлено на ваш email'
               : 'Введите email для восстановления доступа'

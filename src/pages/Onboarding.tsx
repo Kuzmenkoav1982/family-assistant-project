@@ -90,7 +90,7 @@ export default function Onboarding() {
       title: 'Что для вас важно?',
       subtitle: 'Выберите то, чем будете пользоваться. Можно изменить потом.',
       content: (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {INTEREST_OPTIONS.map(option => (
             <button
               key={option.id}
@@ -122,10 +122,10 @@ export default function Onboarding() {
   const currentStep = steps[step];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 flex items-center justify-center p-3 sm:p-4">
       <Card className="max-w-lg w-full shadow-xl border-0">
-        <CardContent className="p-8">
-          <div className="flex gap-2 mb-8">
+        <CardContent className="p-4 sm:p-8">
+          <div className="flex gap-2 mb-6 sm:mb-8">
             {steps.map((_, i) => (
               <div
                 key={i}

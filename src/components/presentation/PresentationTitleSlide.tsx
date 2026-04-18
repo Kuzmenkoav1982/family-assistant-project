@@ -10,7 +10,7 @@ export function PresentationTitleSlide() {
         <img
           src={`https://cdn.poehali.dev/files/${encodeURIComponent('Логотип Наша Семья.JPG')}`}
           alt="Наша семья"
-          className="h-36 w-36 object-contain rounded-2xl shadow-lg"
+          className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 object-contain rounded-2xl shadow-lg"
         />
       </div>
       <h1 className="text-3xl sm:text-5xl font-bold mb-3 text-slate-800 tracking-tight">

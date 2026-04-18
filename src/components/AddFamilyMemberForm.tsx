@@ -206,12 +206,12 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
           {!formData.photoUrl && (
             <div>
               <label className="block text-xs text-muted-foreground mb-2">Или выберите иконку</label>
-              <div className="grid grid-cols-8 gap-2">
+              <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5 sm:gap-2">
                 {avatarOptions.map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
-                    className={`text-3xl hover:bg-gray-100 rounded p-2 transition-all border-2 ${
+                    className={`text-2xl sm:text-3xl hover:bg-gray-100 rounded p-1.5 sm:p-2 transition-all border-2 ${
                       selectedAvatar === emoji ? 'border-orange-500 bg-orange-50' : 'border-transparent'
                     }`}
                     onClick={() => {
