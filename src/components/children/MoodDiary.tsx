@@ -95,7 +95,7 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
                   Добавить запись
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl w-[calc(100vw-1rem)] sm:w-full">
                 <DialogHeader>
                   <DialogTitle>Как твоё настроение сегодня?</DialogTitle>
                 </DialogHeader>

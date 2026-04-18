@@ -65,15 +65,15 @@ export function CalendarGrid({
 
   return (
     <div className="space-y-4">
-      <div className={`grid ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} gap-2`}>
+      <div className={`grid ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} gap-1 sm:gap-2`}>
         {weekDays.map(day => (
-          <div key={day} className="text-center font-semibold text-gray-600 py-2">
+          <div key={day} className="text-center font-semibold text-gray-600 py-2 text-xs sm:text-base">
             {day}
           </div>
         ))}
       </div>
 
-      <div className={`grid ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} gap-2`}>
+      <div className={`grid ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} gap-1 sm:gap-2`}>
         {days.map((day, idx) => {
           const isToday = day.date.getFullYear() === todayYear && 
                          day.date.getMonth() === todayMonth && 
@@ -82,7 +82,7 @@ export function CalendarGrid({
           return (
             <Card
               key={idx}
-              className={`min-h-[120px] p-2 cursor-pointer transition-all hover:shadow-md ${
+              className={`min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 cursor-pointer transition-all hover:shadow-md ${
                 !day.isCurrentMonth ? 'bg-gray-50 opacity-50' : ''
               } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
               onClick={(e) => {

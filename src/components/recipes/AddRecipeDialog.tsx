@@ -98,7 +98,7 @@ export function AddRecipeDialog({
 }: AddRecipeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[calc(100vw-1rem)] sm:w-full">
         <DialogHeader>
           <DialogTitle>Добавить рецепт</DialogTitle>
         </DialogHeader>
@@ -136,7 +136,7 @@ export function AddRecipeDialog({
                 placeholder="Традиционный украинский суп"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <Label>Категория</Label>
                 <Select value={newRecipe.category} onValueChange={(v) => onRecipeChange({ ...newRecipe, category: v as RecipeCategory })}>
@@ -168,7 +168,7 @@ export function AddRecipeDialog({
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               <div>
                 <Label>Время (мин)</Label>
                 <Input

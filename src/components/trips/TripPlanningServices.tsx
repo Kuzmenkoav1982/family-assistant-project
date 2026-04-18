@@ -128,9 +128,9 @@ export function TripPlanningServices({ destination, country }: TripPlanningServi
 
       <Tabs defaultValue="booking" className="w-full">
         <TabsList className="w-full grid grid-cols-3 mb-4">
-          <TabsTrigger value="booking">Бронирование</TabsTrigger>
-          <TabsTrigger value="tours">Экскурсии</TabsTrigger>
-          <TabsTrigger value="esim">eSIM</TabsTrigger>
+          <TabsTrigger value="booking" className="text-[11px] sm:text-sm px-1 sm:px-3">Бронирование</TabsTrigger>
+          <TabsTrigger value="tours" className="text-[11px] sm:text-sm px-1 sm:px-3">Экскурсии</TabsTrigger>
+          <TabsTrigger value="esim" className="text-[11px] sm:text-sm px-1 sm:px-3">eSIM</TabsTrigger>
         </TabsList>
 
         <TabsContent value="booking" className="space-y-3 mt-0">

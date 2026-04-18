@@ -34,7 +34,7 @@ export default function BalanceCard({ accountBalance, accountCount, planIncome, 
                   <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-3" side="bottom">
+              <PopoverContent className="w-[calc(100vw-2rem)] max-w-xs p-3" side="bottom">
                 <div className="space-y-2">
                   <p className="font-semibold text-sm">Текущий баланс</p>
                   <p className="text-xs text-muted-foreground">Сумма остатков на всех активных счетах. Обновляется автоматически при добавлении операций.</p>
@@ -74,7 +74,7 @@ export default function BalanceCard({ accountBalance, accountCount, planIncome, 
                   <Icon name="Info" size={12} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-3" side="bottom">
+              <PopoverContent className="w-[calc(100vw-2rem)] max-w-xs p-3" side="bottom">
                 <div className="space-y-2">
                   <p className="font-semibold text-sm">Прогноз на конец месяца</p>
                   <p className="text-xs text-muted-foreground">Текущий баланс + ожидаемые доходы − ожидаемые расходы (запланированные, но ещё не подтверждённые).</p>
@@ -109,7 +109,7 @@ export default function BalanceCard({ accountBalance, accountCount, planIncome, 
                     <Icon name="Info" size={10} className="text-blue-200 opacity-40 group-hover:opacity-100 transition-opacity" />
                   </p>
                 </PopoverTrigger>
-                <PopoverContent className="w-72 p-3" side="bottom">
+                <PopoverContent className="w-[calc(100vw-2rem)] max-w-xs p-3" side="bottom">
                   <div className="space-y-2">
                     <p className="font-semibold text-sm">Ожидаемое изменение</p>
                     <p className="text-xs text-muted-foreground">Чистое изменение баланса от запланированных операций (регулярные платежи, долги).</p>

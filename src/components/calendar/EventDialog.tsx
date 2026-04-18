@@ -76,7 +76,7 @@ export function EventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[calc(100vw-1rem)] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Icon name="Calendar" size={24} />
@@ -106,7 +106,7 @@ export function EventDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
               <Label htmlFor="date">Дата *</Label>
               <Input

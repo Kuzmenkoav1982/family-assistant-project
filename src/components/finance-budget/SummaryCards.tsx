@@ -23,7 +23,7 @@ export default function SummaryCards({ sumIncome, sumExpense, planIncome, planEx
                 <Icon name="Info" size={10} className="text-green-400 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-3" side="bottom">
+            <PopoverContent className="w-[calc(100vw-2rem)] max-w-xs p-3" side="bottom">
               <div className="space-y-2">
                 <p className="font-semibold text-sm">Доходы за месяц</p>
                 <p className="text-xs text-muted-foreground">Сумма фактически полученных доходов и запланированных поступлений (регулярные платежи).</p>
@@ -59,7 +59,7 @@ export default function SummaryCards({ sumIncome, sumExpense, planIncome, planEx
                 <Icon name="Info" size={10} className="text-red-400 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-3" side="bottom">
+            <PopoverContent className="w-[calc(100vw-2rem)] max-w-xs p-3" side="bottom">
               <div className="space-y-2">
                 <p className="font-semibold text-sm">Расходы за месяц</p>
                 <p className="text-xs text-muted-foreground">Сумма фактических расходов и запланированных списаний (регулярные платежи, долги).</p>

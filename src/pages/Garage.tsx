@@ -75,7 +75,7 @@ export default function Garage() {
             <DialogTrigger asChild>
               <Button size="sm"><Icon name="Plus" size={16} className="mr-1" />Добавить</Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] overflow-y-auto w-[calc(100vw-1rem)] sm:w-full">
               <DialogHeader><DialogTitle>Новый автомобиль</DialogTitle></DialogHeader>
               <AddVehicleForm onSubmit={async (v) => { await g.createVehicle(v); await g.loadStats(); setShowAdd(false); }} />
             </DialogContent>
@@ -107,12 +107,12 @@ export default function Garage() {
             </div>
 
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="w-full grid grid-cols-5 h-auto">
-                <TabsTrigger value="services" className="text-xs py-1.5"><Icon name="Wrench" size={14} className="mr-1" />ТО</TabsTrigger>
-                <TabsTrigger value="expenses" className="text-xs py-1.5"><Icon name="Wallet" size={14} className="mr-1" />Расходы</TabsTrigger>
-                <TabsTrigger value="reminders" className="text-xs py-1.5"><Icon name="Bell" size={14} className="mr-1" />Напом.</TabsTrigger>
-                <TabsTrigger value="notes" className="text-xs py-1.5"><Icon name="MessageSquare" size={14} className="mr-1" />Заметки</TabsTrigger>
-                <TabsTrigger value="info" className="text-xs py-1.5"><Icon name="Info" size={14} className="mr-1" />Инфо</TabsTrigger>
+              <TabsList className="w-full grid grid-cols-5 h-auto gap-0.5">
+                <TabsTrigger value="services" className="text-[10px] sm:text-xs py-1.5 px-1"><Icon name="Wrench" size={14} className="hidden sm:inline mr-1" />ТО</TabsTrigger>
+                <TabsTrigger value="expenses" className="text-[10px] sm:text-xs py-1.5 px-1"><Icon name="Wallet" size={14} className="hidden sm:inline mr-1" />Расходы</TabsTrigger>
+                <TabsTrigger value="reminders" className="text-[10px] sm:text-xs py-1.5 px-1"><Icon name="Bell" size={14} className="hidden sm:inline mr-1" />Напом.</TabsTrigger>
+                <TabsTrigger value="notes" className="text-[10px] sm:text-xs py-1.5 px-1"><Icon name="MessageSquare" size={14} className="hidden sm:inline mr-1" />Заметки</TabsTrigger>
+                <TabsTrigger value="info" className="text-[10px] sm:text-xs py-1.5 px-1"><Icon name="Info" size={14} className="hidden sm:inline mr-1" />Инфо</TabsTrigger>
               </TabsList>
 
               <TabsContent value="services">

@@ -438,7 +438,7 @@ export function FamilyMembersGrid({ members: rawMembers, onMemberClick, tasks = 
   return (
     <div className="space-y-4">
       <Dialog open={showAddChildDialog} onOpenChange={setShowAddChildDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[calc(100vw-1rem)] sm:w-full">
           <DialogHeader>
             <DialogTitle>Добавить ребёнка</DialogTitle>
           </DialogHeader>

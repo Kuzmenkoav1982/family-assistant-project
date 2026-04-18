@@ -196,7 +196,7 @@ export function ChildProfile({ child }: ChildProfileProps) {
 
   return (
     <Tabs defaultValue="home" className="space-y-6">
-      <TabsList className="grid grid-cols-3 grid-rows-2 h-auto w-full gap-1 bg-gray-100 p-1.5 rounded-xl">
+      <TabsList className="grid grid-cols-2 sm:grid-cols-3 grid-rows-3 sm:grid-rows-2 h-auto w-full gap-1 bg-gray-100 p-1.5 rounded-xl">
         <TabsTrigger value="home" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
           <Icon name="Home" size={15} />
           Главная

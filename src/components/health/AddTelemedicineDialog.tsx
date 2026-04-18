@@ -103,7 +103,7 @@ export function AddTelemedicineDialog({ profileId, onSuccess, trigger }: AddTele
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[calc(100vw-1rem)] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Icon name="Video" size={20} className="text-purple-600" />

@@ -160,7 +160,7 @@ export function HealthDashboard({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="charts"
@@ -246,8 +246,8 @@ export function HealthDashboard({
 
       <div ref={reportRef} className="space-y-6 p-6 bg-white print:p-0">
         <div className="text-center space-y-2 print:mb-8">
-          <h1 className="text-3xl font-bold">Медицинский отчёт</h1>
-          <p className="text-xl text-muted-foreground">{profile.userName}, {profile.userAge} лет</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Медицинский отчёт</h1>
+          <p className="text-base sm:text-xl text-muted-foreground">{profile.userName}, {profile.userAge} лет</p>
           <p className="text-sm text-muted-foreground">
             Дата формирования: {new Date().toLocaleDateString('ru-RU', { 
               day: 'numeric', 
@@ -317,7 +317,7 @@ export function HealthDashboard({
               <Icon name="TrendingUp" size={20} />
               Динамика показателей
             </h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <VitalSignsChart 
                 vitals={vitals} 
                 type="pressure" 
