@@ -453,11 +453,11 @@ export default function Pets() {
                         </Badge>
                       )}
                       {selectedPet.gender && (
-                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs border-gray-200 text-gray-700 inline-flex items-center gap-1">
-                          <span className={`text-sm leading-none ${selectedPet.gender === 'male' ? 'text-blue-500' : 'text-pink-500'}`}>
+                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs border-gray-200 text-gray-700 inline-flex items-center gap-1 leading-none">
+                          <span className={`text-xs leading-none relative -top-px ${selectedPet.gender === 'male' ? 'text-blue-500' : 'text-pink-500'}`}>
                             {selectedPet.gender === 'male' ? '♂' : '♀'}
                           </span>
-                          <span>{selectedPet.gender === 'male' ? 'Мальчик' : 'Девочка'}</span>
+                          <span className="leading-none">{selectedPet.gender === 'male' ? 'Мальчик' : 'Девочка'}</span>
                         </Badge>
                       )}
                     </div>

@@ -363,6 +363,7 @@ export default function FamilyWallet() {
                     { icon: 'MapPin', label: 'Рекомендации досуга', cost: '4 руб' },
                     { icon: 'Heart', label: 'Анализ развития ребёнка', cost: '4 руб' },
                     { icon: 'MessageSquare', label: 'AI-ассистент (запрос)', cost: '3 руб' },
+                    { icon: 'Stethoscope', label: 'ИИ-ветеринар (запрос)', cost: '3 руб' },
                     { icon: 'Lightbulb', label: 'Идеи для события ИИ', cost: '3 руб' },
                     { icon: 'TrendingUp', label: 'Финансовый совет ИИ', cost: '3 руб' },
                     { icon: 'Baby', label: 'Оценка развития ребёнка', cost: '3 руб' },
