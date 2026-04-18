@@ -539,14 +539,29 @@ export default function FinanceRecurring() {
               <>
                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide pt-2">Приостановлены</p>
                 {inactiveItems.map(item => (
-                  <Card key={item.id} className="opacity-50 cursor-pointer hover:opacity-70 transition-opacity"
+                  <Card key={item.id} className="opacity-50 cursor-pointer hover:opacity-70 transition-opacity overflow-hidden"
                     onClick={() => openEdit(item)}>
-                    <CardContent className="p-3 flex items-center gap-3">
-                      <span className="text-sm flex-1 truncate">{item.description}</span>
-                      <span className="text-sm text-muted-foreground">{formatMoney(item.amount)} ₽</span>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={(e) => toggleActive(item, e)}>
-                        <Icon name="Play" size={12} />
-                      </Button>
+                    <CardContent className="p-0">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: (item.category_color || (item.type === 'income' ? '#22C55E' : '#EF4444')) + '20' }}>
+                          <Icon name={item.category_icon || (item.type === 'income' ? 'TrendingUp' : 'TrendingDown')}
+                            size={16} style={{ color: item.category_color || (item.type === 'income' ? '#22C55E' : '#EF4444') }} />
+                        </div>
+                        <div className="flex-1 px-3 py-2 min-w-0">
+                          <span className="text-sm font-medium truncate block">{item.description || 'Без описания'}</span>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground min-w-0">
+                            <span className="truncate">{FREQ_LABELS[item.frequency] || item.frequency}</span>
+                            {item.category_name && <span className="truncate max-w-[120px]">· {item.category_name}</span>}
+                          </div>
+                        </div>
+                        <span className={`text-sm font-bold pr-2 flex-shrink-0 ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                          {item.type === 'income' ? '+' : '-'}{formatMoney(item.amount)} ₽
+                        </span>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 mr-1 flex-shrink-0" onClick={(e) => toggleActive(item, e)}>
+                          <Icon name="Play" size={14} />
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
