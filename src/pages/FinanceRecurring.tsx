@@ -495,14 +495,14 @@ export default function FinanceRecurring() {
                     </div>
                     <div className="flex-1 px-3 py-2 min-w-0">
                       <span className="text-sm font-medium truncate block">{item.description || 'Без описания'}</span>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{FREQ_LABELS[item.frequency] || item.frequency}</span>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground min-w-0">
+                        <span className="truncate">{FREQ_LABELS[item.frequency] || item.frequency}</span>
                         {item.day_of_month && (
                           item.frequency === 'weekly' 
-                            ? <span>· {DAY_OF_WEEK_SHORT[item.day_of_month] || item.day_of_month}</span>
-                            : <span>· {item.day_of_month}-е число</span>
+                            ? <span className="truncate">· {DAY_OF_WEEK_SHORT[item.day_of_month] || item.day_of_month}</span>
+                            : <span className="truncate">· {item.day_of_month}-е число</span>
                         )}
-                        {item.category_name && <span>· {item.category_name}</span>}
+                        {item.category_name && <span className="truncate max-w-[120px]">· {item.category_name}</span>}
                       </div>
                       {renderMonthBadges(item)}
                     </div>
