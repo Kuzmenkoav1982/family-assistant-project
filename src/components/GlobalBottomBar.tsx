@@ -12,24 +12,25 @@ import { Button } from '@/components/ui/button';
 
 type NavItem = { id: string; path?: string; icon: string; label: string; type?: 'nav' | 'domovoy' };
 
-const ALL_ITEMS: NavItem[] = [
-  { id: 'home', path: '/', icon: 'Home', label: 'Домой' },
-  { id: 'development', path: '/development', icon: 'Brain', label: 'Развитие' },
+const HOME_ITEM: NavItem = { id: 'home', path: '/', icon: 'Home', label: 'Главная' };
+
+const HUB_ITEMS: NavItem[] = [
+  { id: 'family', path: '/family-hub', icon: 'Users', label: 'Семья' },
+  { id: 'health', path: '/health-hub', icon: 'HeartPulse', label: 'Здоровье' },
   { id: 'nutrition', path: '/nutrition', icon: 'Apple', label: 'Питание' },
-  { id: 'shopping', path: '/shopping', icon: 'ShoppingCart', label: 'Покупки' },
-  { id: 'leisure', path: '/leisure-hub', icon: 'Plane', label: 'Путешествия' },
-  { id: 'calendar', path: '/calendar', icon: 'Calendar', label: 'Календарь' },
-  { id: 'children', path: '/children', icon: 'Baby', label: 'Дети' },
+  { id: 'values', path: '/values-hub', icon: 'Heart', label: 'Ценности' },
   { id: 'planning', path: '/planning-hub', icon: 'Target', label: 'Планирование' },
-  { id: 'chat', path: '/chat', icon: 'MessageCircle', label: 'Чат семьи' },
-  { id: 'tasks', path: '/tasks', icon: 'CheckSquare', label: 'Задачи' },
   { id: 'finance', path: '/finance', icon: 'Wallet', label: 'Финансы' },
-  { id: 'health', path: '/health', icon: 'Heart', label: 'Здоровье' },
-  { id: 'photos', path: '/photos', icon: 'Image', label: 'Фото' },
-  { id: 'goals', path: '/goals', icon: 'Flag', label: 'Цели' },
+  { id: 'household', path: '/household-hub', icon: 'Home', label: 'Быт' },
+  { id: 'leisure', path: '/leisure-hub', icon: 'Plane', label: 'Путешествия' },
+  { id: 'development', path: '/development-hub', icon: 'Brain', label: 'Развитие' },
+  { id: 'family-matrix', path: '/family-matrix', icon: 'Sparkles', label: 'Семейный код' },
+  { id: 'pets', path: '/pets', icon: 'PawPrint', label: 'Питомцы' },
 ];
 
-const DEFAULT_IDS = ['home', 'development', 'nutrition', 'shopping', 'leisure', 'calendar', 'children', 'planning'];
+const ALL_ITEMS: NavItem[] = [HOME_ITEM, ...HUB_ITEMS];
+
+const DEFAULT_IDS = ['home', 'family', 'health', 'nutrition', 'planning', 'finance', 'leisure', 'development'];
 const STORAGE_KEY = 'bottomBarItems';
 const MAX_MIDDLE = 8;
 
@@ -194,26 +195,25 @@ export default function GlobalBottomBar() {
           <DialogHeader>
             <DialogTitle>Настройка нижней панели</DialogTitle>
             <DialogDescription>
-              Выберите до {MAX_MIDDLE} кнопок. «Домой» и «Домовой» закреплены.
+              Выберите до {MAX_MIDDLE - 1} хабов. «Главная» и «Домовой» закреплены.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-y-auto">
-            {ALL_ITEMS.map(item => {
+            {HUB_ITEMS.map(item => {
               const checked = selectedIds.includes(item.id);
-              const isHome = item.id === 'home';
               const disabled = !checked && selectedIds.length >= MAX_MIDDLE;
               return (
                 <button
                   key={item.id}
-                  onClick={() => !isHome && !disabled && toggleItem(item.id)}
-                  disabled={isHome || disabled}
+                  onClick={() => !disabled && toggleItem(item.id)}
+                  disabled={disabled}
                   className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-left ${
                     checked
                       ? 'border-blue-500 bg-blue-50'
                       : disabled
                         ? 'border-gray-100 bg-gray-50 opacity-50'
                         : 'border-gray-200 bg-white hover:border-gray-300'
-                  } ${isHome ? 'opacity-80 cursor-not-allowed' : ''}`}
+                  }`}
                 >
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     checked ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
@@ -221,7 +221,6 @@ export default function GlobalBottomBar() {
                     <Icon name={item.icon} size={18} />
                   </div>
                   <span className="text-sm font-medium text-gray-800 truncate">{item.label}</span>
-                  {isHome && <span className="ml-auto text-[10px] text-gray-400">закр.</span>}
                 </button>
               );
             })}
