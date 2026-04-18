@@ -84,6 +84,21 @@ const AIAssistantWidget = () => {
   // Состояние для роли Кузи
   const [kuzyaRole, setKuzyaRole] = useState(() => localStorage.getItem('kuzyaRole') || 'family-assistant');
 
+  // Скрытие домовёнка пользователем через кнопку в нижней панели
+  const [isHiddenByUser, setIsHiddenByUser] = useState(() => localStorage.getItem('domovoyHidden') === 'true');
+
+  useEffect(() => {
+    const handleToggle = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const next = typeof detail?.hidden === 'boolean' ? detail.hidden : !isHiddenByUser;
+      setIsHiddenByUser(next);
+      localStorage.setItem('domovoyHidden', String(next));
+      if (next) setIsOpen(false);
+    };
+    window.addEventListener('domovoy:toggle', handleToggle);
+    return () => window.removeEventListener('domovoy:toggle', handleToggle);
+  }, [isHiddenByUser]);
+
   // Обновление роли
   const handleRoleChange = (newRole: string) => {
     setKuzyaRole(newRole);
@@ -413,6 +428,7 @@ const AIAssistantWidget = () => {
 
   // Не показываем ничего на странице /welcome
   if (isWelcomePage) return null;
+  if (isHiddenByUser) return null;
 
   return (
     <>
