@@ -186,7 +186,7 @@ export default function PetSubSection({
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto w-[calc(100vw-1rem)] sm:w-full">
           <DialogHeader>
             <DialogTitle>{editing ? 'Редактировать' : 'Добавить'} — {title}</DialogTitle>
           </DialogHeader>

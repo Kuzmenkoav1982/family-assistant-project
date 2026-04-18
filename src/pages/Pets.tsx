@@ -465,7 +465,7 @@ export default function Pets() {
                 </div>
 
                 {/* Статистика */}
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div className="p-2.5 rounded-2xl bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 text-center">
                     <div className="flex justify-center mb-0.5">
                       <Icon name="Syringe" size={16} className="text-rose-500" />
@@ -515,14 +515,14 @@ export default function Pets() {
               <button
                 key={t.key}
                 onClick={() => changeTab(t.key)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border-2 transition-all ${
                   tab === t.key
                     ? `bg-gradient-to-r ${t.gradient} text-white border-transparent shadow-md`
                     : 'bg-white dark:bg-gray-800 border-gray-200 hover:border-violet-200'
                 }`}
               >
                 <Icon name={t.icon} size={14} />
-                <span className="font-semibold text-xs">{t.label}</span>
+                <span className="font-semibold text-[11px] sm:text-xs whitespace-nowrap">{t.label}</span>
               </button>
             ))}
           </div>
