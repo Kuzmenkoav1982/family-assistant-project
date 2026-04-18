@@ -196,10 +196,16 @@ export default function GlobalBottomBar() {
               }`}
             >
               <div className="relative">
-                <img
-                  src={DOMOVOY_IMG}
-                  alt="Домовой"
-                  className={`w-7 h-7 rounded-full object-cover bg-white/90 ring-2 transition-all ${
+                <div
+                  role="img"
+                  aria-label="Домовой"
+                  style={{
+                    backgroundImage: `url(${DOMOVOY_IMG})`,
+                    backgroundSize: '220%',
+                    backgroundPosition: '50% 12%',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                  className={`w-7 h-7 rounded-full bg-white/90 ring-2 transition-all ${
                     domovoyHidden
                       ? 'ring-white/30 opacity-60 grayscale'
                       : 'ring-white'
@@ -328,15 +334,19 @@ export default function GlobalBottomBar() {
 
               <div className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white cursor-not-allowed">
                 <Icon name="GripVertical" size={16} className="text-gray-200" />
-                <div className="w-8 h-8 rounded-lg flex-shrink-0 overflow-hidden ring-1 ring-gray-200">
-                  <img
-                    src={DOMOVOY_IMG}
-                    alt="Домовой"
-                    className={`w-full h-full object-cover bg-gray-100 ${
-                      domovoyHidden ? 'grayscale opacity-60' : ''
-                    }`}
-                  />
-                </div>
+                <div
+                  role="img"
+                  aria-label="Домовой"
+                  style={{
+                    backgroundImage: `url(${DOMOVOY_IMG})`,
+                    backgroundSize: '220%',
+                    backgroundPosition: '50% 12%',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                  className={`w-8 h-8 rounded-lg flex-shrink-0 bg-gray-100 ring-1 ring-gray-200 ${
+                    domovoyHidden ? 'grayscale opacity-60' : ''
+                  }`}
+                />
                 <span className="text-sm font-medium text-gray-800 truncate flex-1">
                   Домовой
                 </span>
