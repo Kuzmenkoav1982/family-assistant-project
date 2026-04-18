@@ -54,15 +54,15 @@ export function AnalyticsContentTabs({
 }: AnalyticsContentTabsProps) {
   return (
     <Tabs defaultValue="overview" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="overview">Обзор</TabsTrigger>
-        <TabsTrigger value="tasks">Задачи</TabsTrigger>
-        <TabsTrigger value="activity">Активность</TabsTrigger>
-        <TabsTrigger value="events">События</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+        <TabsTrigger value="overview" className="text-xs sm:text-sm">Обзор</TabsTrigger>
+        <TabsTrigger value="tasks" className="text-xs sm:text-sm">Задачи</TabsTrigger>
+        <TabsTrigger value="activity" className="text-xs sm:text-sm">Активность</TabsTrigger>
+        <TabsTrigger value="events" className="text-xs sm:text-sm">События</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

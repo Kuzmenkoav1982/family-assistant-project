@@ -293,10 +293,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       )}
       
       <div 
-        className={`fixed left-0 top-16 bottom-0 z-40 bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 overflow-y-auto ${
+        className={`fixed left-0 top-16 bottom-0 z-40 bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 overflow-y-auto w-[280px] max-w-[85vw] ${
           isVisible ? 'translate-x-0' : '-translate-x-full'
         }`}
-        style={{ width: '280px' }}
       >
         <div className="p-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between gap-2">

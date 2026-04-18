@@ -500,10 +500,10 @@ export default function Pricing() {
         </div>
 
         <Tabs defaultValue="subscriptions" className="max-w-7xl mx-auto">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="subscriptions">📦 Подписки</TabsTrigger>
-            <TabsTrigger value="storage">💾 Хранилище</TabsTrigger>
-            <TabsTrigger value="donations">💚 Поддержка</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-8 gap-1">
+            <TabsTrigger value="subscriptions" className="text-[11px] sm:text-sm px-1 sm:px-3">📦 Подписки</TabsTrigger>
+            <TabsTrigger value="storage" className="text-[11px] sm:text-sm px-1 sm:px-3">💾 Хранилище</TabsTrigger>
+            <TabsTrigger value="donations" className="text-[11px] sm:text-sm px-1 sm:px-3">💚 Поддержка</TabsTrigger>
           </TabsList>
 
           {/* Подписки */}

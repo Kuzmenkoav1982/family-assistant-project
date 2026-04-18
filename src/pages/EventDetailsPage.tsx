@@ -476,7 +476,7 @@ export default function EventDetailsPage() {
       </div>
 
       <Tabs defaultValue="guests" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1">
+        <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1">
           <TabsTrigger value="guests" className="flex-col md:flex-row gap-1 py-2 text-xs md:text-sm">
             <Icon name="Users" size={14} className="md:hidden" />
             <span>Гости</span>

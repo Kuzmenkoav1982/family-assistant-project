@@ -37,7 +37,7 @@ export default function CohesionTabContent({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-orange-600">{totalPoints}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-orange-600 truncate">{totalPoints}</div>
             </CardContent>
           </Card>
 
@@ -49,7 +49,7 @@ export default function CohesionTabContent({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-pink-600">{avgWorkload}%</div>
+              <div className="text-2xl sm:text-3xl font-bold text-pink-600 truncate">{avgWorkload}%</div>
             </CardContent>
           </Card>
 
@@ -61,7 +61,7 @@ export default function CohesionTabContent({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">{completedTasks}/{totalTasks}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-purple-600 truncate">{completedTasks}/{totalTasks}</div>
             </CardContent>
           </Card>
 
@@ -73,7 +73,7 @@ export default function CohesionTabContent({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{familyMembers.length}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-blue-600 truncate">{familyMembers.length}</div>
             </CardContent>
           </Card>
         </div>

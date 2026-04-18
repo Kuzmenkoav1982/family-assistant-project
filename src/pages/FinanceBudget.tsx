@@ -91,15 +91,15 @@ export default function FinanceBudget() {
         />
 
         <Tabs value={budget.tab} onValueChange={budget.setTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="transactions">
-              <Icon name="ArrowUpDown" size={14} className="mr-1" /> Операции
+          <TabsList className="grid w-full grid-cols-3 gap-1">
+            <TabsTrigger value="transactions" className="text-[11px] sm:text-sm px-1 sm:px-3">
+              <Icon name="ArrowUpDown" size={14} className="hidden sm:inline mr-1" /> Операции
             </TabsTrigger>
-            <TabsTrigger value="budgets">
-              <Icon name="PieChart" size={14} className="mr-1" /> Лимиты
+            <TabsTrigger value="budgets" className="text-[11px] sm:text-sm px-1 sm:px-3">
+              <Icon name="PieChart" size={14} className="hidden sm:inline mr-1" /> Лимиты
             </TabsTrigger>
-            <TabsTrigger value="analytics">
-              <Icon name="BarChart3" size={14} className="mr-1" /> Аналитика
+            <TabsTrigger value="analytics" className="text-[11px] sm:text-sm px-1 sm:px-3">
+              <Icon name="BarChart3" size={14} className="hidden sm:inline mr-1" /> Аналитика
             </TabsTrigger>
           </TabsList>
 

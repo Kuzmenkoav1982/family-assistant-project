@@ -124,17 +124,17 @@ export default function Community() {
         </header>
 
         <Tabs defaultValue="feed" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="feed">
-              <Icon name="Newspaper" className="mr-2" size={16} />
+          <TabsList className="grid w-full grid-cols-3 gap-1">
+            <TabsTrigger value="feed" className="text-[11px] sm:text-sm px-1 sm:px-3">
+              <Icon name="Newspaper" className="hidden sm:inline mr-2" size={16} />
               Лента
             </TabsTrigger>
-            <TabsTrigger value="reviews">
-              <Icon name="Star" className="mr-2" size={16} />
+            <TabsTrigger value="reviews" className="text-[11px] sm:text-sm px-1 sm:px-3">
+              <Icon name="Star" className="hidden sm:inline mr-2" size={16} />
               Рекомендации
             </TabsTrigger>
-            <TabsTrigger value="chat">
-              <Icon name="MessageCircle" className="mr-2" size={16} />
+            <TabsTrigger value="chat" className="text-[11px] sm:text-sm px-1 sm:px-3">
+              <Icon name="MessageCircle" className="hidden sm:inline mr-2" size={16} />
               Обсуждения
             </TabsTrigger>
           </TabsList>

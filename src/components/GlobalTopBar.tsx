@@ -171,7 +171,7 @@ export default function GlobalTopBar() {
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
               >
                 <Icon name="Wallet" size={14} className="text-emerald-600" />
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{walletBalance.toFixed(0)} р</span>
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 max-w-[80px] truncate">{walletBalance.toFixed(0)} р</span>
               </button>
             )}
 
@@ -181,7 +181,7 @@ export default function GlobalTopBar() {
                   <Icon name="MoreVertical" size={18} className="text-gray-500" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl p-1">
+              <DropdownMenuContent align="end" className="w-56 max-w-[calc(100vw-1rem)] rounded-xl p-1">
                 <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-lg">
                   <Icon name="Settings" size={16} className="mr-2.5 text-gray-500" />
                   <span>Настройки</span>

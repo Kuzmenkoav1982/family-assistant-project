@@ -19,53 +19,53 @@ export function WelcomeScreen({ show, familyName, familyLogo, welcomeText, onClo
     >
       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-        <div className="mb-8 animate-bounce-slow">
-          <div className="inline-block bg-white rounded-3xl p-6 shadow-2xl">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        <div className="mb-6 sm:mb-8 animate-bounce-slow">
+          <div className="inline-block bg-white rounded-3xl p-4 sm:p-6 shadow-2xl">
             <img
               src={familyLogo}
               alt={familyName}
-              className="w-64 h-64 md:w-80 md:h-80 mx-auto object-contain"
+              className="w-40 h-40 sm:w-64 sm:h-64 md:w-80 md:h-80 mx-auto object-contain"
             />
           </div>
         </div>
 
-        <div className="space-y-6">
-          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-6 animate-fade-in">
+        <div className="space-y-4 sm:space-y-6">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-4 sm:mb-6 animate-fade-in">
             {familyName}
           </h1>
 
-          <div className="min-h-[200px] flex items-center justify-center px-4">
-            <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          <div className="min-h-[120px] sm:min-h-[200px] flex items-center justify-center px-2 sm:px-4">
+            <p className="text-base sm:text-xl md:text-2xl text-gray-700 font-medium leading-relaxed max-w-3xl animate-fade-in" style={{ animationDelay: '0.5s' }}>
               {welcomeText}
             </p>
           </div>
 
           <div
-            className="flex justify-center gap-4 mt-12 animate-fade-in"
+            className="flex flex-wrap justify-center gap-2 sm:gap-4 mt-6 sm:mt-12 animate-fade-in"
             style={{ animationDelay: '3s' }}
           >
-            <div className="flex items-center gap-2 text-orange-600">
-              <Icon name="Heart" className="animate-pulse" size={24} />
-              <span className="text-lg font-semibold">Любовь</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-orange-600">
+              <Icon name="Heart" className="animate-pulse" size={20} />
+              <span className="text-sm sm:text-lg font-semibold">Любовь</span>
             </div>
-            <div className="flex items-center gap-2 text-pink-600">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-pink-600">
               <Icon
                 name="Users"
                 className="animate-pulse"
-                size={24}
+                size={20}
                 style={{ animationDelay: '0.2s' }}
               />
-              <span className="text-lg font-semibold">Команда</span>
+              <span className="text-sm sm:text-lg font-semibold">Команда</span>
             </div>
-            <div className="flex items-center gap-2 text-purple-600">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-purple-600">
               <Icon
                 name="Sparkles"
                 className="animate-pulse"
-                size={24}
+                size={20}
                 style={{ animationDelay: '0.4s' }}
               />
-              <span className="text-lg font-semibold">Традиции</span>
+              <span className="text-sm sm:text-lg font-semibold">Традиции</span>
             </div>
           </div>
 
