@@ -181,7 +181,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/development-hub',
       items: [
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
-        { id: 'psychologist', label: 'Психолог ИИ', icon: 'BrainCircuit', path: '/psychologist' }
+        { id: 'psychologist', label: 'Психолог ИИ', icon: 'BrainCircuit', path: '/psychologist' },
+        { id: 'life-road', label: 'Дорога жизни', icon: 'Route', path: '/life-road' }
       ]
     },
     {

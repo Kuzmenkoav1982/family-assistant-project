@@ -38,6 +38,17 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-violet-100 text-violet-700',
     ready: true,
   },
+  {
+    id: 'life-road',
+    title: 'Дорога жизни',
+    description: 'Хронология важных событий, сезоны жизни и инструменты для осознанного планирования будущего',
+    icon: 'Route',
+    path: '/life-road',
+    gradient: 'from-pink-500 via-purple-500 to-indigo-600',
+    badge: 'Новое',
+    badgeColor: 'bg-pink-100 text-pink-700',
+    ready: true,
+  },
 ];
 
 export default function DevelopmentHub() {
