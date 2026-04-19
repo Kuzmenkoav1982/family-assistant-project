@@ -35,8 +35,20 @@ const reasonLabels: Record<string, string> = {
   ai_diet_plan: 'ИИ-диета',
   ai_photo: 'Фото ИИ',
   ai_recipe: 'Рецепт ИИ',
+  ai_recipe_short: 'Рецепт (короткий)',
   ai_greeting: 'Открытка ИИ',
   ai_motivation: 'Мотивация ИИ',
+  ai_assistant: 'AI-ассистент',
+  ai_finance_advice: 'Финансовый совет',
+  ai_trip_recommend: 'Маршрут поездки',
+  ai_recommendation: 'Рекомендации досуга',
+  ai_leisure_search: 'Поиск мест ИИ',
+  ai_development_analysis: 'Анализ развития',
+  ai_vet: 'ИИ-ветеринар',
+  ai_event_ideas: 'Идеи для события',
+  ai_child_assessment: 'Оценка развития ребёнка',
+  ai_trip_tips: 'Советы для поездки',
+  ai_life_coach: 'Домовой (наставник)',
 };
 
 const reasonIcons: Record<string, string> = {
@@ -45,8 +57,27 @@ const reasonIcons: Record<string, string> = {
   ai_diet_plan: 'Brain',
   ai_photo: 'Image',
   ai_recipe: 'ChefHat',
+  ai_recipe_short: 'BookOpen',
   ai_greeting: 'Gift',
   ai_motivation: 'Sparkles',
+  ai_assistant: 'MessageSquare',
+  ai_finance_advice: 'TrendingUp',
+  ai_trip_recommend: 'Plane',
+  ai_recommendation: 'MapPin',
+  ai_leisure_search: 'Search',
+  ai_development_analysis: 'Heart',
+  ai_vet: 'Stethoscope',
+  ai_event_ideas: 'Lightbulb',
+  ai_child_assessment: 'Baby',
+  ai_trip_tips: 'Compass',
+  ai_life_coach: 'Sparkles',
+};
+
+const localizeReason = (reason: string, type: 'topup' | 'spend'): string => {
+  if (reasonLabels[reason]) return reasonLabels[reason];
+  if (!reason) return type === 'topup' ? 'Пополнение' : 'Списание';
+  if (reason.startsWith('ai_')) return 'ИИ-сервис';
+  return type === 'topup' ? 'Пополнение' : 'Списание';
 };
 
 export default function FamilyWallet() {
@@ -363,6 +394,7 @@ export default function FamilyWallet() {
                     { icon: 'MapPin', label: 'Рекомендации досуга', cost: '4 руб' },
                     { icon: 'Heart', label: 'Анализ развития ребёнка', cost: '4 руб' },
                     { icon: 'MessageSquare', label: 'AI-ассистент (запрос)', cost: '3 руб' },
+                    { icon: 'Sparkles', label: 'Домовой — наставник Мастерской жизни', cost: '3 руб' },
                     { icon: 'Stethoscope', label: 'ИИ-ветеринар (запрос)', cost: '3 руб' },
                     { icon: 'Lightbulb', label: 'Идеи для события ИИ', cost: '3 руб' },
                     { icon: 'TrendingUp', label: 'Финансовый совет ИИ', cost: '3 руб' },
@@ -412,7 +444,7 @@ export default function FamilyWallet() {
                           const pct = stats.total_spent > 0 ? (sr.total / stats.total_spent) * 100 : 0;
                           return (
                             <div key={sr.reason} className="flex items-center gap-2">
-                              <span className="text-xs flex-1">{reasonLabels[sr.reason] || sr.reason}</span>
+                              <span className="text-xs flex-1">{localizeReason(sr.reason, 'spend')}</span>
                               <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div className="h-full bg-red-400 rounded-full" style={{ width: `${pct}%` }} />
                               </div>
@@ -451,7 +483,7 @@ export default function FamilyWallet() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {reasonLabels[tx.reason] || tx.reason || (tx.type === 'topup' ? 'Пополнение' : 'Списание')}
+                            {localizeReason(tx.reason, tx.type)}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
                             {formatDate(tx.created_at)}
@@ -515,7 +547,7 @@ export default function FamilyWallet() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">
-                          {reasonLabels[tx.reason] || tx.reason || (tx.type === 'topup' ? 'Пополнение' : 'Списание')}
+                          {localizeReason(tx.reason, tx.type)}
                         </p>
                         {tx.description && (
                           <p className="text-xs text-muted-foreground truncate">{tx.description}</p>

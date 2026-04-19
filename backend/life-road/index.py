@@ -67,7 +67,7 @@ def handler(event: dict, context) -> dict:
         if resource == 'photo':
             return _handle_photo(method, family_id, event)
         if resource == 'coach':
-            return _handle_coach(method, cur, family_id, event)
+            return _handle_coach(method, cur, family_id, user_id, event)
 
         return _resp(400, {'error': 'Unknown resource'})
     finally:
@@ -372,9 +372,62 @@ def _handle_balance(method, cur, conn, family_id, user_id, event):
     return _resp(405, {'error': 'Method not allowed'})
 
 
-def _handle_coach(method, cur, family_id, event):
+COACH_PRICE = 3
+COACH_REASON = 'ai_life_coach'
+COACH_DESCRIPTION = 'Домовой (наставник)'
+
+
+def _wallet_spend(family_id, user_id, amount, reason, description):
+    """Списание средств с семейного кошелька. Возвращает dict с success/error."""
+    if not family_id:
+        return {'error': 'no_family'}
+    dsn = os.environ.get('DATABASE_URL')
+    conn = psycopg2.connect(dsn)
+    try:
+        c = conn.cursor()
+        safe_fid = str(family_id).replace("'", "''")
+        c.execute("SELECT id, balance_rub FROM family_wallet WHERE family_id = '%s'" % safe_fid)
+        row = c.fetchone()
+        if not row:
+            c.execute(
+                "INSERT INTO family_wallet (family_id, balance_rub) VALUES ('%s', 0) RETURNING id, balance_rub"
+                % safe_fid
+            )
+            row = c.fetchone()
+            conn.commit()
+        wallet_id, balance = row[0], float(row[1])
+        if balance < amount:
+            return {'error': 'insufficient_funds', 'balance': balance, 'required': amount}
+        c.execute(
+            "UPDATE family_wallet SET balance_rub = balance_rub - %s, updated_at = NOW() WHERE id = %d"
+            % (amount, wallet_id)
+        )
+        safe_desc = description.replace("'", "''")
+        c.execute(
+            "INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id) "
+            "VALUES (%d, 'spend', %s, '%s', '%s', '%s')"
+            % (wallet_id, amount, reason, safe_desc, str(user_id))
+        )
+        conn.commit()
+        return {'success': True, 'new_balance': round(balance - amount, 2)}
+    finally:
+        conn.close()
+
+
+def _handle_coach(method, cur, family_id, user_id, event):
     if method != 'POST':
         return _resp(405, {'error': 'Method not allowed'})
+
+    spend_result = _wallet_spend(family_id, user_id, COACH_PRICE, COACH_REASON, COACH_DESCRIPTION)
+    if spend_result.get('error') == 'insufficient_funds':
+        return _resp(402, {
+            'error': 'insufficient_funds',
+            'message': 'Недостаточно средств на семейном кошельке для Домового.',
+            'balance': spend_result.get('balance', 0),
+            'required': COACH_PRICE,
+        })
+    if spend_result.get('error') and spend_result.get('error') != 'no_family':
+        return _resp(500, {'error': 'wallet_error', 'details': spend_result.get('error')})
 
     body = json.loads(event.get('body') or '{}')
     mode = (body.get('mode') or 'general').lower()

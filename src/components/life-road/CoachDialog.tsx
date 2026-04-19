@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-import { lifeApi } from './api';
+import { useToast } from '@/hooks/use-toast';
+import { lifeApi, ApiError } from './api';
 
 interface Props {
   open: boolean;
@@ -39,6 +41,8 @@ export default function CoachDialog({ open, onOpenChange }: Props) {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const ask = async (mode: CoachMode, q?: string) => {
     setLoading(true);
@@ -47,7 +51,23 @@ export default function CoachDialog({ open, onOpenChange }: Props) {
       const res = await lifeApi.coach({ mode, question: q });
       setAnswer(res.response);
     } catch (e) {
-      setAnswer('Ошибка: ' + (e as Error).message);
+      if (e instanceof ApiError && e.code === 'insufficient_funds') {
+        const balance = Number(e.payload?.balance ?? 0);
+        const required = Number(e.payload?.required ?? 3);
+        toast({
+          title: 'Недостаточно средств',
+          description: `Домовой стоит ${required} руб. На кошельке: ${balance.toFixed(0)} руб. Пополните баланс — и продолжим.`,
+          variant: 'destructive',
+          action: (
+            <Button size="sm" variant="outline" onClick={() => navigate('/wallet')}>
+              Пополнить
+            </Button>
+          ),
+        });
+        setAnswer('');
+      } else {
+        setAnswer('Ошибка: ' + (e as Error).message);
+      }
     } finally {
       setLoading(false);
     }
@@ -163,8 +183,8 @@ export default function CoachDialog({ open, onOpenChange }: Props) {
           )}
 
           <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-            Домовой видит твои события, цели и колесо баланса. Ответы — только опора для размышлений,
-            не замена психолога или врача.
+            Каждый ответ Домового — 3 руб с семейного кошелька. Он видит твои события, цели и колесо
+            баланса. Ответы — только опора для размышлений, не замена психолога или врача.
           </p>
         </div>
       </DialogContent>

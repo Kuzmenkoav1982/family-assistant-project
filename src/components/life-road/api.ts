@@ -21,6 +21,18 @@ function getUserId(): string {
   throw new Error('Не найден ID пользователя. Войдите в аккаунт заново.');
 }
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  payload?: Record<string, unknown>;
+  constructor(status: number, message: string, payload?: Record<string, unknown>) {
+    super(message);
+    this.status = status;
+    this.payload = payload;
+    this.code = typeof payload?.error === 'string' ? payload.error : undefined;
+  }
+}
+
 async function call<T>(method: string, query: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_URL}${query}`, {
     method,
@@ -28,8 +40,11 @@ async function call<T>(method: string, query: string, body?: unknown): Promise<T
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
+    let payload: Record<string, unknown> | undefined;
     const text = await res.text().catch(() => '');
-    throw new Error(`API ${method}: ${res.status} ${text}`);
+    try { payload = text ? JSON.parse(text) : undefined; } catch { /* not json */ }
+    const message = (payload?.message as string) || (payload?.error as string) || text || `HTTP ${res.status}`;
+    throw new ApiError(res.status, message, payload);
   }
   return res.json() as Promise<T>;
 }

@@ -70,6 +70,10 @@ export default function WalletInstructions() {
                         <span>AI-ассистент — 3 руб</span>
                       </div>
                       <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
+                        <Icon name="Sparkles" size={14} className="text-purple-500" />
+                        <span>Домовой (наставник) — 3 руб</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-1.5 bg-white/60 rounded">
                         <Icon name="TrendingUp" size={14} className="text-green-500" />
                         <span>Финансовый совет — 3 руб</span>
                       </div>
