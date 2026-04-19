@@ -18,9 +18,9 @@ export default function SectionHero({ title, subtitle, imageUrl, backPath = '/',
       <img
         src={imageUrl}
         alt={title}
-        className="w-full h-32 sm:h-44 object-cover"
+        className="w-full h-44 sm:h-56 object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 flex items-end justify-between gap-2">
         <div className="flex items-end gap-2 sm:gap-3 min-w-0 flex-1">
           <Button
@@ -32,10 +32,10 @@ export default function SectionHero({ title, subtitle, imageUrl, backPath = '/',
             <Icon name="ArrowLeft" size={18} />
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg truncate">
+            <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg leading-tight">
               {title}
             </h1>
-            <p className="text-xs sm:text-sm text-white/80 line-clamp-2">
+            <p className="text-xs sm:text-sm text-white/80 line-clamp-2 mt-0.5">
               {subtitle}
             </p>
           </div>
