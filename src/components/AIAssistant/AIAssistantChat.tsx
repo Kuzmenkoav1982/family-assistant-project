@@ -110,7 +110,7 @@ export const AIAssistantChat = ({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Роль помощника</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {['family-assistant', 'cook', 'organizer', 'child-educator', 'financial-advisor', 'psychologist', 'fitness-trainer', 'nutritionist', 'travel-planner', 'astrologer'].map((role) => {
+              {['family-assistant', 'cook', 'organizer', 'child-educator', 'financial-advisor', 'psychologist', 'fitness-trainer', 'nutritionist', 'travel-planner', 'astrologer', 'vet', 'artist', 'party', 'mentor', 'mechanic'].map((role) => {
                 const roleInfo = getRoleInfo(role);
                 return (
                   <DropdownMenuItem

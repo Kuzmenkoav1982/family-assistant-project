@@ -585,8 +585,14 @@ const AIAssistantWidget = () => {
                         { role: 'financial-advisor', emoji: '💰', name: 'Финансовый советник', desc: 'Бюджет и экономия' },
                         { role: 'psychologist', emoji: '🧠', name: 'Психолог', desc: 'Отношения в семье' },
                         { role: 'fitness-trainer', emoji: '💪', name: 'Фитнес-тренер', desc: 'Здоровье и спорт' },
+                        { role: 'nutritionist', emoji: '🍎', name: 'Диетолог', desc: 'Здоровое питание' },
                         { role: 'travel-planner', emoji: '✈️', name: 'Тревел-планер', desc: 'Организация поездок' },
                         { role: 'astrologer', emoji: '🔮', name: 'Астролог', desc: 'Гороскопы и прогнозы' },
+                        { role: 'vet', emoji: '🐾', name: 'Ветеринар', desc: 'Здоровье питомцев' },
+                        { role: 'artist', emoji: '🎨', name: 'Художник', desc: 'Творчество и идеи' },
+                        { role: 'party', emoji: '🎉', name: 'Праздничный организатор', desc: 'Идеи для праздников' },
+                        { role: 'mentor', emoji: '✨', name: 'Наставник', desc: 'Мудрые советы и развитие' },
+                        { role: 'mechanic', emoji: '🔧', name: 'Автомеханик', desc: 'Авто и обслуживание' },
                       ].map((r) => (
                         <DropdownMenuItem key={r.role} onClick={() => handleRoleChange(r.role)}>
                           <span className="mr-2">{r.emoji}</span>
