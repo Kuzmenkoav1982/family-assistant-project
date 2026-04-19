@@ -36,7 +36,12 @@ const defaultRoles: AIAssistantRole[] = [
   { id: 'fitness', name: 'Фитнес-тренер', icon: 'Dumbbell', description: 'Здоровье и спорт', emoji: '💪' },
   { id: 'nutritionist', name: 'Диетолог', icon: 'Apple', description: 'Правильное питание', emoji: '🍎' },
   { id: 'travel', name: 'Тревел-планер', icon: 'Plane', description: 'Организация поездок', emoji: '✈️' },
-  { id: 'astrologer', name: 'Астролог', icon: 'Moon', description: 'Гороскопы и прогнозы', emoji: '🌙' }
+  { id: 'astrologer', name: 'Астролог', icon: 'Moon', description: 'Гороскопы и прогнозы', emoji: '🌙' },
+  { id: 'vet', name: 'Ветеринар', icon: 'PawPrint', description: 'Здоровье питомцев', emoji: '🐾' },
+  { id: 'artist', name: 'Художник', icon: 'Palette', description: 'Творчество и идеи', emoji: '🎨' },
+  { id: 'party', name: 'Праздничный организатор', icon: 'PartyPopper', description: 'Идеи для праздников', emoji: '🎉' },
+  { id: 'mentor', name: 'Наставник', icon: 'Sparkles', description: 'Мудрые советы и развитие', emoji: '✨' },
+  { id: 'mechanic', name: 'Автомеханик', icon: 'Wrench', description: 'Авто и обслуживание', emoji: '🔧' }
 ];
 
 export function AIAssistantProvider({ children }: { children: React.ReactNode }) {
