@@ -315,6 +315,27 @@ export default function Pets() {
         }
       />
 
+      <button
+        type="button"
+        onClick={() => {
+          window.dispatchEvent(new CustomEvent('domovoy:open-with-role', {
+            detail: { role: 'vet' }
+          }));
+        }}
+        className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md hover:shadow-lg active:scale-[0.99] transition-all mb-4"
+      >
+        <img
+          src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/95151948-26d1-4d80-8809-974597f70281.jpg"
+          alt="Ветеринар"
+          className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shrink-0"
+        />
+        <div className="flex-1 text-left">
+          <div className="font-semibold text-sm">Спросить Ветеринара</div>
+          <div className="text-xs text-white/85">Здоровье, прививки, уход за питомцем</div>
+        </div>
+        <Icon name="MessageCircle" size={20} className="opacity-90 shrink-0" />
+      </button>
+
       {/* Мини-инструкция */}
       <Collapsible open={guideOpen} onOpenChange={setGuideOpen} className="mb-4">
         <Card className="overflow-hidden border-violet-200 bg-gradient-to-br from-violet-50 via-white to-purple-50 dark:from-violet-950/30 dark:via-gray-900 dark:to-purple-950/30">
