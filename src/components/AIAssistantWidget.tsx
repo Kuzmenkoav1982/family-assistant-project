@@ -99,6 +99,30 @@ const AIAssistantWidget = () => {
     return () => window.removeEventListener('domovoy:toggle', handleToggle);
   }, [isHiddenByUser]);
 
+  useEffect(() => {
+    const handleOpenWithRole = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      const role = detail.role as string | undefined;
+      const initialQuery = detail.query as string | undefined;
+      if (role) {
+        setKuzyaRole(role);
+        localStorage.setItem('kuzyaRole', role);
+      }
+      if (isHiddenByUser) {
+        setIsHiddenByUser(false);
+        localStorage.setItem('domovoyHidden', 'false');
+      }
+      setIsOpen(true);
+      setIsMinimized(false);
+      setShowWelcome(false);
+      if (initialQuery) {
+        setInput(initialQuery);
+      }
+    };
+    window.addEventListener('domovoy:open-with-role', handleOpenWithRole);
+    return () => window.removeEventListener('domovoy:open-with-role', handleOpenWithRole);
+  }, [isHiddenByUser]);
+
   // Обновление роли
   const handleRoleChange = (newRole: string) => {
     setKuzyaRole(newRole);
