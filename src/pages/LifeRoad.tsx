@@ -15,6 +15,9 @@ import FrameworksLibrary from '@/components/life-road/FrameworksLibrary';
 import CoachDialog from '@/components/life-road/CoachDialog';
 import LifeStoryMode from '@/components/life-road/LifeStoryMode';
 import LifeInsights from '@/components/life-road/LifeInsights';
+import LifeRoadOnboarding from '@/components/life-road/LifeRoadOnboarding';
+import LifeShareDialog from '@/components/life-road/LifeShareDialog';
+import { useSwipe } from '@/components/life-road/useSwipe';
 import { useLifeEvents } from '@/components/life-road/useLifeEvents';
 import { useLifeGoals } from '@/components/life-road/useLifeGoals';
 import type { LifeEvent, LifeEventCategory, LifeGoal } from '@/components/life-road/types';
@@ -50,6 +53,18 @@ export default function LifeRoad() {
 
   const [coachOpen, setCoachOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const goPrevTab = () => {
+    const idx = TABS.findIndex((t) => t.id === tab);
+    if (idx > 0) setTab(TABS[idx - 1].id);
+  };
+  const goNextTab = () => {
+    const idx = TABS.findIndex((t) => t.id === tab);
+    if (idx < TABS.length - 1) setTab(TABS[idx + 1].id);
+  };
+  const swipeRef = useSwipe<HTMLDivElement>({ onSwipeLeft: goNextTab, onSwipeRight: goPrevTab });
 
   const birthYear = useMemo(() => {
     const me = members?.find((m) => m.birth_date);
@@ -63,15 +78,31 @@ export default function LifeRoad() {
     [events],
   );
 
-  const filtered = useMemo(
-    () =>
-      events.filter((e) => {
-        if (category !== 'all' && e.category !== category) return false;
-        if (year !== 'all' && new Date(e.date).getFullYear().toString() !== year) return false;
-        return true;
-      }),
-    [events, category, year],
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return events.filter((e) => {
+      if (category !== 'all' && e.category !== category) return false;
+      if (year !== 'all' && new Date(e.date).getFullYear().toString() !== year) return false;
+      if (q) {
+        const hay = [e.title, e.description, e.quote].filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [events, category, year, search]);
+
+  const openAddToday = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    setEditingEvent({
+      id: '',
+      date: today,
+      title: '',
+      category: 'other',
+      importance: 'medium',
+      participants: [],
+    } as LifeEvent);
+    setEventDialogOpen(true);
+  };
 
   const isLoading = familyLoading || eventsLoading;
 
@@ -94,23 +125,31 @@ export default function LifeRoad() {
             imageUrl={BANNER_URL}
             backPath="/development-hub"
             rightAction={
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   onClick={() => setStoryOpen(true)}
                   size="sm"
-                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30"
+                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
                   title="Смотреть как историю"
                 >
-                  <Icon name="Film" size={14} className="mr-1.5" />
-                  История
+                  <Icon name="Film" size={14} className="sm:mr-1.5" />
+                  <span className="hidden sm:inline">История</span>
+                </Button>
+                <Button
+                  onClick={() => setShareOpen(true)}
+                  size="sm"
+                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
+                  title="Поделиться"
+                >
+                  <Icon name="Share2" size={14} />
                 </Button>
                 <Button
                   onClick={() => setCoachOpen(true)}
                   size="sm"
-                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30"
+                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
                 >
-                  <Icon name="Sparkles" size={14} className="mr-1.5" />
-                  Домовой
+                  <Icon name="Sparkles" size={14} className="sm:mr-1.5" />
+                  <span className="hidden sm:inline">Домовой</span>
                 </Button>
               </div>
             }
@@ -118,21 +157,21 @@ export default function LifeRoad() {
 
           <LifeRoadInstructions />
 
-          <div className="flex flex-wrap gap-2 bg-white/60 backdrop-blur-md rounded-2xl p-2 border border-white/60 shadow-sm">
+          <div className="flex gap-2 bg-white/60 backdrop-blur-md rounded-2xl p-2 border border-white/60 shadow-sm overflow-x-auto scrollbar-hide">
             {TABS.map((t) => {
               const active = tab === t.id;
               return (
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex-shrink-0 sm:flex-1 sm:min-w-[110px] flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                     active
                       ? `bg-gradient-to-r ${t.gradient} text-white shadow-md`
                       : 'text-gray-600 hover:bg-white'
                   }`}
                 >
                   <Icon name={t.icon} size={16} />
-                  {t.label}
+                  <span className={active ? '' : 'hidden xs:inline sm:inline'}>{t.label}</span>
                 </button>
               );
             })}
@@ -141,6 +180,8 @@ export default function LifeRoad() {
           {error && (
             <div className="rounded-xl bg-rose-50 border border-rose-200 text-rose-800 p-3 text-sm">{error}</div>
           )}
+
+          <div ref={swipeRef} className="space-y-4">
 
           {tab === 'road' && (
             <>
@@ -152,10 +193,13 @@ export default function LifeRoad() {
                 year={year}
                 setYear={setYear}
                 years={years}
+                search={search}
+                setSearch={setSearch}
                 onAdd={() => {
                   setEditingEvent(null);
                   setEventDialogOpen(true);
                 }}
+                onAddToday={openAddToday}
               />
               {isLoading ? (
                 <div className="flex items-center justify-center py-20">
@@ -241,6 +285,16 @@ export default function LifeRoad() {
               }}
             />
           )}
+
+          </div>
+
+          <LifeRoadOnboarding />
+
+          <LifeShareDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            events={events}
+          />
 
           <LifeEventDialog
             open={eventDialogOpen}
