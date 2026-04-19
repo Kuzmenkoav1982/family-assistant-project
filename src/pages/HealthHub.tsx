@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import SEOHead from "@/components/SEOHead";
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 interface SubSection {
   id: string;
@@ -41,6 +42,26 @@ export default function HealthHub() {
             title="Здоровье"
             subtitle="Медицинские карты, прививки, лекарства и врачи"
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/126eb1fc-4b71-4f1c-87fd-fa88beb6d32d.jpg"
+          />
+
+          <SectionAIAdvisor
+            role="fitness-trainer"
+            title="ИИ-Доктор и Фитнес-тренер"
+            description="Здоровье, тренировки, симптомы, профилактика"
+            imageUrl="https://cdn.poehali.dev/files/%D0%A4%D0%B8%D1%82%D0%BD%D0%B5%D1%81-%D1%82%D1%80%D0%B5%D0%BD%D0%B5%D1%80.png"
+            gradientFrom="from-red-500"
+            gradientTo="to-rose-600"
+            accentBg="bg-red-50"
+            accentText="text-red-700"
+            accentBorder="border-red-200"
+            placeholder="Спросите о здоровье..."
+            quickQuestions={[
+              'Какие анализы сдать для профилактики?',
+              'Как приучить семью к спорту?',
+              'Что делать при простуде?',
+              'Когда нужно обновить прививки?',
+              'Как нормализовать сон?',
+            ]}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

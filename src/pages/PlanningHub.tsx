@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import SEOHead from "@/components/SEOHead";
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 interface SubSection {
   id: string;
@@ -80,6 +81,26 @@ export default function PlanningHub() {
           title="Планирование"
           subtitle="Цели, задачи, календарь и аналитика"
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b8d96cd0-c983-4192-983e-991c1440e285.jpg"
+        />
+
+        <SectionAIAdvisor
+          role="organizer"
+          title="ИИ-Организатор"
+          description="Цели, задачи, расписание, приоритеты"
+          imageUrl="https://cdn.poehali.dev/files/%D0%9E%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%B0%D1%82%D0%BE%D1%80.png"
+          gradientFrom="from-indigo-500"
+          gradientTo="to-blue-600"
+          accentBg="bg-indigo-50"
+          accentText="text-indigo-700"
+          accentBorder="border-indigo-200"
+          placeholder="Спросите о планах..."
+          quickQuestions={[
+            'Составь план на неделю',
+            'Как расставить приоритеты?',
+            'Как перестать откладывать дела?',
+            'Помоги разбить цель на задачи',
+            'Как распределить дела в семье?',
+          ]}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
