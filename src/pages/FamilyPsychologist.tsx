@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { useToast } from "@/hooks/use-toast";
 import func2url from "../../backend/func2url.json";
+import SectionAIAdvisor from "@/components/SectionAIAdvisor";
 
 interface ConsultationRecord {
   id: string;
@@ -1120,6 +1121,26 @@ export default function FamilyPsychologist() {
             </div>
           </Alert>
         </Collapsible>
+
+        <SectionAIAdvisor
+          role="psychologist"
+          title="ИИ-Психолог"
+          description="Отношения, конфликты, эмоции"
+          imageUrl="https://cdn.poehali.dev/files/%D0%9F%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3.png"
+          gradientFrom="from-fuchsia-500"
+          gradientTo="to-purple-600"
+          accentBg="bg-fuchsia-50"
+          accentText="text-fuchsia-700"
+          accentBorder="border-fuchsia-200"
+          placeholder="Расскажите, что беспокоит..."
+          quickQuestions={[
+            'Как помириться после ссоры?',
+            'Как справиться со стрессом?',
+            'Как говорить с подростком?',
+            'Ребёнок не слушается — что делать?',
+            'Как восстановить доверие в паре?',
+          ]}
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full overflow-x-auto flex justify-start gap-0.5 bg-white/60 backdrop-blur-sm p-1 h-auto">

@@ -16,6 +16,7 @@ import { ParentDashboard } from '@/components/children/ParentDashboard';
 import { ChildProfile as ChildProfileComponent } from '@/components/children/ChildProfile';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import type { FamilyMember } from '@/types/family.types';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 export default function Children() {
   const navigate = useNavigate();
@@ -199,6 +200,30 @@ export default function Children() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c284ef36-f2eb-45cb-95cc-7e8f735dbd0d.jpg"
           backPath="/family-hub"
         />
+
+        <SectionAIAdvisor
+          role="child-educator"
+          title="ИИ-Воспитатель"
+          description="Развитие, возрастные кризисы, воспитание"
+          imageUrl="https://cdn.poehali.dev/files/%D0%92%D0%BE%D1%81%D0%BF%D0%B8%D1%82%D0%B0%D1%82%D0%B5%D0%BB%D1%8C.png"
+          gradientFrom="from-amber-500"
+          gradientTo="to-orange-600"
+          accentBg="bg-amber-50"
+          accentText="text-amber-700"
+          accentBorder="border-amber-200"
+          placeholder="Спросите о ребёнке..."
+          quickQuestions={[
+            'Как мотивировать к учёбе?',
+            'Как пережить возрастной кризис?',
+            'Как развивать самостоятельность?',
+            'Как установить границы?',
+            'Ребёнок не хочет в школу — что делать?',
+          ]}
+          sectionContext={children.length > 0
+            ? `Дети в семье: ${children.map(c => `${c.name || ''}${c.birth_date ? ` (род. ${c.birth_date})` : ''}${c.role ? ` — ${c.role}` : ''}`).join('; ')}.`
+            : undefined}
+        />
+
         <div className="flex items-center justify-end mb-4">
           {isParent && (
             <div className="flex gap-2 z-50 flex-wrap justify-end">

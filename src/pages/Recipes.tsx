@@ -16,6 +16,7 @@ import { RecipesFilters } from '@/components/recipes/RecipesFilters';
 import { RecipeCard } from '@/components/recipes/RecipeCard';
 import { AddRecipeDialog } from '@/components/recipes/AddRecipeDialog';
 import { RecipeViewDialog } from '@/components/recipes/RecipeViewDialog';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 export default function Recipes() {
   const navigate = useNavigate();
@@ -326,6 +327,28 @@ export default function Recipes() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/262a96a0-e48f-4449-a8bd-326f5cfb3657.jpg"
           backPath="/nutrition"
         />
+
+        <div className="mb-6">
+          <SectionAIAdvisor
+            role="cook"
+            title="ИИ-Повар"
+            description="Рецепты, замены, техники, меню"
+            imageUrl="https://cdn.poehali.dev/files/%D0%9F%D0%BE%D0%B2%D0%B0%D1%80.png"
+            gradientFrom="from-orange-500"
+            gradientTo="to-amber-600"
+            accentBg="bg-orange-50"
+            accentText="text-orange-700"
+            accentBorder="border-orange-200"
+            placeholder="Спросите о блюде или ингредиентах..."
+            quickQuestions={[
+              'Что приготовить из того, что есть?',
+              'Чем заменить яйца в тесте?',
+              'Быстрый ужин за 20 минут',
+              'Идеи обедов для ребёнка',
+              'Как хранить свежую зелень?',
+            ]}
+          />
+        </div>
 
         <div className="flex items-center justify-between mb-6">
           <div />

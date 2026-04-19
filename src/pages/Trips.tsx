@@ -11,6 +11,7 @@ import SectionHero from '@/components/ui/section-hero';
 import { detectCurrencyByCountry } from '@/data/currencies';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 const TRIPS_API_URL = 'https://functions.poehali.dev/6b3296a3-1703-4ab4-9773-e09a9a93a11a';
 
@@ -328,6 +329,29 @@ export default function Trips() {
               <span className="ml-1 text-sm">Wish List</span>
             </Button>
           }
+        />
+
+        <SectionAIAdvisor
+          role="travel-planner"
+          title="ИИ-Тревел-планер"
+          description="Направления, маршруты, бюджет, советы"
+          imageUrl="https://cdn.poehali.dev/files/%D0%A2%D1%80%D0%B5%D0%B2%D0%B5%D0%BB-%D0%BF%D0%BB%D0%B0%D0%BD%D0%B5%D1%80.png"
+          gradientFrom="from-sky-500"
+          gradientTo="to-blue-600"
+          accentBg="bg-sky-50"
+          accentText="text-sky-700"
+          accentBorder="border-sky-200"
+          placeholder="Спросите о поездке..."
+          quickQuestions={[
+            'Куда поехать с детьми летом?',
+            'Составь маршрут на выходные',
+            'Что упаковать в отпуск?',
+            'Как сэкономить на поездке?',
+            'Документы для поездки за границу',
+          ]}
+          sectionContext={trips.length > 0
+            ? `Поездки семьи: ${trips.slice(0, 5).map(t => `${t.title} — ${t.destination} (${t.start_date} — ${t.end_date}, ${t.status})`).join('; ')}.`
+            : undefined}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
