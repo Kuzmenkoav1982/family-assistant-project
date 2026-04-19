@@ -23,7 +23,7 @@ import { useLifeGoals } from '@/components/life-road/useLifeGoals';
 import type { LifeEvent, LifeEventCategory, LifeGoal } from '@/components/life-road/types';
 
 const BANNER_URL =
-  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9c12f708-e83f-4b07-ad65-5fd7179c3c5a.jpg';
+  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/39baf30c-06fc-442f-867d-afbfc906d6c4.jpg';
 
 type TabId = 'road' | 'insights' | 'goals' | 'balance' | 'methods';
 
