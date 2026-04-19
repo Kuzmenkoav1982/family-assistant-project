@@ -4,9 +4,21 @@ import type { BalanceSnapshot, LifeEvent, LifeGoal } from './types';
 const API_URL = (func2url as Record<string, string>)['life-road'];
 
 function getUserId(): string {
-  const id = localStorage.getItem('familyMemberId') || localStorage.getItem('userId') || '';
-  if (!id) throw new Error('Не найден ID пользователя');
-  return id;
+  const direct = localStorage.getItem('familyMemberId') || localStorage.getItem('userId');
+  if (direct) return direct;
+
+  const raw = localStorage.getItem('userData') || localStorage.getItem('user');
+  if (raw) {
+    try {
+      const u = JSON.parse(raw);
+      const id = u?.member_id || u?.memberId || u?.id;
+      if (id) return String(id);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  throw new Error('Не найден ID пользователя. Войдите в аккаунт заново.');
 }
 
 async function call<T>(method: string, query: string, body?: unknown): Promise<T> {

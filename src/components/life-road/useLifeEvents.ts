@@ -5,7 +5,19 @@ import type { LifeEvent } from './types';
 const API_URL = (func2url as Record<string, string>)['life-road'];
 
 function getUserId(): string | null {
-  return localStorage.getItem('familyMemberId') || localStorage.getItem('userId') || null;
+  const direct = localStorage.getItem('familyMemberId') || localStorage.getItem('userId');
+  if (direct) return direct;
+  const raw = localStorage.getItem('userData') || localStorage.getItem('user');
+  if (raw) {
+    try {
+      const u = JSON.parse(raw);
+      const id = u?.member_id || u?.memberId || u?.id;
+      if (id) return String(id);
+    } catch {
+      /* ignore */
+    }
+  }
+  return null;
 }
 
 async function call(method: string, path = '', body?: unknown): Promise<unknown> {
