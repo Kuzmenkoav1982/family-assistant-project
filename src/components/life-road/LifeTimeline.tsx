@@ -96,7 +96,7 @@ export default function LifeTimeline({ events, birthYear, onEditEvent, onDeleteE
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 mb-4">
           <Icon name="Sparkles" size={36} className="text-purple-500" />
         </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-2">Здесь начнётся твоя дорога жизни</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Здесь начнётся твоя дорога</h3>
         <p className="text-sm text-gray-500 max-w-md mx-auto">
           Добавь первое важное событие — рождение, свадьбу, переезд, мечту, цель. Они станут точками на твоём пути.
         </p>

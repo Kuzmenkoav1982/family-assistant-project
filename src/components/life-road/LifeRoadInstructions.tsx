@@ -14,7 +14,7 @@ export default function LifeRoadInstructions() {
           <div className="flex-1">
             <CollapsibleTrigger className="flex items-center justify-between w-full text-left group">
               <h3 className="font-semibold text-purple-900 text-sm">
-                Что такое «Дорога жизни» и как ей пользоваться
+                Что такое «Мастерская жизни» и как ей пользоваться
               </h3>
               <Icon
                 name={isOpen ? 'ChevronUp' : 'ChevronDown'}
@@ -26,8 +26,8 @@ export default function LifeRoadInstructions() {
               <AlertDescription className="text-purple-900/90">
                 <div className="space-y-3 text-xs leading-relaxed">
                   <p>
-                    <strong>Дорога жизни</strong> — это не просто хронология воспоминаний. Это инструмент,
-                    который помогает увидеть свой путь со стороны, осмыслить пройденное и осознанно спланировать будущее.
+                    <strong>Мастерская жизни</strong> — твой рабочий стол автора собственной судьбы.
+                    Здесь ты видишь пройденный путь, отмечаешь настоящее и собираешь будущее из целей, привычек и мечт.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                     <div className="bg-white/70 rounded-lg p-2.5">

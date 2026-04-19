@@ -40,9 +40,9 @@ const subSections: SubSection[] = [
   },
   {
     id: 'life-road',
-    title: 'Дорога жизни',
-    description: 'Хронология важных событий, сезоны жизни и инструменты для осознанного планирования будущего',
-    icon: 'Route',
+    title: 'Мастерская жизни',
+    description: 'Твори свой путь: хронология событий, сезоны жизни, цели и инструменты для осознанного планирования',
+    icon: 'Hammer',
     path: '/life-road',
     gradient: 'from-pink-500 via-purple-500 to-indigo-600',
     badge: 'Новое',

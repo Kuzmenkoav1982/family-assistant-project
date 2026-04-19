@@ -12,15 +12,15 @@ interface Props {
 
 function buildText(events: LifeEvent[]): string {
   const past = events.filter((e) => !e.isFuture).sort((a, b) => a.date.localeCompare(b.date));
-  if (past.length === 0) return 'Моя Дорога жизни пока пуста — я только начинаю.';
-  const lines = ['🛤  Моя Дорога жизни', ''];
+  if (past.length === 0) return 'Моя мастерская жизни пока пуста — я только начинаю.';
+  const lines = ['🛠  Моя мастерская жизни', ''];
   past.forEach((e) => {
     const c = CATEGORY_CONFIG[e.category] || CATEGORY_CONFIG.other;
     const date = new Date(e.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
     lines.push(`• ${date} — ${e.title} (${c.label})`);
   });
   lines.push('');
-  lines.push(`Всего: ${past.length} событий. Создано в «Наша Семья» → Дорога жизни.`);
+  lines.push(`Всего: ${past.length} событий. Создано в «Наша Семья» → Мастерская жизни.`);
   return lines.join('\n');
 }
 
@@ -41,7 +41,7 @@ export default function LifeShareDialog({ open, onOpenChange, events }: Props) {
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Моя Дорога жизни', text });
+        await navigator.share({ title: 'Моя мастерская жизни', text });
       } catch {
         /* отменено пользователем */
       }

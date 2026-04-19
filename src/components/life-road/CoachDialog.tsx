@@ -42,10 +42,10 @@ export default function CoachDialog({ open, onOpenChange }: Props) {
             <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white">
               <Icon name="Sparkles" size={18} />
             </span>
-            Домовой · Жизненный путь
+            Домовой · Мастерская жизни
           </DialogTitle>
           <DialogDescription>
-            Я вижу твою «Дорогу жизни» — события, цели и колесо баланса. Задай вопрос или выбери шаблон.
+            Я вижу твою мастерскую — события, цели и колесо баланса. Задай вопрос или выбери шаблон.
           </DialogDescription>
         </DialogHeader>
 

@@ -103,7 +103,7 @@ export default function LifeGoalDialog({ open, onOpenChange, initial, defaultFra
             {isEdit ? 'Редактировать цель' : 'Новая цель'}
           </DialogTitle>
           <DialogDescription>
-            Цель попадёт в твой план будущего на «Дороге жизни».
+            Цель попадёт в твой план будущего на вкладке «Дорога».
           </DialogDescription>
         </DialogHeader>
 
