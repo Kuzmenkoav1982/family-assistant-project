@@ -60,11 +60,11 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
                     <Badge className="text-[10px] bg-emerald-100 text-emerald-700">Достигнуто</Badge>
                   )}
                 </div>
-                <h4 className="font-bold text-gray-900 leading-snug">{g.title}</h4>
+                <h4 className="font-bold text-gray-900 leading-snug break-words">{g.title}</h4>
                 {g.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{g.description}</p>}
               </div>
 
-              <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex flex-col gap-1 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(g)} title="Редактировать">
                   <Icon name="Pencil" size={13} />
                 </Button>

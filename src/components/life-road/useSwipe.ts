@@ -10,8 +10,8 @@ interface Options {
 export function useSwipe<T extends HTMLElement = HTMLDivElement>({
   onSwipeLeft,
   onSwipeRight,
-  threshold = 60,
-  ignoreSelectors = ['button', 'input', 'textarea', 'a', '[role="slider"]'],
+  threshold = 70,
+  ignoreSelectors = ['button', 'input', 'textarea', 'a', '[role="slider"]', '[data-no-swipe]', '[role="dialog"]'],
 }: Options) {
   const ref = useRef<T | null>(null);
 

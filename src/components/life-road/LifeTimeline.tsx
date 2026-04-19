@@ -327,7 +327,7 @@ function EventCard({
               </Badge>
             )}
           </div>
-          <h4 className="font-bold text-gray-900 leading-snug truncate">{event.title}</h4>
+          <h4 className="font-bold text-gray-900 leading-snug break-words line-clamp-2">{event.title}</h4>
           <p className="text-[11px] text-gray-500">
             {formatDateRu(event.date)}
             {age != null && !isFuture ? ` · ${age} лет` : ''}

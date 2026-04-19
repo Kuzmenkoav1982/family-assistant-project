@@ -31,30 +31,30 @@ export default function LifeFiltersBar({
 }: Props) {
   return (
     <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl p-3 shadow-sm space-y-2">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Найти событие — по названию, описанию, цитате…"
-            className="pl-9 h-9 text-sm bg-white"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-              title="Очистить"
-            >
-              <Icon name="X" size={14} />
-            </button>
-          )}
-        </div>
+      <div className="relative w-full">
+        <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Найти событие…"
+          className="pl-9 pr-8 h-9 text-sm bg-white w-full"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+            title="Очистить"
+          >
+            <Icon name="X" size={14} />
+          </button>
+        )}
+      </div>
 
+      <div className="flex items-center gap-1.5 flex-wrap">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9">
-              <Icon name="Filter" size={14} className="mr-1.5" />
+            <Button variant="outline" size="sm" className="h-9 px-2.5">
+              <Icon name="Filter" size={14} className="sm:mr-1.5" />
               <span className="hidden sm:inline">Категория</span>
             </Button>
           </DropdownMenuTrigger>
@@ -75,8 +75,8 @@ export default function LifeFiltersBar({
         {years.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
-                <Icon name="Calendar" size={14} className="mr-1.5" />
+              <Button variant="outline" size="sm" className="h-9 px-2.5">
+                <Icon name="Calendar" size={14} className="sm:mr-1.5" />
                 <span className="hidden sm:inline">Год</span>
               </Button>
             </DropdownMenuTrigger>
@@ -96,7 +96,7 @@ export default function LifeFiltersBar({
             onClick={onAddToday}
             variant="outline"
             size="sm"
-            className="h-9 border-pink-300 text-pink-700 hover:bg-pink-50"
+            className="h-9 px-2.5 border-pink-300 text-pink-700 hover:bg-pink-50"
             title="Записать сегодняшнее событие"
           >
             <Icon name="CalendarPlus" size={14} className="sm:mr-1.5" />
@@ -104,9 +104,13 @@ export default function LifeFiltersBar({
           </Button>
         )}
 
-        <Button onClick={onAdd} size="sm" className="h-9 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-          <Icon name="Plus" size={14} className="sm:mr-1.5" />
-          <span className="hidden sm:inline">Событие</span>
+        <Button
+          onClick={onAdd}
+          size="sm"
+          className="h-9 px-3 ml-auto bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+        >
+          <Icon name="Plus" size={14} className="mr-1.5" />
+          Событие
         </Button>
       </div>
 
