@@ -1,3 +1,27 @@
+export interface LifeGoal {
+  id: string;
+  familyId?: string;
+  ownerId?: string | null;
+  title: string;
+  description?: string | null;
+  sphere: string;
+  framework?: string | null;
+  deadline?: string | null;
+  status: 'active' | 'done' | 'paused' | 'archived';
+  progress: number;
+  steps: { text: string; done?: boolean }[];
+  aiInsights?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BalanceSnapshot {
+  id: string;
+  scores: Record<string, number>;
+  notes?: string | null;
+  createdAt?: string;
+}
+
 export type LifeEventCategory =
   | 'birth'
   | 'wedding'

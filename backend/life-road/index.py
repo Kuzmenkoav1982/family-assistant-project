@@ -4,6 +4,17 @@ import base64
 from datetime import datetime
 import psycopg2
 import boto3
+import requests
+
+YANDEX_FOLDER_ID = 'b1gaglg8i7v2i32nvism'
+
+COACH_SYSTEM_PROMPT = (
+    "Ты — Домовой, тёплый и мудрый ИИ-наставник по жизненному пути семьи в приложении 'Наша Семья'. "
+    "Твоя задача — помогать пользователю осмыслить «Дорогу жизни», поставить и достичь цели. "
+    "Ты опираешься на проверенные методики: SMART, Колесо баланса, Икигай, 7 навыков высокоэффективных людей Кови. "
+    "Говори по-русски, на ты, мягко и по-человечески. Не давай медицинских и юридических советов. "
+    "Отвечай кратко (3–6 коротких абзацев или маркированный список), конкретно и с примером первого шага."
+)
 
 def handler(event: dict, context) -> dict:
     '''
@@ -52,6 +63,8 @@ def handler(event: dict, context) -> dict:
             return _handle_balance(method, cur, conn, family_id, user_id, event)
         if resource == 'photo':
             return _handle_photo(method, family_id, event)
+        if resource == 'coach':
+            return _handle_coach(method, cur, family_id, event)
 
         return _resp(400, {'error': 'Unknown resource'})
     finally:
@@ -354,3 +367,115 @@ def _handle_balance(method, cur, conn, family_id, user_id, event):
         })
 
     return _resp(405, {'error': 'Method not allowed'})
+
+
+def _handle_coach(method, cur, family_id, event):
+    if method != 'POST':
+        return _resp(405, {'error': 'Method not allowed'})
+
+    body = json.loads(event.get('body') or '{}')
+    mode = (body.get('mode') or 'general').lower()
+    user_question = (body.get('question') or '').strip()
+    framework = body.get('framework')
+    goal_title = body.get('goalTitle')
+    goal_description = body.get('goalDescription')
+
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    if not api_key:
+        return _resp(500, {'error': 'YANDEX_GPT_API_KEY not set'})
+
+    cur.execute('''
+        SELECT event_date, title, category, importance, is_future
+        FROM life_events WHERE family_id = %s ORDER BY event_date ASC LIMIT 60
+    ''', (family_id,))
+    events_rows = cur.fetchall()
+
+    cur.execute('''
+        SELECT title, sphere, framework, deadline, status, progress
+        FROM life_goals WHERE family_id = %s ORDER BY created_at DESC LIMIT 30
+    ''', (family_id,))
+    goals_rows = cur.fetchall()
+
+    cur.execute('''
+        SELECT scores, created_at FROM life_balance_wheel
+        WHERE family_id = %s ORDER BY created_at DESC LIMIT 1
+    ''', (family_id,))
+    balance_row = cur.fetchone()
+
+    context_lines = []
+    if events_rows:
+        context_lines.append('События пользователя (дата · название · категория · важность):')
+        for r in events_rows[-25:]:
+            tag = ' [план]' if r[4] else ''
+            context_lines.append(f'- {r[0]} · {r[1]} · {r[2]} · {r[3]}{tag}')
+    if goals_rows:
+        context_lines.append('\nТекущие цели:')
+        for r in goals_rows:
+            context_lines.append(f'- {r[0]} (сфера {r[1]}, методика {r[2] or "—"}, статус {r[4]}, прогресс {r[5]}%)')
+    if balance_row and isinstance(balance_row[0], dict):
+        context_lines.append('\nПоследнее Колесо баланса (1–10):')
+        for sphere, score in balance_row[0].items():
+            context_lines.append(f'- {sphere}: {score}')
+
+    context_text = '\n'.join(context_lines) if context_lines else 'Контекст пуст: пользователь только начинает.'
+
+    if mode == 'goal-suggest':
+        user_text = (
+            f"Пользователь добавляет цель «{goal_title or '—'}» (методика {framework or 'не выбрана'}).\n"
+            f"Описание: {goal_description or '—'}.\n"
+            "Дай 1–2 коротких подсказки по этой методике + первый конкретный шаг на эту неделю.\n\n"
+            f"Контекст:\n{context_text}"
+        )
+    elif mode == 'reflect-past':
+        user_text = (
+            "Помоги отрефлексировать прошлое: какие сильные паттерны, что повторяется, "
+            "что можно усилить. 3–5 коротких наблюдений и одно практическое задание.\n\n"
+            f"Контекст:\n{context_text}"
+        )
+    elif mode == 'plan-future':
+        user_text = (
+            "Предложи реалистичный план на ближайший год по методике 7 навыков Кови с учётом колеса баланса. "
+            "Сначала укажи 2 сферы, где сейчас просадка. Затем 3 цели по SMART, по одной на квартал.\n\n"
+            f"Контекст:\n{context_text}"
+        )
+    elif mode == 'ikigai':
+        user_text = (
+            "Помоги нащупать Икигай через 4 вопроса (что любишь, в чём силён, что нужно миру, "
+            "за что могут платить) — кратко, по 1–2 наводящих вопроса под каждый.\n\n"
+            f"Контекст:\n{context_text}"
+        )
+    else:
+        if not user_question:
+            return _resp(400, {'error': 'question required for general mode'})
+        user_text = f"Вопрос пользователя: {user_question}\n\nКонтекст:\n{context_text}"
+
+    payload = {
+        'modelUri': f'gpt://{YANDEX_FOLDER_ID}/yandexgpt-lite',
+        'completionOptions': {'stream': False, 'temperature': 0.6, 'maxTokens': 1500},
+        'messages': [
+            {'role': 'system', 'text': COACH_SYSTEM_PROMPT},
+            {'role': 'user', 'text': user_text},
+        ],
+    }
+
+    try:
+        r = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'},
+            json=payload,
+            timeout=30,
+        )
+    except Exception as e:
+        return _resp(502, {'error': f'YandexGPT request failed: {e}'})
+
+    if r.status_code != 200:
+        return _resp(502, {'error': 'YandexGPT bad status', 'status': r.status_code, 'details': r.text[:300]})
+
+    data = r.json()
+    text = (
+        data.get('result', {})
+        .get('alternatives', [{}])[0]
+        .get('message', {})
+        .get('text', '')
+    )
+    return _resp(200, {'response': text or 'Не удалось получить ответ.', 'mode': mode})
