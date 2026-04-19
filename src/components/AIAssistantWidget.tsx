@@ -35,7 +35,19 @@ const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const role = localStorage.getItem('kuzyaRole') || 'family-assistant';
+      const saved = localStorage.getItem('kuzyaMessages_' + role);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }));
+        }
+      }
+    } catch { /* ignore */ }
+    return [];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -104,9 +116,24 @@ const AIAssistantWidget = () => {
       const detail = (e as CustomEvent).detail || {};
       const role = detail.role as string | undefined;
       const initialQuery = detail.query as string | undefined;
-      if (role) {
+      if (role && role !== kuzyaRole) {
         setKuzyaRole(role);
         localStorage.setItem('kuzyaRole', role);
+        try {
+          const saved = localStorage.getItem('kuzyaMessages_' + role);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              setMessages(parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) })));
+            } else {
+              setMessages([]);
+            }
+          } else {
+            setMessages([]);
+          }
+        } catch {
+          setMessages([]);
+        }
       }
       if (isHiddenByUser) {
         setIsHiddenByUser(false);
@@ -121,12 +148,39 @@ const AIAssistantWidget = () => {
     };
     window.addEventListener('domovoy:open-with-role', handleOpenWithRole);
     return () => window.removeEventListener('domovoy:open-with-role', handleOpenWithRole);
-  }, [isHiddenByUser]);
+  }, [isHiddenByUser, kuzyaRole]);
 
-  // Обновление роли
+  // Сохраняем переписку per-role
+  useEffect(() => {
+    if (messages.length === 0) return;
+    try {
+      const serializable = messages.slice(-40).map(m => ({
+        ...m,
+        timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp,
+      }));
+      localStorage.setItem('kuzyaMessages_' + kuzyaRole, JSON.stringify(serializable));
+    } catch { /* ignore */ }
+  }, [messages, kuzyaRole]);
+
+  // Обновление роли — подгружаем историю этой роли
   const handleRoleChange = (newRole: string) => {
     setKuzyaRole(newRole);
     localStorage.setItem('kuzyaRole', newRole);
+    try {
+      const saved = localStorage.getItem('kuzyaMessages_' + newRole);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setMessages(parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) })));
+        } else {
+          setMessages([]);
+        }
+      } else {
+        setMessages([]);
+      }
+    } catch {
+      setMessages([]);
+    }
     const displayName = assistantName || (assistantType === 'domovoy' ? 'Домового' : 'ассистента');
     toast({
       title: `Роль ${displayName} изменена`,
@@ -687,21 +741,29 @@ const AIAssistantWidget = () => {
                       </div>
                     )}
                     <h3 className="font-bold text-gray-800 mb-2">
-                      Привет! Я {assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')}! {assistantType === 'domovoy' ? '🏡' : '🤖'}
+                      {kuzyaRole === 'family-assistant'
+                        ? `Привет! Я ${assistantName || (assistantType === 'domovoy' ? 'Домовой' : 'Ассистент')}! ${assistantType === 'domovoy' ? '🏡' : '🤖'}`
+                        : `${getRoleInfo(kuzyaRole).icon} ${getRoleInfo(kuzyaRole).name}`}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-4">Выберите тему или задайте свой вопрос:</p>
-                    <div className="grid grid-cols-2 gap-2 mt-4">
-                      {quickActions.map((action, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleQuickAction(action.query)}
-                          className="bg-white hover:bg-gray-50 p-3 rounded-xl text-left border border-gray-200 hover:border-orange-300 transition-all"
-                        >
-                          <div className="text-2xl mb-1">{action.icon}</div>
-                          <div className="text-xs font-medium text-gray-700">{action.text}</div>
-                        </button>
-                      ))}
-                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {kuzyaRole === 'family-assistant'
+                        ? 'Выберите тему или задайте свой вопрос:'
+                        : `${getRoleInfo(kuzyaRole).description}. Задайте свой вопрос ниже.`}
+                    </p>
+                    {kuzyaRole === 'family-assistant' && (
+                      <div className="grid grid-cols-2 gap-2 mt-4">
+                        {quickActions.map((action, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleQuickAction(action.query)}
+                            className="bg-white hover:bg-gray-50 p-3 rounded-xl text-left border border-gray-200 hover:border-orange-300 transition-all"
+                          >
+                            <div className="text-2xl mb-1">{action.icon}</div>
+                            <div className="text-xs font-medium text-gray-700">{action.text}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>

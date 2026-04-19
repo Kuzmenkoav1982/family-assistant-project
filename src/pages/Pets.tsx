@@ -14,6 +14,7 @@ import usePets, { type Pet, type PetSubKind } from '@/hooks/usePets';
 import PetForm from '@/components/pets/PetForm';
 import PetSubSection, { type FieldDef } from '@/components/pets/PetSubSection';
 import PetsAI from '@/components/pets/PetsAI';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 const PETS_HERO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2bc52e5d-939f-4527-a03d-684e81ef60de.jpg';
 
@@ -315,26 +316,30 @@ export default function Pets() {
         }
       />
 
-      <button
-        type="button"
-        onClick={() => {
-          window.dispatchEvent(new CustomEvent('domovoy:open-with-role', {
-            detail: { role: 'vet' }
-          }));
-        }}
-        className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md hover:shadow-lg active:scale-[0.99] transition-all mb-4"
-      >
-        <img
-          src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/95151948-26d1-4d80-8809-974597f70281.jpg"
-          alt="Ветеринар"
-          className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shrink-0"
+      <div className="mb-4">
+        <SectionAIAdvisor
+          role="vet"
+          title="ИИ-Ветеринар"
+          description="Здоровье, прививки, кормление и уход"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/95151948-26d1-4d80-8809-974597f70281.jpg"
+          gradientFrom="from-violet-500"
+          gradientTo="to-purple-600"
+          accentBg="bg-violet-50"
+          accentText="text-violet-700"
+          accentBorder="border-violet-200"
+          placeholder="Спросите о питомце..."
+          quickQuestions={[
+            'Какие прививки нужны питомцу?',
+            'Чем кормить правильно?',
+            'Как приучить к туалету?',
+            'Симптомы болезни — что делать?',
+            'Как подружить детей и питомца?',
+          ]}
+          sectionContext={pets.length > 0
+            ? `Питомцы семьи: ${pets.map(p => `${p.name} (${p.species}${p.breed ? ', ' + p.breed : ''}${p.birth_date ? ', род. ' + p.birth_date : ''})`).join('; ')}.`
+            : undefined}
         />
-        <div className="flex-1 text-left">
-          <div className="font-semibold text-sm">Спросить Ветеринара</div>
-          <div className="text-xs text-white/85">Здоровье, прививки, уход за питомцем</div>
-        </div>
-        <Icon name="MessageCircle" size={20} className="opacity-90 shrink-0" />
-      </button>
+      </div>
 
       {/* Мини-инструкция */}
       <Collapsible open={guideOpen} onOpenChange={setGuideOpen} className="mb-4">

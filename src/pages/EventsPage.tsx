@@ -7,6 +7,7 @@ import SectionHero from '@/components/ui/section-hero';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyEvent } from '@/types/events';
 import func2url from '../../backend/func2url.json';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 const API_URL = func2url['events'];
 
@@ -159,26 +160,25 @@ export default function EventsPage() {
           }
         />
 
-        <button
-          type="button"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('domovoy:open-with-role', {
-              detail: { role: 'party' }
-            }));
-          }}
-          className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md hover:shadow-lg active:scale-[0.99] transition-all"
-        >
-          <img
-            src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d746f916-cd13-483e-a6bb-f066b6805e05.jpg"
-            alt="Праздничный организатор"
-            className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shrink-0"
-          />
-          <div className="flex-1 text-left">
-            <div className="font-semibold text-sm">Спросить Праздничного организатора</div>
-            <div className="text-xs text-white/85">Идеи, сценарии, конкурсы и подарки</div>
-          </div>
-          <Icon name="MessageCircle" size={20} className="opacity-90 shrink-0" />
-        </button>
+        <SectionAIAdvisor
+          role="party"
+          title="ИИ-Организатор праздников"
+          description="Сценарии, конкурсы, меню и подарки"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d746f916-cd13-483e-a6bb-f066b6805e05.jpg"
+          gradientFrom="from-pink-500"
+          gradientTo="to-rose-600"
+          accentBg="bg-pink-50"
+          accentText="text-pink-700"
+          accentBorder="border-pink-200"
+          placeholder="Спросите о празднике..."
+          quickQuestions={[
+            'Идеи детского дня рождения',
+            'Сценарий для взрослой вечеринки',
+            'Что подарить коллеге?',
+            'Меню на праздничный стол',
+            'Конкурсы для гостей',
+          ]}
+        />
 
       {upcomingEvents.length === 0 && pastEvents.length === 0 && (
         <Card>

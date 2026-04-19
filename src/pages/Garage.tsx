@@ -14,6 +14,7 @@ import SectionHero from '@/components/ui/section-hero';
 import useGarage, { type Vehicle, type ServiceRecord, type Expense, type Reminder, type GarageNote } from '@/hooks/useGarage';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 const EXPENSE_CATEGORIES: Record<string, string> = {
   fuel: '⛽ Топливо', repair: '🔧 Ремонт', insurance: '📋 Страховка',
@@ -69,26 +70,28 @@ export default function Garage() {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('domovoy:open-with-role', {
-              detail: { role: 'mechanic' }
-            }));
-          }}
-          className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md hover:shadow-lg active:scale-[0.99] transition-all"
-        >
-          <img
-            src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/281f1984-036d-49ae-a62a-879f529a2ffb.jpg"
-            alt="Автомеханик"
-            className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shrink-0"
-          />
-          <div className="flex-1 text-left">
-            <div className="font-semibold text-sm">Спросить Автомеханика</div>
-            <div className="text-xs text-white/85">ТО, поломки, советы по авто</div>
-          </div>
-          <Icon name="MessageCircle" size={20} className="opacity-90 shrink-0" />
-        </button>
+        <SectionAIAdvisor
+          role="mechanic"
+          title="ИИ-Автомеханик"
+          description="ТО, индикаторы, поломки, выбор масла"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/281f1984-036d-49ae-a62a-879f529a2ffb.jpg"
+          gradientFrom="from-blue-600"
+          gradientTo="to-indigo-700"
+          accentBg="bg-blue-50"
+          accentText="text-blue-700"
+          accentBorder="border-blue-200"
+          placeholder="Спросите о машине..."
+          quickQuestions={[
+            'Когда пора на ТО?',
+            'Что означает индикатор на панели?',
+            'Как сэкономить на топливе?',
+            'Какое масло выбрать?',
+            'Что делать при ДТП?',
+          ]}
+          sectionContext={g.vehicles.length > 0
+            ? `Автомобили семьи: ${g.vehicles.map(v => `${v.make || ''} ${v.model || ''} ${v.year || ''} (пробег: ${v.mileage || '—'} км)`).join('; ')}.`
+            : undefined}
+        />
 
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Мои автомобили</h2>

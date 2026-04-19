@@ -5,6 +5,7 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import NutritionHubInstructions from '@/components/nutrition/NutritionHubInstructions';
 import SEOHead from "@/components/SEOHead";
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 interface SubSection {
   id: string;
@@ -117,26 +118,25 @@ export default function NutritionHub() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/332a580b-fc76-4272-8503-b220098c2419.jpg"
         />
 
-        <button
-          type="button"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('domovoy:open-with-role', {
-              detail: { role: 'nutritionist' }
-            }));
-          }}
-          className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md hover:shadow-lg active:scale-[0.99] transition-all"
-        >
-          <img
-            src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b2e3b0c9-dae8-4392-8208-2df4eea2a27c.jpg"
-            alt="Диетолог"
-            className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shrink-0"
-          />
-          <div className="flex-1 text-left">
-            <div className="font-semibold text-sm">Спросить Диетолога</div>
-            <div className="text-xs text-white/85">Рационы, калории, советы по питанию</div>
-          </div>
-          <Icon name="MessageCircle" size={20} className="opacity-90 shrink-0" />
-        </button>
+        <SectionAIAdvisor
+          role="nutritionist"
+          title="ИИ-Диетолог"
+          description="Рационы, калории, меню и советы"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b2e3b0c9-dae8-4392-8208-2df4eea2a27c.jpg"
+          gradientFrom="from-green-500"
+          gradientTo="to-emerald-600"
+          accentBg="bg-green-50"
+          accentText="text-green-700"
+          accentBorder="border-green-200"
+          placeholder="Спросите о питании..."
+          quickQuestions={[
+            'Составь меню на неделю',
+            'Как правильно считать калории?',
+            'Чем заменить сладкое?',
+            'Полезные перекусы для детей',
+            'Как похудеть без вреда?',
+          ]}
+        />
 
         <NutritionHubInstructions />
 
