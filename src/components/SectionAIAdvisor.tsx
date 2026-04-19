@@ -177,7 +177,7 @@ export default function SectionAIAdvisor({
       }
 
       const data = await response.json();
-      const content = data.reply || data.message || data.advice || 'Нет ответа';
+      const content = data.response || data.reply || data.message || data.advice || 'Нет ответа';
       const assistantMsg: Message = {
         role: 'assistant',
         content,
