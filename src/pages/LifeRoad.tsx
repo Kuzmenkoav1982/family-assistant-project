@@ -13,6 +13,8 @@ import LifeGoalDialog from '@/components/life-road/LifeGoalDialog';
 import BalanceWheel from '@/components/life-road/BalanceWheel';
 import FrameworksLibrary from '@/components/life-road/FrameworksLibrary';
 import CoachDialog from '@/components/life-road/CoachDialog';
+import LifeStoryMode from '@/components/life-road/LifeStoryMode';
+import LifeInsights from '@/components/life-road/LifeInsights';
 import { useLifeEvents } from '@/components/life-road/useLifeEvents';
 import { useLifeGoals } from '@/components/life-road/useLifeGoals';
 import type { LifeEvent, LifeEventCategory, LifeGoal } from '@/components/life-road/types';
@@ -20,13 +22,14 @@ import type { LifeEvent, LifeEventCategory, LifeGoal } from '@/components/life-r
 const BANNER_URL =
   'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9c12f708-e83f-4b07-ad65-5fd7179c3c5a.jpg';
 
-type TabId = 'road' | 'goals' | 'balance' | 'methods';
+type TabId = 'road' | 'insights' | 'goals' | 'balance' | 'methods';
 
 const TABS: { id: TabId; label: string; icon: string; gradient: string }[] = [
-  { id: 'road',    label: 'Дорога',   icon: 'Route',    gradient: 'from-pink-500 to-purple-600' },
-  { id: 'goals',   label: 'Цели',     icon: 'Target',   gradient: 'from-blue-500 to-cyan-500' },
-  { id: 'balance', label: 'Баланс',   icon: 'PieChart', gradient: 'from-emerald-500 to-teal-500' },
-  { id: 'methods', label: 'Методики', icon: 'Library',  gradient: 'from-amber-500 to-orange-500' },
+  { id: 'road',     label: 'Дорога',   icon: 'Route',     gradient: 'from-pink-500 to-purple-600' },
+  { id: 'insights', label: 'Инсайты',  icon: 'BarChart3', gradient: 'from-rose-500 to-orange-500' },
+  { id: 'goals',    label: 'Цели',     icon: 'Target',    gradient: 'from-blue-500 to-cyan-500' },
+  { id: 'balance',  label: 'Баланс',   icon: 'PieChart',  gradient: 'from-emerald-500 to-teal-500' },
+  { id: 'methods',  label: 'Методики', icon: 'Library',   gradient: 'from-amber-500 to-orange-500' },
 ];
 
 export default function LifeRoad() {
@@ -46,6 +49,7 @@ export default function LifeRoad() {
   const [defaultFramework, setDefaultFramework] = useState<string | undefined>(undefined);
 
   const [coachOpen, setCoachOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
 
   const birthYear = useMemo(() => {
     const me = members?.find((m) => m.birth_date);
@@ -90,14 +94,25 @@ export default function LifeRoad() {
             imageUrl={BANNER_URL}
             backPath="/development-hub"
             rightAction={
-              <Button
-                onClick={() => setCoachOpen(true)}
-                size="sm"
-                className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30"
-              >
-                <Icon name="Sparkles" size={14} className="mr-1.5" />
-                Домовой
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setStoryOpen(true)}
+                  size="sm"
+                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30"
+                  title="Смотреть как историю"
+                >
+                  <Icon name="Film" size={14} className="mr-1.5" />
+                  История
+                </Button>
+                <Button
+                  onClick={() => setCoachOpen(true)}
+                  size="sm"
+                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30"
+                >
+                  <Icon name="Sparkles" size={14} className="mr-1.5" />
+                  Домовой
+                </Button>
+              </div>
             }
           />
 
@@ -161,6 +176,18 @@ export default function LifeRoad() {
                 />
               )}
             </>
+          )}
+
+          {tab === 'insights' && (
+            <LifeInsights
+              events={events}
+              birthYear={birthYear}
+              onOpenStory={() => setStoryOpen(true)}
+              onJumpEvent={(ev) => {
+                setEditingEvent(ev);
+                setEventDialogOpen(true);
+              }}
+            />
           )}
 
           {tab === 'goals' && (
@@ -237,6 +264,13 @@ export default function LifeRoad() {
           />
 
           <CoachDialog open={coachOpen} onOpenChange={setCoachOpen} />
+
+          <LifeStoryMode
+            open={storyOpen}
+            onClose={() => setStoryOpen(false)}
+            events={events}
+            birthYear={birthYear}
+          />
         </div>
       </div>
     </>
