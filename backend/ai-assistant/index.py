@@ -51,13 +51,16 @@ def wallet_spend(user_id, family_id, amount, reason, description):
 
 def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
     try:
+        try:
+            fid_int = int(str(family_id))
+        except (ValueError, TypeError):
+            return []
         conn = get_db_connection()
         cursor = conn.cursor()
-        safe_family_id = family_id.replace("'", "''")
         query = f"""
             SELECT role, content 
             FROM chat_messages 
-            WHERE family_id::text = '{safe_family_id}' 
+            WHERE family_id = {fid_int}
             ORDER BY created_at DESC 
             LIMIT {int(limit)}
         """
@@ -76,15 +79,24 @@ def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
 
 def save_message(family_id: str, user_id: Optional[int], role: str, content: str):
     try:
+        try:
+            fid_int = int(str(family_id))
+        except (ValueError, TypeError):
+            print(f'[WARN] save_message: family_id не int: {family_id}')
+            return
+        uid_val = 'NULL'
+        if user_id is not None:
+            try:
+                uid_val = str(int(str(user_id)))
+            except (ValueError, TypeError):
+                uid_val = 'NULL'
         conn = get_db_connection()
         cursor = conn.cursor()
-        safe_family_id = family_id.replace("'", "''")
         safe_role = role.replace("'", "''")
         safe_content = content.replace("'", "''")
-        user_id_val = f"'{str(user_id)}'" if user_id else "NULL"
         query = f"""
             INSERT INTO chat_messages (family_id, sender_id, role, content, type, created_at)
-            VALUES ('{safe_family_id}'::uuid, {user_id_val}, '{safe_role}', '{safe_content}', 'text', NOW())
+            VALUES ({fid_int}, {uid_val}, '{safe_role}', '{safe_content}', 'text', NOW())
         """
         cursor.execute(query)
         conn.commit()
