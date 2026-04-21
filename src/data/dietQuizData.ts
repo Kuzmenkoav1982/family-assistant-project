@@ -66,6 +66,19 @@ export const DIET_PROGRESS_API = 'https://functions.poehali.dev/41c5c664-7ded-4c
 export const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
 export const AI_DIET_COST = 17;
 
+export const DIET_PRICE_BY_DAYS: Record<number, number> = {
+  7: 17,
+  14: 29,
+  30: 49,
+};
+
+export function calcDietPrice(days: number): number {
+  if (DIET_PRICE_BY_DAYS[days] !== undefined) return DIET_PRICE_BY_DAYS[days];
+  if (days <= 7) return 17;
+  if (days <= 14) return 29;
+  return 49;
+}
+
 export const initialData: QuizData = {
   height_cm: '', current_weight_kg: '', target_weight_kg: '', age: '',
   gender: '', activity_level: '', smoking: false, alcohol_frequency: '',

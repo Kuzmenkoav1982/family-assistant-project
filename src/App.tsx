@@ -65,6 +65,7 @@ const FamilyRules = lazy(() => import("./pages/FamilyRules"));
 const LaunchPlan = lazy(() => import("./pages/LaunchPlan"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const Offer = lazy(() => import("./pages/Offer"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const Documentation = lazy(() => import("./pages/Documentation"));
 const InstallationGuide = lazy(() => import("./pages/InstallationGuide"));
@@ -388,6 +389,7 @@ const App = () => {
                       <Route path="/launch-plan" element={<LaunchPlan />} />
                       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
+                      <Route path="/offer" element={<Offer />} />
                       <Route path="/refund-policy" element={<RefundPolicy />} />
                       <Route path="/documentation" element={<Documentation />} />
                       <Route path="/installation-guide" element={<InstallationGuide />} />

@@ -26,6 +26,26 @@ PRICES = {
     'recipe_from_products': 5,
 }
 
+DIET_PRICES_BY_DAYS = {
+    7: 17,
+    14: 29,
+    30: 49,
+}
+
+
+def calc_diet_price(duration_days: int) -> int:
+    try:
+        d = int(duration_days)
+    except (TypeError, ValueError):
+        d = 7
+    if d in DIET_PRICES_BY_DAYS:
+        return DIET_PRICES_BY_DAYS[d]
+    if d <= 7:
+        return 17
+    if d <= 14:
+        return 29
+    return 49
+
 REASON_MAP = {
     'start': 'ai_diet_plan',
     'recipe': 'ai_recipe',
@@ -165,6 +185,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return handle_products_check(api_key, body)
 
     price = PRICES.get(action)
+    if action == 'start':
+        price = calc_diet_price(body.get('duration_days', 7))
     if price:
         user_id, family_id = get_user_and_family(event)
         if not user_id:
@@ -773,6 +795,40 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
 {principles}
 """
 
+    compact_mode = duration_days >= 14
+    meal_schema_compact = """        {{
+          "type": "breakfast",
+          "time": "08:00",
+          "name": "Название",
+          "calories": число,
+          "protein": число,
+          "fats": число,
+          "carbs": число,
+          "emoji": "🍳"
+        }}"""
+    meal_schema_full = """        {{
+          "type": "breakfast",
+          "time": "08:00",
+          "name": "Название блюда",
+          "description": "Краткое описание",
+          "calories": число,
+          "protein": число,
+          "fats": число,
+          "carbs": число,
+          "ingredients": ["продукт 1 — 100г", "продукт 2 — 50г"],
+          "cooking_time_min": число,
+          "emoji": "подходящий эмодзи"
+        }}"""
+    meal_schema = meal_schema_compact if compact_mode else meal_schema_full
+    compact_hint = ""
+    if compact_mode:
+        compact_hint = (
+            f"\nРЕЖИМ КОМПАКТНОСТИ: план на {duration_days} дней. "
+            f"Для каждого блюда указывай ТОЛЬКО: type, time, name (до 4 слов), calories, protein, fats, carbs, emoji. "
+            f"БЕЗ description, БЕЗ ingredients, БЕЗ cooking_time_min — эти поля опусти. "
+            f"Это позволит вместить все {duration_days} дней в ответ."
+        )
+
     return f"""Составь план питания на {duration_days} дней для человека:
 - Пол: {gender}, возраст: {age} лет
 - Рост: {height} см, вес: {weight} кг, цель: {target} кг
@@ -786,7 +842,8 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
 - Сложность блюд: {complexity}
 - Макс. время готовки: {cooking_time} минут
 - Подъём: {wake_time}, отбой: {sleep_time}
-{med_section}
+{med_section}{compact_hint}
+
 Верни ТОЛЬКО JSON (без markdown, без ```):
 {{
   "daily_calories": число,
@@ -800,19 +857,7 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
     {{
       "day": "День 1",
       "meals": [
-        {{
-          "type": "breakfast",
-          "time": "08:00",
-          "name": "Название блюда",
-          "description": "Краткое описание",
-          "calories": число,
-          "protein": число,
-          "fats": число,
-          "carbs": число,
-          "ingredients": ["продукт 1 — 100г", "продукт 2 — 50г"],
-          "cooking_time_min": число,
-          "emoji": "подходящий эмодзи"
-        }}
+{meal_schema}
       ]
     }}
   ]
@@ -822,10 +867,9 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
 Каждый день должен содержать 4 приёма: breakfast, lunch, dinner, snack.
 Калорийность должна соответствовать цели (похудение/набор/поддержание).
 Учти все заболевания, аллергии и предпочтения. Блюда должны быть разнообразными каждый день.
-Указывай граммовки в ингредиентах (формат: "продукт — 100г").
 Рассчитай daily_water_ml, daily_steps и exercise_recommendation с учётом пола, веса, возраста и уровня активности.
 {"СТРОГО соблюдай ограничения медицинских столов! Ни одно запрещённое блюдо/продукт не должно попасть в план." if med_tables else ""}
-{"КРИТИЧЕСКИ ВАЖНО: ты ОБЯЗАН сгенерировать ВСЕ " + str(duration_days) + " дней. Не останавливайся на полпути. Пиши компактно: короткие описания (до 5 слов), ингредиенты без лишних слов. Каждый день ОБЯЗАТЕЛЕН." if duration_days > 7 else ""}"""
+КРИТИЧЕСКИ ВАЖНО: ты ОБЯЗАН сгенерировать ВСЕ {duration_days} дней. Не останавливайся на полпути. Каждый день ОБЯЗАТЕЛЕН, все 4 приёма ОБЯЗАТЕЛЬНЫ."""
 
 
 def parse_plan(text: str) -> Optional[Dict[str, Any]]:

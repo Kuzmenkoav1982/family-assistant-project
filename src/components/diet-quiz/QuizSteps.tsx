@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import type { QuizData, MedTableHint } from '@/data/dietQuizData';
-import { diseaseOptions, allergyOptions, cuisineOptions, dislikedOptions, AI_DIET_COST } from '@/data/dietQuizData';
+import { diseaseOptions, allergyOptions, cuisineOptions, dislikedOptions, AI_DIET_COST, calcDietPrice } from '@/data/dietQuizData';
 
 interface QuizStepsProps {
   step: number;
@@ -303,28 +303,35 @@ export default function QuizSteps({ step, data, update, toggleArrayItem, detecte
               </CardContent>
             </Card>
           )}
-          {walletBalance !== null && (
-            <Card className={`border ${walletBalance >= AI_DIET_COST ? 'border-emerald-200 bg-emerald-50' : 'border-red-300 bg-red-50'}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Icon name="Wallet" size={20} className={walletBalance >= AI_DIET_COST ? 'text-emerald-600' : 'text-red-500'} />
-                  <div className="flex-1 text-sm">
-                    <p className="font-medium">Баланс: <strong>{walletBalance.toFixed(0)} руб</strong><span className="text-muted-foreground ml-1">(нужно {AI_DIET_COST} руб)</span></p>
+          {(() => {
+            const currentPrice = calcDietPrice(parseInt(data.duration_days) || 7);
+            return walletBalance !== null && (
+              <Card className={`border ${walletBalance >= currentPrice ? 'border-emerald-200 bg-emerald-50' : 'border-red-300 bg-red-50'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Icon name="Wallet" size={20} className={walletBalance >= currentPrice ? 'text-emerald-600' : 'text-red-500'} />
+                    <div className="flex-1 text-sm">
+                      <p className="font-medium">Баланс: <strong>{walletBalance.toFixed(0)} руб</strong><span className="text-muted-foreground ml-1">(нужно {currentPrice} руб)</span></p>
+                    </div>
+                    {walletBalance < currentPrice && (
+                      <Button size="sm" className="bg-emerald-600" onClick={() => navigate('/wallet')}>
+                        <Icon name="Plus" size={14} className="mr-1" />Пополнить
+                      </Button>
+                    )}
                   </div>
-                  {walletBalance < AI_DIET_COST && (
-                    <Button size="sm" className="bg-emerald-600" onClick={() => navigate('/wallet')}>
-                      <Icon name="Plus" size={14} className="mr-1" />Пополнить
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            );
+          })()}
           <Card className="border-violet-200">
             <CardContent className="p-4">
               <Label className="text-sm font-bold mb-3 block">Длительность плана</Label>
               <div className="grid grid-cols-3 gap-2">
-                {[{ value: '7', label: '7 дней', desc: 'Пробный' }, { value: '14', label: '14 дней', desc: 'Оптимальный' }, { value: '30', label: '30 дней', desc: 'Полный курс' }].map(opt => (
+                {[
+                  { value: '7', label: '7 дней', desc: `${calcDietPrice(7)} ₽` },
+                  { value: '14', label: '14 дней', desc: `${calcDietPrice(14)} ₽` },
+                  { value: '30', label: '30 дней', desc: `${calcDietPrice(30)} ₽` },
+                ].map(opt => (
                   <button key={opt.value} className={`p-3 rounded-lg border-2 text-center transition-all ${data.duration_days === opt.value ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-violet-300'}`} onClick={() => update('duration_days', opt.value)}>
                     <div className="text-lg font-bold">{opt.label}</div>
                     <div className="text-xs text-muted-foreground">{opt.desc}</div>

@@ -206,9 +206,16 @@ def handler(event: dict, context) -> dict:
             
             files_json = json.dumps(body.get('files', []))
             
+            start_date_val = body.get('startDate') or None
+            end_date_val = body.get('endDate') or None
+            if isinstance(start_date_val, str) and not start_date_val.strip():
+                start_date_val = None
+            if isinstance(end_date_val, str) and not end_date_val.strip():
+                end_date_val = None
+            
             print(f'[UPDATE] About to update medication {med_id}')
             print(f'[UPDATE] name={body.get("name")}, dosage={body.get("dosage")}, frequency={body.get("frequency")}')
-            print(f'[UPDATE] startDate={body.get("startDate")}, endDate={body.get("endDate")}')
+            print(f'[UPDATE] startDate={start_date_val}, endDate={end_date_val}')
             print(f'[UPDATE] profileId={body.get("profileId")}')
             
             cursor.execute('''
@@ -219,8 +226,8 @@ def handler(event: dict, context) -> dict:
                 body['name'],
                 body.get('dosage', ''),
                 body.get('frequency', ''),
-                body.get('startDate'),
-                body.get('endDate'),
+                start_date_val,
+                end_date_val,
                 body.get('active', True),
                 files_json,
                 body.get('profileId'),
@@ -236,7 +243,11 @@ def handler(event: dict, context) -> dict:
             else:
                 print(f'[UPDATE ERROR] Medication {med_id} NOT FOUND after update!')
             
-            if 'times' in body or 'reminders' in body:
+            times = body.get('times', [])
+            reminders = body.get('reminders', [])
+            has_new_reminders = bool(times) or bool(reminders)
+            
+            if ('times' in body or 'reminders' in body) and has_new_reminders:
                 print(f'[REMINDERS] Deleting old reminders for medication {med_id}')
                 
                 # Сначала удаляем связанные записи в medication_intakes
@@ -252,9 +263,6 @@ def handler(event: dict, context) -> dict:
                 # Теперь можно удалить сами напоминания
                 cursor.execute('DELETE FROM medication_reminders WHERE medication_id = %s', (med_id,))
                 print(f'[REMINDERS] Deleted {cursor.rowcount} reminders')
-                
-                times = body.get('times', [])
-                reminders = body.get('reminders', [])
                 
                 if times:
                     print(f'[REMINDERS] About to insert {len(times)} new reminders')
@@ -289,7 +297,7 @@ def handler(event: dict, context) -> dict:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'message': 'Medication updated'}),
+                'body': json.dumps({'success': True, 'message': 'Medication updated'}),
                 'isBase64Encoded': False
             }
         
