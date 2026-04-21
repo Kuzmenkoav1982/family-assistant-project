@@ -45,7 +45,16 @@ export function useNotificationCenter() {
       const res = await fetch(url, { headers: { 'X-Auth-Token': token } });
       const data = await res.json();
       if (data.success) {
-        setNotifications(data.notifications);
+        // Скрываем тестовые/демо-уведомления (bug40)
+        const TEST_PATTERNS = /(^|\s)(test|тест|testing|demo|демо|sample|mock)(\s|[:!.]|$)/i;
+        const filtered = (data.notifications || []).filter((n: NotificationItem) => {
+          const title = (n.title || '').trim();
+          const msg = (n.message || '').trim();
+          if (!title && !msg) return false;
+          if (TEST_PATTERNS.test(title) || TEST_PATTERNS.test(msg)) return false;
+          return true;
+        });
+        setNotifications(filtered);
         setUnreadCount(data.unread_count);
       }
     } catch { /* */ }

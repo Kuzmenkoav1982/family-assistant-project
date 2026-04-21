@@ -121,14 +121,25 @@ export default function Calendar() {
       setShowReminders(true);
     }
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
     Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('calendar_notif_') && !key.includes(now.toDateString())) {
+      if (key.startsWith('calendar_notif_') && !key.endsWith(`_${todayStr}`) && !key.includes('_dismissed_')) {
         localStorage.removeItem(key);
       }
     });
   }, [events, notifyCalendarEvent]);
+
+  const handleRemindersClose = useCallback((open: boolean) => {
+    setShowReminders(open);
+    if (!open) {
+      const now = new Date();
+      const todayStr = formatDateToLocal(now);
+      events.forEach(e => {
+        if (e.reminderEnabled) {
+          localStorage.setItem(`calendar_notif_${e.id}_${todayStr}`, 'true');
+        }
+      });
+    }
+  }, [events]);
 
   useEffect(() => {
     checkReminders();
@@ -593,7 +604,7 @@ export default function Calendar() {
 
         <ReminderNotifications
           open={showReminders}
-          onOpenChange={setShowReminders}
+          onOpenChange={handleRemindersClose}
           reminders={upcomingReminders}
           onEventClick={handleEventClick}
         />

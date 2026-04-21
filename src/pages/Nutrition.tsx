@@ -43,16 +43,20 @@ interface NutritionData {
 export default function Nutrition() {
   const { members } = useFamilyMembersContext();
   
-  const getCurrentUserId = () => {
-    const authUserStr = localStorage.getItem('authUser');
-    if (authUserStr) {
+  const getCurrentUserId = (): string | number => {
+    // Приоритет: member_id (UUID) текущего пользователя или selectedMemberId
+    const userDataStr = localStorage.getItem('userData') || localStorage.getItem('authUser');
+    if (userDataStr) {
       try {
-        const authUser = JSON.parse(authUserStr);
-        return authUser.member_id || authUser.id || 1;
+        const u = JSON.parse(userDataStr);
+        if (u.member_id) return u.member_id;
+        if (u.memberId) return u.memberId;
       } catch {
-        return 1;
+        // ignore
       }
     }
+    // Если в UI выбран конкретный член (UUID), используем его
+    if (selectedMemberId && selectedMemberId !== 'all') return selectedMemberId;
     return 1;
   };
   

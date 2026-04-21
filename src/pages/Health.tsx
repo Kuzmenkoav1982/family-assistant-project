@@ -1,79 +1,129 @@
-import InDevelopment from '@/components/InDevelopment';
-import SEOHead from "@/components/SEOHead";
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/icon';
+import SectionHero from '@/components/ui/section-hero';
+import SEOHead from '@/components/SEOHead';
+
+interface HealthSection {
+  title: string;
+  description: string;
+  icon: string;
+  path: string;
+  gradient: string;
+  cta: string;
+}
+
+const sections: HealthSection[] = [
+  {
+    title: 'Медкарты детей',
+    description: 'Прививки, анализы, визиты к врачу и лекарства для каждого ребёнка',
+    icon: 'FileHeart',
+    path: '/children',
+    gradient: 'from-rose-500 to-pink-600',
+    cta: 'Открыть карточки детей',
+  },
+  {
+    title: 'Счётчик БЖУ',
+    description: 'Дневник питания, калории, белки/жиры/углеводы для всей семьи',
+    icon: 'Apple',
+    path: '/nutrition/tracker',
+    gradient: 'from-green-500 to-emerald-600',
+    cta: 'Вести дневник питания',
+  },
+  {
+    title: 'ИИ-диета по данным',
+    description: 'Индивидуальный план питания на основе целей и показателей',
+    icon: 'Sparkles',
+    path: '/nutrition/diet',
+    gradient: 'from-purple-500 to-fuchsia-600',
+    cta: 'Создать план',
+  },
+  {
+    title: 'Лекарства и приёмы',
+    description: 'График приёма лекарств с напоминаниями',
+    icon: 'Pill',
+    path: '/children',
+    gradient: 'from-blue-500 to-cyan-600',
+    cta: 'Управлять лекарствами',
+  },
+  {
+    title: 'Календарь здоровья',
+    description: 'Запланированные визиты к врачу, процедуры и обследования',
+    icon: 'CalendarHeart',
+    path: '/calendar?category=health',
+    gradient: 'from-orange-500 to-red-600',
+    cta: 'Открыть календарь',
+  },
+  {
+    title: 'ИИ-Доктор',
+    description: 'Консультации по симптомам и профилактике',
+    icon: 'Stethoscope',
+    path: '/health-hub',
+    gradient: 'from-indigo-500 to-blue-600',
+    cta: 'Спросить ИИ-Доктора',
+  },
+];
 
 export default function Health() {
-  const features = [
-    {
-      icon: '📋',
-      title: 'Медицинские карты',
-      description: 'Полная медицинская история каждого члена семьи: диагнозы, анализы, операции, хронические заболевания'
-    },
-    {
-      icon: '💉',
-      title: 'График прививок',
-      description: 'Календарь вакцинации для детей и взрослых с напоминаниями о предстоящих прививках'
-    },
-    {
-      icon: '👨‍⚕️',
-      title: 'База врачей',
-      description: 'Контакты всех семейных врачей: педиатр, терапевт, стоматолог, специалисты'
-    },
-    {
-      icon: '🏥',
-      title: 'История визитов',
-      description: 'Журнал посещений клиник, результаты обследований, рекомендации врачей'
-    },
-    {
-      icon: '💊',
-      title: 'Аптечка',
-      description: 'Список лекарств дома, сроки годности, инструкции, напоминания о приёме препаратов'
-    },
-    {
-      icon: '📊',
-      title: 'Показатели здоровья',
-      description: 'Отслеживание веса, роста, давления, уровня сахара, температуры'
-    },
-    {
-      icon: '🔔',
-      title: 'Напоминания',
-      description: 'Уведомления о приёме лекарств, визитах к врачу, профилактических осмотрах'
-    },
-    {
-      icon: '🧬',
-      title: 'Аллергии и противопоказания',
-      description: 'Важная информация о непереносимости препаратов и продуктов для каждого'
-    },
-    {
-      icon: '📱',
-      title: 'Быстрый доступ',
-      description: 'Номера скорой помощи, страховые полисы, группы крови всегда под рукой'
-    },
-    {
-      icon: '🏃',
-      title: 'Физическая активность',
-      description: 'Трекинг спортивных занятий, прогулок, зарядки для всей семьи'
-    },
-    {
-      icon: '💧',
-      title: 'Питьевой режим',
-      description: 'Учёт потребления воды, напоминания о необходимости попить'
-    },
-    {
-      icon: '📈',
-      title: 'Статистика и тренды',
-      description: 'Графики изменения показателей здоровья, анализ динамики'
-    }
-  ];
+  const navigate = useNavigate();
 
   return (
     <>
-      <SEOHead title="Здоровье семьи — медицинские карты и отслеживание" description="Медицинские карты семьи, отслеживание здоровья, история визитов к врачам, прививки, лекарства и анализы. Всё здоровье семьи в одном месте." path="/health" breadcrumbs={[{ name: "Здоровье", path: "/health-hub" }, { name: "Медкарты", path: "/health" }]} />
-      <InDevelopment
-        title="Здоровье"
-        description="Медицинские карты и здоровье семьи"
-        icon="Heart"
-        features={features}
+      <SEOHead
+        title="Здоровье семьи — медкарты, лекарства, питание"
+        description="Управление здоровьем семьи: медкарты, прививки, лекарства, дневник питания, ИИ-диета и консультации врача."
+        path="/health"
+        breadcrumbs={[
+          { name: 'Здоровье', path: '/health-hub' },
+          { name: 'Все функции', path: '/health' },
+        ]}
       />
+      <div className="min-h-screen bg-gradient-to-b from-rose-50 via-red-50/30 to-white pb-24">
+        <div className="max-w-5xl mx-auto p-4 space-y-6">
+          <SectionHero
+            title="Здоровье"
+            subtitle="Медкарты, лекарства, питание и показатели здоровья"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/126eb1fc-4b71-4f1c-87fd-fa88beb6d32d.jpg"
+            backPath="/health-hub"
+          />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {sections.map((s) => (
+              <Card
+                key={s.path + s.title}
+                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+                onClick={() => navigate(s.path)}
+              >
+                <div className={`h-2 bg-gradient-to-r ${s.gradient}`} />
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center flex-shrink-0 text-white`}>
+                      <Icon name={s.icon} size={24} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{s.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3">{s.description}</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="group-hover:bg-gray-900 group-hover:text-white transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(s.path);
+                        }}
+                      >
+                        {s.cta}
+                        <Icon name="ArrowRight" size={14} className="ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
     </>
   );
 }

@@ -254,14 +254,13 @@ def get_products(conn, category: Optional[str] = None) -> List[Dict]:
         return results
 
 
-def get_food_diary(conn, user_id: Optional[int], diary_date: str) -> List[Dict]:
+def get_food_diary(conn, user_id, diary_date: str) -> List[Dict]:
     """
-    Получить дневник питания за день
-    user_id: ID пользователя или None для всех пользователей
+    Получить дневник питания за день.
+    user_id может быть None (все), int (legacy user_id) или UUID (member_id)
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         if user_id is None:
-            # Все пользователи
             cur.execute(
                 """
                 SELECT fd.*, np.name as product_full_name, np.unit
@@ -272,8 +271,18 @@ def get_food_diary(conn, user_id: Optional[int], diary_date: str) -> List[Dict]:
                 """,
                 (diary_date,)
             )
+        elif _is_uuid(user_id):
+            cur.execute(
+                """
+                SELECT fd.*, np.name as product_full_name, np.unit
+                FROM food_diary fd
+                LEFT JOIN nutrition_products np ON fd.product_id = np.id
+                WHERE fd.member_id = %s::uuid AND fd.date = %s
+                ORDER BY fd.created_at
+                """,
+                (user_id, diary_date)
+            )
         else:
-            # Конкретный пользователь
             cur.execute(
                 """
                 SELECT fd.*, np.name as product_full_name, np.unit
@@ -297,13 +306,31 @@ def get_food_diary(conn, user_id: Optional[int], diary_date: str) -> List[Dict]:
         return results
 
 
+def _is_uuid(value) -> bool:
+    if not isinstance(value, str):
+        return False
+    import re
+    return bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', value.lower()))
+
+
 def add_diary_entry(conn, data: Dict) -> Dict:
-    """Добавить запись в дневник питания"""
-    user_id = data['user_id']
+    """Добавить запись в дневник питания.
+    Поддерживает как legacy user_id (int), так и member_id (UUID) от фронта.
+    """
+    raw_user = data.get('member_id') or data.get('user_id')
+    if _is_uuid(raw_user):
+        member_id = raw_user
+        user_id = 1  # fallback для NOT NULL legacy-колонки
+    else:
+        member_id = data.get('member_id')
+        try:
+            user_id = int(raw_user) if raw_user not in (None, '') else 1
+        except (TypeError, ValueError):
+            user_id = 1
     meal_type = data['meal_type']
     product_id = data.get('product_id')
     product_name = data.get('product_name')
-    amount = float(data.get('portion_grams', data.get('amount', 100)))  # Support both field names
+    amount = float(data.get('portion_grams', data.get('amount', 100)))
     
     # Если указан product_id, берём данные из базы
     if product_id:
@@ -327,12 +354,12 @@ def add_diary_entry(conn, data: Dict) -> Dict:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
-            INSERT INTO food_diary (user_id, date, meal_type, product_id, product_name, 
+            INSERT INTO food_diary (user_id, member_id, date, meal_type, product_id, product_name, 
                                    amount, calories, protein, fats, carbs, notes)
-            VALUES (%s, CURRENT_DATE, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s::uuid, CURRENT_DATE, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *
             """,
-            (user_id, meal_type, product_id, product_name, amount, 
+            (user_id, member_id, meal_type, product_id, product_name, amount, 
              calories, protein, fats, carbs, data.get('notes'))
         )
         conn.commit()
@@ -404,15 +431,14 @@ def delete_diary_entry(conn, entry_id: int) -> None:
         conn.commit()
 
 
-def get_nutrition_analytics(conn, user_id: Optional[int], analytics_date: str) -> Dict:
+def get_nutrition_analytics(conn, user_id, analytics_date: str) -> Dict:
     """
-    Получить аналитику питания за день
-    user_id: ID пользователя или None для всех пользователей
+    Получить аналитику питания за день.
+    user_id: None/int/UUID
     """
+    is_uuid_filter = _is_uuid(user_id)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        # Суммарные показатели за день
         if user_id is None:
-            # Все пользователи
             cur.execute(
                 """
                 SELECT 
@@ -426,8 +452,21 @@ def get_nutrition_analytics(conn, user_id: Optional[int], analytics_date: str) -
                 """,
                 (analytics_date,)
             )
+        elif is_uuid_filter:
+            cur.execute(
+                """
+                SELECT 
+                    COALESCE(SUM(calories), 0) as total_calories,
+                    COALESCE(SUM(protein), 0) as total_protein,
+                    COALESCE(SUM(fats), 0) as total_fats,
+                    COALESCE(SUM(carbs), 0) as total_carbs,
+                    COUNT(*) as entries_count
+                FROM food_diary
+                WHERE member_id = %s::uuid AND date = %s
+                """,
+                (user_id, analytics_date)
+            )
         else:
-            # Конкретный пользователь
             cur.execute(
                 """
                 SELECT 
@@ -449,7 +488,6 @@ def get_nutrition_analytics(conn, user_id: Optional[int], analytics_date: str) -
         
         # По типам приёма пищи
         if user_id is None:
-            # Все пользователи
             cur.execute(
                 """
                 SELECT 
@@ -464,8 +502,22 @@ def get_nutrition_analytics(conn, user_id: Optional[int], analytics_date: str) -
                 """,
                 (analytics_date,)
             )
+        elif is_uuid_filter:
+            cur.execute(
+                """
+                SELECT 
+                    meal_type,
+                    COALESCE(SUM(calories), 0) as calories,
+                    COALESCE(SUM(protein), 0) as protein,
+                    COALESCE(SUM(fats), 0) as fats,
+                    COALESCE(SUM(carbs), 0) as carbs
+                FROM food_diary
+                WHERE member_id = %s::uuid AND date = %s
+                GROUP BY meal_type
+                """,
+                (user_id, analytics_date)
+            )
         else:
-            # Конкретный пользователь
             cur.execute(
                 """
                 SELECT 

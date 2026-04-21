@@ -373,14 +373,50 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 elif data_type == 'medication':
                     try:
                         print(f"[MED ADD] Starting medication add: {data.get('name')}")
-                        encrypted_data = encrypt_medical_fields(data)
+                        
+                        # Проверка обязательных полей до шифрования
+                        med_name = (data.get('name') or '').strip()
+                        if not med_name:
+                            return {
+                                'statusCode': 400,
+                                'headers': headers,
+                                'body': json.dumps({'success': False, 'error': 'Укажите название лекарства'})
+                            }
+                        
+                        family_id_val = data.get('family_id') or ''
+                        if not family_id_val:
+                            return {
+                                'statusCode': 400,
+                                'headers': headers,
+                                'body': json.dumps({'success': False, 'error': 'Не указан family_id'})
+                            }
+                        
+                        med_start = data.get('start_date') or datetime.now().date().isoformat()
+                        med_end = data.get('end_date') or None
+                        med_frequency = (data.get('frequency') or '1 раз в день').strip()
+                        med_dosage = (data.get('dosage') or '1 таблетка').strip()
+                        med_instructions = data.get('instructions') or ''
+                        
+                        # Формируем данные для шифрования
+                        encrypt_input = {
+                            'name': med_name,
+                            'start_date': med_start,
+                            'end_date': med_end,
+                            'frequency': med_frequency,
+                            'dosage': med_dosage,
+                            'instructions': med_instructions,
+                        }
+                        encrypted_data = encrypt_medical_fields(encrypt_input)
                         
                         cur.execute(f"""
                             INSERT INTO {schema}.children_medications (member_id, family_id, name, start_date, end_date, frequency, dosage, instructions)
-                            VALUES ({child_id_safe}, {escape_sql_string(data.get('family_id', ''))}, 
-                                    {escape_sql_string(encrypted_data.get('name'))}, {escape_sql_string(encrypted_data.get('start_date'))}, 
-                                    {escape_sql_string(encrypted_data.get('end_date'))}, {escape_sql_string(encrypted_data.get('frequency', ''))}, 
-                                    {escape_sql_string(encrypted_data.get('dosage', ''))}, {escape_sql_string(encrypted_data.get('instructions', ''))}) 
+                            VALUES ({child_id_safe}, {escape_sql_string(family_id_val)}, 
+                                    {escape_sql_string(encrypted_data.get('name') or med_name)}, 
+                                    {escape_sql_string(encrypted_data.get('start_date') or med_start)}, 
+                                    {escape_sql_string(encrypted_data.get('end_date'))}, 
+                                    {escape_sql_string(encrypted_data.get('frequency') or med_frequency)}, 
+                                    {escape_sql_string(encrypted_data.get('dosage') or med_dosage)}, 
+                                    {escape_sql_string(encrypted_data.get('instructions') or med_instructions)}) 
                             RETURNING id
                         """)
                         result_id = cur.fetchone()['id']

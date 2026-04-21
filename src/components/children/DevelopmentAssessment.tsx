@@ -108,8 +108,10 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
     setError('');
 
     try {
+      const authToken = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
       const response = await fetch(
-        `https://functions.poehali.dev/63148537-9a20-4397-9f79-cc9af652c022?age_range=${ageRange}`
+        `https://functions.poehali.dev/63148537-9a20-4397-9f79-cc9af652c022?age_range=${ageRange}`,
+        { headers: { 'X-Auth-Token': authToken } }
       );
 
       if (!response.ok) {
@@ -193,11 +195,12 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       console.log('[DevelopmentAssessment] skillsArray length:', skillsArray.length);
       console.log('[DevelopmentAssessment] Sending analysis request:', requestBody);
 
+      const authToken = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
       const response = await fetch(
         'https://functions.poehali.dev/4f5f584d-55d2-4a42-ae62-dfd8e9f4718e',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
           body: JSON.stringify(requestBody),
         }
       );

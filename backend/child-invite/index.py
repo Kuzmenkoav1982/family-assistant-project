@@ -111,7 +111,7 @@ def create_child_invite(family_id: str, child_member_id: str, created_by: str) -
         print(f"[DEBUG] Insert result: {result}")
         
         if result:
-            invite_url = f"https://family-assistant-project--preview.poehali.dev/activate/{result['invite_token']}"
+            invite_url = f"https://nasha-semiya.ru/activate/{result['invite_token']}"
             return {
                 'success': True,
                 'invite_token': result['invite_token'],
@@ -122,7 +122,10 @@ def create_child_invite(family_id: str, child_member_id: str, created_by: str) -
         return {'success': False, 'error': 'Не удалось создать инвайт'}
         
     except Exception as e:
-        return {'success': False, 'error': str(e)}
+        print(f"[ERROR] create_child_invite: {e}")
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': f'Ошибка создания приглашения: {str(e)}'}
     finally:
         cur.close()
         conn.close()
@@ -309,7 +312,7 @@ def handler(event: dict, context) -> dict:
             result = create_child_invite(
                 family_id=str(user_data['family_id']),
                 child_member_id=child_member_id,
-                created_by=user_data['member_id']
+                created_by=str(user_data['user_id'])
             )
             
             return {
