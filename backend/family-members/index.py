@@ -142,7 +142,7 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         conn.close()
         return {'error': str(e)}
 
-def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], requesting_user_id: str = '') -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
@@ -154,6 +154,26 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any]) -
             cur.close()
             conn.close()
             return {'error': 'Член семьи не найден'}
+        
+        role_sensitive_fields = {'access_role', 'permissions', 'role'}
+        is_changing_role = any(f in data for f in role_sensitive_fields)
+        
+        if is_changing_role:
+            if not requesting_user_id:
+                cur.close()
+                conn.close()
+                return {'error': 'Требуется авторизация для изменения роли'}
+            
+            cur.execute(
+                f"SELECT access_role FROM {SCHEMA}.family_members "
+                f"WHERE user_id::text = {escape_string(requesting_user_id)} "
+                f"AND family_id = {escape_string(family_id)} LIMIT 1"
+            )
+            requester = cur.fetchone()
+            if not requester or requester.get('access_role') not in ('admin', 'owner'):
+                cur.close()
+                conn.close()
+                return {'error': 'Только администратор семьи может менять роли и права'}
         
         current_profile_data = dict(existing['profile_data']) if existing.get('profile_data') else {}
         
@@ -430,8 +450,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'Требуется ID члена семьи'}),
                         'isBase64Encoded': False
                     }
-                result = update_family_member(member_id, family_id, body)
+                result = update_family_member(member_id, family_id, body, user_id)
                 status_code = 200 if 'success' in result else 400
+                if not status_code == 200 and 'администратор' in result.get('error', '').lower():
+                    status_code = 403
             elif action == 'delete' or action == 'delete_member':
                 member_id = body.get('member_id') or body.get('id')
                 if not member_id:

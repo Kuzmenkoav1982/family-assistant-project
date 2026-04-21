@@ -29,10 +29,13 @@ interface FamilyMembersContextType {
   loading: boolean;
   error: string | null;
   familyId: string | null;
+  currentMemberId: string | null;
+  currentAccessRole: string | null;
   fetchMembers: (silent?: boolean) => Promise<void>;
   addMember: (memberData: Partial<FamilyMember>) => Promise<{success: boolean; member?: FamilyMember; error?: string}>;
   updateMember: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<{success: boolean; error?: string}>;
   deleteMember: (memberId: string) => Promise<{success: boolean; error?: string}>;
+  broadcastMembersUpdate: () => void;
 }
 
 export const FamilyMembersContext = createContext<FamilyMembersContextType | undefined>(undefined);
@@ -45,6 +48,9 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [familyId, setFamilyId] = useState<string | null>(() => localStorage.getItem('familyId'));
+  const [currentMemberId, setCurrentMemberId] = useState<string | null>(null);
+  const [currentAccessRole, setCurrentAccessRole] = useState<string | null>(null);
+  const channelRef = useRef<BroadcastChannel | null>(null);
   const isFetchingRef = useRef(false);
   const hasInitialFetchRef = useRef(false);
   const dialogLockRef = useRef(dialogLock);
@@ -175,6 +181,11 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         const sortedMembers = sortMembers(convertedMembers, data.current_member_id);
         
         setMembers(sortedMembers);
+        if (data.current_member_id) {
+          setCurrentMemberId(String(data.current_member_id));
+          const me = convertedMembers.find((m: { id?: string; access_role?: string }) => String(m.id) === String(data.current_member_id));
+          setCurrentAccessRole(me?.access_role || null);
+        }
         setError(null);
       } else {
         console.warn('[FamilyMembersContext] Failed to load members:', data.error);
@@ -383,6 +394,25 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
     return () => clearInterval(interval);
   }, [fetchMembers]);
 
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel('family-members-updates');
+    channelRef.current = channel;
+    channel.onmessage = (event) => {
+      if (event.data?.action === 'membersUpdated' || event.data?.action === 'roleUpdated') {
+        fetchMembers(true);
+      }
+    };
+    return () => {
+      channel.close();
+      channelRef.current = null;
+    };
+  }, [fetchMembers]);
+
+  const broadcastMembersUpdate = useCallback(() => {
+    channelRef.current?.postMessage({ action: 'membersUpdated', ts: Date.now() });
+  }, []);
+
   return (
     <FamilyMembersContext.Provider
       value={{
@@ -390,10 +420,13 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         loading,
         error,
         familyId,
+        currentMemberId,
+        currentAccessRole,
         fetchMembers,
         addMember,
         updateMember,
-        deleteMember
+        deleteMember,
+        broadcastMembersUpdate
       }}
     >
       {children}

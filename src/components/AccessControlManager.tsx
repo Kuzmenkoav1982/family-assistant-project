@@ -5,7 +5,8 @@ import { FamilyMemberPermissions, DEFAULT_PERMISSIONS } from './access-control/t
 import MemberCard from './access-control/MemberCard';
 
 export default function AccessControlManager() {
-  const { members: familyMembers, loading } = useFamilyMembersContext();
+  const { members: familyMembers, loading, currentAccessRole, broadcastMembersUpdate, fetchMembers } = useFamilyMembersContext();
+  const canManageRoles = currentAccessRole === 'admin' || currentAccessRole === 'owner';
   const [membersWithPermissions, setMembersWithPermissions] = useState<FamilyMemberPermissions[]>([]);
   const [selectedMember, setSelectedMember] = useState<FamilyMemberPermissions | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,6 +47,10 @@ export default function AccessControlManager() {
       alert('⚠️ Ошибка авторизации. Войдите в систему заново.');
       return;
     }
+    if (!canManageRoles) {
+      alert('⚠️ Только администратор семьи может менять роли и права доступа.');
+      return;
+    }
 
     setSavingMemberId(memberId);
 
@@ -84,6 +89,8 @@ export default function AccessControlManager() {
         throw new Error(data.error || 'Не удалось сохранить роль');
       }
       
+      broadcastMembersUpdate();
+      fetchMembers(true);
       console.log('✅ Роль успешно сохранена');
     } catch (error: any) {
       console.error('❌ Ошибка сохранения роли:', error);
@@ -124,6 +131,10 @@ export default function AccessControlManager() {
       alert('⚠️ Ошибка авторизации. Войдите в систему заново.');
       return;
     }
+    if (!canManageRoles) {
+      alert('⚠️ Только администратор семьи может менять роли и права доступа.');
+      return;
+    }
 
     const updatedMembers = membersWithPermissions.map(member => {
       if (member.id === memberId) {
@@ -162,6 +173,8 @@ export default function AccessControlManager() {
         throw new Error(data.error || 'Не удалось сохранить права');
       }
       
+      broadcastMembersUpdate();
+      fetchMembers(true);
       console.log('✅ Права успешно сохранены');
     } catch (error: any) {
       console.error('❌ Ошибка сохранения прав:', error);
@@ -222,6 +235,7 @@ export default function AccessControlManager() {
             savingMemberId={savingMemberId}
             isDialogOpen={isDialogOpen}
             selectedMemberId={selectedMember?.id ?? null}
+            canManageRoles={canManageRoles}
             onOpenDialog={openPermissionsDialog}
             onDialogChange={handleDialogChange}
             onRoleChange={updateMemberRole}

@@ -7,12 +7,14 @@ import { FamilyMemberPermissions, ROLES } from './types';
 interface PermissionsDialogProps {
   member: FamilyMemberPermissions;
   savingMemberId: string | null;
+  canManageRoles?: boolean;
   onRoleChange: (memberId: string, newRole: 'admin' | 'editor' | 'viewer') => void;
   onPermissionChange: (memberId: string, permission: keyof FamilyMemberPermissions['permissions'], value: boolean) => void;
   onClose: () => void;
 }
 
-export default function PermissionsDialog({ member, savingMemberId, onRoleChange, onPermissionChange, onClose }: PermissionsDialogProps) {
+export default function PermissionsDialog({ member, savingMemberId, canManageRoles = false, onRoleChange, onPermissionChange, onClose }: PermissionsDialogProps) {
+  const locked = !canManageRoles;
   return (
     <>
       <DialogHeader>
@@ -29,17 +31,23 @@ export default function PermissionsDialog({ member, savingMemberId, onRoleChange
             Роль пользователя
           </h4>
           <div className="grid gap-3">
+            {locked && (
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 flex items-start gap-2">
+                <Icon name="Lock" size={16} className="flex-shrink-0 mt-0.5" />
+                <span>Только администратор семьи может менять роли и права доступа. Вы можете только просматривать настройки.</span>
+              </div>
+            )}
             {Object.entries(ROLES).map(([roleKey, roleData]) => (
               <button
                 key={roleKey}
                 onClick={() => onRoleChange(member.id, roleKey as any)}
-                disabled={savingMemberId === member.id}
+                disabled={savingMemberId === member.id || locked}
                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                   member.role === roleKey 
                     ? 'border-blue-500 bg-blue-50' 
                     : 'border-gray-200 hover:border-gray-300'
                 } ${
-                  savingMemberId === member.id ? 'opacity-50 cursor-not-allowed' : ''
+                  (savingMemberId === member.id || locked) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -57,13 +65,13 @@ export default function PermissionsDialog({ member, savingMemberId, onRoleChange
           </div>
         </div>
 
-        <div className="border-t pt-6">
+        <fieldset disabled={locked} className="border-t pt-6">
           <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Icon name="Lock" size={18} />
             Детальные права доступа
           </h4>
           
-          <div className="space-y-4">
+          <div className={`space-y-4 ${locked ? 'opacity-60' : ''}`}>
             <div className="bg-blue-50 rounded-lg p-4">
               <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                 <Icon name="CheckSquare" size={16} className="text-blue-600" />
@@ -74,6 +82,7 @@ export default function PermissionsDialog({ member, savingMemberId, onRoleChange
                   <span className="text-sm text-gray-700">Редактировать задачи</span>
                   <Switch
                     checked={member.permissions.canEditTasks}
+                    disabled={locked}
                     onCheckedChange={(checked) => 
                       onPermissionChange(member.id, 'canEditTasks', checked)
                     }
@@ -83,6 +92,7 @@ export default function PermissionsDialog({ member, savingMemberId, onRoleChange
                   <span className="text-sm text-gray-700">Удалять задачи</span>
                   <Switch
                     checked={member.permissions.canDeleteTasks}
+                    disabled={locked}
                     onCheckedChange={(checked) => 
                       onPermissionChange(member.id, 'canDeleteTasks', checked)
                     }
@@ -181,7 +191,7 @@ export default function PermissionsDialog({ member, savingMemberId, onRoleChange
               </div>
             </div>
           </div>
-        </div>
+        </fieldset>
       </div>
 
       <div className="flex justify-end gap-2 pt-4 border-t">

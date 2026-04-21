@@ -335,6 +335,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
+        # Получить пожелания путешественников
+        if method == 'GET' and action == 'trip_wishes':
+            trip_id_raw = params.get('trip_id')
+            try:
+                trip_id = int(trip_id_raw) if trip_id_raw is not None else None
+            except (TypeError, ValueError):
+                trip_id = None
+            if not trip_id:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'trip_id обязателен'}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT id, trip_id, member_name, wish_text, category, created_at "
+                    "FROM t_p5815085_family_assistant_pro.trip_wishes "
+                    "WHERE trip_id = %s ORDER BY created_at DESC",
+                    (trip_id,)
+                )
+                rows = [convert_for_json(dict(r)) for r in cur.fetchall()]
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({'success': True, 'wishes': rows}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+
         # Получить все поездки семьи
         if method == 'GET' and action == 'trips':
             status = params.get('status', 'all')
@@ -362,6 +391,56 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             post_action = body.get('action', '')
             
+            if post_action == 'add_trip_wish':
+                trip_id = body.get('trip_id')
+                member_name = (body.get('member_name') or '').strip()
+                wish_text = (body.get('wish_text') or '').strip()
+                category = body.get('category') or 'general'
+                if not trip_id or not member_name or not wish_text:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'trip_id, member_name, wish_text обязательны'}, ensure_ascii=False),
+                        'isBase64Encoded': False
+                    }
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute(
+                        "INSERT INTO t_p5815085_family_assistant_pro.trip_wishes "
+                        "(trip_id, member_name, wish_text, category) VALUES (%s, %s, %s, %s) "
+                        "RETURNING id, trip_id, member_name, wish_text, category, created_at",
+                        (int(trip_id), member_name, wish_text, category)
+                    )
+                    conn.commit()
+                    wish = convert_for_json(dict(cur.fetchone()))
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True, 'wish': wish}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+
+            if post_action == 'delete_trip_wish':
+                wish_id = body.get('wish_id') or body.get('id')
+                if not wish_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'wish_id обязателен'}, ensure_ascii=False),
+                        'isBase64Encoded': False
+                    }
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM t_p5815085_family_assistant_pro.trip_wishes WHERE id = %s",
+                        (int(wish_id),)
+                    )
+                    conn.commit()
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+
             if post_action == 'create_trip':
                 trip = create_trip(conn, body, family_id)
                 return {

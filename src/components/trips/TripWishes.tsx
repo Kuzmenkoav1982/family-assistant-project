@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import func2url from '../../../backend/func2url.json';
+
+const TRIPS_API = (func2url as Record<string, string>)['trips'];
 
 interface Wish {
   id: number;
@@ -27,6 +30,7 @@ interface TripWishesProps {
 export function TripWishes({ tripId }: TripWishesProps) {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [newWish, setNewWish] = useState({
     member_name: '',
     wish_text: '',
@@ -41,25 +45,81 @@ export function TripWishes({ tripId }: TripWishesProps) {
     { value: 'relaxation', label: '🧘 Отдых', icon: 'Sparkles' },
   ];
 
-  const handleAddWish = () => {
+  const loadWishes = useCallback(async () => {
+    if (!TRIPS_API || !tripId) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    try {
+      const res = await fetch(`${TRIPS_API}?action=trip_wishes&trip_id=${tripId}`, {
+        headers: { 'X-Auth-Token': token },
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.wishes)) {
+        setWishes(data.wishes);
+      }
+    } catch (e) {
+      console.error('Load wishes error:', e);
+    }
+  }, [tripId]);
+
+  useEffect(() => {
+    loadWishes();
+  }, [loadWishes]);
+
+  const handleAddWish = async () => {
     if (!newWish.member_name || !newWish.wish_text) {
       alert('Заполните имя и пожелание');
       return;
     }
-
-    const wish: Wish = {
-      id: Date.now(),
-      ...newWish,
-      created_at: new Date().toISOString(),
-    };
-
-    setWishes([...wishes, wish]);
-    setNewWish({ member_name: '', wish_text: '', category: 'general' });
-    setIsAddDialogOpen(false);
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Войдите в систему');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(TRIPS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({ action: 'add_trip_wish', trip_id: tripId, ...newWish }),
+      });
+      const data = await res.json();
+      if (data.success && data.wish) {
+        setWishes([data.wish, ...wishes]);
+        setNewWish({ member_name: '', wish_text: '', category: 'general' });
+        setIsAddDialogOpen(false);
+      } else {
+        alert(data.error || 'Не удалось сохранить пожелание');
+      }
+    } catch (e) {
+      console.error('Add wish error:', e);
+      alert('Ошибка сети');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteWish = (wishId: number) => {
+  const handleDeleteWish = async (wishId: number) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    const prev = wishes;
     setWishes(wishes.filter((w) => w.id !== wishId));
+    try {
+      await fetch(TRIPS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({ action: 'delete_trip_wish', wish_id: wishId }),
+      });
+    } catch (e) {
+      console.error('Delete wish error:', e);
+      setWishes(prev);
+    }
   };
 
   const getCategoryInfo = (category: string) => {
@@ -176,10 +236,12 @@ export function TripWishes({ tripId }: TripWishesProps) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={loading}>
               Отмена
             </Button>
-            <Button onClick={handleAddWish}>Добавить</Button>
+            <Button onClick={handleAddWish} disabled={loading}>
+              {loading ? 'Сохранение…' : 'Добавить'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

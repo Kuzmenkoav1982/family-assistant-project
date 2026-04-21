@@ -11,6 +11,7 @@ interface MemberCardProps {
   savingMemberId: string | null;
   isDialogOpen: boolean;
   selectedMemberId: string | null;
+  canManageRoles?: boolean;
   onOpenDialog: (member: FamilyMemberPermissions) => void;
   onDialogChange: (open: boolean) => void;
   onRoleChange: (memberId: string, newRole: 'admin' | 'editor' | 'viewer') => void;
@@ -22,6 +23,7 @@ export default function MemberCard({
   savingMemberId,
   isDialogOpen,
   selectedMemberId,
+  canManageRoles = false,
   onOpenDialog,
   onDialogChange,
   onRoleChange,
@@ -81,6 +83,7 @@ export default function MemberCard({
                 <PermissionsDialog
                   member={member}
                   savingMemberId={savingMemberId}
+                  canManageRoles={canManageRoles}
                   onRoleChange={onRoleChange}
                   onPermissionChange={onPermissionChange}
                   onClose={() => onDialogChange(false)}
