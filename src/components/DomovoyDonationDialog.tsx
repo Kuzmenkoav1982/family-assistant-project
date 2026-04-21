@@ -52,7 +52,7 @@ export default function DomovoyDonationDialog({
   const [showSuccess, setShowSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleDonate = async (amount: number, method: 'wallet' | 'yookassa' = 'wallet') => {
+  const handleDonate = async (amount: number) => {
     if (!amount || amount < 100) {
       toast({
         title: 'Ошибка',
@@ -83,7 +83,7 @@ export default function DomovoyDonationDialog({
         },
         body: JSON.stringify({
           amount,
-          payment_method: method
+          payment_method: 'yookassa'
         })
       });
 
@@ -91,16 +91,6 @@ export default function DomovoyDonationDialog({
 
       if (!response.ok) {
         throw new Error(data.error || 'Ошибка создания платежа');
-      }
-
-      // Если оплата из кошелька — сразу успех
-      if (method === 'wallet' && data.success) {
-        setIsLoading(false);
-        setShowSuccess(true);
-        if (data.new_level && typeof setAssistantLevel === 'function') {
-          setAssistantLevel(data.new_level);
-        }
-        return;
       }
 
       // Сохраняем payment_id для проверки после возврата
@@ -116,19 +106,9 @@ export default function DomovoyDonationDialog({
       }
     } catch (error) {
       setIsLoading(false);
-      const msg = error instanceof Error ? error.message : 'Не удалось создать платёж';
-      // Если кошелька не хватает — предложить оплату картой
-      if (method === 'wallet' && /\u043d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e|insufficient|\u0431\u0430\u043b\u0430\u043d\u0441/i.test(msg)) {
-        toast({
-          title: 'Недостаточно средств в кошельке',
-          description: 'Пополните ИИ-кошелёк или оплатите картой',
-          variant: 'destructive'
-        });
-        return;
-      }
       toast({
         title: 'Ошибка',
-        description: msg,
+        description: error instanceof Error ? error.message : 'Не удалось создать платёж',
         variant: 'destructive'
       });
     }
