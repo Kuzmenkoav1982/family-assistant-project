@@ -48,14 +48,14 @@ export function BooksSection({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Icon name="BookOpen" size={20} />
               Библиотека
             </CardTitle>
             <Dialog open={newBookDialog} onOpenChange={onNewBookDialogChange}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2 w-full sm:w-auto">
                   <Icon name="Plus" size={16} />
                   Добавить книгу
                 </Button>

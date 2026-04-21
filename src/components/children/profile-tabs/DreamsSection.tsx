@@ -68,14 +68,14 @@ export function DreamsSection({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Icon name="Sparkles" size={20} />
               Мечты и цели
             </CardTitle>
             <Dialog open={newDreamDialog} onOpenChange={onNewDreamDialogChange}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2 w-full sm:w-auto">
                   <Icon name="Plus" size={16} />
                   Добавить мечту
                 </Button>

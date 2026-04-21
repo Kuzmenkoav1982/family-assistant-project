@@ -68,12 +68,14 @@ export function ParticipantsPicker({ selectedIds, onChange }: ParticipantsPicker
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-full justify-start gap-2">
-          <Icon name="Users" size={16} />
-          {selectedIds.length === 0 
-            ? 'Выберите участников' 
-            : `${selectedIds.length} участников: ${getSelectedNames()}`
-          }
+        <Button variant="outline" className="w-full justify-start gap-2 min-w-0 max-w-full">
+          <Icon name="Users" size={16} className="flex-shrink-0" />
+          <span className="truncate min-w-0 flex-1 text-left">
+            {selectedIds.length === 0 
+              ? 'Выберите участников' 
+              : `${selectedIds.length} участников: ${getSelectedNames()}`
+            }
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">

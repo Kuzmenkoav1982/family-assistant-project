@@ -32,7 +32,9 @@ export default function PlanResult({
           </Button>
           <div>
             <h1 className="text-lg font-bold">Ваш план питания</h1>
-            <p className="text-xs text-muted-foreground">Персональный на 7 дней</p>
+            <p className="text-xs text-muted-foreground">
+              Персональный на {plan.days.length} {plan.days.length === 1 ? 'день' : plan.days.length < 5 ? 'дня' : 'дней'}
+            </p>
           </div>
         </div>
 

@@ -118,7 +118,7 @@ export default function LeisureDialogs({
   return (
     <>
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-[calc(100vw-2rem)] sm:w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Добавить активность</DialogTitle>
             <DialogDescription>Создайте новую активность для досуга с деталями и местоположением</DialogDescription>
@@ -185,7 +185,7 @@ export default function LeisureDialogs({
 
       {editingActivity && (
         <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setTagInput(''); }}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-[calc(100vw-2rem)] sm:w-full sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Редактировать активность</DialogTitle>
               <DialogDescription>Измените информацию о выбранной активности</DialogDescription>

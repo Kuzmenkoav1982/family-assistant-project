@@ -80,6 +80,30 @@ const localizeReason = (reason: string, type: 'topup' | 'spend'): string => {
   return type === 'topup' ? 'Пополнение' : 'Списание';
 };
 
+const DESCRIPTION_DICT: Array<[RegExp, string]> = [
+  [/top.?up|topup|deposit|replenish/i, 'Пополнение'],
+  [/withdrawal|withdraw/i, 'Снятие'],
+  [/refund/i, 'Возврат'],
+  [/ai\s*(assistant|chat|help|request)/i, 'ИИ-ассистент'],
+  [/ai\s*photo|image\s*generation/i, 'Генерация фото'],
+  [/ai\s*recipe/i, 'ИИ-рецепт'],
+  [/diet\s*plan|meal\s*plan/i, 'План питания'],
+  [/trip\s*(recommend|tips|route)/i, 'Путешествие ИИ'],
+  [/subscription|renewal/i, 'Подписка'],
+  [/donation/i, 'Пожертвование'],
+  [/recommendation/i, 'Рекомендация'],
+];
+
+const localizeDescription = (description: string): string => {
+  if (!description) return '';
+  // Если уже на русском (кириллица), возвращаем как есть
+  if (/[а-яА-ЯёЁ]/.test(description)) return description;
+  for (const [pattern, ru] of DESCRIPTION_DICT) {
+    if (pattern.test(description)) return ru;
+  }
+  return description;
+};
+
 export default function FamilyWallet() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -550,7 +574,7 @@ export default function FamilyWallet() {
                           {localizeReason(tx.reason, tx.type)}
                         </p>
                         {tx.description && (
-                          <p className="text-xs text-muted-foreground truncate">{tx.description}</p>
+                          <p className="text-xs text-muted-foreground truncate">{localizeDescription(tx.description)}</p>
                         )}
                         <p className="text-[10px] text-muted-foreground">
                           {formatDate(tx.created_at)}

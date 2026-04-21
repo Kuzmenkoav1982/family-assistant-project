@@ -41,21 +41,27 @@ export function useIndexState() {
   const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];
   
+  // Используем моки только для неавторизованных пользователей и демо-режима.
+  // Авторизованные пользователи видят только реальные данные из API/БД.
+  const isAuthed = typeof window !== 'undefined' && !!localStorage.getItem('authToken');
+  const isDemo = typeof window !== 'undefined' && localStorage.getItem('demoMode') === 'true';
+  const useMocks = !isAuthed || isDemo;
+
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
-  const [familyValues] = useState<FamilyValue[]>(initialFamilyValues);
-  const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
-  const [traditions] = useState<Tradition[]>(initialTraditions);
-  const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
-  const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
-  const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
-  const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(initialFamilyNeeds);
-  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
+  const [importantDates] = useState<ImportantDate[]>(useMocks ? initialImportantDates : []);
+  const [familyValues] = useState<FamilyValue[]>(useMocks ? initialFamilyValues : []);
+  const [blogPosts] = useState<BlogPost[]>(useMocks ? initialBlogPosts : []);
+  const [traditions] = useState<Tradition[]>(useMocks ? initialTraditions : []);
+  const [childrenProfiles] = useState<ChildProfile[]>(useMocks ? initialChildrenProfiles : []);
+  const [developmentPlans] = useState<DevelopmentPlan[]>(useMocks ? initialDevelopmentPlans : []);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(useMocks ? initialChatMessages : []);
+  const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(useMocks ? initialFamilyAlbum : []);
+  const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(useMocks ? initialFamilyNeeds : []);
+  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(useMocks ? initialFamilyTree : []);
   const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
-  const [aiRecommendations] = useState<AIRecommendation[]>(initialAIRecommendations);
+  const [aiRecommendations] = useState<AIRecommendation[]>(useMocks ? initialAIRecommendations : []);
   const [newMessage, setNewMessage] = useState('');
-  const [calendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
+  const [calendarEvents] = useState<CalendarEvent[]>(useMocks ? initialCalendarEvents : []);
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
     return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';

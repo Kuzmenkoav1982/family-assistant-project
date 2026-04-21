@@ -41,9 +41,9 @@ export default function DietProgress() {
               <p className="text-muted-foreground text-sm mb-4">
                 Создайте план питания, чтобы отслеживать прогресс
               </p>
-              <Button onClick={() => navigate('/nutrition')} className="bg-violet-600">
-                <Icon name="ArrowLeft" size={16} className="mr-2" />
-                К питанию
+              <Button onClick={() => navigate('/nutrition/diet')} className="bg-violet-600">
+                <Icon name="Sparkles" size={16} className="mr-2" />
+                Создать ИИ-план питания
               </Button>
             </CardContent>
           </Card>

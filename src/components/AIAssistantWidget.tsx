@@ -583,7 +583,7 @@ const AIAssistantWidget = () => {
           className={`fixed z-40 bg-white shadow-2xl border border-gray-200 flex flex-col ${
             isMinimized 
               ? 'w-80 h-16 bottom-6 right-6 rounded-2xl' 
-              : 'w-full h-[calc(100dvh-4rem)] md:w-96 md:h-[600px] md:rounded-2xl ' +
+              : 'w-full h-[calc(100dvh-9rem)] md:w-96 md:h-[600px] md:rounded-2xl ' +
                 'top-16 left-0 md:top-auto md:left-auto md:max-h-[calc(100vh-100px)]'
           }`}
         >
