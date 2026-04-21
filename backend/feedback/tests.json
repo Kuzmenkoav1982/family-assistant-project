@@ -9,6 +9,30 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "Ideas categories",
+      "method": "GET",
+      "path": "/?resource=ideas&action=categories",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial",
+      "expectedBody": {}
+    },
+    {
+      "name": "Ideas statuses",
+      "method": "GET",
+      "path": "/?resource=ideas&action=statuses",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial",
+      "expectedBody": {}
+    },
+    {
+      "name": "Ideas list",
+      "method": "GET",
+      "path": "/?resource=ideas&sort_by=votes",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial",
+      "expectedBody": {}
+    },
+    {
       "name": "OPTIONS preflight",
       "method": "OPTIONS",
       "path": "/",

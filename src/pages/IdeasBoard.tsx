@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
-const IDEAS_API = 'https://functions.poehali.dev/111f1edc-11d1-4cb8-aafd-8be5b56ade75';
+const IDEAS_API = 'https://functions.poehali.dev/5f414b77-7ce9-4a88-b0dd-8b870ec6939b';
 
 interface Category {
   id: string;
@@ -80,7 +80,7 @@ export default function IdeasBoard() {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${IDEAS_API}?action=categories`);
+      const response = await fetch(`${IDEAS_API}?resource=ideas&action=categories`);
       const data = await response.json();
       if (data.categories) {
         setCategories(data.categories);
@@ -92,7 +92,7 @@ export default function IdeasBoard() {
 
   const loadStatuses = async () => {
     try {
-      const response = await fetch(`${IDEAS_API}?action=statuses`);
+      const response = await fetch(`${IDEAS_API}?resource=ideas&action=statuses`);
       const data = await response.json();
       if (data.statuses) {
         setStatuses(data.statuses);
@@ -106,6 +106,7 @@ export default function IdeasBoard() {
     setLoading(true);
     try {
       const params = new URLSearchParams({
+        resource: 'ideas',
         sort_by: sortBy,
         ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
         ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus })
@@ -176,6 +177,7 @@ export default function IdeasBoard() {
           'X-Auth-Token': token
         },
         body: JSON.stringify({
+          resource: 'ideas',
           action: 'create',
           ...newIdea
         })
@@ -230,6 +232,7 @@ export default function IdeasBoard() {
           'X-Auth-Token': token
         },
         body: JSON.stringify({
+          resource: 'ideas',
           action: 'vote',
           idea_id: ideaId
         })
@@ -269,7 +272,7 @@ export default function IdeasBoard() {
     const token = localStorage.getItem('authToken');
     
     try {
-      const response = await fetch(`${IDEAS_API}?action=detail&id=${idea.id}`, {
+      const response = await fetch(`${IDEAS_API}?resource=ideas&action=detail&id=${idea.id}`, {
         headers: token ? {
           'X-Auth-Token': token
         } : {}
@@ -318,6 +321,7 @@ export default function IdeasBoard() {
           'X-Auth-Token': token
         },
         body: JSON.stringify({
+          resource: 'ideas',
           action: 'comment',
           idea_id: selectedIdea?.id,
           text: newComment
