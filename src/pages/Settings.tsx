@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
 import AccessControlManager from '@/components/AccessControlManager';
@@ -45,10 +45,11 @@ export default function Settings() {
     const saved = localStorage.getItem('darkMode');
     return saved === 'true';
   });
-  const [currentLanguage, setCurrentLanguage] = useState(() => {
-    const saved = localStorage.getItem('familyLanguage');
-    return saved || 'ru';
-  });
+  const [logoError, setLogoError] = useState(false);
+
+  useEffect(() => {
+    setLogoError(false);
+  }, [familyLogo]);
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('familyOrganizerTheme');
     return saved || 'middle';
@@ -260,11 +261,6 @@ export default function Settings() {
     }
   };
 
-  const handleLanguageChange = (lang: string) => {
-    setCurrentLanguage(lang);
-    localStorage.setItem('familyLanguage', lang);
-  };
-
   const sections = [
     { id: 'family', icon: 'Users', label: 'Семья', path: '' },
     { id: 'notifications', icon: 'Bell', label: 'Уведомления', path: '' },
@@ -362,8 +358,13 @@ export default function Settings() {
                         <Label>Логотип семьи</Label>
                         <div className="flex items-center gap-4 mt-2">
                           <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
-                            {familyLogo ? (
-                              <img src={familyLogo} alt="Family logo" className="w-full h-full object-cover" />
+                            {familyLogo && !logoError ? (
+                              <img
+                                src={familyLogo}
+                                alt="Family logo"
+                                className="w-full h-full object-cover"
+                                onError={() => setLogoError(true)}
+                              />
                             ) : (
                               <Icon name="Users" size={32} className="text-gray-400" />
                             )}
