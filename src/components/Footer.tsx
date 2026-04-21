@@ -122,7 +122,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  to="/terms-of-service" 
+                  to="/offer" 
                   className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                 >
                   <Icon name="FileCheck" size={16} />
