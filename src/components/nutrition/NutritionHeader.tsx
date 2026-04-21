@@ -12,8 +12,8 @@ interface FamilyMember {
 
 interface NutritionHeaderProps {
   members: FamilyMember[];
-  selectedMemberId: number;
-  onMemberSelect: (memberId: number) => void;
+  selectedMemberId: string;
+  onMemberSelect: (memberId: string) => void;
   isInstructionOpen: boolean;
   onInstructionToggle: (open: boolean) => void;
 }
@@ -101,8 +101,8 @@ export function NutritionHeader({
           <CardContent className="pt-6">
             <div className="flex gap-3 overflow-x-auto pb-2">
               <Button
-                variant={selectedMemberId === 0 ? 'default' : 'outline'}
-                onClick={() => onMemberSelect(0)}
+                variant={selectedMemberId === 'all' ? 'default' : 'outline'}
+                onClick={() => onMemberSelect('all')}
                 className="flex items-center gap-2 whitespace-nowrap"
               >
                 <Icon name="Users" size={20} />
@@ -111,8 +111,8 @@ export function NutritionHeader({
               {members.map((member) => (
                 <Button
                   key={member.id}
-                  variant={selectedMemberId === parseInt(member.id) ? 'default' : 'outline'}
-                  onClick={() => onMemberSelect(parseInt(member.id))}
+                  variant={selectedMemberId === String(member.id) ? 'default' : 'outline'}
+                  onClick={() => onMemberSelect(String(member.id))}
                   className="flex items-center gap-2 whitespace-nowrap"
                 >
                   {member.name}

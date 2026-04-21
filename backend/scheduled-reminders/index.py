@@ -27,16 +27,30 @@ def is_already_sent(cur, family_id: str, h: str) -> bool:
         SELECT id FROM {SCHEMA}.sent_notifications 
         WHERE family_id = '{escape(family_id)}' AND notification_hash = '{escape(h)}'
         AND sent_at > NOW() - INTERVAL '24 hours'
+        LIMIT 1
     """)
     return cur.fetchone() is not None
 
+
 def mark_sent(cur, conn, family_id: str, h: str, title: str):
-    cur.execute(f"""
-        INSERT INTO {SCHEMA}.sent_notifications (family_id, notification_hash, title)
-        VALUES ('{escape(family_id)}', '{escape(h)}', '{escape(title)}')
-        ON CONFLICT (family_id, notification_hash) DO NOTHING
-    """)
-    conn.commit()
+    """Для обратной совместимости — вставка с защитой от дублей."""
+    try:
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.sent_notifications (family_id, notification_hash, title)
+            SELECT '{escape(family_id)}', '{escape(h)}', '{escape(title)}'
+            WHERE NOT EXISTS (
+                SELECT 1 FROM {SCHEMA}.sent_notifications
+                WHERE family_id = '{escape(family_id)}' AND notification_hash = '{escape(h)}'
+                AND sent_at > NOW() - INTERVAL '24 hours'
+            )
+        """)
+        conn.commit()
+    except Exception as e:
+        print(f"[mark_sent] error: {e}")
+        try:
+            conn.rollback()
+        except Exception:
+            pass
 
 def cleanup_old(cur, conn):
     cur.execute(f"DELETE FROM {SCHEMA}.sent_notifications WHERE sent_at < NOW() - INTERVAL '48 hours'")

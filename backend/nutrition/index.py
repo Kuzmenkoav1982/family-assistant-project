@@ -85,7 +85,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'GET' and action == 'diary':
             user_id_param = params.get('user_id', '1')
             # Поддержка "all" для всех пользователей
-            user_id = None if user_id_param == 'all' else int(user_id_param)
+            if user_id_param == 'all':
+                user_id = None
+            else:
+                try:
+                    user_id = int(user_id_param)
+                except (TypeError, ValueError):
+                    user_id = user_id_param
             diary_date = params.get('date', str(date.today()))
             diary = get_food_diary(conn, user_id, diary_date)
             return {
@@ -131,8 +137,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Аналитика питания
         if method == 'GET' and action == 'analytics':
             user_id_param = params.get('user_id', '1')
-            # Поддержка "all" для всех пользователей
-            user_id = None if user_id_param == 'all' else int(user_id_param)
+            if user_id_param == 'all':
+                user_id = None
+            else:
+                try:
+                    user_id = int(user_id_param)
+                except (TypeError, ValueError):
+                    user_id = user_id_param
             analytics_date = params.get('date', str(date.today()))
             analytics = get_nutrition_analytics(conn, user_id, analytics_date)
             return {

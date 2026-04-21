@@ -672,7 +672,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # Добавить запись в дневник
+        # Добавить/обновить/удалить запись в дневнике
         if method == 'POST':
             body = json.loads(event.get('body', '{}'))
             if body.get('action') == 'add_diary':
@@ -681,6 +681,38 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 201,
                     'headers': headers,
                     'body': json.dumps({'entry': entry}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            if body.get('action') == 'update_diary':
+                try:
+                    entry = update_diary_entry(conn, body)
+                except ValueError as e:
+                    return {
+                        'statusCode': 404,
+                        'headers': headers,
+                        'body': json.dumps({'error': str(e)}, ensure_ascii=False),
+                        'isBase64Encoded': False
+                    }
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'entry': entry, 'success': True}, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+            if body.get('action') == 'delete_diary':
+                entry_id = body.get('entry_id') or body.get('id')
+                if not entry_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': headers,
+                        'body': json.dumps({'error': 'entry_id обязателен'}, ensure_ascii=False),
+                        'isBase64Encoded': False
+                    }
+                delete_diary_entry(conn, entry_id)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True}, ensure_ascii=False),
                     'isBase64Encoded': False
                 }
         
@@ -752,7 +784,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             if post_action == 'mark_visited':
-                place = mark_place_visited(conn, body['place_id'], body.get('visited_date'))
+                requested_status = body.get('status', 'visited')
+                if requested_status not in ('planned', 'skipped', 'visited'):
+                    requested_status = 'visited'
+                place = set_place_status(conn, body['place_id'], requested_status)
                 return {
                     'statusCode': 200,
                     'headers': headers,
@@ -1227,6 +1262,36 @@ def add_diary_entry(conn, data: Dict) -> Dict:
         return convert_for_json(dict(cur.fetchone()))
 
 
+def update_diary_entry(conn, data: Dict) -> Dict:
+    """Обновить запись дневника"""
+    entry_id = data.get('entry_id') or data.get('id')
+    if not entry_id:
+        raise ValueError('entry_id обязателен')
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            UPDATE trip_diary
+            SET date = %s, title = %s, content = %s, mood = %s, location = %s, weather = %s
+            WHERE id = %s
+            RETURNING *
+            """,
+            (data['date'], data.get('title'), data['content'], data.get('mood'),
+             data.get('location'), data.get('weather'), int(entry_id))
+        )
+        conn.commit()
+        row = cur.fetchone()
+        if not row:
+            raise ValueError(f'Запись {entry_id} не найдена')
+        return convert_for_json(dict(row))
+
+
+def delete_diary_entry(conn, entry_id) -> None:
+    """Удалить запись дневника"""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM trip_diary WHERE id = %s", (int(entry_id),))
+        conn.commit()
+
+
 def get_photos(conn, trip_id: int) -> List[Dict]:
     """Получить фото поездки"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -1349,6 +1414,40 @@ def mark_place_visited(conn, place_id: int, visited_date: Optional[str] = None) 
             """,
             (visit_date, place_id)
         )
+        conn.commit()
+        result = cur.fetchone()
+        if not result:
+            raise ValueError(f"Place {place_id} not found")
+        return convert_for_json(dict(result))
+
+
+def set_place_status(conn, place_id: int, status: str) -> Dict:
+    """Изменить статус места: planned / skipped / visited"""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        if status == 'visited':
+            cur.execute(
+                """
+                UPDATE t_p5815085_family_assistant_pro.trip_places SET
+                    status = 'visited',
+                    visited_date = COALESCE(visited_date, CURRENT_DATE),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+                RETURNING *
+                """,
+                (place_id,)
+            )
+        else:
+            cur.execute(
+                """
+                UPDATE t_p5815085_family_assistant_pro.trip_places SET
+                    status = %s,
+                    visited_date = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+                RETURNING *
+                """,
+                (status, place_id)
+            )
         conn.commit()
         result = cur.fetchone()
         if not result:

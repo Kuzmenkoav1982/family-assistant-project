@@ -163,6 +163,29 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
     }
   };
 
+  const handleDeletePlace = async (placeId: number) => {
+    if (!confirm('Удалить это место из списка?')) return;
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({ action: 'delete_place', place_id: placeId })
+      });
+      if (response.ok) {
+        await loadPlaces();
+      } else {
+        alert('Не удалось удалить место');
+      }
+    } catch (error) {
+      console.error('Error deleting place:', error);
+      alert('Ошибка при удалении места');
+    }
+  };
+
   const handleAddPlace = async () => {
     if (!newPlace.place_name) {
       alert('Укажите название места');
@@ -419,8 +442,18 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                     size="sm"
                     variant="outline"
                     onClick={() => handleUpdatePlaceStatus(place.id, 'skipped')}
+                    title="Пропустить"
                   >
                     <Icon name="X" size={14} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => handleDeletePlace(place.id)}
+                    title="Удалить"
+                  >
+                    <Icon name="Trash2" size={14} />
                   </Button>
                 </div>
               </CardContent>
@@ -456,7 +489,7 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             {visitedPlaces.map(place => (
-              <Card key={place.id} className="bg-green-50 border-green-200">
+              <Card key={place.id} className="bg-green-50 border-green-200 group">
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -470,7 +503,26 @@ export function TripWishList({ tripId, currency = 'RUB' }: TripWishListProps) {
                         </p>
                       )}
                     </div>
-                    <Icon name="CheckCircle2" size={20} className="text-green-600" />
+                    <div className="flex gap-1 shrink-0">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => handleUpdatePlaceStatus(place.id, 'planned')}
+                        title="Вернуть в планы"
+                      >
+                        <Icon name="Undo2" size={14} />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeletePlace(place.id)}
+                        title="Удалить"
+                      >
+                        <Icon name="Trash2" size={14} />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 {place.notes && (

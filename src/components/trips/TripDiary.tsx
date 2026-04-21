@@ -28,14 +28,17 @@ interface TripDiaryProps {
 
 export function TripDiary({ tripId, diary, onUpdate }: TripDiaryProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [newEntry, setNewEntry] = useState({
+  const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
+  const emptyEntry = {
     date: new Date().toISOString().split('T')[0],
     title: '',
     content: '',
     mood: 'good',
     location: '',
     weather: ''
-  });
+  };
+  const [newEntry, setNewEntry] = useState(emptyEntry);
+  const [editEntry, setEditEntry] = useState(emptyEntry);
 
   const handleAddEntry = async () => {
     if (!newEntry.content) {
@@ -62,18 +65,82 @@ export function TripDiary({ tripId, diary, onUpdate }: TripDiaryProps) {
       if (response.ok) {
         onUpdate();
         setIsAddOpen(false);
-        setNewEntry({
-          date: new Date().toISOString().split('T')[0],
-          title: '',
-          content: '',
-          mood: 'good',
-          location: '',
-          weather: ''
-        });
+        setNewEntry(emptyEntry);
       }
     } catch (error) {
       console.error('Error adding diary entry:', error);
       alert('Ошибка при добавлении записи');
+    }
+  };
+
+  const openEdit = (entry: DiaryEntry) => {
+    setEditingEntry(entry);
+    setEditEntry({
+      date: entry.date?.split('T')[0] || new Date().toISOString().split('T')[0],
+      title: entry.title || '',
+      content: entry.content || '',
+      mood: entry.mood || 'good',
+      location: entry.location || '',
+      weather: entry.weather || '',
+    });
+  };
+
+  const handleUpdateEntry = async () => {
+    if (!editingEntry) return;
+    if (!editEntry.content) {
+      alert('Напишите текст записи');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'update_diary',
+          entry_id: editingEntry.id,
+          ...editEntry,
+        })
+      });
+      if (response.ok) {
+        onUpdate();
+        setEditingEntry(null);
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.error || 'Не удалось сохранить изменения');
+      }
+    } catch (error) {
+      console.error('Error updating diary entry:', error);
+      alert('Ошибка при сохранении записи');
+    }
+  };
+
+  const handleDeleteEntry = async (entryId: number) => {
+    if (!confirm('Удалить эту запись дневника?')) return;
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+      const response = await fetch(TRIPS_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token || ''
+        },
+        body: JSON.stringify({
+          action: 'delete_diary',
+          entry_id: entryId,
+        })
+      });
+      if (response.ok) {
+        onUpdate();
+      } else {
+        alert('Не удалось удалить запись');
+      }
+    } catch (error) {
+      console.error('Error deleting diary entry:', error);
+      alert('Ошибка при удалении записи');
     }
   };
 
@@ -130,9 +197,9 @@ export function TripDiary({ tripId, diary, onUpdate }: TripDiaryProps) {
       ) : (
         <div className="space-y-4">
           {sortedDiary.map((entry) => (
-            <Card key={entry.id} className="hover:shadow-md transition-shadow">
+            <Card key={entry.id} className="hover:shadow-md transition-shadow group">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-2xl">{getMoodEmoji(entry.mood)}</span>
@@ -156,6 +223,26 @@ export function TripDiary({ tripId, diary, onUpdate }: TripDiaryProps) {
                         </>
                       )}
                     </div>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => openEdit(entry)}
+                      aria-label="Редактировать запись"
+                    >
+                      <Icon name="Pencil" size={14} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDeleteEntry(entry.id)}
+                      aria-label="Удалить запись"
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -250,6 +337,90 @@ export function TripDiary({ tripId, diary, onUpdate }: TripDiaryProps) {
               Отмена
             </Button>
             <Button onClick={handleAddEntry}>Добавить</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingEntry} onOpenChange={(open) => !open && setEditingEntry(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Редактировать запись</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-date">Дата *</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editEntry.date}
+                  onChange={(e) => setEditEntry({ ...editEntry, date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-mood">Настроение</Label>
+                <Select value={editEntry.mood} onValueChange={(val) => setEditEntry({ ...editEntry, mood: val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="amazing">🤩 Потрясающе</SelectItem>
+                    <SelectItem value="great">😊 Отлично</SelectItem>
+                    <SelectItem value="good">🙂 Хорошо</SelectItem>
+                    <SelectItem value="neutral">😐 Нормально</SelectItem>
+                    <SelectItem value="bad">😕 Не очень</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-title">Заголовок</Label>
+              <Input
+                id="edit-title"
+                value={editEntry.title}
+                onChange={(e) => setEditEntry({ ...editEntry, title: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-location">Место</Label>
+                <Input
+                  id="edit-location"
+                  value={editEntry.location}
+                  onChange={(e) => setEditEntry({ ...editEntry, location: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-weather">Погода</Label>
+                <Select value={editEntry.weather} onValueChange={(val) => setEditEntry({ ...editEntry, weather: val })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Не выбрано" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sunny">☀️ Солнечно</SelectItem>
+                    <SelectItem value="cloudy">☁️ Облачно</SelectItem>
+                    <SelectItem value="rainy">🌧️ Дождь</SelectItem>
+                    <SelectItem value="snowy">❄️ Снег</SelectItem>
+                    <SelectItem value="windy">💨 Ветрено</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-content">Запись *</Label>
+              <Textarea
+                id="edit-content"
+                value={editEntry.content}
+                onChange={(e) => setEditEntry({ ...editEntry, content: e.target.value })}
+                rows={8}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingEntry(null)}>
+              Отмена
+            </Button>
+            <Button onClick={handleUpdateEntry}>Сохранить</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
