@@ -80,7 +80,7 @@ export function useAuth() {
   const logout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    window.location.href = '/welcome';
   };
 
   return { user, logout, isAuthenticated: !!user };

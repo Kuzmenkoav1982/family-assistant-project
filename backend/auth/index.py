@@ -776,7 +776,7 @@ def generate_pkce():
     return code_verifier, code_challenge
 
 def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
-    """Генерирует URL для редиректа на VK ID OAuth"""
+    """Генерирует URL для редиректа на VK ID OAuth (PKCE, code_verifier хранится в БД)"""
     if not VK_APP_ID:
         return {'error': 'VK_APP_ID не настроен'}
     
@@ -784,19 +784,38 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
     redirect_uri = AUTH_FUNC_URL
     
     code_verifier, code_challenge = generate_pkce()
+    state_key = secrets.token_urlsafe(24)
     
-    state_data = {
-        'random': secrets.token_urlsafe(8),
-        'frontend': frontend_url or 'https://nasha-semiya.ru/login',
-        'cv': code_verifier
-    }
-    state = json.dumps(state_data)
+    frontend = frontend_url or 'https://nasha-semiya.ru/login'
+    expires_at = datetime.now() + timedelta(minutes=10)
+    
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            f"DELETE FROM {SCHEMA}.oauth_pkce_states WHERE expires_at < CURRENT_TIMESTAMP"
+        )
+        insert_sql = f"""
+            INSERT INTO {SCHEMA}.oauth_pkce_states (state_key, code_verifier, frontend_url, provider, expires_at)
+            VALUES (
+                {escape_string(state_key)},
+                {escape_string(code_verifier)},
+                {escape_string(frontend)},
+                'vk',
+                {escape_string(expires_at.isoformat())}
+            )
+        """
+        cur.execute(insert_sql)
+        cur.close()
+        conn.close()
+    except Exception as e:
+        return {'error': f'Ошибка сохранения PKCE state: {str(e)}'}
     
     params = {
         'response_type': 'code',
         'client_id': VK_APP_ID,
         'redirect_uri': redirect_uri,
-        'state': state,
+        'state': state_key,
         'code_challenge': code_challenge,
         'code_challenge_method': 'S256'
     }
@@ -805,11 +824,11 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
     
     return {
         'redirect_url': oauth_url,
-        'state': state
+        'state': state_key
     }
 
 def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[str, Any]:
-    """Обрабатывает callback от VK ID OAuth"""
+    """Обрабатывает callback от VK ID OAuth (PKCE-verifier берётся из БД по state_key)"""
     if not VK_APP_ID or not VK_APP_SECRET:
         return {'error': 'VK OAuth credentials не настроены'}
     
@@ -819,12 +838,29 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
     redirect_uri = AUTH_FUNC_URL
     
     code_verifier = ''
+    frontend_url_from_state = ''
     if state:
         try:
-            state_data = json.loads(state)
-            code_verifier = state_data.get('cv', '')
-        except:
+            conn_s = get_db_connection()
+            cur_s = conn_s.cursor(cursor_factory=RealDictCursor)
+            cur_s.execute(
+                f"SELECT code_verifier, frontend_url, expires_at FROM {SCHEMA}.oauth_pkce_states "
+                f"WHERE state_key = {escape_string(state)} AND provider = 'vk' LIMIT 1"
+            )
+            row = cur_s.fetchone()
+            if row and row['expires_at'] >= datetime.now():
+                code_verifier = row['code_verifier']
+                frontend_url_from_state = row['frontend_url']
+                cur_s.execute(
+                    f"DELETE FROM {SCHEMA}.oauth_pkce_states WHERE state_key = {escape_string(state)}"
+                )
+            cur_s.close()
+            conn_s.close()
+        except Exception:
             pass
+    
+    if not code_verifier:
+        return {'error': 'PKCE code_verifier не найден или state истёк. Попробуйте войти заново.'}
     
     token_url = 'https://id.vk.com/oauth2/auth'
     token_data = urllib.parse.urlencode({
@@ -989,7 +1025,8 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
         return {
             'success': True,
             'token': token,
-            'user': user_data
+            'user': user_data,
+            'frontend_url': frontend_url_from_state
         }
         
     except Exception as e:
@@ -1354,16 +1391,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         state = query_params.get('state', '')
         device_id = query_params.get('device_id', '')
         
-        frontend_url = 'https://nasha-semiya.ru/login'
-        if state:
-            try:
-                state_data = json.loads(state)
-                frontend_url = state_data.get('frontend', frontend_url)
-            except:
-                pass
+        default_frontend = 'https://nasha-semiya.ru/login'
         
         if not code:
-            error_url = f"{frontend_url}?error={urllib.parse.quote('code обязателен')}"
+            error_url = f"{default_frontend}?error={urllib.parse.quote('code обязателен')}"
             return {
                 'statusCode': 302,
                 'headers': {
@@ -1374,6 +1405,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         result = oauth_callback_vk(code, state, device_id)
+        frontend_url = result.get('frontend_url') or default_frontend
         
         if 'error' in result:
             error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
@@ -1401,15 +1433,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         state = query_params.get('state', '')
         device_id = query_params.get('device_id', '')
         
-        frontend_url = 'https://nasha-semiya.ru/login'
-        if state:
-            try:
-                state_data = json.loads(state)
-                frontend_url = state_data.get('frontend', frontend_url)
-            except:
-                pass
-        
+        default_frontend = 'https://nasha-semiya.ru/login'
         result = oauth_callback_vk(code, state, device_id)
+        frontend_url = result.get('frontend_url') or default_frontend
         
         if 'error' in result:
             error_url = f"{frontend_url}?error={urllib.parse.quote(result['error'])}"
@@ -1601,22 +1627,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             </html>
                             """
                             
+                            email_sent = False
                             try:
-                                print(f"[DEBUG] Отправка email на {email}, код: {reset_code}")
-                                response = requests.post(
-                                    NOTIFICATIONS_URL,
-                                    json={
-                                        'action': 'send_email',
-                                        'to': email,
-                                        'subject': 'Код восстановления пароля',
-                                        'body': email_body,
-                                        'html': email_html
-                                    },
-                                    headers={'Content-Type': 'application/json'},
-                                    timeout=10
-                                )
-                                print(f"[DEBUG] Notifications response: {response.status_code}, {response.text[:200]}")
-                                email_sent = response.status_code == 200
+                                import smtplib
+                                from email.mime.multipart import MIMEMultipart
+                                from email.mime.text import MIMEText
+                                
+                                smtp_login = os.environ.get('YANDEX_SMTP_LOGIN', '')
+                                smtp_password = os.environ.get('YANDEX_SMTP_PASSWORD', '')
+                                
+                                if not smtp_login or not smtp_password:
+                                    print('[ERROR] SMTP credentials not configured')
+                                else:
+                                    print(f"[DEBUG] Отправка email на {email}, код: {reset_code}")
+                                    msg = MIMEMultipart('alternative')
+                                    msg['Subject'] = 'Код восстановления пароля — Наша Семья'
+                                    msg['From'] = smtp_login
+                                    msg['To'] = email
+                                    msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+                                    msg.attach(MIMEText(email_html, 'html', 'utf-8'))
+                                    
+                                    with smtplib.SMTP_SSL('smtp.yandex.ru', 465, timeout=10) as server:
+                                        server.login(smtp_login, smtp_password)
+                                        server.sendmail(smtp_login, email, msg.as_string())
+                                    email_sent = True
+                                    print(f"[DEBUG] Email отправлен успешно")
                             except Exception as email_error:
                                 print(f"[ERROR] Ошибка отправки email: {str(email_error)}")
                                 email_sent = False

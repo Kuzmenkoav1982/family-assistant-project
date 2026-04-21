@@ -89,7 +89,7 @@ export default function GlobalTopBar() {
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
-    window.location.href = '/login';
+    window.location.href = '/welcome';
   };
 
   const handleResetDemo = () => {
