@@ -195,6 +195,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'transactions': []
                     }
             
+            if data_type in ['all', 'mood']:
+                try:
+                    cur.execute(
+                        f"SELECT id, member_id, mood, note, entry_date, created_at "
+                        f"FROM {schema}.children_mood_entries "
+                        f"WHERE member_id::text = {child_id_safe} "
+                        f"ORDER BY entry_date DESC LIMIT 200"
+                    )
+                    child_data['mood'] = [dict(row) for row in cur.fetchall()]
+                except Exception as mood_err:
+                    print(f"[MOOD LOAD] error: {mood_err}")
+                    conn.rollback()
+                    child_data['mood'] = []
+            
             cur.close()
             conn.close()
             
@@ -285,6 +299,32 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     """)
                     result_id = cur.fetchone()['id']
                     conn.commit()
+
+                elif data_type == 'mood':
+                    try:
+                        entry_date = data.get('entry_date') or data.get('date') or datetime.now().isoformat()
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_mood_entries (member_id, mood, note, entry_date)
+                            VALUES ({child_id_safe}::uuid, {escape_sql_string(data.get('mood', ''))}, 
+                                    {escape_sql_string(data.get('note', ''))}, {escape_sql_string(entry_date)})
+                            RETURNING id, member_id, mood, note, entry_date, created_at
+                        """)
+                        result_row = cur.fetchone()
+                        result_id = result_row['id']
+                        conn.commit()
+                        return {
+                            'statusCode': 200,
+                            'headers': headers,
+                            'body': json.dumps({'success': True, 'entry': dict(result_row)}, default=str)
+                        }
+                    except Exception as mood_err:
+                        print(f"[MOOD ADD] error: {mood_err}")
+                        conn.rollback()
+                        return {
+                            'statusCode': 400,
+                            'headers': headers,
+                            'body': json.dumps({'success': False, 'error': f'Неверный child_id (должен быть UUID): {str(mood_err)}'})
+                        }
                     
                 elif data_type == 'medical_document':
                     try:
@@ -709,7 +749,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'medication': 'children_medications',
                     'development_area': 'children_development',
                     'activity': 'children_activities',
-                    'test': 'children_tests'
+                    'test': 'children_tests',
+                    'mood': 'children_mood_entries'
                 }
                 
                 if data_type not in table_map:

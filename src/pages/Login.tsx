@@ -38,6 +38,17 @@ export default function Login() {
     }
   }, [searchParams]);
 
+  // Сообщение при автоматическом выходе из-за истёкшего токена
+  useEffect(() => {
+    if (searchParams.get('session_expired')) {
+      toast({
+        title: 'Сессия истекла',
+        description: 'Войдите в систему заново, чтобы продолжить.',
+        variant: 'destructive',
+      });
+    }
+  }, [searchParams, toast]);
+
   // Обработка OAuth callback
   useEffect(() => {
     const token = searchParams.get('token');

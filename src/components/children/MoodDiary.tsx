@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import func2url from '../../../backend/func2url.json';
+
+const CHILDREN_DATA_API = (func2url as Record<string, string>)['children-data'];
 
 interface MoodEntry {
-  id: string;
+  id: string | number;
   mood: string;
   note?: string;
   date: string;
+}
+
+interface RawMoodEntry {
+  id: string | number;
+  mood: string;
+  note?: string | null;
+  entry_date?: string;
+  created_at?: string;
 }
 
 interface MoodDiaryProps {
@@ -17,24 +28,45 @@ interface MoodDiaryProps {
 }
 
 export function MoodDiary({ childId }: MoodDiaryProps) {
-  const [entries, setEntries] = useState<MoodEntry[]>([
-    {
-      id: '1',
-      mood: '😊',
-      note: 'Сегодня был отличный день! Играл с друзьями в парке',
-      date: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      mood: '🤔',
-      note: 'Задумчивое настроение, много думал о школе',
-      date: new Date(Date.now() - 86400000).toISOString(),
-    },
-  ]);
+  const [entries, setEntries] = useState<MoodEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [addEntryDialog, setAddEntryDialog] = useState(false);
   const [selectedMood, setSelectedMood] = useState('😊');
   const [note, setNote] = useState('');
+
+  const getToken = () => localStorage.getItem('authToken') || localStorage.getItem('childAuthToken') || '';
+
+  const loadEntries = useCallback(async () => {
+    if (!childId || !CHILDREN_DATA_API) return;
+    const token = getToken();
+    if (!token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${CHILDREN_DATA_API}?child_id=${encodeURIComponent(childId)}&type=mood`, {
+        headers: { 'X-Auth-Token': token },
+      });
+      const data = await res.json();
+      if (data.success && data.data?.mood) {
+        const rows: RawMoodEntry[] = Array.isArray(data.data.mood) ? data.data.mood : [];
+        setEntries(rows.map((r) => ({
+          id: r.id,
+          mood: r.mood,
+          note: r.note || '',
+          date: r.entry_date || r.created_at || new Date().toISOString(),
+        })));
+      }
+    } catch (e) {
+      console.error('Load mood entries error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [childId]);
+
+  useEffect(() => {
+    loadEntries();
+  }, [loadEntries]);
 
   const moodOptions = [
     { emoji: '😊', label: 'Счастлив' },
@@ -51,17 +83,80 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
     { emoji: '🤗', label: 'Обнимашки' },
   ];
 
-  const handleAddEntry = () => {
-    const newEntry: MoodEntry = {
-      id: Date.now().toString(),
-      mood: selectedMood,
-      note: note,
-      date: new Date().toISOString(),
-    };
+  const handleAddEntry = async () => {
+    const token = getToken();
+    if (!token || !childId || !CHILDREN_DATA_API) {
+      alert('Не удалось сохранить запись: не хватает авторизации');
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(CHILDREN_DATA_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({
+          action: 'add',
+          type: 'mood',
+          child_id: childId,
+          data: {
+            mood: selectedMood,
+            note: note,
+            entry_date: new Date().toISOString(),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.entry) {
+        const row: RawMoodEntry = data.entry;
+        setEntries((prev) => [
+          {
+            id: row.id,
+            mood: row.mood,
+            note: row.note || '',
+            date: row.entry_date || row.created_at || new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+        setNote('');
+        setAddEntryDialog(false);
+      } else {
+        alert(data.error || 'Не удалось сохранить запись');
+      }
+    } catch (e) {
+      console.error('Add mood entry error:', e);
+      alert('Ошибка сети. Запись не сохранена.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    setEntries([newEntry, ...entries]);
-    setNote('');
-    setAddEntryDialog(false);
+  const handleDeleteEntry = async (entryId: string | number) => {
+    if (!confirm('Удалить эту запись?')) return;
+    const token = getToken();
+    if (!token) return;
+    const prev = entries;
+    setEntries(entries.filter((e) => e.id !== entryId));
+    try {
+      await fetch(CHILDREN_DATA_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          type: 'mood',
+          child_id: childId,
+          data: { item_id: entryId },
+        }),
+      });
+    } catch (e) {
+      console.error('Delete mood error:', e);
+      setEntries(prev);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -131,9 +226,13 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
                       className="resize-none"
                     />
                   </div>
-                  <Button onClick={handleAddEntry} className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
-                    <Icon name="Check" className="mr-2" size={16} />
-                    Сохранить запись
+                  <Button
+                    onClick={handleAddEntry}
+                    disabled={saving}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500"
+                  >
+                    <Icon name={saving ? 'Loader2' : 'Check'} className={`mr-2 ${saving ? 'animate-spin' : ''}`} size={16} />
+                    {saving ? 'Сохраняю...' : 'Сохранить запись'}
                   </Button>
                 </div>
               </DialogContent>
@@ -141,7 +240,12 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {entries.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <Icon name="Loader2" size={32} className="animate-spin text-blue-500 mx-auto mb-3" />
+              <p className="text-sm text-gray-500">Загружаю записи...</p>
+            </div>
+          ) : entries.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📝</div>
               <p className="text-gray-600 mb-4">Дневник пока пуст</p>
@@ -150,7 +254,7 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
           ) : (
             <div className="space-y-4">
               {entries.map((entry) => (
-                <Card key={entry.id} className="border-2 border-purple-100 hover:shadow-md transition-shadow">
+                <Card key={entry.id} className="border-2 border-purple-100 hover:shadow-md transition-shadow group">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
                       <div className="text-5xl">{entry.mood}</div>
@@ -168,6 +272,15 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
                           <p className="text-gray-700 leading-relaxed">{entry.note}</p>
                         )}
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleDeleteEntry(entry.id)}
+                        aria-label="Удалить запись"
+                      >
+                        <Icon name="Trash2" size={14} />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

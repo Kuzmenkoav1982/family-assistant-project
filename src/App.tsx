@@ -21,6 +21,9 @@ import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
+import { installFetchInterceptor } from "@/lib/fetch-interceptor";
+
+installFetchInterceptor();
 import { medicationNotificationService } from "@/services/medicationNotifications";
 import CookieConsent from "@/components/CookieConsent";
 
