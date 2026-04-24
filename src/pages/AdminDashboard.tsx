@@ -179,68 +179,61 @@ export default function AdminDashboard() {
     }
   };
 
+  const navItems = [
+    { icon: 'TrendingUp', label: 'Посещаемость', short: 'Трафик', href: '/admin/traffic' },
+    { icon: 'Mic', label: 'Алиса', short: 'Алиса', href: '/admin/alice' },
+    { icon: 'MessageCircle', label: 'MAX', short: 'MAX', href: '/admin/max' },
+    { icon: 'Users', label: 'Пользователи', short: 'Юзеры', action: 'users' },
+    { icon: 'DollarSign', label: 'Оценка стоимости', short: 'Оценка', href: '/admin/valuation' },
+    { icon: 'Megaphone', label: 'Стратегия развития', short: 'Развитие', href: '/admin/marketing' },
+    { icon: 'Handshake', label: 'Стратегия продажи', short: 'Продажа', href: '/admin/marketing-sale' },
+    { icon: 'ArrowLeft', label: 'На главную', short: 'Главная', href: '/' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-3 sm:p-4 md:p-6 pb-20">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        <div className="space-y-3">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-600 via-slate-700 to-gray-800 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-600 via-slate-700 to-gray-800 bg-clip-text text-transparent">
               Командный Центр
             </h1>
-            <p className="text-slate-600 mt-2">Управление и мониторинг приложения простым языком</p>
+            <p className="text-xs sm:text-sm md:text-base text-slate-600 mt-1 md:mt-2">
+              Управление и мониторинг приложения
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => window.location.href = '/admin/traffic'}>
-              <Icon name="TrendingUp" size={16} className="mr-2" />
-              Посещаемость
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/alice'}>
-              <Icon name="Mic" size={16} className="mr-2" />
-              Алиса
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/max'}>
-              <Icon name="MessageCircle" size={16} className="mr-2" />
-              MAX
-            </Button>
-            {/* Подписки временно скрыты — используется кошелёк */}
-            {/* <Button variant="outline" onClick={() => window.location.href = '/admin/subscriptions'}>
-              <Icon name="CreditCard" size={16} className="mr-2" />
-              Подписки
-            </Button> */}
-            <Button variant="outline" onClick={() => setShowPasswordDialog(true)}>
-              <Icon name="Users" size={16} className="mr-2" />
-              Пользователи
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/valuation'}>
-              <Icon name="TrendingUp" size={16} className="mr-2" />
-              Оценка стоимости
-            </Button>
 
-            <Button variant="outline" onClick={() => window.location.href = '/admin/marketing'}>
-              <Icon name="Megaphone" size={16} className="mr-2" />
-              Стратегия развития
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/admin/marketing-sale'}>
-              <Icon name="Handshake" size={16} className="mr-2" />
-              Стратегия продажи
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/'}>
-              <Icon name="ArrowLeft" size={16} className="mr-2" />
-              На главную
-            </Button>
+          {/* Мобильная навигация — горизонтальный скролл с иконками */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-thin">
+            {navItems.map((item) => (
+              <Button
+                key={item.label}
+                variant="outline"
+                size="sm"
+                className="flex-shrink-0 h-9 px-3 text-xs md:text-sm md:h-10 md:px-4"
+                onClick={() => {
+                  if (item.action === 'users') setShowPasswordDialog(true);
+                  else if (item.href) window.location.href = item.href;
+                }}
+              >
+                <Icon name={item.icon} size={14} className="mr-1.5 md:mr-2" />
+                <span className="md:hidden">{item.short}</span>
+                <span className="hidden md:inline">{item.label}</span>
+              </Button>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {systemStatuses.map((system) => (
             <Card key={system.label}>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2 md:pb-3 p-3 md:p-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">{system.label}</CardTitle>
-                  <Icon name={system.icon} size={20} className={system.color} />
+                  <CardTitle className="text-xs md:text-sm font-medium">{system.label}</CardTitle>
+                  <Icon name={system.icon} size={18} className={system.color} />
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                 <div className="flex items-center gap-2">
                   {system.status === 'healthy' && (
                     <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
@@ -267,7 +260,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -305,7 +298,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -400,7 +393,7 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-slate-600 font-medium">LCP</p>
                 <p className="text-lg font-bold text-slate-800">
