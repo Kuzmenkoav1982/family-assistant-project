@@ -180,6 +180,7 @@ export default function AdminDashboard() {
   };
 
   const navItems = [
+    { icon: 'LayoutGrid', label: 'Панель управления', short: 'Панель', href: '/admin/panel' },
     { icon: 'TrendingUp', label: 'Посещаемость', short: 'Трафик', href: '/admin/traffic' },
     { icon: 'Mic', label: 'Алиса', short: 'Алиса', href: '/admin/alice' },
     { icon: 'MessageCircle', label: 'MAX', short: 'MAX', href: '/admin/max' },
@@ -188,6 +189,18 @@ export default function AdminDashboard() {
     { icon: 'Megaphone', label: 'Стратегия развития', short: 'Развитие', href: '/admin/marketing' },
     { icon: 'Handshake', label: 'Стратегия продажи', short: 'Продажа', href: '/admin/marketing-sale' },
     { icon: 'ArrowLeft', label: 'На главную', short: 'Главная', href: '/' },
+  ];
+
+  const quickTools = [
+    { icon: 'Home', label: 'Семьи', tab: 'families', color: 'from-blue-400 to-indigo-500' },
+    { icon: 'DollarSign', label: 'Финансы', tab: 'finance', color: 'from-green-400 to-emerald-500' },
+    { icon: 'Ticket', label: 'Промокоды', tab: 'promo', color: 'from-pink-400 to-rose-500' },
+    { icon: 'Megaphone', label: 'Рассылки', tab: 'broadcasts', color: 'from-orange-400 to-red-500' },
+    { icon: 'TrendingUp', label: 'Воронка', tab: 'funnel', color: 'from-purple-400 to-violet-500' },
+    { icon: 'AlertCircle', label: 'Ошибки', tab: 'errors', color: 'from-red-400 to-pink-500' },
+    { icon: 'Inbox', label: 'Тикеты', tab: 'tickets', color: 'from-cyan-400 to-teal-500' },
+    { icon: 'Trophy', label: 'Топ семей', tab: 'top', color: 'from-yellow-400 to-orange-500' },
+    { icon: 'ToggleRight', label: 'Фич-флаги', tab: 'flags', color: 'from-slate-400 to-gray-500' },
   ];
 
   return (
@@ -259,6 +272,32 @@ export default function AdminDashboard() {
             </Card>
           ))}
         </div>
+
+        {/* Быстрые инструменты — прямые переходы во вкладки панели */}
+        <Card>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Icon name="Zap" size={18} />
+              Инструменты управления
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-2 md:gap-3">
+              {quickTools.map((t) => (
+                <button
+                  key={t.tab}
+                  onClick={() => (window.location.href = `/admin/panel?tab=${t.tab}`)}
+                  className="group flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform`}>
+                    <Icon name={t.icon} size={18} />
+                  </div>
+                  <span className="text-[10px] md:text-xs font-medium text-center">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           <Card className="lg:col-span-2">

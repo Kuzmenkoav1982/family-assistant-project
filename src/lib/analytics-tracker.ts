@@ -5,6 +5,7 @@ interface PageViewData {
   page_title: string;
   referrer?: string;
   session_id?: string;
+  user_agent?: string;
 }
 
 class AnalyticsTracker {
@@ -37,7 +38,8 @@ class AnalyticsTracker {
         page_path: path,
         page_title: title,
         referrer: document.referrer,
-        session_id: this.sessionId
+        session_id: this.sessionId,
+        user_agent: navigator.userAgent
       };
 
       await fetch(this.apiUrl, {

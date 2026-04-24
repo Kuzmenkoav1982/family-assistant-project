@@ -15,14 +15,15 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "GET page view stats",
+      "name": "GET extended stats",
       "method": "GET",
       "path": "/?action=stats",
       "expectedStatus": 200,
       "expectedBody": {
         "total": {},
         "today": {},
-        "week": {}
+        "week": {},
+        "month": {}
       },
       "bodyMatcher": "partial"
     }

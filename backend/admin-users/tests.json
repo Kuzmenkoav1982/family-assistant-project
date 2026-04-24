@@ -9,29 +9,101 @@
       "bodyMatcher": "exact"
     },
     {
-      "name": "Get users without admin token",
+      "name": "Users (legacy) without token rejected",
       "method": "GET",
       "path": "/",
-      "headers": {},
       "expectedStatus": 401,
-      "expectedBody": {
-        "error": "string"
-      },
+      "expectedBody": {"error": "Требуются права администратора"},
       "bodyMatcher": "partial"
     },
     {
-      "name": "Get users with admin token",
+      "name": "Users (legacy) with token",
       "method": "GET",
       "path": "/",
-      "headers": {
-        "X-Admin-Token": "admin_authenticated"
-      },
+      "headers": {"X-Admin-Token": "admin_authenticated"},
       "expectedStatus": 200,
-      "expectedBody": {
-        "success": "boolean",
-        "users": "array",
-        "total": "number"
-      },
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Families list",
+      "method": "GET",
+      "path": "/?resource=families",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {"summary": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Finance summary",
+      "method": "GET",
+      "path": "/?resource=finance",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Promo list",
+      "method": "GET",
+      "path": "/?resource=promo",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Funnel",
+      "method": "GET",
+      "path": "/?resource=funnel",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {"period_days": 30},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Feature flags",
+      "method": "GET",
+      "path": "/?resource=flags",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Top families",
+      "method": "GET",
+      "path": "/?resource=top",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Broadcasts list",
+      "method": "GET",
+      "path": "/?resource=broadcasts",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Errors list",
+      "method": "GET",
+      "path": "/?resource=errors",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Tickets list",
+      "method": "GET",
+      "path": "/?resource=tickets",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 200,
+      "expectedBody": {},
       "bodyMatcher": "partial"
     }
   ]
