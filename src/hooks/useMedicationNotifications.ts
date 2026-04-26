@@ -1,12 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNotifications } from './useNotifications';
-
-interface MedicationSchedule {
-  id: string;
-  medication_id: string;
-  time_of_day: string;
-  medication_name?: string;
-}
 
 interface NotificationSettings {
   enabled: boolean;
@@ -20,9 +12,8 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   minutesBefore: 15
 };
 
-export function useMedicationNotifications(medications: any[] = []) {
+export function useMedicationNotifications(_medications: unknown[] = []) {
   const [permission, setPermission] = useState<NotificationPermission>('default');
-  const { notifyMedicationReminder } = useNotifications();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     const saved = localStorage.getItem('medicationNotificationSettings');
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
@@ -76,60 +67,9 @@ export function useMedicationNotifications(medications: any[] = []) {
     setTimeout(() => notification.close(), 10000);
   };
 
-  useEffect(() => {
-    if (!settings.enabled || medications.length === 0) return;
-
-    const checkSchedule = () => {
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-
-      medications.forEach((med: any) => {
-        if (!med.schedule || med.schedule.length === 0) return;
-
-        med.schedule.forEach((schedule: MedicationSchedule) => {
-          const [hours, minutes] = schedule.time_of_day.split(':').map(Number);
-          const scheduledTime = hours * 60 + minutes;
-          const timeDiff = scheduledTime - currentTime;
-
-          const notificationKey = `med_notif_${med.id}_${schedule.id}_${now.toDateString()}`;
-          const alreadyNotified = localStorage.getItem(notificationKey);
-
-          if (timeDiff === settings.minutesBefore && !alreadyNotified) {
-            showNotification(
-              '⏰ Напоминание о приёме лекарства от Наша Семья',
-              `Через ${settings.minutesBefore} минут нужно дать ребёнку ${med.name} (${med.dosage || 'по назначению'})`,
-              med.id
-            );
-            notifyMedicationReminder(med.name, 'ребёнку', schedule.time_of_day);
-            localStorage.setItem(notificationKey, 'true');
-          }
-
-          if (timeDiff === 0 && !alreadyNotified) {
-            showNotification(
-              '💊 Время принять лекарство от Наша Семья!',
-              `Сейчас нужно дать ребёнку ${med.name} (${med.dosage || 'по назначению'})`,
-              med.id
-            );
-            notifyMedicationReminder(med.name, 'ребёнку', schedule.time_of_day);
-            localStorage.setItem(notificationKey, 'true');
-          }
-        });
-      });
-
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('med_notif_') && !key.includes(now.toDateString())) {
-          localStorage.removeItem(key);
-        }
-      });
-    };
-
-    const interval = setInterval(checkSchedule, 60000);
-    checkSchedule();
-
-    return () => clearInterval(interval);
-  }, [medications, settings, permission]);
+  // bug17: убран дублирующий setInterval. Единственный источник пушей —
+  // medicationNotificationService в App.tsx (с persist-дедупликацией).
+  // Этот хук оставлен только для запроса permission и UI-настроек.
 
   return {
     permission,

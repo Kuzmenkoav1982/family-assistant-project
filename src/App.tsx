@@ -19,6 +19,7 @@ import { DialogLockProvider } from "@/contexts/DialogLockContext";
 import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
@@ -262,6 +263,7 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
       <AuthProvider>
         <DemoModeProvider>
           <DialogLockProvider>
@@ -439,6 +441,7 @@ const App = () => {
           </DialogLockProvider>
         </DemoModeProvider>
       </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 };

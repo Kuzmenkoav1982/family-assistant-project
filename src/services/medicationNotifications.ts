@@ -25,19 +25,38 @@ interface NotificationSettings {
   minutesBefore: number;
 }
 
+const NOTIFIED_KEY = 'medication_notified_reminders';
+
 class MedicationNotificationService {
   private checkInterval: number | null = null;
-  private notifiedReminders = new Set<string>();
+  private notifiedReminders: Set<string> = this.loadNotifiedFromStorage();
   private lastCheck = '';
 
+  private loadNotifiedFromStorage(): Set<string> {
+    try {
+      const raw = localStorage.getItem(NOTIFIED_KEY);
+      if (raw) return new Set(JSON.parse(raw));
+    } catch { /* ignore */ }
+    return new Set();
+  }
+
+  private persistNotified() {
+    try {
+      localStorage.setItem(NOTIFIED_KEY, JSON.stringify(Array.from(this.notifiedReminders)));
+    } catch { /* ignore */ }
+  }
+
   start() {
-    
-    
+    // bug17: защита от двойного запуска (двойной mount React или повторный вызов)
+    if (this.checkInterval !== null) {
+      return;
+    }
+
     // Проверяем каждую минуту
     this.checkInterval = window.setInterval(() => {
       this.checkReminders();
     }, 60000);
-    
+
     // Сразу проверяем при старте
     this.checkReminders();
   }
@@ -95,9 +114,9 @@ class MedicationNotificationService {
           if (this.notifiedReminders.has(notificationKey)) continue;
 
           if (this.shouldNotify(reminder.time, settings.minutesBefore, now)) {
-            
             await this.showNotification(medication.name, medication.dosage, reminder.time, settings);
             this.notifiedReminders.add(notificationKey);
+            this.persistNotified();
           }
         }
       }
@@ -227,8 +246,9 @@ class MedicationNotificationService {
     });
     
     toRemove.forEach(key => this.notifiedReminders.delete(key));
-    
+
     if (toRemove.length > 0) {
+      this.persistNotified();
       console.log(`[MedicationNotifications] Cleaned up ${toRemove.length} old notifications`);
     }
   }

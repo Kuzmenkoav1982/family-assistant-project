@@ -306,7 +306,8 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
         'completionOptions': {
             'stream': False,
             'temperature': 0.4,
-            'maxTokens': 32000 if duration_days >= 30 else 16000 if duration_days > 7 else 8000
+            # bug31: увеличены лимиты токенов, чтобы укладывался полный план на 30 дней
+            'maxTokens': 64000 if duration_days >= 30 else 32000 if duration_days > 7 else 8000
         },
         'messages': [
             {
@@ -429,6 +430,10 @@ def handle_check(api_key: str, body: Dict, event: Optional[Dict] = None) -> Dict
             'rawText': ai_text,
             'message': 'План сгенерирован, но не удалось разобрать JSON.'
         })
+
+    # bug31: если ИИ обрезал план — дополняем недостающие дни шаблоном
+    expected_days = int(body.get('duration_days', 7))
+    plan = pad_missing_days(plan, expected_days)
 
     plan_id = None
     if event:
@@ -979,6 +984,68 @@ def build_prompt(data: Dict[str, Any], med_tables: list = None, duration_days: i
 Рассчитай daily_water_ml, daily_steps и exercise_recommendation с учётом пола, веса, возраста и уровня активности.
 {"СТРОГО соблюдай ограничения медицинских столов! Ни одно запрещённое блюдо/продукт не должно попасть в план." if med_tables else ""}
 КРИТИЧЕСКИ ВАЖНО: ты ОБЯЗАН сгенерировать ВСЕ {duration_days} дней. Не останавливайся на полпути. Каждый день ОБЯЗАТЕЛЕН, все 4 приёма ОБЯЗАТЕЛЬНЫ."""
+
+
+def pad_missing_days(plan: Dict[str, Any], expected_days: int) -> Dict[str, Any]:
+    """bug31: если ИИ обрезал генерацию, дополняет план до expected_days
+    шаблонами на основе средних значений."""
+    if not isinstance(plan, dict):
+        return plan
+    days = plan.get('days') or []
+    actual = len(days)
+    if actual >= expected_days:
+        return plan
+
+    daily_calories = int(plan.get('daily_calories') or 2000)
+    daily_protein = int(plan.get('daily_protein') or 100)
+    daily_fats = int(plan.get('daily_fats') or 70)
+    daily_carbs = int(plan.get('daily_carbs') or 250)
+
+    # Распределение приёмов: 25/35/30/10
+    meal_template = [
+        ('breakfast', '08:00', '🍳', 0.25),
+        ('lunch', '13:00', '🍲', 0.35),
+        ('dinner', '19:00', '🥗', 0.30),
+        ('snack', '16:00', '🍎', 0.10),
+    ]
+
+    # Берём имена блюд из последнего дня (роттация) или дефолт
+    last_day = days[-1] if days else None
+    last_meals = (last_day or {}).get('meals') or []
+    name_by_type: Dict[str, str] = {}
+    if last_meals:
+        for m in last_meals:
+            t = m.get('type')
+            if t and t not in name_by_type:
+                name_by_type[t] = m.get('name', '')
+    defaults = {
+        'breakfast': 'Овсянка с фруктами',
+        'lunch': 'Куриный суп с овощами',
+        'dinner': 'Рыба на пару с гарниром',
+        'snack': 'Йогурт с орехами',
+    }
+
+    for i in range(actual + 1, expected_days + 1):
+        meals = []
+        for mtype, mtime, emoji, share in meal_template:
+            meals.append({
+                'type': mtype,
+                'time': mtime,
+                'name': name_by_type.get(mtype) or defaults[mtype],
+                'calories': int(daily_calories * share),
+                'protein': int(daily_protein * share),
+                'fats': int(daily_fats * share),
+                'carbs': int(daily_carbs * share),
+                'emoji': emoji,
+                '_autofilled': True,
+            })
+        days.append({'day': f'День {i}', 'meals': meals, '_autofilled': True})
+
+    plan['days'] = days
+    plan['_padded'] = True
+    plan['_actual_generated_days'] = actual
+    plan['_expected_days'] = expected_days
+    return plan
 
 
 def parse_plan(text: str) -> Optional[Dict[str, Any]]:

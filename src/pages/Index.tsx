@@ -18,6 +18,7 @@ import { FamilyTabsContent } from '@/components/FamilyTabsContent';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { GoalsSection } from '@/components/GoalsSection';
 import { languageOptions, type LanguageCode } from '@/translations';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { WelcomeScreen } from '@/components/index-page/WelcomeScreen';
 import { IndexLayout } from '@/components/index-page/IndexLayout';
 import { IndexDialogs } from '@/components/index-page/IndexDialogs';
@@ -71,6 +72,7 @@ export default function Index({ onLogout }: IndexProps) {
   useDietReminders();
 
   const state = useIndexState();
+  const { setLanguage: setGlobalLanguage } = useLanguage();
 
   useIndexEffects({
     state,
@@ -427,8 +429,11 @@ export default function Index({ onLogout }: IndexProps) {
           currentLanguage={state.currentLanguage}
           languageOptions={languageOptions}
           onLanguageChange={(code) => {
-            state.setCurrentLanguage(code as LanguageCode);
+            const lang = code as LanguageCode;
+            state.setCurrentLanguage(lang);
             localStorage.setItem('familyOrganizerLanguage', code);
+            // bug04: применяем глобально через контекст (ключ app_language)
+            setGlobalLanguage(lang);
             state.setShowLanguageSelector(false);
           }}
           showAppearanceSettings={true}
