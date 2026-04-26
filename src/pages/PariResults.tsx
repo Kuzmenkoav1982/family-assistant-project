@@ -18,6 +18,21 @@ interface LocationState {
   overall?: { score: number; label: string; color: string };
 }
 
+interface CompactScale {
+  key: string;
+  title: string;
+  percent: number;
+  isHealthy: boolean;
+}
+
+interface PreviousResult {
+  id: string;
+  overall_score: number;
+  overall_label: string;
+  scale_results: CompactScale[];
+  created_at: string;
+}
+
 export default function PariResults() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,10 +43,30 @@ export default function PariResults() {
   const [overall, setOverall] = useState(state?.overall || null);
   const [loading, setLoading] = useState(!state?.scaleResults);
   const [error, setError] = useState('');
+  const [previous, setPrevious] = useState<PreviousResult | null>(null);
+  const [historyCount, setHistoryCount] = useState(0);
 
   useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const token = localStorage.getItem('authToken') || '';
+        const res = await fetch(`${API}?section=pari`, { headers: { 'X-Auth-Token': token } });
+        if (!res.ok) return;
+        const json = await res.json();
+        const all: PreviousResult[] = json.results || [];
+        setHistoryCount(all.length);
+        const sorted = [...all].sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
+        const currentIdx = sorted.findIndex((r) => r.id === id);
+        const prev = currentIdx >= 0 ? sorted[currentIdx + 1] : sorted[1] || sorted[0];
+        if (prev && prev.id !== id) setPrevious(prev);
+      } catch {
+        // молча игнорируем — динамика опциональна
+      }
+    };
+
     if (state?.scaleResults && state.scaleResults.length > 0) {
       setLoading(false);
+      loadHistory();
       return;
     }
     if (!id || id === 'local') {
@@ -42,15 +77,20 @@ export default function PariResults() {
     const load = async () => {
       try {
         const token = localStorage.getItem('authToken') || '';
-        const res = await fetch(`${API}?section=pari`, {
-          headers: { 'X-Auth-Token': token },
-        });
+        const res = await fetch(`${API}?section=pari`, { headers: { 'X-Auth-Token': token } });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Ошибка загрузки');
-        const item = (json.results || []).find((r: { id: string }) => r.id === id);
+        const all: PreviousResult[] = json.results || [];
+        setHistoryCount(all.length);
+        const item = all.find((r: { id: string }) => r.id === id);
         if (!item) throw new Error('Результат не найден');
-        if (item.answers) {
-          const computed = calculatePariResults(item.answers);
+        const sorted = [...all].sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
+        const currentIdx = sorted.findIndex((r) => r.id === id);
+        const prev = currentIdx >= 0 ? sorted[currentIdx + 1] : null;
+        if (prev) setPrevious(prev);
+        const itemWithAnswers = item as PreviousResult & { answers?: Record<number, number> };
+        if (itemWithAnswers.answers) {
+          const computed = calculatePariResults(itemWithAnswers.answers);
           const ov = getOverallScore(computed);
           setScaleResults(computed);
           setOverall(ov);
@@ -63,6 +103,19 @@ export default function PariResults() {
     };
     load();
   }, [id, state]);
+
+  const previousMap = useMemo(() => {
+    const m = new Map<string, number>();
+    if (previous?.scale_results) {
+      for (const s of previous.scale_results) m.set(s.key, s.percent);
+    }
+    return m;
+  }, [previous]);
+
+  const overallDelta = useMemo(() => {
+    if (!previous || !overall) return null;
+    return overall.score - previous.overall_score;
+  }, [previous, overall]);
 
   const radarData = useMemo(
     () =>
@@ -127,6 +180,44 @@ export default function PariResults() {
                   {overall.label}
                 </p>
               </div>
+              {previous && overallDelta !== null && (
+                <div className="pt-3 border-t border-purple-200/50">
+                  <div className="flex items-center justify-center gap-3 text-sm">
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase text-muted-foreground">Было</p>
+                      <p className="font-bold text-muted-foreground">{previous.overall_score}</p>
+                    </div>
+                    <Icon name="ArrowRight" size={16} className="text-muted-foreground" />
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase text-muted-foreground">Стало</p>
+                      <p className="font-bold" style={{ color: overall.color }}>{overall.score}</p>
+                    </div>
+                    <div
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full font-bold ${
+                        overallDelta > 0
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : overallDelta < 0
+                          ? 'bg-rose-100 text-rose-700'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <Icon
+                        name={overallDelta > 0 ? 'TrendingUp' : overallDelta < 0 ? 'TrendingDown' : 'Minus'}
+                        size={14}
+                      />
+                      <span>{overallDelta > 0 ? '+' : ''}{overallDelta}</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    с {new Date(previous.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                  </p>
+                </div>
+              )}
+              {!previous && historyCount <= 1 && (
+                <p className="text-[11px] text-muted-foreground pt-2 border-t border-purple-200/50">
+                  Это ваше первое прохождение. Пройдите тест ещё раз через 2-4 недели — увидите динамику
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -165,7 +256,7 @@ export default function PariResults() {
               </h3>
               <div className="space-y-2">
                 {strengths.map((r) => (
-                  <ScaleResultCard key={r.scale.key} result={r} />
+                  <ScaleResultCard key={r.scale.key} result={r} prevPercent={previousMap.get(r.scale.key)} />
                 ))}
               </div>
             </section>
@@ -179,7 +270,7 @@ export default function PariResults() {
               </h3>
               <div className="space-y-2">
                 {problemAreas.map((r) => (
-                  <ScaleResultCard key={r.scale.key} result={r} />
+                  <ScaleResultCard key={r.scale.key} result={r} prevPercent={previousMap.get(r.scale.key)} />
                 ))}
               </div>
             </section>
@@ -201,6 +292,13 @@ export default function PariResults() {
             </CardContent>
           </Card>
 
+          {historyCount > 1 && (
+            <div className="text-center text-xs text-muted-foreground">
+              <Icon name="History" size={12} className="inline mr-1" />
+              Всего прохождений: {historyCount}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => navigate('/pari-test')}>
               <Icon name="RotateCcw" size={16} className="mr-1" />
@@ -216,10 +314,14 @@ export default function PariResults() {
   );
 }
 
-function ScaleResultCard({ result }: { result: PariScaleResult }) {
+function ScaleResultCard({ result, prevPercent }: { result: PariScaleResult; prevPercent?: number }) {
   const [open, setOpen] = useState(false);
   const { scale, percent, isHealthy, recommendations } = result;
   const displayPercent = scale.goodWhen === 'high' ? percent : 100 - percent;
+  const prevDisplay = prevPercent != null
+    ? (scale.goodWhen === 'high' ? prevPercent : 100 - prevPercent)
+    : null;
+  const delta = prevDisplay != null ? displayPercent - prevDisplay : null;
 
   return (
     <Card
@@ -239,12 +341,24 @@ function ScaleResultCard({ result }: { result: PariScaleResult }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <p className="font-semibold text-sm truncate">{scale.title}</p>
-              <Badge
-                variant="outline"
-                className={isHealthy ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}
-              >
-                {displayPercent}%
-              </Badge>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {delta != null && delta !== 0 && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      delta > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                    }`}
+                  >
+                    <Icon name={delta > 0 ? 'ArrowUp' : 'ArrowDown'} size={10} />
+                    {Math.abs(delta)}
+                  </span>
+                )}
+                <Badge
+                  variant="outline"
+                  className={isHealthy ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}
+                >
+                  {displayPercent}%
+                </Badge>
+              </div>
             </div>
             <div className="mt-1.5 h-1.5 rounded-full bg-gray-100 overflow-hidden">
               <div
