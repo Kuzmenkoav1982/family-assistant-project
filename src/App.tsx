@@ -32,7 +32,6 @@ const Index = lazy(() => import("./pages/Index"));
 const Instructions = lazy(() => import("./pages/Instructions"));
 const Garage = lazy(() => import("./pages/Garage"));
 const Health = lazy(() => import("./pages/HealthNew"));
-const Finance = lazy(() => import("./pages/Finance"));
 const FinanceHub = lazy(() => import("./pages/FinanceHub"));
 const FinanceBudget = lazy(() => import("./pages/FinanceBudget"));
 const FinanceDebts = lazy(() => import("./pages/FinanceDebts"));
