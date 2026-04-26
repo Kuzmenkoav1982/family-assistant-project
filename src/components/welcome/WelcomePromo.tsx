@@ -154,6 +154,18 @@ export default function WelcomePromo() {
           </p>
         </div>
 
+        <div className="flex flex-col sm:flex-row gap-6 items-center mb-12 rounded-3xl overflow-hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-100 p-0">
+          <img
+            src="https://cdn.poehali.dev/files/60de9dee-ead5-4091-8871-69dba42ea135.jpg"
+            alt="Домовёнок показывает все разделы приложения Наша Семья — ромашка с 12 направлениями"
+            className="w-full sm:w-1/2 object-cover rounded-3xl"
+          />
+          <div className="px-6 pb-6 sm:pb-0 sm:pr-8 flex flex-col justify-center gap-3">
+            <p className="text-2xl font-extrabold text-gray-900 leading-snug">«И всё это — бесплатно. Для каждой семьи!»</p>
+            <p className="text-gray-500 text-sm">Домовёнок собрал 12 направлений семейной жизни в одном приложении. Семья, Здоровье, Питание, Финансы, Путешествия, Быт, Развитие и многое другое — бесплатно.</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {sections.map((section, idx) => (
             <div
