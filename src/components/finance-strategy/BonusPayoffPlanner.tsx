@@ -53,9 +53,9 @@ export default function BonusPayoffPlanner({ debts }: Props) {
     setAllocations({});
   };
 
-  // Кредиты которые будут полностью закрыты (выделено >= остатка)
+  // Кредиты которые будут полностью закрыты (выделено >= остатка, с допуском 1 руб)
   const fullyPaidIds = useMemo(
-    () => activeDebts.filter(d => (allocations[d.id] || 0) >= d.remaining && d.remaining > 0).map(d => d.id),
+    () => activeDebts.filter(d => (allocations[d.id] || 0) >= d.remaining - 1 && d.remaining > 0).map(d => d.id),
     [activeDebts, allocations]
   );
 
