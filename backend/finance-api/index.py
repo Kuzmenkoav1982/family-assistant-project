@@ -239,6 +239,8 @@ def handler(event, context):
             return update_loyalty_card(family_id, body)
         elif action == 'delete_loyalty_card':
             return delete_loyalty_card(family_id, body)
+        elif action == 'mark_debt_paid':
+            return mark_debt_paid(family_id, body)
 
     return respond(400, {'error': 'Неизвестное действие'})
 
@@ -1268,6 +1270,24 @@ def add_debt_payment(family_id, body):
         )
         conn.commit()
         return respond(201, {'id': pid, 'new_remaining': new_remaining, 'success': True})
+    finally:
+        conn.close()
+
+
+def mark_debt_paid(family_id, body):
+    """Отметить кредит как полностью погашенный"""
+    did = body.get('id')
+    if not did:
+        return respond(400, {'error': 'Укажите id'})
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE finance_debts SET status = 'paid', remaining_amount = 0, updated_at = NOW() WHERE id = '%s' AND family_id = '%s'"
+            % (safe(did), str(family_id))
+        )
+        conn.commit()
+        return respond(200, {'success': True})
     finally:
         conn.close()
 

@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
 import type { DebtDetail } from '@/data/financeStrategyTypes';
-import { fm, calcNewMonthlyPayment } from '@/data/financeStrategyTypes';
+import { fm, calcNewMonthlyPayment, API, getHeaders } from '@/data/financeStrategyTypes';
 
 interface Props {
   debts: DebtDetail[];
@@ -28,6 +29,7 @@ export default function BonusPayoffPlanner({ debts }: Props) {
   const [budget, setBudget] = useState<number>(0);
   const [allocations, setAllocations] = useState<Record<string, number>>({});
   const [priorityMode, setPriorityMode] = useState<PriorityMode>('rate');
+  const [applying, setApplying] = useState(false);
 
   const totalAllocated = useMemo(
     () => Object.values(allocations).reduce((sum, v) => sum + (v || 0), 0),
@@ -49,6 +51,34 @@ export default function BonusPayoffPlanner({ debts }: Props) {
 
   const reset = () => {
     setAllocations({});
+  };
+
+  // Кредиты которые будут полностью закрыты (выделено >= остатка)
+  const fullyPaidIds = useMemo(
+    () => activeDebts.filter(d => (allocations[d.id] || 0) >= d.remaining && d.remaining > 0).map(d => d.id),
+    [activeDebts, allocations]
+  );
+
+  const applyPaidDebts = async () => {
+    if (fullyPaidIds.length === 0) return;
+    setApplying(true);
+    try {
+      await Promise.all(
+        fullyPaidIds.map(id =>
+          fetch(API, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ action: 'mark_debt_paid', id }),
+          })
+        )
+      );
+      toast.success(`Закрыто кредитов: ${fullyPaidIds.length}. Данные обновятся при следующей загрузке.`);
+      reset();
+    } catch {
+      toast.error('Ошибка при закрытии кредитов');
+    } finally {
+      setApplying(false);
+    }
   };
 
   // Сортировка по выбранному приоритету
@@ -297,6 +327,19 @@ export default function BonusPayoffPlanner({ debts }: Props) {
               </div>
             )}
           </div>
+        )}
+
+        {fullyPaidIds.length > 0 && (
+          <Button
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={applyPaidDebts}
+            disabled={applying}
+          >
+            <Icon name={applying ? 'Loader2' : 'CheckCircle2'} size={16} className={applying ? 'mr-2 animate-spin' : 'mr-2'} />
+            {applying
+              ? 'Закрываем кредиты...'
+              : `Подтвердить — закрыть ${fullyPaidIds.length} кредит${fullyPaidIds.length > 1 ? 'а' : ''}`}
+          </Button>
         )}
       </CardContent>
     </Card>
