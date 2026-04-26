@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -103,6 +103,18 @@ export default function WelcomeDomovoy() {
   const prev = () => setActive(i => (i - 1 + scenes.length) % scenes.length);
   const next = () => setActive(i => (i + 1) % scenes.length);
 
+  // Свайп
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { if (diff > 0) next(); else prev(); }
+    touchStartX.current = null;
+  };
+
   return (
     <section className="py-16 sm:py-24 bg-gradient-to-b from-amber-50/40 to-white">
       <div className="max-w-5xl mx-auto px-4">
@@ -118,7 +130,11 @@ export default function WelcomeDomovoy() {
           </p>
         </div>
 
-        <div className={`rounded-3xl border-2 ${scene.border} bg-gradient-to-br ${scene.bg} overflow-hidden shadow-xl transition-colors duration-500`}>
+        <div
+          className={`rounded-3xl border-2 ${scene.border} bg-gradient-to-br ${scene.bg} overflow-hidden shadow-xl transition-colors duration-500`}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
 
             {/* Фото — полный ракурс через object-contain, клик открывает лайтбокс */}
