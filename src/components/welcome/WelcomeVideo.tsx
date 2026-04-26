@@ -60,16 +60,20 @@ export default function WelcomeVideo() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <img
-              src="https://cdn.poehali.dev/files/ca712a09-b06f-4b9d-9369-d3baaa169b7e.jpg"
-              alt="Домовёнок с мешком мастера — приложение Наша Семья"
-              className="w-full sm:w-1/2 rounded-2xl shadow-xl object-cover"
-            />
-            <img
-              src="https://cdn.poehali.dev/files/56dd1a64-098e-4403-ae09-9de6508be482.jpg"
-              alt="Домовёнок с 12 опорами семейной жизни — приложение Наша Семья"
-              className="w-full sm:w-1/2 rounded-2xl shadow-xl object-cover"
-            />
+            <div className="w-full sm:w-1/2 rounded-2xl shadow-xl bg-amber-50 flex items-center justify-center p-3">
+              <img
+                src="https://cdn.poehali.dev/files/ca712a09-b06f-4b9d-9369-d3baaa169b7e.jpg"
+                alt="Домовёнок с мешком мастера — приложение Наша Семья"
+                className="w-full object-contain rounded-xl"
+              />
+            </div>
+            <div className="w-full sm:w-1/2 rounded-2xl shadow-xl bg-emerald-50 flex items-center justify-center p-3">
+              <img
+                src="https://cdn.poehali.dev/files/56dd1a64-098e-4403-ae09-9de6508be482.jpg"
+                alt="Домовёнок с 12 опорами семейной жизни — приложение Наша Семья"
+                className="w-full object-contain rounded-xl"
+              />
+            </div>
           </div>
 
           <div

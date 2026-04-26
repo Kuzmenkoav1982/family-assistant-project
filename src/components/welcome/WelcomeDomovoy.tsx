@@ -13,6 +13,7 @@ const scenes = [
     border: 'border-orange-200',
     accent: 'text-orange-700',
     badge: 'bg-orange-100 text-orange-700',
+    imgBg: 'bg-amber-100',
   },
   {
     id: 2,
@@ -23,16 +24,18 @@ const scenes = [
     border: 'border-pink-200',
     accent: 'text-pink-700',
     badge: 'bg-pink-100 text-pink-700',
+    imgBg: 'bg-rose-100',
   },
   {
     id: 3,
     image: 'https://cdn.poehali.dev/files/ca712a09-b06f-4b9d-9369-d3baaa169b7e.jpg',
-    quote: '«Вот он — мешок мастера. А зовётся — "Наша Семья".»',
+    quote: 'Вот он — мешок мастера. А зовётся — "Наша Семья".',
     label: 'Мешок мастера',
     bg: 'from-yellow-50 to-amber-50',
     border: 'border-amber-200',
     accent: 'text-amber-700',
     badge: 'bg-amber-100 text-amber-700',
+    imgBg: 'bg-yellow-100',
   },
   {
     id: 4,
@@ -43,6 +46,7 @@ const scenes = [
     border: 'border-emerald-200',
     accent: 'text-emerald-700',
     badge: 'bg-emerald-100 text-emerald-700',
+    imgBg: 'bg-emerald-100',
   },
   {
     id: 5,
@@ -53,6 +57,7 @@ const scenes = [
     border: 'border-blue-200',
     accent: 'text-blue-700',
     badge: 'bg-blue-100 text-blue-700',
+    imgBg: 'bg-blue-100',
   },
   {
     id: 6,
@@ -63,6 +68,7 @@ const scenes = [
     border: 'border-violet-200',
     accent: 'text-violet-700',
     badge: 'bg-violet-100 text-violet-700',
+    imgBg: 'bg-violet-100',
   },
   {
     id: 7,
@@ -73,6 +79,7 @@ const scenes = [
     border: 'border-red-200',
     accent: 'text-red-700',
     badge: 'bg-red-100 text-red-700',
+    imgBg: 'bg-red-100',
   },
   {
     id: 8,
@@ -83,11 +90,13 @@ const scenes = [
     border: 'border-orange-300',
     accent: 'text-orange-800',
     badge: 'bg-orange-200 text-orange-800',
+    imgBg: 'bg-orange-100',
   },
 ];
 
 export default function WelcomeDomovoy() {
   const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   const navigate = useNavigate();
   const scene = scenes[active];
 
@@ -109,14 +118,20 @@ export default function WelcomeDomovoy() {
           </p>
         </div>
 
-        <div className={`rounded-3xl border-2 ${scene.border} bg-gradient-to-br ${scene.bg} overflow-hidden shadow-xl transition-all duration-500`}>
+        <div className={`rounded-3xl border-2 ${scene.border} bg-gradient-to-br ${scene.bg} overflow-hidden shadow-xl transition-colors duration-500`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div className="relative min-h-[280px] md:min-h-[420px]">
+
+            {/* Фото — полный ракурс через object-contain, клик открывает лайтбокс */}
+            <div
+              className={`flex items-center justify-center ${scene.imgBg} cursor-zoom-in rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none min-h-[280px] md:min-h-[420px] p-4`}
+              onClick={() => setLightbox(true)}
+              title="Нажмите для просмотра"
+            >
               <img
                 key={scene.id}
                 src={scene.image}
-                alt={scene.quote}
-                className="absolute inset-0 w-full h-full object-cover object-center rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none transition-opacity duration-500"
+                alt={scene.label}
+                className="w-full h-full max-h-[420px] object-contain transition-opacity duration-500 hover:scale-[1.02] transition-transform"
               />
             </div>
 
@@ -130,15 +145,23 @@ export default function WelcomeDomovoy() {
                   «{scene.quote}»
                 </blockquote>
 
-                <div className="flex gap-2 mb-8">
+                <div className="flex gap-2 mb-8 flex-wrap">
                   {scenes.map((_, i) => (
                     <button
                       key={i}
                       onClick={() => setActive(i)}
-                      className={`h-2 rounded-full transition-all duration-300 ${i === active ? `w-8 ${scene.accent} bg-current` : 'w-2 bg-gray-300'}`}
+                      className={`h-2 rounded-full transition-all duration-300 ${i === active ? `w-8 bg-current ${scene.accent}` : 'w-2 bg-gray-300'}`}
                     />
                   ))}
                 </div>
+
+                <button
+                  onClick={() => setLightbox(true)}
+                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors mb-2"
+                >
+                  <Icon name="ZoomIn" size={13} />
+                  Открыть фото на весь экран
+                </button>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -176,6 +199,27 @@ export default function WelcomeDomovoy() {
           </div>
         </div>
       </div>
+
+      {/* Лайтбокс */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={() => setLightbox(false)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
+            onClick={() => setLightbox(false)}
+          >
+            <Icon name="X" size={24} />
+          </button>
+          <img
+            src={scene.image}
+            alt={scene.label}
+            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
     </section>
   );
 }
