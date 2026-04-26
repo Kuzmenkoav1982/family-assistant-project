@@ -159,7 +159,7 @@ export default function FinanceStrategy() {
           <h2 className="text-base font-bold flex items-center gap-2">
             <Icon name="Gift" size={18} className="text-emerald-500" /> Калькулятор премии / крупной суммы
           </h2>
-          <BonusPayoffPlanner debts={s.debts} />
+          <BonusPayoffPlanner debts={s.debts} onSuccess={s.fetchData} />
         </section>
 
         <section className="space-y-3">

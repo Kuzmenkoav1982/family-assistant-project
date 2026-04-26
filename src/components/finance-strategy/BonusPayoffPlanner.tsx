@@ -10,6 +10,7 @@ import { fm, calcNewMonthlyPayment, API, getHeaders } from '@/data/financeStrate
 
 interface Props {
   debts: DebtDetail[];
+  onSuccess?: () => void;
 }
 
 type PriorityMode = 'rate' | 'relief' | 'size';
@@ -20,7 +21,7 @@ const PRIORITY_MODES: { key: PriorityMode; label: string; short: string; icon: s
   { key: 'size', label: 'Быстрый результат', short: 'Снежный ком', icon: 'Snowflake', hint: 'Сначала самые маленькие долги — быстрее закрывать, освобождая средства' },
 ];
 
-export default function BonusPayoffPlanner({ debts }: Props) {
+export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
   const activeDebts = useMemo(
     () => debts.filter(d => d.remaining > 0 && d.payment > 0),
     [debts]
@@ -92,8 +93,9 @@ export default function BonusPayoffPlanner({ debts }: Props) {
             })
           )
       );
-      toast.success(`Закрыто кредитов: ${fullyPaidIds.length}. Обновите страницу для актуальных данных.`);
+      toast.success(`Закрыто кредитов: ${fullyPaidIds.length}`);
       reset();
+      onSuccess?.();
     } catch {
       toast.error('Ошибка при закрытии кредитов');
     } finally {
@@ -120,6 +122,7 @@ export default function BonusPayoffPlanner({ debts }: Props) {
       if (res.ok) {
         toast.success(`Платёж ${fm(amount)} записан`);
         setAllocations(prev => ({ ...prev, [debtId]: 0 }));
+        onSuccess?.();
       } else {
         toast.error('Ошибка при записи платежа');
       }

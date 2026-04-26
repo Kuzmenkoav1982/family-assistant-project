@@ -1,4 +1,10 @@
 import { useState } from 'react';
+import type { FamilyMember } from '@/types/family.types';
+import type { WidgetConfig } from '@/components/WidgetSettings';
+import useLayoutState from '@/hooks/useLayoutState';
+import useAppearanceState from '@/hooks/useAppearanceState';
+import useFamilyDataState from '@/hooks/useFamilyDataState';
+import useShoppingState from '@/hooks/useShoppingState';
 import type {
   Reminder,
   Tradition,
@@ -14,24 +20,8 @@ import type {
   ShoppingItem,
   FamilyGoal,
   ThemeType,
-  FamilyMember,
 } from '@/types/family.types';
-import type { WidgetConfig } from '@/components/WidgetSettings';
 import type { LanguageCode } from '@/translations';
-import {
-  initialChildrenProfiles,
-  initialDevelopmentPlans,
-  initialImportantDates,
-  initialFamilyValues,
-  initialBlogPosts,
-  initialTraditions,
-  initialChatMessages,
-  initialFamilyAlbum,
-  initialFamilyNeeds,
-  initialFamilyTree,
-  initialFamilyGoals,
-  initialShoppingList,
-} from '@/data/mockData';
 
 export interface UseIndexStateReturn {
   familyName: string;
@@ -150,22 +140,12 @@ export interface UseIndexStateReturn {
   setTopPanelSections: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const availableSections = [
-  { id: 'family', icon: 'Users', label: 'Профили семьи' },
-  { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
-  { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },
-  { id: 'trips', icon: 'Plane', label: 'Путешествия' },
-  { id: 'health', icon: 'Heart', label: 'Здоровье' },
-  { id: 'analytics', icon: 'BarChart3', label: 'Аналитика' },
-  { id: 'calendar', icon: 'Calendar', label: 'Календарь' },
-  { id: 'goals', icon: 'Target', label: 'Цели' },
-  { id: 'values', icon: 'HeartHandshake', label: 'Ценности' },
-  { id: 'traditions', icon: 'Sparkles', label: 'Традиции' },
-  { id: 'shopping', icon: 'ShoppingCart', label: 'Покупки' },
-  { id: 'meals', icon: 'UtensilsCrossed', label: 'Меню' },
-];
-
 export default function useIndexState(): UseIndexStateReturn {
+  const layout = useLayoutState();
+  const appearance = useAppearanceState();
+  const familyData = useFamilyDataState();
+  const shopping = useShoppingState();
+
   const [familyName, setFamilyName] = useState('Наша Семья');
   const [familyLogo, setFamilyLogo] = useState('https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG');
   const [familyBanner, setFamilyBanner] = useState('');
@@ -195,90 +175,16 @@ export default function useIndexState(): UseIndexStateReturn {
 
     return true;
   });
+
   const [welcomeText, setWelcomeText] = useState('Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций.');
-
-  const [isTopBarVisible, setIsTopBarVisible] = useState(true);
-  const [autoHideTopBar, setAutoHideTopBar] = useState(() => {
-    return false;
-  });
-
-  const [isLeftMenuVisible, setIsLeftMenuVisible] = useState(false);
-  const [showSidebarHint, setShowSidebarHint] = useState(false);
-  const [autoHideLeftMenu, setAutoHideLeftMenu] = useState(() => {
-    return localStorage.getItem('autoHideLeftMenu') === 'true';
-  });
 
   const [activeSection, setActiveSection] = useState<string>('family');
   const [showInDevelopment, setShowInDevelopment] = useState(false);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
 
-  const [chamomileEnabled, setChamomileEnabled] = useState(() => {
-    return localStorage.getItem('chamomileEnabled') === 'true';
-  });
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    return localStorage.getItem('soundEnabled') === 'true';
-  });
   const [showProfileOnboarding, setShowProfileOnboarding] = useState(false);
-
   const [showFamilyInvite, setShowFamilyInvite] = useState(false);
   const [showKuzyaDialog, setShowKuzyaDialog] = useState(false);
-
-  const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
-  const [autoHideBottomBar, setAutoHideBottomBar] = useState(() => {
-    return localStorage.getItem('autoHideBottomBar') === 'true';
-  });
-
-  const [showTopPanelSettings, setShowTopPanelSettings] = useState(false);
-  const [showLeftPanelSettings, setShowLeftPanelSettings] = useState(false);
-  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
-
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
-  const [showThemeSelector, setShowThemeSelector] = useState(false);
-
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => {
-    return (localStorage.getItem('familyOrganizerLanguage') as LanguageCode) || 'ru';
-  });
-  const [currentTheme, setCurrentTheme] = useState<ThemeType>(() => {
-    const saved = localStorage.getItem('familyOrganizerTheme');
-    return (saved as ThemeType) || 'middle';
-  });
-  const [appearanceMode, setAppearanceMode] = useState<'light' | 'dark' | 'system' | 'auto'>(() => {
-    return (localStorage.getItem('appearanceMode') as 'light' | 'dark' | 'system' | 'auto') || 'light';
-  });
-
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [familyValues, setFamilyValues] = useState<FamilyValue[]>(() => {
-    const saved = localStorage.getItem('familyValues');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialFamilyValues;
-      }
-    }
-    return initialFamilyValues;
-  });
-  const [traditions, setTraditions] = useState<Tradition[]>(() => {
-    const saved = localStorage.getItem('traditions');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialTraditions;
-      }
-    }
-    return initialTraditions;
-  });
-  const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
-  const [importantDates] = useState<ImportantDate[]>(initialImportantDates);
-
-  const [childrenProfiles] = useState<ChildProfile[]>(initialChildrenProfiles);
-  const [developmentPlans] = useState<DevelopmentPlan[]>(initialDevelopmentPlans);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
-  const [familyAlbum, setFamilyAlbum] = useState<FamilyAlbum[]>(initialFamilyAlbum);
-  const [familyNeeds, setFamilyNeeds] = useState<FamilyNeed[]>(initialFamilyNeeds);
-  const [familyTree, setFamilyTree] = useState<FamilyTreeMember[]>(initialFamilyTree);
-  const [selectedTreeMember, setSelectedTreeMember] = useState<FamilyTreeMember | null>(null);
 
   const [widgetSettings, setWidgetSettings] = useState<WidgetConfig[] | null>(() => {
     const saved = localStorage.getItem('widgetSettings');
@@ -291,63 +197,19 @@ export default function useIndexState(): UseIndexStateReturn {
     }
     return null;
   });
+
   const [newMessage, setNewMessage] = useState('');
-
-  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(() => {
-    const saved = localStorage.getItem('shoppingList');
-    return saved ? JSON.parse(saved) : initialShoppingList;
-  });
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemCategory, setNewItemCategory] = useState<'products' | 'household' | 'clothes' | 'other'>('products');
-  const [newItemQuantity, setNewItemQuantity] = useState('');
-  const [newItemPriority, setNewItemPriority] = useState<'normal' | 'urgent'>('normal');
-  const [showAddItemDialog, setShowAddItemDialog] = useState(false);
-
-  const [familyGoals, setFamilyGoals] = useState<FamilyGoal[]>(() => {
-    const saved = localStorage.getItem('familyGoals');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialFamilyGoals;
-      }
-    }
-    return initialFamilyGoals;
-  });
-
   const [calendarFilter, setCalendarFilter] = useState<'all' | 'personal' | 'family'>('all');
-
   const [selectedDevSection, setSelectedDevSection] = useState<any | null>(null);
   const [voteComment, setVoteComment] = useState('');
   const [showCommentDialog, setShowCommentDialog] = useState(false);
   const [pendingVote, setPendingVote] = useState<{ sectionId: string; voteType: 'up' | 'down' } | null>(null);
 
-  const [bottomBarSections, setBottomBarSections] = useState<string[]>(() => {
-    const saved = localStorage.getItem('bottomBarSections');
-    return saved ? JSON.parse(saved) : ['analytics', 'children', 'calendar', 'shopping'];
-  });
-
-  const [leftPanelSections, setLeftPanelSections] = useState<string[]>(() => {
-    const saved = localStorage.getItem('leftPanelSections');
-    return saved ? JSON.parse(saved) : availableSections.map(s => s.id);
-  });
-
-  const [topPanelSections, setTopPanelSections] = useState<string[]>(() => {
-    const saved = localStorage.getItem('topPanelSections');
-    let sections = saved ? JSON.parse(saved) : ['stats', 'auth', 'settings', 'familySwitcher'];
-
-    sections = sections.filter((s: string) => !['style', 'voting', 'presentation', 'reset', 'language', 'profile', 'instructions', 'appearance'].includes(s));
-
-    if (!sections.includes('settings')) {
-      sections.push('settings');
-    }
-
-    localStorage.setItem('topPanelSections', JSON.stringify(sections));
-
-    return sections;
-  });
-
   return {
+    ...layout,
+    ...appearance,
+    ...familyData,
+    ...shopping,
     familyName, setFamilyName,
     familyLogo, setFamilyLogo,
     familyBanner, setFamilyBanner,
@@ -355,57 +217,18 @@ export default function useIndexState(): UseIndexStateReturn {
     showFirstLoginWelcome, setShowFirstLoginWelcome,
     showWelcome, setShowWelcome,
     welcomeText, setWelcomeText,
-    isTopBarVisible, setIsTopBarVisible,
-    autoHideTopBar, setAutoHideTopBar,
-    isLeftMenuVisible, setIsLeftMenuVisible,
-    showSidebarHint, setShowSidebarHint,
-    autoHideLeftMenu, setAutoHideLeftMenu,
     activeSection, setActiveSection,
     showInDevelopment, setShowInDevelopment,
     educationChild, setEducationChild,
-    chamomileEnabled, setChamomileEnabled,
-    soundEnabled, setSoundEnabled,
     showProfileOnboarding, setShowProfileOnboarding,
     showFamilyInvite, setShowFamilyInvite,
     showKuzyaDialog, setShowKuzyaDialog,
-    isBottomBarVisible, setIsBottomBarVisible,
-    autoHideBottomBar, setAutoHideBottomBar,
-    showTopPanelSettings, setShowTopPanelSettings,
-    showLeftPanelSettings, setShowLeftPanelSettings,
-    showWidgetSettings, setShowWidgetSettings,
-    showLanguageSelector, setShowLanguageSelector,
-    showThemeSelector, setShowThemeSelector,
-    currentLanguage, setCurrentLanguage,
-    currentTheme, setCurrentTheme,
-    appearanceMode, setAppearanceMode,
-    reminders, setReminders,
-    familyValues, setFamilyValues,
-    traditions, setTraditions,
-    blogPosts,
-    importantDates,
-    childrenProfiles,
-    developmentPlans,
-    chatMessages, setChatMessages,
-    familyAlbum, setFamilyAlbum,
-    familyNeeds, setFamilyNeeds,
-    familyTree, setFamilyTree,
-    selectedTreeMember, setSelectedTreeMember,
     widgetSettings, setWidgetSettings,
     newMessage, setNewMessage,
-    shoppingList, setShoppingList,
-    newItemName, setNewItemName,
-    newItemCategory, setNewItemCategory,
-    newItemQuantity, setNewItemQuantity,
-    newItemPriority, setNewItemPriority,
-    showAddItemDialog, setShowAddItemDialog,
-    familyGoals, setFamilyGoals,
     calendarFilter, setCalendarFilter,
     selectedDevSection, setSelectedDevSection,
     voteComment, setVoteComment,
     showCommentDialog, setShowCommentDialog,
     pendingVote, setPendingVote,
-    bottomBarSections, setBottomBarSections,
-    leftPanelSections, setLeftPanelSections,
-    topPanelSections, setTopPanelSections,
   };
 }
