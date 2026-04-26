@@ -88,16 +88,46 @@ def send_email_smtp(to_email: str, code: str) -> bool:
         return False
 
 
+def send_sms_smsru(phone: str, code: str) -> bool:
+    """Отправка SMS через SMS.ru. Требует SMS_RU_API_KEY в env."""
+    api_key = os.environ.get('SMS_RU_API_KEY', '')
+    if not api_key:
+        print('ℹ️ SMS_RU_API_KEY не настроен')
+        return False
+    try:
+        import urllib.request
+        import urllib.parse
+        clean_phone = ''.join(c for c in phone if c.isdigit() or c == '+')
+        msg = f'Код для восстановления пароля: {code}. Действует 15 минут.'
+        url = 'https://sms.ru/sms/send?' + urllib.parse.urlencode({
+            'api_id': api_key,
+            'to': clean_phone,
+            'msg': msg,
+            'json': '1',
+        })
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+        if data.get('status') == 'OK':
+            print(f'✅ SMS sent to {clean_phone}')
+            return True
+        print(f'❌ SMS.ru error: {data}')
+        return False
+    except Exception as e:
+        print(f'❌ SMS error: {e}')
+        return False
+
+
 def send_verification_code(phone: Optional[str], email: Optional[str], code: str) -> bool:
-    success = False
-    
+    """Сначала пробуем email (приоритет). Если не получилось — SMS."""
     if email:
-        success = send_email_smtp(email, code)
-    
-    if phone and not success:
-        print(f'ℹ️ SMS to {phone} — SMS not configured, skipping')
-    
-    return success
+        if send_email_smtp(email, code):
+            return True
+
+    if phone:
+        if send_sms_smsru(phone, code):
+            return True
+
+    return False
 
 def request_reset(phone: Optional[str], email: Optional[str]) -> Dict[str, Any]:
     if not phone and not email:
@@ -136,14 +166,26 @@ def request_reset(phone: Optional[str], email: Optional[str]) -> Dict[str, Any]:
             )
         ''')
         
-        send_verification_code(user['phone'], user['email'], code)
-        
+        sent = send_verification_code(user['phone'], user['email'], code)
+
+        if not sent:
+            # Откатываем токен — нет смысла хранить, если письмо не ушло
+            cur.execute(f'''
+                DELETE FROM {SCHEMA}.password_reset_tokens
+                WHERE user_id = {escape_string(user['id'])}
+            ''')
+            return {
+                'error': 'Не удалось отправить письмо. Попробуйте позже или обратитесь в поддержку.',
+                'debug_email_sent': False,
+            }
+
         return {
             'success': True,
-            'message': 'Код отправлен',
-            'contact': user['phone'] or user['email']
+            'message': 'Код отправлен на ' + (user['email'] or user['phone']),
+            'contact': user['phone'] or user['email'],
+            'debug_email_sent': True,
         }
-    
+
     finally:
         cur.close()
         conn.close()

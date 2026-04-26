@@ -33,6 +33,12 @@ const MEAL_TYPES = [
   { value: 'dinner', label: '🍷 Ужин', emoji: '🍷' }
 ];
 
+interface FamilyMemberOpt {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 interface MealDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -43,9 +49,11 @@ interface MealDialogProps {
     dishName: string;
     description: string;
     emoji: string;
+    forMemberId?: string;
   };
   setNewMeal: (meal: any) => void;
   handleAddMeal: () => void;
+  familyMembers?: FamilyMemberOpt[];
 }
 
 export function MealDialog({
@@ -54,7 +62,8 @@ export function MealDialog({
   editingMeal,
   newMeal,
   setNewMeal,
-  handleAddMeal
+  handleAddMeal,
+  familyMembers = []
 }: MealDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -63,6 +72,28 @@ export function MealDialog({
           <DialogTitle>{editingMeal ? 'Редактировать блюдо' : 'Добавить блюдо в меню'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-4">
+          {familyMembers.length > 1 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">Для кого</label>
+              <Select
+                value={newMeal.forMemberId || 'all'}
+                onValueChange={(value) => setNewMeal({ ...newMeal, forMemberId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">👨‍👩‍👧‍👦 Вся семья</SelectItem>
+                  {familyMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.avatar ? `${m.avatar} ${m.name}` : m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
             <label className="text-sm font-medium mb-2 block">День недели</label>
             <Select

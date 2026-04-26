@@ -37,28 +37,43 @@ export function useNotificationCenter() {
 
   const fetchNotifications = useCallback(async (limit = 50, offset = 0, type?: string) => {
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      setNotifications([]);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       let url = `${API}?action=list&limit=${limit}&offset=${offset}`;
       if (type) url += `&type=${type}`;
       const res = await fetch(url, { headers: { 'X-Auth-Token': token } });
+      if (!res.ok) {
+        console.warn('[notifications] HTTP error:', res.status);
+        setNotifications([]);
+        setIsLoading(false);
+        return;
+      }
       const data = await res.json();
-      if (data.success) {
-        // Скрываем тестовые/демо-уведомления (bug40)
-        const TEST_PATTERNS = /(^|\s)(test|тест|testing|demo|демо|sample|mock)(\s|[:!.]|$)/i;
-        const filtered = (data.notifications || []).filter((n: NotificationItem) => {
-          const title = (n.title || '').trim();
-          const msg = (n.message || '').trim();
-          if (!title && !msg) return false;
-          if (TEST_PATTERNS.test(title) || TEST_PATTERNS.test(msg)) return false;
-          return true;
-        });
-        setNotifications(filtered);
+      // Bug12: всегда обрабатываем notifications-массив, даже если success=false (вместо игнора)
+      const list: NotificationItem[] = data?.notifications || [];
+      const TEST_PATTERNS = /(^|\s)(test|тест|testing|demo|демо|sample|mock)(\s|[:!.]|$)/i;
+      const filtered = list.filter((n) => {
+        const title = (n.title || '').trim();
+        const msg = (n.message || '').trim();
+        if (!title && !msg) return false;
+        if (TEST_PATTERNS.test(title) || TEST_PATTERNS.test(msg)) return false;
+        return true;
+      });
+      setNotifications(filtered);
+      if (typeof data?.unread_count === 'number') {
         setUnreadCount(data.unread_count);
       }
-    } catch { /* */ }
-    setIsLoading(false);
+    } catch (err) {
+      console.error('[notifications] fetch failed:', err);
+      setNotifications([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const markRead = useCallback(async (id: string) => {

@@ -111,7 +111,12 @@ export default function Meals() {
   const handleAddMeal = async () => {
     if (!newMeal.dishName.trim()) return;
 
-    const currentMember = members[0] || { id: 'demo', name: 'Пользователь', avatar: '👤' };
+    // bug14: используем выбранного члена семьи (forMemberId), либо текущего юзера, либо первого
+    const selectedId = (newMeal as { forMemberId?: string }).forMemberId;
+    const chosenMember = selectedId && selectedId !== 'all'
+      ? members.find(m => m.id === selectedId)
+      : null;
+    const currentMember = chosenMember || members[0] || { id: 'demo', name: 'Пользователь', avatar: '👤' };
     const authToken = localStorage.getItem('authToken');
 
     try {
@@ -402,6 +407,7 @@ export default function Meals() {
           newMeal={newMeal}
           setNewMeal={setNewMeal}
           handleAddMeal={handleAddMeal}
+          familyMembers={members.map(m => ({ id: m.id, name: m.name, avatar: m.avatar }))}
         />
 
 

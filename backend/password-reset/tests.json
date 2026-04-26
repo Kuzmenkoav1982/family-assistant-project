@@ -1,17 +1,16 @@
 {
   "tests": [
     {
-      "name": "Request password reset",
+      "name": "Request reset for unknown user returns error",
       "method": "POST",
       "path": "/",
       "body": {
         "action": "request",
-        "phone": "+79991234567"
+        "phone": "+79000000001"
       },
-      "expectedStatus": 200,
+      "expectedStatus": 400,
       "expectedBody": {
-        "success": true,
-        "message": "string"
+        "error": "Пользователь не найден"
       },
       "bodyMatcher": "partial"
     },

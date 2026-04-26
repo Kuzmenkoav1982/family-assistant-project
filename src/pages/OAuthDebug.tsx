@@ -149,7 +149,7 @@ export default function OAuthDebug() {
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm text-gray-600">Client ID:</p>
-              <p className="font-mono text-xs bg-gray-50 p-2 rounded">7e0f89d2248a4f6cbecc79103c2553b8</p>
+              <p className="font-mono text-xs bg-gray-50 p-2 rounded">из env-переменной YANDEX_CLIENT_ID</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Callback URL:</p>

@@ -156,6 +156,66 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body = json.loads(raw_body)
     action = body.get('action', 'start')
 
+    if action == 'get_active_plan':
+        user_id, family_id = get_user_and_family(event)
+        if not user_id:
+            return respond(401, {'error': 'Не авторизован'})
+        try:
+            conn = get_db()
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT id, plan_data, duration_days, created_at FROM "
+                    "t_p5815085_family_assistant_pro.ai_diet_plans "
+                    "WHERE user_id = '%s' AND is_active = true "
+                    "ORDER BY created_at DESC LIMIT 1" % str(user_id)
+                )
+                row = cur.fetchone()
+                if not row:
+                    return respond(200, {'success': True, 'plan': None})
+                return respond(200, {
+                    'success': True,
+                    'plan_id': str(row[0]),
+                    'plan': row[1],
+                    'duration_days': row[2],
+                    'created_at': row[3].isoformat() if row[3] else None,
+                })
+            finally:
+                conn.close()
+        except Exception as e:
+            return respond(500, {'error': str(e)[:200]})
+
+    if action == 'list_plans':
+        user_id, family_id = get_user_and_family(event)
+        if not user_id:
+            return respond(401, {'error': 'Не авторизован'})
+        try:
+            conn = get_db()
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT id, duration_days, is_active, created_at FROM "
+                    "t_p5815085_family_assistant_pro.ai_diet_plans "
+                    "WHERE user_id = '%s' ORDER BY created_at DESC LIMIT 20" % str(user_id)
+                )
+                rows = cur.fetchall()
+                return respond(200, {
+                    'success': True,
+                    'plans': [
+                        {
+                            'id': str(r[0]),
+                            'duration_days': r[1],
+                            'is_active': r[2],
+                            'created_at': r[3].isoformat() if r[3] else None,
+                        }
+                        for r in rows
+                    ],
+                })
+            finally:
+                conn.close()
+        except Exception as e:
+            return respond(500, {'error': str(e)[:200]})
+
     if action == 'generate_plan':
         body['action'] = 'start'
         action = 'start'
@@ -174,7 +234,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     check_actions = ('check', 'check_recipe', 'check_photo', 'check_greeting', 'check_products')
     if action in check_actions:
         if action == 'check':
-            return handle_check(api_key, body)
+            return handle_check(api_key, body, event)
         if action == 'check_recipe':
             return handle_recipe_check(api_key, body)
         if action == 'check_photo':
@@ -283,7 +343,45 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     })
 
 
-def handle_check(api_key: str, body: Dict) -> Dict[str, Any]:
+def save_ai_plan(user_id, family_id, plan: Dict, body: Dict, operation_id: str) -> Optional[str]:
+    """Сохраняет ИИ-план в таблицу ai_diet_plans и возвращает его id."""
+    if not user_id:
+        return None
+    try:
+        conn = get_db()
+        try:
+            cur = conn.cursor()
+            duration = int(body.get('duration_days', 7))
+            quiz = json.dumps(body.get('quizData') or {}, ensure_ascii=False)
+            program = json.dumps(body.get('programData') or {}, ensure_ascii=False)
+            plan_json = json.dumps(plan, ensure_ascii=False)
+            family_part = "'%s'" % str(family_id) if family_id else 'NULL'
+            cur.execute(
+                "UPDATE t_p5815085_family_assistant_pro.ai_diet_plans SET is_active = false "
+                "WHERE user_id = '%s' AND is_active = true" % str(user_id)
+            )
+            cur.execute(
+                "INSERT INTO t_p5815085_family_assistant_pro.ai_diet_plans "
+                "(user_id, family_id, duration_days, plan_data, quiz_data, program_data, operation_id) "
+                "VALUES ('%s', %s, %d, '%s', '%s', '%s', '%s') RETURNING id" % (
+                    str(user_id), family_part, duration,
+                    plan_json.replace("'", "''"),
+                    quiz.replace("'", "''"),
+                    program.replace("'", "''"),
+                    operation_id.replace("'", "''"),
+                )
+            )
+            row = cur.fetchone()
+            conn.commit()
+            return str(row[0]) if row else None
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"[generate-diet-plan] save plan error: {e}")
+        return None
+
+
+def handle_check(api_key: str, body: Dict, event: Optional[Dict] = None) -> Dict[str, Any]:
     operation_id = body.get('operationId', '')
     if not operation_id:
         return respond(400, {'error': 'operationId не передан'})
@@ -332,10 +430,21 @@ def handle_check(api_key: str, body: Dict) -> Dict[str, Any]:
             'message': 'План сгенерирован, но не удалось разобрать JSON.'
         })
 
+    plan_id = None
+    if event:
+        try:
+            user_id, family_id = get_user_and_family(event)
+            plan_id = save_ai_plan(user_id, family_id, plan, body, operation_id)
+            print(f"[generate-diet-plan] Saved plan id={plan_id}")
+        except Exception as e:
+            print(f"[generate-diet-plan] save error: {e}")
+
     return respond(200, {
         'success': True,
         'status': 'done',
-        'plan': plan
+        'plan': plan,
+        'plan_id': plan_id,
+        'saved': bool(plan_id),
     })
 
 

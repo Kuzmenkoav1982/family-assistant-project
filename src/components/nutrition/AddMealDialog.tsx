@@ -8,6 +8,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 
+interface FamilyMemberOption {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 interface AddMealDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,6 +27,7 @@ interface AddMealDialogProps {
   setNewEntry: (entry: NewEntry) => void;
   addMode: 'search' | 'manual';
   setAddMode: (mode: 'search' | 'manual') => void;
+  familyMembers?: FamilyMemberOption[];
 }
 
 export interface NewEntry {
@@ -32,6 +39,7 @@ export interface NewEntry {
   protein: string;
   fats: string;
   carbs: string;
+  member_id?: string;
 }
 
 export function AddMealDialog({
@@ -46,7 +54,8 @@ export function AddMealDialog({
   newEntry,
   setNewEntry,
   addMode,
-  setAddMode
+  setAddMode,
+  familyMembers = []
 }: AddMealDialogProps) {
   const navigate = useNavigate();
 
@@ -63,6 +72,27 @@ export function AddMealDialog({
           <DialogTitle>Добавить приём пищи</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {familyMembers.length > 1 && (
+            <div>
+              <Label>Кто ел</Label>
+              <Select
+                value={newEntry.member_id || familyMembers[0].id}
+                onValueChange={(value) => setNewEntry({ ...newEntry, member_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {familyMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.avatar ? `${m.avatar} ${m.name}` : m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
             <Label>Тип приёма пищи</Label>
             <Select

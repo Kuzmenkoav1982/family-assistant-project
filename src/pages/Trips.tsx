@@ -143,7 +143,6 @@ export default function Trips() {
           budget: newTrip.budget ? parseFloat(newTrip.budget) : null,
           status: 'planning',
           currency: detectCurrencyByCountry(newTrip.country),
-          created_by: 1,
         }),
       });
 
@@ -151,7 +150,7 @@ export default function Trips() {
       const data = await response.json();
       console.log('Response data:', data);
 
-      if (response.ok) {
+      if (response.ok && data?.trip) {
         await loadTrips(activeTab);
         await loadAllTripsForCounting();
         setIsAddDialogOpen(false);
@@ -164,10 +163,14 @@ export default function Trips() {
           budget: '',
           description: '',
         });
+      } else {
+        const errorMsg = data?.error || `Ошибка ${response.status}: не удалось создать поездку`;
+        console.error('Trip creation failed:', errorMsg);
+        alert(errorMsg);
       }
     } catch (error) {
       console.error('Error creating trip:', error);
-      alert('Ошибка при создании поездки');
+      alert('Ошибка соединения при создании поездки');
     }
   };
 

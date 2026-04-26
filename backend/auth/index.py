@@ -27,9 +27,8 @@ VK_APP_SECRET = os.environ.get('VK_APP_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 NOTIFICATIONS_URL = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774'
 
-# Force redeploy: New Yandex OAuth app credentials (28.12.2025)
-# Client ID: 1b7664da437442acbcef20ef175f8c39
-# Redirect URI: https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0
+# Yandex/VK OAuth credentials читаются из env-переменных:
+# YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, VK_APP_ID, VK_APP_SECRET
 
 def hash_password(password: str) -> str:
     """
@@ -577,28 +576,39 @@ def reset_password(phone: str, reset_code: str, new_password: str) -> Dict[str, 
         return {'error': f'Ошибка сброса пароля: {str(e)}'}
 
 def oauth_login_yandex(callback_url: str, frontend_url: str = '') -> Dict[str, Any]:
-    """Генерирует URL для редиректа на Yandex OAuth"""
+    """Генерирует URL для редиректа на Yandex OAuth.
+    ВАЖНО: callback_url должен быть точно таким же, как в Yandex OAuth Console
+    https://oauth.yandex.ru/client/{YANDEX_CLIENT_ID}/edit
+    """
     if not YANDEX_CLIENT_ID:
-        return {'error': 'YANDEX_CLIENT_ID не настроен'}
-    
+        return {'error': 'YANDEX_CLIENT_ID не настроен в секретах проекта'}
+    if not YANDEX_CLIENT_SECRET:
+        return {'error': 'YANDEX_CLIENT_SECRET не настроен в секретах проекта'}
+
     state_data = {
         'random': secrets.token_urlsafe(8),
         'frontend': frontend_url or 'https://webapp.poehali.dev/login'
     }
     state = json.dumps(state_data)
-    
+
     params = {
         'response_type': 'code',
         'client_id': YANDEX_CLIENT_ID,
         'redirect_uri': callback_url,
-        'state': state
+        'state': state,
+        'force_confirm': 'yes',
     }
-    
+
     oauth_url = 'https://oauth.yandex.ru/authorize?' + urllib.parse.urlencode(params)
-    
+
     return {
         'redirect_url': oauth_url,
-        'state': state
+        'state': state,
+        'debug': {
+            'client_id_set': bool(YANDEX_CLIENT_ID),
+            'callback_url_used': callback_url,
+            'note': 'Если ошибка client_id — проверь что callback_url добавлен в Yandex OAuth Console',
+        },
     }
 
 def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
