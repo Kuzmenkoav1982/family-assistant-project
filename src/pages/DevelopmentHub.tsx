@@ -49,6 +49,17 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-pink-100 text-pink-700',
     ready: true,
   },
+  {
+    id: 'pari-test',
+    title: 'Семейный код',
+    description: 'Научный тест родительских установок (PARI Шефера-Белла). 35 вопросов, радар-диаграмма, рекомендации',
+    icon: 'HeartHandshake',
+    path: '/pari-test',
+    gradient: 'from-purple-500 via-fuchsia-500 to-pink-500',
+    badge: 'Новое',
+    badgeColor: 'bg-purple-100 text-purple-700',
+    ready: true,
+  },
 ];
 
 export default function DevelopmentHub() {

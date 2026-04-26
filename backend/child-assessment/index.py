@@ -7,10 +7,100 @@ from typing import Dict, Any
 
 CORS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
     'Access-Control-Max-Age': '86400'
 }
+
+
+def pari_safe(val, max_len=2000):
+    if val is None:
+        return ''
+    return str(val).replace("'", "''")[:max_len]
+
+
+def pari_list_results(user_id, family_id):
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    try:
+        cur = conn.cursor()
+        if family_id:
+            cur.execute(
+                "SELECT id, user_id, child_member_id, overall_score, overall_label, scale_results, notes, created_at "
+                "FROM pari_test_results WHERE family_id = '%s' ORDER BY created_at DESC LIMIT 50" % str(family_id)
+            )
+        else:
+            cur.execute(
+                "SELECT id, user_id, child_member_id, overall_score, overall_label, scale_results, notes, created_at "
+                "FROM pari_test_results WHERE user_id = '%s' ORDER BY created_at DESC LIMIT 50" % str(user_id)
+            )
+        rows = cur.fetchall()
+        results = []
+        for r in rows:
+            results.append({
+                'id': str(r[0]),
+                'user_id': str(r[1]),
+                'child_member_id': str(r[2]) if r[2] else None,
+                'overall_score': r[3],
+                'overall_label': r[4],
+                'scale_results': r[5],
+                'notes': r[6],
+                'created_at': r[7].isoformat() if r[7] else None,
+            })
+        return respond(200, {'results': results})
+    finally:
+        conn.close()
+
+
+def pari_save_result(user_id, family_id, body):
+    answers = body.get('answers')
+    scale_results = body.get('scale_results')
+    overall_score = body.get('overall_score')
+    overall_label = body.get('overall_label', '')
+    child_member_id = body.get('child_member_id')
+    notes = body.get('notes', '')
+
+    if answers is None or scale_results is None or overall_score is None:
+        return respond(400, {'error': 'Не хватает данных: answers, scale_results, overall_score'})
+
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    try:
+        cur = conn.cursor()
+        family_clause = "'%s'" % str(family_id) if family_id else 'NULL'
+        child_clause = "'%s'" % pari_safe(child_member_id, 100) if child_member_id else 'NULL'
+        cur.execute(
+            "INSERT INTO pari_test_results (user_id, family_id, child_member_id, answers, scale_results, overall_score, overall_label, notes) "
+            "VALUES ('%s', %s, %s, '%s'::jsonb, '%s'::jsonb, %d, '%s', '%s') RETURNING id" % (
+                str(user_id),
+                family_clause,
+                child_clause,
+                pari_safe(json.dumps(answers, ensure_ascii=False), 50000),
+                pari_safe(json.dumps(scale_results, ensure_ascii=False), 50000),
+                int(overall_score),
+                pari_safe(overall_label, 255),
+                pari_safe(notes, 2000),
+            )
+        )
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        return respond(201, {'id': str(new_id), 'success': True})
+    finally:
+        conn.close()
+
+
+def pari_delete_result(user_id, body):
+    rid = body.get('id')
+    if not rid:
+        return respond(400, {'error': 'Укажите id'})
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM pari_test_results WHERE id = '%s' AND user_id = '%s'" % (pari_safe(rid, 100), str(user_id))
+        )
+        conn.commit()
+        return respond(200, {'success': True})
+    finally:
+        conn.close()
 
 
 def respond(status, body):
@@ -76,16 +166,32 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Max-Age': '86400'
-            },
+            'headers': {**CORS},
             'body': '',
             'isBase64Encoded': False
         }
     
+    params = event.get('queryStringParameters') or {}
+    section = params.get('section', '')
+
+    # PARI: тест родительских установок (отдельная ветка логики)
+    if section == 'pari':
+        user_id, family_id = get_user_and_family(event)
+        if not user_id:
+            return respond(401, {'error': 'Не авторизован'})
+        if method == 'GET':
+            return pari_list_results(user_id, family_id)
+        if method == 'POST':
+            try:
+                body = json.loads(event.get('body') or '{}')
+            except Exception:
+                return respond(400, {'error': 'Невалидный JSON'})
+            action = body.get('action', 'save')
+            if action == 'delete':
+                return pari_delete_result(user_id, body)
+            return pari_save_result(user_id, family_id, body)
+        return respond(405, {'error': 'Метод не поддерживается'})
+
     if method != 'GET':
         return {
             'statusCode': 405,
@@ -94,7 +200,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    params = event.get('queryStringParameters', {})
     age_range: str = params.get('age_range', '1-2')
     
     print(f'[DEBUG] Age range: {age_range}')

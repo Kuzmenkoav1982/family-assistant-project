@@ -153,6 +153,8 @@ const ValuesHub = lazy(() => import("./pages/ValuesHub"));
 const PlanningHub = lazy(() => import("./pages/PlanningHub"));
 const HouseholdHub = lazy(() => import("./pages/HouseholdHub"));
 const DevelopmentHub = lazy(() => import("./pages/DevelopmentHub"));
+const PariTest = lazy(() => import("./pages/PariTest"));
+const PariResults = lazy(() => import("./pages/PariResults"));
 const StateHub = lazy(() => import("./pages/StateHub"));
 const HealthHub = lazy(() => import("./pages/HealthHub"));
 const LeisureHub = lazy(() => import("./pages/LeisureHub"));
@@ -416,6 +418,8 @@ const App = () => {
                       <Route path="/planning-hub" element={<PlanningHub />} />
                       <Route path="/household-hub" element={<HouseholdHub />} />
                       <Route path="/development-hub" element={<DevelopmentHub />} />
+                      <Route path="/pari-test" element={<PariTest />} />
+                      <Route path="/pari-results/:id" element={<PariResults />} />
                       <Route path="/state-hub" element={<StateHub />} />
                       <Route path="/health-hub" element={<HealthHub />} />
                       <Route path="/leisure-hub" element={<LeisureHub />} />
