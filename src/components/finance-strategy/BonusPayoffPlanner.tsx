@@ -62,6 +62,7 @@ export default function BonusPayoffPlanner({ debts }: Props) {
   const applyPaidDebts = async () => {
     if (fullyPaidIds.length === 0) return;
     setApplying(true);
+    const today = new Date().toISOString().split('T')[0];
     try {
       await Promise.all(
         fullyPaidIds.map(id =>
@@ -72,12 +73,58 @@ export default function BonusPayoffPlanner({ debts }: Props) {
           })
         )
       );
-      toast.success(`Закрыто кредитов: ${fullyPaidIds.length}. Данные обновятся при следующей загрузке.`);
+      // Также записываем платежи для истории
+      await Promise.all(
+        activeDebts
+          .filter(d => fullyPaidIds.includes(d.id))
+          .map(d =>
+            fetch(API, {
+              method: 'POST',
+              headers: getHeaders(),
+              body: JSON.stringify({
+                action: 'add_debt_payment',
+                debt_id: d.id,
+                amount: d.remaining,
+                date: today,
+                is_extra: true,
+                notes: 'Досрочное погашение (калькулятор стратегии)',
+              }),
+            })
+          )
+      );
+      toast.success(`Закрыто кредитов: ${fullyPaidIds.length}. Обновите страницу для актуальных данных.`);
       reset();
     } catch {
       toast.error('Ошибка при закрытии кредитов');
     } finally {
       setApplying(false);
+    }
+  };
+
+  const addPartialPayment = async (debtId: string, amount: number) => {
+    if (amount <= 0) return;
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          action: 'add_debt_payment',
+          debt_id: debtId,
+          amount,
+          date: today,
+          is_extra: true,
+          notes: 'Досрочное погашение (калькулятор стратегии)',
+        }),
+      });
+      if (res.ok) {
+        toast.success(`Платёж ${fm(amount)} записан`);
+        setAllocations(prev => ({ ...prev, [debtId]: 0 }));
+      } else {
+        toast.error('Ошибка при записи платежа');
+      }
+    } catch {
+      toast.error('Ошибка при записи платежа');
     }
   };
 
@@ -271,6 +318,17 @@ export default function BonusPayoffPlanner({ debts }: Props) {
                         Закрыть
                       </Button>
                     </div>
+                    {lump > 0 && !calc.fullyPaid && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full h-8 text-[11px] gap-1.5 border-blue-300 text-blue-700 hover:bg-blue-50"
+                        onClick={() => addPartialPayment(debt.id, lump)}
+                      >
+                        <Icon name="CirclePlus" size={12} />
+                        Внести платёж {fm(lump)} в историю
+                      </Button>
+                    )}
 
                     {lump > 0 && (
                       <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-2 space-y-1">
