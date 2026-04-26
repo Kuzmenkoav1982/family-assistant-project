@@ -123,9 +123,26 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'error': 'Profile not found'}),
                     'isBase64Encoded': False
                 }
-            
+
+            # bug30: проверка на дубли — одно лекарство на профиль
+            cursor.execute(
+                'SELECT id FROM medications WHERE profile_id = %s AND LOWER(name) = LOWER(%s) AND active = true LIMIT 1',
+                (profile_id, body['name'])
+            )
+            existing = cursor.fetchone()
+            if existing:
+                return {
+                    'statusCode': 409,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'error': f'Лекарство «{body["name"]}» уже добавлено',
+                        'existing_id': existing[0]
+                    }, ensure_ascii=False),
+                    'isBase64Encoded': False
+                }
+
             files_json = json.dumps(body.get('files', []))
-            
+
             cursor.execute('''
                 INSERT INTO medications (id, profile_id, name, dosage, frequency, start_date, end_date, active, files, created_at)
                 VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW())

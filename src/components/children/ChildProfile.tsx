@@ -24,57 +24,11 @@ interface ChildProfileProps {
 
 export function ChildProfile({ child }: ChildProfileProps) {
   const piggyBank = child.piggyBank || 0;
-  const [games, setGames] = useState<Game[]>([
-    { id: '1', name: 'Minecraft', type: 'video', favorite: true },
-    { id: '2', name: 'Монополия', type: 'board', favorite: true },
-    { id: '3', name: 'Футбол', type: 'outdoor', favorite: true },
-    { id: '4', name: 'Roblox', type: 'video', favorite: false },
-  ]);
-
-  const [books, setBooks] = useState<Book[]>([
-    {
-      id: '1',
-      title: 'Гарри Поттер и Философский камень',
-      author: 'Дж.К. Роулинг',
-      status: 'completed',
-      rating: 5,
-    },
-    {
-      id: '2',
-      title: 'Маленький принц',
-      author: 'Антуан де Сент-Экзюпери',
-      status: 'reading',
-    },
-    {
-      id: '3',
-      title: 'Хроники Нарнии',
-      author: 'К.С. Льюис',
-      status: 'planned',
-    },
-  ]);
-
-  const [dreams, setDreams] = useState<Dream[]>([
-    {
-      id: '1',
-      dream: 'Стать программистом',
-      category: 'career',
-      priority: 'high',
-      notes: 'Интересуется созданием игр',
-    },
-    {
-      id: '2',
-      dream: 'Посетить Японию',
-      category: 'travel',
-      priority: 'high',
-      notes: 'Любит аниме и японскую культуру',
-    },
-    {
-      id: '3',
-      dream: 'Научиться играть на гитаре',
-      category: 'achievement',
-      priority: 'medium',
-    },
-  ]);
+  // bug45: убраны хардкод-демо данные. Теперь карточка ребёнка пуста по умолчанию,
+  // пользователь сам наполняет играми / книгами / мечтами.
+  const [games, setGames] = useState<Game[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [dreams, setDreams] = useState<Dream[]>([]);
 
   const [newGameDialog, setNewGameDialog] = useState(false);
   const [editGameDialog, setEditGameDialog] = useState(false);

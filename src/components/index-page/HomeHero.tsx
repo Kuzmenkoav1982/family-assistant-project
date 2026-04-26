@@ -33,9 +33,9 @@ export default function HomeHero({ familyName, familyLogo, familyBanner, syncing
         <div className="flex items-end gap-4">
           <Link to="/settings" className="group flex-shrink-0">
             <img
-              src={familyLogo}
+              src={familyLogo || DEFAULT_LOGO}
               alt={familyName}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-white/80 shadow-lg group-hover:brightness-90 transition-all"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-white/80 shadow-lg group-hover:brightness-90 transition-all bg-white"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = DEFAULT_LOGO;
               }}

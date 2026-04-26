@@ -149,7 +149,10 @@ export default function DomovoyDonationDialog({
             🎁 Угостить Домового
           </DialogTitle>
           <DialogDescription>
-            Помогите Домовому стать мудрее и давать ещё более точные советы
+            Помогите Домовому стать мудрее и давать ещё более точные советы.
+            <span className="block mt-1 text-xs text-amber-700">
+              💳 Оплата через ЮКассу. Это отдельный платёж и НЕ списывается с Семейного кошелька.
+            </span>
           </DialogDescription>
         </DialogHeader>
 

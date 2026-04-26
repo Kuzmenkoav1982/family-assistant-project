@@ -92,17 +92,17 @@ export default function DomovoyPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 pb-20">
-      <div className="max-w-5xl mx-auto p-6 space-y-8">
+      <div className="max-w-5xl mx-auto p-3 sm:p-4 md:p-6 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-4xl font-bold flex items-center gap-3">
-              🏠 Домовой - хранитель очага
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold flex items-center gap-2 sm:gap-3">
+              🏠 <span className="break-words">Домовой - хранитель очага</span>
             </h1>
-            <p className="text-gray-600 mt-2">Добрый дух славянской культуры</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Добрый дух славянской культуры</p>
           </div>
-          <Button onClick={() => navigate('/')} variant="outline" className="gap-2">
-            <Icon name="ArrowLeft" size={18} />
+          <Button onClick={() => navigate('/')} variant="outline" size="sm" className="gap-2 self-start sm:self-auto shrink-0">
+            <Icon name="ArrowLeft" size={16} />
             На главную
           </Button>
         </div>

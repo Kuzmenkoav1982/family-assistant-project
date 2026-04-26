@@ -32,9 +32,9 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
           <div className="flex items-center gap-4 sm:gap-6 group">
             <div className="relative flex-shrink-0">
               <img 
-                src={familyLogo} 
+                src={familyLogo || 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG'} 
                 alt={familyName}
-                className="w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full transition-all group-hover:brightness-90"
+                className="w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full transition-all group-hover:brightness-90 bg-white"
                 style={{ 
                   border: 'none', 
                   outline: 'none', 

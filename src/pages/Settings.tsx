@@ -555,16 +555,25 @@ export default function Settings() {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {themes.map((theme) => (
+                      {themes.map((theme) => {
+                        // bug05: премиум-стили отключены пока подписка не добавлена
+                        const isPremiumLocked = theme.ageRange === 'Премиум';
+                        return (
                         <button
                           key={theme.id}
-                          onClick={() => handleThemeChange(theme.id)}
-                          disabled={themeChanging}
+                          onClick={() => {
+                            if (isPremiumLocked) {
+                              alert('🔒 Премиум-стиль будет доступен по подписке. Скоро!');
+                              return;
+                            }
+                            handleThemeChange(theme.id);
+                          }}
+                          disabled={themeChanging || isPremiumLocked}
                           className={`p-5 rounded-xl border-2 transition-all text-left relative overflow-hidden ${
                             currentTheme === theme.id
                               ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg scale-[1.02]'
                               : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md'
-                          } ${themeChanging ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          } ${themeChanging ? 'opacity-50 cursor-not-allowed' : ''} ${isPremiumLocked ? 'opacity-60 cursor-not-allowed grayscale' : ''}`}
                         >
                           <div className="flex items-start gap-3">
                             <div className="text-3xl">{theme.icon}</div>
@@ -574,13 +583,17 @@ export default function Settings() {
                                 {currentTheme === theme.id && (
                                   <Icon name="Check" className="text-purple-600" size={24} />
                                 )}
+                                {isPremiumLocked && (
+                                  <Icon name="Lock" className="text-amber-500" size={18} />
+                                )}
                               </div>
                               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{theme.description}</p>
                               <span className="text-xs text-gray-500 dark:text-gray-500">{theme.ageRange}</span>
                             </div>
                           </div>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
