@@ -47,14 +47,15 @@ export default function WelcomeVideo() {
         <div>
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              ❤️ Сильная семья — сильная страна
+              🏠 Домовёнок — хранитель русских семей
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Семья — основа всего
+              Мешок мастера для крепкой семьи
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Крепкие семьи строят здоровое общество и сильное государство. «Наша Семья» — платформа,
-              которая помогает развивать и укреплять самое важное в жизни каждого человека.
+              Тысячу лет Домовёнок бережёт русские семьи. Теперь он собрал двенадцать опор
+              в одно приложение. Когда крепка каждая семья — крепка вся Россия.
+              Присоединяйтесь — вместе будем укреплять семьи, общество, страну.
             </p>
           </div>
 
