@@ -43,6 +43,37 @@ export default function WelcomeVideo() {
   return (
     <section className="py-16 sm:py-24 bg-gradient-to-b from-white to-orange-50/30">
       <div className="max-w-4xl mx-auto px-4 space-y-16">
+
+        <div>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+              ❤️ Сильная семья — сильная страна
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              Семья — основа всего
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Крепкие семьи строят здоровое общество и сильное государство. «Наша Семья» — платформа,
+              которая помогает развивать и укреплять самое важное в жизни каждого человека.
+            </p>
+          </div>
+
+          <div
+            ref={videoRef}
+            className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video"
+          >
+            <iframe
+              src="https://rutube.ru/play/embed/43fc1759d245e8598f5abf7f19328eb8/"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="clipboard-write; autoplay"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        </div>
+
         <div>
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
@@ -53,10 +84,7 @@ export default function WelcomeVideo() {
             </p>
           </div>
 
-          <div
-            ref={videoRef}
-            className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video"
-          >
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video">
             <iframe
               src="https://rutube.ru/play/embed/e8451f5f3b3abb6b493c972d787602a8/"
               width="100%"
