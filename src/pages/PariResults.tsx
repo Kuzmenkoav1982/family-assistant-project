@@ -299,10 +299,24 @@ export default function PariResults() {
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" className="flex-1" onClick={() => navigate('/pari-test')}>
               <Icon name="RotateCcw" size={16} className="mr-1" />
               Пройти ещё раз
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: true } }));
+                setTimeout(() => window.print(), 300);
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: false } }));
+                }, 1500);
+              }}
+            >
+              <Icon name="Printer" size={16} className="mr-1" />
+              Распечатать (PDF)
             </Button>
             <Button variant="outline" className="flex-1" onClick={() => navigate('/family-matrix')}>
               <Icon name="Home" size={16} className="mr-1" />К Семейному коду
@@ -316,7 +330,23 @@ export default function PariResults() {
 
 function ScaleResultCard({ result, prevPercent }: { result: PariScaleResult; prevPercent?: number }) {
   const [open, setOpen] = useState(false);
+  const [forceOpen, setForceOpen] = useState(false);
   const { scale, percent, isHealthy, recommendations } = result;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('expand') === 'all') {
+      setForceOpen(true);
+    }
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ active: boolean }>;
+      setForceOpen(!!ce.detail?.active);
+    };
+    window.addEventListener('presentation:print-mode', handler);
+    return () => window.removeEventListener('presentation:print-mode', handler);
+  }, []);
+
+  const isOpen = open || forceOpen;
   const displayPercent = scale.goodWhen === 'high' ? percent : 100 - percent;
   const prevDisplay = prevPercent != null
     ? (scale.goodWhen === 'high' ? prevPercent : 100 - prevPercent)
@@ -367,10 +397,10 @@ function ScaleResultCard({ result, prevPercent }: { result: PariScaleResult; pre
               />
             </div>
           </div>
-          <Icon name={open ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-muted-foreground shrink-0" />
+          <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={16} className="text-muted-foreground shrink-0" />
         </div>
 
-        {open && (
+        {isOpen && (
           <div className="mt-3 pt-3 border-t space-y-2 text-xs">
             <p className="text-muted-foreground">{scale.description}</p>
             <div className="space-y-1.5">
