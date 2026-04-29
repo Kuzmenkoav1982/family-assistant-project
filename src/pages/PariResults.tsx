@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import SEOHead from '@/components/SEOHead';
+import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { calculatePariResults, getOverallScore, PARI_SCALES, type PariScaleResult } from '@/data/pariTestData';
 import func2url from '../../backend/func2url.json';
@@ -120,7 +121,7 @@ export default function PariResults() {
   const radarData = useMemo(
     () =>
       scaleResults.map((r) => ({
-        scale: r.scale.title.length > 14 ? r.scale.title.slice(0, 12) + '…' : r.scale.title,
+        scale: r.scale.title,
         fullName: r.scale.title,
         value: r.scale.goodWhen === 'high' ? r.percent : 100 - r.percent,
         raw: r.percent,
@@ -153,17 +154,17 @@ export default function PariResults() {
   return (
     <>
       <SEOHead
-        title="Результаты теста PARI"
+        title="Зеркало родителя — результаты"
         description="Ваш профиль детско-родительских отношений"
         path="/pari-results"
       />
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50/40 to-white pb-24">
         <div className="max-w-3xl mx-auto p-4 space-y-5">
           <SectionHero
-            title="Ваш семейный код"
+            title="Зеркало родителя"
             subtitle="Результаты диагностики"
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/364dd778-d8dc-4105-a314-da0ca595ed73.jpg"
-            backPath="/development-hub"
+            backPath="/family-matrix"
           />
 
           <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-transparent">
@@ -227,11 +228,11 @@ export default function PariResults() {
                 <Icon name="Radar" size={18} className="text-purple-600" />
                 <h3 className="font-bold text-sm">Профиль по шкалам</h3>
               </div>
-              <div className="h-72">
+              <div className="h-80 sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData}>
+                  <RadarChart data={radarData} margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
                     <PolarGrid strokeOpacity={0.2} />
-                    <PolarAngleAxis dataKey="scale" tick={{ fontSize: 10 }} />
+                    <PolarAngleAxis dataKey="scale" tick={<MultilineTick />} />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9 }} />
                     <Radar name="Здоровье" dataKey="value" stroke="#a855f7" fill="#a855f7" fillOpacity={0.3} />
                     <Tooltip
@@ -276,21 +277,20 @@ export default function PariResults() {
             </section>
           )}
 
-          <Card className="border-purple-200 bg-purple-50/60">
-            <CardContent className="p-4 flex items-start gap-3">
-              <Icon name="Brain" size={20} className="text-purple-600 shrink-0 mt-0.5" />
-              <div className="space-y-2 flex-1">
-                <p className="text-sm font-semibold">Хотите детальный разбор?</p>
-                <p className="text-xs text-muted-foreground">
-                  Семейный психолог-ИИ поможет составить план работы с зонами роста
-                </p>
-                <Button size="sm" onClick={() => navigate('/psychologist')}>
-                  <Icon name="Sparkles" size={14} className="mr-1" />
-                  Открыть консультацию
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <SectionAIAdvisor
+            role="psychologist"
+            title="Разбор с психологом-ИИ"
+            description="Персональный план по итогам теста «Зеркало родителя»"
+            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/364dd778-d8dc-4105-a314-da0ca595ed73.jpg"
+            gradientFrom="from-purple-500"
+            gradientTo="to-pink-500"
+            accentBg="bg-purple-50"
+            accentText="text-purple-700"
+            accentBorder="border-purple-200"
+            placeholder="Спросите о результатах теста..."
+            sectionContext={buildPariAIContext(overall, scaleResults, problemAreas, strengths)}
+            quickQuestions={buildPariQuickQuestions(problemAreas)}
+          />
 
           {historyCount > 1 && (
             <div className="text-center text-xs text-muted-foreground">
@@ -304,8 +304,8 @@ export default function PariResults() {
               <Icon name="RotateCcw" size={16} className="mr-1" />
               Пройти ещё раз
             </Button>
-            <Button variant="outline" className="flex-1" onClick={() => navigate('/development-hub')}>
-              <Icon name="Home" size={16} className="mr-1" />К развитию
+            <Button variant="outline" className="flex-1" onClick={() => navigate('/family-matrix')}>
+              <Icon name="Home" size={16} className="mr-1" />К Семейному коду
             </Button>
           </div>
         </div>

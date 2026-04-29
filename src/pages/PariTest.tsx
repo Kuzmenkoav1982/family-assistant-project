@@ -83,17 +83,17 @@ export default function PariTest() {
     return (
       <>
         <SEOHead
-          title="Тест PARI — диагностика родительских установок"
+          title="Зеркало родителя — диагностика родительских установок"
           description="Научно обоснованный тест Шефера-Белла для оценки детско-родительских отношений. 35 вопросов, 10 минут."
           path="/pari-test"
         />
         <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50/40 to-white pb-24">
           <div className="max-w-2xl mx-auto p-4 space-y-5">
             <SectionHero
-              title="Тест «Семейный код»"
+              title="Зеркало родителя"
               subtitle="Диагностика родительских установок (PARI)"
               imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/364dd778-d8dc-4105-a314-da0ca595ed73.jpg"
-              backPath="/development-hub"
+              backPath="/family-matrix"
             />
 
             <Card className="border-0 shadow-lg">
