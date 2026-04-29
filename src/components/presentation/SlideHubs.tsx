@@ -55,7 +55,7 @@ const hubs = [
   {
     id: 11, icon: 'Sparkles', color: 'bg-pink-500', light: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-700',
     title: 'Семейный код', emoji: '✨',
-    sections: ['Семейное древо', 'Традиции и ценности', 'Архив воспоминаний', 'Астрология', 'Семейные истории', 'Фотоархив'],
+    sections: ['Личный код', 'Код пары', 'Код семьи', 'Ритуалы примирения', 'Детский код', 'Имя для малыша', 'Астрология', 'Зеркало родителя (тест PARI)'],
   },
   {
     id: 12, icon: 'Users', color: 'bg-violet-500', light: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700',

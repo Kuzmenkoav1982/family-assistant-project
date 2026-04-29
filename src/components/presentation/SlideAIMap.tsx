@@ -2,15 +2,16 @@ import Icon from '@/components/ui/icon';
 
 const aiFunctions = [
   { icon: 'Apple', color: '#f97316', bg: '#ffedd5', label: 'ИИ-Диета', hub: 'Питание', desc: 'Персональный рацион по здоровью семьи', angle: 0 },
-  { icon: 'GraduationCap', color: '#3b82f6', bg: '#dbeafe', label: 'AI-план развития', hub: 'Развитие', desc: 'Индивидуальный план по возрасту ребёнка', angle: 36 },
-  { icon: 'Brain', color: '#8b5cf6', bg: '#ede9fe', label: 'AI-психолог', hub: 'Развитие', desc: 'Поддержка и рекомендации для семьи', angle: 72 },
-  { icon: 'MessageCircle', color: '#7c3aed', bg: '#f3e8ff', label: 'Конфликт-AI', hub: 'Развитие', desc: 'Разрешение конфликтов внутри семьи', angle: 108 },
-  { icon: 'ChefHat', color: '#ef4444', bg: '#fee2e2', label: 'AI-рецепты', hub: 'Питание', desc: 'Блюда из того, что есть в холодильнике', angle: 144 },
-  { icon: 'MapPin', color: '#06b6d4', bg: '#cffafe', label: 'AI-маршруты', hub: 'Путешествия', desc: 'Идеальный маршрут под запросы семьи', angle: 180 },
-  { icon: 'PartyPopper', color: '#ec4899', bg: '#fce7f3', label: 'AI-праздники', hub: 'Путешествия', desc: 'Идеи для праздников и событий', angle: 216 },
-  { icon: 'PawPrint', color: '#84cc16', bg: '#ecfccb', label: 'AI-ветеринар', hub: 'Питомцы', desc: 'Диагностика симптомов питомца', angle: 252 },
-  { icon: 'Stars', color: '#f59e0b', bg: '#fef3c7', label: 'Астрология', hub: 'Семейный код', desc: 'Совместимость и прогнозы для семьи', angle: 288 },
-  { icon: 'Mic', color: '#10b981', bg: '#d1fae5', label: 'Голосовой AI', hub: 'Интеграции', desc: 'Яндекс Алиса — управление голосом', angle: 324 },
+  { icon: 'GraduationCap', color: '#3b82f6', bg: '#dbeafe', label: 'AI-план развития', hub: 'Развитие', desc: 'Индивидуальный план по возрасту ребёнка', angle: 33 },
+  { icon: 'Brain', color: '#8b5cf6', bg: '#ede9fe', label: 'AI-психолог', hub: 'Развитие', desc: 'Поддержка и рекомендации для семьи', angle: 66 },
+  { icon: 'HeartHandshake', color: '#d946ef', bg: '#fae8ff', label: 'Зеркало родителя', hub: 'Семейный код', desc: 'Тест PARI + ИИ-разбор результатов', angle: 99 },
+  { icon: 'MessageCircle', color: '#7c3aed', bg: '#f3e8ff', label: 'Конфликт-AI', hub: 'Развитие', desc: 'Разрешение конфликтов внутри семьи', angle: 132 },
+  { icon: 'ChefHat', color: '#ef4444', bg: '#fee2e2', label: 'AI-рецепты', hub: 'Питание', desc: 'Блюда из того, что есть в холодильнике', angle: 165 },
+  { icon: 'MapPin', color: '#06b6d4', bg: '#cffafe', label: 'AI-маршруты', hub: 'Путешествия', desc: 'Идеальный маршрут под запросы семьи', angle: 198 },
+  { icon: 'PartyPopper', color: '#ec4899', bg: '#fce7f3', label: 'AI-праздники', hub: 'Путешествия', desc: 'Идеи для праздников и событий', angle: 231 },
+  { icon: 'PawPrint', color: '#84cc16', bg: '#ecfccb', label: 'AI-ветеринар', hub: 'Питомцы', desc: 'Диагностика симптомов питомца', angle: 264 },
+  { icon: 'Stars', color: '#f59e0b', bg: '#fef3c7', label: 'Астрология', hub: 'Семейный код', desc: 'Совместимость и прогнозы для семьи', angle: 297 },
+  { icon: 'Mic', color: '#10b981', bg: '#d1fae5', label: 'Голосовой AI', hub: 'Интеграции', desc: 'Яндекс Алиса — управление голосом', angle: 330 },
 ];
 
 const R = 160;
@@ -29,7 +30,7 @@ export function SlideAIMap() {
         </div>
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold">AI-карта «Домовой»</h2>
-          <p className="text-sm text-purple-300 mt-0.5">10 AI-функций в единой экосистеме семьи</p>
+          <p className="text-sm text-purple-300 mt-0.5">11 AI-функций в единой экосистеме семьи</p>
         </div>
       </div>
 

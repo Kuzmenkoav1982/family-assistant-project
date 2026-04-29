@@ -12,7 +12,7 @@ const segments = [
   { id: 8, label: 'Гараж', color: '#64748b', lightColor: '#f1f5f9', icon: 'Car', items: ['ТО', 'ОСАГО', 'Расходы'] },
   { id: 9, label: 'Питомцы', color: '#84cc16', lightColor: '#ecfccb', icon: 'PawPrint', items: ['Ветеринар', 'AI-вет', 'Расходы'] },
   { id: 10, label: 'Госуслуги', color: '#0d9488', lightColor: '#ccfbf1', icon: 'FileText', items: ['Льготы', 'Маткапитал', 'Ипотека'] },
-  { id: 11, label: 'Семейный код', color: '#ec4899', lightColor: '#fce7f3', icon: 'Sparkles', items: ['Древо', 'Архив', 'Астрология'] },
+  { id: 11, label: 'Семейный код', color: '#ec4899', lightColor: '#fce7f3', icon: 'Sparkles', items: ['Личный код', 'Код пары', 'Астрология', 'Зеркало родителя'] },
   { id: 12, label: 'Управление', color: '#7c3aed', lightColor: '#ede9fe', icon: 'Users', items: ['Профили', 'Роли', 'Геолокация'] },
   { id: 13, label: 'Интеграции', color: '#4f46e5', lightColor: '#e0e7ff', icon: 'Plug', items: ['Алиса', 'MAX-бот', 'СБП'] },
   { id: 14, label: 'Безопасность', color: '#16a34a', lightColor: '#dcfce7', icon: 'Shield', items: ['Детский режим', 'Защита', 'Логи'] },

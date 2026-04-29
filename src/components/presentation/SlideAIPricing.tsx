@@ -24,6 +24,7 @@ const categories = [
     services: [
       { name: 'AI-план развития ребёнка', price: 25, unit: 'за план', popular: true },
       { name: 'AI-психолог (сессия)', price: 30, unit: 'за сессию' },
+      { name: 'Зеркало родителя — ИИ-разбор PARI', price: 22, unit: 'за разбор' },
       { name: 'Конфликт-AI (разбор ситуации)', price: 20, unit: 'за запрос' },
       { name: 'Рекомендации досуга для детей', price: 4, unit: 'за запрос' },
       { name: 'AI-план для бабушки/дедушки', price: 10, unit: 'за план' },
