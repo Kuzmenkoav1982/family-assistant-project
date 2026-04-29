@@ -294,14 +294,15 @@ export function PresentationContentSections() {
               <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
                 <Icon name="TrendingUp" size={16} className="text-violet-600" />
               </div>
-              <h3 className="font-bold text-gray-800">8. Развитие</h3>
+              <h3 className="font-bold text-gray-800">8. Развитие и Семейный код</h3>
             </div>
             <ul className="text-xs text-gray-600 space-y-1">
               <li>• AI-оценка развития детей (12 возрастных групп, 0–12 лет)</li>
               <li>• Алгоритм на базе Выготского и Эльконина</li>
               <li>• Отчёты по развитию (assessment reports)</li>
               <li>• Индивидуальные планы, навыки, достижения</li>
-              <li>• Образовательные ресурсы</li>
+              <li>• «Зеркало родителя» — научный тест PARI Шефера-Белла + ИИ-разбор</li>
+              <li>• Семейный код: Личный/Парный код, ритуалы примирения, астрология</li>
             </ul>
           </div>
 
@@ -334,6 +335,7 @@ export function PresentationContentSections() {
               <li>• Интеграция с Яндекс Алисой (голосовое управление)</li>
               <li>• AI-генерация: диеты, рецепты, маршруты, планы развития</li>
               <li>• Семейный психолог на ИИ, AI-Астрология</li>
+              <li>• «Зеркало родителя» — ИИ-разбор результатов теста PARI с контекстом</li>
             </ul>
           </div>
         </div>
