@@ -5,6 +5,10 @@ import { PresentationHeader } from '@/components/presentation/PresentationHeader
 import { PresentationTitleSlide } from '@/components/presentation/PresentationTitleSlide';
 import { PresentationContentSections } from '@/components/presentation/PresentationContentSections';
 import { PresentationFooter } from '@/components/presentation/PresentationFooter';
+import { SlideHubs } from '@/components/presentation/SlideHubs';
+import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
+import { SlideAIMap } from '@/components/presentation/SlideAIMap';
+import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -194,6 +198,10 @@ export default function Presentation() {
       <div id="presentation-content" className="max-w-4xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16">
         <PresentationTitleSlide />
         <PresentationContentSections />
+        <SlideHubs />
+        <SlideEcosystem />
+        <SlideAIMap />
+        <SlideBankShowcase />
         <PresentationFooter />
       </div>
     </div>
