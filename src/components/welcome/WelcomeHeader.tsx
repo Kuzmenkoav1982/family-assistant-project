@@ -26,6 +26,22 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <Button
+              onClick={() => navigate('/presentation')}
+              size="sm"
+              className="hidden sm:inline-flex bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white text-xs rounded-xl h-9 font-semibold shadow-sm"
+              title="Презентация для инвесторов"
+            >
+              <Icon name="Briefcase" size={14} className="mr-1" />
+              Инвесторам
+            </Button>
+            <button
+              onClick={() => navigate('/presentation')}
+              className="sm:hidden w-9 h-9 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white flex items-center justify-center transition-colors shadow-sm"
+              title="Презентация для инвесторов"
+            >
+              <Icon name="Briefcase" size={16} />
+            </button>
             <a
               href="https://t.me/Nasha7iya"
               target="_blank"
