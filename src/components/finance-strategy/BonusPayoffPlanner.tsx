@@ -50,6 +50,43 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
     setAlloc(id, Math.min(remaining, available), remaining);
   };
 
+  const closeDebtNow = async (debt: DebtDetail) => {
+    if (applying) return;
+    setApplying(true);
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const r1 = await fetch(API, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ action: 'mark_debt_paid', id: debt.id }),
+      });
+      if (!r1.ok) throw new Error('mark_debt_paid failed');
+      await fetch(API, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          action: 'add_debt_payment',
+          debt_id: debt.id,
+          amount: debt.remaining,
+          date: today,
+          is_extra: true,
+          notes: 'Досрочное погашение (калькулятор стратегии)',
+        }),
+      });
+      toast.success(`Кредит «${debt.name}» закрыт · экономия ${fm(debt.payment)}/мес`);
+      setAllocations(prev => {
+        const next = { ...prev };
+        delete next[debt.id];
+        return next;
+      });
+      onSuccess?.();
+    } catch {
+      toast.error('Не удалось закрыть кредит');
+    } finally {
+      setApplying(false);
+    }
+  };
+
   const reset = () => {
     setAllocations({});
   };
@@ -311,25 +348,36 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
                         placeholder="Сумма к погашению"
                         className="h-9 text-sm"
                       />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-9 text-[11px] whitespace-nowrap"
-                        onClick={() => fillFull(debt.id, debt.remaining)}
-                        disabled={budget <= 0}
-                      >
-                        Закрыть
-                      </Button>
+                      {maxForThis >= debt.remaining - 1 ? (
+                        <Button
+                          size="sm"
+                          className="h-9 text-[11px] whitespace-nowrap bg-rose-500 hover:bg-rose-600 text-white"
+                          onClick={() => closeDebtNow(debt)}
+                          disabled={budget <= 0 || applying}
+                        >
+                          {applying ? <Icon name="Loader2" size={12} className="animate-spin" /> : 'Закрыть'}
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-9 text-[11px] whitespace-nowrap"
+                          onClick={() => fillFull(debt.id, debt.remaining)}
+                          disabled={budget <= 0}
+                        >
+                          Заполнить
+                        </Button>
+                      )}
                     </div>
                     {lump > 0 && !calc.fullyPaid && (
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="w-full h-8 text-[11px] gap-1.5 border-blue-300 text-blue-700 hover:bg-blue-50"
+                        className="w-full h-8 text-[11px] gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
                         onClick={() => addPartialPayment(debt.id, lump)}
+                        disabled={applying}
                       >
                         <Icon name="CirclePlus" size={12} />
-                        Внести платёж {fm(lump)} в историю
+                        Внести платёж {fm(lump)} и пересчитать
                       </Button>
                     )}
 

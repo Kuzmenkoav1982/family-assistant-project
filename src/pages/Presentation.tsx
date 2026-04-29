@@ -1,6 +1,7 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { PresentationHeader } from '@/components/presentation/PresentationHeader';
 import { PresentationTitleSlide } from '@/components/presentation/PresentationTitleSlide';
 import { PresentationContentSections } from '@/components/presentation/PresentationContentSections';
@@ -63,10 +64,18 @@ export default function Presentation() {
 
   const downloadPDF = async () => {
     setIsDownloading(true);
+    const loadingId = toast.loading('Готовлю PDF...');
     try {
-      const result = await captureSlides(setDownloadProgress);
-      if (!result) return;
+      const result = await captureSlides((msg) => {
+        setDownloadProgress(msg);
+        toast.loading(msg, { id: loadingId });
+      });
+      if (!result) {
+        toast.error('Не удалось найти слайды для PDF', { id: loadingId });
+        return;
+      }
 
+      toast.loading('Формирую PDF...', { id: loadingId });
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = 210;
       const pageHeight = 297;
@@ -108,8 +117,11 @@ export default function Presentation() {
       }
 
       pdf.save('Наша-семья-Презентация.pdf');
+      toast.success('PDF готов!', { id: loadingId });
     } catch (error) {
       console.error('Ошибка при создании PDF:', error);
+      const msg = error instanceof Error ? error.message : 'Неизвестная ошибка';
+      toast.error(`Не удалось создать PDF: ${msg}`, { id: loadingId });
     } finally {
       setIsDownloading(false);
       setDownloadProgress('');

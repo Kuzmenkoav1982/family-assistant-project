@@ -120,9 +120,9 @@ export function SlideAIPricing() {
                     )}
                     <span className="text-xs text-gray-700 leading-tight">{svc.name}</span>
                   </div>
-                  <div className="flex-shrink-0 ml-3 text-right">
-                    <span className="font-bold text-sm" style={{ color: cat.color }}>{svc.price} ₽</span>
-                    <span className="text-[10px] text-gray-400 ml-1">{svc.unit}</span>
+                  <div className="flex-shrink-0 ml-3 text-right whitespace-nowrap">
+                    <span className="font-bold text-sm whitespace-nowrap" style={{ color: cat.color }}>{svc.price}&nbsp;₽</span>
+                    <span className="text-[10px] text-gray-400 ml-1 whitespace-nowrap">{svc.unit}</span>
                   </div>
                 </div>
               ))}
@@ -142,7 +142,7 @@ export function SlideAIPricing() {
         <div className="grid grid-cols-5 divide-x divide-gray-100">
           {walletPackages.map((pkg, i) => (
             <div key={i} className="p-3 text-center">
-              <p className="text-sm font-bold text-gray-800">{pkg.amount} ₽</p>
+              <p className="text-sm font-bold text-gray-800 whitespace-nowrap">{pkg.amount}&nbsp;₽</p>
               {pkg.bonus > 0 ? (
                 <p className="text-xs font-semibold mt-1" style={{ color: pkg.color }}>{pkg.badge}</p>
               ) : (
@@ -163,7 +163,7 @@ export function SlideAIPricing() {
         ].map((m, i) => (
           <div key={i} className="rounded-2xl p-3 text-center border border-gray-100 bg-gray-50">
             <Icon name={m.icon} size={18} className="mx-auto mb-1" style={{ color: m.color }} />
-            <p className="text-base font-bold" style={{ color: m.color }}>{m.value}</p>
+            <p className="text-base font-bold whitespace-nowrap" style={{ color: m.color }}>{m.value}</p>
             <p className="text-[10px] text-gray-500 mt-0.5">{m.label}</p>
           </div>
         ))}
