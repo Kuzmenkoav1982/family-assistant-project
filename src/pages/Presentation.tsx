@@ -9,6 +9,7 @@ import { SlideHubs } from '@/components/presentation/SlideHubs';
 import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
+import { SlideRoadmap } from '@/components/presentation/SlideRoadmap';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -202,6 +203,7 @@ export default function Presentation() {
         <SlideEcosystem />
         <SlideAIMap />
         <SlideBankShowcase />
+        <SlideRoadmap />
         <PresentationFooter />
       </div>
     </div>
