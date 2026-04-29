@@ -2,21 +2,18 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 
 const segments = [
-  { id: 1, label: 'Финансы', color: '#10b981', lightColor: '#d1fae5', icon: 'Wallet', items: ['Бюджет', 'Счета', 'Кредиты', 'Цели', 'Кошелёк'] },
-  { id: 2, label: 'Здоровье', color: '#ef4444', lightColor: '#fee2e2', icon: 'Heart', items: ['Медкарты', 'Прививки', 'Врач', 'ИИ-диета'] },
-  { id: 3, label: 'Питание', color: '#f97316', lightColor: '#ffedd5', icon: 'Apple', items: ['Рецепты', 'Меню', 'Покупки', 'AI-рецепты'] },
-  { id: 4, label: 'Развитие детей', color: '#3b82f6', lightColor: '#dbeafe', icon: 'GraduationCap', items: ['AI-план', 'Навыки', 'Оценки', 'Кружки'] },
-  { id: 5, label: 'Планирование', color: '#8b5cf6', lightColor: '#ede9fe', icon: 'Calendar', items: ['Календарь', 'Задачи', 'Напоминания'] },
-  { id: 6, label: 'Путешествия', color: '#06b6d4', lightColor: '#cffafe', icon: 'MapPin', items: ['AI-маршруты', 'Документы', 'Расходы'] },
-  { id: 7, label: 'Быт и дом', color: '#f59e0b', lightColor: '#fef3c7', icon: 'Home', items: ['Покупки', 'Ремонт', 'ЖКХ'] },
-  { id: 8, label: 'Гараж', color: '#64748b', lightColor: '#f1f5f9', icon: 'Car', items: ['ТО', 'ОСАГО', 'Расходы'] },
-  { id: 9, label: 'Питомцы', color: '#84cc16', lightColor: '#ecfccb', icon: 'PawPrint', items: ['Ветеринар', 'AI-вет', 'Расходы'] },
-  { id: 10, label: 'Госуслуги', color: '#0d9488', lightColor: '#ccfbf1', icon: 'FileText', items: ['Льготы', 'Маткапитал', 'Ипотека'] },
-  { id: 11, label: 'Семейный код', color: '#ec4899', lightColor: '#fce7f3', icon: 'Sparkles', items: ['Личный код', 'Код пары', 'Астрология', 'Зеркало родителя'] },
-  { id: 12, label: 'Управление', color: '#7c3aed', lightColor: '#ede9fe', icon: 'Users', items: ['Профили', 'Роли', 'Геолокация'] },
-  { id: 13, label: 'Интеграции', color: '#4f46e5', lightColor: '#e0e7ff', icon: 'Plug', items: ['Алиса', 'MAX-бот', 'СБП'] },
-  { id: 14, label: 'Безопасность', color: '#16a34a', lightColor: '#dcfce7', icon: 'Shield', items: ['Детский режим', 'Защита', 'Логи'] },
-  { id: 15, label: 'AI-Домовой', color: '#e11d48', lightColor: '#ffe4e6', icon: 'Bot', items: ['Ассистент', 'Голос', 'Советы'] },
+  { id: 1, label: 'Семья', color: '#ec4899', lightColor: '#fce7f3', icon: 'Users', items: ['Профили семьи', 'Семейное древо', 'Дети', 'Семейный маячок'] },
+  { id: 2, label: 'Здоровье', color: '#ef4444', lightColor: '#fee2e2', icon: 'Heart', items: ['Здоровье семьи'] },
+  { id: 3, label: 'Питание', color: '#f97316', lightColor: '#ffedd5', icon: 'Apple', items: ['ИИ-Диета', 'Готовые режимы', 'Рецепт из продуктов', 'Счётчик БЖУ', 'Меню на неделю', 'Рецепты'] },
+  { id: 4, label: 'Ценности', color: '#f59e0b', lightColor: '#fef3c7', icon: 'Sparkles', items: ['Вера', 'Традиции', 'Мудрость народа', 'Правила дома'] },
+  { id: 5, label: 'Планирование', color: '#3b82f6', lightColor: '#dbeafe', icon: 'Calendar', items: ['Цели', 'Задачи', 'Календарь', 'План покупок', 'Аналитика'] },
+  { id: 6, label: 'Финансы', color: '#10b981', lightColor: '#d1fae5', icon: 'Wallet', items: ['Финансовый пульс', 'Бюджет', 'Кредиты и долги', 'Цели', 'Антимошенник', 'Кошелёк сервиса'] },
+  { id: 7, label: 'Быт', color: '#f59e0b', lightColor: '#fef3c7', icon: 'Home', items: ['Покупки', 'Голосования', 'Гараж'] },
+  { id: 8, label: 'Путешествия', color: '#06b6d4', lightColor: '#cffafe', icon: 'Plane', items: ['Путешествия', 'Досуг', 'Праздники'] },
+  { id: 9, label: 'Развитие', color: '#6366f1', lightColor: '#e0e7ff', icon: 'GraduationCap', items: ['Развитие', 'Психолог ИИ', 'Мастерская жизни'] },
+  { id: 10, label: 'Семейный код', color: '#a855f7', lightColor: '#f3e8ff', icon: 'KeyRound', items: ['Личный код', 'Код пары', 'Код семьи', 'Имя для малыша', 'Астрология', 'Зеркало родителя'] },
+  { id: 11, label: 'Питомцы', color: '#84cc16', lightColor: '#ecfccb', icon: 'PawPrint', items: ['ИИ-ветеринар', 'Вакцинация', 'Лекарства', 'Питание', 'Груминг', 'Расходы'] },
+  { id: 12, label: 'Госуслуги', color: '#0d9488', lightColor: '#ccfbf1', icon: 'Landmark', items: ['Семейный кодекс РФ', 'Господдержка', 'Семейная политика', 'Новости'] },
 ];
 
 function Ring() {
@@ -24,8 +21,8 @@ function Ring() {
   const cx = 250;
   const cy = 250;
   const outerR = 240;
-  const innerR = 145;
-  const labelR = 195;
+  const innerR = 140;
+  const labelR = 192;
 
   const paths = segments.map((seg, i) => {
     const startAngle = (i / total) * 2 * Math.PI - Math.PI / 2;
@@ -59,26 +56,46 @@ function Ring() {
 
   return (
     <svg viewBox="0 0 500 500" className="w-full max-w-[480px] mx-auto">
-      {paths.map((seg) => (
-        <g key={seg.id}>
-          <path d={seg.d} fill={seg.color} opacity={0.92} />
-          <text
-            x={seg.lx}
-            y={seg.ly}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="13"
-            fontWeight="700"
-            fill="white"
-            transform={`rotate(${seg.deg}, ${seg.lx}, ${seg.ly})`}
-            style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.18)', strokeWidth: 0.6 }}
-          >
-            {seg.label}
-          </text>
-        </g>
-      ))}
+      {paths.map((seg) => {
+        const isLong = seg.label.length > 11;
+        const words = seg.label.split(' ');
+        const showTwoLines = isLong && words.length > 1;
+        return (
+          <g key={seg.id}>
+            <path d={seg.d} fill={seg.color} opacity={0.92} />
+            {showTwoLines ? (
+              <text
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="11"
+                fontWeight="700"
+                fill="white"
+                transform={`rotate(${seg.deg}, ${seg.lx}, ${seg.ly})`}
+                style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.18)', strokeWidth: 0.6 }}
+              >
+                <tspan x={seg.lx} y={seg.ly - 6}>{words[0]}</tspan>
+                <tspan x={seg.lx} y={seg.ly + 8}>{words.slice(1).join(' ')}</tspan>
+              </text>
+            ) : (
+              <text
+                x={seg.lx}
+                y={seg.ly}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="12"
+                fontWeight="700"
+                fill="white"
+                transform={`rotate(${seg.deg}, ${seg.lx}, ${seg.ly})`}
+                style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.18)', strokeWidth: 0.6 }}
+              >
+                {seg.label}
+              </text>
+            )}
+          </g>
+        );
+      })}
 
-      <circle cx={cx} cy={cy} r={140} fill="white" filter="url(#shadow)" />
+      <circle cx={cx} cy={cy} r={135} fill="white" filter="url(#shadow)" />
       <defs>
         <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#00000020" />
@@ -115,7 +132,7 @@ export function SlideEcosystem() {
         </div>
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Карта экосистемы</h2>
-          <p className="text-sm text-gray-500 mt-0.5">15 хабов в единой платформе «Наша Семья»</p>
+          <p className="text-sm text-gray-500 mt-0.5">12 хабов в единой платформе «Наша Семья»</p>
         </div>
       </div>
 
@@ -198,7 +215,7 @@ export function SlideEcosystem() {
 
       <div className="mt-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-4 border border-purple-100 text-center">
         <p className="text-sm font-semibold text-purple-800">
-          Единственная платформа в России, объединяющая все 15 направлений жизни семьи
+          Единственная платформа в России, объединяющая все 12 направлений жизни семьи
         </p>
       </div>
     </section>

@@ -1,167 +1,238 @@
-import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 
 const hubs = [
   {
-    id: 1, icon: 'Wallet', color: 'bg-emerald-500', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700',
-    title: 'Финансы', emoji: '💰',
-    sections: ['Бюджет и учёт расходов', 'Счета и карты', 'Долги и кредиты', 'Финансовые цели', 'Антимошенник', 'Кошелёк / СБП', 'Аналитика трат'],
+    name: 'Семья',
+    icon: 'Users',
+    color: 'from-pink-500 to-rose-500',
+    bg: 'bg-pink-50',
+    border: 'border-pink-200',
+    sections: [
+      'Профили семьи',
+      'Семейное древо',
+      'Дети',
+      'Семейный маячок',
+    ],
   },
   {
-    id: 2, icon: 'Heart', color: 'bg-red-500', light: 'bg-red-50', border: 'border-red-200', text: 'text-red-700',
-    title: 'Здоровье', emoji: '🏥',
-    sections: ['Медицинские карты', 'Прививки и анализы', 'Запись к врачу', 'Симптом-чекер', 'Аптечка', 'ИИ-диета', 'Телемедицина'],
+    name: 'Здоровье',
+    icon: 'Heart',
+    color: 'from-red-500 to-pink-500',
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    sections: ['Здоровье семьи'],
   },
   {
-    id: 3, icon: 'Apple', color: 'bg-orange-500', light: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700',
-    title: 'Питание', emoji: '🍽️',
-    sections: ['Рецепты (бабушкины)', 'Меню на неделю', 'Список покупок', 'AI-рецепты из продуктов', 'Нутрициология', 'Доставка продуктов'],
+    name: 'Питание',
+    icon: 'Apple',
+    color: 'from-orange-500 to-red-500',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    sections: [
+      'Питание',
+      'ИИ-Диета',
+      'Готовые режимы',
+      'Рецепт из продуктов',
+      'Счётчик БЖУ',
+      'Меню на неделю',
+      'Рецепты',
+    ],
   },
   {
-    id: 4, icon: 'GraduationCap', color: 'bg-blue-500', light: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700',
-    title: 'Развитие детей', emoji: '🎓',
-    sections: ['AI-план развития', 'Трекер навыков', 'Оценки и успеваемость', 'Кружки и секции', 'AI-психолог', 'Конфликт-AI', 'Геймификация'],
+    name: 'Ценности',
+    icon: 'Sparkles',
+    color: 'from-amber-500 to-yellow-500',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    sections: [
+      'Ценности',
+      'Вера',
+      'Традиции',
+      'Мудрость народа',
+      'Правила дома',
+    ],
   },
   {
-    id: 5, icon: 'Calendar', color: 'bg-purple-500', light: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700',
-    title: 'Планирование', emoji: '📅',
-    sections: ['Семейный календарь', 'Задачи и поручения', 'Напоминания', 'Список дел', 'Совместное планирование', 'Регулярные задачи'],
+    name: 'Планирование',
+    icon: 'Calendar',
+    color: 'from-blue-500 to-cyan-500',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    sections: [
+      'Цели',
+      'Задачи',
+      'Календарь',
+      'План покупок',
+      'Аналитика',
+    ],
   },
   {
-    id: 6, icon: 'MapPin', color: 'bg-cyan-500', light: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700',
-    title: 'Путешествия', emoji: '✈️',
-    sections: ['AI-маршруты', 'AI-идеи для праздников', 'Документы семьи', 'Пакинг-лист', 'Расходы в поездке', 'Отзывы и фото'],
+    name: 'Финансы',
+    icon: 'Wallet',
+    color: 'from-emerald-500 to-teal-500',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    sections: [
+      'Финансовый пульс',
+      'Стратегия погашения',
+      'Кэш-флоу прогноз',
+      'Бюджет',
+      'Счета и карты',
+      'Кредиты и долги',
+      'Финансовые цели',
+      'Финграмотность',
+      'Имущество',
+      'Скидочные карты',
+      'Антимошенник',
+      'Кошелёк сервиса',
+    ],
   },
   {
-    id: 7, icon: 'Home', color: 'bg-amber-500', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700',
-    title: 'Быт и дом', emoji: '🏠',
-    sections: ['Список покупок', 'Домашние задачи', 'Ремонт и сервис', 'Счётчики и ЖКХ', 'Хранение вещей', 'Умный дом'],
+    name: 'Быт',
+    icon: 'Home',
+    color: 'from-orange-500 to-amber-500',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    sections: ['Покупки', 'Голосования', 'Гараж'],
   },
   {
-    id: 8, icon: 'Car', color: 'bg-slate-600', light: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700',
-    title: 'Гараж', emoji: '🚗',
-    sections: ['Техобслуживание', 'ОСАГО/КАСКО', 'Расходы на авто', 'Документы', 'Топливо', 'Страховые случаи'],
+    name: 'Путешествия',
+    icon: 'Plane',
+    color: 'from-sky-500 to-blue-500',
+    bg: 'bg-sky-50',
+    border: 'border-sky-200',
+    sections: ['Путешествия', 'Досуг', 'Праздники'],
   },
   {
-    id: 9, icon: 'PawPrint', color: 'bg-lime-600', light: 'bg-lime-50', border: 'border-lime-200', text: 'text-lime-700',
-    title: 'Питомцы', emoji: '🐾',
-    sections: ['Карточка питомца', 'Ветеринар и прививки', 'AI-ветеринар', 'Расходы', 'Питание питомца', 'Страхование питомцев'],
+    name: 'Развитие',
+    icon: 'GraduationCap',
+    color: 'from-indigo-500 to-purple-500',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200',
+    sections: ['Развитие', 'Психолог ИИ', 'Мастерская жизни'],
   },
   {
-    id: 10, icon: 'FileText', color: 'bg-teal-600', light: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700',
-    title: 'Госуслуги', emoji: '🏛️',
-    sections: ['Господдержка и льготы', 'Маткапитал', 'Льготная ипотека', 'Документы и справки', 'Запись в госорганы', 'Налоговые вычеты'],
+    name: 'Семейный код',
+    icon: 'KeyRound',
+    color: 'from-purple-500 to-pink-500',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    sections: [
+      'Личный код',
+      'Код пары',
+      'Код семьи',
+      'Ритуалы примирения',
+      'Детский код',
+      'Имя для малыша',
+      'Астрология',
+      'Зеркало родителя',
+    ],
   },
   {
-    id: 11, icon: 'Sparkles', color: 'bg-pink-500', light: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-700',
-    title: 'Семейный код', emoji: '✨',
-    sections: ['Личный код', 'Код пары', 'Код семьи', 'Ритуалы примирения', 'Детский код', 'Имя для малыша', 'Астрология', 'Зеркало родителя (тест PARI)'],
+    name: 'Питомцы',
+    icon: 'PawPrint',
+    color: 'from-lime-500 to-green-500',
+    bg: 'bg-lime-50',
+    border: 'border-lime-200',
+    sections: [
+      'Питомцы',
+      'ИИ-ветеринар',
+      'Вакцинация',
+      'Визиты к ветеринару',
+      'Лекарства',
+      'Питание',
+      'Груминг',
+      'Активность',
+      'Расходы',
+      'Показатели здоровья',
+      'Вещи и игрушки',
+      'Фотоальбом',
+    ],
   },
   {
-    id: 12, icon: 'Users', color: 'bg-violet-500', light: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700',
-    title: 'Управление семьёй', emoji: '👨‍👩‍👧‍👦',
-    sections: ['Профили членов семьи', 'Роли и права доступа', 'Семейные соглашения', 'Вовлечённость поколений', 'Геолокация семьи'],
-  },
-  {
-    id: 13, icon: 'Plug', color: 'bg-indigo-500', light: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700',
-    title: 'Интеграции', emoji: '🔌',
-    sections: ['Яндекс Алиса (голос)', 'MAX-мессенджер бот', 'СБП-платежи', 'Яндекс Карты', 'Push-уведомления', 'Экспорт ICS/PDF/XLSX'],
-  },
-  {
-    id: 14, icon: 'Shield', color: 'bg-green-600', light: 'bg-green-50', border: 'border-green-200', text: 'text-green-700',
-    title: 'Безопасность', emoji: '🛡️',
-    sections: ['Семейный VPN', 'Контроль экранного времени', 'Детский режим', 'Защита от мошенников', 'Аудит-логи'],
-  },
-  {
-    id: 15, icon: 'Bot', color: 'bg-rose-500', light: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700',
-    title: 'AI-Домовой', emoji: '🤖',
-    sections: ['Контекстный ассистент', 'Голосовые команды', 'Персональные советы', 'Автоматизация задач', 'Отчёты по семье', 'Предсказания и тренды'],
+    name: 'Госуслуги',
+    icon: 'Landmark',
+    color: 'from-teal-600 to-cyan-600',
+    bg: 'bg-teal-50',
+    border: 'border-teal-200',
+    sections: [
+      'Что такое семья',
+      'Семейный кодекс РФ',
+      'Господдержка семей',
+      'Семейная политика',
+      'Новости и инициативы',
+    ],
   },
 ];
 
+const totalSections = hubs.reduce((sum, h) => sum + h.sections.length, 0);
+
 export function SlideHubs() {
-  const [openId, setOpenId] = useState<number | null>(1);
-  const [printMode, setPrintMode] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const ce = e as CustomEvent<{ active: boolean }>;
-      setPrintMode(!!ce.detail?.active);
-    };
-    window.addEventListener('presentation:print-mode', handler);
-    return () => window.removeEventListener('presentation:print-mode', handler);
-  }, []);
-
   return (
-    <section data-pdf-slide className="bg-white rounded-3xl shadow-xl p-6 sm:p-10 mb-8">
-      <div className="flex items-center gap-4 mb-2">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-orange-500 to-purple-600">
-          <Icon name="LayoutGrid" size={26} className="text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">15 хабов — единая семейная экосистема</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Каждый хаб — полноценный блок из 5–7 разделов, связанных между собой</p>
+    <section data-pdf-slide className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8">
+      <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 p-8 md:p-12 text-white">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
+            <Icon name="LayoutGrid" size={32} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl md:text-4xl font-black leading-tight">
+              12 хабов — единая семейная экосистема
+            </h2>
+            <p className="text-base md:text-lg text-white/90 mt-2">
+              {totalSections}+ разделов, связанных в единую логику жизни семьи
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="mt-6 space-y-2">
+      <div className="p-6 md:p-10 space-y-4">
         {hubs.map((hub) => (
-          <div key={hub.id} className={`rounded-2xl border ${hub.border} overflow-hidden transition-all`}>
-            <button
-              className={`w-full flex items-center justify-between px-4 py-3 text-left ${printMode || openId === hub.id ? hub.light : 'bg-white hover:bg-gray-50'} transition-colors`}
-              onClick={() => setOpenId(openId === hub.id ? null : hub.id)}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${hub.color} flex-shrink-0`}>
-                  <Icon name={hub.icon} size={16} className="text-white" />
-                </div>
-                <span className="font-semibold text-gray-800 text-sm sm:text-base">
-                  {hub.emoji} {hub.title}
-                </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${hub.light} ${hub.text}`}>
-                  {hub.sections.length} разделов
-                </span>
+          <div
+            key={hub.name}
+            className={`${hub.bg} ${hub.border} border-2 rounded-2xl p-5 md:p-6`}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div
+                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${hub.color} flex items-center justify-center flex-shrink-0 shadow-md`}
+              >
+                <Icon name={hub.icon} size={22} className="text-white" />
               </div>
-              <Icon
-                name={printMode || openId === hub.id ? 'ChevronUp' : 'ChevronDown'}
-                size={18}
-                className="text-gray-400 flex-shrink-0"
-              />
-            </button>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 truncate">
+                  {hub.name}
+                </h3>
+                <p className="text-xs md:text-sm text-gray-600">
+                  {hub.sections.length}{' '}
+                  {hub.sections.length === 1
+                    ? 'раздел'
+                    : hub.sections.length < 5
+                    ? 'раздела'
+                    : 'разделов'}
+                </p>
+              </div>
+            </div>
 
-            {(printMode || openId === hub.id) && (
-              <div className={`px-4 pb-4 pt-2 ${hub.light}`}>
-                <div className="flex flex-wrap gap-2">
-                  {hub.sections.map((section, i) => (
-                    <span
-                      key={i}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-white border ${hub.border} ${hub.text} shadow-sm`}
-                    >
-                      <Icon name="Check" size={11} className={hub.text} />
-                      {section}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {hub.sections.map((section) => (
+                <span
+                  key={section}
+                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs md:text-sm text-gray-700 font-medium"
+                >
+                  <Icon
+                    name="Check"
+                    size={12}
+                    className="text-green-600 flex-shrink-0"
+                  />
+                  <span className="truncate max-w-[200px]">{section}</span>
+                </span>
+              ))}
+            </div>
           </div>
         ))}
-      </div>
-
-      <div className="mt-6 grid grid-cols-3 gap-3 text-center">
-        <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-4 border border-orange-100">
-          <p className="text-2xl font-bold text-orange-600">15</p>
-          <p className="text-xs text-gray-500">хабов</p>
-        </div>
-        <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-4 border border-purple-100">
-          <p className="text-2xl font-bold text-purple-600">90+</p>
-          <p className="text-xs text-gray-500">разделов</p>
-        </div>
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-100">
-          <p className="text-2xl font-bold text-emerald-600">1</p>
-          <p className="text-xs text-gray-500">платформа</p>
-        </div>
       </div>
     </section>
   );
 }
+
+export default SlideHubs;

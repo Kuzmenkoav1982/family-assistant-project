@@ -164,7 +164,7 @@ export function PresentationContentSections() {
 
 
 
-      {/* СЛАЙДЫ "13 разделов" и "Связность экосистемы" удалены — теперь они в SlideHubs (15 хабов) и SlideEcosystem ниже по странице */}
+      {/* СЛАЙДЫ "13 разделов" и "Связность экосистемы" удалены — теперь они в SlideHubs (12 хабов) и SlideEcosystem ниже по странице */}
       {/* убрано — содержание на слайдах SlideHubs */}
 
       {/* убрано — связность экосистемы показана в SlideEcosystem */}
@@ -225,7 +225,7 @@ export function PresentationContentSections() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           <StatCard value="151" label="Таблиц БД" icon="Database" />
           <StatCard value="30K+" label="Аналитических событий" icon="Activity" />
-          <StatCard value="15" label="Хабов" icon="LayoutGrid" />
+          <StatCard value="12" label="Хабов" icon="LayoutGrid" />
         </div>
         <div className="mt-5 bg-emerald-50 rounded-xl p-4 text-center">
           <p className="text-sm font-semibold text-emerald-800">
@@ -445,15 +445,24 @@ export function PresentationContentSections() {
             </div>
           </div>
 
-          <h3 className="font-bold text-gray-800 text-sm mb-3">Тарификация AI-сервисов</h3>
+          <h3 className="font-bold text-gray-800 text-sm mb-3">Тарификация AI-сервисов (краткая выписка)</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {[
               { service: 'ИИ-диета', price: '17 ₽', icon: 'Brain' },
               { service: 'AI-фото блюда', price: '7 ₽', icon: 'Image' },
               { service: 'Рецепт из продуктов', price: '5 ₽', icon: 'ChefHat' },
-              { service: 'ИИ-открытка', price: '7 ₽', icon: 'Gift' },
               { service: 'Рецепт (короткий)', price: '2 ₽', icon: 'BookOpen' },
-              { service: 'Рекомендации досуга', price: '4 ₽', icon: 'MapPin' },
+              { service: 'AI-ветеринар', price: '12 ₽', icon: 'PawPrint' },
+              { service: 'AI-план развития', price: '25 ₽', icon: 'GraduationCap' },
+              { service: 'AI-психолог', price: '30 ₽', icon: 'Brain' },
+              { service: 'Зеркало родителя (PARI)', price: '22 ₽', icon: 'HeartHandshake' },
+              { service: 'Конфликт-AI', price: '20 ₽', icon: 'MessageCircle' },
+              { service: 'AI-маршрут', price: '35 ₽', icon: 'MapPin' },
+              { service: 'AI-идеи праздника', price: '15 ₽', icon: 'PartyPopper' },
+              { service: 'ИИ-открытка', price: '7 ₽', icon: 'Gift' },
+              { service: 'Пакинг-лист AI', price: '5 ₽', icon: 'Briefcase' },
+              { service: 'AI-анализ бюджета', price: '20 ₽', icon: 'Wallet' },
+              { service: 'AI-астрология', price: '8 ₽', icon: 'Sparkles' },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-2 bg-emerald-50 rounded-lg p-2">
                 <Icon name={item.icon} size={14} className="text-emerald-600" />
@@ -462,36 +471,59 @@ export function PresentationContentSections() {
               </div>
             ))}
           </div>
+          <p className="text-[11px] text-gray-500 mt-2">Полная таблица тарификации — на отдельном слайде «Тарификация AI-сервисов» ниже.</p>
         </div>
 
         <div>
           <h3 className="font-bold text-gray-800 text-sm mb-3">Юнит-экономика (кошелёк + партнёры)</h3>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div className="bg-purple-50 rounded-xl p-2 sm:p-3 text-center">
               <p className="text-base sm:text-lg font-bold text-purple-700">~200 ₽/мес</p>
-              <p className="text-[10px] sm:text-xs text-gray-500">ARPU (ср. чек)</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">ARPU кошелёк</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-2 sm:p-3 text-center">
+              <p className="text-base sm:text-lg font-bold text-amber-700">+~80 ₽/мес</p>
+              <p className="text-[10px] sm:text-xs text-gray-500">ARPU партнёры</p>
             </div>
             <div className="bg-blue-50 rounded-xl p-2 sm:p-3 text-center">
               <p className="text-base sm:text-lg font-bold text-blue-700">500–800 ₽</p>
               <p className="text-[10px] sm:text-xs text-gray-500">CAC</p>
             </div>
             <div className="bg-emerald-50 rounded-xl p-2 sm:p-3 text-center">
-              <p className="text-base sm:text-lg font-bold text-emerald-700">7 200 ₽</p>
+              <p className="text-base sm:text-lg font-bold text-emerald-700">10 080 ₽</p>
               <p className="text-[10px] sm:text-xs text-gray-500">LTV (3 года)</p>
             </div>
           </div>
-          <div className="mt-3 space-y-1.5 text-xs text-gray-600">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-600 mb-3">
+            <div className="bg-purple-50 rounded-lg p-2 text-center">
+              <p className="font-bold text-purple-700">×14–20</p>
+              <p className="text-[10px] text-gray-500">LTV/CAC — окупаемость</p>
+            </div>
+            <div className="bg-emerald-50 rounded-lg p-2 text-center">
+              <p className="font-bold text-emerald-700">60–70%</p>
+              <p className="text-[10px] text-gray-500">маржа на AI-сервисах</p>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-2 text-center">
+              <p className="font-bold text-blue-700">2–3 мес</p>
+              <p className="text-[10px] text-gray-500">payback period</p>
+            </div>
+          </div>
+          <div className="space-y-1.5 text-xs text-gray-600">
             <div className="flex justify-between bg-gray-50 rounded-lg p-2">
-              <span>10 000 семей</span>
+              <span>10 000 семей · кошелёк</span>
               <span className="font-bold">24 млн ₽/год</span>
             </div>
+            <div className="flex justify-between bg-amber-50 rounded-lg p-2">
+              <span>10 000 семей · + партнёры</span>
+              <span className="font-bold text-amber-700">~33,6 млн ₽/год</span>
+            </div>
             <div className="flex justify-between bg-gray-50 rounded-lg p-2">
-              <span>100 000 семей</span>
-              <span className="font-bold">240 млн ₽/год</span>
+              <span>100 000 семей · совокупно</span>
+              <span className="font-bold">~336 млн ₽/год</span>
             </div>
             <div className="flex justify-between bg-purple-50 rounded-lg p-2">
-              <span>1 000 000 семей</span>
-              <span className="font-bold text-purple-700">2,4 млрд ₽/год</span>
+              <span>1 000 000 семей · совокупно</span>
+              <span className="font-bold text-purple-700">~3,36 млрд ₽/год</span>
             </div>
           </div>
         </div>
@@ -741,32 +773,6 @@ export function PresentationContentSections() {
 
 
 
-      {/* СЛАЙД: Команда */}
-      <SectionCard className="bg-gradient-to-br from-gray-50 to-slate-50">
-        <SectionTitle icon="User" iconColor="bg-slate-600" title="Команда" />
-        <div className="bg-white rounded-2xl p-6 border border-slate-200">
-          <h3 className="font-bold text-gray-800 text-lg mb-1">Кузьменко А.В.</h3>
-          <p className="text-sm text-purple-600 font-medium mb-3">CEO, основатель, продуктовый визионер</p>
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>• Платформа создана на основе реальных потребностей собственной семьи</p>
-            <p>• Глубокое понимание проблем целевой аудитории</p>
-            <p>• Архитектура продукта спроектирована с учётом масштабирования</p>
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* СЛАЙД: Юридическая информация */}
-      <SectionCard>
-        <SectionTitle icon="Building2" iconColor="bg-gray-600" title="Юридическая информация" />
-        <div className="bg-slate-50 rounded-2xl p-3 sm:p-5 border border-slate-200">
-          <div className="space-y-2 text-sm text-gray-700">
-            <p><span className="font-medium text-gray-500">Наименование:</span> ИП Кузьменко А.В.</p>
-            <p><span className="font-medium text-gray-500">ОГРНИП:</span> 325774600908955</p>
-            <p><span className="font-medium text-gray-500">ИНН:</span> 231805288780</p>
-            <p><span className="font-medium text-gray-500">Платформа:</span> nasha-semiya.ru</p>
-          </div>
-        </div>
-      </SectionCard>
     </>
   );
 }

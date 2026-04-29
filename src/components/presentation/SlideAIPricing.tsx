@@ -156,10 +156,10 @@ export function SlideAIPricing() {
       {/* Economics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Средний чек', value: '~200 ₽/мес', icon: 'Receipt', color: '#8b5cf6' },
-          { label: 'Запросов в месяц', value: '15–30', icon: 'Zap', color: '#f97316' },
+          { label: 'ARPU (кошелёк)', value: '~200 ₽/мес', icon: 'Receipt', color: '#8b5cf6' },
+          { label: 'Запросов в месяц', value: '12–25', icon: 'Zap', color: '#f97316' },
           { label: 'Маржа на AI', value: '60–70%', icon: 'TrendingUp', color: '#10b981' },
-          { label: 'Порог входа', value: '50 ₽', icon: 'DoorOpen', color: '#3b82f6' },
+          { label: 'Порог входа', value: 'от 50 ₽', icon: 'DoorOpen', color: '#3b82f6' },
         ].map((m, i) => (
           <div key={i} className="rounded-2xl p-3 text-center border border-gray-100 bg-gray-50">
             <Icon name={m.icon} size={18} className="mx-auto mb-1" style={{ color: m.color }} />
