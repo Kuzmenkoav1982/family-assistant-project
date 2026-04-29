@@ -10,6 +10,8 @@ import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
 import { SlideRoadmap } from '@/components/presentation/SlideRoadmap';
+import { SlideBusinessModel } from '@/components/presentation/SlideBusinessModel';
+import { SlideAIPricing } from '@/components/presentation/SlideAIPricing';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -202,6 +204,8 @@ export default function Presentation() {
         <SlideHubs />
         <SlideEcosystem />
         <SlideAIMap />
+        <SlideBusinessModel />
+        <SlideAIPricing />
         <SlideBankShowcase />
         <SlideRoadmap />
         <PresentationFooter />
