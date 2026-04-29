@@ -20,11 +20,15 @@ async function captureSlides(
   if (!container) return null;
 
   container.classList.add('printing');
-  await new Promise(resolve => setTimeout(resolve, 200));
+  // Сообщаем всем интерактивным компонентам — раскрыть всё для PDF/PPTX
+  window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: true } }));
+  // Даём React перерисовать раскрытые блоки
+  await new Promise(resolve => setTimeout(resolve, 400));
 
   const slides = container.querySelectorAll('[data-pdf-slide]');
   if (slides.length === 0) {
     container.classList.remove('printing');
+    window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: false } }));
     return null;
   }
 
@@ -47,6 +51,7 @@ async function captureSlides(
   }
 
   container.classList.remove('printing');
+  window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: false } }));
   return { canvases, count: slides.length };
 }
 

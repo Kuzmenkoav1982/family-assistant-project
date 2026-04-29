@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 
 const segments = [
@@ -95,7 +95,17 @@ function Ring() {
 
 export function SlideEcosystem() {
   const [active, setActive] = useState<number | null>(null);
+  const [printMode, setPrintMode] = useState(false);
   const activeSegment = segments.find((s) => s.id === active);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ active: boolean }>;
+      setPrintMode(!!ce.detail?.active);
+    };
+    window.addEventListener('presentation:print-mode', handler);
+    return () => window.removeEventListener('presentation:print-mode', handler);
+  }, []);
 
   return (
     <section data-pdf-slide className="bg-white rounded-3xl shadow-xl p-6 sm:p-10 mb-8">
@@ -115,44 +125,73 @@ export function SlideEcosystem() {
         </div>
 
         <div className="w-full lg:w-1/2 space-y-2">
-          <p className="text-xs text-gray-400 mb-3">Нажмите на хаб, чтобы увидеть разделы</p>
-          <div className="grid grid-cols-2 gap-2">
-            {segments.map((seg) => (
-              <button
-                key={seg.id}
-                onClick={() => setActive(active === seg.id ? null : seg.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-left transition-all ${
-                  active === seg.id ? 'shadow-md scale-[1.02]' : 'hover:shadow-sm'
-                }`}
-                style={{
-                  backgroundColor: active === seg.id ? seg.lightColor : '#f9fafb',
-                  borderColor: active === seg.id ? seg.color : '#e5e7eb',
-                }}
-              >
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: seg.color }}>
-                  <Icon name={seg.icon} size={12} className="text-white" />
-                </div>
-                <span className="text-xs font-semibold text-gray-700 leading-tight">{seg.label}</span>
-              </button>
-            ))}
-          </div>
+          {!printMode && <p className="text-xs text-gray-400 mb-3">Нажмите на хаб, чтобы увидеть разделы</p>}
 
-          {activeSegment && (
-            <div
-              className="mt-3 rounded-2xl p-4 border"
-              style={{ backgroundColor: activeSegment.lightColor, borderColor: activeSegment.color }}
-            >
-              <p className="text-xs font-bold mb-2" style={{ color: activeSegment.color }}>
-                {activeSegment.label} — разделы:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {activeSegment.items.map((item, i) => (
-                  <span key={i} className="text-xs bg-white px-2.5 py-1 rounded-lg border font-medium text-gray-700" style={{ borderColor: activeSegment.color }}>
-                    {item}
-                  </span>
+          {printMode ? (
+            <div className="space-y-2">
+              {segments.map((seg) => (
+                <div
+                  key={seg.id}
+                  className="rounded-xl border p-3"
+                  style={{ backgroundColor: seg.lightColor, borderColor: seg.color }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: seg.color }}>
+                      <Icon name={seg.icon} size={12} className="text-white" />
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: seg.color }}>{seg.label}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {seg.items.map((item, i) => (
+                      <span key={i} className="text-[11px] bg-white px-2 py-0.5 rounded-md border font-medium text-gray-700" style={{ borderColor: seg.color }}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                {segments.map((seg) => (
+                  <button
+                    key={seg.id}
+                    onClick={() => setActive(active === seg.id ? null : seg.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-left transition-all ${
+                      active === seg.id ? 'shadow-md scale-[1.02]' : 'hover:shadow-sm'
+                    }`}
+                    style={{
+                      backgroundColor: active === seg.id ? seg.lightColor : '#f9fafb',
+                      borderColor: active === seg.id ? seg.color : '#e5e7eb',
+                    }}
+                  >
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: seg.color }}>
+                      <Icon name={seg.icon} size={12} className="text-white" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700 leading-tight">{seg.label}</span>
+                  </button>
                 ))}
               </div>
-            </div>
+
+              {activeSegment && (
+                <div
+                  className="mt-3 rounded-2xl p-4 border"
+                  style={{ backgroundColor: activeSegment.lightColor, borderColor: activeSegment.color }}
+                >
+                  <p className="text-xs font-bold mb-2" style={{ color: activeSegment.color }}>
+                    {activeSegment.label} — разделы:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeSegment.items.map((item, i) => (
+                      <span key={i} className="text-xs bg-white px-2.5 py-1 rounded-lg border font-medium text-gray-700" style={{ borderColor: activeSegment.color }}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

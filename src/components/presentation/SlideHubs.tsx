@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 
 const hubs = [
@@ -81,6 +81,16 @@ const hubs = [
 
 export function SlideHubs() {
   const [openId, setOpenId] = useState<number | null>(1);
+  const [printMode, setPrintMode] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ active: boolean }>;
+      setPrintMode(!!ce.detail?.active);
+    };
+    window.addEventListener('presentation:print-mode', handler);
+    return () => window.removeEventListener('presentation:print-mode', handler);
+  }, []);
 
   return (
     <section data-pdf-slide className="bg-white rounded-3xl shadow-xl p-6 sm:p-10 mb-8">
@@ -98,7 +108,7 @@ export function SlideHubs() {
         {hubs.map((hub) => (
           <div key={hub.id} className={`rounded-2xl border ${hub.border} overflow-hidden transition-all`}>
             <button
-              className={`w-full flex items-center justify-between px-4 py-3 text-left ${openId === hub.id ? hub.light : 'bg-white hover:bg-gray-50'} transition-colors`}
+              className={`w-full flex items-center justify-between px-4 py-3 text-left ${printMode || openId === hub.id ? hub.light : 'bg-white hover:bg-gray-50'} transition-colors`}
               onClick={() => setOpenId(openId === hub.id ? null : hub.id)}
             >
               <div className="flex items-center gap-3">
@@ -113,13 +123,13 @@ export function SlideHubs() {
                 </span>
               </div>
               <Icon
-                name={openId === hub.id ? 'ChevronUp' : 'ChevronDown'}
+                name={printMode || openId === hub.id ? 'ChevronUp' : 'ChevronDown'}
                 size={18}
                 className="text-gray-400 flex-shrink-0"
               />
             </button>
 
-            {openId === hub.id && (
+            {(printMode || openId === hub.id) && (
               <div className={`px-4 pb-4 pt-2 ${hub.light}`}>
                 <div className="flex flex-wrap gap-2">
                   {hub.sections.map((section, i) => (

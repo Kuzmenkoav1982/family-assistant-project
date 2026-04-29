@@ -14,9 +14,12 @@ const aiFunctions = [
   { icon: 'Mic', color: '#10b981', bg: '#d1fae5', label: 'Голосовой AI', hub: 'Интеграции', desc: 'Яндекс Алиса — управление голосом', angle: 330 },
 ];
 
-const R = 160;
+const CX = 280;
+const CY = 280;
+const R = 215;
+const BUBBLE_R = 42;
 
-function polarToXY(angleDeg: number, r: number, cx = 200, cy = 200) {
+function polarToXY(angleDeg: number, r: number, cx = CX, cy = CY) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
@@ -36,30 +39,33 @@ export function SlideAIMap() {
 
       <div className="flex flex-col lg:flex-row items-center gap-8">
         {/* SVG Map */}
-        <div className="w-full lg:w-[420px] flex-shrink-0">
-          <svg viewBox="0 0 400 400" className="w-full max-w-[400px] mx-auto">
+        <div className="w-full lg:w-[560px] flex-shrink-0">
+          <svg viewBox="0 0 560 560" className="w-full max-w-[560px] mx-auto">
             <defs>
               <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#a855f7" stopOpacity="0.4" />
+                <stop offset="0%" stopColor="#a855f7" stopOpacity="0.45" />
                 <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
               </radialGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                 <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
               </filter>
+              <clipPath id="domovoyClip">
+                <circle cx={CX} cy={CY} r="62" />
+              </clipPath>
             </defs>
 
-            <circle cx="200" cy="200" r="180" fill="url(#centerGlow)" />
+            <circle cx={CX} cy={CY} r="240" fill="url(#centerGlow)" />
 
             {/* Lines from center to bubbles */}
             {aiFunctions.map((fn, i) => {
               const pos = polarToXY(fn.angle, R);
               return (
                 <line
-                  key={i}
-                  x1="200" y1="200"
+                  key={`line-${i}`}
+                  x1={CX} y1={CY}
                   x2={pos.x} y2={pos.y}
-                  stroke="#a855f730"
+                  stroke="#a855f740"
                   strokeWidth="1"
                   strokeDasharray="4 3"
                 />
@@ -69,29 +75,40 @@ export function SlideAIMap() {
             {/* Bubbles */}
             {aiFunctions.map((fn, i) => {
               const pos = polarToXY(fn.angle, R);
+              const words = fn.label.split(' ');
+              const line1 = words[0];
+              const line2 = words.slice(1).join(' ');
               return (
-                <g key={i}>
-                  <circle cx={pos.x} cy={pos.y} r="28" fill={fn.bg} opacity="0.95" />
-                  <circle cx={pos.x} cy={pos.y} r="28" fill="none" stroke={fn.color} strokeWidth="1.5" opacity="0.6" />
-                  <text x={pos.x} y={pos.y - 4} textAnchor="middle" fontSize="9" fontWeight="700" fill={fn.color}>
-                    {fn.label.split(' ')[0]}
-                  </text>
-                  <text x={pos.x} y={pos.y + 7} textAnchor="middle" fontSize="9" fontWeight="700" fill={fn.color}>
-                    {fn.label.split(' ').slice(1).join(' ')}
-                  </text>
+                <g key={`bub-${i}`}>
+                  <circle cx={pos.x} cy={pos.y} r={BUBBLE_R} fill={fn.bg} opacity="0.98" />
+                  <circle cx={pos.x} cy={pos.y} r={BUBBLE_R} fill="none" stroke={fn.color} strokeWidth="1.8" opacity="0.7" />
+                  {line2 ? (
+                    <>
+                      <text x={pos.x} y={pos.y - 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={fn.color}>
+                        {line1}
+                      </text>
+                      <text x={pos.x} y={pos.y + 10} textAnchor="middle" fontSize="11" fontWeight="700" fill={fn.color}>
+                        {line2}
+                      </text>
+                    </>
+                  ) : (
+                    <text x={pos.x} y={pos.y + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={fn.color}>
+                      {line1}
+                    </text>
+                  )}
                 </g>
               );
             })}
 
             {/* Center: Домовой */}
-            <circle cx="200" cy="200" r="52" fill="#1e1b4b" filter="url(#glow)" />
-            <circle cx="200" cy="200" r="52" fill="none" stroke="#a855f7" strokeWidth="2" />
+            <circle cx={CX} cy={CY} r="62" fill="#1e1b4b" filter="url(#glow)" />
             <image
               href="https://cdn.poehali.dev/files/a8b6c71e-061d-499f-a68c-84d9ba93a2c8.png"
-              x="148" y="148" width="104" height="104"
-              clipPath="circle(52px at 52px 52px)"
-              style={{ borderRadius: '50%' }}
+              x={CX - 62} y={CY - 62} width="124" height="124"
+              clipPath="url(#domovoyClip)"
+              preserveAspectRatio="xMidYMid slice"
             />
+            <circle cx={CX} cy={CY} r="62" fill="none" stroke="#a855f7" strokeWidth="2.5" />
           </svg>
         </div>
 
