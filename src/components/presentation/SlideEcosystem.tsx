@@ -21,17 +21,16 @@ const segments = [
 
 function Ring() {
   const total = segments.length;
-  const cx = 200;
-  const cy = 200;
-  const outerR = 190;
-  const innerR = 120;
-  const midR = 155;
-  const labelR = 170;
+  const cx = 250;
+  const cy = 250;
+  const outerR = 240;
+  const innerR = 145;
+  const labelR = 195;
 
   const paths = segments.map((seg, i) => {
     const startAngle = (i / total) * 2 * Math.PI - Math.PI / 2;
     const endAngle = ((i + 1) / total) * 2 * Math.PI - Math.PI / 2;
-    const gap = 0.025;
+    const gap = 0.02;
 
     const x1 = cx + outerR * Math.cos(startAngle + gap);
     const y1 = cy + outerR * Math.sin(startAngle + gap);
@@ -48,42 +47,48 @@ function Ring() {
     const midAngle = (startAngle + endAngle) / 2;
     const lx = cx + labelR * Math.cos(midAngle);
     const ly = cy + labelR * Math.sin(midAngle);
-    const deg = (midAngle * 180) / Math.PI + 90;
 
-    return { ...seg, d, lx, ly, deg, midAngle };
+    // Поворачиваем текст так, чтобы он шёл вдоль радиуса, и переворачиваем нижние, чтобы читались обычным образом
+    let deg = (midAngle * 180) / Math.PI + 90;
+    if (deg > 90 && deg < 270) {
+      deg += 180;
+    }
+
+    return { ...seg, d, lx, ly, deg };
   });
 
   return (
-    <svg viewBox="0 0 400 400" className="w-full max-w-[420px] mx-auto">
+    <svg viewBox="0 0 500 500" className="w-full max-w-[480px] mx-auto">
       {paths.map((seg) => (
         <g key={seg.id}>
-          <path d={seg.d} fill={seg.color} opacity={0.9} />
+          <path d={seg.d} fill={seg.color} opacity={0.92} />
           <text
             x={seg.lx}
             y={seg.ly}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize="8.5"
+            fontSize="13"
             fontWeight="700"
             fill="white"
             transform={`rotate(${seg.deg}, ${seg.lx}, ${seg.ly})`}
+            style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.18)', strokeWidth: 0.6 }}
           >
             {seg.label}
           </text>
         </g>
       ))}
 
-      <circle cx={cx} cy={cy} r={115} fill="white" filter="url(#shadow)" />
+      <circle cx={cx} cy={cy} r={140} fill="white" filter="url(#shadow)" />
       <defs>
         <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#00000020" />
         </filter>
       </defs>
 
-      <text x={cx} y={cy - 22} textAnchor="middle" fontSize="13" fontWeight="800" fill="#1e293b">Наша</text>
-      <text x={cx} y={cy - 5} textAnchor="middle" fontSize="13" fontWeight="800" fill="#1e293b">Семья</text>
-      <text x={cx} y={cy + 14} textAnchor="middle" fontSize="8" fill="#64748b">Цифровая</text>
-      <text x={cx} y={cy + 26} textAnchor="middle" fontSize="8" fill="#64748b">экосистема</text>
+      <text x={cx} y={cy - 18} textAnchor="middle" fontSize="22" fontWeight="800" fill="#1e293b">Наша</text>
+      <text x={cx} y={cy + 10} textAnchor="middle" fontSize="22" fontWeight="800" fill="#1e293b">Семья</text>
+      <text x={cx} y={cy + 38} textAnchor="middle" fontSize="11" fill="#64748b">Цифровая</text>
+      <text x={cx} y={cy + 56} textAnchor="middle" fontSize="11" fill="#64748b">экосистема</text>
     </svg>
   );
 }
