@@ -399,3 +399,85 @@ function ScaleResultCard({ result, prevPercent }: { result: PariScaleResult; pre
 
 // suppress unused warning for PARI_SCALES import (kept for potential future use)
 void PARI_SCALES;
+
+interface TickProps {
+  payload?: { value?: string };
+  x?: number;
+  y?: number;
+  textAnchor?: string;
+  cx?: number;
+  cy?: number;
+}
+
+function MultilineTick(props: TickProps) {
+  const { payload, x = 0, y = 0, textAnchor = 'middle', cx = 0, cy = 0 } = props;
+  const text = payload?.value || '';
+  const words = text.split(' ');
+
+  let lines: string[] = [];
+  if (words.length === 1) {
+    lines = [words[0]];
+  } else if (words.length === 2) {
+    lines = words;
+  } else {
+    const mid = Math.ceil(words.length / 2);
+    lines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+  }
+
+  const dy = y > cy ? 12 : -4;
+  const offset = lines.length > 1 ? -6 : 0;
+
+  return (
+    <text x={x} y={y + dy + offset} textAnchor={textAnchor} fill="#475569" fontSize={10}>
+      {lines.map((line, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? 0 : 12}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
+function buildPariAIContext(
+  overall: { score: number; label: string } | null,
+  scaleResults: PariScaleResult[],
+  problemAreas: PariScaleResult[],
+  strengths: PariScaleResult[]
+): string {
+  if (!overall || scaleResults.length === 0) return '';
+
+  const formatScale = (r: PariScaleResult) => {
+    const display = r.scale.goodWhen === 'high' ? r.percent : 100 - r.percent;
+    return `- ${r.scale.title}: ${display}% (${r.scale.description})`;
+  };
+
+  return `КОНТЕКСТ: Пользователь только что прошёл научный тест PARI Шефера-Белла на родительские установки. Используй эти результаты для персональных советов.
+
+ОБЩИЙ УРОВЕНЬ КОНТАКТА: ${overall.score}/100 — ${overall.label}
+
+СИЛЬНЫЕ СТОРОНЫ (${strengths.length}):
+${strengths.map(formatScale).join('\n') || 'нет'}
+
+ЗОНЫ РОСТА (${problemAreas.length}):
+${problemAreas.map(formatScale).join('\n') || 'нет'}
+
+ИНСТРУКЦИЯ:
+- Опирайся на результаты теста при ответах
+- Давай конкретные техники именно для зон роста
+- Не повторяй полностью данные теста — пользователь их видит
+- Используй эмпатичный тон, без диагнозов
+- Если просят план — предлагай пошаговые действия на 2-4 недели`;
+}
+
+function buildPariQuickQuestions(problemAreas: PariScaleResult[]): string[] {
+  const base = [
+    'Составь план работы на 2 недели',
+    'С чего начать улучшать контакт с ребёнком?',
+  ];
+
+  const fromProblems = problemAreas.slice(0, 3).map(
+    (r) => `Как работать с зоной "${r.scale.title}"?`
+  );
+
+  return [...fromProblems, ...base].slice(0, 5);
+}

@@ -96,6 +96,17 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-violet-100 text-violet-700',
     ready: true,
   },
+  {
+    id: 'pari-mirror',
+    title: 'Зеркало родителя',
+    description: 'Научный тест PARI Шефера-Белла на родительские установки. 35 вопросов, радар-диаграмма, ИИ-разбор результатов',
+    icon: 'HeartHandshake',
+    path: '/pari-test',
+    gradient: 'from-purple-500 via-fuchsia-500 to-pink-500',
+    badge: 'Тест + ИИ',
+    badgeColor: 'bg-purple-100 text-purple-700',
+    ready: true,
+  },
 ];
 
 function CollapsibleBlock({
