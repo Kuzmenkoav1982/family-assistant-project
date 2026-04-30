@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,10 +27,50 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
     [debts]
   );
 
-  const [budget, setBudget] = useState<number>(0);
-  const [allocations, setAllocations] = useState<Record<string, number>>({});
-  const [priorityMode, setPriorityMode] = useState<PriorityMode>('rate');
+  const STORAGE_KEY = 'bonusPayoffPlanner:v1';
+
+  const [budget, setBudget] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).budget || 0;
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [allocations, setAllocations] = useState<Record<string, number>>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).allocations || {};
+    } catch { /* ignore */ }
+    return {};
+  });
+  const [priorityMode, setPriorityMode] = useState<PriorityMode>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).priorityMode || 'rate';
+    } catch { /* ignore */ }
+    return 'rate';
+  });
   const [applying, setApplying] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ budget, allocations, priorityMode }));
+    } catch { /* ignore */ }
+  }, [budget, allocations, priorityMode]);
+
+  // Очищаем allocations от закрытых кредитов (которых больше нет в активных)
+  useEffect(() => {
+    const activeIds = new Set(activeDebts.map(d => d.id));
+    setAllocations(prev => {
+      const next: Record<string, number> = {};
+      let changed = false;
+      for (const [id, v] of Object.entries(prev)) {
+        if (activeIds.has(id)) next[id] = v;
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [activeDebts]);
 
   const totalAllocated = useMemo(
     () => Object.values(allocations).reduce((sum, v) => sum + (v || 0), 0),
@@ -73,12 +113,14 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
           notes: 'Досрочное погашение (калькулятор стратегии)',
         }),
       });
+      const spent = debt.remaining;
       toast.success(`Кредит «${debt.name}» закрыт · экономия ${fm(debt.payment)}/мес`);
       setAllocations(prev => {
         const next = { ...prev };
         delete next[debt.id];
         return next;
       });
+      setBudget(prev => Math.max(0, prev - spent));
       onSuccess?.();
     } catch {
       toast.error('Не удалось закрыть кредит');
@@ -130,8 +172,16 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
             })
           )
       );
+      const totalSpent = activeDebts
+        .filter(d => fullyPaidIds.includes(d.id))
+        .reduce((s, d) => s + d.remaining, 0);
       toast.success(`Закрыто кредитов: ${fullyPaidIds.length}`);
-      reset();
+      setAllocations(prev => {
+        const next = { ...prev };
+        for (const id of fullyPaidIds) delete next[id];
+        return next;
+      });
+      setBudget(prev => Math.max(0, prev - totalSpent));
       onSuccess?.();
     } catch {
       toast.error('Ошибка при закрытии кредитов');
@@ -158,7 +208,12 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
       });
       if (res.ok) {
         toast.success(`Платёж ${fm(amount)} записан`);
-        setAllocations(prev => ({ ...prev, [debtId]: 0 }));
+        setAllocations(prev => {
+          const next = { ...prev };
+          delete next[debtId];
+          return next;
+        });
+        setBudget(prev => Math.max(0, prev - amount));
         onSuccess?.();
       } else {
         toast.error('Ошибка при записи платежа');
