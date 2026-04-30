@@ -72,7 +72,7 @@ export const sections = [
   },
   {
     title: 'AI-ассистент Домовой',
-    description: '9 ролей: повар, психолог, финансист, педагог и другие эксперты',
+    description: '11 AI-функций: ИИ-Диета, AI-психолог, AI-маршруты, ИИ-ветеринар и другие',
     icon: 'Bot',
     color: 'from-violet-500 to-purple-600',
     carousel: [
