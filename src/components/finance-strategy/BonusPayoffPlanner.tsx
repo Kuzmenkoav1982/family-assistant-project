@@ -36,6 +36,34 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
     } catch { /* ignore */ }
     return 0;
   });
+  const [initialBudget, setInitialBudget] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).initialBudget || 0;
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [spent, setSpent] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).spent || 0;
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [closedCount, setClosedCount] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).closedCount || 0;
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [savedPerMonth, setSavedPerMonth] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw).savedPerMonth || 0;
+    } catch { /* ignore */ }
+    return 0;
+  });
   const [allocations, setAllocations] = useState<Record<string, number>>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -54,9 +82,29 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ budget, allocations, priorityMode }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        budget, allocations, priorityMode, initialBudget, spent, closedCount, savedPerMonth,
+      }));
     } catch { /* ignore */ }
-  }, [budget, allocations, priorityMode]);
+  }, [budget, allocations, priorityMode, initialBudget, spent, closedCount, savedPerMonth]);
+
+  const setNewBudget = (v: number) => {
+    setBudget(v);
+    setInitialBudget(v);
+    setSpent(0);
+    setClosedCount(0);
+    setSavedPerMonth(0);
+    setAllocations({});
+  };
+
+  const clearBudget = () => {
+    setBudget(0);
+    setInitialBudget(0);
+    setSpent(0);
+    setClosedCount(0);
+    setSavedPerMonth(0);
+    setAllocations({});
+  };
 
   // Очищаем allocations от закрытых кредитов (которых больше нет в активных)
   useEffect(() => {
@@ -113,14 +161,17 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
           notes: 'Досрочное погашение (калькулятор стратегии)',
         }),
       });
-      const spent = debt.remaining;
+      const spentNow = debt.remaining;
       toast.success(`Кредит «${debt.name}» закрыт · экономия ${fm(debt.payment)}/мес`);
       setAllocations(prev => {
         const next = { ...prev };
         delete next[debt.id];
         return next;
       });
-      setBudget(prev => Math.max(0, prev - spent));
+      setBudget(prev => Math.max(0, prev - spentNow));
+      setSpent(prev => prev + spentNow);
+      setClosedCount(prev => prev + 1);
+      setSavedPerMonth(prev => prev + debt.payment);
       onSuccess?.();
     } catch {
       toast.error('Не удалось закрыть кредит');
@@ -172,9 +223,9 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
             })
           )
       );
-      const totalSpent = activeDebts
-        .filter(d => fullyPaidIds.includes(d.id))
-        .reduce((s, d) => s + d.remaining, 0);
+      const closingDebts = activeDebts.filter(d => fullyPaidIds.includes(d.id));
+      const totalSpent = closingDebts.reduce((s, d) => s + d.remaining, 0);
+      const totalSaved = closingDebts.reduce((s, d) => s + d.payment, 0);
       toast.success(`Закрыто кредитов: ${fullyPaidIds.length}`);
       setAllocations(prev => {
         const next = { ...prev };
@@ -182,6 +233,9 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
         return next;
       });
       setBudget(prev => Math.max(0, prev - totalSpent));
+      setSpent(prev => prev + totalSpent);
+      setClosedCount(prev => prev + fullyPaidIds.length);
+      setSavedPerMonth(prev => prev + totalSaved);
       onSuccess?.();
     } catch {
       toast.error('Ошибка при закрытии кредитов');
@@ -214,6 +268,7 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
           return next;
         });
         setBudget(prev => Math.max(0, prev - amount));
+        setSpent(prev => prev + amount);
         onSuccess?.();
       } else {
         toast.error('Ошибка при записи платежа');
@@ -263,6 +318,9 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
 
   const quickBudgets = [50000, 100000, 200000, 500000];
 
+  const progressPct = initialBudget > 0 ? Math.min(100, Math.round((spent / initialBudget) * 100)) : 0;
+  const showProgress = initialBudget > 0 && spent > 0;
+
   return (
     <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-cyan-500/5">
       <CardContent className="p-4 space-y-4">
@@ -278,6 +336,54 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
           </div>
         </div>
 
+        {showProgress && (
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 shadow-md">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Icon name="Wallet" size={18} className="text-white/90" />
+                <span className="font-bold text-sm">Прогресс по бюджету {fm(initialBudget)}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-[11px] text-white/90 hover:text-white hover:bg-white/10"
+                onClick={clearBudget}
+              >
+                <Icon name="RotateCcw" size={12} className="mr-1" /> Сброс
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="rounded-lg bg-white/15 backdrop-blur p-2">
+                <p className="text-[10px] uppercase opacity-80">Потрачено</p>
+                <p className="text-base font-bold leading-tight">{fm(spent)}</p>
+              </div>
+              <div className="rounded-lg bg-white/15 backdrop-blur p-2">
+                <p className="text-[10px] uppercase opacity-80">Осталось</p>
+                <p className="text-base font-bold leading-tight">{fm(Math.max(0, initialBudget - spent))}</p>
+              </div>
+              <div className="rounded-lg bg-white/15 backdrop-blur p-2">
+                <p className="text-[10px] uppercase opacity-80">Закрыто</p>
+                <p className="text-base font-bold leading-tight">{closedCount} {closedCount === 1 ? 'кредит' : closedCount >= 2 && closedCount <= 4 ? 'кредита' : 'кредитов'}</p>
+              </div>
+            </div>
+            <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+              <div
+                className="h-full bg-white transition-all duration-500"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-2 text-[11px]">
+              <span className="opacity-90">{progressPct}% бюджета использовано</span>
+              {savedPerMonth > 0 && (
+                <span className="font-semibold flex items-center gap-1">
+                  <Icon name="TrendingDown" size={12} />
+                  −{fm(savedPerMonth)}/мес
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground">Бюджет на досрочное погашение</label>
           <div className="flex gap-2">
@@ -287,12 +393,12 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
               min={0}
               step={1000}
               value={budget || ''}
-              onChange={e => setBudget(Math.max(0, Number(e.target.value) || 0))}
+              onChange={e => setNewBudget(Math.max(0, Number(e.target.value) || 0))}
               placeholder="Например, 100 000"
               className="text-base font-semibold"
             />
             {budget > 0 && (
-              <Button variant="outline" size="sm" onClick={() => { setBudget(0); reset(); }}>
+              <Button variant="outline" size="sm" onClick={clearBudget}>
                 <Icon name="X" size={14} />
               </Button>
             )}
@@ -302,9 +408,9 @@ export default function BonusPayoffPlanner({ debts, onSuccess }: Props) {
               <Button
                 key={v}
                 size="sm"
-                variant={budget === v ? 'default' : 'outline'}
+                variant={initialBudget === v ? 'default' : 'outline'}
                 className="h-7 text-[11px]"
-                onClick={() => setBudget(v)}
+                onClick={() => setNewBudget(v)}
               >
                 {fm(v)}
               </Button>
