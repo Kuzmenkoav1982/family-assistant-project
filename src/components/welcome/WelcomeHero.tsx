@@ -84,13 +84,6 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
           </div>
         </div>
 
-        <div className="mt-12 flex justify-center">
-          <img
-            src="https://cdn.poehali.dev/files/4934b182-04ec-456b-814c-77b2704e0d2e.png"
-            alt="Домовёнок — семейный помощник приложения Наша Семья"
-            className="w-full max-w-2xl rounded-3xl shadow-2xl object-cover"
-          />
-        </div>
       </div>
     </section>
   );

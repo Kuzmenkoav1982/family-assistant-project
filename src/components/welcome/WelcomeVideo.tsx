@@ -45,6 +45,14 @@ export default function WelcomeVideo() {
       <div className="max-w-4xl mx-auto px-4 space-y-16">
 
         <div>
+          <div className="mb-10 flex justify-center">
+            <img
+              src="https://cdn.poehali.dev/files/4934b182-04ec-456b-814c-77b2704e0d2e.png"
+              alt="Домовёнок — семейный помощник приложения Наша Семья"
+              className="w-full max-w-2xl rounded-3xl shadow-2xl object-cover"
+            />
+          </div>
+
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
               🏠 Домовёнок — хранитель русских семей
