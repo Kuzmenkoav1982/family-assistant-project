@@ -33,7 +33,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
             </p>
 
             <p className="text-sm text-gray-400 mb-8 mx-auto">
-              Бесплатно для семьи до 4 человек. Работает на телефоне, планшете и компьютере.
+              Бесплатный тариф для пары — до 2 членов семьи. Работает на телефоне, планшете и компьютере.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

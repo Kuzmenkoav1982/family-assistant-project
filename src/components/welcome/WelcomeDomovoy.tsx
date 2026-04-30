@@ -62,8 +62,8 @@ const scenes = [
   {
     id: 6,
     image: 'https://cdn.poehali.dev/files/60de9dee-ead5-4091-8871-69dba42ea135.jpg',
-    quote: 'И всё это — бесплатно. Для каждой семьи!',
-    label: 'Бесплатно',
+    quote: 'Начни бесплатно — попробуй всё для пары, расширишь до всей семьи на Premium!',
+    label: 'Старт бесплатно',
     bg: 'from-violet-50 to-purple-50',
     border: 'border-violet-200',
     accent: 'text-violet-700',
