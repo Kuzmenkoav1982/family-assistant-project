@@ -4,152 +4,203 @@ import Icon from '@/components/ui/icon';
 const DOMOVOY_CENTER = 'https://cdn.poehali.dev/files/4934b182-04ec-456b-814c-77b2704e0d2e.png';
 
 const aiFunctions = [
-  { name: 'ИИ-Диета', hub: 'Питание', hubColor: '#FF7043', icon: 'Apple', color: '#FFF3E0', textColor: '#FF7043', angle: 10 },
-  { name: 'AI-план развития', hub: 'Развитие', hubColor: '#7E57C2', icon: 'GraduationCap', color: '#EDE7F6', textColor: '#7E57C2', angle: 50 },
-  { name: 'AI-психолог', hub: 'Развитие', hubColor: '#7E57C2', icon: 'Brain', color: '#EDE7F6', textColor: '#7E57C2', angle: 100 },
-  { name: 'Зеркало родителя', hub: 'Семейный код', hubColor: '#AB47BC', icon: 'Heart', color: '#F3E5F5', textColor: '#AB47BC', angle: 150 },
-  { name: 'Конфликт-AI', hub: 'Развитие', hubColor: '#7E57C2', icon: 'MessageCircle', color: '#EDE7F6', textColor: '#7E57C2', angle: 195 },
-  { name: 'AI-рецепты', hub: 'Питание', hubColor: '#FF7043', icon: 'ChefHat', color: '#FFF3E0', textColor: '#FF7043', angle: 240 },
-  { name: 'AI-маршруты', hub: 'Путешествия', hubColor: '#26C6DA', icon: 'Compass', color: '#E0F7FA', textColor: '#26C6DA', angle: 285 },
-  { name: 'AI-праздники', hub: 'Семья', hubColor: '#E91E8C', icon: 'Gift', color: '#FCE4EC', textColor: '#E91E8C', angle: 325 },
-  { name: 'AI-ветеринар', hub: 'Питомцы', hubColor: '#66BB6A', icon: 'PawPrint', color: '#E8F5E9', textColor: '#66BB6A', angle: 220 },
-  { name: 'Астрология', hub: 'Семейный код', hubColor: '#AB47BC', icon: 'Star', color: '#F3E5F5', textColor: '#AB47BC', angle: 175 },
-  { name: 'Голосовой AI', hub: 'Семья', hubColor: '#E91E8C', icon: 'Mic', color: '#FCE4EC', textColor: '#E91E8C', angle: 340 },
+  {
+    name: 'ИИ-Диета',
+    hub: 'Питание',
+    icon: 'Apple',
+    color: 'from-orange-500 to-red-500',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    text: 'text-orange-600',
+    description: 'Персональный рацион по здоровью семьи',
+  },
+  {
+    name: 'AI-план развития',
+    hub: 'Развитие',
+    icon: 'GraduationCap',
+    color: 'from-indigo-500 to-purple-500',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200',
+    text: 'text-indigo-600',
+    description: 'Индивидуальный план по возрасту ребёнка',
+  },
+  {
+    name: 'AI-психолог',
+    hub: 'Развитие',
+    icon: 'Brain',
+    color: 'from-purple-500 to-fuchsia-500',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    text: 'text-purple-600',
+    description: 'Поддержка и рекомендации для семьи',
+  },
+  {
+    name: 'Зеркало родителя',
+    hub: 'Семейный код',
+    icon: 'Heart',
+    color: 'from-fuchsia-500 to-pink-500',
+    bg: 'bg-fuchsia-50',
+    border: 'border-fuchsia-200',
+    text: 'text-fuchsia-600',
+    description: 'Тест PARI + ИИ-разбор результатов',
+  },
+  {
+    name: 'Конфликт-AI',
+    hub: 'Развитие',
+    icon: 'MessageCircle',
+    color: 'from-violet-500 to-purple-500',
+    bg: 'bg-violet-50',
+    border: 'border-violet-200',
+    text: 'text-violet-600',
+    description: 'Помощь в разрешении семейных конфликтов',
+  },
+  {
+    name: 'AI-рецепты',
+    hub: 'Питание',
+    icon: 'ChefHat',
+    color: 'from-amber-500 to-orange-500',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    text: 'text-amber-600',
+    description: 'Рецепты с учётом вкусов и аллергий',
+  },
+  {
+    name: 'AI-маршруты',
+    hub: 'Путешествия',
+    icon: 'Compass',
+    color: 'from-cyan-500 to-blue-500',
+    bg: 'bg-cyan-50',
+    border: 'border-cyan-200',
+    text: 'text-cyan-600',
+    description: 'Маршруты путешествий для всей семьи',
+  },
+  {
+    name: 'AI-праздники',
+    hub: 'Семья',
+    icon: 'Gift',
+    color: 'from-pink-500 to-rose-500',
+    bg: 'bg-pink-50',
+    border: 'border-pink-200',
+    text: 'text-pink-600',
+    description: 'Сценарии и идеи для семейных праздников',
+  },
+  {
+    name: 'AI-ветеринар',
+    hub: 'Питомцы',
+    icon: 'PawPrint',
+    color: 'from-lime-500 to-green-500',
+    bg: 'bg-lime-50',
+    border: 'border-lime-200',
+    text: 'text-lime-700',
+    description: 'Советы по уходу за питомцами',
+  },
+  {
+    name: 'Астрология',
+    hub: 'Семейный код',
+    icon: 'Star',
+    color: 'from-purple-500 to-pink-500',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    text: 'text-purple-600',
+    description: 'Семейный гороскоп и совместимость',
+  },
+  {
+    name: 'Голосовой AI',
+    hub: 'Семья',
+    icon: 'Mic',
+    color: 'from-rose-500 to-pink-500',
+    bg: 'bg-rose-50',
+    border: 'border-rose-200',
+    text: 'text-rose-600',
+    description: 'Управление голосом через Яндекс Алису',
+  },
 ];
-
-const descriptions: Record<string, string> = {
-  'ИИ-Диета': 'Персональный рацион по здоровью семьи',
-  'AI-план развития': 'Индивидуальный план по возрасту ребёнка',
-  'AI-психолог': 'Поддержка и рекомендации для семьи',
-  'Зеркало родителя': 'Тест PARI + ИИ-разбор результатов',
-  'Конфликт-AI': 'Помощь в разрешении семейных конфликтов',
-  'AI-рецепты': 'Рецепты с учётом вкусов и аллергий',
-  'AI-маршруты': 'Маршруты путешествий для всей семьи',
-  'AI-праздники': 'Сценарии и идеи для семейных праздников',
-  'AI-ветеринар': 'Советы по уходу за питомцами',
-  'Астрология': 'Семейный гороскоп и совместимость',
-  'Голосовой AI': 'Управление голосом через Яндекс Алису',
-};
-
-function polarToXY(angleDeg: number, r: number) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: 50 + r * Math.cos(rad), y: 50 + r * Math.sin(rad) };
-}
 
 export default function WelcomeDomovoyAI() {
   const [active, setActive] = useState<number | null>(null);
 
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-br from-[#1a0a2e] via-[#2d1058] to-[#1a0a2e]">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-3xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-10">
+        <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-lg">
             <Icon name="Bot" size={28} className="text-white" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white">AI-карта «Домовой»</h2>
-            <p className="text-purple-300 text-sm sm:text-base mt-0.5">11 AI-функций в единой экосистеме семьи</p>
+            <p className="text-purple-300 text-sm sm:text-base mt-0.5">
+              {aiFunctions.length} AI-функций в единой экосистеме семьи
+            </p>
           </div>
         </div>
 
-        {/* Orbit diagram */}
-        <div className="flex justify-center mb-8 px-6">
-          <div className="relative w-full max-w-[320px] aspect-square">
-            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
-              {/* Orbit rings */}
-              <circle cx="50" cy="50" r="32" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-              <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-              {/* Connection lines */}
-              {aiFunctions.map((fn, i) => {
-                const pos = polarToXY(fn.angle, 32);
-                return (
-                  <line
-                    key={i}
-                    x1="50" y1="50"
-                    x2={pos.x} y2={pos.y}
-                    stroke="rgba(255,255,255,0.12)"
-                    strokeWidth="0.4"
-                  />
-                );
-              })}
-            </svg>
+        {/* Domovoy hero */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-4 border-white/20 shadow-[0_0_40px_rgba(139,92,246,0.5)] mb-4">
+            <img src={DOMOVOY_CENTER} alt="Домовой" className="w-full h-full object-cover" />
+          </div>
+          <p className="text-purple-200 text-sm text-center max-w-md">
+            AI-помощник «Домовой» объединяет все умные функции платформы в одном месте
+          </p>
+        </div>
 
-            {/* Center image */}
-            <div className="absolute inset-0 flex items-center justify-center">
+        <p className="text-purple-300 text-sm mb-4">Нажмите на функцию, чтобы узнать подробнее</p>
+
+        {/* AI list — accordion */}
+        <div className="space-y-3">
+          {aiFunctions.map((fn, i) => {
+            const isOpen = active === i;
+            return (
               <div
-                className="w-[26%] h-[26%] rounded-full overflow-hidden border-2 border-white/30 shadow-[0_0_30px_rgba(139,92,246,0.5)] cursor-pointer"
-                onClick={() => setActive(null)}
+                key={fn.name}
+                className={`rounded-2xl border transition-all overflow-hidden ${
+                  isOpen ? 'bg-white/10 border-white/25' : 'bg-white/5 border-white/10'
+                }`}
               >
-                <img src={DOMOVOY_CENTER} alt="Домовой" className="w-full h-full object-cover" />
-              </div>
-            </div>
-
-            {/* Orbit nodes */}
-            {aiFunctions.map((fn, i) => {
-              const pos = polarToXY(fn.angle, 32);
-              const isActive = active === i;
-              return (
                 <button
-                  key={i}
-                  onClick={() => setActive(isActive ? null : i)}
-                  className="absolute flex items-center justify-center rounded-full shadow-lg transition-all duration-200"
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y}%`,
-                    transform: `translate(-50%, -50%) ${isActive ? 'scale(1.12)' : 'scale(1)'}`,
-                    width: '15%',
-                    height: '15%',
-                    background: fn.color,
-                    border: isActive ? `2px solid ${fn.textColor}` : '2px solid transparent',
-                    boxShadow: isActive ? `0 0 10px ${fn.textColor}60` : undefined,
-                  }}
-                  title={fn.name}
+                  onClick={() => setActive(isOpen ? null : i)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
                 >
-                  <span
-                    className="text-[6.5px] font-bold leading-tight text-center px-0.5"
-                    style={{ color: fn.textColor }}
+                  <div
+                    className={`w-11 h-11 rounded-xl bg-gradient-to-br ${fn.color} flex items-center justify-center flex-shrink-0 shadow-md`}
                   >
-                    {fn.name}
-                  </span>
+                    <Icon name={fn.icon} size={20} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-white text-base">{fn.name}</span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-white/15 text-purple-200">
+                        {fn.hub}
+                      </span>
+                    </div>
+                    <div className="text-xs text-purple-300 mt-0.5 truncate">{fn.description}</div>
+                  </div>
+                  <Icon
+                    name="ChevronDown"
+                    size={20}
+                    className={`text-purple-300 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
                 </button>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* List */}
-        <div className="grid grid-cols-1 gap-3">
-          {aiFunctions.map((fn, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(active === i ? null : i)}
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl border transition-all text-left ${
-                active === i
-                  ? 'border-white/20 bg-white/10'
-                  : 'border-white/8 bg-white/5 hover:bg-white/8'
-              }`}
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: fn.color }}
-              >
-                <Icon name={fn.icon} size={20} style={{ color: fn.textColor }} />
+                {isOpen && (
+                  <div className="px-4 pb-4 pt-1">
+                    <div className={`rounded-xl ${fn.bg} ${fn.border} border-2 p-4`}>
+                      <div className="flex items-start gap-2 mb-2">
+                        <Icon name="Sparkles" size={16} className={`${fn.text} flex-shrink-0 mt-0.5`} />
+                        <p className="text-sm text-gray-700 leading-relaxed">{fn.description}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-600 mt-3">
+                        <Icon name="Layers" size={12} />
+                        <span>Хаб:</span>
+                        <span className={`font-semibold ${fn.text}`}>{fn.hub}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-white text-sm">{fn.name}</span>
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full font-medium"
-                    style={{ background: `${fn.textColor}25`, color: fn.textColor }}
-                  >
-                    {fn.hub}
-                  </span>
-                </div>
-                <p className="text-purple-300 text-xs mt-0.5 leading-snug">{descriptions[fn.name]}</p>
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

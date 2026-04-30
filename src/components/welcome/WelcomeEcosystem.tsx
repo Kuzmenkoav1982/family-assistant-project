@@ -3,206 +3,185 @@ import Icon from '@/components/ui/icon';
 
 const hubs = [
   {
-    name: 'Семья', icon: 'Users', color: '#E91E8C', angle: 15,
-    items: ['Профили всех членов семьи', 'Семейная лента событий', 'Фотоальбомы и воспоминания', 'Семейные традиции'],
+    name: 'Семья',
+    icon: 'Users',
+    color: 'from-pink-500 to-rose-500',
+    bg: 'bg-pink-50',
+    border: 'border-pink-200',
+    sections: ['Профили семьи', 'Семейное древо', 'Дети', 'Семейный маячок'],
   },
   {
-    name: 'Здоровье', icon: 'Heart', color: '#E53935', angle: 45,
-    items: ['Медкарты и прививки', 'Трекер самочувствия', 'Запись к врачу', 'Хронические болезни'],
+    name: 'Здоровье',
+    icon: 'Heart',
+    color: 'from-red-500 to-pink-500',
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    sections: ['Здоровье семьи', 'Медкарты', 'Прививки', 'Запись к врачу'],
   },
   {
-    name: 'Питание', icon: 'Apple', color: '#FF7043', angle: 75,
-    items: ['Меню на неделю', 'Рецепты и калории', 'Список покупок', 'ИИ-диета для семьи'],
+    name: 'Питание',
+    icon: 'Apple',
+    color: 'from-orange-500 to-red-500',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    sections: ['Питание', 'ИИ-Диета', 'Готовые режимы', 'Рецепт из продуктов', 'Счётчик БЖУ', 'Меню на неделю', 'Рецепты'],
   },
   {
-    name: 'Ценности', icon: 'Star', color: '#FFA726', angle: 105,
-    items: ['Семейная миссия', 'Правила дома', 'Цели и мечты', 'Семейный устав'],
+    name: 'Ценности',
+    icon: 'Sparkles',
+    color: 'from-amber-500 to-yellow-500',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    sections: ['Ценности', 'Вера', 'Традиции', 'Мудрость народа', 'Правила дома'],
   },
   {
-    name: 'Планирование', icon: 'Calendar', color: '#42A5F5', angle: 135,
-    items: ['Общий календарь', 'Задачи и поручения', 'Экспорт в Google/Apple', 'Уведомления и напоминания'],
+    name: 'Планирование',
+    icon: 'Calendar',
+    color: 'from-blue-500 to-cyan-500',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    sections: ['Цели', 'Задачи', 'Календарь', 'План покупок', 'Аналитика'],
   },
   {
-    name: 'Финансы', icon: 'Wallet', color: '#26A69A', angle: 165,
-    items: ['Семейный бюджет', 'Контроль расходов', 'Накопления и цели', 'Карманные деньги детям'],
+    name: 'Финансы',
+    icon: 'Wallet',
+    color: 'from-emerald-500 to-teal-500',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    sections: ['Финансовый пульс', 'Бюджет', 'Кэш-флоу', 'Счета и карты', 'Кредиты и долги', 'Цели', 'Финграмотность', 'Имущество', 'Скидочные карты', 'Антимошенник'],
   },
   {
-    name: 'Быт', icon: 'Home', color: '#FFC107', angle: 195,
-    items: ['Домашние обязанности', 'Уборка по расписанию', 'Ремонт и техника', 'Чек-листы'],
+    name: 'Быт',
+    icon: 'Home',
+    color: 'from-orange-500 to-amber-500',
+    bg: 'bg-yellow-50',
+    border: 'border-yellow-200',
+    sections: ['Покупки', 'Голосования', 'Гараж'],
   },
   {
-    name: 'Путешествия', icon: 'Compass', color: '#26C6DA', angle: 225,
-    items: ['AI-маршруты для семьи', 'Бюджет поездки', 'Документы и визы', 'Воспоминания о путешествиях'],
+    name: 'Путешествия',
+    icon: 'Plane',
+    color: 'from-sky-500 to-blue-500',
+    bg: 'bg-sky-50',
+    border: 'border-sky-200',
+    sections: ['Путешествия', 'Досуг', 'Праздники'],
   },
   {
-    name: 'Развитие', icon: 'Brain', color: '#7E57C2', angle: 255,
-    items: ['AI-план развития ребёнка', 'Навыки и достижения', 'Книги и курсы', 'AI-психолог'],
+    name: 'Развитие',
+    icon: 'GraduationCap',
+    color: 'from-indigo-500 to-purple-500',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200',
+    sections: ['Развитие', 'Психолог ИИ', 'Мастерская жизни'],
   },
   {
-    name: 'Семейный код', icon: 'Key', color: '#AB47BC', angle: 285,
-    items: ['Тест PARI — стиль воспитания', 'Зеркало родителя', 'Совместимость в семье', 'Астрология семьи'],
+    name: 'Семейный код',
+    icon: 'KeyRound',
+    color: 'from-purple-500 to-pink-500',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    sections: ['Личный код', 'Код пары', 'Код семьи', 'Ритуалы примирения', 'Детский код', 'Имя для малыша', 'Астрология', 'Зеркало родителя'],
   },
   {
-    name: 'Питомцы', icon: 'PawPrint', color: '#66BB6A', angle: 315,
-    items: ['Профили питомцев', 'Прививки и ветеринар', 'AI-ветеринар', 'Уход и кормление'],
+    name: 'Питомцы',
+    icon: 'PawPrint',
+    color: 'from-lime-500 to-green-500',
+    bg: 'bg-lime-50',
+    border: 'border-lime-200',
+    sections: ['Питомцы', 'ИИ-ветеринар', 'Вакцинация', 'Визиты', 'Лекарства', 'Груминг', 'Активность', 'Фотоальбом'],
   },
   {
-    name: 'Госуслуги', icon: 'Building', color: '#29B6F6', angle: 345,
-    items: ['Документы семьи', 'Напоминания о сроках', 'Льготы и пособия', 'Полезные ссылки'],
+    name: 'Госуслуги',
+    icon: 'Landmark',
+    color: 'from-teal-600 to-cyan-600',
+    bg: 'bg-teal-50',
+    border: 'border-teal-200',
+    sections: ['Что такое семья', 'Семейный кодекс РФ', 'Господдержка', 'Семейная политика', 'Новости'],
   },
 ];
 
-function polarToXY(angleDeg: number, r: number, cx: number, cy: number) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return {
-    x: cx + r * Math.cos(rad),
-    y: cy + r * Math.sin(rad),
-  };
+const totalSections = hubs.reduce((sum, h) => sum + h.sections.length, 0);
+
+function pluralize(n: number) {
+  if (n === 1) return 'раздел';
+  if (n < 5) return 'раздела';
+  return 'разделов';
 }
 
 export default function WelcomeEcosystem() {
   const [active, setActive] = useState<number | null>(null);
 
-  const cx = 160;
-  const cy = 160;
-  const outerR = 130;
-  const innerR = 70;
-  const segCount = hubs.length;
-  const segAngle = 360 / segCount;
-  const gap = 3;
-
-  function describeArc(startAngle: number, endAngle: number, r1: number, r2: number) {
-    const toRad = (a: number) => ((a - 90) * Math.PI) / 180;
-    const s1 = { x: cx + r2 * Math.cos(toRad(startAngle + gap / 2)), y: cy + r2 * Math.sin(toRad(startAngle + gap / 2)) };
-    const e1 = { x: cx + r2 * Math.cos(toRad(endAngle - gap / 2)), y: cy + r2 * Math.sin(toRad(endAngle - gap / 2)) };
-    const s2 = { x: cx + r1 * Math.cos(toRad(endAngle - gap / 2)), y: cy + r1 * Math.sin(toRad(endAngle - gap / 2)) };
-    const e2 = { x: cx + r1 * Math.cos(toRad(startAngle + gap / 2)), y: cy + r1 * Math.sin(toRad(startAngle + gap / 2)) };
-    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
-    return `M ${s1.x} ${s1.y} A ${r2} ${r2} 0 ${largeArc} 1 ${e1.x} ${e1.y} L ${s2.x} ${s2.y} A ${r1} ${r1} 0 ${largeArc} 0 ${e2.x} ${e2.y} Z`;
-  }
-
   return (
     <section className="py-16 sm:py-20 bg-white">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-3xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-10">
+        <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <Icon name="Globe" size={28} className="text-white" />
+            <Icon name="LayoutGrid" size={28} className="text-white" />
           </div>
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Карта экосистемы</h2>
-            <p className="text-gray-500 text-sm sm:text-base mt-0.5">12 хабов в единой платформе «Наша Семья»</p>
+          <div className="min-w-0">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+              12 хабов — экосистема семьи
+            </h2>
+            <p className="text-gray-500 text-sm sm:text-base mt-0.5">
+              {totalSections}+ разделов в едином пространстве
+            </p>
           </div>
         </div>
 
-        {/* Wheel */}
-        <div className="flex justify-center mb-8">
-          <div className="relative w-full max-w-[360px]">
-            <svg viewBox="0 0 320 320" className="w-full drop-shadow-md">
-              {/* Segments */}
-              {hubs.map((hub, i) => {
-                const startAngle = i * segAngle;
-                const endAngle = startAngle + segAngle;
-                const mid = startAngle + segAngle / 2;
-                const labelPos = polarToXY(mid, (outerR + innerR) / 2 - 2, cx, cy);
-                const isActive = active === i;
+        <p className="text-gray-400 text-sm mb-4">Нажмите на хаб, чтобы посмотреть, что внутри</p>
 
-                return (
-                  <g
-                    key={i}
-                    onClick={() => setActive(isActive ? null : i)}
-                    className="cursor-pointer"
-                    style={{ transition: 'transform 0.2s', transform: isActive ? `scale(1.04)` : 'scale(1)', transformOrigin: `${cx}px ${cy}px` }}
+        {/* Hub list — accordion */}
+        <div className="space-y-3">
+          {hubs.map((hub, i) => {
+            const isOpen = active === i;
+            return (
+              <div
+                key={hub.name}
+                className={`rounded-2xl border-2 transition-all overflow-hidden ${
+                  isOpen ? `${hub.bg} ${hub.border}` : 'bg-white border-gray-100'
+                }`}
+              >
+                <button
+                  onClick={() => setActive(isOpen ? null : i)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
+                >
+                  <div
+                    className={`w-11 h-11 rounded-xl bg-gradient-to-br ${hub.color} flex items-center justify-center flex-shrink-0 shadow-md`}
                   >
-                    <path
-                      d={describeArc(startAngle, endAngle, innerR, outerR)}
-                      fill={hub.color}
-                      opacity={active !== null && !isActive ? 0.55 : 1}
-                      stroke="white"
-                      strokeWidth="2"
-                    />
-                    <text
-                      x={labelPos.x}
-                      y={labelPos.y}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill="white"
-                      fontSize="8.5"
-                      fontWeight="600"
-                      style={{ pointerEvents: 'none', userSelect: 'none' }}
-                      transform={`rotate(${mid}, ${labelPos.x}, ${labelPos.y})`}
-                    >
-                      {hub.name}
-                    </text>
-                  </g>
-                );
-              })}
+                    <Icon name={hub.icon} size={20} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-gray-900 text-base truncate">{hub.name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {hub.sections.length} {pluralize(hub.sections.length)}
+                    </div>
+                  </div>
+                  <Icon
+                    name="ChevronDown"
+                    size={20}
+                    className={`text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
 
-              {/* Center */}
-              <circle cx={cx} cy={cy} r={innerR - 2} fill="white" />
-              <text x={cx} y={cy - 8} textAnchor="middle" dominantBaseline="middle" fontSize="13" fontWeight="800" fill="#1a1a2e">
-                Наша
-              </text>
-              <text x={cx} y={cy + 8} textAnchor="middle" dominantBaseline="middle" fontSize="13" fontWeight="800" fill="#1a1a2e">
-                Семья
-              </text>
-              <text x={cx} y={cy + 24} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fill="#9ca3af">
-                Цифровая экосистема
-              </text>
-            </svg>
-          </div>
-        </div>
-
-        <p className="text-center text-gray-400 text-sm mb-6">Нажмите на хаб, чтобы узнать подробнее</p>
-
-        {/* Active hub details */}
-        {active !== null && (
-          <div
-            className="mb-5 rounded-2xl px-5 py-4 shadow-md transition-all"
-            style={{ background: `${hubs[active].color}12`, border: `2px solid ${hubs[active].color}40` }}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: hubs[active].color }}
-              >
-                <Icon name={hubs[active].icon} size={20} className="text-white" />
+                {isOpen && (
+                  <div className="px-4 pb-4 pt-1">
+                    <div className="flex flex-wrap gap-2">
+                      {hub.sections.map((section) => (
+                        <span
+                          key={section}
+                          className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs sm:text-sm text-gray-700 font-medium"
+                        >
+                          <Icon name="Check" size={12} className="text-green-600 flex-shrink-0" />
+                          {section}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <span className="font-extrabold text-gray-900 text-lg">{hubs[active].name}</span>
-            </div>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {hubs[active].items.map((item, j) => (
-                <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: hubs[active].color }} />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Hub grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {hubs.map((hub, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(active === i ? null : i)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all text-left ${
-                active === i
-                  ? 'border-transparent shadow-lg scale-[1.02]'
-                  : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
-              }`}
-              style={active === i ? { background: `${hub.color}15`, borderColor: hub.color } : {}}
-            >
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: `${hub.color}20` }}
-              >
-                <Icon name={hub.icon} size={18} style={{ color: hub.color }} />
-              </div>
-              <span className="font-semibold text-gray-800 text-sm">{hub.name}</span>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
