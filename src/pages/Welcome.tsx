@@ -13,6 +13,8 @@ import WelcomeVideo from '@/components/welcome/WelcomeVideo';
 import WelcomeDeveloper from '@/components/welcome/WelcomeDeveloper';
 import WelcomeFAQ from '@/components/welcome/WelcomeFAQ';
 import WelcomeDomovoy from '@/components/welcome/WelcomeDomovoy';
+import WelcomeEcosystem from '@/components/welcome/WelcomeEcosystem';
+import WelcomeDomovoyAI from '@/components/welcome/WelcomeDomovoyAI';
 
 const openTelegramSupport = () => {
   window.open('https://t.me/Nasha7iya', '_blank');
@@ -52,6 +54,10 @@ export default function Welcome() {
       <WelcomeHeader isLoggedIn={isLoggedIn} />
 
       <WelcomeHero isLoggedIn={isLoggedIn} />
+
+      <WelcomeEcosystem />
+
+      <WelcomeDomovoyAI />
 
       <WelcomeVideo />
 
