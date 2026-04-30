@@ -2,18 +2,54 @@ import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 
 const hubs = [
-  { name: 'Семья', icon: 'Users', color: '#E91E8C', angle: 15 },
-  { name: 'Здоровье', icon: 'Heart', color: '#E53935', angle: 45 },
-  { name: 'Питание', icon: 'Apple', color: '#FF7043', angle: 75 },
-  { name: 'Ценности', icon: 'Star', color: '#FFA726', angle: 105 },
-  { name: 'Планирование', icon: 'Calendar', color: '#42A5F5', angle: 135 },
-  { name: 'Финансы', icon: 'Wallet', color: '#26A69A', angle: 165 },
-  { name: 'Быт', icon: 'Home', color: '#FFC107', angle: 195 },
-  { name: 'Путешествия', icon: 'Compass', color: '#26C6DA', angle: 225 },
-  { name: 'Развитие', icon: 'Brain', color: '#7E57C2', angle: 255 },
-  { name: 'Семейный код', icon: 'Key', color: '#AB47BC', angle: 285 },
-  { name: 'Питомцы', icon: 'PawPrint', color: '#66BB6A', angle: 315 },
-  { name: 'Госуслуги', icon: 'Building', color: '#29B6F6', angle: 345 },
+  {
+    name: 'Семья', icon: 'Users', color: '#E91E8C', angle: 15,
+    items: ['Профили всех членов семьи', 'Семейная лента событий', 'Фотоальбомы и воспоминания', 'Семейные традиции'],
+  },
+  {
+    name: 'Здоровье', icon: 'Heart', color: '#E53935', angle: 45,
+    items: ['Медкарты и прививки', 'Трекер самочувствия', 'Запись к врачу', 'Хронические болезни'],
+  },
+  {
+    name: 'Питание', icon: 'Apple', color: '#FF7043', angle: 75,
+    items: ['Меню на неделю', 'Рецепты и калории', 'Список покупок', 'ИИ-диета для семьи'],
+  },
+  {
+    name: 'Ценности', icon: 'Star', color: '#FFA726', angle: 105,
+    items: ['Семейная миссия', 'Правила дома', 'Цели и мечты', 'Семейный устав'],
+  },
+  {
+    name: 'Планирование', icon: 'Calendar', color: '#42A5F5', angle: 135,
+    items: ['Общий календарь', 'Задачи и поручения', 'Экспорт в Google/Apple', 'Уведомления и напоминания'],
+  },
+  {
+    name: 'Финансы', icon: 'Wallet', color: '#26A69A', angle: 165,
+    items: ['Семейный бюджет', 'Контроль расходов', 'Накопления и цели', 'Карманные деньги детям'],
+  },
+  {
+    name: 'Быт', icon: 'Home', color: '#FFC107', angle: 195,
+    items: ['Домашние обязанности', 'Уборка по расписанию', 'Ремонт и техника', 'Чек-листы'],
+  },
+  {
+    name: 'Путешествия', icon: 'Compass', color: '#26C6DA', angle: 225,
+    items: ['AI-маршруты для семьи', 'Бюджет поездки', 'Документы и визы', 'Воспоминания о путешествиях'],
+  },
+  {
+    name: 'Развитие', icon: 'Brain', color: '#7E57C2', angle: 255,
+    items: ['AI-план развития ребёнка', 'Навыки и достижения', 'Книги и курсы', 'AI-психолог'],
+  },
+  {
+    name: 'Семейный код', icon: 'Key', color: '#AB47BC', angle: 285,
+    items: ['Тест PARI — стиль воспитания', 'Зеркало родителя', 'Совместимость в семье', 'Астрология семьи'],
+  },
+  {
+    name: 'Питомцы', icon: 'PawPrint', color: '#66BB6A', angle: 315,
+    items: ['Профили питомцев', 'Прививки и ветеринар', 'AI-ветеринар', 'Уход и кормление'],
+  },
+  {
+    name: 'Госуслуги', icon: 'Building', color: '#29B6F6', angle: 345,
+    items: ['Документы семьи', 'Напоминания о сроках', 'Льготы и пособия', 'Полезные ссылки'],
+  },
 ];
 
 function polarToXY(angleDeg: number, r: number, cx: number, cy: number) {
@@ -118,6 +154,32 @@ export default function WelcomeEcosystem() {
         </div>
 
         <p className="text-center text-gray-400 text-sm mb-6">Нажмите на хаб, чтобы узнать подробнее</p>
+
+        {/* Active hub details */}
+        {active !== null && (
+          <div
+            className="mb-5 rounded-2xl px-5 py-4 shadow-md transition-all"
+            style={{ background: `${hubs[active].color}12`, border: `2px solid ${hubs[active].color}40` }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: hubs[active].color }}
+              >
+                <Icon name={hubs[active].icon} size={20} className="text-white" />
+              </div>
+              <span className="font-extrabold text-gray-900 text-lg">{hubs[active].name}</span>
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {hubs[active].items.map((item, j) => (
+                <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: hubs[active].color }} />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Hub grid */}
         <div className="grid grid-cols-2 gap-3">
