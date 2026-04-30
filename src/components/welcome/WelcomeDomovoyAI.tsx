@@ -54,15 +54,15 @@ export default function WelcomeDomovoyAI() {
         </div>
 
         {/* Orbit diagram */}
-        <div className="flex justify-center mb-8">
-          <div className="relative w-full max-w-[340px] aspect-square">
+        <div className="flex justify-center mb-8 px-6">
+          <div className="relative w-full max-w-[320px] aspect-square">
             <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
               {/* Orbit rings */}
-              <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-              <circle cx="50" cy="50" r="28" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+              <circle cx="50" cy="50" r="32" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+              <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
               {/* Connection lines */}
               {aiFunctions.map((fn, i) => {
-                const pos = polarToXY(fn.angle, 38);
+                const pos = polarToXY(fn.angle, 32);
                 return (
                   <line
                     key={i}
@@ -78,7 +78,7 @@ export default function WelcomeDomovoyAI() {
             {/* Center image */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="w-[28%] h-[28%] rounded-full overflow-hidden border-2 border-white/30 shadow-[0_0_30px_rgba(139,92,246,0.5)] cursor-pointer"
+                className="w-[26%] h-[26%] rounded-full overflow-hidden border-2 border-white/30 shadow-[0_0_30px_rgba(139,92,246,0.5)] cursor-pointer"
                 onClick={() => setActive(null)}
               >
                 <img src={DOMOVOY_CENTER} alt="Домовой" className="w-full h-full object-cover" />
@@ -87,27 +87,27 @@ export default function WelcomeDomovoyAI() {
 
             {/* Orbit nodes */}
             {aiFunctions.map((fn, i) => {
-              const pos = polarToXY(fn.angle, 38);
+              const pos = polarToXY(fn.angle, 32);
               const isActive = active === i;
               return (
                 <button
                   key={i}
                   onClick={() => setActive(isActive ? null : i)}
-                  className="absolute flex items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                  className="absolute flex items-center justify-center rounded-full shadow-lg transition-all duration-200"
                   style={{
                     left: `${pos.x}%`,
                     top: `${pos.y}%`,
-                    transform: `translate(-50%, -50%) ${isActive ? 'scale(1.15)' : 'scale(1)'}`,
-                    width: '18%',
-                    height: '18%',
+                    transform: `translate(-50%, -50%) ${isActive ? 'scale(1.12)' : 'scale(1)'}`,
+                    width: '15%',
+                    height: '15%',
                     background: fn.color,
                     border: isActive ? `2px solid ${fn.textColor}` : '2px solid transparent',
-                    boxShadow: isActive ? `0 0 12px ${fn.textColor}60` : undefined,
+                    boxShadow: isActive ? `0 0 10px ${fn.textColor}60` : undefined,
                   }}
                   title={fn.name}
                 >
                   <span
-                    className="text-[8px] font-bold leading-tight text-center px-0.5"
+                    className="text-[6.5px] font-bold leading-tight text-center px-0.5"
                     style={{ color: fn.textColor }}
                   >
                     {fn.name}
