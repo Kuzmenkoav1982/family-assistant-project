@@ -10,7 +10,10 @@ interface Props {
 }
 
 export default function HubDetailsCard({ hub, onToggleStep, onOpenSection, onOpenHub }: Props) {
-  const [expandedSection, setExpandedSection] = useState<number | null>(null);
+  const [expandedByHub, setExpandedByHub] = useState<Record<number, number | null>>({});
+  const expandedSection = expandedByHub[hub.id] ?? null;
+  const setExpandedSection = (id: number | null) =>
+    setExpandedByHub((prev) => ({ ...prev, [hub.id]: id }));
 
   return (
     <div
