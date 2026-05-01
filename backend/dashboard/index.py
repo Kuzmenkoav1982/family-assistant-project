@@ -46,12 +46,33 @@ def _esc(s: str) -> str:
     return s.replace("'", "''")
 
 
-def _count_auto(cur, table: str, field: str, user_id: str) -> int:
+def _resolve_family_id(cur, user_id: str) -> str:
+    """Находит family_id пользователя через family_members."""
+    try:
+        cur.execute(
+            f"SELECT family_id::text AS fid FROM {SCHEMA}.family_members "
+            f"WHERE user_id::text = '{_esc(user_id)}' LIMIT 1"
+        )
+        row = cur.fetchone()
+        if row:
+            if isinstance(row, dict):
+                return str(row.get('fid') or '')
+            return str(row[0] or '')
+    except Exception:
+        pass
+    return ''
+
+
+def _count_auto(cur, table: str, field: str, user_id: str, family_id: str) -> int:
     if table not in ALLOWED_AUTO_TABLES or field not in ALLOWED_USER_FIELDS:
+        return 0
+    value = family_id if field == 'family_id' else user_id
+    if not value:
         return 0
     try:
         cur.execute(
-            f"SELECT COUNT(*) AS c FROM {SCHEMA}.{table} WHERE {field} = '{_esc(user_id)}'"
+            f"SELECT COUNT(*) AS c FROM {SCHEMA}.{table} "
+            f"WHERE {field}::text = '{_esc(value)}'"
         )
         row = cur.fetchone()
         if row is None:
@@ -101,6 +122,7 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
                 steps_by_section.setdefault(st['section_id'], []).append(st)
 
             with conn.cursor() as ccur:
+                family_id = _resolve_family_id(ccur, user_id)
                 for s in sections:
                     s_steps = steps_by_section.get(s['id'], [])
                     s['steps'] = s_steps
@@ -114,6 +136,7 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
                             s['auto_table'],
                             s.get('auto_user_field') or 'user_id',
                             user_id,
+                            family_id,
                         )
                         s['auto_count'] = cnt
                         target = max(1, int(s.get('auto_min_count') or 1))
