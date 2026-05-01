@@ -63,11 +63,13 @@ def _resolve_family_id(cur, user_id: str) -> str:
     return ''
 
 
-def _count_auto(cur, table: str, field: str, user_id: str, family_id: str) -> int:
+def _count_auto(cur, table: str, field: str, user_id: str, family_id: str, errors: list) -> int:
     if table not in ALLOWED_AUTO_TABLES or field not in ALLOWED_USER_FIELDS:
+        errors.append(f"{table}.{field}: not in allowlist")
         return 0
     value = family_id if field == 'family_id' else user_id
     if not value:
+        errors.append(f"{table}.{field}: empty value (family_id={family_id})")
         return 0
     try:
         cur.execute(
@@ -80,7 +82,8 @@ def _count_auto(cur, table: str, field: str, user_id: str, family_id: str) -> in
         if isinstance(row, dict):
             return int(row.get('c', 0) or 0)
         return int(row[0] or 0)
-    except Exception:
+    except Exception as e:
+        errors.append(f"{table}.{field}: {type(e).__name__}: {str(e)[:100]}")
         return 0
 
 
@@ -121,8 +124,10 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
             for st in steps:
                 steps_by_section.setdefault(st['section_id'], []).append(st)
 
+            debug_errors: list = []
             with conn.cursor() as ccur:
                 family_id = _resolve_family_id(ccur, user_id)
+                debug_family_id = family_id
                 for s in sections:
                     s_steps = steps_by_section.get(s['id'], [])
                     s['steps'] = s_steps
@@ -137,6 +142,7 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
                             s.get('auto_user_field') or 'user_id',
                             user_id,
                             family_id,
+                            debug_errors,
                         )
                         s['auto_count'] = cnt
                         target = max(1, int(s.get('auto_min_count') or 1))
@@ -181,6 +187,11 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
 
     return {
         'hubs': hubs,
+        'debug': {
+            'user_id': user_id,
+            'family_id': debug_family_id,
+            'errors': debug_errors[:10],
+        },
         'stats': {
             'overall_progress': overall,
             'active_hubs': active_hubs,
