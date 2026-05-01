@@ -239,8 +239,8 @@ function CapsuleProgress({
 }) {
   const w = 110;
   const h = 26;
-  const isFlipped = angle > 90 && angle < 270;
-  const tangent = isFlipped ? angle : angle + 180;
+  const isBottom = angle > 90 && angle < 270;
+  const tangent = isBottom ? angle + 180 : angle;
 
   const iconX = -w / 2 + 13;
   const percentX = w / 2 - 13;
