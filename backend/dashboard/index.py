@@ -23,16 +23,17 @@ def _conn():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
 
-def _get_user_id(event: Dict[str, Any]) -> int:
+def _get_user_id(event: Dict[str, Any]) -> str:
     headers = event.get('headers') or {}
-    raw = headers.get('X-User-Id') or headers.get('x-user-id') or '0'
-    try:
-        return int(raw)
-    except (TypeError, ValueError):
-        return 0
+    raw = headers.get('X-User-Id') or headers.get('x-user-id') or ''
+    return str(raw).strip()[:128]
 
 
-def _load_dashboard(user_id: int) -> Dict[str, Any]:
+def _esc(s: str) -> str:
+    return s.replace("'", "''")
+
+
+def _load_dashboard(user_id: str) -> Dict[str, Any]:
     with _conn() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(f"""
@@ -54,7 +55,7 @@ def _load_dashboard(user_id: int) -> Dict[str, Any]:
                        COALESCE(p.completed, FALSE) AS completed
                 FROM {SCHEMA}.dashboard_steps st
                 LEFT JOIN {SCHEMA}.dashboard_user_progress p
-                  ON p.step_id = st.id AND p.user_id = {int(user_id)}
+                  ON p.step_id = st.id AND p.user_id = '{_esc(user_id)}'
                 ORDER BY st.section_id, st.position
             """)
             steps = [dict(r) for r in cur.fetchall()]
@@ -114,20 +115,21 @@ def _load_dashboard(user_id: int) -> Dict[str, Any]:
     }
 
 
-def _toggle_step(user_id: int, step_id: int, completed: bool) -> Dict[str, Any]:
+def _toggle_step(user_id: str, step_id: int, completed: bool) -> Dict[str, Any]:
+    uid = _esc(user_id)
     with _conn() as conn:
         with conn.cursor() as cur:
             if completed:
                 cur.execute(f"""
                     INSERT INTO {SCHEMA}.dashboard_user_progress (user_id, step_id, completed, completed_at, updated_at)
-                    VALUES ({int(user_id)}, {int(step_id)}, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    VALUES ('{uid}', {int(step_id)}, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     ON CONFLICT (user_id, step_id) DO UPDATE
                       SET completed = TRUE, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
                 """)
             else:
                 cur.execute(f"""
                     INSERT INTO {SCHEMA}.dashboard_user_progress (user_id, step_id, completed, updated_at)
-                    VALUES ({int(user_id)}, {int(step_id)}, FALSE, CURRENT_TIMESTAMP)
+                    VALUES ('{uid}', {int(step_id)}, FALSE, CURRENT_TIMESTAMP)
                     ON CONFLICT (user_id, step_id) DO UPDATE
                       SET completed = FALSE, updated_at = CURRENT_TIMESTAMP
                 """)
