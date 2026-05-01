@@ -15,7 +15,6 @@ const HUB_RADIUS = 235;
 const HUB_SIZE = 96;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
 const CAPSULE_RADIUS = 318;
-const DOMOVOY_IMG = 'https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png';
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -226,15 +225,7 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
             animation: 'centerBreath 4s ease-in-out infinite',
           }}
         >
-          <div
-            className="w-14 h-14 rounded-full mb-1.5 ring-2 ring-white shadow-lg overflow-hidden bg-gradient-to-br from-orange-200 to-pink-200"
-            style={{
-              backgroundImage: `url(${DOMOVOY_IMG})`,
-              backgroundSize: '130%',
-              backgroundPosition: '50% 18%',
-            }}
-          />
-          <h2 className="text-xl font-bold mb-1.5 bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
             Наша Семья
           </h2>
           <div className="flex items-baseline justify-center gap-1 mb-0.5">
