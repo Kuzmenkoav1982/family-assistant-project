@@ -16,6 +16,7 @@ const HOME_ITEM: NavItem = { id: 'home', path: '/', icon: 'Home', label: 'Гла
 const DOMOVOY_IMG = 'https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png';
 
 const HUB_ITEMS: NavItem[] = [
+  { id: 'dashboard', path: '/dashboard', icon: 'LayoutDashboard', label: 'Дашборд' },
   { id: 'family', path: '/family-hub', icon: 'Users', label: 'Семья' },
   { id: 'health', path: '/health-hub', icon: 'HeartPulse', label: 'Здоровье' },
   { id: 'nutrition', path: '/nutrition', icon: 'Apple', label: 'Питание' },
@@ -31,7 +32,7 @@ const HUB_ITEMS: NavItem[] = [
 
 const ALL_ITEMS: NavItem[] = [HOME_ITEM, ...HUB_ITEMS];
 
-const DEFAULT_IDS = ['home', 'family', 'health', 'nutrition', 'planning', 'finance', 'leisure', 'development'];
+const DEFAULT_IDS = ['home', 'dashboard', 'family', 'health', 'nutrition', 'planning', 'finance', 'development'];
 const STORAGE_KEY = 'bottomBarItems';
 const MAX_MIDDLE = 8;
 

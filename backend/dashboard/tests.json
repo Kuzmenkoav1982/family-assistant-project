@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET dashboard returns 200",
+      "method": "GET",
+      "path": "/",
+      "headers": {"X-User-Id": "1"},
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST without step_id returns 400",
+      "method": "POST",
+      "path": "/",
+      "headers": {"X-User-Id": "1", "Content-Type": "application/json"},
+      "body": {"completed": true},
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST toggles step progress",
+      "method": "POST",
+      "path": "/",
+      "headers": {"X-User-Id": "1", "Content-Type": "application/json"},
+      "body": {"step_id": 1, "completed": true},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

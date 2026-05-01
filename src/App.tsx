@@ -91,6 +91,7 @@ const Children = lazy(() => import("./pages/Children"));
 const AssessmentReport = lazy(() => import("./pages/AssessmentReport"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminTraffic = lazy(() => import("./pages/AdminTraffic"));
 const Recipes = lazy(() => import("./pages/Recipes"));
@@ -298,6 +299,11 @@ const App = () => {
                       <Route path="/" element={
                         <ProtectedRoute>
                           <Index onLogout={handleLogout} />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                          <Dashboard />
                         </ProtectedRoute>
                       } />
                       <Route path="/instructions" element={<Instructions />} />
