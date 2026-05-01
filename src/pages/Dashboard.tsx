@@ -49,31 +49,41 @@ export default function Dashboard() {
     async (stepId: number, completed: boolean) => {
       if (!data) return;
       const next: DashboardData = JSON.parse(JSON.stringify(data));
+
       for (const h of next.hubs) {
         for (const s of h.sections) {
+          if (s.mode === 'auto') continue;
+          let touched = false;
           for (const st of s.steps) {
-            if (st.id === stepId) st.completed = completed;
+            if (st.id === stepId) {
+              st.completed = completed;
+              touched = true;
+            }
           }
-          const total = s.steps.length;
-          const done = s.steps.filter((x) => x.completed).length;
-          s.progress = total ? Math.round((done / total) * 100) : 0;
-          s.completed_steps = done;
-          s.total_steps = total;
+          if (touched) {
+            const total = s.steps.length;
+            const done = s.steps.filter((x) => x.completed).length;
+            s.progress = total ? Math.round((done / total) * 100) : 0;
+            s.completed_steps = done;
+            s.total_steps = total;
+          }
         }
-        const hubDone = h.sections.reduce((a, s) => a + s.completed_steps, 0);
-        const hubTotal = h.sections.reduce((a, s) => a + s.total_steps, 0);
-        h.progress = hubTotal ? Math.round((hubDone / hubTotal) * 100) : 0;
-        h.completed_sections = h.sections.filter((s) => s.progress === 100).length;
+        if (h.sections.length) {
+          const avg = h.sections.reduce((a, s) => a + s.progress, 0) / h.sections.length;
+          h.progress = Math.round(avg);
+          h.completed_sections = h.sections.filter((s) => s.progress === 100).length;
+        }
       }
-      const allDone = next.hubs.reduce(
-        (a, h) => a + h.sections.reduce((b, s) => b + s.completed_steps, 0),
-        0,
-      );
-      const allTotal = next.hubs.reduce(
-        (a, h) => a + h.sections.reduce((b, s) => b + s.total_steps, 0),
-        0,
-      );
-      next.stats.overall_progress = allTotal ? Math.round((allDone / allTotal) * 100) : 0;
+
+      let overallSum = 0;
+      let overallCount = 0;
+      for (const h of next.hubs) {
+        if (h.sections.length) {
+          overallSum += h.sections.reduce((a, s) => a + s.progress, 0) / h.sections.length;
+          overallCount += 1;
+        }
+      }
+      next.stats.overall_progress = overallCount ? Math.round(overallSum / overallCount) : 0;
       next.stats.active_hubs = next.hubs.filter((h) => h.progress > 0).length;
       next.stats.completed_sections = next.hubs.reduce(
         (a, h) => a + h.completed_sections,

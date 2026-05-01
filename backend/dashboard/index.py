@@ -24,10 +24,12 @@ ALLOWED_AUTO_TABLES = {
     'recipes', 'shopping_items_v2', 'diet_plans', 'family_values', 'traditions',
     'faith_events', 'family_album', 'calendar_events', 'votings', 'tasks_v2',
     'tasks', 'family_goals', 'finance_budgets', 'finance_goals', 'finance_debts',
-    'finance_transactions', 'garage_vehicles', 'purchases', 'trips',
+    'finance_transactions', 'finance_recurring', 'finance_categories',
+    'family_wallet', 'wallet_transactions', 'garage_vehicles', 'purchases', 'trips',
     'trip_wishlist', 'leisure_activities', 'family_location_tracking',
-    'fin_edu_progress', 'children_profiles', 'life_events', 'pets',
-    'pet_health_metrics', 'pet_food', 'pet_grooming',
+    'fin_edu_progress', 'children_profiles', 'life_events', 'life_goals', 'pets',
+    'pet_health_metrics', 'pet_food', 'pet_grooming', 'children_medications',
+    'children_doctor_visits',
 }
 ALLOWED_USER_FIELDS = {'user_id', 'family_id'}
 
@@ -185,13 +187,9 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
 
     overall = round(overall_progress_sum / overall_count) if overall_count else 0
 
+    _ = (debug_family_id, debug_errors)
     return {
         'hubs': hubs,
-        'debug': {
-            'user_id': user_id,
-            'family_id': debug_family_id,
-            'errors': debug_errors[:10],
-        },
         'stats': {
             'overall_progress': overall,
             'active_hubs': active_hubs,
