@@ -1,7 +1,7 @@
 """
-Business: Дашборд семейной экосистемы — 11 хабов, разделы, прогресс пользователя.
-Args: event с httpMethod (GET/POST), headers (X-User-Id), body (для POST с step_id, completed)
-Returns: hubs со статистикой и прогрессом пользователя по чек-листам
+Business: Дашборд семейной экосистемы — 11 хабов, разделы, прогресс пользователя (авто/ручной режим).
+Args: event с httpMethod (GET/POST), headers (X-User-Id), body (для POST с step_id|section_id, completed|mode)
+Returns: hubs со статистикой и прогрессом пользователя
 """
 import json
 import os
@@ -18,6 +18,19 @@ CORS_HEADERS = {
     'Access-Control-Max-Age': '86400',
 }
 
+ALLOWED_AUTO_TABLES = {
+    'family_members', 'family_tree', 'family_invitations', 'health_records',
+    'medications', 'health_profiles', 'vital_records', 'family_meal_plans',
+    'recipes', 'shopping_items_v2', 'diet_plans', 'family_values', 'traditions',
+    'faith_events', 'family_album', 'calendar_events', 'votings', 'tasks_v2',
+    'tasks', 'family_goals', 'finance_budgets', 'finance_goals', 'finance_debts',
+    'finance_transactions', 'garage_vehicles', 'purchases', 'trips',
+    'trip_wishlist', 'leisure_activities', 'family_location_tracking',
+    'fin_edu_progress', 'children_profiles', 'life_events', 'pets',
+    'pet_health_metrics', 'pet_food', 'pet_grooming',
+}
+ALLOWED_USER_FIELDS = {'user_id', 'family_id'}
+
 
 def _conn():
     return psycopg2.connect(os.environ['DATABASE_URL'])
@@ -33,19 +46,42 @@ def _esc(s: str) -> str:
     return s.replace("'", "''")
 
 
+def _count_auto(cur, table: str, field: str, user_id: str) -> int:
+    if table not in ALLOWED_AUTO_TABLES or field not in ALLOWED_USER_FIELDS:
+        return 0
+    try:
+        cur.execute(
+            f"SELECT COUNT(*) AS c FROM {SCHEMA}.{table} WHERE {field} = '{_esc(user_id)}'"
+        )
+        row = cur.fetchone()
+        if row is None:
+            return 0
+        if isinstance(row, dict):
+            return int(row.get('c', 0) or 0)
+        return int(row[0] or 0)
+    except Exception:
+        return 0
+
+
 def _load_dashboard(user_id: str) -> Dict[str, Any]:
+    uid = _esc(user_id)
     with _conn() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(f"""
-                SELECT h.id, h.slug, h.title, h.icon, h.color, h.route, h.position
-                FROM {SCHEMA}.dashboard_hubs h
-                ORDER BY h.position
+                SELECT id, slug, title, icon, color, route, position
+                FROM {SCHEMA}.dashboard_hubs
+                ORDER BY position
             """)
             hubs = [dict(r) for r in cur.fetchall()]
 
             cur.execute(f"""
-                SELECT s.id, s.hub_id, s.slug, s.title, s.icon, s.route, s.position
+                SELECT s.id, s.hub_id, s.slug, s.title, s.icon, s.route, s.position,
+                       s.auto_table, s.auto_user_field, s.auto_min_count,
+                       s.auto_logic, s.auto_supported,
+                       COALESCE(us.mode, 'manual') AS mode
                 FROM {SCHEMA}.dashboard_sections s
+                LEFT JOIN {SCHEMA}.dashboard_user_settings us
+                  ON us.section_id = s.id AND us.user_id = '{uid}'
                 ORDER BY s.hub_id, s.position
             """)
             sections = [dict(r) for r in cur.fetchall()]
@@ -55,45 +91,62 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
                        COALESCE(p.completed, FALSE) AS completed
                 FROM {SCHEMA}.dashboard_steps st
                 LEFT JOIN {SCHEMA}.dashboard_user_progress p
-                  ON p.step_id = st.id AND p.user_id = '{_esc(user_id)}'
+                  ON p.step_id = st.id AND p.user_id = '{uid}'
                 ORDER BY st.section_id, st.position
             """)
             steps = [dict(r) for r in cur.fetchall()]
 
-    steps_by_section: Dict[int, list] = {}
-    for st in steps:
-        steps_by_section.setdefault(st['section_id'], []).append(st)
+            steps_by_section: Dict[int, list] = {}
+            for st in steps:
+                steps_by_section.setdefault(st['section_id'], []).append(st)
+
+            with conn.cursor() as ccur:
+                for s in sections:
+                    s_steps = steps_by_section.get(s['id'], [])
+                    s['steps'] = s_steps
+                    s['total_steps'] = len(s_steps)
+                    s['auto_count'] = 0
+                    s['auto_target'] = int(s.get('auto_min_count') or 1)
+
+                    if s.get('mode') == 'auto' and s.get('auto_supported') and s.get('auto_table'):
+                        cnt = _count_auto(
+                            ccur,
+                            s['auto_table'],
+                            s.get('auto_user_field') or 'user_id',
+                            user_id,
+                        )
+                        s['auto_count'] = cnt
+                        target = max(1, int(s.get('auto_min_count') or 1))
+                        progress = min(100, round(cnt / target * 100))
+                        s['progress'] = progress
+                        s['completed_steps'] = min(s['total_steps'], int(progress / 100 * s['total_steps']))
+                    else:
+                        done = sum(1 for x in s_steps if x['completed'])
+                        s['completed_steps'] = done
+                        s['progress'] = round(done / s['total_steps'] * 100) if s['total_steps'] else 0
 
     sections_by_hub: Dict[int, list] = {}
     for s in sections:
-        s_steps = steps_by_section.get(s['id'], [])
-        total = len(s_steps)
-        done = sum(1 for x in s_steps if x['completed'])
-        s['steps'] = s_steps
-        s['progress'] = round(done / total * 100) if total else 0
-        s['completed_steps'] = done
-        s['total_steps'] = total
         sections_by_hub.setdefault(s['hub_id'], []).append(s)
 
     total_sections = 0
     completed_sections = 0
     active_hubs = 0
-    overall_done = 0
-    overall_total = 0
+    overall_progress_sum = 0
+    overall_count = 0
 
     for h in hubs:
         h_sections = sections_by_hub.get(h['id'], [])
         h['sections'] = h_sections
         if h_sections:
-            h_done = sum(s['completed_steps'] for s in h_sections)
-            h_total = sum(s['total_steps'] for s in h_sections)
-            h['progress'] = round(h_done / h_total * 100) if h_total else 0
+            avg = sum(s['progress'] for s in h_sections) / len(h_sections)
+            h['progress'] = round(avg)
             h['total_sections'] = len(h_sections)
             h['completed_sections'] = sum(1 for s in h_sections if s['progress'] == 100)
-            overall_done += h_done
-            overall_total += h_total
             total_sections += len(h_sections)
-            completed_sections += sum(1 for s in h_sections if s['progress'] == 100)
+            completed_sections += h['completed_sections']
+            overall_progress_sum += avg
+            overall_count += 1
             if h['progress'] > 0:
                 active_hubs += 1
         else:
@@ -101,7 +154,7 @@ def _load_dashboard(user_id: str) -> Dict[str, Any]:
             h['total_sections'] = 0
             h['completed_sections'] = 0
 
-    overall = round(overall_done / overall_total * 100) if overall_total else 0
+    overall = round(overall_progress_sum / overall_count) if overall_count else 0
 
     return {
         'hubs': hubs,
@@ -137,6 +190,22 @@ def _toggle_step(user_id: str, step_id: int, completed: bool) -> Dict[str, Any]:
     return {'ok': True, 'step_id': step_id, 'completed': completed}
 
 
+def _set_mode(user_id: str, section_id: int, mode: str) -> Dict[str, Any]:
+    if mode not in ('auto', 'manual'):
+        mode = 'manual'
+    uid = _esc(user_id)
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                INSERT INTO {SCHEMA}.dashboard_user_settings (user_id, section_id, mode, updated_at)
+                VALUES ('{uid}', {int(section_id)}, '{mode}', CURRENT_TIMESTAMP)
+                ON CONFLICT (user_id, section_id) DO UPDATE
+                  SET mode = '{mode}', updated_at = CURRENT_TIMESTAMP
+            """)
+            conn.commit()
+    return {'ok': True, 'section_id': section_id, 'mode': mode}
+
+
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
 
@@ -156,6 +225,24 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
 
         if method == 'POST':
             body = json.loads(event.get('body') or '{}')
+            action = body.get('action', 'toggle')
+
+            if action == 'mode':
+                section_id = int(body.get('section_id', 0))
+                mode = str(body.get('mode', 'manual'))
+                if not section_id or not user_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {**CORS_HEADERS, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'user_id and section_id required'}),
+                    }
+                data = _set_mode(user_id, section_id, mode)
+                return {
+                    'statusCode': 200,
+                    'headers': {**CORS_HEADERS, 'Content-Type': 'application/json'},
+                    'body': json.dumps(data, ensure_ascii=False),
+                }
+
             step_id = int(body.get('step_id', 0))
             completed = bool(body.get('completed', False))
             if not step_id or not user_id:

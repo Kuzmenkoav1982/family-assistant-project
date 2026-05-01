@@ -19,6 +19,11 @@ export interface Section {
   progress: number;
   completed_steps: number;
   total_steps: number;
+  mode?: 'auto' | 'manual';
+  auto_supported?: boolean;
+  auto_table?: string;
+  auto_count?: number;
+  auto_target?: number;
 }
 
 export interface Hub {

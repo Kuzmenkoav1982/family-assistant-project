@@ -225,24 +225,21 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
             animation: 'centerBreath 4s ease-in-out infinite',
           }}
         >
-          <h2 className="text-xl font-bold mb-2 bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-            Наша Семья
-          </h2>
-          <div className="flex items-baseline justify-center gap-1 mb-0.5">
-            <span className="text-3xl font-extrabold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Наша Семья</h2>
+          <div className="flex items-baseline justify-center gap-1.5 mb-1">
+            <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
               {stats.overall_progress}%
             </span>
+            <span className="text-[11px] text-slate-500 font-medium">готовность</span>
           </div>
-          <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider mb-1.5">
-            готовность
+          <div className="text-[11px] text-slate-600 font-medium tracking-wide">
+            <span className="font-bold text-slate-800">{stats.active_hubs}</span> АКТИВНЫХ ХАБОВ
           </div>
-          <div className="flex gap-2 text-[10px]">
-            <div className="px-2 py-0.5 rounded-full bg-white/70 border border-orange-200/60 text-slate-700">
-              <span className="font-bold text-orange-600">{stats.active_hubs}</span> активных
-            </div>
-            <div className="px-2 py-0.5 rounded-full bg-white/70 border border-purple-200/60 text-slate-700">
-              <span className="font-bold text-purple-600">{stats.completed_sections}/{stats.total_sections}</span>
-            </div>
+          <div className="text-[11px] text-slate-600 font-medium tracking-wide">
+            <span className="font-bold text-slate-800">
+              {stats.completed_sections}/{stats.total_sections}
+            </span>{' '}
+            РАЗДЕЛОВ
           </div>
         </div>
       </div>

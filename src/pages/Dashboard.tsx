@@ -108,6 +108,25 @@ export default function Dashboard() {
     [data, userId],
   );
 
+  const setSectionMode = useCallback(
+    async (sectionId: number, mode: 'auto' | 'manual') => {
+      try {
+        await fetch(DASHBOARD_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': String(userId),
+          },
+          body: JSON.stringify({ action: 'mode', section_id: sectionId, mode }),
+        });
+        await loadDashboard();
+      } catch (e) {
+        console.error('set mode failed', e);
+      }
+    },
+    [userId, loadDashboard],
+  );
+
   const activeHub: Hub | null = useMemo(
     () => data?.hubs.find((h) => h.id === activeHubId) || null,
     [data, activeHubId],
@@ -183,6 +202,7 @@ export default function Dashboard() {
               <HubDetailsCard
                 hub={activeHub}
                 onToggleStep={toggleStep}
+                onSetMode={setSectionMode}
                 onOpenSection={(route) => navigate(route)}
                 onOpenHub={(route) => navigate(route)}
               />
