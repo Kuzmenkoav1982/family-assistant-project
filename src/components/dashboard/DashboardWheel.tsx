@@ -15,6 +15,7 @@ const HUB_RADIUS = 235;
 const HUB_SIZE = 96;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
 const CAPSULE_RADIUS = 318;
+const DOMOVOY_IMG = 'https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png';
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -145,6 +146,7 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
       <div className="absolute inset-0 pointer-events-none">
         {items.map(({ hub, x, y }) => {
           const isActive = activeHubId === hub.id;
+          const isComplete = hub.progress === 100;
           const left = (x / SIZE) * 100;
           const top = (y / SIZE) * 100;
           return (
@@ -161,29 +163,55 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
               aria-label={hub.title}
             >
               <div
-                className="rounded-full flex flex-col items-center justify-center transition-all duration-300 will-change-transform"
+                className="relative rounded-full flex flex-col items-center justify-center transition-all duration-300 will-change-transform"
                 style={{
                   width: HUB_SIZE,
                   height: HUB_SIZE,
-                  background: `radial-gradient(circle at 30% 25%, white 0%, ${hub.color}22 45%, ${hub.color}55 100%)`,
+                  background: `
+                    radial-gradient(circle at 32% 22%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 18%, transparent 35%),
+                    radial-gradient(circle at 70% 80%, ${hub.color}44 0%, transparent 50%),
+                    radial-gradient(circle at 50% 50%, ${hub.color}22 0%, ${hub.color}66 100%)
+                  `,
                   boxShadow: isActive
-                    ? `0 0 0 3px white, 0 0 0 5px ${hub.color}, 0 14px 32px -6px ${hub.color}88, inset 0 -6px 12px ${hub.color}33, inset 0 3px 6px rgba(255,255,255,0.9)`
-                    : `0 8px 22px -5px ${hub.color}55, inset 0 -5px 10px ${hub.color}22, inset 0 3px 6px rgba(255,255,255,0.9)`,
-                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                    ? `0 0 0 3px white, 0 0 0 5px ${hub.color}, 0 18px 38px -8px ${hub.color}99, 0 6px 14px -4px ${hub.color}66, inset 0 -8px 14px ${hub.color}44, inset 0 4px 8px rgba(255,255,255,1), inset 0 0 20px rgba(255,255,255,0.4)`
+                    : `0 12px 28px -6px ${hub.color}66, 0 4px 10px -3px ${hub.color}44, inset 0 -7px 12px ${hub.color}33, inset 0 4px 8px rgba(255,255,255,0.95), inset 0 0 18px rgba(255,255,255,0.3)`,
+                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                  animation: isActive
+                    ? 'hubBreath 2.5s ease-in-out infinite'
+                    : undefined,
                 }}
               >
                 <Icon
                   name={hub.icon}
                   size={28}
-                  className="transition-transform group-hover:scale-110 drop-shadow-sm"
-                  style={{ color: hub.color }}
+                  className="transition-transform group-hover:scale-110"
+                  style={{
+                    color: hub.color,
+                    filter: `drop-shadow(0 1px 2px ${hub.color}66) drop-shadow(0 0 1px white)`,
+                  }}
                 />
                 <span
                   className="text-[9px] font-bold tracking-wider mt-0.5 leading-tight text-center px-1"
-                  style={{ color: hub.color }}
+                  style={{
+                    color: hub.color,
+                    textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+                  }}
                 >
                   {hub.title.toUpperCase()}
                 </span>
+
+                {isComplete && (
+                  <div
+                    className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                      boxShadow: '0 4px 12px rgba(251,191,36,0.6), inset 0 1px 2px rgba(255,255,255,0.6)',
+                      animation: 'achievePop 0.6s cubic-bezier(0.68,-0.55,0.265,1.55)',
+                    }}
+                  >
+                    <Icon name="Star" size={14} className="text-white fill-white" strokeWidth={2.5} />
+                  </div>
+                )}
               </div>
             </button>
           );
@@ -191,31 +219,58 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
 
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center"
-          style={{ width: 230, height: 230, zIndex: 5 }}
+          style={{
+            width: 230,
+            height: 230,
+            zIndex: 5,
+            animation: 'centerBreath 4s ease-in-out infinite',
+          }}
         >
-          <div className="mb-1.5">
-            <Icon name="Users" size={32} className="text-pink-500 mx-auto drop-shadow-sm" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-1.5">Наша Семья</h2>
+          <div
+            className="w-14 h-14 rounded-full mb-1.5 ring-2 ring-white shadow-lg overflow-hidden bg-gradient-to-br from-orange-200 to-pink-200"
+            style={{
+              backgroundImage: `url(${DOMOVOY_IMG})`,
+              backgroundSize: '130%',
+              backgroundPosition: '50% 18%',
+            }}
+          />
+          <h2 className="text-xl font-bold mb-1.5 bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Наша Семья
+          </h2>
           <div className="flex items-baseline justify-center gap-1 mb-0.5">
-            <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+            <span className="text-3xl font-extrabold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
               {stats.overall_progress}%
             </span>
-            <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
-              готовность
-            </span>
           </div>
-          <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
-            <span className="text-slate-700 font-semibold">{stats.active_hubs}</span> активных хабов
+          <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider mb-1.5">
+            готовность
           </div>
-          <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
-            <span className="text-slate-700 font-semibold">
-              {stats.completed_sections}/{stats.total_sections}
-            </span>{' '}
-            разделов
+          <div className="flex gap-2 text-[10px]">
+            <div className="px-2 py-0.5 rounded-full bg-white/70 border border-orange-200/60 text-slate-700">
+              <span className="font-bold text-orange-600">{stats.active_hubs}</span> активных
+            </div>
+            <div className="px-2 py-0.5 rounded-full bg-white/70 border border-purple-200/60 text-slate-700">
+              <span className="font-bold text-purple-600">{stats.completed_sections}/{stats.total_sections}</span>
+            </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes hubBreath {
+          0%, 100% { transform: scale(1.12); }
+          50% { transform: scale(1.16); }
+        }
+        @keyframes centerBreath {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); }
+          50% { transform: translate(-50%, -50%) scale(1.025); }
+        }
+        @keyframes achievePop {
+          0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+          60% { transform: scale(1.3) rotate(20deg); }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,9 +1,12 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/lib/auth-context';
 import DashboardWheel from '@/components/dashboard/DashboardWheel';
 import HubDetailsCard from '@/components/dashboard/HubDetailsCard';
+import AnimatedBackground from '@/components/dashboard/AnimatedBackground';
+import DomovoyTip from '@/components/dashboard/DomovoyTip';
+import Confetti from '@/components/dashboard/Confetti';
 import type { DashboardData, Hub } from '@/components/dashboard/types';
 
 const DASHBOARD_API = 'https://functions.poehali.dev/e5fa4039-2f5c-437c-a147-7efe71d06f23';
@@ -17,6 +20,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeHubId, setActiveHubId] = useState<number | null>(null);
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
+  const completedHubsRef = useRef<Set<number>>(new Set());
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -27,6 +32,7 @@ export default function Dashboard() {
       if (!res.ok) throw new Error('Не удалось загрузить дашборд');
       const json: DashboardData = await res.json();
       setData(json);
+      completedHubsRef.current = new Set(json.hubs.filter((h) => h.progress === 100).map((h) => h.id));
       setActiveHubId((prev) => prev ?? (json.hubs.length ? json.hubs[0].id : null));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка');
@@ -73,6 +79,17 @@ export default function Dashboard() {
         (a, h) => a + h.completed_sections,
         0,
       );
+
+      for (const h of next.hubs) {
+        const wasComplete = completedHubsRef.current.has(h.id);
+        if (h.progress === 100 && !wasComplete) {
+          completedHubsRef.current.add(h.id);
+          setConfettiTrigger((c) => c + 1);
+        } else if (h.progress < 100 && wasComplete) {
+          completedHubsRef.current.delete(h.id);
+        }
+      }
+
       setData(next);
 
       try {
@@ -125,36 +142,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_#ffffff_0%,_#f1f5f9_60%,_#e2e8f0_100%)]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-pink-200/20 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-blue-200/20 blur-3xl" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full border border-slate-200/50" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full border border-slate-200/40" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[1100px] h-[1100px] rounded-full border border-slate-200/30" />
-      </div>
+    <div className="min-h-screen relative overflow-hidden">
+      <AnimatedBackground />
+      <Confetti trigger={confettiTrigger} />
 
       <div className="relative max-w-7xl mx-auto px-4 pt-4 pb-32">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-11 h-11 rounded-2xl bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.1)] flex items-center justify-center hover:shadow-[0_6px_25px_-4px_rgba(15,23,42,0.15)] transition-all"
+            className="w-11 h-11 rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.2)] flex items-center justify-center hover:shadow-[0_6px_25px_-4px_rgba(251,146,60,0.3)] hover:scale-105 transition-all"
             aria-label="Назад"
           >
-            <Icon name="ChevronLeft" size={20} className="text-slate-600" />
+            <Icon name="ChevronLeft" size={20} className="text-slate-700" />
           </button>
-          <h1 className="text-lg sm:text-xl font-bold text-slate-800">
+          <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
             Наша Семья
           </h1>
           <button
             onClick={() => navigate('/notifications')}
-            className="w-11 h-11 rounded-2xl bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.1)] flex items-center justify-center relative hover:shadow-[0_6px_25px_-4px_rgba(15,23,42,0.15)] transition-all"
+            className="w-11 h-11 rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.2)] flex items-center justify-center relative hover:shadow-[0_6px_25px_-4px_rgba(251,146,60,0.3)] hover:scale-105 transition-all"
             aria-label="Уведомления"
           >
-            <Icon name="Bell" size={20} className="text-slate-600" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+            <Icon name="Bell" size={20} className="text-slate-700" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
           </button>
         </div>
+
+        <DomovoyTip hubs={data.hubs} overall={data.stats.overall_progress} />
 
         <div className="lg:grid lg:grid-cols-[1fr,360px] lg:gap-6 lg:items-start">
           <DashboardWheel
