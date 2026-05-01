@@ -27,13 +27,13 @@ export default function Dashboard() {
       if (!res.ok) throw new Error('Не удалось загрузить дашборд');
       const json: DashboardData = await res.json();
       setData(json);
-      if (!activeHubId && json.hubs.length) setActiveHubId(json.hubs[0].id);
+      setActiveHubId((prev) => prev ?? (json.hubs.length ? json.hubs[0].id : null));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка');
     } finally {
       setLoading(false);
     }
-  }, [userId, activeHubId]);
+  }, [userId]);
 
   useEffect(() => {
     loadDashboard();
@@ -143,8 +143,8 @@ export default function Dashboard() {
           >
             <Icon name="ChevronLeft" size={20} className="text-slate-600" />
           </button>
-          <h1 className="text-lg sm:text-xl font-bold tracking-[0.15em] text-slate-800">
-            НАША СЕМЬЯ
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800">
+            Наша Семья
           </h1>
           <button
             onClick={() => navigate('/notifications')}

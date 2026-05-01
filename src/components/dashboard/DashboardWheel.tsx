@@ -11,10 +11,10 @@ interface Props {
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
-const HUB_RADIUS = 230;
-const HUB_SIZE = 86;
-const ARC_RADIUS = HUB_SIZE / 2 + 8;
-const CAPSULE_RADIUS = 320;
+const HUB_RADIUS = 235;
+const HUB_SIZE = 96;
+const ARC_RADIUS = HUB_SIZE / 2 + 6;
+const CAPSULE_RADIUS = 318;
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -32,7 +32,7 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
     });
   }, [hubs]);
 
-  const overallCircum = 2 * Math.PI * 120;
+  const overallCircum = 2 * Math.PI * 130;
   const overallOffset = overallCircum * (1 - stats.overall_progress / 100);
 
   return (
@@ -48,26 +48,38 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
             <stop offset="50%" stopColor="#ec4899" />
             <stop offset="100%" stopColor="#a855f7" />
           </linearGradient>
+          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+            <feOffset dx="0" dy="2" result="offsetblur" />
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.15" />
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
-        {[170, 220, 270, 320].map((r) => (
+        {[170, 230, 290, 340].map((r) => (
           <circle
             key={r}
             cx={CENTER}
             cy={CENTER}
             r={r}
             fill="none"
-            stroke="#e2e8f0"
-            strokeOpacity="0.35"
+            stroke="#cbd5e1"
+            strokeOpacity="0.25"
             strokeWidth="1"
           />
         ))}
 
-        <circle cx={CENTER} cy={CENTER} r="135" fill="white" opacity="0.95" />
+        <circle cx={CENTER} cy={CENTER} r="145" fill="white" filter="url(#softShadow)" />
+        <circle cx={CENTER} cy={CENTER} r="138" fill="white" />
         <circle
           cx={CENTER}
           cy={CENTER}
-          r="120"
+          r="130"
           fill="none"
           stroke="#f1f5f9"
           strokeWidth="6"
@@ -75,7 +87,7 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
         <circle
           cx={CENTER}
           cy={CENTER}
-          r="120"
+          r="130"
           fill="none"
           stroke="url(#overallGrad)"
           strokeWidth="6"
@@ -85,6 +97,19 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
           transform={`rotate(-90 ${CENTER} ${CENTER})`}
           style={{ transition: 'stroke-dashoffset 0.8s ease' }}
         />
+
+        {items.map(({ hub, cx, cy, angle }) => (
+          <CapsuleProgress
+            key={`cap-${hub.id}`}
+            cx={cx}
+            cy={cy}
+            angle={angle}
+            color={hub.color}
+            progress={hub.progress}
+            icon={hub.icon}
+            isActive={activeHubId === hub.id}
+          />
+        ))}
 
         {items.map(({ hub, x, y }) => {
           const arcCircum = 2 * Math.PI * ARC_RADIUS;
@@ -96,8 +121,8 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                 cy={y}
                 r={ARC_RADIUS}
                 fill="none"
-                stroke={`${hub.color}22`}
-                strokeWidth="3"
+                stroke={`${hub.color}1a`}
+                strokeWidth="2.5"
               />
               <circle
                 cx={x}
@@ -105,7 +130,7 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                 r={ARC_RADIUS}
                 fill="none"
                 stroke={hub.color}
-                strokeWidth="3"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeDasharray={arcCircum}
                 strokeDashoffset={offset}
@@ -118,51 +143,6 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
       </svg>
 
       <div className="absolute inset-0 pointer-events-none">
-        {items.map(({ hub, cx, cy }) => {
-          const left = (cx / SIZE) * 100;
-          const top = (cy / SIZE) * 100;
-          const isActive = activeHubId === hub.id;
-          return (
-            <div
-              key={`cap-${hub.id}`}
-              className="absolute"
-              style={{
-                left: `${left}%`,
-                top: `${top}%`,
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              <div
-                className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/90 border backdrop-blur-sm transition-all"
-                style={{
-                  borderColor: `${hub.color}55`,
-                  boxShadow: isActive
-                    ? `0 0 12px ${hub.color}66, 0 4px 12px -4px ${hub.color}44`
-                    : `0 2px 6px -2px ${hub.color}33`,
-                  minWidth: 64,
-                }}
-              >
-                <Icon name={hub.icon} size={11} style={{ color: hub.color }} />
-                <div className="flex-1 h-1 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${hub.progress}%`,
-                      background: hub.color,
-                    }}
-                  />
-                </div>
-                <span
-                  className="text-[9px] font-bold leading-none"
-                  style={{ color: hub.color }}
-                >
-                  {hub.progress}%
-                </span>
-              </div>
-            </div>
-          );
-        })}
-
         {items.map(({ hub, x, y }) => {
           const isActive = activeHubId === hub.id;
           const left = (x / SIZE) * 100;
@@ -185,17 +165,17 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                 style={{
                   width: HUB_SIZE,
                   height: HUB_SIZE,
-                  background: `radial-gradient(circle at 30% 30%, white 0%, ${hub.color}33 60%, ${hub.color}55 100%)`,
+                  background: `radial-gradient(circle at 30% 25%, white 0%, ${hub.color}22 45%, ${hub.color}55 100%)`,
                   boxShadow: isActive
-                    ? `0 0 0 3px white, 0 0 0 5px ${hub.color}, 0 12px 30px -6px ${hub.color}77, inset 0 -4px 8px ${hub.color}22`
-                    : `0 6px 20px -4px ${hub.color}55, inset 0 -3px 6px ${hub.color}22, inset 0 2px 4px white`,
-                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                    ? `0 0 0 3px white, 0 0 0 5px ${hub.color}, 0 14px 32px -6px ${hub.color}88, inset 0 -6px 12px ${hub.color}33, inset 0 3px 6px rgba(255,255,255,0.9)`
+                    : `0 8px 22px -5px ${hub.color}55, inset 0 -5px 10px ${hub.color}22, inset 0 3px 6px rgba(255,255,255,0.9)`,
+                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
                 }}
               >
                 <Icon
                   name={hub.icon}
-                  size={26}
-                  className="transition-transform group-hover:scale-110"
+                  size={28}
+                  className="transition-transform group-hover:scale-110 drop-shadow-sm"
                   style={{ color: hub.color }}
                 />
                 <span
@@ -211,26 +191,133 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
 
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center"
-          style={{ width: 220, height: 220, zIndex: 5 }}
+          style={{ width: 230, height: 230, zIndex: 5 }}
         >
           <div className="mb-1.5">
-            <Icon name="Users" size={28} className="text-pink-500 mx-auto" />
+            <Icon name="Users" size={32} className="text-pink-500 mx-auto drop-shadow-sm" />
           </div>
-          <h2 className="text-lg font-bold text-slate-800 mb-1 tracking-wide">НАША СЕМЬЯ</h2>
-          <div className="flex items-baseline justify-center gap-1 mb-1">
+          <h2 className="text-xl font-bold text-slate-800 mb-1.5">Наша Семья</h2>
+          <div className="flex items-baseline justify-center gap-1 mb-0.5">
             <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
               {stats.overall_progress}%
             </span>
-            <span className="text-[10px] text-slate-500 font-medium">ГОТОВНОСТЬ</span>
+            <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+              готовность
+            </span>
           </div>
-          <div className="text-[10px] text-slate-600 font-medium">
-            {stats.active_hubs} АКТИВНЫХ ХАБОВ
+          <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+            <span className="text-slate-700 font-semibold">{stats.active_hubs}</span> активных хабов
           </div>
-          <div className="text-[10px] text-slate-600 font-medium">
-            {stats.completed_sections}/{stats.total_sections} РАЗДЕЛОВ
+          <div className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+            <span className="text-slate-700 font-semibold">
+              {stats.completed_sections}/{stats.total_sections}
+            </span>{' '}
+            разделов
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function CapsuleProgress({
+  cx,
+  cy,
+  angle,
+  color,
+  progress,
+  icon,
+  isActive,
+}: {
+  cx: number;
+  cy: number;
+  angle: number;
+  color: string;
+  progress: number;
+  icon: string;
+  isActive: boolean;
+}) {
+  const w = 100;
+  const h = 26;
+  const isFlipped = angle > 90 && angle < 270;
+  const rotation = isFlipped ? angle + 180 : angle;
+  const tangent = rotation - 90;
+
+  const iconX = -w / 2 + 13;
+  const percentX = w / 2 - 13;
+  const barX = -w / 2 + 26;
+  const barW = w - 52;
+
+  return (
+    <g
+      transform={`translate(${cx} ${cy}) rotate(${tangent})`}
+      style={{
+        opacity: isActive ? 1 : 0.95,
+        transition: 'opacity 0.3s',
+      }}
+    >
+      <rect
+        x={-w / 2}
+        y={-h / 2}
+        width={w}
+        height={h}
+        rx={h / 2}
+        ry={h / 2}
+        fill="white"
+        stroke={`${color}66`}
+        strokeWidth="1.5"
+        opacity="0.95"
+        filter={
+          isActive ? `drop-shadow(0 0 10px ${color}99)` : `drop-shadow(0 2px 4px ${color}22)`
+        }
+      />
+
+      <circle cx={iconX} cy="0" r="7" fill={`${color}1a`} />
+      <foreignObject x={iconX - 6} y={-6} width="12" height="12">
+        <div
+          xmlns="http://www.w3.org/1999/xhtml"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 12,
+            height: 12,
+          }}
+        >
+          <Icon name={icon} size={10} style={{ color }} />
+        </div>
+      </foreignObject>
+
+      <rect
+        x={barX}
+        y="-2.5"
+        width={barW}
+        height="5"
+        rx="2.5"
+        ry="2.5"
+        fill={`${color}1a`}
+      />
+      <rect
+        x={barX}
+        y="-2.5"
+        width={barW * (progress / 100)}
+        height="5"
+        rx="2.5"
+        ry="2.5"
+        fill={color}
+        style={{ transition: 'width 0.7s ease' }}
+      />
+
+      <text
+        x={percentX}
+        y="3.5"
+        fontSize="9.5"
+        fontWeight="700"
+        fill={color}
+        textAnchor="middle"
+      >
+        {progress}%
+      </text>
+    </g>
   );
 }
