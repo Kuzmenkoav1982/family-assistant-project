@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '@/../backend/func2url.json';
+import AdminRatingCampaigns from '@/components/admin/AdminRatingCampaigns';
+import AdminReferralProgram from '@/components/admin/AdminReferralProgram';
 
 const API = (func2url as Record<string, string>)['admin-users'];
 const AUTH_HEADERS = { 'X-Admin-Token': 'admin_authenticated', 'Content-Type': 'application/json' };
@@ -167,6 +169,8 @@ export default function AdminPanel() {
             <TabsTrigger value="tickets" className="text-xs md:text-sm px-2 py-1.5">Тикеты</TabsTrigger>
             <TabsTrigger value="top" className="text-xs md:text-sm px-2 py-1.5">Топ семей</TabsTrigger>
             <TabsTrigger value="flags" className="text-xs md:text-sm px-2 py-1.5">Фич-флаги</TabsTrigger>
+            <TabsTrigger value="campaigns" className="text-xs md:text-sm px-2 py-1.5">Рейтинги и акции</TabsTrigger>
+            <TabsTrigger value="referrals" className="text-xs md:text-sm px-2 py-1.5">Реферальная программа</TabsTrigger>
           </TabsList>
 
           <TabsContent value="families" className="mt-4">
@@ -195,6 +199,12 @@ export default function AdminPanel() {
           </TabsContent>
           <TabsContent value="flags" className="mt-4">
             <FlagsTab toast={toast} />
+          </TabsContent>
+          <TabsContent value="campaigns" className="mt-4">
+            <AdminRatingCampaigns adminToken="admin_authenticated" />
+          </TabsContent>
+          <TabsContent value="referrals" className="mt-4">
+            <AdminReferralProgram adminToken="admin_authenticated" />
           </TabsContent>
         </Tabs>
       </div>

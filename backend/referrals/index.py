@@ -1,3 +1,8 @@
+"""
+Business: Реферальная программа — выдача реф-кодов семьям, отслеживание регистраций по коду, начисление бонусов в кошелёк (за регистрацию, за активацию приглашённой семьи, приветственный бонус новичку), антифрод.
+Args: event с httpMethod, queryStringParameters (action), headers (X-User-Id, X-Admin-Token), body для POST
+Returns: my_code (мой код + статистика), settings, результаты track_signup/check_activation/admin_invites
+"""
 import json
 import os
 import random

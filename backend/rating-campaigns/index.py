@@ -1,3 +1,8 @@
+"""
+Business: Управление рейтинговыми акциями (Семья месяца): создание/редактирование акций, лидерборд, призы, выплаты в кошелёк семьи-победителя.
+Args: event с httpMethod, queryStringParameters (action), headers (X-User-Id, X-Admin-Token), body для POST
+Returns: overview (текущая акция + топ + моё место), leaderboard, campaigns (для админа), результаты пересчёта/выплат
+"""
 import json
 import os
 from datetime import datetime, timedelta
