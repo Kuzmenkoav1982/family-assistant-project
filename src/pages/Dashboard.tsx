@@ -9,7 +9,6 @@ import DomovoyTip from '@/components/dashboard/DomovoyTip';
 import Confetti from '@/components/dashboard/Confetti';
 import FamilyRatingWidget from '@/components/dashboard/FamilyRatingWidget';
 import RatingCampaignWidget from '@/components/dashboard/RatingCampaignWidget';
-import ReferralWidget from '@/components/dashboard/ReferralWidget';
 import type { DashboardData, Hub } from '@/components/dashboard/types';
 
 const DASHBOARD_API = 'https://functions.poehali.dev/e5fa4039-2f5c-437c-a147-7efe71d06f23';
@@ -230,12 +229,6 @@ export default function Dashboard() {
 
         <DomovoyTip hubs={data.hubs} overall={data.stats.overall_progress} />
 
-        <div className="mt-3 space-y-3">
-          <RatingCampaignWidget userId={String(userId)} />
-          <FamilyRatingWidget userId={String(userId)} />
-          <ReferralWidget userId={String(userId)} />
-        </div>
-
         <div className="lg:grid lg:grid-cols-[1fr,360px] lg:gap-6 lg:items-start">
           <div className="-mx-3 sm:mx-0">
             <DashboardWheel
@@ -258,6 +251,11 @@ export default function Dashboard() {
               />
             )}
           </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <RatingCampaignWidget userId={String(userId)} />
+          <FamilyRatingWidget userId={String(userId)} />
         </div>
       </div>
     </div>

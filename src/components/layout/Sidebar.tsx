@@ -334,6 +334,19 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Дашборд</span>
           </button>
           <button
+            onClick={() => { navigate('/referral'); onVisibilityChange(false); }}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
+              location.pathname === '/referral'
+                ? 'bg-violet-50 dark:bg-violet-950/40'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
+              <Icon name="Gift" size={15} className="text-violet-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Реферальная программа</span>
+          </button>
+          <button
             onClick={() => { navigate('/notifications'); onVisibilityChange(false); }}
             className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
               location.pathname === '/notifications'

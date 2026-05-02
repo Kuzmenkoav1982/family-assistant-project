@@ -142,6 +142,7 @@ function formatTimeLeft(endsAt: string): { days: number; hours: number; minutes:
 export default function RatingCampaignWidget({ userId }: Props) {
   const [data, setData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [showAllLeaders, setShowAllLeaders] = useState(false);
   const [showPrizes, setShowPrizes] = useState(false);
   const [tick, setTick] = useState(0);
@@ -197,19 +198,50 @@ export default function RatingCampaignWidget({ userId }: Props) {
   return (
     <div className="rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 p-[1.5px] shadow-[0_8px_30px_-6px_rgba(249,115,22,0.4)]">
       <div className="rounded-2xl bg-white/95 backdrop-blur-md overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 px-4 py-3 text-white">
-          <div className="flex items-center gap-2">
-            <span className="text-xl" aria-hidden>
-              🏆
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-wider opacity-90">
-                Семья месяца
-              </div>
-              <div className="text-base font-extrabold leading-tight truncate">{c.title}</div>
+        {/* Compact header — always visible, toggles expanded */}
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-orange-50/40 transition-colors"
+          aria-expanded={expanded}
+        >
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex items-center justify-center text-white shadow-md shrink-0">
+            <span className="text-xl" aria-hidden>🏆</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-orange-600">
+              Семья месяца
+            </div>
+            <div className="flex items-baseline gap-1.5 leading-tight">
+              {data.my_position ? (
+                <>
+                  <span className="text-lg font-extrabold text-slate-900">#{data.my_position.place}</span>
+                  <span className="text-[11px] text-slate-500 truncate">из {data.total_families} семей</span>
+                </>
+              ) : (
+                <span className="text-sm font-semibold text-slate-700 truncate">Войди в рейтинг</span>
+              )}
             </div>
           </div>
+          {!timer.finished && (
+            <div className="text-right shrink-0 mr-1">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-orange-500">осталось</div>
+              <div className="text-xs font-bold text-slate-700 tabular-nums">
+                {timer.days}д {timer.hours}ч
+              </div>
+            </div>
+          )}
+          <Icon
+            name="ChevronDown"
+            size={18}
+            className={`text-slate-400 transition-transform shrink-0 ${expanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {expanded && (
+        <>
+        {/* Title + banner */}
+        <div className="bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 px-4 py-3 text-white">
+          <div className="text-base font-extrabold leading-tight">{c.title}</div>
           {c.banner_text && (
             <div className="mt-1.5 text-xs font-medium bg-white/20 px-2 py-1 rounded-lg inline-block">
               {c.banner_text}
@@ -386,6 +418,8 @@ export default function RatingCampaignWidget({ userId }: Props) {
               </div>
             )}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
