@@ -238,6 +238,26 @@ def _set_mode(user_id: str, section_id: int, mode: str) -> Dict[str, Any]:
     return {'ok': True, 'section_id': section_id, 'mode': mode}
 
 
+def _set_mode_bulk(user_id: str, section_ids: list, mode: str) -> Dict[str, Any]:
+    if mode not in ('auto', 'manual'):
+        mode = 'manual'
+    ids = [int(x) for x in section_ids if str(x).isdigit()]
+    if not ids:
+        return {'ok': True, 'count': 0}
+    uid = _esc(user_id)
+    values = ", ".join(f"('{uid}', {sid}, '{mode}', CURRENT_TIMESTAMP)" for sid in ids)
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                INSERT INTO {SCHEMA}.dashboard_user_settings (user_id, section_id, mode, updated_at)
+                VALUES {values}
+                ON CONFLICT (user_id, section_id) DO UPDATE
+                  SET mode = EXCLUDED.mode, updated_at = CURRENT_TIMESTAMP
+            """)
+            conn.commit()
+    return {'ok': True, 'count': len(ids), 'mode': mode}
+
+
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
 
@@ -269,6 +289,22 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'user_id and section_id required'}),
                     }
                 data = _set_mode(user_id, section_id, mode)
+                return {
+                    'statusCode': 200,
+                    'headers': {**CORS_HEADERS, 'Content-Type': 'application/json'},
+                    'body': json.dumps(data, ensure_ascii=False),
+                }
+
+            if action == 'mode_bulk':
+                section_ids = body.get('section_ids') or []
+                mode = str(body.get('mode', 'manual'))
+                if not user_id or not isinstance(section_ids, list):
+                    return {
+                        'statusCode': 400,
+                        'headers': {**CORS_HEADERS, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'user_id and section_ids required'}),
+                    }
+                data = _set_mode_bulk(user_id, section_ids, mode)
                 return {
                     'statusCode': 200,
                     'headers': {**CORS_HEADERS, 'Content-Type': 'application/json'},

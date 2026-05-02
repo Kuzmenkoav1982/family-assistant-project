@@ -25,7 +25,6 @@ export default function Dashboard() {
 
   const loadDashboard = useCallback(async () => {
     try {
-      setError(null);
       const res = await fetch(DASHBOARD_API, {
         headers: { 'X-User-Id': String(userId) },
       });
@@ -34,8 +33,13 @@ export default function Dashboard() {
       setData(json);
       completedHubsRef.current = new Set(json.hubs.filter((h) => h.progress === 100).map((h) => h.id));
       setActiveHubId((prev) => prev ?? (json.hubs.length ? json.hubs[0].id : null));
+      setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+      console.error('loadDashboard failed', e);
+      setData((prev) => {
+        if (!prev) setError(e instanceof Error ? e.message : 'Ошибка');
+        return prev;
+      });
     } finally {
       setLoading(false);
     }
@@ -137,6 +141,30 @@ export default function Dashboard() {
     [userId, loadDashboard],
   );
 
+  const setBulkMode = useCallback(
+    async (sectionIds: number[], mode: 'auto' | 'manual') => {
+      if (!sectionIds.length) return;
+      try {
+        await fetch(DASHBOARD_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': String(userId),
+          },
+          body: JSON.stringify({
+            action: 'mode_bulk',
+            section_ids: sectionIds,
+            mode,
+          }),
+        });
+        await loadDashboard();
+      } catch (e) {
+        console.error('set bulk mode failed', e);
+      }
+    },
+    [userId, loadDashboard],
+  );
+
   const activeHub: Hub | null = useMemo(
     () => data?.hubs.find((h) => h.id === activeHubId) || null,
     [data, activeHubId],
@@ -213,6 +241,7 @@ export default function Dashboard() {
                 hub={activeHub}
                 onToggleStep={toggleStep}
                 onSetMode={setSectionMode}
+                onSetBulkMode={setBulkMode}
                 onOpenSection={(route) => navigate(route)}
                 onOpenHub={(route) => navigate(route)}
               />

@@ -6,6 +6,7 @@ interface Props {
   hub: Hub;
   onToggleStep: (stepId: number, completed: boolean) => void;
   onSetMode: (sectionId: number, mode: 'auto' | 'manual') => void;
+  onSetBulkMode: (sectionIds: number[], mode: 'auto' | 'manual') => void;
   onOpenSection: (route: string) => void;
   onOpenHub: (route: string) => void;
 }
@@ -14,6 +15,7 @@ export default function HubDetailsCard({
   hub,
   onToggleStep,
   onSetMode,
+  onSetBulkMode,
   onOpenSection,
   onOpenHub,
 }: Props) {
@@ -68,11 +70,8 @@ export default function HubDetailsCard({
         const allAuto = autoSupported.length > 0 && autoSupported.every((s) => s.mode === 'auto');
         const noneAuto = autoSupported.every((s) => s.mode !== 'auto');
         const handleBulk = (mode: 'auto' | 'manual') => {
-          autoSupported.forEach((s) => {
-            if ((mode === 'auto' && s.mode !== 'auto') || (mode === 'manual' && s.mode === 'auto')) {
-              onSetMode(s.id, mode);
-            }
-          });
+          const ids = autoSupported.map((s) => s.id);
+          onSetBulkMode(ids, mode);
         };
         return (
           <div className="flex items-center justify-between mb-2">
