@@ -11,10 +11,10 @@ interface Props {
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
-const HUB_RADIUS = 235;
+const HUB_RADIUS = 230;
 const HUB_SIZE = 96;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
-const CAPSULE_RADIUS = 318;
+const CAPSULE_RADIUS = 308;
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -172,9 +172,9 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                     radial-gradient(circle at 50% 50%, ${hub.color}22 0%, ${hub.color}66 100%)
                   `,
                   boxShadow: isActive
-                    ? `0 0 0 3px white, 0 0 0 5px ${hub.color}, 0 18px 38px -8px ${hub.color}99, 0 6px 14px -4px ${hub.color}66, inset 0 -8px 14px ${hub.color}44, inset 0 4px 8px rgba(255,255,255,1), inset 0 0 20px rgba(255,255,255,0.4)`
+                    ? `0 0 0 2px white, 0 0 0 3.5px ${hub.color}, 0 14px 30px -6px ${hub.color}88, 0 4px 10px -3px ${hub.color}55, inset 0 -7px 12px ${hub.color}33, inset 0 4px 8px rgba(255,255,255,1), inset 0 0 18px rgba(255,255,255,0.4)`
                     : `0 12px 28px -6px ${hub.color}66, 0 4px 10px -3px ${hub.color}44, inset 0 -7px 12px ${hub.color}33, inset 0 4px 8px rgba(255,255,255,0.95), inset 0 0 18px rgba(255,255,255,0.3)`,
-                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                  transform: isActive ? 'scale(1.06)' : 'scale(1)',
                   animation: isActive
                     ? 'hubBreath 2.5s ease-in-out infinite'
                     : undefined,
@@ -182,7 +182,7 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
               >
                 <Icon
                   name={hub.icon}
-                  size={28}
+                  size={24}
                   className="transition-transform group-hover:scale-110"
                   style={{
                     color: hub.color,

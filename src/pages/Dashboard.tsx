@@ -203,7 +203,7 @@ export default function Dashboard() {
       <AnimatedBackground />
       <Confetti trigger={confettiTrigger} />
 
-      <div className="relative max-w-7xl mx-auto px-4 pt-4 pb-32">
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 pt-3 pb-32">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => navigate(-1)}
@@ -228,14 +228,16 @@ export default function Dashboard() {
         <DomovoyTip hubs={data.hubs} overall={data.stats.overall_progress} />
 
         <div className="lg:grid lg:grid-cols-[1fr,360px] lg:gap-6 lg:items-start">
-          <DashboardWheel
-            hubs={data.hubs}
-            stats={data.stats}
-            activeHubId={activeHubId}
-            onSelectHub={setActiveHubId}
-          />
+          <div className="-mx-3 sm:mx-0">
+            <DashboardWheel
+              hubs={data.hubs}
+              stats={data.stats}
+              activeHubId={activeHubId}
+              onSelectHub={setActiveHubId}
+            />
+          </div>
 
-          <div className="mt-6 lg:mt-12">
+          <div className="mt-4 lg:mt-12">
             {activeHub && (
               <HubDetailsCard
                 hub={activeHub}
