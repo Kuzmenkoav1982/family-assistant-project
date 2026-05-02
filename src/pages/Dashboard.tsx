@@ -9,6 +9,7 @@ import DomovoyTip from '@/components/dashboard/DomovoyTip';
 import Confetti from '@/components/dashboard/Confetti';
 import FamilyRatingWidget from '@/components/dashboard/FamilyRatingWidget';
 import RatingCampaignWidget from '@/components/dashboard/RatingCampaignWidget';
+import { SectionHelp } from '@/components/children/SectionHelp';
 import type { DashboardData, Hub } from '@/components/dashboard/types';
 
 const DASHBOARD_API = 'https://functions.poehali.dev/e5fa4039-2f5c-437c-a147-7efe71d06f23';
@@ -225,6 +226,21 @@ export default function Dashboard() {
             <Icon name="Bell" size={20} className="text-slate-700" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
           </button>
+        </div>
+
+        <div className="mb-3">
+          <SectionHelp
+            emoji="🧭"
+            title="Как пользоваться дашбордом"
+            description="Дашборд — твой штаб семейной жизни. Здесь видно прогресс по каждой сфере (здоровье, финансы, питание, развитие и т.д.) и куда стоит направить силы прямо сейчас."
+            tips={[
+              "Колесо хабов — кликни на любой сектор, чтобы увидеть детали раздела и быстро перейти внутрь",
+              "Шаги в разделах: отмечай выполненные — прогресс автоматически растёт по сферам",
+              "Авто-режим: если не хочешь чек-листы, переключи раздел в авто и прогресс будет считаться сам",
+              "Рейтинг семей внизу — соревнуйся с другими семьями и попадай в топ за призы",
+              "Домовой подсказывает, на что обратить внимание именно сейчас",
+            ]}
+          />
         </div>
 
         <DomovoyTip hubs={data.hubs} overall={data.stats.overall_progress} />

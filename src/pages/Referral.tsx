@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/lib/auth-context';
 import ReferralWidget from '@/components/dashboard/ReferralWidget';
+import { SectionHelp } from '@/components/children/SectionHelp';
 
 export default function Referral() {
   const navigate = useNavigate();
@@ -36,6 +37,21 @@ export default function Referral() {
           <p className="mt-3 text-sm opacity-95">
             Делись кодом или ссылкой с друзьями. За каждого, кто зарегистрируется и активно начнёт пользоваться приложением, ты получаешь бонус.
           </p>
+        </div>
+
+        <div className="mb-4">
+          <SectionHelp
+            emoji="💎"
+            title="Как работает реферальная программа"
+            description="Приглашай знакомых — получай реальные деньги на семейный кошелёк за каждого друга. Чем активнее друг пользуется — тем больше ты зарабатываешь."
+            tips={[
+              "Скопируй свой персональный код или ссылку и отправь другу через WhatsApp, Telegram или любым способом",
+              "Друг регистрируется по твоей ссылке — ты получаешь первое вознаграждение, а он — приветственный бонус",
+              "Когда семья друга активирует аккаунт (наберёт минимум членов и прогресс) — ты получаешь второе, более крупное вознаграждение",
+              "Все приглашения и статусы видно в списке ниже — следи, кто зарегистрировался, кто активировался",
+              "Деньги начисляются на семейный кошелёк автоматически — без заявок и ожидания",
+            ]}
+          />
         </div>
 
         <ReferralWidget userId={String(userId)} />
