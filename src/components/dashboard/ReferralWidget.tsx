@@ -66,9 +66,9 @@ export default function ReferralWidget({ userId }: Props) {
   if (loading) {
     return (
       <div className="space-y-3 animate-pulse">
-        <div className="h-48 rounded-3xl bg-amber-100/60" />
-        <div className="h-20 rounded-2xl bg-orange-100/40" />
-        <div className="h-32 rounded-2xl bg-rose-100/40" />
+        <div className="h-32 rounded-2xl bg-slate-100" />
+        <div className="h-24 rounded-2xl bg-slate-100" />
+        <div className="h-28 rounded-2xl bg-slate-100" />
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function ReferralWidget({ userId }: Props) {
 
   const invites: Invite[] = Array.isArray(data.invites) ? data.invites : [];
   const refLink = `${window.location.origin}/register?ref=${data.code}`;
-  const message = `Привет! 👋\n\nПользуюсь приложением «Наша Семья» — это семейный помощник, который реально помогает наладить здоровье, финансы, питание и развитие детей в одном месте.\n\nРегистрируйся по моему коду ${data.code} — и получишь ${settings.reward_invitee_welcome}₽ приветственного бонуса на семейный кошелёк 💎\n\nСсылка для регистрации: ${refLink}`;
+  const message = `Привет!\n\nПользуюсь приложением «Наша Семья» — семейный помощник для здоровья, финансов, питания и развития детей.\n\nРегистрируйся по коду ${data.code} — получишь ${settings.reward_invitee_welcome}₽ на семейный кошелёк.\n\nСсылка: ${refLink}`;
 
   const copyText = async (text: string, label: string) => {
     try {
@@ -103,10 +103,9 @@ export default function ReferralWidget({ userId }: Props) {
         await navigator.share({ title: 'Наша Семья — приглашение', text: message, url: refLink });
       } catch { /* silent */ }
     } else {
-      copyText(message, 'Сообщение скопировано — вставь в чат другу');
+      copyText(message, 'Сообщение скопировано');
     }
   };
-
 
   const visibleInvites = showAll ? invites : invites.slice(0, 5);
 
@@ -145,67 +144,61 @@ export default function ReferralWidget({ userId }: Props) {
     <div className="space-y-3">
 
       {/* Hero block */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100 shadow-sm border border-white/60">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-amber-200/40 blur-2xl" />
-          <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-rose-200/30 blur-xl" />
-        </div>
-        <div className="relative px-5 pt-5 pb-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/70 backdrop-blur-sm border border-white/80 shadow-sm flex items-center justify-center shrink-0">
-              <span className="text-3xl">🎁</span>
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 border border-amber-100 shadow-sm">
+        <div className="px-5 py-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center shrink-0">
+            <Icon name="Gift" size={22} className="text-amber-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600/80 mb-0.5">
+              Реферальная программа
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700/80 mb-0.5">
-                Реферальная программа
-              </div>
-              <div className="text-lg font-extrabold text-slate-800 leading-tight">
-                Приглашайте семьи и зарабатывайте бонусы вместе
-              </div>
+            <div className="text-base font-bold text-slate-800 leading-snug">
+              Приглашайте семьи и зарабатывайте бонусы вместе
             </div>
           </div>
-
-          {data.total_earned_rub > 0 && (
-            <div className="mt-4 flex items-baseline gap-1.5">
-              <span className="text-xs text-slate-500 font-medium">Заработано</span>
-              <span className="text-3xl font-extrabold text-amber-600 tracking-tight">{data.total_earned_rub}₽</span>
-            </div>
-          )}
-
-          {data.total_earned_rub === 0 && (
-            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-200/50 border border-amber-300/40">
-              <Icon name="Gift" size={13} className="text-amber-700" />
-              <span className="text-xs font-semibold text-amber-800">
-                Бонус за друга: {settings.reward_invitee_welcome}₽ + {settings.reward_inviter_on_signup}₽
+        </div>
+        {data.total_earned_rub > 0 && (
+          <div className="px-5 pb-4 flex items-baseline gap-1.5">
+            <span className="text-xs text-slate-500">Заработано</span>
+            <span className="text-2xl font-extrabold text-amber-600">{data.total_earned_rub}₽</span>
+          </div>
+        )}
+        {data.total_earned_rub === 0 && (
+          <div className="px-5 pb-4">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-200/50">
+              <Icon name="Coins" size={12} className="text-amber-600" />
+              <span className="text-xs font-semibold text-amber-700">
+                Бонус: {settings.reward_invitee_welcome}₽ другу + {settings.reward_inviter_on_signup}₽ вам
               </span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Referral code */}
-      <div className="rounded-3xl bg-white/80 backdrop-blur-sm border border-white/70 shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-4 pt-4 pb-2">
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
             Личный реферальный код
           </div>
-          <div className="flex items-center gap-2 p-1 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60">
+          <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-50 border border-slate-200">
             <button
               onClick={() => copyText(data.code, 'Код скопирован')}
-              className="flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 rounded-xl bg-white/80 border border-white/60 shadow-sm hover:shadow active:scale-95 transition-all min-w-[56px]"
+              className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all min-w-[54px]"
             >
-              <Icon name="Copy" size={16} className="text-amber-600" />
-              <span className="text-[9px] font-semibold text-slate-500">Скопировать</span>
+              <Icon name="Copy" size={15} className="text-slate-500" />
+              <span className="text-[9px] font-semibold text-slate-400">Скопировать</span>
             </button>
-            <div className="flex-1 text-center font-mono text-xl font-extrabold text-slate-700 tracking-widest select-all py-1">
+            <div className="flex-1 text-center font-mono text-xl font-extrabold text-slate-800 tracking-widest select-all py-1">
               {data.code}
             </div>
             <button
               onClick={shareNative}
-              className="flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 rounded-xl bg-white/80 border border-white/60 shadow-sm hover:shadow active:scale-95 transition-all min-w-[56px]"
+              className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all min-w-[54px]"
             >
-              <Icon name="Share2" size={16} className="text-amber-600" />
-              <span className="text-[9px] font-semibold text-slate-500">Поделиться</span>
+              <Icon name="Share2" size={15} className="text-slate-500" />
+              <span className="text-[9px] font-semibold text-slate-400">Поделиться</span>
             </button>
           </div>
         </div>
@@ -214,16 +207,16 @@ export default function ReferralWidget({ userId }: Props) {
         <div className="px-4 pt-3 pb-4">
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: '👨‍👩‍👧', step: '1', title: 'Пригласите', desc: `Семья: ${settings.reward_inviter_on_signup}₽` },
-              { icon: '✅', step: '2', title: 'Активируйте', desc: 'Подтвердите участие' },
-              { icon: '💰', step: '3', title: 'Получите', desc: `Вы: +${settings.reward_inviter_on_active}₽` },
-            ].map((s) => (
+              { icon: 'UserPlus', title: 'Пригласите', desc: `Семья: ${settings.reward_inviter_on_signup}₽` },
+              { icon: 'BadgeCheck', title: 'Активируйте', desc: 'Подтвердите участие' },
+              { icon: 'Banknote', title: 'Получите', desc: `Вы: +${settings.reward_inviter_on_active}₽` },
+            ].map((s, i) => (
               <div
-                key={s.step}
-                className="flex flex-col items-center text-center p-2.5 rounded-2xl bg-gradient-to-b from-amber-50/80 to-orange-50/40 border border-amber-100/60"
+                key={i}
+                className="flex flex-col items-center text-center p-2.5 rounded-xl bg-slate-50 border border-slate-100"
               >
-                <div className="w-10 h-10 rounded-xl bg-white/80 border border-white/60 shadow-sm flex items-center justify-center mb-1.5 text-xl">
-                  {s.icon}
+                <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center mb-2 shadow-sm">
+                  <Icon name={s.icon} size={16} className="text-slate-500" />
                 </div>
                 <div className="text-[11px] font-bold text-slate-700 leading-tight">{s.title}</div>
                 <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">{s.desc}</div>
@@ -234,41 +227,41 @@ export default function ReferralWidget({ userId }: Props) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/60 border border-blue-100/60 p-3 flex flex-col items-center text-center shadow-sm">
-          <div className="w-9 h-9 rounded-xl bg-blue-100/80 border border-blue-200/40 flex items-center justify-center mb-2">
-            <Icon name="Users" size={16} className="text-blue-600" />
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-3 flex flex-col items-center text-center">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center mb-2">
+            <Icon name="Users" size={15} className="text-blue-500" />
           </div>
-          <div className="text-xl font-extrabold text-blue-700 tabular-nums leading-none">{data.uses_count}</div>
-          <div className="text-[10px] text-blue-500/80 font-medium mt-0.5 uppercase tracking-wide">Приглашено</div>
+          <div className="text-xl font-extrabold text-slate-800 tabular-nums leading-none">{data.uses_count}</div>
+          <div className="text-[10px] text-slate-400 font-medium mt-0.5 uppercase tracking-wide">Приглашено</div>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50/60 border border-orange-100/60 p-3 flex flex-col items-center text-center shadow-sm">
-          <div className="w-9 h-9 rounded-xl bg-orange-100/80 border border-orange-200/40 flex items-center justify-center mb-2">
-            <Icon name="CheckCircle" size={16} className="text-orange-500" />
+        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-3 flex flex-col items-center text-center">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-2">
+            <Icon name="CheckCircle" size={15} className="text-emerald-500" />
           </div>
-          <div className="text-xl font-extrabold text-orange-600 tabular-nums leading-none">{data.successful_count}</div>
-          <div className="text-[10px] text-orange-500/80 font-medium mt-0.5 uppercase tracking-wide">Активировано</div>
+          <div className="text-xl font-extrabold text-slate-800 tabular-nums leading-none">{data.successful_count}</div>
+          <div className="text-[10px] text-slate-400 font-medium mt-0.5 uppercase tracking-wide">Активировано</div>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-rose-50 to-pink-50/60 border border-rose-100/60 p-3 flex flex-col items-center text-center shadow-sm">
-          <div className="w-9 h-9 rounded-xl bg-rose-100/80 border border-rose-200/40 flex items-center justify-center mb-2">
-            <Icon name="Wallet" size={16} className="text-rose-500" />
+        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-3 flex flex-col items-center text-center">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center mb-2">
+            <Icon name="Wallet" size={15} className="text-amber-500" />
           </div>
-          <div className="text-xl font-extrabold text-rose-600 tabular-nums leading-none">{data.total_earned_rub}₽</div>
-          <div className="text-[10px] text-rose-500/80 font-medium mt-0.5 uppercase tracking-wide">Заработано</div>
+          <div className="text-xl font-extrabold text-slate-800 tabular-nums leading-none">{data.total_earned_rub}₽</div>
+          <div className="text-[10px] text-slate-400 font-medium mt-0.5 uppercase tracking-wide">Заработано</div>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/70 shadow-sm px-4 py-3">
+      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold text-slate-600">
             {toNext > 0
               ? `Ещё ${toNext} ${toNext === 1 ? 'приглашение' : toNext < 5 ? 'приглашения' : 'приглашений'} до следующего бонуса`
               : 'Бонус за следующих друзей открыт!'}
           </span>
-          <span className="text-xs font-bold text-amber-600">{progressValue}/{NEXT_BONUS_TARGET}</span>
+          <span className="text-xs font-bold text-slate-500">{progressValue}/{NEXT_BONUS_TARGET}</span>
         </div>
-        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 transition-all duration-700"
             style={{ width: `${progressPct}%` }}
@@ -277,28 +270,28 @@ export default function ReferralWidget({ userId }: Props) {
       </div>
 
       {/* Share buttons */}
-      <div className="rounded-3xl bg-white/80 backdrop-blur-sm border border-white/70 shadow-sm px-4 py-4">
+      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm px-4 py-4">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Поделиться</div>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => copyText(refLink, 'Ссылка скопирована')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 active:scale-95 transition-all"
           >
-            <Icon name="Link" size={15} />
+            <Icon name="Link" size={14} className="text-slate-500" />
             Скопировать ссылку
           </button>
           <button
             onClick={shareNative}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-100 text-amber-700 text-sm font-semibold hover:bg-amber-200 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 active:scale-95 transition-all"
           >
-            <Icon name="Share2" size={15} />
+            <Icon name="Share2" size={14} className="text-slate-500" />
             Ещё
           </button>
         </div>
       </div>
 
       {/* Invitations history */}
-      <div className="rounded-3xl bg-white/80 backdrop-blur-sm border border-white/70 shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-4 pt-4 pb-2">
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             История приглашений
@@ -306,28 +299,30 @@ export default function ReferralWidget({ userId }: Props) {
         </div>
         {invites.length === 0 ? (
           <div className="px-4 pb-4">
-            <div className="flex flex-col items-center text-center py-6 px-4 rounded-2xl bg-amber-50/60 border border-amber-100/50">
-              <span className="text-3xl mb-2">👨‍👩‍👧‍👦</span>
-              <div className="text-sm font-semibold text-slate-600 mb-1">Список ваших приглашений появится здесь</div>
+            <div className="flex flex-col items-center text-center py-6 px-4 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-3">
+                <Icon name="UserPlus" size={18} className="text-slate-400" />
+              </div>
+              <div className="text-sm font-semibold text-slate-600 mb-0.5">Список приглашений появится здесь</div>
               <div className="text-xs text-slate-400">Делитесь кодом!</div>
             </div>
           </div>
         ) : (
           <div className="px-3 pb-3">
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {visibleInvites.map((inv) => {
                 const date = inv.activated_at || inv.signed_up_at;
                 return (
                   <div
                     key={inv.id}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/60 transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/60 transition-colors"
                   >
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
                       {(inv.invitee_family_name || 'С').charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-slate-700 truncate">
-                        {inv.invitee_family_name || 'Семья Ивановых'}
+                        {inv.invitee_family_name || 'Семья'}
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${statusDot(inv.status)} shrink-0`} />
@@ -352,7 +347,7 @@ export default function ReferralWidget({ userId }: Props) {
             {invites.length > 5 && (
               <button
                 onClick={() => setShowAll((v) => !v)}
-                className="mt-2 w-full text-xs font-semibold text-amber-600 hover:text-amber-700 py-2 rounded-xl hover:bg-amber-50 flex items-center justify-center gap-1 transition-colors"
+                className="mt-2 w-full text-xs font-semibold text-slate-500 hover:text-slate-700 py-2 rounded-xl hover:bg-slate-50 flex items-center justify-center gap-1 transition-colors"
               >
                 {showAll ? (
                   <>Свернуть <Icon name="ChevronUp" size={14} /></>
