@@ -11,10 +11,10 @@ interface Props {
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
-const HUB_RADIUS = 245;
+const HUB_RADIUS = 240;
 const HUB_SIZE = 84;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
-const CAPSULE_RADIUS = 318;
+const CAPSULE_RADIUS = 332;
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -167,13 +167,13 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                   width: HUB_SIZE,
                   height: HUB_SIZE,
                   background: `
-                    radial-gradient(circle at 32% 22%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.3) 22%, transparent 45%),
-                    radial-gradient(circle at 70% 80%, ${hub.color}99 0%, ${hub.color}55 60%, transparent 100%),
-                    radial-gradient(circle at 50% 50%, ${hub.color}55 0%, ${hub.color}cc 100%)
+                    radial-gradient(circle at 32% 22%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 22%, transparent 45%),
+                    radial-gradient(circle at 70% 80%, ${hub.color} 0%, ${hub.color}aa 60%, ${hub.color}55 100%),
+                    radial-gradient(circle at 50% 50%, ${hub.color}aa 0%, ${hub.color} 100%)
                   `,
                   boxShadow: isActive
-                    ? `0 0 0 2px white, 0 0 0 3.5px ${hub.color}, 0 14px 30px -6px ${hub.color}aa, 0 4px 10px -3px ${hub.color}77, inset 0 -7px 12px ${hub.color}66, inset 0 4px 8px rgba(255,255,255,0.9), inset 0 0 16px rgba(255,255,255,0.3)`
-                    : `0 12px 28px -6px ${hub.color}88, 0 4px 10px -3px ${hub.color}66, inset 0 -7px 12px ${hub.color}55, inset 0 4px 8px rgba(255,255,255,0.85), inset 0 0 14px rgba(255,255,255,0.25)`,
+                    ? `0 0 0 2px white, 0 0 0 3.5px ${hub.color}, 0 14px 30px -6px ${hub.color}cc, 0 4px 10px -3px ${hub.color}99, inset 0 -7px 12px ${hub.color}, inset 0 4px 8px rgba(255,255,255,0.7), inset 0 0 16px rgba(255,255,255,0.2)`
+                    : `0 12px 28px -6px ${hub.color}aa, 0 4px 10px -3px ${hub.color}88, inset 0 -7px 12px ${hub.color}cc, inset 0 4px 8px rgba(255,255,255,0.65), inset 0 0 14px rgba(255,255,255,0.2)`,
                   transform: isActive ? 'scale(1.06)' : 'scale(1)',
                   animation: isActive
                     ? 'hubBreath 2.5s ease-in-out infinite'
