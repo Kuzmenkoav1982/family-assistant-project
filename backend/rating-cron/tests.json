@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Cron вызов отрабатывает успешно (POST)",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET тоже работает",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
