@@ -219,23 +219,42 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center"
           style={{
-            width: 230,
-            height: 230,
+            width: '36%',
+            height: '36%',
             zIndex: 5,
             animation: 'centerBreath 4s ease-in-out infinite',
           }}
         >
-          <h2 className="text-xl font-bold text-slate-800 mb-2">Наша Семья</h2>
-          <div className="flex items-baseline justify-center gap-1.5 mb-1">
-            <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
+          <h2
+            className="font-bold text-slate-800 leading-tight"
+            style={{ fontSize: 'clamp(13px, 3.5vw, 20px)', marginBottom: '2%' }}
+          >
+            Наша Семья
+          </h2>
+          <div className="flex items-baseline justify-center gap-1 leading-none">
+            <span
+              className="font-bold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent"
+              style={{ fontSize: 'clamp(16px, 4.5vw, 26px)' }}
+            >
               {stats.overall_progress}%
             </span>
-            <span className="text-[11px] text-slate-500 font-medium">готовность</span>
+            <span
+              className="text-slate-500 font-medium"
+              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            >
+              готовность
+            </span>
           </div>
-          <div className="text-[11px] text-slate-600 font-medium tracking-wide">
+          <div
+            className="text-slate-600 font-medium tracking-wide leading-tight mt-1"
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
             <span className="font-bold text-slate-800">{stats.active_hubs}</span> АКТИВНЫХ ХАБОВ
           </div>
-          <div className="text-[11px] text-slate-600 font-medium tracking-wide">
+          <div
+            className="text-slate-600 font-medium tracking-wide leading-tight"
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
             <span className="font-bold text-slate-800">
               {stats.completed_sections}/{stats.total_sections}
             </span>{' '}
