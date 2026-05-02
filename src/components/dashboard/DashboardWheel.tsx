@@ -11,10 +11,10 @@ interface Props {
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
-const HUB_RADIUS = 230;
-const HUB_SIZE = 96;
+const HUB_RADIUS = 245;
+const HUB_SIZE = 84;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
-const CAPSULE_RADIUS = 308;
+const CAPSULE_RADIUS = 318;
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -167,13 +167,13 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                   width: HUB_SIZE,
                   height: HUB_SIZE,
                   background: `
-                    radial-gradient(circle at 32% 22%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 18%, transparent 35%),
-                    radial-gradient(circle at 70% 80%, ${hub.color}44 0%, transparent 50%),
-                    radial-gradient(circle at 50% 50%, ${hub.color}22 0%, ${hub.color}66 100%)
+                    radial-gradient(circle at 32% 22%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.3) 22%, transparent 45%),
+                    radial-gradient(circle at 70% 80%, ${hub.color}99 0%, ${hub.color}55 60%, transparent 100%),
+                    radial-gradient(circle at 50% 50%, ${hub.color}55 0%, ${hub.color}cc 100%)
                   `,
                   boxShadow: isActive
-                    ? `0 0 0 2px white, 0 0 0 3.5px ${hub.color}, 0 14px 30px -6px ${hub.color}88, 0 4px 10px -3px ${hub.color}55, inset 0 -7px 12px ${hub.color}33, inset 0 4px 8px rgba(255,255,255,1), inset 0 0 18px rgba(255,255,255,0.4)`
-                    : `0 12px 28px -6px ${hub.color}66, 0 4px 10px -3px ${hub.color}44, inset 0 -7px 12px ${hub.color}33, inset 0 4px 8px rgba(255,255,255,0.95), inset 0 0 18px rgba(255,255,255,0.3)`,
+                    ? `0 0 0 2px white, 0 0 0 3.5px ${hub.color}, 0 14px 30px -6px ${hub.color}aa, 0 4px 10px -3px ${hub.color}77, inset 0 -7px 12px ${hub.color}66, inset 0 4px 8px rgba(255,255,255,0.9), inset 0 0 16px rgba(255,255,255,0.3)`
+                    : `0 12px 28px -6px ${hub.color}88, 0 4px 10px -3px ${hub.color}66, inset 0 -7px 12px ${hub.color}55, inset 0 4px 8px rgba(255,255,255,0.85), inset 0 0 14px rgba(255,255,255,0.25)`,
                   transform: isActive ? 'scale(1.06)' : 'scale(1)',
                   animation: isActive
                     ? 'hubBreath 2.5s ease-in-out infinite'
@@ -182,18 +182,19 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
               >
                 <Icon
                   name={hub.icon}
-                  size={24}
+                  size={22}
                   className="transition-transform group-hover:scale-110"
                   style={{
-                    color: hub.color,
-                    filter: `drop-shadow(0 1px 2px ${hub.color}66) drop-shadow(0 0 1px white)`,
+                    color: 'white',
+                    filter: `drop-shadow(0 1px 2px ${hub.color}) drop-shadow(0 0 4px ${hub.color}88)`,
+                    strokeWidth: 2.5,
                   }}
                 />
                 <span
-                  className="text-[9px] font-bold tracking-wider mt-0.5 leading-tight text-center px-1"
+                  className="text-[8px] font-extrabold tracking-wider mt-0.5 leading-tight text-center px-1"
                   style={{
-                    color: hub.color,
-                    textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+                    color: 'white',
+                    textShadow: `0 1px 2px ${hub.color}, 0 0 6px ${hub.color}cc`,
                   }}
                 >
                   {hub.title.toUpperCase()}
