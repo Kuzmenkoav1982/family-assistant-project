@@ -11,10 +11,11 @@ interface Props {
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
-const HUB_RADIUS = 240;
+const HUB_RADIUS = 235;
 const HUB_SIZE = 84;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
-const CAPSULE_RADIUS = 332;
+const CAPSULE_RADIUS = 348;
+const CAPSULE_THICKNESS = 32;
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -98,16 +99,16 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
           style={{ transition: 'stroke-dashoffset 0.8s ease' }}
         />
 
-        {items.map(({ hub, cx, cy, angle }) => (
-          <CapsuleProgress
+        {items.map(({ hub, angle }, idx) => (
+          <CapsuleArc
             key={`cap-${hub.id}`}
-            cx={cx}
-            cy={cy}
             angle={angle}
+            arcSpan={360 / hubs.length - 4}
             color={hub.color}
             progress={hub.progress}
             icon={hub.icon}
             isActive={activeHubId === hub.id}
+            idSuffix={`${idx}`}
           />
         ))}
 
@@ -283,48 +284,77 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
   );
 }
 
-function CapsuleProgress({
-  cx,
-  cy,
+function CapsuleArc({
   angle,
+  arcSpan,
   color,
   progress,
   icon,
   isActive,
+  idSuffix,
 }: {
-  cx: number;
-  cy: number;
   angle: number;
+  arcSpan: number;
   color: string;
   progress: number;
   icon: string;
   isActive: boolean;
+  idSuffix: string;
 }) {
-  const w = 110;
-  const h = 26;
-  const isBottom = angle > 90 && angle < 270;
-  const tangent = isBottom ? angle + 180 : angle;
+  const rOuter = CAPSULE_RADIUS + CAPSULE_THICKNESS / 2;
+  const rInner = CAPSULE_RADIUS - CAPSULE_THICKNESS / 2;
+  const halfSpan = arcSpan / 2;
+  const a1 = angle - halfSpan;
+  const a2 = angle + halfSpan;
 
-  const iconX = -w / 2 + 13;
-  const percentX = w / 2 - 13;
-  const barX = -w / 2 + 26;
-  const barW = w - 52;
+  const p1Outer = polar(CENTER, CENTER, rOuter, a1);
+  const p2Outer = polar(CENTER, CENTER, rOuter, a2);
+  const p1Inner = polar(CENTER, CENTER, rInner, a1);
+  const p2Inner = polar(CENTER, CENTER, rInner, a2);
+
+  const largeArc = arcSpan > 180 ? 1 : 0;
+  const capR = CAPSULE_THICKNESS / 2;
+
+  const arcPath = [
+    `M ${p1Outer.x} ${p1Outer.y}`,
+    `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2Outer.x} ${p2Outer.y}`,
+    `A ${capR} ${capR} 0 0 1 ${p2Inner.x} ${p2Inner.y}`,
+    `A ${rInner} ${rInner} 0 ${largeArc} 0 ${p1Inner.x} ${p1Inner.y}`,
+    `A ${capR} ${capR} 0 0 1 ${p1Outer.x} ${p1Outer.y}`,
+    'Z',
+  ].join(' ');
+
+  const trackId = `track-${idSuffix}`;
+  const fillId = `fill-${idSuffix}`;
+
+  const trackInset = 5;
+  const trackR = CAPSULE_RADIUS;
+  const aTrack1 = a1 + trackInset;
+  const aTrack2 = a2 - trackInset;
+  const tp1 = polar(CENTER, CENTER, trackR, aTrack1);
+  const tp2 = polar(CENTER, CENTER, trackR, aTrack2);
+  const trackPath = `M ${tp1.x} ${tp1.y} A ${trackR} ${trackR} 0 0 1 ${tp2.x} ${tp2.y}`;
+
+  const aFill2 = aTrack1 + (aTrack2 - aTrack1) * (progress / 100);
+  const fp2 = polar(CENTER, CENTER, trackR, aFill2);
+  const fillPath = `M ${tp1.x} ${tp1.y} A ${trackR} ${trackR} 0 0 1 ${fp2.x} ${fp2.y}`;
+
+  // позиции иконки и текста на дуге
+  const iconAngle = a1 + 5;
+  const textAngle = a2 - 5;
+  const iconPos = polar(CENTER, CENTER, CAPSULE_RADIUS, iconAngle);
+  const textPos = polar(CENTER, CENTER, CAPSULE_RADIUS, textAngle);
+  const isBottom = angle > 90 && angle < 270;
 
   return (
     <g
-      transform={`translate(${cx} ${cy}) rotate(${tangent})`}
       style={{
         opacity: isActive ? 1 : 0.95,
         transition: 'opacity 0.3s',
       }}
     >
-      <rect
-        x={-w / 2}
-        y={-h / 2}
-        width={w}
-        height={h}
-        rx={h / 2}
-        ry={h / 2}
+      <path
+        d={arcPath}
         fill="white"
         stroke={`${color}66`}
         strokeWidth="1.5"
@@ -334,49 +364,49 @@ function CapsuleProgress({
         }
       />
 
-      <circle cx={iconX} cy="0" r="7" fill={`${color}1a`} />
-      <foreignObject x={iconX - 6} y={-6} width="12" height="12">
+      <path
+        id={trackId}
+        d={trackPath}
+        fill="none"
+        stroke={`${color}22`}
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+      <path
+        id={fillId}
+        d={fillPath}
+        fill="none"
+        stroke={color}
+        strokeWidth="6"
+        strokeLinecap="round"
+        style={{ transition: 'd 0.7s ease' }}
+      />
+
+      <circle cx={iconPos.x} cy={iconPos.y} r="9" fill={`${color}1a`} />
+      <foreignObject x={iconPos.x - 7} y={iconPos.y - 7} width="14" height="14">
         <div
           xmlns="http://www.w3.org/1999/xhtml"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 12,
-            height: 12,
+            width: 14,
+            height: 14,
           }}
         >
-          <Icon name={icon} size={10} style={{ color }} />
+          <Icon name={icon} size={12} style={{ color }} />
         </div>
       </foreignObject>
 
-      <rect
-        x={barX}
-        y="-2.5"
-        width={barW}
-        height="5"
-        rx="2.5"
-        ry="2.5"
-        fill={`${color}1a`}
-      />
-      <rect
-        x={barX}
-        y="-2.5"
-        width={barW * (progress / 100)}
-        height="5"
-        rx="2.5"
-        ry="2.5"
-        fill={color}
-        style={{ transition: 'width 0.7s ease' }}
-      />
-
       <text
-        x={percentX}
-        y="3.5"
-        fontSize="9.5"
-        fontWeight="700"
+        x={textPos.x}
+        y={textPos.y}
+        fontSize="11"
+        fontWeight="800"
         fill={color}
         textAnchor="middle"
+        dominantBaseline="middle"
+        transform={`rotate(${isBottom ? textAngle - 90 : textAngle + 90} ${textPos.x} ${textPos.y})`}
       >
         {progress}%
       </text>
