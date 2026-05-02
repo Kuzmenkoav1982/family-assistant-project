@@ -192,10 +192,15 @@ export default function DashboardWheel({ hubs, stats, activeHubId, onSelectHub }
                   }}
                 />
                 <span
-                  className="text-[8px] font-extrabold tracking-wider mt-0.5 leading-tight text-center px-1"
+                  className="font-extrabold tracking-wide mt-0.5 leading-tight text-center"
                   style={{
                     color: 'white',
                     textShadow: `0 1px 2px ${hub.color}, 0 0 6px ${hub.color}cc`,
+                    fontSize: hub.title.length > 8 ? '7px' : '8px',
+                    letterSpacing: hub.title.length > 8 ? '0' : '0.05em',
+                    paddingLeft: 2,
+                    paddingRight: 2,
+                    width: '100%',
                   }}
                 >
                   {hub.title.toUpperCase()}
@@ -323,24 +328,36 @@ function CapsuleArc({
     'Z',
   ].join(' ');
 
-  // прогресс-линия по центральной радиусной окружности капсулы
-  const trackInset = 6;
+  // отступы под иконку и процент по краям
+  const iconInset = 5;
+  const textInset = 5;
+
+  // позиции иконки (левый край) и текста (правый край)
+  const isBottom = angle > 90 && angle < 270;
+  // Для нижней половины: левый край = a2, правый = a1 (читаем справа налево)
+  const iconAngle = isBottom ? a2 - iconInset : a1 + iconInset;
+  const textAngle = isBottom ? a1 + textInset : a2 - textInset;
+  const iconPos = polar(CENTER, CENTER, CAPSULE_RADIUS, iconAngle);
+  const textPos = polar(CENTER, CENTER, CAPSULE_RADIUS, textAngle);
+
+  // прогресс-линия в центре капсулы между иконкой и текстом
   const trackR = CAPSULE_RADIUS;
+  const trackInset = 11;
   const aTrack1 = a1 + trackInset;
   const aTrack2 = a2 - trackInset;
   const tp1 = polar(CENTER, CENTER, trackR, aTrack1);
   const tp2 = polar(CENTER, CENTER, trackR, aTrack2);
   const trackPath = `M ${tp1.x} ${tp1.y} A ${trackR} ${trackR} 0 0 1 ${tp2.x} ${tp2.y}`;
 
-  const aFill2 = aTrack1 + (aTrack2 - aTrack1) * (progress / 100);
-  const fp2 = polar(CENTER, CENTER, trackR, aFill2);
-  const fillPath = `M ${tp1.x} ${tp1.y} A ${trackR} ${trackR} 0 0 1 ${fp2.x} ${fp2.y}`;
-
-  // позиции иконки и текста: иконка на внутренней дуге, % на внешней
-  const iconR = CAPSULE_RADIUS - CAPSULE_THICKNESS / 2 + 9;
-  const textR = CAPSULE_RADIUS + CAPSULE_THICKNESS / 2 - 9;
-  const iconPos = polar(CENTER, CENTER, iconR, angle);
-  const textPos = polar(CENTER, CENTER, textR, angle);
+  // Заливка прогресса: от стороны иконки к стороне текста
+  const fillStart = isBottom ? aTrack2 : aTrack1;
+  const fillEnd = isBottom
+    ? aTrack2 - (aTrack2 - aTrack1) * (progress / 100)
+    : aTrack1 + (aTrack2 - aTrack1) * (progress / 100);
+  const fpStart = polar(CENTER, CENTER, trackR, fillStart);
+  const fpEnd = polar(CENTER, CENTER, trackR, fillEnd);
+  const sweep = isBottom ? 0 : 1;
+  const fillPath = `M ${fpStart.x} ${fpStart.y} A ${trackR} ${trackR} 0 0 ${sweep} ${fpEnd.x} ${fpEnd.y}`;
 
   return (
     <g
@@ -367,14 +384,16 @@ function CapsuleArc({
         strokeWidth="5"
         strokeLinecap="round"
       />
-      <path
-        d={fillPath}
-        fill="none"
-        stroke={color}
-        strokeWidth="5"
-        strokeLinecap="round"
-        style={{ transition: 'd 0.7s ease' }}
-      />
+      {progress > 0 && (
+        <path
+          d={fillPath}
+          fill="none"
+          stroke={color}
+          strokeWidth="5"
+          strokeLinecap="round"
+          style={{ transition: 'd 0.7s ease' }}
+        />
+      )}
 
       <foreignObject x={iconPos.x - 8} y={iconPos.y - 8} width="16" height="16">
         <div
