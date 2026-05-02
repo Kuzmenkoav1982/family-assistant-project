@@ -11,11 +11,11 @@ interface Props {
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
-const HUB_RADIUS = 235;
+const HUB_RADIUS = 230;
 const HUB_SIZE = 84;
 const ARC_RADIUS = HUB_SIZE / 2 + 6;
-const CAPSULE_RADIUS = 348;
-const CAPSULE_THICKNESS = 32;
+const CAPSULE_RADIUS = 320;
+const CAPSULE_THICKNESS = 36;
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180);
@@ -291,7 +291,6 @@ function CapsuleArc({
   progress,
   icon,
   isActive,
-  idSuffix,
 }: {
   angle: number;
   arcSpan: number;
@@ -324,10 +323,8 @@ function CapsuleArc({
     'Z',
   ].join(' ');
 
-  const trackId = `track-${idSuffix}`;
-  const fillId = `fill-${idSuffix}`;
-
-  const trackInset = 5;
+  // прогресс-линия по центральной радиусной окружности капсулы
+  const trackInset = 6;
   const trackR = CAPSULE_RADIUS;
   const aTrack1 = a1 + trackInset;
   const aTrack2 = a2 - trackInset;
@@ -339,12 +336,11 @@ function CapsuleArc({
   const fp2 = polar(CENTER, CENTER, trackR, aFill2);
   const fillPath = `M ${tp1.x} ${tp1.y} A ${trackR} ${trackR} 0 0 1 ${fp2.x} ${fp2.y}`;
 
-  // позиции иконки и текста на дуге
-  const iconAngle = a1 + 5;
-  const textAngle = a2 - 5;
-  const iconPos = polar(CENTER, CENTER, CAPSULE_RADIUS, iconAngle);
-  const textPos = polar(CENTER, CENTER, CAPSULE_RADIUS, textAngle);
-  const isBottom = angle > 90 && angle < 270;
+  // позиции иконки и текста: иконка на внутренней дуге, % на внешней
+  const iconR = CAPSULE_RADIUS - CAPSULE_THICKNESS / 2 + 9;
+  const textR = CAPSULE_RADIUS + CAPSULE_THICKNESS / 2 - 9;
+  const iconPos = polar(CENTER, CENTER, iconR, angle);
+  const textPos = polar(CENTER, CENTER, textR, angle);
 
   return (
     <g
@@ -356,45 +352,42 @@ function CapsuleArc({
       <path
         d={arcPath}
         fill="white"
-        stroke={`${color}66`}
-        strokeWidth="1.5"
-        opacity="0.95"
+        stroke={color}
+        strokeWidth="3"
+        opacity="0.98"
         filter={
-          isActive ? `drop-shadow(0 0 10px ${color}99)` : `drop-shadow(0 2px 4px ${color}22)`
+          isActive ? `drop-shadow(0 0 10px ${color}cc)` : `drop-shadow(0 2px 4px ${color}55)`
         }
       />
 
       <path
-        id={trackId}
         d={trackPath}
         fill="none"
-        stroke={`${color}22`}
-        strokeWidth="6"
+        stroke={`${color}33`}
+        strokeWidth="5"
         strokeLinecap="round"
       />
       <path
-        id={fillId}
         d={fillPath}
         fill="none"
         stroke={color}
-        strokeWidth="6"
+        strokeWidth="5"
         strokeLinecap="round"
         style={{ transition: 'd 0.7s ease' }}
       />
 
-      <circle cx={iconPos.x} cy={iconPos.y} r="9" fill={`${color}1a`} />
-      <foreignObject x={iconPos.x - 7} y={iconPos.y - 7} width="14" height="14">
+      <foreignObject x={iconPos.x - 8} y={iconPos.y - 8} width="16" height="16">
         <div
           xmlns="http://www.w3.org/1999/xhtml"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 14,
-            height: 14,
+            width: 16,
+            height: 16,
           }}
         >
-          <Icon name={icon} size={12} style={{ color }} />
+          <Icon name={icon} size={13} style={{ color }} />
         </div>
       </foreignObject>
 
@@ -406,7 +399,6 @@ function CapsuleArc({
         fill={color}
         textAnchor="middle"
         dominantBaseline="middle"
-        transform={`rotate(${isBottom ? textAngle - 90 : textAngle + 90} ${textPos.x} ${textPos.y})`}
       >
         {progress}%
       </text>
