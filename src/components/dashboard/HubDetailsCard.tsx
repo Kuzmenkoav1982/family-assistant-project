@@ -63,9 +63,52 @@ export default function HubDetailsCard({
         />
       </div>
 
-      <div className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">
-        РАЗДЕЛЫ
-      </div>
+      {(() => {
+        const autoSupported = hub.sections.filter((s) => s.auto_supported);
+        const allAuto = autoSupported.length > 0 && autoSupported.every((s) => s.mode === 'auto');
+        const noneAuto = autoSupported.every((s) => s.mode !== 'auto');
+        const handleBulk = (mode: 'auto' | 'manual') => {
+          autoSupported.forEach((s) => {
+            if ((mode === 'auto' && s.mode !== 'auto') || (mode === 'manual' && s.mode === 'auto')) {
+              onSetMode(s.id, mode);
+            }
+          });
+        };
+        return (
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[10px] font-bold text-slate-400 tracking-wider">
+              РАЗДЕЛЫ
+            </div>
+            {autoSupported.length > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleBulk('auto')}
+                  disabled={allAuto}
+                  className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md flex items-center gap-1 transition-all ${
+                    allAuto
+                      ? 'bg-slate-100 text-slate-400 cursor-default'
+                      : 'hover:scale-105'
+                  }`}
+                  style={!allAuto ? { background: `${hub.color}22`, color: hub.color } : undefined}
+                  title="Включить авто-режим во всех разделах"
+                >
+                  <Icon name="Zap" size={10} />
+                  Все на авто
+                </button>
+                {!noneAuto && (
+                  <button
+                    onClick={() => handleBulk('manual')}
+                    className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:bg-slate-100"
+                    title="Переключить все на ручной"
+                  >
+                    <Icon name="ListChecks" size={10} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="space-y-2">
         {hub.sections.map((section) => (
