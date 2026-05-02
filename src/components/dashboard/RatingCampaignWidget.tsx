@@ -49,6 +49,81 @@ interface Overview {
   weights?: { progress: number; activity: number; engagement: number; referrals: number };
 }
 
+// Бэкенд может возвращать поля под разными именами — нормализуем
+function normalizeOverview(raw: unknown): Overview | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const campaignRaw = (r.campaign as Record<string, unknown> | null) || null;
+  if (!campaignRaw) return null;
+
+  const endsAt = String(campaignRaw.ends_at || '');
+  const startsAt = String(campaignRaw.starts_at || '');
+  const daysLeft = Number(campaignRaw.days_left ?? 0);
+  let hoursLeft = Number(campaignRaw.hours_left ?? 0);
+  if (!hoursLeft && campaignRaw.seconds_left != null) {
+    hoursLeft = Math.floor(Number(campaignRaw.seconds_left) / 3600);
+  }
+
+  const campaign: Campaign = {
+    id: String(campaignRaw.id ?? ''),
+    slug: String(campaignRaw.slug ?? ''),
+    title: String(campaignRaw.title ?? ''),
+    description: (campaignRaw.description as string | null) ?? null,
+    banner_text: (campaignRaw.banner_text as string | null) ?? null,
+    starts_at: startsAt,
+    ends_at: endsAt,
+    days_left: daysLeft,
+    hours_left: hoursLeft,
+    status: String(campaignRaw.status ?? 'active'),
+  };
+
+  const prizesRaw = Array.isArray(r.prizes) ? (r.prizes as Record<string, unknown>[]) : [];
+  const prizes: Prize[] = prizesRaw.map((p) => ({
+    place_from: Number(p.place_from ?? 0),
+    place_to: Number(p.place_to ?? 0),
+    amount_rub: Number(p.amount_rub ?? 0),
+    prize_type: String(p.prize_type ?? 'wallet'),
+    description: (p.description as string | null) ?? null,
+  }));
+
+  const leaderRaw = (r.leaderboard_top || r.leaderboard) as Record<string, unknown>[] | undefined;
+  const leaderboard_top: LeaderRow[] = Array.isArray(leaderRaw)
+    ? leaderRaw.map((row) => ({
+        place: Number(row.place ?? 0),
+        family_id: String(row.family_id ?? ''),
+        family_name: String(row.family_name ?? 'Семья'),
+        score: Number(row.score ?? 0),
+        overall_progress: Number(row.overall_progress ?? 0),
+        members_count: Number(row.members_count ?? 0),
+        is_me: Boolean(row.is_me),
+      }))
+    : [];
+
+  const myPosRaw = r.my_position as Record<string, unknown> | null | undefined;
+  let my_position: MyPosition | null = null;
+  if (myPosRaw && typeof myPosRaw === 'object') {
+    my_position = {
+      place: Number(myPosRaw.place ?? 0),
+      score: Number(myPosRaw.score ?? 0),
+      overall_progress: Number(myPosRaw.overall_progress ?? 0),
+    };
+  } else if (r.my_place != null) {
+    my_position = {
+      place: Number(r.my_place ?? 0),
+      score: Number(r.my_score ?? 0),
+      overall_progress: 0,
+    };
+  }
+
+  return {
+    campaign,
+    prizes,
+    leaderboard_top,
+    my_position,
+    total_families: Number(r.total_families ?? leaderboard_top.length),
+  };
+}
+
 interface Props {
   userId: string;
 }
@@ -77,8 +152,8 @@ export default function RatingCampaignWidget({ userId }: Props) {
       headers: { 'X-User-Id': String(userId) },
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((j: Overview | null) => {
-        if (!cancelled) setData(j);
+      .then((j: unknown) => {
+        if (!cancelled) setData(normalizeOverview(j));
       })
       .catch(() => {
         if (!cancelled) setData(null);

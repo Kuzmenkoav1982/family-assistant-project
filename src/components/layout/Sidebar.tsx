@@ -321,9 +321,9 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
             </button>
           </div>
           <button
-            onClick={() => { navigate('/'); onVisibilityChange(false); }}
+            onClick={() => { navigate('/dashboard'); onVisibilityChange(false); }}
             className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
-              location.pathname === '/' || location.pathname === '/dashboard'
+              location.pathname === '/dashboard'
                 ? 'bg-cyan-50 dark:bg-cyan-950/40'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
             }`}

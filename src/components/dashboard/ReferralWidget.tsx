@@ -66,7 +66,15 @@ export default function ReferralWidget({ userId }: Props) {
   if (loading) return null;
   if (!data || !data.code) return null;
 
-  const settings = data.settings;
+  const settings: ReferralSettings = data.settings || {
+    reward_inviter_on_signup: 0,
+    reward_inviter_on_active: 0,
+    reward_invitee_welcome: 0,
+    active_min_members: 3,
+    active_min_progress: 30,
+    active_window_days: 7,
+  };
+  const invites: Invite[] = Array.isArray(data.invites) ? data.invites : [];
   const refLink = `${window.location.origin}/register?ref=${data.code}`;
   const message = `Привет! Я в семейном помощнике "Наша Семья" — он реально помогает. Регистрируйся по моей ссылке и получи ${settings.reward_invitee_welcome}₽ бонусом: ${refLink}`;
 
@@ -106,7 +114,7 @@ export default function ReferralWidget({ userId }: Props) {
     );
   };
 
-  const visibleInvites = showAll ? data.invites : data.invites.slice(0, 5);
+  const visibleInvites = showAll ? invites : invites.slice(0, 5);
   const hasShare = typeof navigator !== 'undefined' && 'share' in navigator;
 
   const statusLabel = (inv: Invite) => {
@@ -244,7 +252,7 @@ export default function ReferralWidget({ userId }: Props) {
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
             Приглашения
           </div>
-          {data.invites.length === 0 ? (
+          {invites.length === 0 ? (
             <div className="flex items-center gap-2 p-3 bg-violet-50/60 rounded-xl text-sm text-slate-600">
               <Icon name="UserPlus" size={18} className="text-violet-500" />
               Пока никого не пригласили. Поделитесь ссылкой!
@@ -286,7 +294,7 @@ export default function ReferralWidget({ userId }: Props) {
                   );
                 })}
               </div>
-              {data.invites.length > 5 && (
+              {invites.length > 5 && (
                 <button
                   onClick={() => setShowAll((v) => !v)}
                   className="mt-2 w-full text-xs font-semibold text-violet-600 hover:text-violet-700 py-1.5 rounded-lg hover:bg-violet-50 flex items-center justify-center gap-1"
