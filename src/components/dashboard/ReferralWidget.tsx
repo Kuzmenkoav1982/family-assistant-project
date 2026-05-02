@@ -76,7 +76,13 @@ export default function ReferralWidget({ userId }: Props) {
   };
   const invites: Invite[] = Array.isArray(data.invites) ? data.invites : [];
   const refLink = `${window.location.origin}/register?ref=${data.code}`;
-  const message = `Привет! Я в семейном помощнике "Наша Семья" — он реально помогает. Регистрируйся по моей ссылке и получи ${settings.reward_invitee_welcome}₽ бонусом: ${refLink}`;
+  const message = `Привет! 👋
+
+Пользуюсь приложением «Наша Семья» — это семейный помощник, который реально помогает наладить здоровье, финансы, питание и развитие детей в одном месте.
+
+Регистрируйся по моему коду ${data.code} — и получишь ${settings.reward_invitee_welcome}₽ приветственного бонуса на семейный кошелёк 💎
+
+Ссылка для регистрации: ${refLink}`;
 
   const copyText = async (text: string, label: string) => {
     try {
@@ -99,7 +105,7 @@ export default function ReferralWidget({ userId }: Props) {
         // User cancelled or error — silent
       }
     } else {
-      copyText(refLink, 'Ссылка скопирована');
+      copyText(message, 'Сообщение скопировано — вставь в чат другу');
     }
   };
 
