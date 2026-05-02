@@ -237,7 +237,7 @@ export default function ReferralWidget({ userId }: Props) {
         </div>
         <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-3 flex flex-col items-center text-center">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-2">
-            <Icon name="CheckCircle" size={15} className="text-emerald-500" />
+            <Icon name="CheckSquare" size={15} className="text-emerald-500" />
           </div>
           <div className="text-xl font-extrabold text-slate-800 tabular-nums leading-none">{data.successful_count}</div>
           <div className="text-[10px] text-slate-400 font-medium mt-0.5 uppercase tracking-wide">Активировано</div>
