@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET returns rating payload",
+      "method": "GET",
+      "path": "/",
+      "headers": {"X-User-Id": "1"},
+      "expectedStatus": 200,
+      "expectedBody": {"total": 0},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

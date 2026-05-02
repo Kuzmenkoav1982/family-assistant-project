@@ -40,9 +40,25 @@ export default function HubDetailsCard({
             <Icon name={hub.icon} size={18} style={{ color: hub.color }} />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800 text-sm tracking-wide">
-              {hub.title.toUpperCase()}
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-bold text-slate-800 text-sm tracking-wide">
+                {hub.title.toUpperCase()}
+              </h3>
+              <span
+                className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
+                  hub.scope === 'personal'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-purple-100 text-purple-700'
+                }`}
+                title={
+                  hub.scope === 'personal'
+                    ? 'Личный хаб — у каждого члена семьи свой прогресс'
+                    : 'Общий хаб — прогресс на всю семью'
+                }
+              >
+                {hub.scope === 'personal' ? 'Личный' : 'Общий'}
+              </span>
+            </div>
             <p className="text-[10px] text-slate-500">
               {hub.completed_sections}/{hub.total_sections} разделов готово
             </p>

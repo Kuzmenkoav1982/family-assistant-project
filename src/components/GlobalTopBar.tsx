@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
+import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,10 @@ export default function GlobalTopBar() {
 
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const { unreadCount } = useNotificationCenter();
+  const familyCtx = useContext(FamilyMembersContext);
+  const activeMember = familyCtx?.members?.find(
+    (m) => String(m.id) === String(familyCtx?.currentMemberId),
+  );
 
   const authToken = localStorage.getItem('authToken');
   const isAuthenticated = !!authToken;
@@ -55,11 +60,15 @@ export default function GlobalTopBar() {
   if (shouldHide) return null;
 
   const getUserName = () => {
+    if (activeMember?.name) {
+      return activeMember.name.split(' ')[0];
+    }
     try {
       const userData = localStorage.getItem('userData');
       if (userData) {
         const user = JSON.parse(userData);
-        return user.name || user.email || 'Пользователь';
+        const fullName = user.name || user.email || 'Пользователь';
+        return String(fullName).split(' ')[0];
       }
     } catch {
       return 'Пользователь';
@@ -68,6 +77,9 @@ export default function GlobalTopBar() {
   };
 
   const getUserAvatar = () => {
+    if (activeMember?.photo_url && activeMember?.avatar_type === 'photo') {
+      return activeMember.photo_url;
+    }
     try {
       const userData = localStorage.getItem('userData');
       if (userData) {
@@ -80,7 +92,21 @@ export default function GlobalTopBar() {
     return null;
   };
 
+  const getInitial = () => {
+    const name = getUserName();
+    return name && name !== 'Пользователь' ? name.charAt(0).toUpperCase() : '';
+  };
+
+  const getEmojiAvatar = () => {
+    if (activeMember?.avatar && activeMember?.avatar_type !== 'photo') {
+      return activeMember.avatar;
+    }
+    return null;
+  };
+
   const avatar = getUserAvatar();
+  const emojiAvatar = getEmojiAvatar();
+  const initial = getInitial();
 
   const handleMenuClick = () => {
     window.dispatchEvent(new Event('toggleGlobalSidebar'));
@@ -127,16 +153,28 @@ export default function GlobalTopBar() {
 
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               {avatar ? (
-                <img src={avatar} alt="" className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
+                <img
+                  src={avatar}
+                  alt=""
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700 shrink-0"
+                />
+              ) : emojiAvatar ? (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center text-lg shrink-0">
+                  {emojiAvatar}
+                </div>
+              ) : initial ? (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {initial}
+                </div>
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shrink-0">
                   <Icon name="User" size={14} className="text-white" />
                 </div>
               )}
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:block">
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 max-w-[110px] truncate">
                 {getUserName()}
               </span>
             </button>

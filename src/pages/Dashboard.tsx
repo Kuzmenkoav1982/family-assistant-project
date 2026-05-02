@@ -7,6 +7,7 @@ import HubDetailsCard from '@/components/dashboard/HubDetailsCard';
 import AnimatedBackground from '@/components/dashboard/AnimatedBackground';
 import DomovoyTip from '@/components/dashboard/DomovoyTip';
 import Confetti from '@/components/dashboard/Confetti';
+import FamilyRatingWidget from '@/components/dashboard/FamilyRatingWidget';
 import type { DashboardData, Hub } from '@/components/dashboard/types';
 
 const DASHBOARD_API = 'https://functions.poehali.dev/e5fa4039-2f5c-437c-a147-7efe71d06f23';
@@ -226,6 +227,10 @@ export default function Dashboard() {
         </div>
 
         <DomovoyTip hubs={data.hubs} overall={data.stats.overall_progress} />
+
+        <div className="mt-3">
+          <FamilyRatingWidget userId={String(userId)} />
+        </div>
 
         <div className="lg:grid lg:grid-cols-[1fr,360px] lg:gap-6 lg:items-start">
           <div className="-mx-3 sm:mx-0">

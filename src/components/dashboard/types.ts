@@ -38,6 +38,7 @@ export interface Hub {
   progress: number;
   total_sections: number;
   completed_sections: number;
+  scope?: 'family' | 'personal';
 }
 
 export interface DashboardStats {
@@ -51,4 +52,5 @@ export interface DashboardStats {
 export interface DashboardData {
   hubs: Hub[];
   stats: DashboardStats;
+  family_id?: string;
 }
