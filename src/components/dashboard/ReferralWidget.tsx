@@ -103,17 +103,6 @@ export default function ReferralWidget({ userId }: Props) {
     }
   };
 
-  const openWhatsApp = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const openTelegram = () => {
-    window.open(
-      `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(message)}`,
-      '_blank',
-    );
-  };
-
   const visibleInvites = showAll ? invites : invites.slice(0, 5);
   const hasShare = typeof navigator !== 'undefined' && 'share' in navigator;
 
@@ -187,21 +176,7 @@ export default function ReferralWidget({ userId }: Props) {
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
             Поделиться
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <button
-              onClick={openWhatsApp}
-              className="flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl bg-green-500 text-white text-xs font-semibold shadow hover:bg-green-600 active:scale-95 transition-all"
-            >
-              <Icon name="MessageCircle" size={14} />
-              WhatsApp
-            </button>
-            <button
-              onClick={openTelegram}
-              className="flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl bg-sky-500 text-white text-xs font-semibold shadow hover:bg-sky-600 active:scale-95 transition-all"
-            >
-              <Icon name="Send" size={14} />
-              Telegram
-            </button>
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => copyText(refLink, 'Ссылка скопирована')}
               className="flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 active:scale-95 transition-all"
