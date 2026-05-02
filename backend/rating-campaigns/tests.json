@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "Overview без user — отдаёт активную кампанию",
+      "method": "GET",
+      "path": "/?action=overview",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Leaderboard публичный",
+      "method": "GET",
+      "path": "/?action=leaderboard&limit=10",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Recalculate без админ-токена — 403",
+      "method": "POST",
+      "path": "/?action=recalculate",
+      "expectedStatus": 403
+    }
+  ]
+}

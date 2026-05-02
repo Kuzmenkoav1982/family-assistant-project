@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Settings публично",
+      "method": "GET",
+      "path": "/?action=settings",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "my_code без user — 401",
+      "method": "GET",
+      "path": "/?action=my_code",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Update settings без админа — 403",
+      "method": "POST",
+      "path": "/?action=update_settings",
+      "expectedStatus": 403
+    }
+  ]
+}
