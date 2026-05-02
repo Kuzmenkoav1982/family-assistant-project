@@ -107,15 +107,6 @@ export default function ReferralWidget({ userId }: Props) {
     }
   };
 
-  const shareTelegram = () => {
-    const url = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-  };
-
-  const shareWhatsApp = () => {
-    const url = `https://wa.me/?text=${encodeURIComponent(message + '\n' + refLink)}`;
-    window.open(url, '_blank');
-  };
 
   const visibleInvites = showAll ? invites : invites.slice(0, 5);
 
@@ -290,25 +281,18 @@ export default function ReferralWidget({ userId }: Props) {
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Поделиться</div>
         <div className="flex gap-2 flex-wrap">
           <button
-            onClick={shareTelegram}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2AABEE] text-white text-sm font-semibold shadow-sm hover:shadow active:scale-95 transition-all"
-          >
-            <Icon name="Send" size={15} />
-            Telegram
-          </button>
-          <button
-            onClick={shareWhatsApp}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#25D366] text-white text-sm font-semibold shadow-sm hover:shadow active:scale-95 transition-all"
-          >
-            <Icon name="MessageCircle" size={15} />
-            WhatsApp
-          </button>
-          <button
             onClick={() => copyText(refLink, 'Ссылка скопирована')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 active:scale-95 transition-all"
           >
             <Icon name="Link" size={15} />
             Скопировать ссылку
+          </button>
+          <button
+            onClick={shareNative}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-100 text-amber-700 text-sm font-semibold hover:bg-amber-200 active:scale-95 transition-all"
+          >
+            <Icon name="Share2" size={15} />
+            Ещё
           </button>
         </div>
       </div>
