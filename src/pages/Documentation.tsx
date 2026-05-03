@@ -30,7 +30,7 @@ export default function Documentation() {
                 onClick={() => window.open('https://disk.yandex.ru/d/lQtBEbN7cu37rA', '_blank')}
               >
                 <Icon name="Download" className="w-4 h-4 mr-2" />
-                Скачать дистрибутив v1.0
+                Скачать дистрибутив v1.1
               </Button>
               <Button
                 variant="outline"
@@ -106,7 +106,7 @@ export default function Documentation() {
               <ul className="space-y-2">
                 <li><strong>Наименование:</strong> Наша Семья</li>
                 <li><strong>Правообладатель:</strong> ИП Кузьменко А.В.</li>
-                <li><strong>Версия:</strong> 2.0</li>
+                <li><strong>Версия:</strong> 1.1</li>
                 <li><strong>Тип ПО:</strong> Веб-приложение (Progressive Web Application)</li>
                 <li><strong>Платформа:</strong> Кроссплатформенное (работает в браузере)</li>
                 <li><strong>Лицензия:</strong> Проприетарное ПО</li>
