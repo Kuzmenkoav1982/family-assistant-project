@@ -6,908 +6,345 @@ import { useNavigate } from 'react-router-dom';
 export default function Documentation() {
   const navigate = useNavigate();
 
-  const handleExportPDF = () => {
-    window.print();
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-            >
-              <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
-              На главную
-            </Button>
-            <div className="flex gap-2 print:hidden">
-              <Button
-                variant="default"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => window.open('https://disk.360.yandex.ru/d/hrCcq6IaRphz9A', '_blank')}
-              >
-                <Icon name="Download" className="w-4 h-4 mr-2" />
-                Скачать дистрибутив v1.1
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleExportPDF}
-              >
-                <Icon name="FileText" className="w-4 h-4 mr-2" />
-                Экспорт в PDF
-              </Button>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <img 
-              src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG" 
-              alt="Наша Семья логотип" 
-              className="w-20 h-20 rounded-2xl shadow-lg"
-            />
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">Документация Наша Семья</h1>
-              <p className="text-lg text-gray-600">Руководство по установке и эксплуатации</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+
+        <div className="mb-8 flex items-center gap-4">
+          <Button variant="ghost" onClick={() => navigate('/')}>
+            <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
+            На главную
+          </Button>
+        </div>
+
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Документация программного обеспечения «Наша Семья»
+          </h1>
+          <p className="text-gray-600">
+            Правообладатель: ИП Кузьменко Анастасия Вячеславовна, ОГРНИП 325774600908955
+          </p>
         </div>
 
         {/* Оглавление */}
-        <Card className="p-6 mb-8 border-2 border-purple-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Icon name="List" className="w-6 h-6 text-purple-600" />
-            Содержание
-          </h2>
-          <nav className="space-y-2">
-            <a href="#about" className="block text-purple-600 hover:text-purple-800 transition-colors">
+        <Card className="p-6 mb-8 border border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Содержание</h2>
+          <nav className="space-y-2 text-gray-700">
+            <a href="#about" className="block hover:text-blue-700 transition-colors">
               1. О программном обеспечении
             </a>
-            <a href="#requirements" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              2. Системные требования
+            <a href="#access" className="block hover:text-blue-700 transition-colors">
+              2. Доступ к программному обеспечению
             </a>
-            <a href="#installation" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              3. Установка и запуск
+            <a href="#requirements" className="block hover:text-blue-700 transition-colors">
+              3. Системные требования
             </a>
-            <a href="#features" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              4. Основные функции
+            <a href="#features" className="block hover:text-blue-700 transition-colors">
+              4. Функциональные характеристики
             </a>
-            <a href="#usage" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              5. Руководство пользователя
+            <a href="#usage" className="block hover:text-blue-700 transition-colors">
+              5. Порядок работы с программным обеспечением
             </a>
-            <a href="#exploitation" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              6. Информация, необходимая для эксплуатации программного обеспечения
+            <a href="#lifecycle" className="block hover:text-blue-700 transition-colors">
+              6. Поддержка жизненного цикла
             </a>
-            <a href="#technical" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              7. Техническая документация
-            </a>
-            <a href="#support" className="block text-purple-600 hover:text-purple-800 transition-colors">
-              8. Техническая поддержка
+            <a href="#support" className="block hover:text-blue-700 transition-colors">
+              7. Техническая поддержка
             </a>
           </nav>
         </Card>
 
         {/* 1. О ПО */}
-        <Card id="about" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="Info" className="w-8 h-8 text-blue-600" />
+        <Card id="about" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
             1. О программном обеспечении
           </h2>
           <div className="space-y-4 text-gray-700 leading-relaxed">
-            <p className="text-lg">
-              <strong>Наша Семья</strong> — это комплексное веб-приложение для управления семейной жизнью,
-              объединяющее инструменты планирования, коммуникации и организации быта.
+            <p>
+              Программное обеспечение <strong>«Наша Семья»</strong> представляет собой
+              интернет-сервис, предназначенный для совместного планирования семейных задач,
+              ведения календаря событий, управления списками дел и покупок, распределения
+              обязанностей, хранения семейной информации и организации взаимодействия
+              между членами семьи.
             </p>
-            
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="font-bold text-gray-900 mb-2">Основная информация:</h3>
+            <p>
+              Программное обеспечение предоставляется в формате интернет-сервиса (SaaS)
+              и доступно через веб-браузер без установки на устройство пользователя.
+            </p>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
               <ul className="space-y-2">
                 <li><strong>Наименование:</strong> Наша Семья</li>
-                <li><strong>Правообладатель:</strong> ИП Кузьменко А.В.</li>
+                <li><strong>Правообладатель:</strong> ИП Кузьменко Анастасия Вячеславовна</li>
+                <li><strong>ОГРНИП:</strong> 325774600908955</li>
                 <li><strong>Версия:</strong> 1.1</li>
-                <li><strong>Тип ПО:</strong> Веб-приложение (Progressive Web Application)</li>
-                <li><strong>Платформа:</strong> Кроссплатформенное (работает в браузере)</li>
-                <li><strong>Лицензия:</strong> Проприетарное ПО</li>
+                <li><strong>Форма предоставления:</strong> Интернет-сервис (SaaS)</li>
+                <li><strong>Лицензия:</strong> Проприетарное программное обеспечение</li>
               </ul>
             </div>
+            <p className="mt-4">
+              Программное обеспечение предназначено для личного семейного использования.
+              Функции, связанные с оказанием медицинских, юридических или финансовых
+              консультаций, не предусмотрены.
+            </p>
+          </div>
+        </Card>
 
-            <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">Назначение</h3>
+        {/* 2. Доступ */}
+        <Card id="access" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            2. Доступ к программному обеспечению
+          </h2>
+          <div className="space-y-4 text-gray-700 leading-relaxed">
             <p>
-              Программное обеспечение предназначено для автоматизации управления семейными процессами:
-              планирование событий, ведение общего календаря, управление семейным бюджетом,
-              организация питания, координация задач между членами семьи, отслеживание здоровья
-              и многое другое.
+              Для доступа к программному обеспечению установка специального программного
+              обеспечения на устройство пользователя не требуется.
             </p>
+            <p>
+              Адрес для доступа: <strong>https://nasha-semiya.ru</strong>
+            </p>
+            <ol className="list-decimal list-inside space-y-2 ml-2">
+              <li>Откройте веб-браузер и перейдите по адресу: <strong>https://nasha-semiya.ru</strong></li>
+              <li>В интерфейсе сервиса выберите команду входа в систему.</li>
+              <li>Введите учётные данные зарегистрированного пользователя.</li>
+              <li>После авторизации обеспечивается доступ к функциональным возможностям сервиса.</li>
+            </ol>
+            <p>
+              Для завершения работы в интерфейсе сервиса выберите команду «Выйти».
+            </p>
+          </div>
+        </Card>
 
-            <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">Целевая аудитория</h3>
-            <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>Семьи с детьми</li>
-              <li>Многопоколенные семьи</li>
-              <li>Семьи, ведущие активный образ жизни</li>
-              <li>Пользователи, желающие улучшить организацию семейного быта</li>
+        {/* 3. Системные требования */}
+        <Card id="requirements" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            3. Системные требования
+          </h2>
+          <div className="space-y-4 text-gray-700 leading-relaxed">
+            <p>Для использования программного обеспечения необходимы:</p>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>устройство с доступом в сеть Интернет (компьютер, планшет, смартфон);</li>
+              <li>
+                веб-браузер актуальной версии (Google Chrome, Яндекс.Браузер,
+                Mozilla Firefox, Microsoft Edge);
+              </li>
+              <li>стабильное интернет-соединение;</li>
+              <li>
+                рекомендуется использование устройства, обеспечивающего корректное
+                отображение веб-интерфейса сервиса.
+              </li>
             </ul>
-          </div>
-        </Card>
-
-        {/* 2. Системные требования */}
-        <Card id="requirements" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="Monitor" className="w-8 h-8 text-green-600" />
-            2. Системные требования
-          </h2>
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Минимальные требования</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold mb-2">Для веб-версии (через браузер):</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Любое устройство с доступом в интернет</li>
-                    <li>Современный веб-браузер (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)</li>
-                    <li>Минимальное разрешение экрана: 320×568 пикселей</li>
-                    <li>Подключение к интернету: от 1 Мбит/с</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2">Для мобильных устройств:</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>Android:</strong> версия 7.0 и выше, Chrome браузер</li>
-                    <li><strong>iOS:</strong> версия 12.0 и выше, Safari браузер</li>
-                    <li>Свободное место на устройстве: минимум 50 МБ для кэша</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2">Для настольных компьютеров:</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>Windows:</strong> Windows 10 и выше</li>
-                    <li><strong>macOS:</strong> macOS 10.14 Mojave и выше</li>
-                    <li><strong>Linux:</strong> любой дистрибутив с современным браузером</li>
-                    <li>Оперативная память: минимум 2 ГБ</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Рекомендуемые требования</h3>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Стабильное интернет-соединение от 5 Мбит/с</li>
-                <li>Оперативная память: от 4 ГБ</li>
-                <li>Включенные cookies и localStorage в браузере</li>
-                <li>Разрешение геолокации (для функций отслеживания местоположения)</li>
-                <li>Разрешение уведомлений (для напоминаний и оповещений)</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
-
-        {/* 3. Установка и запуск */}
-        <Card id="installation" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="Download" className="w-8 h-8 text-purple-600" />
-            3. Установка и запуск
-          </h2>
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <p className="font-bold text-gray-900 text-base mb-1">Руководство по установке и развёртыванию ПО</p>
-                <p className="text-sm text-gray-600">Полная техническая документация для системных администраторов</p>
-              </div>
-              <a
-                href="/installation-guide"
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-              >
-                <Icon name="FileDown" size={16} />
-                Открыть документ
-              </a>
-            </div>
-
-            <p className="text-lg">
-              Наша Семья — это веб-приложение, которое не требует традиционной установки.
-              Приложение работает через браузер и может быть установлено как PWA (Progressive Web App).
+            <p>
+              Обработка и хранение данных осуществляются на стороне серверной
+              инфраструктуры сервиса.
             </p>
+          </div>
+        </Card>
 
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Способ 1: Использование через браузер (без установки)
-              </h3>
-              <ol className="list-decimal list-inside space-y-3 ml-4">
-                <li>
-                  <strong>Откройте браузер</strong> на любом устройстве (компьютер, планшет, смартфон)
-                </li>
-                <li>
-                  <strong>Перейдите по адресу:</strong>{' '}
-                  <a href="https://nasha-semiya.ru" className="text-purple-600 hover:underline font-mono">
-                    https://nasha-semiya.ru
-                  </a>
-                </li>
-                <li>
-                  <strong>Зарегистрируйтесь</strong> или войдите в систему, если у вас уже есть аккаунт
-                </li>
-                <li>
-                  Приложение готово к использованию
-                </li>
-              </ol>
-            </div>
+        {/* 4. Функциональные характеристики */}
+        <Card id="features" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            4. Функциональные характеристики
+          </h2>
+          <div className="space-y-6 text-gray-700 leading-relaxed">
 
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Способ 2: Установка PWA на мобильное устройство
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold mb-2 flex items-center gap-2">
-                    <Icon name="Smartphone" className="w-5 h-5" />
-                    Для Android (Chrome):
-                  </h4>
-                  <ol className="list-decimal list-inside space-y-2 ml-4">
-                    <li>Откройте Chrome и перейдите на https://nasha-semiya.ru</li>
-                    <li>Нажмите на меню (⋮) в правом верхнем углу</li>
-                    <li>Выберите "Установить приложение" или "Добавить на главный экран"</li>
-                    <li>Подтвердите установку</li>
-                    <li>Приложение появится на главном экране как обычное приложение</li>
-                  </ol>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2 flex items-center gap-2">
-                    <Icon name="Smartphone" className="w-5 h-5" />
-                    Для iOS (Safari):
-                  </h4>
-                  <ol className="list-decimal list-inside space-y-2 ml-4">
-                    <li>Откройте Safari и перейдите на https://nasha-semiya.ru</li>
-                    <li>Нажмите кнопку "Поделиться" (квадрат со стрелкой вверх)</li>
-                    <li>Прокрутите вниз и выберите "На экран Домой"</li>
-                    <li>Введите название (по умолчанию "Наша Семья")</li>
-                    <li>Нажмите "Добавить"</li>
-                    <li>Приложение появится на главном экране</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Способ 3: Установка PWA на настольный компьютер
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold mb-2">Windows/Linux (Chrome/Edge):</h4>
-                  <ol className="list-decimal list-inside space-y-2 ml-4">
-                    <li>Откройте браузер и перейдите на https://nasha-semiya.ru</li>
-                    <li>В адресной строке справа появится значок установки (⊕ или компьютер)</li>
-                    <li>Нажмите на значок и выберите "Установить"</li>
-                    <li>Приложение откроется в отдельном окне и добавится в меню Пуск</li>
-                  </ol>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2">macOS (Chrome/Edge):</h4>
-                  <ol className="list-decimal list-inside space-y-2 ml-4">
-                    <li>Откройте браузер и перейдите на https://nasha-semiya.ru</li>
-                    <li>Нажмите меню браузера → "Установить Наша Семья..."</li>
-                    <li>Подтвердите установку</li>
-                    <li>Приложение появится в Dock и Launchpad</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <Icon name="AlertCircle" className="w-6 h-6 text-orange-600" />
-                Первый запуск
-              </h3>
-              <p className="mb-3">После установки и первого запуска приложения:</p>
-              <ol className="list-decimal list-inside space-y-2 ml-4">
-                <li>При первом входе вам будет предложено пройти регистрацию</li>
-                <li>Подтвердите email (если используете регистрацию через email)</li>
-                <li>Заполните базовую информацию о семье</li>
-                <li>Добавьте членов семьи и настройте профили</li>
-                <li>Ознакомьтесь с интерактивным туром по функциям (рекомендуется)</li>
-              </ol>
-            </div>
-
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Обновление приложения</h3>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.1. Семейный календарь</h3>
               <p>
-                Приложение обновляется автоматически. При наличии новой версии вы увидите
-                уведомление с предложением обновить приложение. Просто перезагрузите страницу
-                или перезапустите приложение, чтобы получить последнюю версию.
+                Ведение общего календаря событий с возможностью добавления, редактирования
+                и просмотра мероприятий участниками семейной группы.
               </p>
             </div>
 
-            <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <Icon name="Trash2" className="w-6 h-6 text-red-600" />
-                Удаление приложения
-              </h3>
-              <div className="space-y-3">
-                <p><strong>Для мобильных устройств:</strong></p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Android: Удерживайте значок приложения → "Удалить"</li>
-                  <li>iOS: Удерживайте значок → нажмите "−" или "Удалить приложение"</li>
-                </ul>
-                <p className="mt-3"><strong>Для настольных компьютеров:</strong></p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Откройте меню приложения (⋮) → "Удалить" или "Деинсталлировать"</li>
-                </ul>
-                <p className="mt-3 text-sm italic">
-                  Примечание: удаление PWA не удаляет ваши данные с серверов. Для полного удаления
-                  аккаунта обратитесь в службу поддержки.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* 4. Основные функции */}
-        <Card id="features" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="Sparkles" className="w-8 h-8 text-yellow-600" />
-            4. Основные функции
-          </h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { icon: 'Users', title: 'Управление семьей', desc: 'Профили членов семьи, роли и права доступа' },
-                { icon: 'Calendar', title: 'Общий календарь', desc: 'События, напоминания, дни рождения' },
-                { icon: 'CheckSquare', title: 'Задачи и поручения', desc: 'Распределение обязанностей между членами семьи' },
-                { icon: 'ShoppingCart', title: 'Список покупок', desc: 'Совместные покупки с категориями' },
-                { icon: 'Utensils', title: 'Планирование питания', desc: 'Рецепты, меню на неделю, список ингредиентов' },
-                { icon: 'Wallet', title: 'Семейный бюджет', desc: 'Доходы, расходы, планирование трат' },
-                { icon: 'Heart', title: 'Здоровье семьи', desc: 'Медицинские записи, напоминания о приеме лекарств' },
-                { icon: 'GraduationCap', title: 'Образование детей', desc: 'Расписание занятий, успеваемость, домашние задания' },
-                { icon: 'Plane', title: 'Путешествия', desc: 'Планирование поездок, бюджет, маршруты' },
-                { icon: 'Vote', title: 'Семейные голосования', desc: 'Совместное принятие решений' },
-                { icon: 'MessageSquare', title: 'Новости семьи', desc: 'Общая лента событий и достижений' },
-                { icon: 'Bot', title: 'AI-ассистент', desc: 'Умный помощник для планирования и советов' }
-              ].map((feature, idx) => (
-                <div key={idx} className="bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon name={feature.icon} className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 mb-1">{feature.title}</h3>
-                      <p className="text-sm text-gray-600">{feature.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* 5. Руководство пользователя */}
-        <Card id="usage" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="BookOpen" className="w-8 h-8 text-indigo-600" />
-            5. Руководство пользователя
-          </h2>
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Быстрый старт</h3>
-              <ol className="list-decimal list-inside space-y-3 ml-4">
-                <li>
-                  <strong>Регистрация и вход</strong>
-                  <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                    <li>Зарегистрируйтесь через email или Яндекс</li>
-                    <li>Подтвердите email (если используете регистрацию через email)</li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>Создание семьи</strong>
-                  <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                    <li>Заполните информацию о семье</li>
-                    <li>Добавьте членов семьи с фотографиями и данными</li>
-                    <li>Настройте роли и права доступа</li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>Настройка интерфейса</strong>
-                  <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                    <li>Выберите виджеты для главного экрана</li>
-                    <li>Настройте уведомления</li>
-                    <li>Активируйте нужные модули</li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>Начало работы</strong>
-                  <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                    <li>Создайте первое событие в календаре</li>
-                    <li>Добавьте задачи и распределите их между членами семьи</li>
-                    <li>Начните вести список покупок</li>
-                  </ul>
-                </li>
-              </ol>
-            </div>
-
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Основные операции</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold mb-2">Работа с календарем:</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Нажмите "+" для создания события</li>
-                    <li>Укажите название, дату, время и участников</li>
-                    <li>Настройте напоминания</li>
-                    <li>События синхронизируются между всеми устройствами</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2">Управление задачами:</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Создавайте задачи с описанием и сроками</li>
-                    <li>Назначайте ответственных</li>
-                    <li>Отмечайте выполненные задачи</li>
-                    <li>Просматривайте статистику выполнения</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2">Список покупок:</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Добавляйте товары вручную или из рецептов</li>
-                    <li>Группируйте по категориям</li>
-                    <li>Отмечайте купленное</li>
-                    <li>Используйте общий список для совместных покупок</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-bold mb-2">Планирование питания:</h4>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li>Создавайте и сохраняйте семейные рецепты</li>
-                    <li>Планируйте меню на неделю</li>
-                    <li>Автоматически генерируйте список покупок из рецептов</li>
-                    <li>Получайте рекомендации от AI-ассистента</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Совместная работа</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>
-                  <strong>Приглашение членов семьи:</strong> Отправьте ссылку-приглашение или
-                  семейный код для присоединения к вашей семье
-                </li>
-                <li>
-                  <strong>Права доступа:</strong> Настройте, какие разделы доступны каждому
-                  члену семьи (например, дети могут не видеть финансы)
-                </li>
-                <li>
-                  <strong>Уведомления:</strong> Получайте оповещения о новых задачах,
-                  событиях и изменениях в режиме реального времени
-                </li>
-                <li>
-                  <strong>Синхронизация:</strong> Все изменения мгновенно отображаются
-                  на всех устройствах членов семьи
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">AI-ассистент "Домовой"</h3>
-              <p className="mb-3">
-                Умный помощник помогает с планированием и организацией:
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.2. Задачи и поручения</h3>
+              <p>
+                Постановка задач, назначение ответственных, установка сроков и отслеживание
+                статуса выполнения.
               </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Рекомендации рецептов на основе предпочтений семьи</li>
-                <li>Советы по оптимизации бюджета</li>
-                <li>Идеи для семейного досуга</li>
-                <li>Напоминания о важных событиях</li>
-                <li>Анализ активности и предложения по улучшению организации</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
-
-        {/* 6. Информация, необходимая для эксплуатации ПО */}
-        <Card id="exploitation" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="Settings" className="w-8 h-8 text-teal-600" />
-            6. Информация, необходимая для эксплуатации программного обеспечения
-          </h2>
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-teal-50 p-6 rounded-lg border border-teal-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Условия эксплуатации</h3>
-              <div className="space-y-3">
-                <p>
-                  Программное обеспечение «Наша Семья» является веб-приложением (Progressive Web Application) и эксплуатируется через веб-браузер. Специальное программное окружение и серверная инфраструктура на стороне пользователя не требуются.
-                </p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li><strong>Режим работы:</strong> круглосуточный, 24/7, без перерывов</li>
-                  <li><strong>Доступность сервиса:</strong> не менее 99,5% в месяц (SLA)</li>
-                  <li><strong>Плановые технические работы:</strong> проводятся в ночное время (01:00–05:00 МСК) с предварительным уведомлением пользователей за 24 часа</li>
-                  <li><strong>Адрес доступа:</strong> <a href="https://nasha-semiya.ru" className="text-teal-700 hover:underline font-semibold">https://nasha-semiya.ru</a></li>
-                </ul>
-              </div>
             </div>
 
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Порядок эксплуатации</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold mb-2">Начало работы:</h4>
-                  <ol className="list-decimal list-inside space-y-2 ml-4">
-                    <li>Откройте веб-браузер и перейдите на адрес <strong>https://nasha-semiya.ru</strong></li>
-                    <li>Зарегистрируйте учетную запись (email или OAuth через Яндекс)</li>
-                    <li>Подтвердите email-адрес (при регистрации через email)</li>
-                    <li>Войдите в систему с использованием логина и пароля</li>
-                    <li>Создайте профиль семьи и пригласите членов семьи</li>
-                  </ol>
-                </div>
-                <div>
-                  <h4 className="font-bold mb-2">Ежедневная эксплуатация:</h4>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Откройте приложение через браузер или установленную PWA-версию</li>
-                    <li>Система автоматически авторизует пользователя при наличии сохраненной сессии</li>
-                    <li>Используйте навигационное меню для доступа к разделам приложения</li>
-                    <li>Все изменения сохраняются автоматически на сервере</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold mb-2">Завершение работы:</h4>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Для завершения сеанса нажмите «Выйти» в меню настроек</li>
-                    <li>При закрытии браузера сессия сохраняется (автоматический вход при следующем посещении)</li>
-                    <li>Для полного выхода на всех устройствах используйте «Выйти со всех устройств» в настройках безопасности</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Управление учетными записями и ролями</h3>
-              <div className="space-y-3">
-                <p>В системе предусмотрены следующие роли пользователей:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li><strong>Создатель семьи (Администратор):</strong> полный доступ ко всем функциям, управление членами семьи, настройка прав доступа, управление подпиской</li>
-                  <li><strong>Взрослый член семьи:</strong> доступ к основным функциям — календарь, задачи, финансы, покупки, питание, здоровье</li>
-                  <li><strong>Ребенок:</strong> ограниченный доступ — задачи, календарь, достижения. Финансовые разделы скрыты</li>
-                </ul>
-                <p className="mt-3">
-                  Администратор может изменять роли и права доступа в разделе <strong>«Настройки» → «Управление семьей» → «Права доступа»</strong>.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Обслуживание и обновление</h3>
-              <div className="space-y-3">
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li><strong>Обновление ПО:</strong> выполняется автоматически на стороне сервера. Пользователю не требуется выполнять какие-либо действия для обновления. При обновлении PWA-версии достаточно перезагрузить приложение</li>
-                  <li><strong>Резервное копирование данных:</strong> выполняется автоматически на стороне сервера ежедневно. Пользователь может самостоятельно экспортировать свои данные в разделе «Настройки» → «Данные» → «Экспорт»</li>
-                  <li><strong>Мониторинг:</strong> работоспособность сервиса контролируется автоматическими системами мониторинга круглосуточно</li>
-                  <li><strong>Масштабирование:</strong> серверная инфраструктура автоматически масштабируется в зависимости от нагрузки</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Ограничения и особенности эксплуатации</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Для полноценной работы требуется стабильное интернет-соединение</li>
-                <li>В офлайн-режиме (PWA) доступны ранее загруженные данные для просмотра; создание и редактирование синхронизируются при восстановлении связи</li>
-                <li>Максимальный размер загружаемого файла (фото): 10 МБ</li>
-                <li>Поддерживаемые форматы изображений: JPEG, PNG, WebP</li>
-                <li>Рекомендуемое количество членов семьи на одном аккаунте: до 20 человек</li>
-                <li>Хранение данных осуществляется на серверах в Российской Федерации</li>
-              </ul>
-            </div>
-
-            <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Действия при сбоях</h3>
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-bold mb-2">При недоступности сервиса:</h4>
-                  <ol className="list-decimal list-inside space-y-1 ml-4">
-                    <li>Проверьте подключение к интернету</li>
-                    <li>Попробуйте обновить страницу (Ctrl+F5 или Cmd+Shift+R)</li>
-                    <li>Очистите кэш браузера</li>
-                    <li>Попробуйте зайти через другой браузер</li>
-                    <li>Если проблема сохраняется — обратитесь в службу поддержки: <a href="mailto:support@nasha-semiya.ru" className="text-orange-700 hover:underline font-semibold">support@nasha-semiya.ru</a></li>
-                  </ol>
-                </div>
-                <div className="mt-3">
-                  <h4 className="font-bold mb-2">При потере данных:</h4>
-                  <ol className="list-decimal list-inside space-y-1 ml-4">
-                    <li>Обратитесь в службу поддержки с описанием проблемы</li>
-                    <li>Данные могут быть восстановлены из резервной копии в течение 30 дней</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Удаление данных и прекращение эксплуатации</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Для удаления аккаунта перейдите в <strong>«Настройки» → «Аккаунт» → «Удалить аккаунт»</strong> или обратитесь в службу поддержки</li>
-                <li>При удалении аккаунта все персональные данные удаляются в течение 30 дней в соответствии с 152-ФЗ</li>
-                <li>Перед удалением рекомендуется экспортировать данные</li>
-                <li>Для удаления PWA-версии: удалите приложение стандартным способом для вашего устройства</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Контактная информация для вопросов по эксплуатации</h3>
-              <div className="space-y-2">
-                <p className="flex items-center gap-3">
-                  <Icon name="Mail" className="w-5 h-5 text-teal-600" />
-                  <strong>Техническая поддержка:</strong> <a href="mailto:support@nasha-semiya.ru" className="text-teal-700 hover:underline">support@nasha-semiya.ru</a>
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Mail" className="w-5 h-5 text-teal-600" />
-                  <strong>Общие вопросы:</strong> <a href="mailto:info@nasha-semiya.ru" className="text-teal-700 hover:underline">info@nasha-semiya.ru</a>
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Send" className="w-5 h-5 text-teal-600" />
-                  <strong>Telegram:</strong> <a href="https://t.me/Nasha7iya" target="_blank" rel="noopener noreferrer" className="text-teal-700 hover:underline">https://t.me/Nasha7iya</a>
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Globe" className="w-5 h-5 text-teal-600" />
-                  <strong>Сайт:</strong> <a href="https://nasha-semiya.ru" className="text-teal-700 hover:underline">https://nasha-semiya.ru</a>
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Building" className="w-5 h-5 text-teal-600" />
-                  <strong>Правообладатель:</strong> ИП Кузьменко А.В., ОГРНИП: 325774600908955, ИНН: 231805728780
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* 7. Техническая документация */}
-        <Card id="technical" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="Code" className="w-8 h-8 text-gray-600" />
-            7. Техническая документация
-          </h2>
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Архитектура системы</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>
-                  <strong>Тип приложения:</strong> Progressive Web Application (PWA)
-                </li>
-                <li>
-                  <strong>Frontend:</strong> React 18, TypeScript, Vite
-                </li>
-                <li>
-                  <strong>UI Framework:</strong> Tailwind CSS, shadcn/ui
-                </li>
-                <li>
-                  <strong>State Management:</strong> React Context API, TanStack Query
-                </li>
-                <li>
-                  <strong>Backend:</strong> Python (FastAPI), PostgreSQL
-                </li>
-                <li>
-                  <strong>Hosting:</strong> Yandex Cloud (Cloud Functions, Object Storage)
-                </li>
-                <li>
-                  <strong>CDN:</strong> Yandex Cloud CDN
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Безопасность и конфиденциальность</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>
-                  <strong>Шифрование данных:</strong> HTTPS/TLS для всех соединений
-                </li>
-                <li>
-                  <strong>Аутентификация:</strong> JWT-токены, OAuth 2.0 (Telegram)
-                </li>
-                <li>
-                  <strong>Хранение паролей:</strong> bcrypt хеширование
-                </li>
-                <li>
-                  <strong>Защита данных:</strong> Изолированные пространства для каждой семьи
-                </li>
-                <li>
-                  <strong>Соответствие:</strong> GDPR, 152-ФЗ о персональных данных
-                </li>
-                <li>
-                  <strong>Резервное копирование:</strong> Автоматическое, ежедневное
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">API и интеграции</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>RESTful API для мобильных приложений (в разработке)</li>
-                <li>Интеграция с Telegram Bot для уведомлений</li>
-                <li>Webhook для внешних систем</li>
-                <li>Export/Import данных в JSON, CSV форматах</li>
-              </ul>
-            </div>
-
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Производительность</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>
-                  <strong>Размер приложения:</strong> ~2-3 МБ (начальная загрузка)
-                </li>
-                <li>
-                  <strong>Время загрузки:</strong> {'<'} 2 секунд на 4G
-                </li>
-                <li>
-                  <strong>Offline режим:</strong> Базовые функции доступны без интернета
-                </li>
-                <li>
-                  <strong>Кэширование:</strong> Service Worker для быстрой загрузки
-                </li>
-                <li>
-                  <strong>Оптимизация:</strong> Lazy loading, code splitting
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Требования к браузеру</h3>
-              <p className="mb-3">Приложение использует современные веб-технологии:</p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Service Workers (для PWA и offline режима)</li>
-                <li>IndexedDB (для локального хранения)</li>
-                <li>Web Push API (для уведомлений)</li>
-                <li>Geolocation API (для функций геолокации)</li>
-                <li>WebSocket (для real-time обновлений)</li>
-                <li>LocalStorage и SessionStorage</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
-
-        {/* 8. Техническая поддержка */}
-        <Card id="support" className="p-8 mb-6 scroll-mt-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-            <Icon name="HeadphonesIcon" className="w-8 h-8 text-orange-600" />
-            8. Техническая поддержка
-          </h2>
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Контакты службы поддержки</h3>
-              <div className="space-y-3">
-                <p className="flex items-center gap-3">
-                  <Icon name="Mail" className="w-5 h-5 text-orange-600" />
-                  <strong>Email:</strong> support@nasha-semiya.ru
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Send" className="w-5 h-5 text-orange-600" />
-                  <strong>Telegram:</strong>{' '}
-                  <a href="https://t.me/Nasha7iya" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">
-                    https://t.me/Nasha7iya
-                  </a>
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Globe" className="w-5 h-5 text-orange-600" />
-                  <strong>Сайт:</strong>{' '}
-                  <a href="https://nasha-semiya.ru" className="text-orange-600 hover:underline">
-                    https://nasha-semiya.ru
-                  </a>
-                </p>
-                <p className="flex items-center gap-3">
-                  <Icon name="Clock" className="w-5 h-5 text-orange-600" />
-                  <strong>Время работы:</strong> Пн-Пт 9:00-18:00 (МСК)
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Часто задаваемые вопросы (FAQ)</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="font-bold mb-1">Как восстановить пароль?</p>
-                  <p className="text-sm">
-                    На странице входа нажмите "Забыли пароль?", введите email и следуйте инструкциям
-                    в письме.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Можно ли использовать приложение без интернета?</p>
-                  <p className="text-sm">
-                    Да, базовые функции доступны offline. Синхронизация произойдет при
-                    восстановлении соединения.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Сколько членов семьи можно добавить?</p>
-                  <p className="text-sm">
-                    В бесплатной версии до 5 человек, в Premium — без ограничений.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Как экспортировать данные?</p>
-                  <p className="text-sm">
-                    В разделе "Настройки" → "Данные" → "Экспорт" можно скачать все данные в
-                    формате JSON или CSV.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Безопасны ли мои данные?</p>
-                  <p className="text-sm">
-                    Да, все данные шифруются при передаче и хранении. Доступ имеют только члены
-                    вашей семьи.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Известные проблемы и решения</h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="font-bold mb-1">Проблема: Приложение не загружается</p>
-                  <p className="text-sm">
-                    <strong>Решение:</strong> Очистите кэш браузера, проверьте интернет-соединение,
-                    попробуйте другой браузер.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Проблема: Не приходят уведомления</p>
-                  <p className="text-sm">
-                    <strong>Решение:</strong> Проверьте разрешения браузера для уведомлений,
-                    настройки уведомлений в приложении.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Проблема: Данные не синхронизируются</p>
-                  <p className="text-sm">
-                    <strong>Решение:</strong> Проверьте интернет-соединение, выйдите и войдите
-                    заново, обновите приложение.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Обновления и новые функции</h3>
-              <p className="mb-3">
-                Мы регулярно выпускаем обновления с новыми функциями и улучшениями.
-                Следите за новостями:
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.3. Списки покупок и бытовых дел</h3>
+              <p>
+                Формирование и ведение совместных списков покупок и домашних дел
+                с возможностью отметки выполненных пунктов.
               </p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>В разделе "Новости" приложения</li>
-                <li>На нашем сайте nasha-semiya.ru</li>
-                <li>В Telegram-канале https://t.me/Nasha7iya</li>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.4. Планирование мероприятий</h3>
+              <p>
+                Планирование семейных поездок, праздников, подарков и иных совместных
+                мероприятий с фиксацией деталей и состава участников.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.5. Профили членов семьи</h3>
+              <p>
+                Создание и ведение профилей членов семьи, назначение ролей, управление
+                составом семейной группы.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.6. Детские активности</h3>
+              <p>
+                Планирование и учёт занятий, кружков, мероприятий и иных активностей
+                для детей.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.7. Семейные правила и традиции</h3>
+              <p>
+                Фиксация семейных договорённостей, правил поведения, традиций
+                и значимых дат.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.8. Хранение материалов</h3>
+              <p>
+                Сохранение заметок, рецептов и иных пользовательских материалов
+                в структурированном виде.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.9. Уведомления и напоминания</h3>
+              <p>
+                Формирование уведомлений и напоминаний о предстоящих событиях,
+                задачах и важных датах.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.10. Аналитика</h3>
+              <p>
+                Просмотр сводной информации об активности пользователей, выполненных
+                задачах и предстоящих событиях.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">4.11. Рекомендательные механизмы</h3>
+              <p>
+                Предоставление вспомогательных подсказок и рекомендаций для упрощения
+                планирования и организации совместной семейной деятельности.
+              </p>
+            </div>
+
+          </div>
+        </Card>
+
+        {/* 5. Порядок работы */}
+        <Card id="usage" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            5. Порядок работы с программным обеспечением
+          </h2>
+          <div className="space-y-4 text-gray-700 leading-relaxed">
+            <p>Пользователь может выполнять следующие действия:</p>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>просматривать и добавлять события в семейный календарь;</li>
+              <li>создавать и назначать задачи;</li>
+              <li>вести списки покупок и бытовых дел;</li>
+              <li>просматривать и редактировать профили членов семьи;</li>
+              <li>работать с заметками, рецептами и иными пользовательскими материалами;</li>
+              <li>просматривать уведомления и напоминания.</li>
+            </ul>
+            <p>
+              Пользовательские данные сохраняются штатными средствами сервиса
+              при выполнении соответствующих операций.
+            </p>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
+              <p className="font-bold text-gray-900 mb-2">Ограничения:</p>
+              <ul className="list-disc list-inside space-y-1 ml-2">
+                <li>для работы с программным обеспечением требуется доступ к сети Интернет;</li>
+                <li>
+                  не рекомендуется одновременное редактирование одних и тех же данных
+                  из нескольких сессий одной учётной записи.
+                </li>
               </ul>
             </div>
           </div>
         </Card>
 
-        {/* Footer */}
-        <div className="text-center text-gray-600 py-8">
-          <p className="mb-2">© 2025-2026 Наша Семья. Все права защищены.</p>
-          <p className="text-sm">
-            ИП Кузьменко А.В.
-          </p>
-          <p className="text-sm mt-2">
-            Документация версии 2.0 от 11.02.2026
-          </p>
-          <div className="flex gap-4 justify-center mt-4">
-            <Button variant="outline" onClick={() => navigate('/privacy-policy')}>
-              Политика конфиденциальности
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/terms-of-service')}>
-              Условия использования
-            </Button>
+        {/* 6. Жизненный цикл */}
+        <Card id="lifecycle" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            6. Поддержка жизненного цикла
+          </h2>
+          <div className="space-y-6 text-gray-700 leading-relaxed">
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">6.1. Общие положения</h3>
+              <p>
+                Поддержка жизненного цикла программного обеспечения «Наша Семья»
+                обеспечивается правообладателем — ИП Кузьменко Анастасия Вячеславовна.
+                Поддержка включает исправление ошибок, обновление и развитие
+                функциональных возможностей, обеспечение работоспособности сервиса.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">6.2. Исправление ошибок</h3>
+              <p>
+                Выявленные ошибки классифицируются по степени влияния на
+                работоспособность сервиса. Ошибки, влияющие на доступность или
+                корректность функционирования, устраняются в приоритетном порядке.
+                Прочие ошибки исправляются по мере необходимости.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">6.3. Обновление и совершенствование</h3>
+              <p>
+                Обновление функциональных возможностей выполняется по мере
+                необходимости. Изменения, как правило, вносятся без прерывания
+                доступа к сервису; при необходимости могут проводиться регламентные
+                работы. Пользователи уведомляются о значимых изменениях
+                при необходимости.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">6.4. Резервное копирование данных</h3>
+              <p>
+                Резервное копирование данных осуществляется в рамках инфраструктуры,
+                используемой для размещения сервиса.
+              </p>
+            </div>
+
           </div>
+        </Card>
+
+        {/* 7. Поддержка */}
+        <Card id="support" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            7. Техническая поддержка
+          </h2>
+          <div className="space-y-4 text-gray-700 leading-relaxed">
+            <p>
+              Обращения пользователей принимаются по адресу электронной почты.
+              Ответ предоставляется в рабочее время, как правило, в течение
+              1 рабочего дня.
+            </p>
+            <p>
+              При необходимости к выполнению отдельных технических работ могут
+              привлекаться специалисты на договорной основе.
+            </p>
+            <p>
+              Решение о прекращении поддержки программного обеспечения принимается
+              правообладателем. Пользователи уведомляются о таком решении заблаговременно.
+            </p>
+          </div>
+        </Card>
+
+        <div className="text-center text-sm text-gray-400 mt-8 mb-4">
+          ИП Кузьменко Анастасия Вячеславовна, ОГРНИП 325774600908955
         </div>
+
       </div>
     </div>
   );
