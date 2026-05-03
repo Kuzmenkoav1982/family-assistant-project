@@ -27,7 +27,7 @@ export default function Documentation() {
               <Button
                 variant="default"
                 className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => window.open('https://disk.yandex.ru/d/lQtBEbN7cu37rA', '_blank')}
+                onClick={() => window.open('https://disk.360.yandex.ru/d/hrCcq6IaRphz9A', '_blank')}
               >
                 <Icon name="Download" className="w-4 h-4 mr-2" />
                 Скачать дистрибутив v1.1
