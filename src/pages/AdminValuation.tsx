@@ -85,7 +85,7 @@ export default function AdminValuation() {
         pdf.text(`${i + 1} / ${result.count}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
       }
 
-      pdf.save('Оценка-стоимости-НашаСемья-26022026.pdf');
+      pdf.save('Оценка-стоимости-НашаСемья-04052026.pdf');
     } catch (error) {
       console.error('Ошибка PDF:', error);
     } finally {
@@ -108,7 +108,7 @@ export default function AdminValuation() {
       pptx.author = 'ИП Кузьменко А.В.';
       pptx.company = 'Наша Семья';
       pptx.subject = 'Оценка рыночной стоимости платформы «Наша семья»';
-      pptx.title = 'Оценка стоимости — Наша семья — 26.02.2026';
+      pptx.title = 'Оценка стоимости — Наша семья — 04.05.2026';
 
       const slideW = 10;
       const slideH = 5.625;
@@ -146,7 +146,7 @@ export default function AdminValuation() {
         });
       }
 
-      await pptx.writeFile({ fileName: 'Оценка-стоимости-НашаСемья-26022026.pptx' });
+      await pptx.writeFile({ fileName: 'Оценка-стоимости-НашаСемья-04052026.pptx' });
     } catch (error) {
       console.error('Ошибка PPTX:', error);
     } finally {
@@ -165,7 +165,7 @@ export default function AdminValuation() {
               <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Админ — конфиденциально</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900">Оценка рыночной стоимости платформы «Наша семья»</h1>
-            <p className="text-sm text-slate-500">По состоянию на 26 февраля 2026 г.</p>
+            <p className="text-sm text-slate-500">По состоянию на 4 мая 2026 г.</p>
             {/* n'RIS Certificate */}
             <a
               href="https://nris.ru/deposits/check-certificate/?num=518-830-027"
@@ -221,7 +221,7 @@ export default function AdminValuation() {
         <div data-pdf-slide className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white p-12">
           <div className="flex items-start justify-between mb-8">
             <div className="text-xs font-semibold tracking-[0.2em] text-blue-300 uppercase">Конфиденциально · Только для переговоров</div>
-            <div className="text-xs text-slate-400">26.02.2026</div>
+            <div className="text-xs text-slate-400">04.05.2026</div>
           </div>
           <div className="max-w-3xl">
             <div className="text-6xl font-black mb-4 tracking-tight">Наша семья</div>
@@ -233,7 +233,7 @@ export default function AdminValuation() {
                 <div className="text-sm text-slate-300">Минимальная оценка</div>
               </div>
               <div className="bg-white/10 rounded-xl p-4 border border-blue-400/50">
-                <div className="text-3xl font-black text-blue-300 mb-1">80–120 млн ₽</div>
+                <div className="text-3xl font-black text-blue-300 mb-1">85–130 млн ₽</div>
                 <div className="text-sm text-slate-300">Справедливая оценка</div>
               </div>
               <div className="bg-white/10 rounded-xl p-4">
@@ -242,7 +242,7 @@ export default function AdminValuation() {
               </div>
             </div>
           </div>
-          <div className="mt-8 text-xs text-slate-500">ИП Кузьменко А.В. · Платформа «Наша семья» · nashamily.ru</div>
+          <div className="mt-8 text-xs text-slate-500">ИП Кузьменко А.В. · Платформа «Наша семья» · nasha-semiya.ru</div>
         </div>
 
         {/* СЛАЙД 2 — Введение */}
@@ -250,7 +250,7 @@ export default function AdminValuation() {
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Методология</div>
           <h2 className="text-3xl font-black text-slate-900 mb-6">Применяемые методы оценки</h2>
           <p className="text-slate-600 mb-8 text-lg leading-relaxed">
-            Для оценки <strong>pre-revenue SaaS-стартапа</strong> с работающим MVP применяются четыре общепринятых метода. 
+            Для оценки <strong>pre-revenue SaaS-платформы</strong> с работающим продуктом в production применяются четыре общепринятых метода. 
             Каждый отражает разный аспект стоимости актива — от технических затрат до стратегической ценности для покупателя.
           </p>
           <div className="grid grid-cols-2 gap-4">
@@ -333,10 +333,10 @@ export default function AdminValuation() {
           <div className="space-y-3 mb-6">
             {[
               { factor: 'Качество идеи и рыночная потребность', score: 9, max: 10, note: 'Гос. приоритет «Десятилетие семьи», отсутствие конкурентов, TAM 50 млн семей', color: 'bg-green-500' },
-              { factor: 'Прототип / работающая технология', score: 10, max: 10, note: 'Полностью функциональный MVP: 86 API-функций, 151 таблица, 90+ экранов, production', color: 'bg-blue-500' },
+              { factor: 'Прототип / работающая технология', score: 10, max: 10, note: 'Полностью функциональный продукт: 86 API-функций, 151 таблица, 90+ экранов, работает в production', color: 'bg-blue-500' },
               { factor: 'Качество команды', score: 5, max: 10, note: 'Соло-основатель с глубокой экспертизой, продукт создан на собственном опыте', color: 'bg-orange-400' },
               { factor: 'Стратегические партнёрства и интеграции', score: 6, max: 10, note: 'Яндекс Алиса, платёжные системы (СБП, Сбер, Т-Банк), Яндекс Карты', color: 'bg-purple-500' },
-              { factor: 'Первые пользователи / traction', score: 4, max: 10, note: '40+ пользователей, 51 семья, 30K+ аналитических событий, работающие платежи', color: 'bg-teal-500' },
+              { factor: 'Первые пользователи / traction', score: 5, max: 10, note: '88 семей в production, 30K+ аналитических событий, работающие платежи через семейный кошелёк', color: 'bg-teal-500' },
               { factor: 'Интеллектуальная собственность', score: 8, max: 10, note: 'Свидетельство о депонировании n\'RIS №518-830-027 (РЦИС.РФ, 04.03.2026) · Алгоритм оценки развития детей (Выготский + Эльконин) · AI-ассистент «Домовой»', color: 'bg-pink-500' },
             ].map((row, i) => (
               <div key={i} className="bg-slate-50 rounded-xl p-4">
@@ -357,7 +357,7 @@ export default function AdminValuation() {
               <div className="text-sm text-blue-200 mb-1">Оценка по методу Беркуса</div>
               <div className="text-sm text-blue-100">Базовая оценка стартапа с учётом всех ключевых факторов · ИС подтверждена свидетельством n'RIS</div>
             </div>
-            <div className="text-4xl font-black">~42 млн ₽</div>
+            <div className="text-4xl font-black">~43 млн ₽</div>
           </div>
         </div>
 
@@ -374,9 +374,9 @@ export default function AdminValuation() {
             <div className="space-y-3">
               <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Прогнозные параметры</h3>
               {[
-                { label: 'Прогноз платящих пользователей (год 3)', value: '100 000' },
-                { label: 'Средний чек (подписка + кошелёк)', value: '330 ₽/мес' },
-                { label: 'Прогнозная годовая выручка (год 3)', value: '396 млн ₽/год' },
+                { label: 'Прогноз активных платящих семей (год 3)', value: '100 000' },
+                { label: 'ARPU (семейный кошелёк pay-per-use)', value: '~280 ₽/мес' },
+                { label: 'Прогнозная годовая выручка (год 3)', value: '~336 млн ₽/год' },
                 { label: 'Мультипликатор выручки SaaS (рос. рынок)', value: '3–5x' },
               ].map((r, i) => (
                 <div key={i} className="bg-purple-50 rounded-lg px-4 py-3 flex justify-between">
@@ -390,7 +390,7 @@ export default function AdminValuation() {
               <div className="bg-purple-50 rounded-xl p-5 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Стоимость компании (год 3)</span>
-                  <span className="font-bold text-slate-800">1 188–1 980 млн ₽</span>
+                  <span className="font-bold text-slate-800">1 008–1 680 млн ₽</span>
                 </div>
                 <div className="h-px bg-purple-200" />
                 <div className="flex justify-between text-sm">
@@ -405,11 +405,11 @@ export default function AdminValuation() {
                 <div className="h-px bg-purple-200" />
                 <div className="flex justify-between">
                   <span className="font-semibold text-slate-700">Приведённая стоимость (сегодня)</span>
-                  <span className="font-black text-purple-700 text-lg">352–587 млн ₽</span>
+                  <span className="font-black text-purple-700 text-lg">300–500 млн ₽</span>
                 </div>
               </div>
               <div className="bg-slate-50 rounded-lg px-4 py-3 text-xs text-slate-500">
-                Формула: PV = FV / (1 + r)³, где FV = 1 188–1 980 млн, r = 0,50
+                Формула: PV = FV / (1 + r)³, где FV = 1 008–1 680 млн, r = 0,50
               </div>
             </div>
           </div>
@@ -419,7 +419,7 @@ export default function AdminValuation() {
               <div className="text-sm text-purple-200 mb-1">Оценка по VC-методу</div>
               <div className="text-sm text-purple-100">Верхняя граница — потолок стоимости при выходе на целевые показатели</div>
             </div>
-            <div className="text-4xl font-black">350–590 млн ₽</div>
+            <div className="text-4xl font-black">300–500 млн ₽</div>
           </div>
         </div>
 
@@ -430,7 +430,7 @@ export default function AdminValuation() {
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Метод 4</div>
           </div>
           <h2 className="text-3xl font-black text-slate-900 mb-2">Стратегическая оценка для банка-покупателя</h2>
-          <p className="text-slate-500 mb-8">При покупке банком учитывается стратегическая премия к базовой оценке Беркуса (40 млн ₽)</p>
+          <p className="text-slate-500 mb-8">При покупке банком учитывается стратегическая премия к базовой оценке Беркуса (43 млн ₽)</p>
 
           <div className="space-y-3 mb-6">
             {[
@@ -454,10 +454,10 @@ export default function AdminValuation() {
           <div className="bg-amber-500 text-white rounded-xl p-6 flex items-center justify-between">
             <div>
               <div className="text-sm text-amber-100 mb-1">Совокупная стратегическая премия для банка</div>
-              <div className="text-sm text-amber-100">Беркус (42 млн, ИС n'RIS) + премия 145–225% = итоговая оценка</div>
+              <div className="text-sm text-amber-100">Беркус (43 млн, ИС n'RIS) + премия 145–225% = итоговая оценка</div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-black">98–130 млн ₽</div>
+              <div className="text-3xl font-black">105–140 млн ₽</div>
               <div className="text-sm text-amber-100">+145–225% к базе</div>
             </div>
           </div>
@@ -480,9 +480,9 @@ export default function AdminValuation() {
               <tbody>
                 {[
                   { method: 'Стоимость воспроизведения', role: 'Нижняя граница (пол)', value: '28 млн ₽', bg: 'bg-white' },
-                  { method: 'Метод Беркуса', role: 'Базовая оценка', value: '40 млн ₽', bg: 'bg-blue-50' },
-                  { method: 'Стратегическая (Беркус + премия банку)', role: 'Рабочий диапазон', value: '98–130 млн ₽', bg: 'bg-amber-50' },
-                  { method: 'Венчурный метод (VC)', role: 'Верхняя граница (потолок)', value: '350–590 млн ₽', bg: 'bg-purple-50' },
+                  { method: 'Метод Беркуса', role: 'Базовая оценка', value: '43 млн ₽', bg: 'bg-blue-50' },
+                  { method: 'Стратегическая (Беркус + премия банку)', role: 'Рабочий диапазон', value: '105–140 млн ₽', bg: 'bg-amber-50' },
+                  { method: 'Венчурный метод (VC)', role: 'Верхняя граница (потолок)', value: '300–500 млн ₽', bg: 'bg-purple-50' },
                 ].map((row, i) => (
                   <tr key={i} className={row.bg}>
                     <td className="px-5 py-4 font-semibold text-slate-900">{row.method}</td>
@@ -498,7 +498,7 @@ export default function AdminValuation() {
           <div className="grid grid-cols-3 gap-4">
             {[
               { icon: '🔻', label: 'Минимальная', sub: 'Продажа технологии и IP', value: '40–60 млн ₽', bg: 'bg-slate-100', text: 'text-slate-800' },
-              { icon: '⚖️', label: 'Справедливая', sub: 'Продажа бизнеса целиком', value: '80–120 млн ₽', bg: 'bg-blue-600', text: 'text-white' },
+              { icon: '⚖️', label: 'Справедливая', sub: 'Продажа бизнеса целиком', value: '85–130 млн ₽', bg: 'bg-blue-600', text: 'text-white' },
               { icon: '🔺', label: 'Амбициозная', sub: 'Стратегическая сделка с банком', value: '150–250 млн ₽', bg: 'bg-slate-900', text: 'text-white' },
             ].map((s, i) => (
               <div key={i} className={`rounded-xl p-5 ${s.bg}`}>
@@ -522,11 +522,11 @@ export default function AdminValuation() {
           <h3 className="text-xl font-bold text-blue-200 mb-5">Обоснование:</h3>
           <div className="grid grid-cols-2 gap-3">
             {[
-              'Работающий MVP без аналогов на рынке',
-              'Государственный приоритет «Десятилетие семьи» 2024–2033',
+              'Работающий продукт в production без аналогов на рынке',
+              'Государственный приоритет «Десятилетие семьи» 2024–2034',
               'Ready-to-scale технология: 86 API, 151 таблица, 90+ экранов',
               'Уникальная AI-методология развития детей (Выготский + Эльконин)',
-              'Встроенная монетизация: подписка + семейный кошелёк',
+              'Встроенная монетизация: семейный кошелёк pay-per-use',
               'Раздел «Финансы» — открытая витрина для продуктов банка',
               'Интеграции: Яндекс Алиса, СБП, Сбер, Т-Банк, Яндекс Карты',
               'При интеграции в экосистему банка: рост стоимости в 5–10× за 2–3 года',
@@ -539,7 +539,7 @@ export default function AdminValuation() {
           </div>
 
           <div className="mt-8 text-xs text-slate-500">
-            Оценка подготовлена: 26 февраля 2026 г. · ИП Кузьменко А.В. · Конфиденциально
+            Оценка подготовлена: 4 мая 2026 г. · ИП Кузьменко А.В. · Конфиденциально
           </div>
         </div>
 
@@ -598,7 +598,7 @@ export default function AdminValuation() {
                   <div className="text-sm text-blue-200">Оптимальный вариант — продаёте всё вместе с правами и базой</div>
                 </div>
                 <div className="ml-auto text-right">
-                  <div className="text-2xl font-black text-white">80–120 млн ₽</div>
+                  <div className="text-2xl font-black text-white">85–130 млн ₽</div>
                   <div className="text-xs text-blue-200">+ возможен earn-out</div>
                 </div>
               </div>
@@ -678,19 +678,19 @@ export default function AdminValuation() {
         <div data-pdf-slide className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Дорожная карта сделки</div>
           <h2 className="text-3xl font-black text-slate-900 mb-3">Пошаговый план действий</h2>
-          <p className="text-slate-500 mb-8">Что нужно сделать от сегодняшнего дня (26.02.2026) до закрытия сделки — по шагам, простым языком.</p>
+          <p className="text-slate-500 mb-8">Что нужно сделать от сегодняшнего дня (04.05.2026) до закрытия сделки — по шагам, простым языком.</p>
 
           <div className="space-y-4">
             {[
               {
                 step: '1',
                 phase: 'Подготовка',
-                time: 'Февраль – март 2026',
+                time: 'Май – июнь 2026',
                 color: 'bg-slate-800',
                 border: 'border-slate-200',
                 bg: 'bg-slate-50',
                 actions: [
-                  'Зарегистрировать торговую марку «Наша Семья» в Роспатенте (защита IP)',
+                  'ИС уже защищена в РЦИС (n\'RIS №518-830-027) — дополнительной регистрации не требуется',
                   'Подготовить техническую документацию: архитектура, схема БД, API-описание',
                   'Составить финансовую модель на 3 года (выручка, расходы, юнит-экономика)',
                   'Сделать тизер (1 страница) и полный инвест. меморандум (этот документ)',
@@ -700,7 +700,7 @@ export default function AdminValuation() {
               {
                 step: '2',
                 phase: 'Поиск покупателей',
-                time: 'Март – апрель 2026',
+                time: 'Июнь – июль 2026',
                 color: 'bg-blue-600',
                 border: 'border-blue-100',
                 bg: 'bg-blue-50',
@@ -715,7 +715,7 @@ export default function AdminValuation() {
               {
                 step: '3',
                 phase: 'Переговоры',
-                time: 'Апрель – июнь 2026',
+                time: 'Июль – сентябрь 2026',
                 color: 'bg-purple-600',
                 border: 'border-purple-100',
                 bg: 'bg-purple-50',
@@ -730,7 +730,7 @@ export default function AdminValuation() {
               {
                 step: '4',
                 phase: 'Due Diligence покупателя',
-                time: 'Июнь – июль 2026',
+                time: 'Сентябрь – октябрь 2026',
                 color: 'bg-teal-600',
                 border: 'border-teal-100',
                 bg: 'bg-teal-50',
@@ -745,7 +745,7 @@ export default function AdminValuation() {
               {
                 step: '5',
                 phase: 'Закрытие сделки',
-                time: 'Июль – август 2026',
+                time: 'Октябрь – ноябрь 2026',
                 color: 'bg-green-600',
                 border: 'border-green-100',
                 bg: 'bg-green-50',
@@ -794,7 +794,7 @@ export default function AdminValuation() {
               </thead>
               <tbody>
                 {[
-                  ['Сумма сделки', '40–60 млн ₽', '80–120 млн ₽', '150–250 млн ₽'],
+                  ['Сумма сделки', '40–60 млн ₽', '85–130 млн ₽', '150–250 млн ₽'],
                   ['Скорость', '2–4 недели', '1–3 месяца', '3–9 месяцев'],
                   ['Сложность', 'Низкая', 'Средняя', 'Высокая'],
                   ['Нужен юрист', 'Желательно', 'Обязательно', 'Обязательно'],
@@ -952,7 +952,7 @@ export default function AdminValuation() {
         <div data-pdf-slide className="rounded-2xl border-2 border-slate-800 bg-white p-10 shadow-lg">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Тизер · Конфиденциально · Февраль 2026</div>
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Тизер · Конфиденциально · Май 2026</div>
               <h2 className="text-4xl font-black text-slate-900">НАША СЕМЬЯ</h2>
               <div className="text-lg text-slate-500 font-medium">Семейная платформа нового поколения</div>
             </div>
@@ -972,8 +972,8 @@ export default function AdminValuation() {
             {[
               { num: '50 млн', label: 'семей в России — целевой рынок (TAM)' },
               { num: '28 млн ₽', label: 'стоимость воспроизведения технологии' },
-              { num: '~80 млн ₽', label: 'оценка бизнеса (метод Беркуса)' },
-              { num: '2024–2033', label: 'Десятилетие семьи — гос. приоритет РФ' },
+              { num: '~85 млн ₽', label: 'оценка бизнеса (Беркус + премия)' },
+              { num: '2024–2034', label: 'Десятилетие семьи — гос. приоритет РФ' },
             ].map((s, i) => (
               <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div className="text-2xl font-black text-slate-900 mb-1">{s.num}</div>
@@ -987,7 +987,8 @@ export default function AdminValuation() {
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Что создано (готово)</div>
               <ul className="space-y-1.5 text-sm text-slate-700">
                 {[
-                  'Работающий MVP — веб-платформа + мобильная версия',
+                  'Работающий продукт в production — веб-платформа + мобильная версия',
+                  '88 активных семей · оплаты через семейный кошелёк работают',
                   'Модули: Здоровье, Документы, Бюджет, Задачи, Календарь',
                   'Раздел «Господдержка» — пособия, льготы, ипотека',
                   'ИИ-диетолог с медицинскими столами (уникально для РФ)',
@@ -1006,8 +1007,8 @@ export default function AdminValuation() {
                 {[
                   'Аналогов нет — уникальная ниша в России',
                   'Банк ПСБ: 2+ млн семей военных — идеальная аудитория',
-                  '«Десятилетие семьи» — попутный ветер 10 лет',
-                  'Технология защищена — регистрация ТМ в Роспатенте',
+                  '«Десятилетие семьи» — попутный ветер до 2034 года',
+                  'Технология защищена — депонирование в РЦИС n\'RIS №518-830-027',
                   'Стоимость растёт с каждым новым пользователем',
                 ].map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -1018,7 +1019,7 @@ export default function AdminValuation() {
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Варианты сделки</div>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between"><span className="text-slate-600">Продажа кода</span><span className="font-bold">40–60 млн ₽</span></div>
-                <div className="flex justify-between"><span className="text-slate-600">Продажа бизнеса</span><span className="font-bold text-blue-700">80–120 млн ₽</span></div>
+                <div className="flex justify-between"><span className="text-slate-600">Продажа бизнеса</span><span className="font-bold text-blue-700">85–130 млн ₽</span></div>
                 <div className="flex justify-between"><span className="text-slate-600">Стратегический банк</span><span className="font-bold text-amber-700">150–250 млн ₽</span></div>
               </div>
             </div>
@@ -1043,14 +1044,14 @@ export default function AdminValuation() {
 
         {/* СЛАЙД 14 — Финальный */}
         <div data-pdf-slide className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-900 to-blue-950 text-white p-12">
-          <div className="text-xs font-semibold tracking-[0.2em] text-blue-300 uppercase mb-8">Итог · Москва, 26 февраля 2026 г.</div>
+          <div className="text-xs font-semibold tracking-[0.2em] text-blue-300 uppercase mb-8">Итог · Москва, 4 мая 2026 г.</div>
           <h2 className="text-4xl font-black mb-6">Ключевые выводы</h2>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
             {[
-              { label: 'Платформа полностью готова к продаже', desc: 'Работающий MVP, реальные пользователи, встроенная монетизация' },
+              { label: 'Платформа полностью готова к продаже', desc: 'Работающий продукт в production, 88 активных семей, встроенная pay-per-use монетизация' },
               { label: 'Аналогов на рынке нет', desc: 'Единственный комплексный семейный органайзер в России' },
-              { label: 'Государственный приоритет', desc: '«Десятилетие семьи» 2024–2033 — попутный ветер для любого покупателя' },
+              { label: 'Государственный приоритет', desc: '«Десятилетие семьи» 2024–2034 — попутный ветер для любого покупателя' },
               { label: 'Стоимость растёт с каждым месяцем', desc: 'Каждый новый пользователь и интеграция увеличивают оценку' },
             ].map((item, i) => (
               <div key={i} className="bg-white/10 rounded-xl p-5">
@@ -1062,7 +1063,7 @@ export default function AdminValuation() {
 
           <div className="bg-blue-600/50 border border-blue-500 rounded-xl p-6 mb-8">
             <div className="text-sm text-blue-200 mb-1">Рекомендуемое первое действие</div>
-            <div className="text-xl font-bold text-white">Зарегистрировать торговую марку + нанять M&A-юриста + разослать тизер в 5 банков</div>
+            <div className="text-xl font-bold text-white">Нанять M&A-юриста + разослать тизер в 5 банков · ИС уже защищена в РЦИС</div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -1071,7 +1072,7 @@ export default function AdminValuation() {
               <div className="text-sm text-slate-400">млн ₽ минимум</div>
             </div>
             <div>
-              <div className="text-3xl font-black text-blue-300">80–120</div>
+              <div className="text-3xl font-black text-blue-300">85–130</div>
               <div className="text-sm text-slate-400">млн ₽ справедливо</div>
             </div>
             <div>
@@ -1081,7 +1082,7 @@ export default function AdminValuation() {
           </div>
 
           <div className="mt-8 text-xs text-slate-500">
-            Документ подготовлен: 26 февраля 2026 г. · Москва · ИП Кузьменко А.В. · Конфиденциально
+            Документ подготовлен: 4 мая 2026 г. · Москва · ИП Кузьменко А.В. · Конфиденциально
           </div>
         </div>
 
