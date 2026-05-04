@@ -9,7 +9,13 @@ import { MedicationsWidget } from '@/components/widgets/MedicationsWidget';
 import { CalendarWidget } from '@/components/widgets/CalendarWidget';
 import FamilyMembersGrid from '@/components/FamilyMembersGrid';
 import { useNavigate } from 'react-router-dom';
-import type { CalendarEvent, FamilyMember, Task } from '@/types/family.types';
+import type { CalendarEvent, FamilyMember } from '@/types/family.types';
+
+interface Task {
+  id: string;
+  assignee_id?: string;
+  completed: boolean;
+}
 
 interface WidgetsSidebarProps {
   isWidgetEnabled: (widgetId: string) => boolean;
