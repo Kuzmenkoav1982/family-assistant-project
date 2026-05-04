@@ -235,6 +235,7 @@ const App = () => {
   useEffect(() => {
     const trackPageChange = () => {
       analyticsTracker.trackPageView(window.location.pathname);
+      analyticsTracker.trackHub(window.location.pathname);
     };
 
     trackPageChange();

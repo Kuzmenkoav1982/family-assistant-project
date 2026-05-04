@@ -171,6 +171,7 @@ export default function AdminPanel() {
             <TabsTrigger value="flags" className="text-xs md:text-sm px-2 py-1.5">Фич-флаги</TabsTrigger>
             <TabsTrigger value="campaigns" className="text-xs md:text-sm px-2 py-1.5">Рейтинги и акции</TabsTrigger>
             <TabsTrigger value="referrals" className="text-xs md:text-sm px-2 py-1.5">Реферальная программа</TabsTrigger>
+            <TabsTrigger value="hubs" className="text-xs md:text-sm px-2 py-1.5">Хабы</TabsTrigger>
           </TabsList>
 
           <TabsContent value="families" className="mt-4">
@@ -205,6 +206,9 @@ export default function AdminPanel() {
           </TabsContent>
           <TabsContent value="referrals" className="mt-4">
             <AdminReferralProgram adminToken="admin_authenticated" />
+          </TabsContent>
+          <TabsContent value="hubs" className="mt-4">
+            <HubsTab />
           </TabsContent>
         </Tabs>
       </div>
@@ -902,6 +906,142 @@ function FlagsTab({ toast }: { toast: ReturnType<typeof useToast>['toast'] }) {
         ))}
       </CardContent>
     </Card>
+  );
+}
+
+const ANALYTICS_URL = (func2url as Record<string, string>)['analytics'];
+
+interface HubStat {
+  hub: string;
+  label: string;
+  views: number;
+  unique_families: number;
+  unique_sessions: number;
+}
+
+interface HubStatsData {
+  hubs: HubStat[];
+  total_views: number;
+  total_families: number;
+  avg_depth: number;
+  days: number;
+  daily: { day: string; views: number }[];
+}
+
+function HubsTab() {
+  const [data, setData] = useState<HubStatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(7);
+
+  const load = useCallback(async (d: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${ANALYTICS_URL}?action=hub_stats&days=${d}`);
+      const json = await res.json();
+      setData(json);
+    } catch { /* ignore */ } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(days); }, [days, load]);
+
+  const maxViews = data?.hubs?.[0]?.views || 1;
+
+  return (
+    <div className="space-y-4">
+      {/* Переключатель периода */}
+      <div className="flex gap-2">
+        {[7, 30, 90].map(d => (
+          <Button
+            key={d}
+            size="sm"
+            variant={days === d ? 'default' : 'outline'}
+            onClick={() => setDays(d)}
+          >
+            {d} дней
+          </Button>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="flex justify-center py-10">
+          <Icon name="Loader2" className="animate-spin" size={30} />
+        </div>
+      )}
+
+      {!loading && data && (
+        <>
+          {/* Сводка */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+            <MiniStat label="Просмотров хабов" value={data.total_views} color="blue" />
+            <MiniStat label="Уникальных семей" value={data.total_families} color="green" />
+            <MiniStat label="Глубина (хабов/семью)" value={data.avg_depth} color="purple" />
+          </div>
+
+          {/* Топ хабов */}
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-base">Топ разделов за {days} дней</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 space-y-2">
+              {data.hubs.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-4">Данных пока нет — они появятся по мере использования приложения</p>
+              )}
+              {data.hubs.map((h, i) => (
+                <div key={h.hub} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-5 text-right">{i + 1}</span>
+                      <span className="font-medium">{h.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span>{h.unique_families} семей</span>
+                      <span className="font-bold text-gray-800">{h.views} просм.</span>
+                    </div>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden ml-7">
+                    <div
+                      className="h-full bg-gradient-to-r from-violet-500 to-pink-400 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.round((h.views / maxViews) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* График по дням */}
+          {data.daily.length > 0 && (
+            <Card>
+              <CardHeader className="p-4">
+                <CardTitle className="text-base">Динамика просмотров</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <div className="flex items-end gap-1 h-24">
+                  {(() => {
+                    const maxDay = Math.max(...data.daily.map(d => d.views), 1);
+                    return data.daily.map(d => (
+                      <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group relative">
+                        <div
+                          className="w-full bg-violet-400 rounded-t hover:bg-violet-500 transition-colors cursor-default"
+                          style={{ height: `${Math.round((d.views / maxDay) * 80)}px` }}
+                          title={`${d.day}: ${d.views}`}
+                        />
+                      </div>
+                    ));
+                  })()}
+                </div>
+                <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                  <span>{data.daily[0]?.day?.slice(5)}</span>
+                  <span>{data.daily[data.daily.length - 1]?.day?.slice(5)}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 

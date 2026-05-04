@@ -19,6 +19,31 @@
       "expectedBody": {
         "success": true
       }
+    },
+    {
+      "name": "POST hub event",
+      "method": "POST",
+      "path": "/?action=hub",
+      "body": {
+        "hub": "pets",
+        "hub_label": "Питомцы",
+        "family_id": "test-family",
+        "session_id": "test-session"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    },
+    {
+      "name": "GET hub stats 7 days",
+      "method": "GET",
+      "path": "/?action=hub_stats&days=7",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "days": 7
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
