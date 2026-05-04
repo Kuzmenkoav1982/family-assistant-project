@@ -33,7 +33,7 @@ const STRATEGY_SLIDES: AnySlide[] = [
       { label: 'Модель монетизации', value: 'Семейный кошелёк pay-per-use — платят только за AI-функции' },
       { label: 'Средний ARPU', value: '~280 руб./мес (200₽ кошелёк + 80₽ партнёры)' },
       { label: 'Рынок (SAM)', value: '15 млн семей с детьми в России' },
-      { label: 'Статус', value: 'Продукт работает в production · 51 активная семья' },
+      { label: 'Статус', value: 'Продукт работает в production · 88 активных семей' },
       { label: 'MRR цель', value: '~2,8 млн руб./мес к марту 2027' },
     ]
   },
@@ -124,14 +124,14 @@ const STRATEGY_SLIDES: AnySlide[] = [
     tag: 'Анализ',
     blocks: [
       { label: 'Сильные стороны', value: 'Нет прямых конкурентов · Готовый продукт в production · Гос. поддержка · ИС n\'RIS · 86 API, 151 таблица БД, 385+ компонентов' },
-      { label: 'Слабые стороны', value: 'Соло-основатель · Низкий traction (51 семья) · Нет мобильных приложений iOS/Android' },
-      { label: 'Возможности', value: 'Программа "Десятилетие семьи" до 2035 · Господдержка · B2B с банками · Выход в СНГ' },
+      { label: 'Слабые стороны', value: 'Соло-основатель · Низкий traction (88 семей) · Нет мобильных приложений iOS/Android' },
+      { label: 'Возможности', value: 'Программа "Десятилетие семьи" 2024–2034 · Господдержка · B2B с банками · Выход в СНГ' },
       { label: 'Угрозы', value: 'Копирование идеи Сбером / VK · Высокий CAC · Регуляторные риски (персданные детей)' },
     ]
   },
   {
     title: 'Роадмап 2026–2027',
-    subtitle: 'От 51 семьи к 10 000 платящих',
+    subtitle: 'От 88 семей к 10 000 платящих',
     bg: '0F172A', accent: '7DD3FC',
     tag: 'Дорожная карта',
     blocks: [
@@ -996,7 +996,7 @@ export default function MarketingStrategy() {
               <div className="text-xs font-semibold tracking-widest text-indigo-200 uppercase mb-3">North Star Metric</div>
               <div className="text-5xl font-black mb-3">10 000</div>
               <div className="text-xl text-indigo-200">активных платящих семей к марту 2027</div>
-              <div className="mt-4 text-sm text-indigo-300">Текущее значение: 51 семья → Рост: ×196</div>
+              <div className="mt-4 text-sm text-indigo-300">Текущее значение: 88 семей → Рост: ×113</div>
             </div>
 
             {/* KPI таблицы */}

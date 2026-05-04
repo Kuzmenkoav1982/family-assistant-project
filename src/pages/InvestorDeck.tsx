@@ -59,7 +59,7 @@ const slides = [
     type: 'traction',
     title: '📈 Текущие показатели',
     stats: [
-      { label: 'Активных семей', value: '51', icon: 'Users' },
+      { label: 'Активных семей', value: '88', icon: 'Users' },
       { label: 'Пользователей', value: '40+', icon: 'UserCheck' },
       { label: 'Backend API', value: '90', icon: 'Server' },
       { label: 'Таблиц БД', value: '151', icon: 'Database' },
@@ -128,7 +128,7 @@ const slides = [
         'Себестоимость разработки: ₽28M',
         "ИС защищена: n'RIS №518-830-027",
         'Семейный ID — актив без аналогов на рынке',
-        'Production-ready продукт с 51 семьёй'
+        'Production-ready продукт с 88 семьями'
       ]
     },
     potential: {
