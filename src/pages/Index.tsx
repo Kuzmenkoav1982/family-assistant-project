@@ -212,6 +212,7 @@ export default function Index({ onLogout }: IndexProps) {
                 currentUserId={currentUserId}
                 toggleTask={handlers.toggleTask}
                 getMemberById={handlers.getMemberById}
+                showFamilyMembers={handlers.isWidgetEnabled('family-members')}
               />
 
               <CohesionTabContent

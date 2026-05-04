@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyMember, CalendarEvent } from '@/types/family.types';
 import FamilySetupChecklist from '@/components/index-page/FamilySetupChecklist';
+import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 
 interface Task {
   id: string;
@@ -28,6 +29,7 @@ interface TodayTabContentProps {
   currentUserId: string;
   toggleTask: (taskId: string) => void;
   getMemberById: (id: string) => FamilyMember | undefined;
+  showFamilyMembers?: boolean;
 }
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
@@ -78,6 +80,7 @@ export default function TodayTabContent({
   currentUserId,
   toggleTask,
   getMemberById,
+  showFamilyMembers = true,
 }: TodayTabContentProps) {
   const navigate = useNavigate();
   const today = new Date().toISOString().split('T')[0];
@@ -137,6 +140,16 @@ export default function TodayTabContent({
         tasks={tasks}
         calendarEvents={calendarEvents}
       />
+
+      {/* Карточки членов семьи */}
+      {showFamilyMembers && familyMembers.length > 0 && (
+        <FamilyMembersGrid
+          members={familyMembers}
+          onMemberClick={(member) => navigate(`/member/${member.id}`)}
+          tasks={tasks}
+          events={calendarEvents}
+        />
+      )}
 
       {/* Пустой день */}
       {todayTasks.length === 0 && todayEvents.length === 0 && (
