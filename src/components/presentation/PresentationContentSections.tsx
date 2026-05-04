@@ -217,7 +217,7 @@ export function PresentationContentSections() {
 
       {/* СЛАЙД: Текущие показатели */}
       <SectionCard>
-        <SectionTitle icon="BarChart3" iconColor="bg-indigo-500" title="Текущие показатели (MVP)" />
+        <SectionTitle icon="BarChart3" iconColor="bg-indigo-500" title="Текущие показатели" />
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-5">
           <StatCard value="146+" label="Экранов" icon="Monitor" />
           <StatCard value="90" label="API-функций" icon="Server" />
@@ -229,7 +229,7 @@ export function PresentationContentSections() {
         </div>
         <div className="mt-5 bg-emerald-50 rounded-xl p-4 text-center">
           <p className="text-sm font-semibold text-emerald-800">
-            Статус: MVP полностью разработан, работает в production на домене nasha-semiya.ru
+            Статус: продукт полностью разработан и работает в production на домене nasha-semiya.ru
           </p>
         </div>
       </SectionCard>
