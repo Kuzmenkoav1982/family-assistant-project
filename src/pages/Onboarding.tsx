@@ -132,10 +132,38 @@ export default function Onboarding() {
     }
   };
 
+  // Маппинг интересов онбординга → ID кнопок нижней панели
+  const INTEREST_TO_BOTTOM_BAR: Record<string, string> = {
+    tasks: 'planning',       // Задачи и списки дел → Планирование
+    shopping: 'household',   // Списки покупок → Быт
+    calendar: 'planning',    // Семейный календарь → Планирование
+    health: 'health',        // Здоровье и лекарства → Здоровье
+    meals: 'nutrition',      // Питание и рецепты → Питание
+    children: 'family',      // Развитие детей → Семья
+    finance: 'finance',      // Семейный бюджет → Финансы
+    trips: 'leisure',        // Путешествия → Путешествия
+  };
+
+  const applyInterestsToBottomBar = (interests: string[]) => {
+    // Базовые кнопки — всегда присутствуют
+    const base = ['home', 'family'];
+    // Добавляем кнопки по интересам (без дублей)
+    const fromInterests = interests
+      .map(i => INTEREST_TO_BOTTOM_BAR[i])
+      .filter(Boolean);
+    const merged = [...new Set([...base, ...fromInterests])];
+    // Ограничиваем до 8 (лимит панели), 'home' всегда первый
+    const final = merged.slice(0, 8);
+    localStorage.setItem('bottomBarItems', JSON.stringify(final));
+  };
+
   const finish = () => {
     localStorage.setItem('onboarding_completed', 'true');
     localStorage.setItem('onboarding_interests', JSON.stringify(selectedInterests));
     localStorage.setItem('onboarding_family_size', familySize);
+    if (selectedInterests.length > 0) {
+      applyInterestsToBottomBar(selectedInterests);
+    }
     navigate('/');
   };
 
