@@ -54,25 +54,25 @@ export default function Welcome() {
 
       <WelcomeHero isLoggedIn={isLoggedIn} />
 
-      <WelcomeEcosystem />
-
-      <WelcomeDomovoyAI />
-
-      <WelcomeDomovoy />
-
-      <WelcomeVideo />
+      <WelcomeProblems />
 
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeForWhom />
       </div>
 
-      <WelcomeProblems />
+      <WelcomeEcosystem />
+
+      <WelcomeDomovoy />
+
+      <WelcomeDomovoyAI />
+
+      <WelcomeVideo />
+
+      <WelcomeDeveloper />
 
       <WelcomePWA />
 
       <WelcomeFAQ />
-
-      <WelcomeDeveloper />
 
       <WelcomePromo />
 
