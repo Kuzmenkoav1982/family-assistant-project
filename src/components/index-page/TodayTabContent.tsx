@@ -141,16 +141,6 @@ export default function TodayTabContent({
         calendarEvents={calendarEvents}
       />
 
-      {/* Карточки членов семьи */}
-      {showFamilyMembers && familyMembers.length > 0 && (
-        <FamilyMembersGrid
-          members={familyMembers}
-          onMemberClick={(member) => navigate(`/member/${member.id}`)}
-          tasks={tasks}
-          events={calendarEvents}
-        />
-      )}
-
       {/* Пустой день */}
       {todayTasks.length === 0 && todayEvents.length === 0 && (
         <Card className="border-dashed border-2 border-green-200 bg-green-50/50">
@@ -433,6 +423,16 @@ export default function TodayTabContent({
           </div>
         </CardContent>
       </Card>
+
+      {/* Карточки членов семьи */}
+      {showFamilyMembers && familyMembers.length > 0 && (
+        <FamilyMembersGrid
+          members={familyMembers}
+          onMemberClick={(member) => navigate(`/member/${member.id}`)}
+          tasks={tasks}
+          events={calendarEvents}
+        />
+      )}
 
     </TabsContent>
   );
