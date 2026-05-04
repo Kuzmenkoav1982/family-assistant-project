@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../../backend/func2url.json';
 import type { FamilyEvent } from '@/types/events';
 
 const AI_IDEAS_URL = func2url['event-ai-ideas'];

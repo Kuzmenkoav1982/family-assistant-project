@@ -1,4 +1,4 @@
-import func2url from '@/config/func2url';
+import func2url from '@/../backend/func2url.json';
 
 const HUB_LABELS: Record<string, string> = {
   '/': 'Главная',

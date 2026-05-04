@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import func2url from '@/config/func2url';
+import func2url from '@/../backend/func2url.json';
 
 interface User {
   id: string;

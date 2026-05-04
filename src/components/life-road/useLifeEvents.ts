@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import func2url from '@/config/func2url';
+import func2url from '../../../backend/func2url.json';
 import type { LifeEvent } from './types';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 export function CalendarExport() {
   const [isExporting, setIsExporting] = useState(false);

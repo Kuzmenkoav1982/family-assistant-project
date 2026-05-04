@@ -13,7 +13,7 @@ import {
   calculatePariResults,
   getOverallScore,
 } from '@/data/pariTestData';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 const API = (func2url as Record<string, string>)['child-assessment'];
 

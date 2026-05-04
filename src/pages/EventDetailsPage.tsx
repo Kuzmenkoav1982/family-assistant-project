@@ -17,7 +17,7 @@ import AIIdeasDialog from '@/components/events/AIIdeasDialog';
 import CateringSection from '@/components/events/CateringSection';
 import ThemeSection from '@/components/events/ThemeSection';
 import InvitationSection from '@/components/events/InvitationSection';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 import type { FamilyEvent, EventGuest, EventTask, EventExpense, WishlistItem, GuestGift } from '@/types/events';
 
 const API_URLS = {

@@ -6,7 +6,7 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyEvent } from '@/types/events';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
 const API_URL = func2url['events'];

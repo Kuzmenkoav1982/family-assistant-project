@@ -2,7 +2,7 @@
  * Сервис уведомлений о приёме лекарств
  */
 
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 interface MedicationReminder {
   id: string;

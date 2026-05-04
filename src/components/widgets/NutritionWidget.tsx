@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import func2url from '@/config/func2url';
+import func2url from '../../../backend/func2url.json';
 
 const NUTRITION_API_URL = func2url['nutrition'];
 

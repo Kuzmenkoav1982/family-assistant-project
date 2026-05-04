@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../../backend/func2url.json';
 
 interface AddHealthRecordDialogProps {
   profileId: string;

@@ -9,7 +9,7 @@ import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { calculatePariResults, getOverallScore, PARI_SCALES, type PariScaleResult } from '@/data/pariTestData';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 const API = (func2url as Record<string, string>)['child-assessment'];
 

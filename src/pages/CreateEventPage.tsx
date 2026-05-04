@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 const API_URL = func2url['events'];
 

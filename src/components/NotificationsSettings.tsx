@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useState, useEffect } from 'react';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 import { NotificationTypeSettings } from './NotificationTypeSettings';
 import { useAuth } from '@/lib/auth-context';
 

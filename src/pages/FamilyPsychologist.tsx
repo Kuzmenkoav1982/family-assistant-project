@@ -10,7 +10,7 @@ import Icon from "@/components/ui/icon";
 import { useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { useToast } from "@/hooks/use-toast";
-import func2url from '@/config/func2url';
+import func2url from "../../backend/func2url.json";
 import SectionAIAdvisor from "@/components/SectionAIAdvisor";
 
 interface ConsultationRecord {

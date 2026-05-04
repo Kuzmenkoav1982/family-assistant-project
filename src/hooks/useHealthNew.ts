@@ -10,7 +10,7 @@ import {
 } from '@/hooks/useHealthAPI';
 import type { HealthProfile } from '@/types/health';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 const MEMBER_PHOTO_MAP: Record<string, string> = {
   'Анастасия': 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',

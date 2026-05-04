@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { AstrologyService } from '@/components/astrology/AstrologyService';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 interface Message {
   role: 'user' | 'assistant';

@@ -7,7 +7,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useMedicationNotifications } from '@/hooks/useMedicationNotifications';
-import func2url from '@/config/func2url';
+import func2url from '../../../backend/func2url.json';
 
 interface MedicationReminder {
   id: string;

@@ -9,7 +9,7 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { Helmet } from 'react-helmet-async';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 const FAITH_API = (func2url as Record<string, string>)['faith-api'];
 

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
-import func2url from '@/config/func2url';
+import func2url from '@/../backend/func2url.json';
 
 const PAYMENTS_API = 'https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d';
 // PLANS_API временно отключен (функция не задеплоена)

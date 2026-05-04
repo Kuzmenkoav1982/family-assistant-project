@@ -16,7 +16,7 @@ import { loadWidgetSettings } from '@/types/widgetSettings';
 import type { FamilyMember } from '@/types/family.types';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/config/func2url';
+import func2url from '../../backend/func2url.json';
 
 interface Task {
   id: string;
