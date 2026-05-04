@@ -405,6 +405,8 @@ export default function Index({ onLogout }: IndexProps) {
               isWidgetEnabled={handlers.isWidgetEnabled}
               setShowWidgetSettings={state.setShowWidgetSettings}
               calendarEvents={calendarEvents}
+              familyMembers={familyMembers}
+              tasks={tasks}
             />
           </div>
         </div>
