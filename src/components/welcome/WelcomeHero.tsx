@@ -8,27 +8,32 @@ interface WelcomeHeroProps {
 
 const PHONE_SCREENS = [
   {
-    src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/01b848b8-d5d5-448a-8d5a-ff27951a757e.JPG',
-    alt: 'Календарь семьи',
+    src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/aa6e2960-f72f-442b-b816-7c68cfb7f050.jpeg',
+    alt: 'Профили членов семьи',
     rotate: '-rotate-6',
     z: 'z-10',
     offset: 'translate-y-6',
   },
   {
-    src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5bc14b3e-fc4b-485b-8d50-fe25bfbd03f7.jpeg',
-    alt: 'Профили семьи',
+    src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/af5b9876-ae34-4026-81ff-e56e94dfac3c.jpeg',
+    alt: 'Дашборд «Наша Семья» с 12 хабами',
     rotate: 'rotate-0',
     z: 'z-20',
     offset: '',
   },
   {
-    src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/2a975113-b781-4867-a03c-76da41b91083.JPG',
-    alt: 'Задачи и поручения',
+    src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/11abe1e4-5fcf-4a9b-b26f-076fa5403010.jpeg',
+    alt: 'Раздел «Развитие» — психолог и навыки',
     rotate: 'rotate-6',
     z: 'z-10',
     offset: 'translate-y-6',
   },
 ];
+
+const MOBILE_HERO_SCREEN = {
+  src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/16156a05-c830-48cf-8fbc-3c23331bc227.png',
+  alt: 'Профиль ребёнка с уровнем и баллами',
+};
 
 export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
   const navigate = useNavigate();
@@ -157,8 +162,8 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 <div className="bg-gray-900 rounded-[2.5rem] p-2.5 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
                   <div className="bg-white rounded-[2rem] overflow-hidden w-48 aspect-[9/19] relative">
                     <img
-                      src={PHONE_SCREENS[1].src}
-                      alt={PHONE_SCREENS[1].alt}
+                      src={MOBILE_HERO_SCREEN.src}
+                      alt={MOBILE_HERO_SCREEN.alt}
                       className="w-full h-full object-cover"
                       loading="eager"
                     />
