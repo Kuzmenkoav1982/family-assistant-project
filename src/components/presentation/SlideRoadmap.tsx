@@ -2,7 +2,7 @@ import Icon from '@/components/ui/icon';
 
 const stages = [
   {
-    quarter: 'Q3 2025',
+    quarter: 'Q3 2026',
     period: 'Июль — Сентябрь',
     color: '#10b981',
     bg: '#d1fae5',
@@ -19,7 +19,7 @@ const stages = [
     revenue: 'Pre-revenue',
   },
   {
-    quarter: 'Q4 2025',
+    quarter: 'Q4 2026',
     period: 'Октябрь — Декабрь',
     color: '#f59e0b',
     bg: '#fef3c7',
@@ -36,7 +36,7 @@ const stages = [
     revenue: '~15 млн ₽/год',
   },
   {
-    quarter: 'Q1 2026',
+    quarter: 'Q1 2027',
     period: 'Январь — Март',
     color: '#3b82f6',
     bg: '#dbeafe',
@@ -53,7 +53,7 @@ const stages = [
     revenue: '~50 млн ₽/год',
   },
   {
-    quarter: 'Q2 2026',
+    quarter: 'Q2 2027',
     period: 'Апрель — Июнь',
     color: '#8b5cf6',
     bg: '#ede9fe',
@@ -70,7 +70,7 @@ const stages = [
     revenue: '~300 млн ₽/год',
   },
   {
-    quarter: 'Q3–Q4 2026',
+    quarter: 'Q3–Q4 2027',
     period: 'Июль — Декабрь',
     color: '#e11d48',
     bg: '#ffe4e6',
@@ -87,7 +87,7 @@ const stages = [
     revenue: '~1 млрд ₽/год',
   },
   {
-    quarter: '2027+',
+    quarter: '2028+',
     period: 'Перспектива',
     color: '#0d9488',
     bg: '#ccfbf1',
