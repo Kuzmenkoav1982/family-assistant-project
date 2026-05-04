@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '@/../backend/func2url.json';
+import func2url from '@/config/func2url';
 import AdminRatingCampaigns from '@/components/admin/AdminRatingCampaigns';
 import AdminReferralProgram from '@/components/admin/AdminReferralProgram';
 

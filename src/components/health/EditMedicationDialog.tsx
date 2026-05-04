@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface Medication {
   id: string;

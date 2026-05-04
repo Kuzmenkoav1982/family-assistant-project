@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import func2url from '@/../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface ChannelStats {
   subscribers?: number;

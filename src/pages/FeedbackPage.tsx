@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/lib/auth-context';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface FeedbackItem {
   id: string;

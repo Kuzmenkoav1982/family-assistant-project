@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const TRIPS_API = (func2url as Record<string, string>)['trips'];
 

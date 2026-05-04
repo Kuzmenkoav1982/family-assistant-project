@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 import type { Pet } from '@/hooks/usePets';
 
 interface Props {

@@ -9,7 +9,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import RestaurantAISearch from './RestaurantAISearch';
 import type { FamilyEvent } from '@/types/events';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const API_URL = func2url['events'];
 

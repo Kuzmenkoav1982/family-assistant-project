@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { CATEGORY_CONFIG, IMPORTANCE_CONFIG, type LifeEvent, type LifeEventCategory, type LifeEventImportance } from './types';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
 

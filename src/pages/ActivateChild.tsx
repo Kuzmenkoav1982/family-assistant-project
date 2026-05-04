@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const YANDEX_CLIENT_ID = import.meta.env.VITE_YANDEX_CLIENT_ID || '9c4bbe74d2b74ad9b93aad4e3f1c8f4e';
 const REDIRECT_URI = `${window.location.origin}/activate-callback`;

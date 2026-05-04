@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface FamilyMember {
   id: string;

@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface FeedbackItem {
   id: string;

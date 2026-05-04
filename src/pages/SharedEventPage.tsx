@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const API_URL = func2url['event-share'];
 

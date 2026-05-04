@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface Message {
   role: 'user' | 'assistant';

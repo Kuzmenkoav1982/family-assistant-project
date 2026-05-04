@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import func2url from '@/../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface NamedCount {
   name: string;

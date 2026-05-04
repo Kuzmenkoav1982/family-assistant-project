@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 export default function ActivateCallback() {
   const [searchParams] = useSearchParams();

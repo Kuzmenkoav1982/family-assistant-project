@@ -14,7 +14,7 @@ import MemberAvatar from '@/components/ui/member-avatar';
 import { useToast } from '@/components/ui/use-toast';
 import type { FamilyMember } from '@/types/family.types';
 import type { ReconciliationScenario } from '@/lib/reconciliation';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 function getBd(m: FamilyMember): string | null { return m.birth_date || m.birthDate || null; }
 

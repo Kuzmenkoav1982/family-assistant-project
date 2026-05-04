@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface AddTelemedicineDialogProps {
   profileId: string;

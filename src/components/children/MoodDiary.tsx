@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const CHILDREN_DATA_API = (func2url as Record<string, string>)['children-data'];
 

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface TypeSetting {
   enabled: boolean;

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface ScheduleVaccination {
   id: string;

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 const API_URL = func2url['event-wishlist'];
 

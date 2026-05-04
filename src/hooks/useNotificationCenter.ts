@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 export interface NotificationItem {
   id: string;

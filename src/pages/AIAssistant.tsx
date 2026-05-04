@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface Message {
   role: 'user' | 'assistant';

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
-import func2url from '../../backend/func2url.json';
+import func2url from '@/config/func2url';
 
 interface Purchase {
   id: number;
