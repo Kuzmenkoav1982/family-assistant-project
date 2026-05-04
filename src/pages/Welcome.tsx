@@ -16,6 +16,7 @@ import WelcomeEcosystem from '@/components/welcome/WelcomeEcosystem';
 import WelcomeDomovoyAI from '@/components/welcome/WelcomeDomovoyAI';
 import WelcomeReviews from '@/components/welcome/WelcomeReviews';
 import WelcomeSecurity from '@/components/welcome/WelcomeSecurity';
+import WelcomeHowToStart from '@/components/welcome/WelcomeHowToStart';
 
 const openTelegramSupport = () => {
   window.open('https://t.me/Nasha7iya', '_blank');
@@ -48,8 +49,8 @@ export default function Welcome() {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title="Приложение для семьи – мобильное приложение для семейного планирования дел, бесплатная версия"
-        description="Семейное приложение для планирования дел. Удобный сервис для планирования здоровья, питания, бюджета, развития детей. AI-помощник и Яндекс Алиса. Список дел и покупок. Бесплатно для всей семьи без ограничений по участникам — оплата только за AI-функции. Работает на смартфоне, планшете и компьютере. Для 0+."
+        title="Приложение для семьи – мобильное приложение для семейного планирования дел, бесплатно. Вся семейная жизнь в одном месте"
+        description="Вся семейная жизнь в одном приложении: дела, дети, здоровье, бюджет и AI-помощник. Один сервис вместо десяти разрозненных приложений. Календарь, задачи, GPS-маячок семьи, медкарты, списки покупок, меню на неделю. AI-помощник и Яндекс Алиса. Бесплатно для всей семьи без ограничений по участникам — оплата только за AI-функции. Данные хранятся в России. Работает на смартфоне, планшете и компьютере. Для 0+."
         path="/"
       />
       <WelcomeHeader isLoggedIn={isLoggedIn} />
@@ -77,6 +78,8 @@ export default function Welcome() {
       <WelcomePWA />
 
       <WelcomeSecurity />
+
+      <WelcomeHowToStart isLoggedIn={isLoggedIn} />
 
       <WelcomeFAQ />
 
