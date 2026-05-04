@@ -5,6 +5,9 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyMember, CalendarEvent } from '@/types/family.types';
 
+const PETS_URL = 'https://functions.poehali.dev/3a6b920f-273a-4c1d-8764-e9daa2930ceb';
+const GARAGE_URL = 'https://functions.poehali.dev/62e765b8-d826-4a97-b427-781e513e0acd';
+
 interface Task {
   id: string;
   completed: boolean;
@@ -39,7 +42,8 @@ export default function FamilySetupChecklist({
 }: FamilySetupChecklistProps) {
   const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [hasPet, setHasPet] = useState(false);
+  const [hasCar, setHasCar] = useState(false);
 
   useEffect(() => {
     const isDismissed = localStorage.getItem(STORAGE_KEY) === 'true';
@@ -55,15 +59,41 @@ export default function FamilySetupChecklist({
     }
   })();
 
+  const authToken = localStorage.getItem('authToken');
+
+  // Загружаем количество питомцев и авто из API
+  useEffect(() => {
+    if (!authToken || dismissed) return;
+
+    const headers = { 'X-Auth-Token': authToken, 'Content-Type': 'application/json' };
+
+    fetch(`${PETS_URL}?action=list_pets`, { headers })
+      .then(r => r.json())
+      .then(data => {
+        const list = data.pets || data.items || data.data || [];
+        setHasPet(list.length > 0);
+      })
+      .catch(() => {});
+
+    fetch(`${GARAGE_URL}?action=list`, { headers })
+      .then(r => r.json())
+      .then(data => {
+        const list = data.vehicles || data.items || data.data || [];
+        setHasCar(list.length > 0);
+      })
+      .catch(() => {});
+  }, [authToken, dismissed]);
+
   const currentMember = familyMembers.find(m => m.id === userData?.member_id) || familyMembers[0];
 
-  // Проверяем выполнение каждого пункта
   const checks = {
+    hasFamilyName: !!(userData?.family_name && userData.family_name !== `Семья ${userData?.email}`),
     hasPhoto: !!(currentMember?.photo_url || (currentMember?.avatar && currentMember.avatar.startsWith('http'))),
     hasSecondMember: familyMembers.length >= 2,
     hasEvent: calendarEvents.length > 0,
-    hasTask: tasks.filter(t => !t.completed).length > 0 || tasks.length > 0,
-    hasFamilyName: !!(userData?.family_name && userData.family_name !== `Семья ${userData?.email}`),
+    hasTask: tasks.length > 0,
+    hasPet,
+    hasCar,
   };
 
   const completedCount = Object.values(checks).filter(Boolean).length;
@@ -117,6 +147,24 @@ export default function FamilySetupChecklist({
       actionLabel: 'Создать',
       action: () => navigate('/tasks'),
     },
+    {
+      id: 'hasPet',
+      label: 'Добавьте питомца',
+      hint: 'Они тоже члены семьи 🐾',
+      icon: 'PawPrint',
+      color: 'text-amber-600',
+      actionLabel: 'Добавить',
+      action: () => navigate('/pets'),
+    },
+    {
+      id: 'hasCar',
+      label: 'Добавьте автомобиль',
+      hint: 'Следите за ТО, расходами и напоминаниями',
+      icon: 'Car',
+      color: 'text-cyan-600',
+      actionLabel: 'Добавить',
+      action: () => navigate('/garage'),
+    },
   ];
 
   const handleDismiss = () => {
@@ -124,10 +172,8 @@ export default function FamilySetupChecklist({
     setDismissed(true);
   };
 
-  // Показываем только если не все пункты выполнены и не скрыт
   if (dismissed || allDone) return null;
 
-  // Показываем только новым пользователям — онбординг завершён, но профиль не до конца настроен
   const onboardingDone = localStorage.getItem('onboarding_completed') === 'true';
   if (!onboardingDone) return null;
 
@@ -173,16 +219,12 @@ export default function FamilySetupChecklist({
                   done ? 'opacity-50' : 'hover:bg-violet-50/50'
                 }`}
               >
-                {/* Чекбокс */}
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                  done
-                    ? 'bg-green-500 border-green-500'
-                    : 'border-gray-300'
+                  done ? 'bg-green-500 border-green-500' : 'border-gray-300'
                 }`}>
                   {done && <Icon name="Check" size={10} className="text-white" />}
                 </div>
 
-                {/* Иконка + текст */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Icon name={item.icon} size={15} className={done ? 'text-gray-400' : item.color} />
                   <div className="min-w-0">
@@ -195,7 +237,6 @@ export default function FamilySetupChecklist({
                   </div>
                 </div>
 
-                {/* Кнопка действия */}
                 {!done && (
                   <Button
                     size="sm"
@@ -212,14 +253,12 @@ export default function FamilySetupChecklist({
           })}
         </div>
 
-        {/* Поздравление когда почти готово */}
         {completedCount >= totalCount - 1 && !allDone && (
           <div className="mt-3 text-center">
             <p className="text-xs text-violet-600 font-medium">🎉 Почти готово! Остался последний шаг</p>
           </div>
         )}
 
-        {/* Скрыть */}
         {completedCount === 0 && (
           <button
             onClick={handleDismiss}
