@@ -193,7 +193,7 @@ export function SlideRoadmap() {
       </div>
 
       <div className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-5 text-white text-center">
-        <p className="font-bold text-base mb-1">MVP готов. Нужны ресурсы для масштабирования.</p>
+        <p className="font-bold text-base mb-1">Продукт готов. Нужны ресурсы для масштабирования.</p>
         <p className="text-sm text-white/80">
           Платформа работает в production на nasha-semiya.ru — мы не продаём идею, мы продаём готовый продукт
         </p>

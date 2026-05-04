@@ -66,7 +66,7 @@ const slides = [
       { label: 'Направлений', value: '13', icon: 'LayoutGrid' },
       { label: 'Экранов', value: '146+', icon: 'Zap' }
     ],
-    note: "Production-ready MVP · ИС защищена n'RIS №518-830-027"
+    note: "Production-ready продукт · ИС защищена n'RIS №518-830-027"
   },
   {
     id: 6,
@@ -128,7 +128,7 @@ const slides = [
         'Себестоимость разработки: ₽28M',
         "ИС защищена: n'RIS №518-830-027",
         'Семейный ID — актив без аналогов на рынке',
-        'Production-ready MVP с 51 семьёй'
+        'Production-ready продукт с 51 семьёй'
       ]
     },
     potential: {
