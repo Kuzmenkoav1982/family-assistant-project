@@ -5,7 +5,6 @@ import WelcomeHero from '@/components/welcome/WelcomeHero';
 import WelcomeForWhom from '@/components/welcome/WelcomeForWhom';
 import WelcomeProblems from '@/components/welcome/WelcomeProblems';
 import WelcomePromo from '@/components/welcome/WelcomePromo';
-import WelcomeAI from '@/components/welcome/WelcomeAI';
 import WelcomePWA from '@/components/welcome/WelcomePWA';
 import WelcomeCTA from '@/components/welcome/WelcomeCTA';
 import WelcomeFooter from '@/components/welcome/WelcomeFooter';
@@ -59,9 +58,9 @@ export default function Welcome() {
 
       <WelcomeDomovoyAI />
 
-      <WelcomeVideo />
-
       <WelcomeDomovoy />
+
+      <WelcomeVideo />
 
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeForWhom />
@@ -69,15 +68,13 @@ export default function Welcome() {
 
       <WelcomeProblems />
 
-      <WelcomePromo />
-
-      <WelcomeAI />
-
       <WelcomePWA />
 
       <WelcomeFAQ />
 
       <WelcomeDeveloper />
+
+      <WelcomePromo />
 
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeCTA isLoggedIn={isLoggedIn} />

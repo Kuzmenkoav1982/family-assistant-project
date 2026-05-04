@@ -44,67 +44,7 @@ export default function WelcomeVideo() {
     <section className="py-16 sm:py-24 bg-gradient-to-b from-white to-orange-50/30">
       <div className="max-w-4xl mx-auto px-4 space-y-16">
 
-        <div>
-          <div className="mb-10 flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 text-sm font-semibold px-5 py-2 rounded-full mb-5 shadow-sm border border-orange-200">
-              <span>👋</span>
-              Знакомьтесь — Домовёнок
-            </div>
-            <img
-              src="https://cdn.poehali.dev/files/4934b182-04ec-456b-814c-77b2704e0d2e.png"
-              alt="Домовёнок — семейный помощник приложения Наша Семья"
-              className="w-full max-w-2xl rounded-3xl shadow-2xl object-cover"
-            />
-          </div>
-
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-              🏠 Домовёнок — хранитель русских семей
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Мешок мастера для крепкой семьи
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Тысячу лет Домовёнок бережёт русские семьи. Теперь он собрал двенадцать опор
-              в одно приложение. Когда крепка каждая семья — крепка вся Россия.
-              Присоединяйтесь — вместе будем укреплять семьи, общество, страну.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="w-full sm:w-1/2 rounded-2xl shadow-xl bg-amber-50 flex items-center justify-center p-3">
-              <img
-                src="https://cdn.poehali.dev/files/ca712a09-b06f-4b9d-9369-d3baaa169b7e.jpg"
-                alt="Домовёнок с мешком мастера — приложение Наша Семья"
-                className="w-full object-contain rounded-xl"
-              />
-            </div>
-            <div className="w-full sm:w-1/2 rounded-2xl shadow-xl bg-emerald-50 flex items-center justify-center p-3">
-              <img
-                src="https://cdn.poehali.dev/files/56dd1a64-098e-4403-ae09-9de6508be482.jpg"
-                alt="Домовёнок с 12 опорами семейной жизни — приложение Наша Семья"
-                className="w-full object-contain rounded-xl"
-              />
-            </div>
-          </div>
-
-          <div
-            ref={videoRef}
-            className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video"
-          >
-            <iframe
-              src="https://rutube.ru/play/embed/43fc1759d245e8598f5abf7f19328eb8/"
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              allow="clipboard-write; autoplay"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-            />
-          </div>
-        </div>
-
-        <div>
+        <div ref={videoRef}>
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Посмотрите, как работает семейное приложение

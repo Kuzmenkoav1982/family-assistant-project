@@ -18,14 +18,6 @@ export default function WelcomeCTA({ isLoggedIn }: WelcomeCTAProps) {
   return (
     <section className="py-16 sm:py-24">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="mb-8 rounded-3xl overflow-hidden shadow-2xl">
-          <img
-            src="https://cdn.poehali.dev/files/72442757-aff2-49a4-b817-47d2a95a993f.png"
-            alt="Крепкая семья — крепкая Россия! Домовёнок с семьёй за столом"
-            className="w-full object-cover"
-          />
-        </div>
-
         <div className="relative bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600 rounded-[2rem] p-8 sm:p-12 lg:p-16 text-center text-white overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />

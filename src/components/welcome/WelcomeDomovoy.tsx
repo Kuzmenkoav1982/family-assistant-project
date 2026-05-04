@@ -120,13 +120,13 @@ export default function WelcomeDomovoy() {
       <div className="max-w-5xl mx-auto px-4">
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
-            🏠 История Домовёнка
+            👋 Знакомьтесь — Домовёнок
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
             Тысячу лет на страже семьи
           </h2>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">
-            Листайте историю Домовёнка — хранителя русских семей
+            История о том, как Домовёнок собрал 12 опор крепкой семьи
           </p>
         </div>
 
