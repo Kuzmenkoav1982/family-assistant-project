@@ -31,8 +31,8 @@ const PHONE_SCREENS = [
 ];
 
 const MOBILE_HERO_SCREEN = {
-  src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/16156a05-c830-48cf-8fbc-3c23331bc227.png',
-  alt: 'Профиль ребёнка с уровнем и баллами',
+  src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/a56446e2-ef59-4c50-aecf-9ed9fb67b67c.jpeg',
+  alt: 'Дашборд «Наша Семья» с 12 хабами',
 };
 
 export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
