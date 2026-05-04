@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import type { FamilyMember, CalendarEvent } from '@/types/family.types';
+import FamilySetupChecklist from '@/components/index-page/FamilySetupChecklist';
 
 interface Task {
   id: string;
@@ -129,6 +130,13 @@ export default function TodayTabContent({
           </div>
         </div>
       </div>
+
+      {/* Чек-лист настройки семьи */}
+      <FamilySetupChecklist
+        familyMembers={familyMembers}
+        tasks={tasks}
+        calendarEvents={calendarEvents}
+      />
 
       {/* Пустой день */}
       {todayTasks.length === 0 && todayEvents.length === 0 && (
