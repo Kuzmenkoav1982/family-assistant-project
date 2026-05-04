@@ -16,7 +16,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-200/20 rounded-full blur-3xl -z-10" />
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Icon name="Sparkles" size={16} />
@@ -24,16 +24,15 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.08] tracking-tight text-gray-900">
-              Семейное приложение для планирования дел
+              Вся семейная жизнь<br />
+              <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                в одном приложении
+              </span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 max-w-xl mb-4 leading-relaxed mx-auto">
-              Задачи, здоровье, питание, бюджет, развитие детей, AI-помощник и Яндекс Алиса — 
-              всё для управления семейной жизнью.
-            </p>
-
-            <p className="text-sm text-gray-400 mb-8 mx-auto">
-              Бесплатно для всей семьи без ограничений по количеству участников. Платите только за AI-функции. Работает на телефоне, планшете и компьютере.
+            <p className="text-lg sm:text-xl text-gray-600 max-w-xl mb-8 leading-relaxed mx-auto">
+              Дела, дети, здоровье, бюджет и AI-помощник — для всей семьи.
+              Один сервис вместо десяти разрозненных приложений.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -81,6 +80,27 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 Уже есть аккаунт? Войти
               </button>
             )}
+
+            <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto">
+              {[
+                { icon: 'Gift', text: 'Бесплатно для семьи' },
+                { icon: 'ShieldCheck', text: 'Данные хранятся в России' },
+                { icon: 'Smartphone', text: 'В браузере и на телефоне' },
+                { icon: 'Mic', text: 'Поддержка Яндекс Алисы' },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-orange-100 rounded-xl px-3 py-2.5 text-left"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center text-orange-600">
+                    <Icon name={item.icon} size={16} />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 leading-tight">
+                    {item.text}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
