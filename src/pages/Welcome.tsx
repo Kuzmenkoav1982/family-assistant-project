@@ -14,6 +14,7 @@ import WelcomeFAQ from '@/components/welcome/WelcomeFAQ';
 import WelcomeDomovoy from '@/components/welcome/WelcomeDomovoy';
 import WelcomeEcosystem from '@/components/welcome/WelcomeEcosystem';
 import WelcomeDomovoyAI from '@/components/welcome/WelcomeDomovoyAI';
+import WelcomeReviews from '@/components/welcome/WelcomeReviews';
 
 const openTelegramSupport = () => {
   window.open('https://t.me/Nasha7iya', '_blank');
@@ -59,6 +60,8 @@ export default function Welcome() {
       <div className="max-w-7xl mx-auto px-4">
         <WelcomeForWhom />
       </div>
+
+      <WelcomeReviews />
 
       <WelcomeEcosystem />
 
