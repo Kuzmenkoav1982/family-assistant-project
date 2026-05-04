@@ -27,13 +27,14 @@ const STRATEGY_SLIDES: AnySlide[] = [
     title: 'Маркетинговая стратегия',
     subtitle: '"Наша Семья" — цифровая платформа для семей',
     bg: '1D4ED8', accent: 'BFDBFE',
-    tag: 'Версия 1.0 · Март 2026 · Конфиденциально',
+    tag: 'Версия 1.1 · Май 2026 · Конфиденциально',
     blocks: [
-      { label: 'Цель', value: '10 000 платящих семей за 12 месяцев' },
-      { label: 'Средний чек', value: '330 руб./мес — тариф "Семья"' },
+      { label: 'Цель', value: '10 000 активных платящих семей за 12 месяцев' },
+      { label: 'Модель монетизации', value: 'Семейный кошелёк pay-per-use — платят только за AI-функции' },
+      { label: 'Средний ARPU', value: '~280 руб./мес (200₽ кошелёк + 80₽ партнёры)' },
       { label: 'Рынок (SAM)', value: '15 млн семей с детьми в России' },
-      { label: 'Статус', value: 'MVP готов · 51 семья уже активна' },
-      { label: 'MRR цель', value: '3,3 млн руб./мес к марту 2027' },
+      { label: 'Статус', value: 'Продукт работает в production · 51 активная семья' },
+      { label: 'MRR цель', value: '~2,8 млн руб./мес к марту 2027' },
     ]
   },
   {
@@ -55,7 +56,7 @@ const STRATEGY_SLIDES: AnySlide[] = [
     bg: 'BE185D', accent: 'FBCFE8',
     tag: 'Сегментация рынка',
     blocks: [
-      { label: 'Мама-организатор (55%)', value: 'Возраст 28–42 года · CAC 400–600 руб. · LTV 10 800 руб. · Главный сегмент' },
+      { label: 'Мама-организатор (55%)', value: 'Возраст 28–42 года · CAC 400–600 руб. · LTV 10 080 руб. (3 года) · Главный сегмент' },
       { label: 'Папа-партнёр (25%)', value: 'Возраст 30–45 лет · Вовлекается через финансовый модуль и геолокацию' },
       { label: 'B2B сегмент (15%)', value: 'Педиатры, психологи, детские клиники · CAC 200–350 руб.' },
       { label: 'Корпоративный (10%)', value: 'HR-льготы для сотрудников с семьями · Пилот с 2–3 компаниями в Q3' },
@@ -67,7 +68,7 @@ const STRATEGY_SLIDES: AnySlide[] = [
     bg: '6D28D9', accent: 'DDD6FE',
     tag: 'Привлечение',
     blocks: [
-      { label: '1. ВКонтакте + Telegram', value: '30 000 руб./мес · CAC 400–600 руб. · Основной канал для мам' },
+      { label: '1. ВКонтакте + MAX', value: '30 000 руб./мес · CAC 400–600 руб. · Основной канал для мам (российский мессенджер MAX)' },
       { label: '2. Партнёрства B2B2C', value: '10 000 руб./мес · CAC 200–350 руб. · Клиники, HR, страховые' },
       { label: '3. SEO + Контент', value: '15 000 руб./мес · CAC 300–500 руб. · 4 статьи в месяц' },
       { label: '4. Яндекс.Директ', value: '20 000 руб./мес · CAC 600–900 руб. · Поиск + РСЯ' },
@@ -77,16 +78,16 @@ const STRATEGY_SLIDES: AnySlide[] = [
   },
   {
     title: 'Маркетинговая воронка',
-    subtitle: 'Цель: 10 000 платящих Premium-семей',
+    subtitle: 'Цель: 10 000 активных платящих семей',
     bg: '0E7490', accent: 'A5F3FC',
     tag: 'Конверсия',
     blocks: [
       { label: 'Охват (показы)', value: '2 400 000 показов/мес — ВКонтакте, Яндекс, партнёры' },
       { label: 'Переходы на сайт', value: '120 000 визитов (CTR 5%) — лендинг + блог + маркетплейсы' },
-      { label: 'Регистрации', value: '36 000 аккаунтов (CR 30%) — бесплатный период 14 дней' },
+      { label: 'Регистрации', value: '36 000 аккаунтов (CR 30%) — регистрация бесплатна, без подписки' },
       { label: 'Активация', value: '18 000 активных (50%) — добавили семью, заполнили профиль' },
       { label: 'Retention D30', value: '12 600 семей (70%) — привычка использования сформирована' },
-      { label: 'Premium-подписка', value: '10 000 семей (28%) · MRR 3,3 млн руб. · Цель достигнута' },
+      { label: 'Активные платящие', value: '10 000 семей (28%) — пополнили кошелёк и используют AI · MRR ~2,8 млн ₽' },
     ]
   },
   {
@@ -100,7 +101,7 @@ const STRATEGY_SLIDES: AnySlide[] = [
       { label: 'Контент-маркетинг / SEO (20%)', value: '180 000 руб./год — блог, YouTube, Telegram-канал' },
       { label: 'Партнёрства B2B2C (13%)', value: '120 000 руб./год — клиники, HR, школы' },
       { label: 'Маркетплейсы (7%)', value: '60 000 руб./год — Ozon, WB, Яндекс Маркет' },
-      { label: 'Ожидаемый ROMI', value: '>300% к концу года · CAC окупается за 3 месяца' },
+      { label: 'Ожидаемый ROMI', value: '>300% к концу года · CAC окупается за 2–3 месяца' },
     ]
   },
   {
@@ -109,11 +110,11 @@ const STRATEGY_SLIDES: AnySlide[] = [
     bg: 'B45309', accent: 'FDE68A',
     tag: 'Метрики',
     blocks: [
-      { label: 'Q1 2026 · Март–Май', value: '300 платящих семей · MRR 99 000 руб. · NPS > 50 · CAC < 600 руб.' },
-      { label: 'Q2 2026 · Июнь–Август', value: '2 000 семей · MRR 660 000 руб. · CAC < 400 руб. · LTV/CAC > 3' },
-      { label: 'Q3 2026 · Сентябрь–Ноябрь', value: '5 000 семей · MRR 1 650 000 руб. · Churn < 5% · Breakeven' },
-      { label: 'Q4 2026 · Декабрь–Март 2027', value: '10 000 семей · MRR 3 300 000 руб. · ARR 39 600 000 руб.' },
-      { label: 'North Star Metric', value: 'Активных платящих семей — целевое значение 10 000 к марту 2027' },
+      { label: 'Q1 2026 · Март–Май', value: '300 активных платящих семей · MRR ~84 000 руб. · NPS > 50 · CAC < 600 руб.' },
+      { label: 'Q2 2026 · Июнь–Август', value: '2 000 семей · MRR ~560 000 руб. · CAC < 400 руб. · LTV/CAC > 3' },
+      { label: 'Q3 2026 · Сентябрь–Ноябрь', value: '5 000 семей · MRR ~1,4 млн руб. · Churn < 5% · Breakeven' },
+      { label: 'Q4 2026 · Декабрь–Март 2027', value: '10 000 семей · MRR ~2,8 млн руб. · ARR ~33,6 млн руб.' },
+      { label: 'North Star Metric', value: 'Активных платящих семей (с пополненным кошельком) — целевое значение 10 000 к марту 2027' },
     ]
   },
   {
@@ -122,7 +123,7 @@ const STRATEGY_SLIDES: AnySlide[] = [
     bg: '1E293B', accent: '94A3B8',
     tag: 'Анализ',
     blocks: [
-      { label: 'Сильные стороны', value: 'Нет прямых конкурентов · Готовый MVP · Гос. поддержка · ИС n\'RIS · 86 API, 151 таблица БД, 385+ компонентов' },
+      { label: 'Сильные стороны', value: 'Нет прямых конкурентов · Готовый продукт в production · Гос. поддержка · ИС n\'RIS · 86 API, 151 таблица БД, 385+ компонентов' },
       { label: 'Слабые стороны', value: 'Соло-основатель · Низкий traction (51 семья) · Нет мобильных приложений iOS/Android' },
       { label: 'Возможности', value: 'Программа "Десятилетие семьи" до 2035 · Господдержка · B2B с банками · Выход в СНГ' },
       { label: 'Угрозы', value: 'Копирование идеи Сбером / VK · Высокий CAC · Регуляторные риски (персданные детей)' },
@@ -149,7 +150,7 @@ const STRATEGY_SLIDES: AnySlide[] = [
     tag: 'Конкуренты',
     headers: ['Продукт', 'Семейный ID', 'Здоровье/ИИ', 'Дети/развитие', 'Бюджет семьи', 'Геолокация', 'Цена/мес'],
     rows: [
-      ['Наша Семья', '✓ Да', '✓ ИИ-анализ', '✓ Полный', '✓ Да', '✓ Да', '330 руб.'],
+      ['Наша Семья', '✓ Да', '✓ ИИ-анализ', '✓ Полный', '✓ Да', '✓ Да', 'Бесплатно + AI pay-per-use'],
       ['Сбер Семья', '— Нет', '— Нет', '— Нет', '✓ Частично', '— Нет', 'Бесплатно'],
       ['VK Kids', '— Нет', '— Нет', '✓ Частично', '— Нет', '— Нет', 'Бесплатно'],
       ['Яндекс.Алиса', '— Нет', '— Нет', '— Нет', '— Нет', '— Нет', 'Бесплатно'],
@@ -170,9 +171,9 @@ const STRATEGY_SLIDES: AnySlide[] = [
       { label: 'Регистрации', value: '36 000', pct: '30%' },
       { label: 'Активация (добавили семью)', value: '18 000', pct: '50%' },
       { label: 'Retention 30 дней', value: '12 600', pct: '70%' },
-      { label: 'Premium-подписка', value: '10 000', pct: '79%' },
+      { label: 'Активные платящие (кошелёк)', value: '10 000', pct: '79%' },
     ],
-    note: 'CAC средний: 92 руб./регистрация → 307 руб./Premium · LTV: 10 800 руб. · LTV/CAC = 35x',
+    note: 'CAC средний: ~500 руб./активная семья · LTV (3 года): 10 080 руб. · LTV/CAC ≈ 14×',
   },
   {
     type: 'bar' as const,
@@ -181,12 +182,12 @@ const STRATEGY_SLIDES: AnySlide[] = [
     bg: '134E4A', accent: '6EE7B7',
     tag: 'Финансовая модель',
     bars: [
-      { label: 'Q1: Март–Май 2026', value: 99, max: 3300, color: '6EE7B7' },
-      { label: 'Q2: Июнь–Август 2026', value: 660, max: 3300, color: '34D399' },
-      { label: 'Q3: Сент–Ноябрь 2026', value: 1650, max: 3300, color: '10B981' },
-      { label: 'Q4: Дек 2026 – Март 2027', value: 3300, max: 3300, color: '059669' },
+      { label: 'Q1: Март–Май 2026', value: 84, max: 2800, color: '6EE7B7' },
+      { label: 'Q2: Июнь–Август 2026', value: 560, max: 2800, color: '34D399' },
+      { label: 'Q3: Сент–Ноябрь 2026', value: 1400, max: 2800, color: '10B981' },
+      { label: 'Q4: Дек 2026 – Март 2027', value: 2800, max: 2800, color: '059669' },
     ],
-    note: 'ARR к марту 2027: 39 600 000 руб. · Breakeven в Q3 2026 · ROI маркетинга: >300%',
+    note: 'ARR к марту 2027: ~33 600 000 руб. · Breakeven в Q3 2026 · ROI маркетинга: >300%',
   },
 ];
 
@@ -301,7 +302,7 @@ export default function MarketingStrategy() {
           <div>
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Конфиденциально</div>
             <h1 className="text-xl font-bold text-slate-900">Маркетинговая стратегия «Наша Семья»</h1>
-            <p className="text-sm text-slate-500">По состоянию на 05.03.2026 · Версия 1.0</p>
+            <p className="text-sm text-slate-500">По состоянию на 04.05.2026 · Версия 1.1</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <Button variant="outline" size="sm" onClick={downloadPPTX} disabled={pptxBusy} className="gap-1.5">
@@ -314,7 +315,7 @@ export default function MarketingStrategy() {
             </Button>
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-semibold text-green-700">Pre-revenue · MVP готов</span>
+              <span className="text-sm font-semibold text-green-700">Продукт в production · 51 семья</span>
             </div>
           </div>
         </div>
@@ -357,7 +358,7 @@ export default function MarketingStrategy() {
                   { label: 'Текущих семей', value: '51', icon: '👨‍👩‍👧‍👦' },
                   { label: 'Целевых семей (12 мес)', value: '10 000', icon: '🎯' },
                   { label: 'Рынок (SAM)', value: '15 млн', icon: '🌍' },
-                  { label: 'Средний чек', value: '330 ₽/мес', icon: '💳' },
+                  { label: 'Средний ARPU', value: '~280 ₽/мес', icon: '💳' },
                 ].map((s, i) => (
                   <div key={i} className="bg-white/10 rounded-xl p-4">
                     <div className="text-2xl mb-1">{s.icon}</div>
@@ -427,7 +428,7 @@ export default function MarketingStrategy() {
                 {[
                   {
                     label: 'Сильные стороны', color: 'bg-green-50 border-green-200', text: 'text-green-800', icon: '💪',
-                    items: ['Нет прямых конкурентов в нише', 'Готовый production-ready MVP', 'Гос. поддержка «Десятилетие семьи»', '86 API, 151 таблица, 90+ экранов', 'ИС защищена — n\'RIS №518-830-027', 'Уникальный модуль здоровья с ИИ']
+                    items: ['Нет прямых конкурентов в нише', 'Готовый production-ready продукт', 'Гос. поддержка «Десятилетие семьи»', '86 API, 151 таблица, 90+ экранов', 'ИС защищена — n\'RIS №518-830-027', 'Уникальный модуль здоровья с ИИ']
                   },
                   {
                     label: 'Слабые стороны', color: 'bg-red-50 border-red-200', text: 'text-red-800', icon: '⚠️',
@@ -477,7 +478,7 @@ export default function MarketingStrategy() {
                   pain: ['Хаос в расписании семьи', 'Забываю о прививках и врачах', 'Трачу время на списки покупок', 'Дети не слышат про правила'],
                   motivation: ['Контроль и порядок', 'Забота о здоровье детей', 'Экономия времени', 'Семья как команда'],
                   channels: 'Instagram, Pinterest, ВКонтакте, Telegram (мамские чаты)',
-                  ltv: '₽10 800',
+                  ltv: '₽10 080',
                   cac: '₽400–600',
                 },
                 {
@@ -487,7 +488,7 @@ export default function MarketingStrategy() {
                   pain: ['Не знаю расписание школы', 'Жена всем управляет — я в стороне', 'Нет совместных планов', 'Деньги тратятся бесконтрольно'],
                   motivation: ['Участие в жизни семьи', 'Прозрачность расходов', 'Совместные цели', 'Путешествия и досуг'],
                   channels: 'YouTube, Telegram-каналы, ВКонтакте',
-                  ltv: '₽10 800',
+                  ltv: '₽10 080',
                   cac: '₽600–900',
                 },
                 {
@@ -497,7 +498,7 @@ export default function MarketingStrategy() {
                   pain: ['Папа в командировке — нет связи', 'Сложно отслеживать льготы', 'Дети без контроля родителя', 'Разлучённость семьи'],
                   motivation: ['Маячок — знать где дети', 'Льготы и господдержка', 'Связь с семьёй', 'Документы в одном месте'],
                   channels: 'ПСБ (партнёр), Госуслуги, ВКонтакте',
-                  ltv: '₽10 800',
+                  ltv: '₽10 080',
                   cac: '₽200–400 (партнёрский)',
                 },
               ].map((seg, i) => (
@@ -551,10 +552,10 @@ export default function MarketingStrategy() {
                 <div className="font-bold text-blue-900 mb-2">Потенциал монетизации SAM</div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                   {[
-                    { label: 'SAM × конверсия 1%', value: '150 000 платящих семей' },
-                    { label: 'Средний чек', value: '330 ₽/мес' },
-                    { label: 'Годовая выручка', value: '594 млн ₽/год' },
-                    { label: 'При конверсии 0,1%', value: '59 млн ₽/год' },
+                    { label: 'SAM × конверсия 1%', value: '150 000 активных семей' },
+                    { label: 'Средний ARPU', value: '~280 ₽/мес (кошелёк + партнёры)' },
+                    { label: 'Годовая выручка', value: '~504 млн ₽/год' },
+                    { label: 'При конверсии 0,1%', value: '~50 млн ₽/год' },
                   ].map((c, i) => (
                     <div key={i}>
                       <div className="text-slate-500">{c.label}</div>
@@ -581,14 +582,14 @@ export default function MarketingStrategy() {
             <div className="space-y-4">
               {[
                 {
-                  priority: '🥇 Приоритет 1', name: 'ВКонтакте + Telegram', budget: '₽30 000/мес', cac: '₽400–600', volume: '50–75 семей/мес',
+                  priority: '🥇 Приоритет 1', name: 'ВКонтакте + MAX', budget: '₽30 000/мес', cac: '₽400–600', volume: '50–75 семей/мес',
                   color: 'border-blue-300 bg-blue-50',
                   tactics: [
                     'Таргет ВК: мамы 28–42, дети в профиле, интересы «здоровье детей», «семья», «кулинария»',
-                    'Собственный Telegram-канал: контент о семейном благополучии, лайфхаки, анонсы',
-                    'Реклама в Telegram-каналах для мам (CPM ≈ 300–500₽/1000 показов)',
+                    'Собственный канал в MAX (российский мессенджер): контент о семейном благополучии, лайфхаки, анонсы',
+                    'Чат-бот в MAX для быстрого доступа к функциям платформы (3 администратора)',
                     'Партнёрские публикации в мамских сообществах ВКонтакте (бесплатно)',
-                    'Конкурсы с призами — подписка Premium на 3 месяца',
+                    'Конкурсы с призами — пополнение семейного кошелька (бонус на AI-функции)',
                   ],
                   metrics: { cpm: '₽350', ctr: '1,2%', cr: '3%' },
                 },
@@ -598,7 +599,7 @@ export default function MarketingStrategy() {
                   tactics: [
                     'Педиатры и детские клиники: реферальная программа (300₽ за приведённую семью)',
                     'Школы и детские сады: листовки + QR-код на родительских собраниях',
-                    'Психологи и семейные консультанты: бесплатный Premium-аккаунт в обмен на рекомендации',
+                    'Психологи и семейные консультанты: бонусное пополнение кошелька в обмен на рекомендации',
                     'Страховые компании: совместный продукт «здоровье семьи»',
                     'Работодатели: «платформа как соцпакет» для сотрудников с семьями',
                   ],
@@ -632,7 +633,7 @@ export default function MarketingStrategy() {
                   color: 'border-slate-300 bg-slate-50',
                   tactics: [
                     'Интеграция в мобильное приложение ПСБ как «семейный сервис» для держателей карт',
-                    'Совместный продукт: «Семейная карта ПСБ + Premium-подписка Наша Семья»',
+                    'Совместный продукт: «Семейная карта ПСБ + бонусное пополнение кошелька Наша Семья»',
                     'Push-уведомления в приложении банка для 2+ млн семей военнослужащих',
                     'Co-branding: «Забота о семье с Банком ПСБ»',
                     'Льготная ипотека + раздел финансового планирования в нашей платформе',
@@ -648,7 +649,7 @@ export default function MarketingStrategy() {
                     'Бонусные программы семьи: единый кошелёк лояльности — баллы Ozon/WB/Маркета суммируются в семейном профиле',
                     'Ozon Банк: продвижение подписки как cashback-бонус — семейный ID как основа для Ozon Pay и финансовых продуктов',
                     'Wildberries Pay: интеграция с WB-кошельком — семейный бюджет и трекинг покупок семьи в одном месте',
-                    'Размещение «Наша Семья Premium» как цифрового товара на Ozon и Wildberries — прямая дистрибуция',
+                    'Размещение «Пополнение семейного кошелька Наша Семья» как цифрового товара на Ozon и Wildberries — прямая дистрибуция',
                   ],
                   metrics: { cpm: '₽500', ctr: '2%', cr: '4–6%' },
                 },
@@ -700,15 +701,15 @@ export default function MarketingStrategy() {
 
             {/* Воронка */}
             <div className="rounded-2xl border border-slate-200 bg-white p-8">
-              <h3 className="text-xl font-black text-slate-900 mb-6">Расчёт воронки — цель 10 000 семей за 12 месяцев</h3>
+              <h3 className="text-xl font-black text-slate-900 mb-6">Расчёт воронки — цель 10 000 активных платящих семей за 12 месяцев</h3>
               <div className="space-y-3">
                 {[
                   { stage: '1. Охват (показы)', value: '2 400 000', conversion: '—', note: 'Реклама + органика + партнёры', width: 100, color: 'bg-slate-200 text-slate-700' },
                   { stage: '2. Переходы на сайт', value: '120 000', conversion: '5%', note: 'CTR в среднем 5% по каналам', width: 85, color: 'bg-blue-100 text-blue-700' },
-                  { stage: '3. Регистрации (Free)', value: '36 000', conversion: '30%', note: 'Конверсия посетитель → аккаунт', width: 70, color: 'bg-indigo-100 text-indigo-700' },
+                  { stage: '3. Регистрации (бесплатно)', value: '36 000', conversion: '30%', note: 'Регистрация без подписки и без карты', width: 70, color: 'bg-indigo-100 text-indigo-700' },
                   { stage: '4. Активация (7 дней)', value: '18 000', conversion: '50%', note: 'Добавили семью, заполнили профиль', width: 55, color: 'bg-violet-100 text-violet-700' },
                   { stage: '5. Retention (30 дней)', value: '12 600', conversion: '70%', note: 'Вернулись через 30 дней', width: 42, color: 'bg-purple-100 text-purple-700' },
-                  { stage: '6. Конверсия в Premium', value: '10 000', conversion: '28%', note: '~28% платящих от активированных', width: 28, color: 'bg-green-200 text-green-800' },
+                  { stage: '6. Активные платящие (кошелёк)', value: '10 000', conversion: '28%', note: 'Пополнили кошелёк и используют AI-функции', width: 28, color: 'bg-green-200 text-green-800' },
                 ].map((row, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-52 text-sm font-semibold text-slate-700 flex-shrink-0">{row.stage}</div>
@@ -732,7 +733,7 @@ export default function MarketingStrategy() {
                   { day: 'День 0', title: 'Регистрация', icon: '👋', action: 'Создание аккаунта, добавление 1-го члена семьи', trigger: 'Приветственный email + Push' },
                   { day: 'День 1', title: 'Первая ценность', icon: '✨', action: 'Добавили задачу или событие в календарь', trigger: 'Email: «Что попробовать первым?»' },
                   { day: 'День 3', title: 'Вовлечение', icon: '🔥', action: 'Пригласили второго члена семьи', trigger: 'Push: «Позвали ли вы партнёра?»' },
-                  { day: 'День 7', title: 'Конверсия', icon: '💳', action: 'Исчерпали лимиты Free → предложение Premium', trigger: 'Email + in-app: скидка 20% первые 48ч' },
+                  { day: 'День 7', title: 'Первое пополнение', icon: '💳', action: 'Попробовали AI-функции → пополнение кошелька', trigger: 'Email + in-app: бонус +20% к первому пополнению' },
                 ].map((step, i) => (
                   <div key={i} className="bg-slate-50 rounded-xl p-5">
                     <div className="text-2xl mb-2">{step.icon}</div>
@@ -756,11 +757,11 @@ export default function MarketingStrategy() {
                   },
                   {
                     title: 'Community-driven', color: 'bg-green-50',
-                    items: ['Telegram-чат пользователей платформы', 'Голосования за новые функции', 'Программа «Семья месяца»', 'Реферальная программа: +1 месяц за друга', 'Семейные челленджи (трекинг воды, шагов)']
+                    items: ['Чат пользователей в MAX', 'Голосования за новые функции', 'Программа «Семья месяца»', 'Реферальная программа: бонус на кошелёк за друга', 'Семейные челленджи (трекинг воды, шагов)']
                   },
                   {
                     title: 'Commercial-driven', color: 'bg-amber-50',
-                    items: ['Скидка 20% при продлении за 30 дней', 'Анонс новых функций Premium', 'Годовая подписка со скидкой 25%', 'Донат-программа «Поддержи проект»', 'Корпоративный тариф (от 5 семей)']
+                    items: ['Бонус +20% к пополнению кошелька от 1000₽', 'Анонс новых AI-функций', 'Пакетные тарифы AI со скидкой 25%', 'Донат-программа «Угостить Домового»', 'Корпоративный тариф (от 5 семей)']
                   },
                 ].map((block, i) => (
                   <div key={i} className={`rounded-xl p-5 ${block.color}`}>
@@ -792,7 +793,7 @@ export default function MarketingStrategy() {
                   kpi: 'Цель: 5 000 подписчиков за 6 мес',
                 },
                 {
-                  platform: 'Telegram-канал', handle: '@nashamily_family', freq: '3–4 поста/нед', icon: '✈️', color: 'bg-sky-50 border-sky-200',
+                  platform: 'MAX-канал «Наша Семья»', handle: 'max.ru/id231805288780_biz', freq: '3–4 поста/нед', icon: '💬', color: 'bg-sky-50 border-sky-200',
                   formats: ['Короткие лайфхаки для семьи (150–200 слов)', 'Эксклюзивные анонсы новых функций', 'Истории пользователей (анонимно)', 'Ссылки на статьи блога', 'Закрытые опросы для подписчиков'],
                   kpi: 'Цель: 3 000 подписчиков за 6 мес',
                 },
@@ -872,10 +873,10 @@ export default function MarketingStrategy() {
               <div className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">Юнит-экономика</div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
-                  { label: 'Средний чек', value: '330 ₽/мес', sub: 'подписка + кошелёк' },
-                  { label: 'LTV (36 мес)', value: '₽10 800', sub: 'при retention 30 мес' },
+                  { label: 'Средний ARPU', value: '~280 ₽/мес', sub: 'кошелёк 200₽ + партнёры 80₽' },
+                  { label: 'LTV (36 мес)', value: '₽10 080', sub: 'при retention 36 мес' },
                   { label: 'CAC (средний)', value: '₽500', sub: 'по всем каналам' },
-                  { label: 'LTV/CAC', value: '21,6×', sub: '— отличный показатель' },
+                  { label: 'LTV/CAC', value: '~14×', sub: 'отличный показатель' },
                 ].map((m, i) => (
                   <div key={i}>
                     <div className="text-3xl font-black text-white mb-1">{m.value}</div>
@@ -886,10 +887,10 @@ export default function MarketingStrategy() {
               </div>
               <div className="mt-6 pt-6 border-t border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
-                  { label: 'Окупаемость CAC', value: '1,5 мес', sub: '500 ÷ 330 = 1,5' },
-                  { label: 'Gross Margin', value: '~85%', sub: 'SaaS без COGS' },
-                  { label: 'Breakeven (платящих)', value: '2 500', sub: 'при затратах ₽800K/мес' },
-                  { label: 'Выручка при 10K', value: '₽39,6M/год', sub: '10000 × 330 × 12' },
+                  { label: 'Окупаемость CAC', value: '~2 мес', sub: '500 ÷ 280 ≈ 1,8' },
+                  { label: 'Маржа на AI', value: '60–70%', sub: 'pay-per-use модель' },
+                  { label: 'Breakeven (активных)', value: '~2 850', sub: 'при затратах ₽800K/мес' },
+                  { label: 'Выручка при 10K', value: '~₽33,6M/год', sub: '10000 × 280 × 12' },
                 ].map((m, i) => (
                   <div key={i}>
                     <div className="text-2xl font-black text-green-400 mb-1">{m.value}</div>
@@ -941,7 +942,7 @@ export default function MarketingStrategy() {
                   </tbody>
                 </table>
               </div>
-              <div className="text-xs text-slate-500">* ROI = LTV / CAC = ₽10 800 / CAC. Без учёта партнёрского канала ПСБ (+100–200 семей/мес при нулевом CAC)</div>
+              <div className="text-xs text-slate-500">* ROI = LTV / CAC = ₽10 080 / CAC. Без учёта партнёрского канала ПСБ (+100–200 семей/мес при нулевом CAC)</div>
             </div>
 
             {/* Сценарии */}
@@ -951,17 +952,17 @@ export default function MarketingStrategy() {
                 {[
                   {
                     name: 'Консервативный', color: 'bg-slate-50 border-slate-300', badge: 'bg-slate-500',
-                    budget: '₽40 000/мес', families: '2 500', revenue: '₽9,9 млн/год',
+                    budget: '₽40 000/мес', families: '2 500', revenue: '~₽8,4 млн/год',
                     items: ['Только органика + контент', 'Партнёрства с клиниками', 'Без платной рекламы']
                   },
                   {
                     name: 'Базовый', color: 'bg-blue-50 border-blue-300', badge: 'bg-blue-600',
-                    budget: '₽80 000/мес', families: '10 000', revenue: '₽39,6 млн/год',
+                    budget: '₽80 000/мес', families: '10 000', revenue: '~₽33,6 млн/год',
                     items: ['Все каналы планомерно', 'CAC ≈ ₽500 в среднем', 'Цель breakeven — месяц 8']
                   },
                   {
                     name: 'Агрессивный', color: 'bg-green-50 border-green-300', badge: 'bg-green-600',
-                    budget: '₽200 000/мес', families: '25 000', revenue: '₽99 млн/год',
+                    budget: '₽200 000/мес', families: '25 000', revenue: '~₽84 млн/год',
                     items: ['Масштаб + мобильное приложение', 'Партнёрство с ПСБ активно', 'Инфлюенсеры + PR']
                   },
                 ].map((sc, i) => (
@@ -1031,10 +1032,10 @@ export default function MarketingStrategy() {
                 {
                   title: 'Монетизация', color: 'border-amber-200',
                   kpis: [
-                    { metric: 'Платящих семей', now: '0', target3: '300', target12: '10 000' },
-                    { metric: 'Конверсия Free→Premium', now: '—', target3: '5%', target12: '28%' },
-                    { metric: 'MRR (ежемес. выручка)', now: '₽0', target3: '₽99K', target12: '₽3,3M' },
-                    { metric: 'ARR (годовая выручка)', now: '₽0', target3: '₽1,2M', target12: '₽39,6M' },
+                    { metric: 'Активных платящих семей', now: '0', target3: '300', target12: '10 000' },
+                    { metric: 'Конверсия в активных платящих', now: '—', target3: '5%', target12: '28%' },
+                    { metric: 'MRR (ежемес. выручка)', now: '₽0', target3: '~₽84K', target12: '~₽2,8M' },
+                    { metric: 'ARR (годовая выручка)', now: '₽0', target3: '~₽1,0M', target12: '~₽33,6M' },
                   ]
                 },
               ].map((group, i) => (
@@ -1102,17 +1103,17 @@ export default function MarketingStrategy() {
                 {
                   period: 'Q1 2026 · Март – Май', subtitle: 'Фундамент и первые 300 платящих семей',
                   color: 'border-blue-400 bg-blue-50', badge: 'bg-blue-600', status: 'Старт 05.03.2026',
-                  target: '300 платящих семей · MRR ₽99K',
+                  target: '300 активных платящих семей · MRR ~₽84K',
                   actions: [
-                    { cat: 'Продукт', items: ['Настроить аналитику (PostHog, Яндекс.Метрика)', 'Доработать онбординг: первые 7 дней пользователя', 'Запустить реферальную программу (+1 месяц за друга)', 'Email-цепочка: 5 писем за 7 дней после регистрации'] },
-                    { cat: 'Каналы', items: ['Запустить ВКонтакте таргет (₽20K/мес)', 'Создать Telegram-канал, первые 50 постов', 'Партнёрство с 3–5 детскими клиниками', '4 SEO-статьи в блог'] },
+                    { cat: 'Продукт', items: ['Настроить аналитику (PostHog, Яндекс.Метрика)', 'Доработать онбординг: первые 7 дней пользователя', 'Запустить реферальную программу (бонус на кошелёк за друга)', 'Email-цепочка: 5 писем за 7 дней после регистрации'] },
+                    { cat: 'Каналы', items: ['Запустить ВКонтакте таргет (₽20K/мес)', 'Развивать MAX-канал «Наша Семья», первые 50 постов', 'Партнёрство с 3–5 детскими клиниками', '4 SEO-статьи в блог'] },
                     { cat: 'Контент', items: ['Снять 8 YouTube Shorts / TikTok (демо функций)', 'Подготовить кейсы первых пользователей', 'Запустить конкурс «Семья месяца»'] },
                   ]
                 },
                 {
                   period: 'Q2 2026 · Июнь – Август', subtitle: 'Масштаб и 2 000 платящих семей',
                   color: 'border-purple-400 bg-purple-50', badge: 'bg-purple-600', status: 'Планируется',
-                  target: '2 000 платящих семей · MRR ₽660K',
+                  target: '2 000 активных платящих семей · MRR ~₽560K',
                   actions: [
                     { cat: 'Продукт', items: ['Запуск iOS-приложения (App Store)', 'Push-уведомления — напоминания, дайджест', 'A/B тест ценообразования: +20% к конверсии'] },
                     { cat: 'Каналы', items: ['Масштаб ВКонтакте до ₽40K/мес (Look-alike)', 'Запуск Яндекс.Директ поиск (₽20K/мес)', 'Инфлюенсер-маркетинг: 3–5 мам-блогеров (бартер)', 'Первые переговоры с Банком ПСБ'] },
@@ -1122,7 +1123,7 @@ export default function MarketingStrategy() {
                 {
                   period: 'Q3 2026 · Сентябрь – Ноябрь', subtitle: 'B2B и 5 000 платящих семей',
                   color: 'border-green-400 bg-green-50', badge: 'bg-green-600', status: 'Планируется',
-                  target: '5 000 платящих семей · MRR ₽1,65M · Breakeven',
+                  target: '5 000 активных платящих семей · MRR ~₽1,4M · Breakeven',
                   actions: [
                     { cat: 'B2B', items: ['Корпоративный тариф: «соцпакет для сотрудников»', 'Пилот с 2–3 работодателями (500+ семей)', 'Партнёрство со страховыми (ДМС + платформа)'] },
                     { cat: 'Каналы', items: ['Запуск Android-приложения (Google Play)', 'Пилот с Банком ПСБ — 50K push семьям военных', 'Масштаб всех каналов ×2, бюджет ₽160K/мес'] },
@@ -1132,7 +1133,7 @@ export default function MarketingStrategy() {
                 {
                   period: 'Q4 2026 · Декабрь – Март 2027', subtitle: 'Series A-ready: 10 000 платящих семей',
                   color: 'border-amber-400 bg-amber-50', badge: 'bg-amber-600', status: 'Планируется',
-                  target: '10 000 платящих семей · MRR ₽3,3M · ARR ₽39,6M',
+                  target: '10 000 активных платящих семей · MRR ~₽2,8M · ARR ~₽33,6M',
                   actions: [
                     { cat: 'Стратегия', items: ['Подготовка к Series A (инвест. дек, due diligence)', 'Переговоры с Казахстаном/Беларусью (пилот)', 'Оценка стратегической продажи или раунда'] },
                     { cat: 'Каналы', items: ['Новогодняя кампания: «Подари семье порядок»', 'ТВ-реклама / OLV (при бюджете ₽500K+)', 'Активный PR: интервью основателя в Forbes, РБК'] },
