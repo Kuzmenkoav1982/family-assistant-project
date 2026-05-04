@@ -4,7 +4,7 @@ export function PresentationTitleSlide() {
   return (
     <div data-pdf-slide className="text-center mb-16 pt-4">
       <div className="inline-block mb-3 px-4 py-1.5 bg-emerald-100 rounded-full">
-        <span className="text-emerald-700 text-sm font-medium">Десятилетие семьи 2024–2034</span>
+        <span className="text-emerald-700 text-sm font-medium">Стратегия семейной политики РФ до 2036 года</span>
       </div>
       <div className="flex justify-center mb-6">
         <img
