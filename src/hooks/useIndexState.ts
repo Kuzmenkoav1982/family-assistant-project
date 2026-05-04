@@ -178,7 +178,7 @@ export default function useIndexState(): UseIndexStateReturn {
 
   const [welcomeText, setWelcomeText] = useState('Добро пожаловать в "Наша семья"! Место, где ваша семья становится командой. Цель проекта: Сохранение семейных ценностей, повышение вовлеченности в семейную жизнь, бережная передача семейных традиций.');
 
-  const [activeSection, setActiveSection] = useState<string>('family');
+  const [activeSection, setActiveSection] = useState<string>('today');
   const [showInDevelopment, setShowInDevelopment] = useState(false);
   const [educationChild, setEducationChild] = useState<FamilyMember | null>(null);
 

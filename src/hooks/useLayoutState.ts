@@ -34,7 +34,7 @@ export default function useLayoutState() {
 
   const [leftPanelSections, setLeftPanelSections] = useState<string[]>(() => {
     const saved = localStorage.getItem('leftPanelSections');
-    const availableSectionIds = ['family', 'tasks', 'recipes', 'trips', 'health', 'analytics', 'calendar', 'goals', 'values', 'traditions', 'shopping', 'meals'];
+    const availableSectionIds = ['today', 'family', 'tasks', 'recipes', 'trips', 'health', 'analytics', 'calendar', 'goals', 'values', 'traditions', 'shopping', 'meals'];
     return saved ? JSON.parse(saved) : availableSectionIds;
   });
 

@@ -1,4 +1,5 @@
 export const availableSections = [
+  { id: 'today', icon: 'Sun', label: 'Сегодня' },
   { id: 'family', icon: 'Users', label: 'Профили семьи' },
   { id: 'tasks', icon: 'CheckSquare', label: 'Задачи' },
   { id: 'recipes', icon: 'ChefHat', label: 'Рецепты' },

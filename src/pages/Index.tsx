@@ -37,6 +37,7 @@ import useIndexState from '@/hooks/useIndexState';
 import useIndexEffects from '@/hooks/useIndexEffects';
 import useIndexHandlers from '@/hooks/useIndexHandlers';
 import DevSectionDialog from '@/components/index-page/DevSectionDialog';
+import TodayTabContent from '@/components/index-page/TodayTabContent';
 import CohesionTabContent from '@/components/index-page/CohesionTabContent';
 import TasksTabContent from '@/components/index-page/TasksTabContent';
 import CalendarTabContent from '@/components/index-page/CalendarTabContent';
@@ -204,7 +205,16 @@ export default function Index({ onLogout }: IndexProps) {
             <div className="lg:col-span-2 min-w-0">
               <Tabs value={state.activeSection} onValueChange={state.setActiveSection} className="space-y-4">
 
-                <CohesionTabContent
+                <TodayTabContent
+                tasks={tasks}
+                calendarEvents={calendarEvents}
+                familyMembers={familyMembers}
+                currentUserId={currentUserId}
+                toggleTask={handlers.toggleTask}
+                getMemberById={handlers.getMemberById}
+              />
+
+              <CohesionTabContent
                   familyMembers={familyMembers}
                   tasks={tasks}
                   chatMessages={state.chatMessages}
