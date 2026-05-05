@@ -34,6 +34,13 @@ export interface BlogPostListItem {
   tags?: BlogTag[];
 }
 
+export type ReactionEmoji = 'like' | 'love' | 'fire' | 'idea' | 'sad';
+
+export interface ReactionsData {
+  counts: Partial<Record<ReactionEmoji, number>>;
+  user: ReactionEmoji[];
+}
+
 export interface BlogPostFull extends BlogPostListItem {
   content: string;
   seo_title: string | null;
@@ -43,6 +50,10 @@ export interface BlogPostFull extends BlogPostListItem {
   related: BlogPostListItem[];
   tags: BlogTag[];
   updated_at: string;
+  source?: string;
+  max_message_id?: number | null;
+  max_chat_id?: number | null;
+  reactions?: ReactionsData;
 }
 
 export interface BlogListResponse {
@@ -90,6 +101,22 @@ export const blogApi = {
 
   getFeed: (limit = 6): Promise<{ posts: BlogPostListItem[] }> =>
     api(`/?action=feed&limit=${limit}`),
+
+  getReactions: (postId: number): Promise<ReactionsData> =>
+    api(`/?action=reactions&post_id=${postId}`),
+
+  toggleReaction: async (postId: number, emoji: ReactionEmoji): Promise<ReactionsData & { ok: boolean; action: 'added' | 'removed' }> => {
+    const res = await fetch(`${BLOG_API_URL}/?action=react`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id: postId, emoji }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Blog API ${res.status}: ${text}`);
+    }
+    return res.json();
+  },
 
   admin: {
     list: (params: {

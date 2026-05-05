@@ -221,9 +221,109 @@ def get_post(params: Dict, headers: Dict, source_ip: str) -> Dict:
     """)
     conn.commit()
 
+    ip_hash = hashlib.sha256(f"{source_ip}|reactions_salt_v1".encode()).hexdigest()[:64]
+    cur.execute(f"""
+        SELECT emoji, COUNT(*) AS cnt
+        FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post['id']}
+        GROUP BY emoji
+    """)
+    counts = {row['emoji']: int(row['cnt']) for row in cur.fetchall()}
+    cur.execute(f"""
+        SELECT emoji FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post['id']} AND ip_hash = '{ip_hash}'
+    """)
+    user_reacted = [row['emoji'] for row in cur.fetchall()]
+    post['reactions'] = {'counts': counts, 'user': user_reacted}
+
     cur.close()
     conn.close()
     return respond({'post': post})
+
+
+REACTION_EMOJIS = {'like', 'love', 'fire', 'idea', 'sad'}
+
+
+def get_reactions(params: Dict, source_ip: str) -> Dict:
+    try:
+        post_id = int(params.get('post_id') or 0)
+    except (ValueError, TypeError):
+        return respond({'error': 'invalid post_id'}, 400)
+    if post_id <= 0:
+        return respond({'error': 'post_id required'}, 400)
+
+    ip_hash = hashlib.sha256(f"{source_ip}|reactions_salt_v1".encode()).hexdigest()[:64]
+    conn = db_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT emoji, COUNT(*) AS cnt
+        FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post_id}
+        GROUP BY emoji
+    """)
+    counts = {row['emoji']: int(row['cnt']) for row in cur.fetchall()}
+    cur.execute(f"""
+        SELECT emoji FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post_id} AND ip_hash = '{ip_hash}'
+    """)
+    user_reacted = [row['emoji'] for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return respond({'counts': counts, 'user': user_reacted})
+
+
+def post_reaction(body: Dict, source_ip: str) -> Dict:
+    try:
+        post_id = int(body.get('post_id') or 0)
+    except (ValueError, TypeError):
+        return respond({'error': 'invalid post_id'}, 400)
+    emoji = (body.get('emoji') or '').strip()
+    if post_id <= 0 or emoji not in REACTION_EMOJIS:
+        return respond({'error': 'post_id and valid emoji required'}, 400)
+
+    ip_hash = hashlib.sha256(f"{source_ip}|reactions_salt_v1".encode()).hexdigest()[:64]
+    conn = db_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute(f"""
+        SELECT id FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post_id} AND ip_hash = '{ip_hash}' AND emoji = '{emoji}'
+        LIMIT 1
+    """)
+    existing = cur.fetchone()
+
+    if existing:
+        cur.execute(f"""
+            DELETE FROM {SCHEMA}.public_blog_post_reactions
+            WHERE id = {int(existing['id'])}
+        """)
+        toggled = 'removed'
+    else:
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.public_blog_post_reactions (post_id, emoji, ip_hash)
+            VALUES ({post_id}, '{emoji}', '{ip_hash}')
+            ON CONFLICT (post_id, ip_hash, emoji) DO NOTHING
+        """)
+        toggled = 'added'
+
+    conn.commit()
+
+    cur.execute(f"""
+        SELECT emoji, COUNT(*) AS cnt
+        FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post_id}
+        GROUP BY emoji
+    """)
+    counts = {row['emoji']: int(row['cnt']) for row in cur.fetchall()}
+    cur.execute(f"""
+        SELECT emoji FROM {SCHEMA}.public_blog_post_reactions
+        WHERE post_id = {post_id} AND ip_hash = '{ip_hash}'
+    """)
+    user_reacted = [row['emoji'] for row in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+    return respond({'ok': True, 'action': toggled, 'counts': counts, 'user': user_reacted})
 
 
 def list_categories() -> Dict:
@@ -530,6 +630,13 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             return feed(params)
         if action == 'sitemap':
             return sitemap_data()
+        if action == 'reactions':
+            return get_reactions(params, source_ip)
+        if action == 'react':
+            if method != 'POST':
+                return respond({'error': 'method not allowed'}, 405)
+            body = json.loads(event.get('body', '{}'))
+            return post_reaction(body, source_ip)
 
         if action.startswith('admin-'):
             if not check_admin(event):

@@ -14,6 +14,7 @@ import {
   formatBlogDate,
 } from '@/lib/blogApi';
 import BlogPostCard from '@/components/blog/BlogPostCard';
+import BlogPostEngagement from '@/components/blog/BlogPostEngagement';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -252,6 +253,8 @@ export default function BlogPost() {
               </div>
             )}
           </Card>
+
+          <BlogPostEngagement post={post} />
 
           <Card className="mt-8 overflow-hidden border-0 shadow-xl">
             <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white p-8 md:p-10">
