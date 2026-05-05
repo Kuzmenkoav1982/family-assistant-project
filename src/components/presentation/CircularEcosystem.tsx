@@ -43,102 +43,88 @@ const outerIds = [
   'compatriots',
 ];
 
-const CX = 400;
-const CY = 400;
-const CENTER_R = 78;
-const INNER_OUTER_R = 165;
-const OUTER_OUTER_R = 270;
+const CX = 250;
+const CY = 250;
+const CENTER_R = 60;
+const INNER_OUTER_R = 130;
+const OUTER_OUTER_R = 230;
 
-function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function buildSectorPath(startAngle: number, endAngle: number, rIn: number, rOut: number) {
-  const p1 = polarToCartesian(CX, CY, rOut, endAngle);
-  const p2 = polarToCartesian(CX, CY, rOut, startAngle);
-  const p3 = polarToCartesian(CX, CY, rIn, startAngle);
-  const p4 = polarToCartesian(CX, CY, rIn, endAngle);
-  const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
-
-  return [
-    `M ${p1.x} ${p1.y}`,
-    `A ${rOut} ${rOut} 0 ${largeArc} 0 ${p2.x} ${p2.y}`,
-    `L ${p3.x} ${p3.y}`,
-    `A ${rIn} ${rIn} 0 ${largeArc} 1 ${p4.x} ${p4.y}`,
-    'Z',
-  ].join(' ');
-}
-
-/**
- * Перенос названия по словам в несколько строк (макс. длина строки в символах).
- */
-function wrapText(text: string, maxLen: number): string[] {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let cur = '';
-  for (const w of words) {
-    const candidate = (cur + ' ' + w).trim();
-    if (candidate.length <= maxLen) {
-      cur = candidate;
-    } else {
-      if (cur) lines.push(cur);
-      // Если одно слово длиннее maxLen — обрезаем по ширине строки
-      if (w.length > maxLen) {
-        cur = w.slice(0, maxLen - 1) + '…';
-      } else {
-        cur = w;
-      }
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.slice(0, 3);
-}
-
-interface SectorProps {
+interface SegmentDef {
   module: ModuleDetail;
-  startAngle: number;
-  endAngle: number;
-  rIn: number;
-  rOut: number;
-  fontSize: number;
+  d: string;
+  iconX: number;
+  iconY: number;
+  textX: number;
+  textY: number;
+  deg: number;
+  isClickable: boolean;
+}
+
+function buildRing(
+  ids: string[],
+  rIn: number,
+  rOut: number,
+  iconRadius: number,
+  textRadius: number,
+): SegmentDef[] {
+  const total = ids.length;
+  const gap = 0.012;
+
+  return ids.map((id, i) => {
+    const startAngle = (i / total) * 2 * Math.PI - Math.PI / 2;
+    const endAngle = ((i + 1) / total) * 2 * Math.PI - Math.PI / 2;
+
+    const x1 = CX + rOut * Math.cos(startAngle + gap);
+    const y1 = CY + rOut * Math.sin(startAngle + gap);
+    const x2 = CX + rOut * Math.cos(endAngle - gap);
+    const y2 = CY + rOut * Math.sin(endAngle - gap);
+    const x3 = CX + rIn * Math.cos(endAngle - gap);
+    const y3 = CY + rIn * Math.sin(endAngle - gap);
+    const x4 = CX + rIn * Math.cos(startAngle + gap);
+    const y4 = CY + rIn * Math.sin(startAngle + gap);
+
+    const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+    const d = `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArc} 0 ${x4} ${y4} Z`;
+
+    const midAngle = (startAngle + endAngle) / 2;
+    const iconX = CX + iconRadius * Math.cos(midAngle);
+    const iconY = CY + iconRadius * Math.sin(midAngle);
+    const textX = CX + textRadius * Math.cos(midAngle);
+    const textY = CY + textRadius * Math.sin(midAngle);
+
+    let deg = (midAngle * 180) / Math.PI + 90;
+    if (deg > 90 && deg < 270) {
+      deg += 180;
+    }
+
+    const module = MODULES[id];
+    return {
+      module,
+      d,
+      iconX,
+      iconY,
+      textX,
+      textY,
+      deg,
+      isClickable: !!module,
+    };
+  });
+}
+
+interface SegmentProps {
+  seg: SegmentDef;
   iconSize: number;
-  textMaxLen: number;
+  fontSize: number;
   onClick: () => void;
 }
 
-function Sector({
-  module,
-  startAngle,
-  endAngle,
-  rIn,
-  rOut,
-  fontSize,
-  iconSize,
-  textMaxLen,
-  onClick,
-}: SectorProps) {
+function Segment({ seg, iconSize, fontSize, onClick }: SegmentProps) {
   const [hover, setHover] = useState(false);
-  const config = STATUS_FILL[module.status];
-  const sectorD = buildSectorPath(startAngle, endAngle, rIn, rOut);
+  const config = STATUS_FILL[seg.module.status];
 
-  const midAngle = (startAngle + endAngle) / 2;
-  const midR = (rIn + rOut) / 2;
-  const center = polarToCartesian(CX, CY, midR, midAngle);
-
-  // Радиальный поворот: текст идёт от центра наружу
-  // Для нижней половины (90°-270°) поворачиваем на 180°, чтобы текст читался "сверху вниз"
-  let rotation = midAngle - 90;
-  if (midAngle > 90 && midAngle < 270) {
-    rotation += 180;
-  }
-
-  const lines = wrapText(module.name, textMaxLen);
-
-  // Раскладка: иконка сверху, текст под ней (внутри сектора)
-  // В локальной системе координат после rotate: x — вдоль радиуса, y — поперёк
-  const iconOffset = -fontSize * (lines.length / 2) - iconSize / 2 - 2;
-  const textStartY = iconOffset + iconSize + 4 + fontSize / 2;
+  // Перенос названия по словам в 1-2 строки
+  const words = seg.module.name.split(' ');
+  const showTwoLines = words.length > 1 && seg.module.name.length > 11;
 
   return (
     <g
@@ -148,49 +134,61 @@ function Sector({
       style={{ cursor: 'pointer' }}
     >
       <path
-        d={sectorD}
+        d={seg.d}
         fill={hover ? config.hover : config.fill}
         stroke={config.stroke}
-        strokeWidth={1.5}
+        strokeWidth={1}
         style={{ transition: 'fill 0.2s' }}
       />
 
-      <g
-        transform={`translate(${center.x}, ${center.y}) rotate(${rotation})`}
+      {/* Иконка */}
+      <foreignObject
+        x={seg.iconX - iconSize / 2}
+        y={seg.iconY - iconSize / 2}
+        width={iconSize}
+        height={iconSize}
         style={{ pointerEvents: 'none' }}
       >
-        {/* Иконка */}
-        <foreignObject x={-iconSize / 2} y={iconOffset} width={iconSize} height={iconSize}>
-          <div
-            style={{
-              width: iconSize,
-              height: iconSize,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: config.text,
-            }}
-          >
-            <Icon name={module.icon} size={iconSize - 2} />
-          </div>
-        </foreignObject>
-
-        {/* Текст с переносом */}
-        <text
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize={fontSize}
-          fontWeight={600}
-          fill={config.text}
-          fontFamily="system-ui, -apple-system, sans-serif"
+        <div
+          style={{
+            width: iconSize,
+            height: iconSize,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: config.text,
+          }}
         >
-          {lines.map((line, i) => (
-            <tspan key={i} x="0" y={textStartY + i * fontSize * 1.05}>
-              {line}
+          <Icon name={seg.module.icon} size={iconSize - 2} />
+        </div>
+      </foreignObject>
+
+      {/* Текст */}
+      <text
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={fontSize}
+        fontWeight={600}
+        fill={config.text}
+        fontFamily="system-ui, -apple-system, sans-serif"
+        transform={`rotate(${seg.deg}, ${seg.textX}, ${seg.textY})`}
+        style={{ pointerEvents: 'none' }}
+      >
+        {showTwoLines ? (
+          <>
+            <tspan x={seg.textX} y={seg.textY - fontSize * 0.55}>
+              {words[0]}
             </tspan>
-          ))}
-        </text>
-      </g>
+            <tspan x={seg.textX} y={seg.textY + fontSize * 0.55}>
+              {words.slice(1).join(' ')}
+            </tspan>
+          </>
+        ) : (
+          <tspan x={seg.textX} y={seg.textY}>
+            {seg.module.name}
+          </tspan>
+        )}
+      </text>
     </g>
   );
 }
@@ -207,8 +205,23 @@ export function CircularEcosystem() {
     }
   };
 
-  const innerStep = 360 / innerIds.length;
-  const outerStep = 360 / outerIds.length;
+  // Outer ring: внешнее кольцо — 615-р
+  const outerSegs = buildRing(
+    outerIds,
+    INNER_OUTER_R + 3,
+    OUTER_OUTER_R,
+    INNER_OUTER_R + 22, // иконка ближе к внутреннему краю
+    (INNER_OUTER_R + OUTER_OUTER_R) / 2 + 12, // текст по центру + сдвиг наружу
+  );
+
+  // Inner ring: внутреннее — Family OS
+  const innerSegs = buildRing(
+    innerIds,
+    CENTER_R + 3,
+    INNER_OUTER_R,
+    CENTER_R + 18, // иконка ближе к центру
+    (CENTER_R + INNER_OUTER_R) / 2 + 10, // текст по центру + сдвиг наружу
+  );
 
   return (
     <section
@@ -248,53 +261,31 @@ export function CircularEcosystem() {
       {/* Круговая схема */}
       <div className="flex justify-center">
         <svg
-          viewBox="0 0 800 800"
-          className="w-full max-w-[640px] h-auto"
+          viewBox="0 0 500 500"
+          className="w-full max-w-[560px] h-auto"
           style={{ filter: 'drop-shadow(0 4px 16px rgba(168,85,247,0.15))' }}
         >
-          {/* Outer ring — 615-р */}
-          {outerIds.map((id, i) => {
-            const m = MODULES[id];
-            if (!m) return null;
-            const start = i * outerStep;
-            const end = start + outerStep;
-            return (
-              <Sector
-                key={id}
-                module={m}
-                startAngle={start}
-                endAngle={end}
-                rIn={INNER_OUTER_R + 5}
-                rOut={OUTER_OUTER_R}
-                fontSize={11}
-                iconSize={18}
-                textMaxLen={12}
-                onClick={() => handleClick(id)}
-              />
-            );
-          })}
+          {/* Outer ring */}
+          {outerSegs.map((seg, i) => (
+            <Segment
+              key={`outer-${i}`}
+              seg={seg}
+              iconSize={16}
+              fontSize={11}
+              onClick={() => handleClick(outerIds[i])}
+            />
+          ))}
 
-          {/* Inner ring — Family OS */}
-          {innerIds.map((id, i) => {
-            const m = MODULES[id];
-            if (!m) return null;
-            const start = i * innerStep;
-            const end = start + innerStep;
-            return (
-              <Sector
-                key={id}
-                module={m}
-                startAngle={start}
-                endAngle={end}
-                rIn={CENTER_R + 5}
-                rOut={INNER_OUTER_R}
-                fontSize={10}
-                iconSize={16}
-                textMaxLen={10}
-                onClick={() => handleClick(id)}
-              />
-            );
-          })}
+          {/* Inner ring */}
+          {innerSegs.map((seg, i) => (
+            <Segment
+              key={`inner-${i}`}
+              seg={seg}
+              iconSize={14}
+              fontSize={10}
+              onClick={() => handleClick(innerIds[i])}
+            />
+          ))}
 
           {/* Central logo */}
           <circle cx={CX} cy={CY} r={CENTER_R} fill="url(#centerGrad)" />
@@ -303,37 +294,28 @@ export function CircularEcosystem() {
               <stop offset="0%" stopColor="#9333ea" />
               <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
+            <filter id="centerShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#00000030" />
+            </filter>
           </defs>
-          <foreignObject x={CX - CENTER_R} y={CY - CENTER_R} width={CENTER_R * 2} height={CENTER_R * 2}>
-            <div
-              style={{
-                width: CENTER_R * 2,
-                height: CENTER_R * 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                textAlign: 'center',
-                padding: 8,
-              }}
-            >
-              <Icon name="Heart" size={26} className="text-white mb-1" />
-              <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.1 }}>Наша Семья</div>
-              <div style={{ fontSize: 8, opacity: 0.9, marginTop: 4, lineHeight: 1.2 }}>Family OS</div>
-            </div>
-          </foreignObject>
 
-          {/* Метки колец */}
+          <text x={CX} y={CY - 8} textAnchor="middle" fontSize="14" fontWeight="800" fill="white">
+            Наша Семья
+          </text>
+          <text x={CX} y={CY + 10} textAnchor="middle" fontSize="9" fill="white" opacity="0.9">
+            Family OS
+          </text>
+
+          {/* Метка кольца сверху */}
           <text
             x={CX}
-            y={50}
+            y={20}
             textAnchor="middle"
-            fontSize="13"
+            fontSize="11"
             fontWeight="700"
             fill="#7c3aed"
             fontFamily="system-ui"
-            letterSpacing="2"
+            letterSpacing="1.5"
           >
             СТРАТЕГИЯ 615-р · ДО 2036
           </text>
@@ -365,7 +347,7 @@ export function CircularEcosystem() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 1 · Круговая экосистема · Версия 2.3 от 06.05.2026
+        Слайд 1 · Круговая экосистема · Версия 2.4 от 06.05.2026
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />
