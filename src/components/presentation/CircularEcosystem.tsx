@@ -71,29 +71,28 @@ function buildSectorPath(startAngle: number, endAngle: number, rIn: number, rOut
 }
 
 /**
- * Строит дугу для textPath. Направление выбирается так,
- * чтобы текст всегда читался "сверху вниз" (не вверх ногами).
- * Для верхней половины круга (midAngle 270-360 и 0-90) — дуга идёт по часовой стрелке.
- * Для нижней половины (90-270) — против часовой стрелки.
+ * Перенос названия по словам в несколько строк (макс. длина строки в символах).
  */
-function buildTextArc(startAngle: number, endAngle: number, r: number, id: string) {
-  const midAngle = (startAngle + endAngle) / 2;
-  const isBottom = midAngle > 90 && midAngle < 270;
-
-  // Для нижней половины меняем направление дуги, чтобы текст не был перевёрнут
-  const start = isBottom ? endAngle : startAngle;
-  const end = isBottom ? startAngle : endAngle;
-  const sweep = isBottom ? '0' : '1';
-
-  const p1 = polarToCartesian(CX, CY, r, start);
-  const p2 = polarToCartesian(CX, CY, r, end);
-  const largeArc = Math.abs(end - start) <= 180 ? '0' : '1';
-
-  return {
-    id,
-    d: `M ${p1.x} ${p1.y} A ${r} ${r} 0 ${largeArc} ${sweep} ${p2.x} ${p2.y}`,
-    isBottom,
-  };
+function wrapText(text: string, maxLen: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let cur = '';
+  for (const w of words) {
+    const candidate = (cur + ' ' + w).trim();
+    if (candidate.length <= maxLen) {
+      cur = candidate;
+    } else {
+      if (cur) lines.push(cur);
+      // Если одно слово длиннее maxLen — обрезаем по ширине строки
+      if (w.length > maxLen) {
+        cur = w.slice(0, maxLen - 1) + '…';
+      } else {
+        cur = w;
+      }
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 3);
 }
 
 interface SectorProps {
@@ -104,8 +103,7 @@ interface SectorProps {
   rOut: number;
   fontSize: number;
   iconSize: number;
-  pathId: string;
-  ringName: 'inner' | 'outer';
+  textMaxLen: number;
   onClick: () => void;
 }
 
@@ -117,8 +115,7 @@ function Sector({
   rOut,
   fontSize,
   iconSize,
-  pathId,
-  ringName,
+  textMaxLen,
   onClick,
 }: SectorProps) {
   const [hover, setHover] = useState(false);
@@ -126,16 +123,22 @@ function Sector({
   const sectorD = buildSectorPath(startAngle, endAngle, rIn, rOut);
 
   const midAngle = (startAngle + endAngle) / 2;
-  const isBottom = midAngle > 90 && midAngle < 270;
+  const midR = (rIn + rOut) / 2;
+  const center = polarToCartesian(CX, CY, midR, midAngle);
 
-  // Иконка в радиальном направлении (ближе к центру кольца, под текстом)
-  // Для верхней половины — иконка ниже текста, для нижней — выше
-  const iconR = ringName === 'outer' ? rIn + (rOut - rIn) * 0.32 : rIn + (rOut - rIn) * 0.32;
-  const iconPos = polarToCartesian(CX, CY, iconR, midAngle);
+  // Радиальный поворот: текст идёт от центра наружу
+  // Для нижней половины (90°-270°) поворачиваем на 180°, чтобы текст читался "сверху вниз"
+  let rotation = midAngle - 90;
+  if (midAngle > 90 && midAngle < 270) {
+    rotation += 180;
+  }
 
-  // Радиус для текстовой дуги (текст идёт вдоль кольца)
-  const textR = rIn + (rOut - rIn) * 0.68;
-  const textArc = buildTextArc(startAngle, endAngle, textR, pathId);
+  const lines = wrapText(module.name, textMaxLen);
+
+  // Раскладка: иконка сверху, текст под ней (внутри сектора)
+  // В локальной системе координат после rotate: x — вдоль радиуса, y — поперёк
+  const iconOffset = -fontSize * (lines.length / 2) - iconSize / 2 - 2;
+  const textStartY = iconOffset + iconSize + 4 + fontSize / 2;
 
   return (
     <g
@@ -152,17 +155,12 @@ function Sector({
         style={{ transition: 'fill 0.2s' }}
       />
 
-      {/* Скрытая дуга для textPath */}
-      <defs>
-        <path id={pathId} d={textArc.d} />
-      </defs>
-
-      {/* Иконка */}
       <g
-        transform={`translate(${iconPos.x - iconSize / 2}, ${iconPos.y - iconSize / 2})`}
+        transform={`translate(${center.x}, ${center.y}) rotate(${rotation})`}
         style={{ pointerEvents: 'none' }}
       >
-        <foreignObject width={iconSize} height={iconSize}>
+        {/* Иконка */}
+        <foreignObject x={-iconSize / 2} y={iconOffset} width={iconSize} height={iconSize}>
           <div
             style={{
               width: iconSize,
@@ -176,20 +174,23 @@ function Sector({
             <Icon name={module.icon} size={iconSize - 2} />
           </div>
         </foreignObject>
-      </g>
 
-      {/* Текст вдоль дуги */}
-      <text
-        fontSize={fontSize}
-        fontWeight={600}
-        fill={config.text}
-        fontFamily="system-ui, -apple-system, sans-serif"
-        style={{ pointerEvents: 'none' }}
-      >
-        <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-          {module.name}
-        </textPath>
-      </text>
+        {/* Текст с переносом */}
+        <text
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={fontSize}
+          fontWeight={600}
+          fill={config.text}
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          {lines.map((line, i) => (
+            <tspan key={i} x="0" y={textStartY + i * fontSize * 1.05}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      </g>
     </g>
   );
 }
@@ -267,8 +268,7 @@ export function CircularEcosystem() {
                 rOut={OUTER_OUTER_R}
                 fontSize={11}
                 iconSize={18}
-                pathId={`eco-outer-arc-${i}`}
-                ringName="outer"
+                textMaxLen={12}
                 onClick={() => handleClick(id)}
               />
             );
@@ -290,8 +290,7 @@ export function CircularEcosystem() {
                 rOut={INNER_OUTER_R}
                 fontSize={10}
                 iconSize={16}
-                pathId={`eco-inner-arc-${i}`}
-                ringName="inner"
+                textMaxLen={10}
                 onClick={() => handleClick(id)}
               />
             );
@@ -325,7 +324,7 @@ export function CircularEcosystem() {
             </div>
           </foreignObject>
 
-          {/* Метки колец сверху */}
+          {/* Метки колец */}
           <text
             x={CX}
             y={50}
@@ -366,7 +365,7 @@ export function CircularEcosystem() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 1 · Круговая экосистема · Версия 2.2 от 06.05.2026
+        Слайд 1 · Круговая экосистема · Версия 2.3 от 06.05.2026
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />
