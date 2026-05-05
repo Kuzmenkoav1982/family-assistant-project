@@ -8,6 +8,9 @@ import { PresentationContentSections } from '@/components/presentation/Presentat
 import { PresentationFooter } from '@/components/presentation/PresentationFooter';
 import { SlideHubs } from '@/components/presentation/SlideHubs';
 import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
+import { SlidePlatformEcosystem } from '@/components/presentation/SlidePlatformEcosystem';
+import { SlidePlatformLayers } from '@/components/presentation/SlidePlatformLayers';
+import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
 import { SlideRoadmap } from '@/components/presentation/SlideRoadmap';
@@ -218,6 +221,9 @@ export default function Presentation() {
       <div id="presentation-content" className="max-w-4xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16">
         <PresentationTitleSlide />
         <PresentationContentSections />
+        <SlidePlatformEcosystem />
+        <SlidePlatformLayers />
+        <SlidePlatformBeforeAfter />
         <SlideHubs />
         <SlideEcosystem />
         <SlideAIMap />
