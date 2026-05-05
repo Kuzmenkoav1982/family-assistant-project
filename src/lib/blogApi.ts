@@ -1,4 +1,5 @@
 const BLOG_API_URL = 'https://functions.poehali.dev/c3d1a7ab-aa2c-4aa8-981d-1a96e19dbd2d';
+const BLOG_COVER_GEN_URL = 'https://functions.poehali.dev/62fc2d89-a73c-44b2-84cd-2e02f256af7a';
 
 export interface BlogTag {
   slug: string;
@@ -133,6 +134,42 @@ export const blogApi = {
         method: 'POST',
         body: JSON.stringify({ id, status }),
       }),
+
+    generateCover: async (
+      postId: number,
+    ): Promise<{ ok: boolean; url?: string; error?: string }> => {
+      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
+      const res = await fetch(`${BLOG_COVER_GEN_URL}?action=generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': token,
+        },
+        body: JSON.stringify({ post_id: postId }),
+      });
+      return res.json();
+    },
+
+    generateAllCovers: async (
+      limit = 5,
+    ): Promise<{
+      ok: boolean;
+      total: number;
+      success: number;
+      failed: number;
+      results: { ok: boolean; post_id: number; url?: string; title?: string; error?: string }[];
+    }> => {
+      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
+      const res = await fetch(`${BLOG_COVER_GEN_URL}?action=generate-all`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': token,
+        },
+        body: JSON.stringify({ limit }),
+      });
+      return res.json();
+    },
   },
 };
 

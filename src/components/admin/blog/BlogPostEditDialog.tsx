@@ -39,6 +39,7 @@ export default function BlogPostEditDialog({ postId, open, onClose, onSaved }: P
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generatingCover, setGeneratingCover] = useState(false);
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -102,6 +103,26 @@ export default function BlogPostEditDialog({ postId, open, onClose, onSaved }: P
       toast.error(`Ошибка: ${(e as Error).message}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGenerateCover = async () => {
+    if (!postId) return;
+    setGeneratingCover(true);
+    toast.info('Генерируем обложку через ИИ... это займёт ~30–60 сек');
+    try {
+      const result = await blogApi.admin.generateCover(postId);
+      if (result.ok && result.url) {
+        setCoverUrl(result.url);
+        toast.success('Обложка сгенерирована и сохранена');
+        onSaved();
+      } else {
+        toast.error(`Не удалось сгенерировать: ${result.error || 'неизвестная ошибка'}`);
+      }
+    } catch (e) {
+      toast.error(`Ошибка: ${(e as Error).message}`);
+    } finally {
+      setGeneratingCover(false);
     }
   };
 
@@ -186,20 +207,46 @@ export default function BlogPostEditDialog({ postId, open, onClose, onSaved }: P
             </div>
 
             <div>
-              <Label htmlFor="cover">URL обложки</Label>
+              <div className="flex items-center justify-between mb-1.5">
+                <Label htmlFor="cover">URL обложки</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleGenerateCover}
+                  disabled={generatingCover || saving}
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50 h-8"
+                >
+                  {generatingCover ? (
+                    <>
+                      <Icon name="Loader2" size={14} className="animate-spin mr-1.5" />
+                      Генерируем...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="Sparkles" size={14} className="mr-1.5 text-purple-600" />
+                      {coverUrl ? 'Перегенерировать через ИИ' : 'Сгенерировать через ИИ'}
+                    </>
+                  )}
+                </Button>
+              </div>
               <Input
                 id="cover"
                 value={coverUrl}
                 onChange={e => setCoverUrl(e.target.value)}
                 placeholder="https://cdn.poehali.dev/..."
-                className="mt-1.5 font-mono text-sm"
+                className="font-mono text-sm"
               />
-              {coverUrl && (
+              {coverUrl ? (
                 <img
                   src={coverUrl}
                   alt="Обложка"
                   className="mt-2 w-full max-h-48 object-cover rounded-lg border"
                 />
+              ) : (
+                <p className="text-xs text-gray-500 mt-1.5">
+                  Обложки нет. Нажмите «Сгенерировать через ИИ» — получим картинку под тематику и категорию поста.
+                </p>
               )}
             </div>
 
