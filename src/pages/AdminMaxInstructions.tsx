@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import WebhookConnector from '@/components/admin/max/WebhookConnector';
 
 export default function AdminMaxInstructions() {
   const navigate = useNavigate();
@@ -232,40 +233,68 @@ export default function AdminMaxInstructions() {
         </Card>
 
         <Card className="border-2 border-amber-300">
-          <CardHeader className="bg-amber-50">
+          <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
             <CardTitle className="flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 font-bold">5</span>
-              ⚠️ Как включить автоматическое зеркало (Сценарий Б)
+              ⚡ Включение автоматического зеркала
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-5">
-            <p className="text-sm text-gray-700">
-              Чтобы посты, написанные прямо в МАХ-приложении, попадали на сайт, нужно <strong>один раз</strong> зарегистрировать webhook URL у бота МАХ:
-            </p>
-            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
-              <div className="text-gray-400 mb-1"># 1. Установить webhook URL для бота МАХ</div>
-              <div>curl -X POST \</div>
-              <div className="ml-2">'https://platform-api.max.ru/subscriptions?access_token=ВАШ_BOT_TOKEN' \</div>
-              <div className="ml-2">-H 'Content-Type: application/json' \</div>
-              <div className="ml-2">-d '{`{`}</div>
-              <div className="ml-4">"url": "https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac",</div>
-              <div className="ml-4">"update_types": ["message_created"]</div>
-              <div className="ml-2">{`}`}'</div>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
-              <p className="text-xs text-blue-900 mb-2 font-semibold">📋 Что нужно подставить:</p>
-              <ul className="text-xs text-blue-800 ml-5 list-disc space-y-1">
-                <li><code className="bg-white px-1.5 py-0.5 rounded">ВАШ_BOT_TOKEN</code> — токен из секретов <code className="bg-white px-1.5 py-0.5 rounded">MAX_BOT_TOKEN</code> (хранится у нас в проекте)</li>
-                <li>URL уже подставлен правильно — это адрес нашей backend-функции max-bot</li>
-              </ul>
-            </div>
-            <p className="text-sm text-gray-700">
-              После выполнения этой команды все новые посты в канале <strong>@id231805288780_biz</strong> будут автоматически зеркалиться на /blog с картинками.
-            </p>
-            <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-              <p className="text-xs text-green-800">
-                💡 <strong>Совет:</strong> могу добавить кнопку «Подключить webhook» прямо в админку — нажал и готово, без curl. Скажи, если нужно.
+          <CardContent className="space-y-5 pt-5">
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <h4 className="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
+                <Icon name="Info" size={16} />
+                Что это и зачем нужно
+              </h4>
+              <p className="text-sm text-blue-900 leading-relaxed">
+                Сейчас, когда вы пишете пост <strong>прямо в МАХ-приложении</strong> (с телефона или max.ru), он остаётся <strong>только в канале</strong> и пропадает за 24 часа.
+                Поисковики его не видят, новых регистраций он не приносит.
               </p>
+              <p className="text-sm text-blue-900 leading-relaxed mt-2">
+                «Автоматическое зеркало» — это связь между МАХ и нашим сайтом. После включения, как только вы написали пост в канале — он мгновенно появляется на nasha-semiya.ru/blog со всеми SEO-настройками. Через 1–7 дней Яндекс начинает приводить читателей через поиск.
+              </p>
+            </div>
+
+            <WebhookConnector />
+
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+              <h4 className="font-bold text-gray-900 text-sm mb-2 flex items-center gap-2">
+                <Icon name="HelpCircle" size={16} />
+                Часто задаваемые вопросы
+              </h4>
+              <div className="space-y-2 text-sm text-gray-700">
+                <details className="group">
+                  <summary className="cursor-pointer font-medium hover:text-purple-600">
+                    🔒 Это безопасно?
+                  </summary>
+                  <p className="mt-1 ml-4 text-gray-600 text-xs leading-relaxed">
+                    Да. Кнопка использует ваш собственный бот МАХ (токен лежит в защищённых секретах проекта). Связь односторонняя: МАХ присылает нам уведомления о новых постах, мы их сохраняем. Никто посторонний не может ничего отправить.
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="cursor-pointer font-medium hover:text-purple-600">
+                    💸 Это платно?
+                  </summary>
+                  <p className="mt-1 ml-4 text-gray-600 text-xs leading-relaxed">
+                    Нет. Webhook у МАХ бесплатный. На нашей стороне — копеечные затраты на cloud-функцию (1 запуск ≈ 0,001 ₽).
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="cursor-pointer font-medium hover:text-purple-600">
+                    ↩️ Можно отключить?
+                  </summary>
+                  <p className="mt-1 ml-4 text-gray-600 text-xs leading-relaxed">
+                    Да, в любой момент — кнопкой «Отключить». После этого посты из МАХ перестанут попадать на сайт автоматически (но сценарий А через админку будет работать).
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="cursor-pointer font-medium hover:text-purple-600">
+                    🐌 А если МАХ-бот сбросит подписку?
+                  </summary>
+                  <p className="mt-1 ml-4 text-gray-600 text-xs leading-relaxed">
+                    Зайдите сюда снова и нажмите «Включить» ещё раз. Кнопка «Проверить ещё раз» показывает, в каком сейчас состоянии связка.
+                  </p>
+                </details>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -461,6 +461,101 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
 
+    if method == 'GET' and action == 'webhook-status':
+        admin_token = event.get('headers', {}).get('x-admin-token') or \
+                     event.get('headers', {}).get('X-Admin-Token')
+        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        our_url = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
+        result = max_api_request('GET', '/subscriptions')
+        subs = []
+        if result.get('ok'):
+            data = result.get('data', {})
+            subs = data.get('subscriptions', []) if isinstance(data, dict) else []
+        is_connected = any(s.get('url') == our_url for s in subs)
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({
+                'ok': True,
+                'connected': is_connected,
+                'our_url': our_url,
+                'subscriptions': subs,
+                'count': len(subs),
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if method == 'POST' and action == 'webhook-subscribe':
+        admin_token = event.get('headers', {}).get('x-admin-token') or \
+                     event.get('headers', {}).get('X-Admin-Token')
+        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        our_url = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
+        result = max_api_request('POST', '/subscriptions', {
+            'url': our_url,
+            'update_types': ['message_created', 'bot_started']
+        })
+        return {
+            'statusCode': 200 if result.get('ok') else 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({
+                'ok': result.get('ok'),
+                'url': our_url,
+                'response': result.get('data'),
+                'error': result.get('error'),
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if method == 'POST' and action == 'webhook-unsubscribe':
+        admin_token = event.get('headers', {}).get('x-admin-token') or \
+                     event.get('headers', {}).get('X-Admin-Token')
+        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        our_url = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
+        from urllib.parse import quote
+        endpoint = f'/subscriptions?url={quote(our_url, safe="")}'
+        if not MAX_BOT_TOKEN:
+            return {
+                'statusCode': 500,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'ok': False, 'error': 'MAX_BOT_TOKEN не настроен'}),
+                'isBase64Encoded': False
+            }
+        try:
+            del_url = f'{MAX_API_BASE}{endpoint}&access_token={MAX_BOT_TOKEN}'
+            resp = requests.delete(del_url, timeout=10)
+            ok = resp.status_code == 200
+            return {
+                'statusCode': 200 if ok else 500,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'ok': ok, 'status': resp.status_code, 'response': resp.text}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        except Exception as e:
+            return {
+                'statusCode': 500,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'ok': False, 'error': str(e)}),
+                'isBase64Encoded': False
+            }
+
     return {
         'statusCode': 200,
         'headers': CORS_HEADERS,
