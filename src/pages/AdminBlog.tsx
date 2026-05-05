@@ -28,6 +28,7 @@ import {
   formatBlogDate,
 } from '@/lib/blogApi';
 import BlogPostEditDialog from '@/components/admin/blog/BlogPostEditDialog';
+import { useBlogCoverJob } from '@/contexts/BlogCoverJobContext';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   published: { label: 'Опубликован', color: 'bg-green-100 text-green-700' },
@@ -96,28 +97,23 @@ export default function AdminBlog() {
     setDialogOpen(true);
   };
 
-  const [bulkGenerating, setBulkGenerating] = useState(false);
+  const { job, startJob, progress } = useBlogCoverJob();
+  const isJobActive = !!job?.active;
+
+  useEffect(() => {
+    if (job && !job.active && progress.done > 0) {
+      loadPosts();
+      loadStats();
+    }
+  }, [job?.active, progress.done, job, loadPosts, loadStats]);
 
   const handleBulkGenerateCovers = async () => {
-    if (!confirm('Сгенерировать обложки через ИИ для постов без картинки? Это займёт несколько минут (по 30-60 сек на пост, до 5 постов за раз).')) return;
-    setBulkGenerating(true);
-    toast.info('Запускаем генерацию обложек... это займёт ~3-5 минут');
-    try {
-      const result = await blogApi.admin.generateAllCovers(5);
-      if (result.ok) {
-        toast.success(`Готово: ${result.success} из ${result.total} обложек создано`);
-        if (result.failed > 0) {
-          toast.warning(`${result.failed} постов не удалось обработать`);
-        }
-        loadPosts();
-      } else {
-        toast.error('Не удалось запустить массовую генерацию');
-      }
-    } catch (e) {
-      toast.error(`Ошибка: ${(e as Error).message}`);
-    } finally {
-      setBulkGenerating(false);
+    if (isJobActive) {
+      toast.info('Генерация уже запущена в фоне');
+      return;
     }
+    if (!confirm('Запустить ИИ-генерацию обложек для всех постов без картинки? Процесс пойдёт в фоне — можно продолжать работу.')) return;
+    await startJob();
   };
 
   const postsWithoutCover = posts.filter(p => !p.cover_image_url).length;
@@ -135,23 +131,22 @@ export default function AdminBlog() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {postsWithoutCover > 0 && (
+            {postsWithoutCover > 0 && !isJobActive && (
               <Button
                 onClick={handleBulkGenerateCovers}
-                disabled={bulkGenerating}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
               >
-                {bulkGenerating ? (
-                  <>
-                    <Icon name="Loader2" size={16} className="animate-spin mr-2" />
-                    Генерируем...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="Sparkles" size={16} className="mr-2" />
-                    ИИ-обложки ({postsWithoutCover} без картинки)
-                  </>
-                )}
+                <Icon name="Sparkles" size={16} className="mr-2" />
+                ИИ-обложки ({postsWithoutCover} без картинки)
+              </Button>
+            )}
+            {isJobActive && (
+              <Button
+                disabled
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white opacity-90"
+              >
+                <Icon name="Loader2" size={16} className="animate-spin mr-2" />
+                Генерация в фоне ({progress.done + progress.failed}/{progress.total})
               </Button>
             )}
             <Button

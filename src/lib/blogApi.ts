@@ -170,6 +170,17 @@ export const blogApi = {
       });
       return res.json();
     },
+
+    pendingCovers: async (): Promise<{
+      posts: { id: number; title: string; category_slug: string | null }[];
+      count: number;
+    }> => {
+      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
+      const res = await fetch(`${BLOG_COVER_GEN_URL}?action=pending`, {
+        headers: { 'X-Admin-Token': token },
+      });
+      return res.json();
+    },
   },
 };
 

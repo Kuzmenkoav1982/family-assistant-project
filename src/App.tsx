@@ -20,6 +20,8 @@ import { FamilyMembersProvider } from "@/contexts/FamilyMembersContext";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { BlogCoverJobProvider } from "@/contexts/BlogCoverJobContext";
+import BlogCoverJobIndicator from "@/components/admin/blog/BlogCoverJobIndicator";
 import { storage } from "@/lib/storage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
@@ -276,6 +278,7 @@ const App = () => {
           <DialogLockProvider>
             <FamilyMembersProvider>
               <AIAssistantProvider>
+                <BlogCoverJobProvider>
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />
@@ -283,6 +286,7 @@ const App = () => {
                     <PWAInstallPrompt />
                     <AIAssistantWidget />
                     <DemoModeIndicator />
+                    <BlogCoverJobIndicator />
                     <GlobalTopBar />
                     <GlobalSidebar />
                     <GlobalBottomBar />
@@ -460,6 +464,7 @@ const App = () => {
                     <CookieConsent />
                   </BrowserRouter>
                 </TooltipProvider>
+                </BlogCoverJobProvider>
               </AIAssistantProvider>
             </FamilyMembersProvider>
           </DialogLockProvider>

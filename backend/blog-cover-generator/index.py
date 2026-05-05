@@ -224,11 +224,21 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     if not check_admin(event):
         return respond({'error': 'unauthorized'}, 401)
 
-    if method != 'POST':
-        return respond({'error': 'method not allowed'}, 405)
-
     params = event.get('queryStringParameters', {}) or {}
     action = params.get('action', 'generate')
+
+    if method == 'GET':
+        try:
+            if action == 'pending':
+                posts = get_posts_without_cover(100)
+                return respond({'posts': posts, 'count': len(posts)})
+            return respond({'error': 'unknown GET action'}, 400)
+        except Exception as e:
+            print(f'[ERROR] blog-cover-generator GET: {e}')
+            return respond({'error': str(e)}, 500)
+
+    if method != 'POST':
+        return respond({'error': 'method not allowed'}, 405)
 
     try:
         body = json.loads(event.get('body', '{}'))
