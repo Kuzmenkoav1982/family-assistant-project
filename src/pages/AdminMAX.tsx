@@ -232,6 +232,13 @@ export default function AdminMAX() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button
+              onClick={() => window.location.href = '/admin/max/help'}
+              className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 hover:opacity-90 text-white"
+            >
+              <Icon name="BookOpen" size={16} className="mr-2" />
+              Инструкция
+            </Button>
+            <Button
               onClick={() => window.location.href = '/admin/blog'}
               className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
             >

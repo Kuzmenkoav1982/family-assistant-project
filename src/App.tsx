@@ -174,6 +174,7 @@ const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const AdminBlog = lazy(() => import("./pages/AdminBlog"));
+const AdminMaxInstructions = lazy(() => import("./pages/AdminMaxInstructions"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -386,6 +387,7 @@ const App = () => {
                       <Route path="/admin/welcome" element={<AdminWelcomeAnalytics />} />
                       <Route path="/admin/alice" element={<AdminAlice />} />
                       <Route path="/admin/max" element={<AdminMAX />} />
+                      <Route path="/admin/max/help" element={<AdminMaxInstructions />} />
                       <Route path="/admin/blog" element={<AdminBlog />} />
                       <Route path="/admin/users" element={<AdminUsers />} />
                       <Route path="/admin/valuation" element={<AdminValuation />} />
