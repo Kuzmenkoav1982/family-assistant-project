@@ -278,23 +278,34 @@ export function formatBlogDate(iso: string): string {
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  psychology: 'bg-purple-100 text-purple-700',
-  children: 'bg-blue-100 text-blue-700',
-  relationships: 'bg-pink-100 text-pink-700',
-  health: 'bg-emerald-100 text-emerald-700',
-  finance: 'bg-amber-100 text-amber-700',
-  leisure: 'bg-orange-100 text-orange-700',
-  education: 'bg-indigo-100 text-indigo-700',
-  safety: 'bg-red-100 text-red-700',
+  psychology: 'bg-[#F4EDE2] text-[#8B6F47]',
+  children: 'bg-[#F4EDE2] text-[#8B6F47]',
+  relationships: 'bg-[#F4EDE2] text-[#8B6F47]',
+  health: 'bg-[#F4EDE2] text-[#8B6F47]',
+  finance: 'bg-[#F4EDE2] text-[#8B6F47]',
+  leisure: 'bg-[#F4EDE2] text-[#8B6F47]',
+  education: 'bg-[#F4EDE2] text-[#8B6F47]',
+  safety: 'bg-[#F4EDE2] text-[#8B6F47]',
 };
 
 export const CATEGORY_GRADIENTS: Record<string, string> = {
-  psychology: 'from-purple-500 to-violet-500',
-  children: 'from-blue-500 to-cyan-500',
-  relationships: 'from-pink-500 to-rose-500',
-  health: 'from-emerald-500 to-green-500',
-  finance: 'from-amber-500 to-yellow-500',
-  leisure: 'from-orange-500 to-red-500',
-  education: 'from-indigo-500 to-blue-500',
-  safety: 'from-red-500 to-rose-600',
+  psychology: 'from-[#D4B896] to-[#B89B7A]',
+  children: 'from-[#D4B896] to-[#B89B7A]',
+  relationships: 'from-[#D4B896] to-[#B89B7A]',
+  health: 'from-[#D4B896] to-[#B89B7A]',
+  finance: 'from-[#D4B896] to-[#B89B7A]',
+  leisure: 'from-[#D4B896] to-[#B89B7A]',
+  education: 'from-[#D4B896] to-[#B89B7A]',
+  safety: 'from-[#D4B896] to-[#B89B7A]',
+};
+
+export const CATEGORY_ICONS: Record<string, string> = {
+  psychology: 'Brain',
+  children: 'Baby',
+  relationships: 'Heart',
+  health: 'Apple',
+  finance: 'Wallet',
+  leisure: 'Sparkles',
+  education: 'BookOpen',
+  safety: 'Shield',
 };

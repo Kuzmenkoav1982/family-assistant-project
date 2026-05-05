@@ -10,6 +10,7 @@ import {
   BlogCategory,
   BlogPostListItem,
   BlogTag,
+  CATEGORY_ICONS,
 } from '@/lib/blogApi';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 
@@ -120,24 +121,24 @@ export default function Blog() {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-pink-50">
-        <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white">
-          <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-white transition-colors">Главная</Link>
-              <Icon name="ChevronRight" size={14} />
-              <Link to="/blog" className="hover:text-white transition-colors">Блог</Link>
+      <div className="min-h-screen bg-[#FAF6EF]">
+        <div className="relative bg-gradient-to-b from-[#F4EBDD] via-[#F8F1E4] to-[#FAF6EF] border-b border-[#E8DDC8]">
+          <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+            <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-[#9C8467] mb-5">
+              <Link to="/" className="hover:text-[#6B5340] transition-colors">Главная</Link>
+              <Icon name="ChevronRight" size={12} />
+              <Link to="/blog" className="hover:text-[#6B5340] transition-colors">Блог</Link>
               {activeCategoryName && (
                 <>
-                  <Icon name="ChevronRight" size={14} />
-                  <span className="text-white">{activeCategoryName}</span>
+                  <Icon name="ChevronRight" size={12} />
+                  <span className="text-[#6B5340]">{activeCategoryName}</span>
                 </>
               )}
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold mb-3 font-[Montserrat]">
+            <h1 className="text-4xl md:text-6xl font-light mb-4 text-[#3F2E1E] font-[Montserrat] tracking-tight">
               {heroTitle}
             </h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl">
+            <p className="text-base md:text-lg text-[#6B5340] max-w-2xl leading-relaxed">
               {heroSubtitle}
             </p>
 
@@ -146,19 +147,19 @@ export default function Blog() {
                 <Icon
                   name="Search"
                   size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#B89B7A] pointer-events-none"
                 />
                 <Input
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
                   placeholder="Поиск по блогу..."
-                  className="pl-10 h-12 bg-white text-gray-900 border-0 rounded-xl"
+                  className="pl-11 h-12 bg-white text-[#3F2E1E] placeholder:text-[#B89B7A] border border-[#E8DDC8] focus-visible:border-[#B89B7A] focus-visible:ring-0 rounded-xl shadow-sm"
                 />
               </div>
               <Button
                 type="submit"
                 size="lg"
-                className="bg-white text-orange-600 hover:bg-orange-50 rounded-xl h-12 px-6 font-semibold"
+                className="bg-[#B89B7A] hover:bg-[#A0825F] text-white rounded-xl h-12 px-7 font-medium shadow-sm transition-colors"
               >
                 Найти
               </Button>
@@ -169,38 +170,28 @@ export default function Blog() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
             <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant={!category && !tag ? 'default' : 'outline'}
+              <CategoryPill
+                active={!category && !tag}
                 onClick={() => navigate('/blog')}
-                className="rounded-full"
-              >
-                Все темы
-                {!category && !tag && total > 0 && (
-                  <span className="ml-1.5 opacity-80">{total}</span>
-                )}
-              </Button>
+                label="Все темы"
+                count={!category && !tag ? total : undefined}
+              />
               {categories.map(cat => (
-                <Button
+                <CategoryPill
                   key={cat.slug}
-                  size="sm"
-                  variant={category === cat.slug ? 'default' : 'outline'}
+                  active={category === cat.slug}
                   onClick={() => navigate(`/blog/category/${cat.slug}`)}
-                  className="rounded-full"
-                >
-                  <span className="mr-1">{cat.emoji}</span>
-                  {cat.name}
-                  {cat.posts_count > 0 && (
-                    <span className="ml-1.5 opacity-60">{cat.posts_count}</span>
-                  )}
-                </Button>
+                  label={cat.name}
+                  count={cat.posts_count > 0 ? cat.posts_count : undefined}
+                  iconName={CATEGORY_ICONS[cat.slug]}
+                />
               ))}
             </div>
           </div>
 
           {(isFiltered) && (
-            <div className="mb-6 flex items-center gap-3 text-sm text-gray-600">
-              <span>Найдено: <strong className="text-gray-900">{total}</strong></span>
+            <div className="mb-6 flex items-center gap-3 text-sm text-[#6B5340]">
+              <span>Найдено: <strong className="text-[#3F2E1E]">{total}</strong></span>
               <Button
                 variant="link"
                 size="sm"
@@ -208,7 +199,7 @@ export default function Blog() {
                   setSearchInput('');
                   navigate('/blog');
                 }}
-                className="text-orange-600 h-auto p-0"
+                className="text-[#A0825F] hover:text-[#6B5340] h-auto p-0"
               >
                 <Icon name="X" size={14} className="mr-1" />
                 Сбросить фильтры
@@ -231,10 +222,10 @@ export default function Blog() {
             </div>
           ) : posts.length === 0 ? (
             <div className="text-center py-20">
-              <Icon name="FileSearch" size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-bold text-gray-700 mb-2">Ничего не найдено</h3>
-              <p className="text-gray-500 mb-4">Попробуйте изменить запрос или сбросить фильтры</p>
-              <Button onClick={() => navigate('/blog')}>
+              <Icon name="FileSearch" size={56} className="mx-auto mb-4 text-[#D4B896]" strokeWidth={1.4} />
+              <h3 className="text-xl font-medium text-[#3F2E1E] mb-2">Ничего не найдено</h3>
+              <p className="text-[#6B5340] mb-5">Попробуйте изменить запрос или сбросить фильтры</p>
+              <Button onClick={() => navigate('/blog')} className="bg-[#B89B7A] hover:bg-[#A0825F] text-white rounded-xl">
                 Показать все посты
               </Button>
             </div>
@@ -253,18 +244,20 @@ export default function Blog() {
                 size="sm"
                 disabled={page <= 1}
                 onClick={() => updateParams({ page: String(page - 1) })}
+                className="border-[#E8DDC8] text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] rounded-full"
               >
                 <Icon name="ChevronLeft" size={16} />
                 Назад
               </Button>
-              <span className="px-4 text-sm text-gray-600">
-                Страница <strong>{page}</strong> из <strong>{pages}</strong>
+              <span className="px-4 text-sm text-[#6B5340]">
+                Страница <strong className="text-[#3F2E1E]">{page}</strong> из <strong className="text-[#3F2E1E]">{pages}</strong>
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 disabled={page >= pages}
                 onClick={() => updateParams({ page: String(page + 1) })}
+                className="border-[#E8DDC8] text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] rounded-full"
               >
                 Вперёд
                 <Icon name="ChevronRight" size={16} />
@@ -273,8 +266,8 @@ export default function Blog() {
           )}
 
           {popularTags.length > 0 && (
-            <div className="mt-16 pt-8 border-t border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 font-[Montserrat]">
+            <div className="mt-16 pt-8 border-t border-[#E8DDC8]">
+              <h3 className="text-lg font-medium text-[#3F2E1E] mb-4 font-[Montserrat]">
                 Популярные темы
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -282,10 +275,10 @@ export default function Blog() {
                   <button
                     key={t.slug}
                     onClick={() => navigate(`/blog/tag/${t.slug}`)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ${
                       tag === t.slug
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600 border border-gray-200'
+                        ? 'bg-[#B89B7A] text-white shadow-sm'
+                        : 'bg-white text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] border border-[#E8DDC8]'
                     }`}
                   >
                     #{t.name}
@@ -299,23 +292,26 @@ export default function Blog() {
           )}
 
           <div className="mt-16">
-            <Card className="overflow-hidden border-0 shadow-xl">
-              <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white p-8 md:p-12 text-center">
-                <h2 className="text-2xl md:text-3xl font-extrabold mb-3 font-[Montserrat]">
+            <Card className="overflow-hidden border border-[#E8DDC8] shadow-sm">
+              <div className="bg-gradient-to-br from-[#F4EBDD] via-[#F8F1E4] to-[#FAF6EF] p-10 md:p-14 text-center">
+                <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-white/70 border border-[#E8DDC8] flex items-center justify-center">
+                  <Icon name="Heart" size={26} className="text-[#B89B7A]" strokeWidth={1.5} />
+                </div>
+                <h2 className="text-2xl md:text-3xl font-light mb-3 font-[Montserrat] text-[#3F2E1E] tracking-tight">
                   Понравились материалы?
                 </h2>
-                <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-                  Создай Семейный ID бесплатно и получи доступ ко всем инструментам платформы «Наша Семья» — от семейного бюджета до ИИ-помощника
+                <p className="text-[#6B5340] mb-7 max-w-2xl mx-auto leading-relaxed">
+                  Создайте Семейный ID бесплатно и получите доступ ко всем инструментам платформы «Наша Семья» — от семейного бюджета до ИИ-помощника
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                   <Link to="/register">
-                    <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50 font-semibold h-12 px-8 rounded-xl">
+                    <Button size="lg" className="bg-[#B89B7A] hover:bg-[#A0825F] text-white font-medium h-12 px-8 rounded-xl shadow-sm">
                       Создать Семейный ID
                     </Button>
                   </Link>
                   <a href="https://max.ru/id231805288780_biz" target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" variant="outline" className="bg-transparent border-2 border-white text-white hover:bg-white/10 h-12 px-8 rounded-xl">
-                      <Icon name="MessageCircle" size={18} className="mr-2" />
+                    <Button size="lg" variant="outline" className="bg-white border border-[#E8DDC8] text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] h-12 px-8 rounded-xl">
+                      <Icon name="MessageCircle" size={18} className="mr-2" strokeWidth={1.5} />
                       Подписаться в МАХ
                     </Button>
                   </a>
@@ -326,5 +322,43 @@ export default function Blog() {
         </div>
       </div>
     </>
+  );
+}
+
+interface CategoryPillProps {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count?: number;
+  iconName?: string;
+}
+
+function CategoryPill({ active, onClick, label, count, iconName }: CategoryPillProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group inline-flex items-center gap-2 h-10 px-4 rounded-full text-sm font-medium transition-all duration-200 ${
+        active
+          ? 'bg-[#B89B7A] text-white shadow-sm'
+          : 'bg-white text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] border border-[#E8DDC8]'
+      }`}
+    >
+      {iconName && (
+        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${active ? 'bg-white/20' : 'bg-[#F4EBDD] group-hover:bg-white'} transition-colors`}>
+          <Icon
+            name={iconName}
+            size={12}
+            className={active ? 'text-white' : 'text-[#B89B7A]'}
+            strokeWidth={1.8}
+          />
+        </span>
+      )}
+      <span>{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className={`text-xs ${active ? 'text-white/80' : 'text-[#B89B7A]'}`}>
+          {count}
+        </span>
+      )}
+    </button>
   );
 }

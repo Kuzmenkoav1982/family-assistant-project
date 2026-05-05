@@ -4,13 +4,12 @@ import { Helmet } from 'react-helmet-async';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import {
   blogApi,
   BlogPostFull,
   CATEGORY_COLORS,
-  CATEGORY_GRADIENTS,
+  CATEGORY_ICONS,
   formatBlogDate,
 } from '@/lib/blogApi';
 import BlogPostCard from '@/components/blog/BlogPostCard';
@@ -73,11 +72,8 @@ export default function BlogPost() {
   }
 
   const catColor = post.category_slug
-    ? CATEGORY_COLORS[post.category_slug] ?? 'bg-gray-100 text-gray-700'
-    : 'bg-gray-100 text-gray-700';
-  const catGradient = post.category_slug
-    ? CATEGORY_GRADIENTS[post.category_slug] ?? 'from-orange-500 to-pink-500'
-    : 'from-orange-500 to-pink-500';
+    ? CATEGORY_COLORS[post.category_slug] ?? 'bg-[#F4EDE2] text-[#8B6F47]'
+    : 'bg-[#F4EDE2] text-[#8B6F47]';
 
   const canonicalUrl = `https://nasha-semiya.ru/blog/${post.slug}`;
   const ogImage = post.cover_image_url || 'https://cdn.poehali.dev/files/Логотип Наша Семья.JPG';
@@ -164,19 +160,19 @@ export default function BlogPost() {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-pink-50">
-        <div className={`bg-gradient-to-r ${catGradient} text-white`}>
+      <div className="min-h-screen bg-[#FAF6EF]">
+        <div className="bg-gradient-to-b from-[#F4EBDD] via-[#F8F1E4] to-[#FAF6EF] border-b border-[#E8DDC8]">
           <div className="max-w-4xl mx-auto px-4 py-10 md:py-14">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-white/80 mb-5">
-              <Link to="/" className="hover:text-white transition-colors">Главная</Link>
-              <Icon name="ChevronRight" size={14} />
-              <Link to="/blog" className="hover:text-white transition-colors">Блог</Link>
+            <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-[#9C8467] mb-5">
+              <Link to="/" className="hover:text-[#6B5340] transition-colors">Главная</Link>
+              <Icon name="ChevronRight" size={12} />
+              <Link to="/blog" className="hover:text-[#6B5340] transition-colors">Блог</Link>
               {post.category_name && post.category_slug && (
                 <>
-                  <Icon name="ChevronRight" size={14} />
+                  <Icon name="ChevronRight" size={12} />
                   <Link
                     to={`/blog/category/${post.category_slug}`}
-                    className="hover:text-white transition-colors"
+                    className="hover:text-[#6B5340] transition-colors"
                   >
                     {post.category_name}
                   </Link>
@@ -184,36 +180,39 @@ export default function BlogPost() {
               )}
             </div>
 
-            {post.category_name && (
-              <Badge className={`${catColor} mb-4 font-medium border-0 shadow-sm`}>
-                {post.category_emoji} {post.category_name}
-              </Badge>
+            {post.category_name && post.category_slug && (
+              <div className={`inline-flex items-center gap-1.5 ${catColor} mb-4 px-3 py-1 rounded-full text-xs font-medium border border-[#EFE5D2]`}>
+                {CATEGORY_ICONS[post.category_slug] && (
+                  <Icon name={CATEGORY_ICONS[post.category_slug]} size={12} strokeWidth={1.8} />
+                )}
+                {post.category_name}
+              </div>
             )}
 
-            <h1 className="text-3xl md:text-5xl font-extrabold mb-4 font-[Montserrat] leading-tight">
+            <h1 className="text-3xl md:text-5xl font-light mb-4 font-[Montserrat] leading-tight text-[#3F2E1E] tracking-tight">
               {post.title}
             </h1>
-            <p className="text-lg md:text-xl text-white/90 mb-6 max-w-3xl leading-relaxed">
+            <p className="text-base md:text-lg text-[#6B5340] mb-6 max-w-3xl leading-relaxed">
               {post.excerpt}
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-[#9C8467]">
               <span className="flex items-center gap-1.5">
-                <Icon name="Calendar" size={15} />
+                <Icon name="Calendar" size={14} strokeWidth={1.6} />
                 {formatBlogDate(post.published_at)}
               </span>
               <span className="flex items-center gap-1.5">
-                <Icon name="Clock" size={15} />
+                <Icon name="Clock" size={14} strokeWidth={1.6} />
                 {post.reading_time_min} мин чтения
               </span>
               {post.views_count > 0 && (
                 <span className="flex items-center gap-1.5">
-                  <Icon name="Eye" size={15} />
+                  <Icon name="Eye" size={14} strokeWidth={1.6} />
                   {post.views_count} просмотров
                 </span>
               )}
               <span className="flex items-center gap-1.5">
-                <Icon name="User" size={15} />
+                <Icon name="User" size={14} strokeWidth={1.6} />
                 {post.author_name}
               </span>
             </div>
@@ -256,28 +255,28 @@ export default function BlogPost() {
 
           <BlogPostEngagement post={post} />
 
-          <Card className="mt-8 overflow-hidden border-0 shadow-xl">
-            <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white p-8 md:p-10">
+          <Card className="mt-8 overflow-hidden border border-[#E8DDC8] shadow-sm rounded-2xl">
+            <div className="bg-gradient-to-br from-[#F4EBDD] via-[#F8F1E4] to-[#FAF6EF] p-8 md:p-10">
               <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="flex-shrink-0 w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-5xl">
-                  💖
+                <div className="flex-shrink-0 w-16 h-16 bg-white/70 border border-[#E8DDC8] rounded-2xl flex items-center justify-center">
+                  <Icon name="Heart" size={28} className="text-[#B89B7A]" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl md:text-2xl font-extrabold mb-2 font-[Montserrat]">
+                  <h3 className="text-xl md:text-2xl font-light mb-2 font-[Montserrat] text-[#3F2E1E] tracking-tight">
                     Превратите идеи в семейные привычки
                   </h3>
-                  <p className="text-white/90 mb-4">
-                    Создай Семейный ID бесплатно — получи доступ к традициям, целям, ИИ-помощнику «Домовой» и всем инструментам платформы
+                  <p className="text-[#6B5340] mb-5 leading-relaxed">
+                    Создайте Семейный ID бесплатно — получите доступ к традициям, целям, ИИ-помощнику «Домовой» и всем инструментам платформы
                   </p>
                   <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                     <Link to="/register">
-                      <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50 font-semibold rounded-xl">
+                      <Button size="lg" className="bg-[#B89B7A] hover:bg-[#A0825F] text-white font-medium rounded-xl shadow-sm">
                         Создать Семейный ID
                       </Button>
                     </Link>
                     <a href="https://max.ru/id231805288780_biz" target="_blank" rel="noopener noreferrer">
-                      <Button size="lg" variant="outline" className="bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-xl">
-                        <Icon name="MessageCircle" size={18} className="mr-2" />
+                      <Button size="lg" variant="outline" className="bg-white border border-[#E8DDC8] text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] rounded-xl">
+                        <Icon name="MessageCircle" size={18} className="mr-2" strokeWidth={1.5} />
                         Канал в МАХ
                       </Button>
                     </a>
@@ -289,7 +288,7 @@ export default function BlogPost() {
 
           {post.related && post.related.length > 0 && (
             <div className="mt-12">
-              <h2 className="text-2xl md:text-3xl font-extrabold mb-6 font-[Montserrat] text-gray-900">
+              <h2 className="text-2xl md:text-3xl font-light mb-6 font-[Montserrat] text-[#3F2E1E] tracking-tight">
                 Похожие материалы
               </h2>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -302,8 +301,8 @@ export default function BlogPost() {
 
           <div className="mt-12 text-center">
             <Link to="/blog">
-              <Button variant="outline" size="lg" className="rounded-xl">
-                <Icon name="ArrowLeft" size={16} className="mr-2" />
+              <Button variant="outline" size="lg" className="rounded-xl border-[#E8DDC8] text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E]">
+                <Icon name="ArrowLeft" size={16} className="mr-2" strokeWidth={1.6} />
                 Все материалы блога
               </Button>
             </Link>

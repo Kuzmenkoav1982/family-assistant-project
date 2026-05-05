@@ -89,20 +89,24 @@ export default function BlogPostEngagement({ post }: Props) {
 
   return (
     <div className="mt-8 space-y-6">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6">
+      <div className="bg-white rounded-2xl border border-[#EFE5D2] shadow-sm p-5 md:p-6">
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-          <div>
-            <h3 className="font-bold text-gray-900 text-base md:text-lg flex items-center gap-2">
-              <span className="text-xl">💬</span>
-              Понравилось? Оставьте реакцию
-            </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Анонимно. Помогает нам понимать, что вам интересно.
-            </p>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#F4EBDD] border border-[#EFE5D2] flex items-center justify-center flex-shrink-0">
+              <Icon name="MessageCircle" size={18} className="text-[#B89B7A]" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h3 className="font-medium text-[#3F2E1E] text-base md:text-lg">
+                Понравилось? Оставьте реакцию
+              </h3>
+              <p className="text-xs text-[#9C8467] mt-0.5">
+                Анонимно. Помогает нам понимать, что вам интересно.
+              </p>
+            </div>
           </div>
           {totalReactions > 0 && (
-            <span className="text-xs text-gray-400">
-              Всего реакций: <strong className="text-gray-700">{totalReactions}</strong>
+            <span className="text-xs text-[#9C8467]">
+              Всего реакций: <strong className="text-[#6B5340]">{totalReactions}</strong>
             </span>
           )}
         </div>
@@ -116,17 +120,17 @@ export default function BlogPostEngagement({ post }: Props) {
                 key={r.key}
                 onClick={() => handleReact(r.key)}
                 disabled={pending !== null}
-                className={`group relative flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all duration-200 ${
+                className={`group relative flex items-center gap-2 px-3.5 py-2 rounded-full border transition-all duration-200 ${
                   active
-                    ? 'bg-orange-50 border-orange-400 scale-105 shadow-sm'
-                    : 'bg-white border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
+                    ? 'bg-[#F4EBDD] border-[#B89B7A] shadow-sm'
+                    : 'bg-white border-[#EFE5D2] hover:border-[#D4B896] hover:bg-[#FAF6EF]'
                 } ${pending === r.key ? 'opacity-60' : ''}`}
                 title={r.label}
               >
-                <span className={`text-xl transition-transform ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
+                <span className={`text-lg transition-transform ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
                   {r.emoji}
                 </span>
-                <span className={`text-sm font-medium ${active ? 'text-orange-700' : 'text-gray-700'}`}>
+                <span className={`text-sm font-medium ${active ? 'text-[#3F2E1E]' : 'text-[#6B5340]'}`}>
                   {count > 0 ? count : r.label}
                 </span>
               </button>
@@ -139,9 +143,9 @@ export default function BlogPostEngagement({ post }: Props) {
         <Button
           onClick={handleShare}
           size="lg"
-          className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-xl flex-1 sm:flex-none"
+          className="bg-[#B89B7A] hover:bg-[#A0825F] text-white rounded-xl flex-1 sm:flex-none shadow-sm"
         >
-          <Icon name={shared ? 'Check' : 'Share2'} size={18} className="mr-2" />
+          <Icon name={shared ? 'Check' : 'Share2'} size={18} className="mr-2" strokeWidth={1.6} />
           {shared ? 'Скопировано' : 'Поделиться'}
         </Button>
 
@@ -155,9 +159,9 @@ export default function BlogPostEngagement({ post }: Props) {
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl w-full"
+              className="bg-white border border-[#E8DDC8] text-[#6B5340] hover:bg-[#F4EBDD] hover:text-[#3F2E1E] rounded-xl w-full"
             >
-              <Icon name="MessageCircle" size={18} className="mr-2" />
+              <Icon name="MessageCircle" size={18} className="mr-2" strokeWidth={1.5} />
               Обсудить в МАХ
             </Button>
           </a>
@@ -165,8 +169,8 @@ export default function BlogPostEngagement({ post }: Props) {
       </div>
 
       {maxLink && (
-        <p className="text-xs text-gray-500 text-center">
-          💡 Эта статья была опубликована в нашем МАХ-канале — там можно оставить комментарий и обсудить с другими родителями
+        <p className="text-xs text-[#9C8467] text-center">
+          Эта статья была опубликована в нашем МАХ-канале — там можно оставить комментарий и обсудить с другими родителями
         </p>
       )}
     </div>
