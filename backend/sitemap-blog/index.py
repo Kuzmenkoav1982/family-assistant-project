@@ -1,6 +1,8 @@
 """
-Sitemap для блога — динамически отдаёт XML со всеми постами и категориями.
-Возвращает application/xml. Используется в sitemap-index как часть карты сайта.
+Sitemap — динамически отдаёт XML.
+?type=blog — все посты, категории, теги блога
+?type=full (или без параметра) — общий sitemap: главная + лендинги + ссылка на блог
+Возвращает application/xml.
 """
 
 import os
@@ -11,6 +13,23 @@ from psycopg2.extras import RealDictCursor
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 SITE = 'https://nasha-semiya.ru'
+
+PUBLIC_PAGES = [
+    ('/', 'daily', '1.0'),
+    ('/welcome', 'weekly', '0.9'),
+    ('/pricing', 'weekly', '0.9'),
+    ('/what-is-family', 'monthly', '0.8'),
+    ('/family-hub', 'weekly', '0.8'),
+    ('/health-hub', 'weekly', '0.8'),
+    ('/finance-hub', 'weekly', '0.8'),
+    ('/leisure-hub', 'weekly', '0.8'),
+    ('/education-hub', 'weekly', '0.8'),
+    ('/blog', 'daily', '0.9'),
+    ('/about', 'monthly', '0.6'),
+    ('/contacts', 'monthly', '0.6'),
+    ('/privacy', 'yearly', '0.3'),
+    ('/terms', 'yearly', '0.3'),
+]
 
 
 def db_conn():
@@ -109,8 +128,66 @@ def generate_sitemap() -> str:
     return body
 
 
+def generate_full_sitemap() -> str:
+    """Общий sitemap — главная, лендинги, посты блога одним списком."""
+    today = datetime.now().strftime('%Y-%m-%d')
+    urls: List[str] = []
+
+    for path, freq, prio in PUBLIC_PAGES:
+        urls.append(build_url(f'{SITE}{path}', today, freq, prio))
+
+    try:
+        conn = db_conn()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"""
+            SELECT slug, updated_at, published_at
+            FROM {SCHEMA}.public_blog_posts
+            WHERE status = 'published'
+            ORDER BY published_at DESC
+        """)
+        posts = cur.fetchall()
+
+        cur.execute(f"""
+            SELECT c.slug, COALESCE(MAX(p.updated_at), NOW()) AS lastmod
+            FROM {SCHEMA}.public_blog_categories c
+            LEFT JOIN {SCHEMA}.public_blog_posts p
+                ON p.category_id = c.id AND p.status = 'published'
+            GROUP BY c.id, c.slug, c.sort_order
+            ORDER BY c.sort_order
+        """)
+        cats = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        for cat in cats:
+            urls.append(build_url(
+                f'{SITE}/blog/category/{cat["slug"]}',
+                fmt_date(cat['lastmod']),
+                'weekly',
+                '0.8',
+            ))
+
+        for p in posts:
+            urls.append(build_url(
+                f'{SITE}/blog/{p["slug"]}',
+                fmt_date(p['updated_at'] or p['published_at']),
+                'monthly',
+                '0.7',
+            ))
+    except Exception as e:
+        print(f"[WARN] full sitemap blog part failed: {e}")
+
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + '\n'.join(urls)
+        + '\n</urlset>'
+    )
+    return body
+
+
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
-    """Динамический sitemap-blog.xml — все посты, категории и теги блога."""
+    """Динамический sitemap. ?type=blog — карта блога, иначе — общий sitemap всего сайта."""
     method = event.get('httpMethod', 'GET')
 
     if method == 'OPTIONS':
@@ -125,8 +202,14 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'isBase64Encoded': False,
         }
 
+    params = event.get('queryStringParameters', {}) or {}
+    sitemap_type = params.get('type', 'blog')
+
     try:
-        xml = generate_sitemap()
+        if sitemap_type == 'full':
+            xml = generate_full_sitemap()
+        else:
+            xml = generate_sitemap()
         return {
             'statusCode': 200,
             'headers': {
@@ -138,7 +221,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'isBase64Encoded': False,
         }
     except Exception as e:
-        print(f"[ERROR] sitemap-blog: {e}")
+        print(f"[ERROR] sitemap: {e}")
         return {
             'statusCode': 500,
             'headers': {
