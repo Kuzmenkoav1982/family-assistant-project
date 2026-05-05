@@ -29,16 +29,23 @@ CORS_HEADERS = {
 def max_api_request(method: str, endpoint: str, payload: dict = None) -> Dict[str, Any]:
     if not MAX_BOT_TOKEN:
         return {'ok': False, 'error': 'MAX_BOT_TOKEN не настроен'}
-    separator = '&' if '?' in endpoint else '?'
-    url = f'{MAX_API_BASE}{endpoint}{separator}access_token={MAX_BOT_TOKEN}'
+    url = f'{MAX_API_BASE}{endpoint}'
     try:
-        headers = {'Content-Type': 'application/json'}
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': MAX_BOT_TOKEN,
+        }
         if method == 'GET':
             resp = requests.get(url, headers=headers, timeout=10)
+        elif method == 'DELETE':
+            resp = requests.delete(url, headers=headers, timeout=10)
         else:
             resp = requests.post(url, headers=headers, json=payload, timeout=10)
-        data = resp.json()
-        print(f"[DEBUG] MAX API {method} {endpoint}: status={resp.status_code}")
+        try:
+            data = resp.json()
+        except Exception:
+            data = {'raw': resp.text}
+        print(f"[DEBUG] MAX API {method} {endpoint}: status={resp.status_code} body={str(data)[:300]}")
         return {'ok': resp.status_code == 200, 'data': data, 'status': resp.status_code}
     except Exception as e:
         return {'ok': False, 'error': str(e)}
@@ -531,31 +538,18 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             }
         our_url = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
         from urllib.parse import quote
-        endpoint = f'/subscriptions?url={quote(our_url, safe="")}'
-        if not MAX_BOT_TOKEN:
-            return {
-                'statusCode': 500,
-                'headers': CORS_HEADERS,
-                'body': json.dumps({'ok': False, 'error': 'MAX_BOT_TOKEN не настроен'}),
-                'isBase64Encoded': False
-            }
-        try:
-            del_url = f'{MAX_API_BASE}{endpoint}&access_token={MAX_BOT_TOKEN}'
-            resp = requests.delete(del_url, timeout=10)
-            ok = resp.status_code == 200
-            return {
-                'statusCode': 200 if ok else 500,
-                'headers': CORS_HEADERS,
-                'body': json.dumps({'ok': ok, 'status': resp.status_code, 'response': resp.text}, ensure_ascii=False),
-                'isBase64Encoded': False
-            }
-        except Exception as e:
-            return {
-                'statusCode': 500,
-                'headers': CORS_HEADERS,
-                'body': json.dumps({'ok': False, 'error': str(e)}),
-                'isBase64Encoded': False
-            }
+        result = max_api_request('DELETE', f'/subscriptions?url={quote(our_url, safe="")}')
+        return {
+            'statusCode': 200 if result.get('ok') else 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({
+                'ok': result.get('ok'),
+                'status': result.get('status'),
+                'response': result.get('data'),
+                'error': result.get('error'),
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
 
     return {
         'statusCode': 200,
