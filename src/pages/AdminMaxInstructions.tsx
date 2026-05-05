@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
 import WebhookConnector from '@/components/admin/max/WebhookConnector';
+
+const SITEMAP_URL = 'https://nasha-semiya.ru/sitemap-blog.xml';
 
 export default function AdminMaxInstructions() {
   const navigate = useNavigate();
@@ -306,7 +310,7 @@ export default function AdminMaxInstructions() {
               SEO — как Яндекс и Google находят посты
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-gray-700">
+          <CardContent className="space-y-4 text-sm text-gray-700">
             <p>На каждый пост работает 4-уровневая SEO-обвязка:</p>
             <div className="space-y-2">
               <SeoItem
@@ -326,13 +330,33 @@ export default function AdminMaxInstructions() {
                 desc="Article + BreadcrumbList — для красивых сниппетов в выдаче с хлебными крошками"
               />
             </div>
-            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-              <h4 className="font-bold text-sm mb-2">📍 Что нужно сделать вручную (один раз):</h4>
-              <ol className="text-sm space-y-1 ml-5 list-decimal text-gray-700">
-                <li>Зайти на <a href="https://webmaster.yandex.ru" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">webmaster.yandex.ru</a> → добавить sitemap → <code className="bg-white px-1 py-0.5 rounded text-xs">https://nasha-semiya.ru/sitemap-blog.xml</code></li>
-                <li>Зайти на <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">search.google.com/search-console</a> → Sitemaps → отправить тот же URL</li>
-                <li>Через 1–7 дней Яндекс начнёт индексировать, через 7–30 дней появятся первые позиции в выдаче</li>
-              </ol>
+
+            <YandexWebmasterGuide />
+            <GoogleSearchConsoleGuide />
+
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+              <h4 className="font-bold text-sm text-purple-900 mb-2 flex items-center gap-2">
+                <Icon name="Calendar" size={16} />
+                Чего ждать по срокам
+              </h4>
+              <div className="text-xs text-gray-700 space-y-1.5">
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">1–3 дня</Badge>
+                  <span>Яндекс «увидит» sitemap, начнёт обход. В разделе «Индексирование → Файлы Sitemap» появится зелёная галочка</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">5–14 дней</Badge>
+                  <span>В разделе «Страницы в поиске» появятся первые проиндексированные посты</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100">2–6 недель</Badge>
+                  <span>Посты начнут появляться в реальной выдаче по запросам типа «семья развод что делать», «финансы для семьи»</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">3–6 месяцев</Badge>
+                  <span>Стабильный органический трафик 100–500 человек/день при условии регулярных публикаций (3–5 постов/неделю)</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -495,6 +519,175 @@ function ChecklistItem({ text, done = false }: { text: string; done?: boolean })
         <Icon name="Circle" size={18} className="text-white/60 mt-0.5 flex-shrink-0" />
       )}
       <span className={done ? '' : 'text-white/90'}>{text}</span>
+    </div>
+  );
+}
+
+function CopyableUrl({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success('Скопировано!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Не удалось скопировать');
+    }
+  };
+  return (
+    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-2 my-2">
+      <code className="flex-1 text-xs md:text-sm font-mono text-gray-800 break-all px-1">{url}</code>
+      <Button
+        size="sm"
+        variant={copied ? 'default' : 'outline'}
+        onClick={handleCopy}
+        className={copied ? 'bg-green-500 hover:bg-green-600 flex-shrink-0' : 'flex-shrink-0'}
+      >
+        <Icon name={copied ? 'Check' : 'Copy'} size={14} className="mr-1" />
+        {copied ? 'Скопировано' : 'Копировать'}
+      </Button>
+    </div>
+  );
+}
+
+function YandexWebmasterGuide() {
+  return (
+    <div className="border-2 border-red-200 rounded-xl overflow-hidden">
+      <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-3 flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">Я</div>
+        <h3 className="font-bold">Яндекс.Вебмастер — пошаговая инструкция</h3>
+      </div>
+      <div className="p-4 space-y-4 bg-white">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-green-800 text-sm font-semibold">
+            <Icon name="CheckCircle2" size={16} />
+            Сайт уже верифицирован — ничего настраивать заново не нужно
+          </div>
+          <p className="text-xs text-green-700 mt-1">На скриншоте видно «Ошибок нет», 21 показ за неделю — Яндекс уже видит главную. Осталось показать ему блог.</p>
+        </div>
+
+        <p className="text-sm text-gray-700">
+          <strong>Зайдите на</strong>{' '}
+          <a href="https://webmaster.yandex.ru" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold">webmaster.yandex.ru</a>{' '}
+          и выберите сайт <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">https://nasha-semiya.ru</code>
+        </p>
+
+        <Step num={1} title="Откройте раздел «Файлы Sitemap»">
+          <p>В левом меню кликните <strong>«Индексирование»</strong> → раскроется подменю → выберите <strong>«Файлы Sitemap»</strong></p>
+          <p className="text-xs text-gray-500 mt-1">Прямая ссылка: <a href="https://webmaster.yandex.ru/site/https:nasha-semiya.ru:443/indexing/sitemap/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">webmaster.yandex.ru → Индексирование → Файлы Sitemap</a></p>
+        </Step>
+
+        <Step num={2} title="Добавьте sitemap блога">
+          <p>В верхней части страницы вы увидите поле «Добавить файл Sitemap». Скопируйте этот URL и вставьте в поле:</p>
+          <CopyableUrl url={SITEMAP_URL} />
+          <p>Нажмите кнопку <strong>«Добавить»</strong>.</p>
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-2">
+            ⚠️ Если рядом увидите старый sitemap (например, <code>/sitemap.xml</code>) — оставьте его, не удаляйте. У сайта может быть несколько карт.
+          </p>
+        </Step>
+
+        <Step num={3} title="Дождитесь обработки (1–24 часа)">
+          <p>Сначала Яндекс покажет статус «<strong>В очереди</strong>» — это нормально. Через несколько часов статус сменится на:</p>
+          <ul className="ml-4 mt-1 space-y-1 text-xs">
+            <li>✅ <strong>«ОК, 47 ссылок»</strong> — всё хорошо, Яндекс прочитал карту</li>
+            <li>⚠️ <strong>«Не удалось загрузить»</strong> — крайне маловероятно, но если так — напиши мне, проверю</li>
+          </ul>
+        </Step>
+
+        <Step num={4} title="Запустите переобход страниц (ускоряет индексацию)">
+          <p>В левом меню: <strong>«Индексирование» → «Переобход страниц»</strong>.</p>
+          <p>В поле «Адрес страницы» по очереди вставьте и нажимайте «Отправить» — для каждого URL:</p>
+          <CopyableUrl url="https://nasha-semiya.ru/blog" />
+          <CopyableUrl url="https://nasha-semiya.ru/" />
+          <p className="text-xs text-gray-600 mt-1">Лимит: 30 URL в день. Этого хватит — потом Яндекс сам найдёт остальные через sitemap.</p>
+        </Step>
+
+        <Step num={5} title="Проверьте robots.txt (если возникнут вопросы)">
+          <p>В разделе <strong>«Инструменты» → «Анализ robots.txt»</strong> можно убедиться, что блог разрешён для индексации.</p>
+          <p>В поле «Список URL» вставьте: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">https://nasha-semiya.ru/blog</code> → нажмите «Проверить» → должно быть <strong>«разрешён»</strong>.</p>
+        </Step>
+
+        <Step num={6} title="Проверка через 7 дней">
+          <p>Зайдите снова в Вебмастер → <strong>«Индексирование» → «Страницы в поиске»</strong>. Должны появиться записи вида:</p>
+          <ul className="ml-4 text-xs text-gray-600 space-y-0.5">
+            <li>• <code className="bg-gray-100 px-1 rounded">/blog</code></li>
+            <li>• <code className="bg-gray-100 px-1 rounded">/blog/post/...</code> (38 шт)</li>
+            <li>• <code className="bg-gray-100 px-1 rounded">/blog/category/...</code> (8 шт)</li>
+          </ul>
+        </Step>
+
+        <Button
+          asChild
+          className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white"
+        >
+          <a href="https://webmaster.yandex.ru/site/https:nasha-semiya.ru:443/indexing/sitemap/" target="_blank" rel="noopener noreferrer">
+            <Icon name="ExternalLink" size={16} className="mr-2" />
+            Открыть «Файлы Sitemap» в Вебмастере
+          </a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function GoogleSearchConsoleGuide() {
+  return (
+    <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-3 flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">G</div>
+        <h3 className="font-bold">Google Search Console — пошаговая инструкция</h3>
+      </div>
+      <div className="p-4 space-y-4 bg-white">
+        <p className="text-sm text-gray-700">
+          Для русскоязычной аудитории Яндекс важнее, но Google тоже даёт 20–30% трафика. Делается так же быстро.
+        </p>
+
+        <Step num={1} title="Зайдите и добавьте сайт">
+          <p>Откройте <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-semibold">search.google.com/search-console</a>, войдите через гугл-аккаунт.</p>
+          <p>Если сайт ещё не добавлен — нажмите «Добавить ресурс» → выберите тип <strong>«Префикс URL»</strong> → введите <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">https://nasha-semiya.ru</code></p>
+        </Step>
+
+        <Step num={2} title="Подтвердите права (если ещё не подтверждены)">
+          <p>Google предложит несколько способов. Самый простой — <strong>HTML-тег</strong>:</p>
+          <ol className="ml-4 mt-1 list-decimal text-xs space-y-1 text-gray-600">
+            <li>Скопируйте предложенный мета-тег вида <code className="bg-gray-100 px-1 rounded">&lt;meta name="google-site-verification" content="..."&gt;</code></li>
+            <li>Пришлите его мне в этот чат</li>
+            <li>Я добавлю его в <code className="bg-gray-100 px-1 rounded">index.html</code></li>
+            <li>Через 5 минут вернётесь в Google и нажмёте «Подтвердить»</li>
+          </ol>
+        </Step>
+
+        <Step num={3} title="Отправьте sitemap">
+          <p>В левом меню → <strong>«Файлы Sitemap»</strong> → введите в поле:</p>
+          <CopyableUrl url="sitemap-blog.xml" />
+          <p className="text-xs text-gray-600">Google добавит к нему ваш домен автоматически. Нажмите «Отправить».</p>
+        </Step>
+
+        <Step num={4} title="Запросите индексацию ключевых страниц">
+          <p>В верхней строке поиска (внутри Search Console) вставьте URL и нажмите Enter:</p>
+          <CopyableUrl url="https://nasha-semiya.ru/blog" />
+          <p>Откроется страница «Проверка URL». Нажмите кнопку <strong>«Запросить индексирование»</strong>. Повторите для главной страницы.</p>
+        </Step>
+
+        <Step num={5} title="Через 7–14 дней проверьте результат">
+          <p>В разделе <strong>«Индексирование страниц»</strong> увидите количество проиндексированных URL.</p>
+        </Step>
+      </div>
+    </div>
+  );
+}
+
+function Step({ num, title, children }: { num: number; title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
+        {num}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className="font-semibold text-sm text-gray-900 mb-1">{title}</h4>
+        <div className="text-sm text-gray-700 space-y-1 leading-relaxed">{children}</div>
+      </div>
     </div>
   );
 }
