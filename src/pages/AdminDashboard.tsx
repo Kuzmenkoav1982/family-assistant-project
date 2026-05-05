@@ -184,7 +184,7 @@ export default function AdminDashboard() {
     { icon: 'TrendingUp', label: 'Посещаемость', short: 'Трафик', href: '/admin/traffic' },
     { icon: 'Mic', label: 'Алиса', short: 'Алиса', href: '/admin/alice' },
     { icon: 'MessageCircle', label: 'MAX', short: 'MAX', href: '/admin/max' },
-    { icon: 'Newspaper', label: 'Блог', short: 'Блог', href: '/blog' },
+    { icon: 'Newspaper', label: 'Блог', short: 'Блог', href: '/admin/blog' },
     { icon: 'Users', label: 'Пользователи', short: 'Юзеры', action: 'users' },
     { icon: 'DollarSign', label: 'Оценка стоимости', short: 'Оценка', href: '/admin/valuation' },
     { icon: 'Megaphone', label: 'Стратегия развития', short: 'Развитие', href: '/admin/marketing' },
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
     { icon: 'Inbox', label: 'Тикеты', tab: 'tickets', color: 'from-cyan-400 to-teal-500' },
     { icon: 'Trophy', label: 'Топ семей', tab: 'top', color: 'from-yellow-400 to-orange-500' },
     { icon: 'ToggleRight', label: 'Фич-флаги', tab: 'flags', color: 'from-slate-400 to-gray-500' },
-    { icon: 'Newspaper', label: 'Блог', tab: 'blog-link', color: 'from-orange-400 to-pink-500', href: '/blog' },
+    { icon: 'Newspaper', label: 'Блог', tab: 'blog-link', color: 'from-orange-400 to-pink-500', href: '/admin/blog' },
   ];
 
   return (

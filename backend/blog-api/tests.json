@@ -60,6 +60,33 @@
       "path": "/?action=foobar",
       "expectedStatus": 400,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Admin list without token",
+      "method": "GET",
+      "path": "/?action=admin-list",
+      "expectedStatus": 401,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Admin stats without token",
+      "method": "GET",
+      "path": "/?action=admin-stats",
+      "expectedStatus": 401,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Admin update without token",
+      "method": "POST",
+      "path": "/?action=admin-update",
+      "body": {
+        "id": 1,
+        "fields": {
+          "title": "test"
+        }
+      },
+      "expectedStatus": 401,
+      "bodyMatcher": "partial"
     }
   ]
 }

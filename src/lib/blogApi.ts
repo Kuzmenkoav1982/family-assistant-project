@@ -89,7 +89,109 @@ export const blogApi = {
 
   getFeed: (limit = 6): Promise<{ posts: BlogPostListItem[] }> =>
     api(`/?action=feed&limit=${limit}`),
+
+  admin: {
+    list: (params: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      q?: string;
+    } = {}): Promise<{
+      posts: BlogAdminPost[];
+      total: number;
+      page: number;
+      limit: number;
+      pages: number;
+    }> => {
+      const sp = new URLSearchParams({ action: 'admin-list' });
+      if (params.page) sp.set('page', String(params.page));
+      if (params.limit) sp.set('limit', String(params.limit));
+      if (params.status) sp.set('status', params.status);
+      if (params.q) sp.set('q', params.q);
+      return adminApi(`/?${sp.toString()}`);
+    },
+
+    stats: (): Promise<BlogAdminStats> => adminApi('/?action=admin-stats'),
+
+    getPost: (id: number): Promise<{ post: BlogAdminPostFull }> =>
+      adminApi(`/?action=admin-post&id=${id}`),
+
+    update: (
+      id: number,
+      fields: Record<string, unknown>,
+    ): Promise<{ ok: boolean; id: number }> =>
+      adminApi('/?action=admin-update', {
+        method: 'POST',
+        body: JSON.stringify({ id, fields }),
+      }),
+
+    toggleStatus: (
+      id: number,
+      status: 'published' | 'draft' | 'archived',
+    ): Promise<{ ok: boolean; id: number; status: string }> =>
+      adminApi('/?action=admin-toggle-status', {
+        method: 'POST',
+        body: JSON.stringify({ id, status }),
+      }),
+  },
 };
+
+async function adminApi<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem('adminToken') || 'admin_authenticated';
+  const res = await fetch(`${BLOG_API_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': token,
+      ...(init.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Blog Admin API ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export interface BlogAdminPost {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  cover_image_url: string | null;
+  status: 'published' | 'draft' | 'archived';
+  source: string;
+  reading_time_min: number;
+  views_count: number;
+  likes_count: number;
+  published_at: string;
+  updated_at: string;
+  author_name: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  category_id: number | null;
+  category_slug: string | null;
+  category_name: string | null;
+  category_emoji: string | null;
+}
+
+export interface BlogAdminPostFull extends BlogAdminPost {
+  content: string;
+  seo_keywords: string | null;
+  tags: { id: number; slug: string; name: string }[];
+}
+
+export interface BlogAdminStats {
+  published: number;
+  drafts: number;
+  archived: number;
+  total_views: number;
+  total_view_events: number;
+  views_7d: number;
+  views_24h: number;
+  top_posts: { id: number; slug: string; title: string; views_count: number }[];
+  by_category: { name: string; emoji: string; posts: number; views: number }[];
+}
 
 export function formatBlogDate(iso: string): string {
   const d = new Date(iso);
