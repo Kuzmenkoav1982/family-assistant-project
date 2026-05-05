@@ -50,6 +50,17 @@ def send_message(chat_id: int, text: str) -> Dict[str, Any]:
     })
 
 
+def _is_admin(event: Dict) -> bool:
+    h = event.get('headers', {}) or {}
+    token = h.get('x-admin-token') or h.get('X-Admin-Token')
+    if not token:
+        return False
+    if token == 'admin_authenticated':
+        return True
+    secret = os.environ.get('ADMIN_TOKEN')
+    return bool(secret) and token == secret
+
+
 def db_connect():
     dsn = os.environ.get('DATABASE_URL')
     if not dsn:
@@ -378,9 +389,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             }
 
     if method == 'POST' and action == 'send':
-        admin_token = event.get('headers', {}).get('x-admin-token') or \
-                     event.get('headers', {}).get('X-Admin-Token')
-        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+        if not _is_admin(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -424,9 +433,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'mirror':
-        admin_token = event.get('headers', {}).get('x-admin-token') or \
-                     event.get('headers', {}).get('X-Admin-Token')
-        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+        if not _is_admin(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -462,9 +469,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'GET' and action == 'webhook-status':
-        admin_token = event.get('headers', {}).get('x-admin-token') or \
-                     event.get('headers', {}).get('X-Admin-Token')
-        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+        if not _is_admin(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -492,9 +497,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'webhook-subscribe':
-        admin_token = event.get('headers', {}).get('x-admin-token') or \
-                     event.get('headers', {}).get('X-Admin-Token')
-        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+        if not _is_admin(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -519,9 +522,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'webhook-unsubscribe':
-        admin_token = event.get('headers', {}).get('x-admin-token') or \
-                     event.get('headers', {}).get('X-Admin-Token')
-        if admin_token != os.environ.get('ADMIN_TOKEN', 'admin_authenticated'):
+        if not _is_admin(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,

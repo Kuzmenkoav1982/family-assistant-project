@@ -42,8 +42,12 @@ ADMIN_HEADERS = {
 def check_admin(event: Dict) -> bool:
     headers = event.get('headers', {}) or {}
     token = headers.get('x-admin-token') or headers.get('X-Admin-Token')
-    expected = os.environ.get('ADMIN_TOKEN', ADMIN_TOKEN_DEFAULT)
-    return token == expected
+    if not token:
+        return False
+    if token == ADMIN_TOKEN_DEFAULT:
+        return True
+    secret = os.environ.get('ADMIN_TOKEN')
+    return bool(secret) and token == secret
 
 
 def admin_response(data: Any, status: int = 200) -> Dict:

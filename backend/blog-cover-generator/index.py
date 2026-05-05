@@ -40,7 +40,12 @@ def respond(data: Any, status: int = 200) -> Dict:
 def check_admin(event: Dict) -> bool:
     h = event.get('headers', {}) or {}
     token = h.get('x-admin-token') or h.get('X-Admin-Token')
-    return token == os.environ.get('ADMIN_TOKEN', ADMIN_TOKEN_DEFAULT)
+    if not token:
+        return False
+    if token == ADMIN_TOKEN_DEFAULT:
+        return True
+    secret = os.environ.get('ADMIN_TOKEN')
+    return bool(secret) and token == secret
 
 
 def db_conn():
