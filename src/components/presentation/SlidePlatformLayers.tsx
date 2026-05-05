@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import { MODULES, type ModuleDetail } from './moduleData';
+import { ModuleDetailDialog } from './ModuleDetailDialog';
 
 interface LayerItem {
   name: string;
   icon: string;
   status: 'live' | 'dev' | 'planned';
+  moduleId?: string;
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -13,9 +17,9 @@ const STATUS_DOT: Record<string, string> = {
 };
 
 const STATUS_BORDER: Record<string, string> = {
-  live: 'border-emerald-300 bg-emerald-50',
-  dev: 'border-amber-300 bg-amber-50',
-  planned: 'border-purple-300 bg-purple-50',
+  live: 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100',
+  dev: 'border-amber-300 bg-amber-50 hover:bg-amber-100',
+  planned: 'border-purple-300 bg-purple-50 hover:bg-purple-100',
 };
 
 interface Layer {
@@ -35,11 +39,11 @@ const layers: Layer[] = [
     items: [
       { name: 'Госуслуги (ЕПГУ)', icon: 'Landmark', status: 'planned' },
       { name: 'Соцказначейство', icon: 'Database', status: 'planned' },
-      { name: 'Региональные ИС', icon: 'Network', status: 'planned' },
+      { name: 'Региональные ИС', icon: 'Network', status: 'planned', moduleId: 'region-api' },
       { name: 'Telegram Mini App', icon: 'Send', status: 'dev' },
       { name: 'Web (poehali)', icon: 'Globe', status: 'live' },
-      { name: 'API для регионов', icon: 'Code', status: 'planned' },
-      { name: 'HR-системы (B2B2C)', icon: 'Briefcase', status: 'planned' },
+      { name: 'API для регионов', icon: 'Code', status: 'planned', moduleId: 'region-api' },
+      { name: 'HR-системы (B2B2C)', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
     ],
   },
   {
@@ -48,14 +52,14 @@ const layers: Layer[] = [
     icon: 'Target',
     color: 'from-purple-500 to-pink-500',
     items: [
-      { name: 'Навигатор льгот', icon: 'Compass', status: 'dev' },
-      { name: 'Кабинет многодетной', icon: 'Users', status: 'dev' },
-      { name: 'Маршрут беременности', icon: 'HeartHandshake', status: 'dev' },
-      { name: 'Family Case Manager', icon: 'GitBranch', status: 'planned' },
-      { name: 'Кабинет СВО', icon: 'Shield', status: 'planned' },
-      { name: 'Студ. семья', icon: 'GraduationCap', status: 'planned' },
-      { name: 'Соцконтракт', icon: 'FileSignature', status: 'planned' },
-      { name: 'ЗОЖ-модуль', icon: 'Activity', status: 'planned' },
+      { name: 'Навигатор льгот', icon: 'Compass', status: 'dev', moduleId: 'support-navigator' },
+      { name: 'Кабинет многодетной', icon: 'Users', status: 'dev', moduleId: 'large-family' },
+      { name: 'Маршрут беременности', icon: 'HeartHandshake', status: 'dev', moduleId: 'pregnancy' },
+      { name: 'Family Case Manager', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
+      { name: 'Кабинет СВО', icon: 'Shield', status: 'planned', moduleId: 'svo-family' },
+      { name: 'Студ. семья', icon: 'GraduationCap', status: 'planned', moduleId: 'student-family' },
+      { name: 'Соцконтракт', icon: 'FileSignature', status: 'planned', moduleId: 'social-contract' },
+      { name: 'ЗОЖ-модуль', icon: 'Activity', status: 'planned', moduleId: 'zog' },
     ],
   },
   {
@@ -64,18 +68,18 @@ const layers: Layer[] = [
     icon: 'Layers',
     color: 'from-emerald-500 to-teal-500',
     items: [
-      { name: 'Древо', icon: 'TreeDeciduous', status: 'live' },
-      { name: 'Календарь', icon: 'Calendar', status: 'live' },
-      { name: 'Задачи', icon: 'CheckSquare', status: 'live' },
-      { name: 'Бюджет', icon: 'Wallet', status: 'live' },
-      { name: 'Чат', icon: 'MessageCircle', status: 'live' },
-      { name: 'Дети', icon: 'Baby', status: 'live' },
-      { name: 'Здоровье', icon: 'HeartPulse', status: 'live' },
-      { name: 'Документы', icon: 'FileText', status: 'live' },
-      { name: 'Места', icon: 'MapPin', status: 'live' },
-      { name: 'Покупки', icon: 'ShoppingCart', status: 'live' },
-      { name: 'Воспоминания', icon: 'Image', status: 'live' },
-      { name: 'AI-ассистент', icon: 'Sparkles', status: 'dev' },
+      { name: 'Древо', icon: 'TreeDeciduous', status: 'live', moduleId: 'family-tree' },
+      { name: 'Календарь', icon: 'Calendar', status: 'live', moduleId: 'calendar' },
+      { name: 'Задачи', icon: 'CheckSquare', status: 'live', moduleId: 'tasks' },
+      { name: 'Бюджет', icon: 'Wallet', status: 'live', moduleId: 'budget' },
+      { name: 'Чат', icon: 'MessageCircle', status: 'live', moduleId: 'chat' },
+      { name: 'Дети', icon: 'Baby', status: 'live', moduleId: 'children' },
+      { name: 'Здоровье', icon: 'HeartPulse', status: 'live', moduleId: 'health' },
+      { name: 'Документы', icon: 'FileText', status: 'live', moduleId: 'documents' },
+      { name: 'Места', icon: 'MapPin', status: 'live', moduleId: 'places' },
+      { name: 'Покупки', icon: 'ShoppingCart', status: 'live', moduleId: 'shopping' },
+      { name: 'Воспоминания', icon: 'Image', status: 'live', moduleId: 'memories' },
+      { name: 'AI-ассистент', icon: 'Sparkles', status: 'dev', moduleId: 'ai-assistant' },
     ],
   },
   {
@@ -97,6 +101,18 @@ const layers: Layer[] = [
 ];
 
 export function SlidePlatformLayers() {
+  const [selected, setSelected] = useState<ModuleDetail | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const handleClick = (moduleId?: string) => {
+    if (!moduleId) return;
+    const module = MODULES[moduleId];
+    if (module) {
+      setSelected(module);
+      setOpen(true);
+    }
+  };
+
   return (
     <section
       data-pdf-slide
@@ -107,11 +123,13 @@ export function SlidePlatformLayers() {
           <Icon name="Layers" size={14} className="text-gray-700" />
           <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Архитектура</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Слоёная карта платформы
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Слоёная карта платформы</h2>
         <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
           Сверху вниз: каналы и интеграции → стратегические модули по 615-р → ядро Family OS → технологический фундамент
+        </p>
+        <p className="text-[11px] text-purple-600 mt-2 font-medium flex items-center justify-center gap-1">
+          <Icon name="MousePointerClick" size={11} />
+          Кликабельные модули раскрывают детали
         </p>
       </div>
 
@@ -155,18 +173,26 @@ export function SlidePlatformLayers() {
 
               {/* Содержимое слоя */}
               <div className="p-3 grid grid-cols-3 sm:grid-cols-4 gap-1.5">
-                {layer.items.map((item, i) => (
-                  <div
-                    key={i}
-                    className={`${STATUS_BORDER[item.status]} border rounded-lg p-2 flex items-center gap-1.5 transition-transform hover:scale-105`}
-                  >
-                    <Icon name={item.icon} size={14} className="text-gray-700 flex-shrink-0" />
-                    <span className="text-[10px] font-medium text-gray-800 leading-tight truncate flex-1">
-                      {item.name}
-                    </span>
-                    <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[item.status]} flex-shrink-0`} />
-                  </div>
-                ))}
+                {layer.items.map((item, i) => {
+                  const isClickable = !!item.moduleId;
+                  const Comp = isClickable ? 'button' : 'div';
+                  return (
+                    <Comp
+                      key={i}
+                      type={isClickable ? 'button' : undefined}
+                      onClick={isClickable ? () => handleClick(item.moduleId) : undefined}
+                      className={`${STATUS_BORDER[item.status]} border rounded-lg p-2 flex items-center gap-1.5 transition-all ${
+                        isClickable ? 'cursor-pointer hover:scale-105 hover:shadow-md' : ''
+                      }`}
+                    >
+                      <Icon name={item.icon} size={14} className="text-gray-700 flex-shrink-0" />
+                      <span className="text-[10px] font-medium text-gray-800 leading-tight truncate flex-1 text-left">
+                        {item.name}
+                      </span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[item.status]} flex-shrink-0`} />
+                    </Comp>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -192,6 +218,8 @@ export function SlidePlatformLayers() {
       <p className="text-[10px] text-gray-500 text-center mt-4">
         Слайд 2 из 3 · Слоёная архитектура · Версия 2.0 от 06.05.2026
       </p>
+
+      <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />
     </section>
   );
 }

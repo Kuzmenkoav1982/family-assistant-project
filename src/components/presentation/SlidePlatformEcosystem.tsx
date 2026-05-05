@@ -1,15 +1,9 @@
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import { MODULES, type ModuleDetail, type ModuleStatus } from './moduleData';
+import { ModuleDetailDialog } from './ModuleDetailDialog';
 
-type Status = 'live' | 'dev' | 'planned';
-
-interface Module {
-  name: string;
-  icon: string;
-  status: Status;
-  ring: 'inner' | 'outer';
-}
-
-const STATUS_CONFIG: Record<Status, { bg: string; border: string; text: string; label: string; dot: string }> = {
+const STATUS_CONFIG: Record<ModuleStatus, { bg: string; border: string; text: string; label: string; dot: string }> = {
   live: {
     bg: 'bg-emerald-500',
     border: 'border-emerald-600',
@@ -33,55 +27,76 @@ const STATUS_CONFIG: Record<Status, { bg: string; border: string; text: string; 
   },
 };
 
-const innerModules: Module[] = [
-  { name: 'Семейное древо', icon: 'TreeDeciduous', status: 'live', ring: 'inner' },
-  { name: 'Календарь и события', icon: 'Calendar', status: 'live', ring: 'inner' },
-  { name: 'Задачи и роли', icon: 'CheckSquare', status: 'live', ring: 'inner' },
-  { name: 'Семейный бюджет', icon: 'Wallet', status: 'live', ring: 'inner' },
-  { name: 'Чат семьи', icon: 'MessageCircle', status: 'live', ring: 'inner' },
-  { name: 'Профили детей', icon: 'Baby', status: 'live', ring: 'inner' },
-  { name: 'Здоровье семьи', icon: 'HeartPulse', status: 'live', ring: 'inner' },
-  { name: 'Документы', icon: 'FileText', status: 'live', ring: 'inner' },
-  { name: 'Локации и места', icon: 'MapPin', status: 'live', ring: 'inner' },
-  { name: 'Списки покупок', icon: 'ShoppingCart', status: 'live', ring: 'inner' },
-  { name: 'Воспоминания', icon: 'Image', status: 'live', ring: 'inner' },
-  { name: 'AI-ассистент', icon: 'Sparkles', status: 'dev', ring: 'inner' },
+const innerIds = [
+  'family-tree',
+  'calendar',
+  'tasks',
+  'budget',
+  'chat',
+  'children',
+  'health',
+  'documents',
+  'places',
+  'shopping',
+  'memories',
+  'ai-assistant',
 ];
 
-const outerModules: Module[] = [
-  { name: 'Навигатор мер поддержки', icon: 'Compass', status: 'dev', ring: 'outer' },
-  { name: 'Кабинет многодетной семьи', icon: 'Users', status: 'dev', ring: 'outer' },
-  { name: 'Маршрут беременности 0–12 мес', icon: 'HeartHandshake', status: 'dev', ring: 'outer' },
-  { name: 'Family Case Manager', icon: 'GitBranch', status: 'planned', ring: 'outer' },
-  { name: 'Семья участника СВО', icon: 'Shield', status: 'planned', ring: 'outer' },
-  { name: 'Студенческая семья', icon: 'GraduationCap', status: 'planned', ring: 'outer' },
-  { name: 'Соцконтракт-навигатор', icon: 'FileSignature', status: 'planned', ring: 'outer' },
-  { name: 'ЗОЖ-модуль (4 фактора)', icon: 'Activity', status: 'planned', ring: 'outer' },
-  { name: 'Каталог нянь и групп', icon: 'UserCheck', status: 'planned', ring: 'outer' },
-  { name: 'Каталог проката', icon: 'Package', status: 'planned', ring: 'outer' },
-  { name: 'Продлёнка 1–4 классов', icon: 'BookOpen', status: 'planned', ring: 'outer' },
-  { name: 'Семейная медиация', icon: 'Handshake', status: 'planned', ring: 'outer' },
-  { name: 'Семейный туризм РФ', icon: 'Mountain', status: 'planned', ring: 'outer' },
-  { name: 'B2B2C для работодателей', icon: 'Building2', status: 'planned', ring: 'outer' },
-  { name: 'API для регионов', icon: 'Network', status: 'planned', ring: 'outer' },
-  { name: 'Адаптация соотечественников', icon: 'Globe', status: 'planned', ring: 'outer' },
+const outerIds = [
+  'support-navigator',
+  'large-family',
+  'pregnancy',
+  'case-manager',
+  'svo-family',
+  'student-family',
+  'social-contract',
+  'zog',
+  'nannies',
+  'rental',
+  'after-school',
+  'mediation',
+  'tourism',
+  'b2b2c',
+  'region-api',
+  'compatriots',
 ];
 
-function ModuleCard({ module, compact = false }: { module: Module; compact?: boolean }) {
+function ModuleCard({
+  module,
+  onClick,
+  compact = false,
+}: {
+  module: ModuleDetail;
+  onClick: () => void;
+  compact?: boolean;
+}) {
   const config = STATUS_CONFIG[module.status];
   return (
-    <div
-      className={`${config.bg} ${config.border} ${config.text} border rounded-lg flex flex-col items-center justify-center text-center transition-transform hover:scale-105 ${
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${config.bg} ${config.border} ${config.text} border rounded-lg flex flex-col items-center justify-center text-center transition-all hover:scale-105 hover:shadow-lg cursor-pointer ${
         compact ? 'p-1.5 gap-0.5' : 'p-2 gap-1'
       }`}
     >
       <Icon name={module.icon} size={compact ? 14 : 16} className={config.text} />
       <span className={`font-medium leading-tight ${compact ? 'text-[8px]' : 'text-[9px]'}`}>{module.name}</span>
-    </div>
+    </button>
   );
 }
 
 export function SlidePlatformEcosystem() {
+  const [selected, setSelected] = useState<ModuleDetail | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const handleClick = (id: string) => {
+    const module = MODULES[id];
+    if (module) {
+      setSelected(module);
+      setOpen(true);
+    }
+  };
+
   return (
     <section
       data-pdf-slide
@@ -99,12 +114,19 @@ export function SlidePlatformEcosystem() {
           Внутренний круг — ядро «Family OS»: то, что работает уже сейчас.<br />
           Внешний круг — стратегические модули по Распоряжению Правительства РФ № 615-р до 2036 года.
         </p>
+        <p className="text-[11px] text-purple-600 mt-2 font-medium flex items-center justify-center gap-1">
+          <Icon name="MousePointerClick" size={11} />
+          Нажмите на любой модуль — откроется карточка с цитатой из Стратегии и KPI
+        </p>
       </div>
 
       {/* Легенда */}
       <div className="flex flex-wrap justify-center gap-3 mb-6">
-        {(['live', 'dev', 'planned'] as Status[]).map((s) => (
-          <div key={s} className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
+        {(['live', 'dev', 'planned'] as ModuleStatus[]).map((s) => (
+          <div
+            key={s}
+            className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200"
+          >
             <span className={`w-2.5 h-2.5 rounded-full ${STATUS_CONFIG[s].dot}`} />
             <span className="text-xs font-medium text-gray-700">{STATUS_CONFIG[s].label}</span>
           </div>
@@ -121,9 +143,10 @@ export function SlidePlatformEcosystem() {
           <div className="h-px flex-1 bg-purple-200" />
         </div>
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
-          {outerModules.map((m, i) => (
-            <ModuleCard key={i} module={m} compact />
-          ))}
+          {outerIds.map((id) => {
+            const m = MODULES[id];
+            return m ? <ModuleCard key={id} module={m} compact onClick={() => handleClick(id)} /> : null;
+          })}
         </div>
       </div>
 
@@ -138,9 +161,10 @@ export function SlidePlatformEcosystem() {
         </div>
 
         <div className="grid grid-cols-3 gap-2 mb-3">
-          {innerModules.slice(0, 6).map((m, i) => (
-            <ModuleCard key={i} module={m} />
-          ))}
+          {innerIds.slice(0, 6).map((id) => {
+            const m = MODULES[id];
+            return m ? <ModuleCard key={id} module={m} onClick={() => handleClick(id)} /> : null;
+          })}
         </div>
 
         {/* Логотип в центре */}
@@ -157,9 +181,10 @@ export function SlidePlatformEcosystem() {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          {innerModules.slice(6).map((m, i) => (
-            <ModuleCard key={i} module={m} />
-          ))}
+          {innerIds.slice(6).map((id) => {
+            const m = MODULES[id];
+            return m ? <ModuleCard key={id} module={m} onClick={() => handleClick(id)} /> : null;
+          })}
         </div>
       </div>
 
@@ -185,6 +210,8 @@ export function SlidePlatformEcosystem() {
       <p className="text-[10px] text-gray-500 text-center mt-4">
         Слайд 1 из 3 · Экосистемная карта · Версия 2.0 от 06.05.2026
       </p>
+
+      <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />
     </section>
   );
 }
