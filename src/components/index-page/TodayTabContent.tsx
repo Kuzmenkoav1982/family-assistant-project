@@ -112,23 +112,23 @@ export default function TodayTabContent({
     <TabsContent value="today" className="space-y-4 mt-0">
 
       {/* Приветствие */}
-      <div className="rounded-2xl bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 p-5 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white/80 text-sm mb-0.5">{greeting}</p>
-            <h2 className="text-xl font-bold">
-              {currentMember?.name || 'Добро пожаловать'} 👋
+      <div className="rounded-2xl bg-gradient-to-br from-[#F4EBDD] via-[#F8F1E4] to-[#FAF6EF] border border-[#E8DDC8] p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[#9C8467] text-sm mb-0.5">{greeting}</p>
+            <h2 className="text-xl md:text-2xl font-light text-[#3F2E1E] font-[Montserrat] tracking-tight truncate">
+              {currentMember?.name || 'Добро пожаловать'}
             </h2>
-            <p className="text-white/70 text-sm mt-1 capitalize">{dateStr}</p>
+            <p className="text-[#9C8467] text-sm mt-1 capitalize">{dateStr}</p>
           </div>
-          <div className="text-right flex flex-col items-end gap-2">
-            <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-              <p className="text-2xl font-bold">{todayTasks.length}</p>
-              <p className="text-xs text-white/80">задач</p>
+          <div className="text-right flex flex-col items-end gap-2 flex-shrink-0">
+            <div className="bg-white/70 border border-[#E8DDC8] rounded-xl px-3 py-2 text-center min-w-[58px]">
+              <p className="text-xl font-medium text-[#3F2E1E]">{todayTasks.length}</p>
+              <p className="text-[10px] text-[#9C8467] uppercase tracking-wide">задач</p>
             </div>
-            <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-              <p className="text-2xl font-bold">{todayEvents.length}</p>
-              <p className="text-xs text-white/80">событий</p>
+            <div className="bg-white/70 border border-[#E8DDC8] rounded-xl px-3 py-2 text-center min-w-[58px]">
+              <p className="text-xl font-medium text-[#3F2E1E]">{todayEvents.length}</p>
+              <p className="text-[10px] text-[#9C8467] uppercase tracking-wide">событий</p>
             </div>
           </div>
         </div>
