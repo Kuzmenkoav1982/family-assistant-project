@@ -24,7 +24,6 @@ interface RingDef {
   rOut: number;
   items: RingItem[];
   fontSize: number;
-  textMaxLen: number;
 }
 
 const CX = 400;
@@ -33,10 +32,10 @@ const CY = 400;
 const ringFoundation: RingItem[] = [
   { id: 'auth', name: 'Auth', icon: 'Lock', status: 'live' },
   { id: 'pg', name: 'PostgreSQL', icon: 'Database', status: 'live' },
-  { id: 'cf', name: 'Cloud Functions', icon: 'Cloud', status: 'live' },
+  { id: 'cf', name: 'Functions', icon: 'Cloud', status: 'live' },
   { id: 's3', name: 'S3 файлы', icon: 'HardDrive', status: 'live' },
   { id: 'push', name: 'Push', icon: 'Bell', status: 'live' },
-  { id: 'pdn', name: '152-ФЗ ПДн', icon: 'ShieldCheck', status: 'dev' },
+  { id: 'pdn', name: '152-ФЗ', icon: 'ShieldCheck', status: 'dev' },
   { id: 'reestr', name: 'Реестр ПО', icon: 'BadgeCheck', status: 'planned' },
   { id: 'analytics', name: 'Аналитика', icon: 'BarChart3', status: 'live' },
 ];
@@ -83,7 +82,6 @@ const ringChannels: RingItem[] = [
 ];
 
 const rings: RingDef[] = [
-  // Самое внешнее — каналы и интеграции (синее)
   {
     label: 'КАНАЛЫ И ИНТЕГРАЦИИ',
     labelColor: '#2563eb',
@@ -91,9 +89,7 @@ const rings: RingDef[] = [
     rOut: 360,
     items: ringChannels,
     fontSize: 11,
-    textMaxLen: 13,
   },
-  // Стратегические модули по 615-р (фиолетовое)
   {
     label: 'СТРАТЕГИЯ 615-р · МОДУЛИ ДО 2036',
     labelColor: '#7c3aed',
@@ -101,9 +97,7 @@ const rings: RingDef[] = [
     rOut: 280,
     items: ringStrategy,
     fontSize: 10,
-    textMaxLen: 12,
   },
-  // Family OS — ядро (зелёное)
   {
     label: 'FAMILY OS · ЯДРО',
     labelColor: '#059669',
@@ -111,9 +105,7 @@ const rings: RingDef[] = [
     rOut: 210,
     items: ringCore,
     fontSize: 10,
-    textMaxLen: 11,
   },
-  // Платформенный фундамент (серое)
   {
     label: 'ПЛАТФОРМЕННЫЙ ФУНДАМЕНТ',
     labelColor: '#475569',
@@ -121,7 +113,6 @@ const rings: RingDef[] = [
     rOut: 140,
     items: ringFoundation,
     fontSize: 9,
-    textMaxLen: 12,
   },
 ];
 
@@ -137,39 +128,28 @@ function buildSectorPath(startAngle: number, endAngle: number, rIn: number, rOut
   const p4 = polarToCartesian(CX, CY, rIn, endAngle);
   const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
 
-  const pathD = [
+  return [
     `M ${p1.x} ${p1.y}`,
     `A ${rOut} ${rOut} 0 ${largeArc} 0 ${p2.x} ${p2.y}`,
     `L ${p3.x} ${p3.y}`,
     `A ${rIn} ${rIn} 0 ${largeArc} 1 ${p4.x} ${p4.y}`,
     'Z',
   ].join(' ');
-
-  const midAngle = (startAngle + endAngle) / 2;
-  const midR = (rIn + rOut) / 2;
-  const iconPos = polarToCartesian(CX, CY, midR - 12, midAngle);
-  const textPos = polarToCartesian(CX, CY, midR + 6, midAngle);
-
-  let textRotation = midAngle - 90;
-  if (midAngle > 90 && midAngle < 270) textRotation += 180;
-
-  return { pathD, iconX: iconPos.x, iconY: iconPos.y, textX: textPos.x, textY: textPos.y, textRotation };
 }
 
-function wrapText(text: string, maxLen: number): string[] {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let cur = '';
-  for (const w of words) {
-    if ((cur + ' ' + w).trim().length <= maxLen) {
-      cur = (cur + ' ' + w).trim();
-    } else {
-      if (cur) lines.push(cur);
-      cur = w;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.slice(0, 2);
+function buildTextArc(startAngle: number, endAngle: number, r: number) {
+  const midAngle = (startAngle + endAngle) / 2;
+  const isBottom = midAngle > 90 && midAngle < 270;
+
+  const start = isBottom ? endAngle : startAngle;
+  const end = isBottom ? startAngle : endAngle;
+  const sweep = isBottom ? '0' : '1';
+
+  const p1 = polarToCartesian(CX, CY, r, start);
+  const p2 = polarToCartesian(CX, CY, r, end);
+  const largeArc = Math.abs(end - start) <= 180 ? '0' : '1';
+
+  return `M ${p1.x} ${p1.y} A ${r} ${r} 0 ${largeArc} ${sweep} ${p2.x} ${p2.y}`;
 }
 
 function RingSector({
@@ -179,7 +159,7 @@ function RingSector({
   rIn,
   rOut,
   fontSize,
-  textMaxLen,
+  pathId,
   onClick,
 }: {
   item: RingItem;
@@ -188,32 +168,43 @@ function RingSector({
   rIn: number;
   rOut: number;
   fontSize: number;
-  textMaxLen: number;
+  pathId: string;
   onClick: () => void;
 }) {
   const [hover, setHover] = useState(false);
   const config = STATUS_FILL[item.status];
-  const sector = buildSectorPath(startAngle, endAngle, rIn, rOut);
-  const lines = wrapText(item.name, textMaxLen);
-  const iconSize = 16;
+  const sectorD = buildSectorPath(startAngle, endAngle, rIn, rOut);
   const isClickable = !!item.moduleId;
+  const iconSize = 16;
+
+  const midAngle = (startAngle + endAngle) / 2;
+  const iconR = rIn + (rOut - rIn) * 0.3;
+  const iconPos = polarToCartesian(CX, CY, iconR, midAngle);
+
+  const textR = rIn + (rOut - rIn) * 0.7;
+  const arcD = buildTextArc(startAngle, endAngle, textR);
 
   return (
     <g
       onClick={isClickable ? onClick : undefined}
       onMouseEnter={() => isClickable && setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ cursor: isClickable ? 'pointer' : 'default', transition: 'all 0.2s' }}
+      style={{ cursor: isClickable ? 'pointer' : 'default' }}
     >
       <path
-        d={sector.pathD}
+        d={sectorD}
         fill={hover ? config.hover : config.fill}
         stroke={config.stroke}
         strokeWidth={1.5}
         style={{ transition: 'fill 0.2s' }}
       />
+
+      <defs>
+        <path id={pathId} d={arcD} />
+      </defs>
+
       <g
-        transform={`translate(${sector.iconX - iconSize / 2}, ${sector.iconY - iconSize / 2})`}
+        transform={`translate(${iconPos.x - iconSize / 2}, ${iconPos.y - iconSize / 2})`}
         style={{ pointerEvents: 'none' }}
       >
         <foreignObject width={iconSize} height={iconSize}>
@@ -231,25 +222,18 @@ function RingSector({
           </div>
         </foreignObject>
       </g>
-      <g
-        transform={`translate(${sector.textX}, ${sector.textY}) rotate(${sector.textRotation})`}
+
+      <text
+        fontSize={fontSize}
+        fontWeight={600}
+        fill={config.text}
+        fontFamily="system-ui, -apple-system, sans-serif"
         style={{ pointerEvents: 'none' }}
       >
-        <text
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize={fontSize}
-          fontWeight={600}
-          fill={config.text}
-          fontFamily="system-ui, -apple-system, sans-serif"
-        >
-          {lines.map((line, i) => (
-            <tspan key={i} x="0" dy={i === 0 ? -((lines.length - 1) * fontSize) / 2 : fontSize}>
-              {line}
-            </tspan>
-          ))}
-        </text>
-      </g>
+        <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
+          {item.name}
+        </textPath>
+      </text>
     </g>
   );
 }
@@ -321,7 +305,7 @@ export function CircularArchitecture() {
                       rIn={ring.rIn}
                       rOut={ring.rOut}
                       fontSize={ring.fontSize}
-                      textMaxLen={ring.textMaxLen}
+                      pathId={`arch-arc-${ringIdx}-${i}`}
                       onClick={() => handleClick(item.moduleId)}
                     />
                   );
@@ -398,7 +382,7 @@ export function CircularArchitecture() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 2 · Круговая архитектура · 4 кольца от ядра до интеграций · Версия 2.1
+        Слайд 2 · Круговая архитектура · 4 кольца от ядра до интеграций · Версия 2.2
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />
