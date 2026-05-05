@@ -169,6 +169,8 @@ const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
 const MarketingSale = lazy(() => import("./pages/MarketingSale"));
 const Articles = lazy(() => import("./pages/Articles"));
 const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -359,6 +361,10 @@ const App = () => {
                       <Route path="/family-matrix/astrology" element={<FamilyMatrixAstrology />} />
                       <Route path="/articles" element={<Articles />} />
                       <Route path="/articles/:slug" element={<ArticleDetail />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/category/:category" element={<Blog />} />
+                      <Route path="/blog/tag/:tag" element={<Blog />} />
+                      <Route path="/blog/:slug" element={<BlogPost />} />
                       <Route path="/family-invite" element={<FamilyInvite />} />
                       <Route path="/presentation" element={<Presentation />} />
                       <Route path="/award-card" element={<AwardCard />} />
