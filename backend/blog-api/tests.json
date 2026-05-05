@@ -1,0 +1,65 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "List posts default",
+      "method": "GET",
+      "path": "/?action=list",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "page": 1,
+        "limit": 12
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Categories",
+      "method": "GET",
+      "path": "/?action=categories",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Tags",
+      "method": "GET",
+      "path": "/?action=tags",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Feed",
+      "method": "GET",
+      "path": "/?action=feed&limit=3",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Sitemap data",
+      "method": "GET",
+      "path": "/?action=sitemap",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Post not found",
+      "method": "GET",
+      "path": "/?action=post&slug=nonexistent-post-xyz-123",
+      "expectedStatus": 404,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unknown action",
+      "method": "GET",
+      "path": "/?action=foobar",
+      "expectedStatus": 400,
+      "bodyMatcher": "partial"
+    }
+  ]
+}
