@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "List page renders",
+      "method": "GET",
+      "path": "/?type=list",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Default returns list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Category page renders",
+      "method": "GET",
+      "path": "/?type=category&slug=psychology",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Category not found",
+      "method": "GET",
+      "path": "/?type=category&slug=nonexistent-xyz",
+      "expectedStatus": 404,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Post page renders",
+      "method": "GET",
+      "path": "/?slug=smeh-luchshee-lekarstvo",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Post not found",
+      "method": "GET",
+      "path": "/?slug=zzz-not-exist-zzz",
+      "expectedStatus": 404,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

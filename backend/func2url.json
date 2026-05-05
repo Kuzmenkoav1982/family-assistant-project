@@ -1,4 +1,6 @@
 {
+  "blog-prerender": "https://functions.poehali.dev/d869c620-57b6-4106-a9db-770f7e8fa753",
+  "sitemap-blog": "https://functions.poehali.dev/495cd6c4-76d2-4ac5-b2cc-8b71e95605c1",
   "blog-api": "https://functions.poehali.dev/c3d1a7ab-aa2c-4aa8-981d-1a96e19dbd2d",
   "rating-cron": "https://functions.poehali.dev/1834d1f5-5291-46db-b78d-4e0d9a210837",
   "referrals": "https://functions.poehali.dev/f7e5b7b2-225c-43f5-b399-5b5201594228",

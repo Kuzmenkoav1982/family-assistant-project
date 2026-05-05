@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /blog/
 Disallow: /api/
 Disallow: /admin/
 Disallow: /admin-*
@@ -11,16 +13,22 @@ Disallow: /*?session=*
 Disallow: /*?auth=*
 
 Sitemap: https://nasha-semiya.ru/sitemap.xml
+Sitemap: https://nasha-semiya.ru/sitemap-blog.xml
 
 User-agent: Yandex
 Allow: /
+Allow: /blog
+Allow: /blog/
 Crawl-delay: 1
 
 User-agent: Googlebot
 Allow: /
+Allow: /blog
+Allow: /blog/
 
 User-agent: Bingbot
 Allow: /
+Allow: /blog
 Crawl-delay: 2
 
 User-agent: vkshare
