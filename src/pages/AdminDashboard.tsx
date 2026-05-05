@@ -184,6 +184,7 @@ export default function AdminDashboard() {
     { icon: 'TrendingUp', label: 'Посещаемость', short: 'Трафик', href: '/admin/traffic' },
     { icon: 'Mic', label: 'Алиса', short: 'Алиса', href: '/admin/alice' },
     { icon: 'MessageCircle', label: 'MAX', short: 'MAX', href: '/admin/max' },
+    { icon: 'Newspaper', label: 'Блог', short: 'Блог', href: '/blog' },
     { icon: 'Users', label: 'Пользователи', short: 'Юзеры', action: 'users' },
     { icon: 'DollarSign', label: 'Оценка стоимости', short: 'Оценка', href: '/admin/valuation' },
     { icon: 'Megaphone', label: 'Стратегия развития', short: 'Развитие', href: '/admin/marketing' },
@@ -191,7 +192,13 @@ export default function AdminDashboard() {
     { icon: 'ArrowLeft', label: 'На главную', short: 'Главная', href: '/' },
   ];
 
-  const quickTools = [
+  const quickTools: Array<{
+    icon: string;
+    label: string;
+    tab: string;
+    color: string;
+    href?: string;
+  }> = [
     { icon: 'Home', label: 'Семьи', tab: 'families', color: 'from-blue-400 to-indigo-500' },
     { icon: 'DollarSign', label: 'Финансы', tab: 'finance', color: 'from-green-400 to-emerald-500' },
     { icon: 'Ticket', label: 'Промокоды', tab: 'promo', color: 'from-pink-400 to-rose-500' },
@@ -201,6 +208,7 @@ export default function AdminDashboard() {
     { icon: 'Inbox', label: 'Тикеты', tab: 'tickets', color: 'from-cyan-400 to-teal-500' },
     { icon: 'Trophy', label: 'Топ семей', tab: 'top', color: 'from-yellow-400 to-orange-500' },
     { icon: 'ToggleRight', label: 'Фич-флаги', tab: 'flags', color: 'from-slate-400 to-gray-500' },
+    { icon: 'Newspaper', label: 'Блог', tab: 'blog-link', color: 'from-orange-400 to-pink-500', href: '/blog' },
   ];
 
   return (
@@ -286,7 +294,7 @@ export default function AdminDashboard() {
               {quickTools.map((t) => (
                 <button
                   key={t.tab}
-                  onClick={() => (window.location.href = `/admin/panel?tab=${t.tab}`)}
+                  onClick={() => (window.location.href = t.href ?? `/admin/panel?tab=${t.tab}`)}
                   className="group flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform`}>

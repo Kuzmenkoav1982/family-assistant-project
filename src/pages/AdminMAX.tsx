@@ -230,7 +230,15 @@ export default function AdminMAX() {
             </h1>
             <p className="text-gray-600 mt-2">Управление постами в канале "Наша семья"</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              onClick={() => window.open('/blog', '_blank')}
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
+            >
+              <Icon name="Newspaper" size={16} className="mr-2" />
+              Открыть блог
+              <Icon name="ExternalLink" size={14} className="ml-2 opacity-80" />
+            </Button>
             <Button variant="outline" onClick={loadChannelStats} disabled={statsLoading}>
               {statsLoading ? (
                 <Icon name="Loader2" size={16} className="animate-spin mr-2" />
