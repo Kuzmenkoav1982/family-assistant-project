@@ -232,6 +232,11 @@ export default function GlobalTopBar() {
                   <Icon name="Play" size={16} className="mr-2.5 text-gray-500" />
                   <span>Видео</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/blog')} className="rounded-lg">
+                  <Icon name="Newspaper" size={16} className="mr-2.5 text-pink-500" />
+                  <span>Блог</span>
+                  <span className="ml-auto text-[10px] font-bold text-pink-600 bg-pink-100 dark:bg-pink-950/40 px-1.5 py-0.5 rounded-full">NEW</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/presentation')} className="rounded-lg">
                   <Icon name="Play" size={16} className="mr-2.5 text-gray-500" />
                   <span>Инвесторам</span>

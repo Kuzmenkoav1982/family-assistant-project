@@ -364,6 +364,20 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
               </span>
             )}
           </button>
+          <button
+            onClick={() => { navigate('/blog'); onVisibilityChange(false); }}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
+              location.pathname.startsWith('/blog')
+                ? 'bg-pink-50 dark:bg-pink-950/40'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30 flex items-center justify-center">
+              <Icon name="BookOpen" size={15} className="text-pink-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Блог</span>
+            <span className="ml-auto text-[10px] font-bold text-pink-600 bg-pink-100 dark:bg-pink-950/40 px-1.5 py-0.5 rounded-full">NEW</span>
+          </button>
         </div>
 
         <div className="p-3 space-y-1">

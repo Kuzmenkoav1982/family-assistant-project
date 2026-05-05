@@ -26,6 +26,21 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <button
+              onClick={() => navigate('/blog')}
+              className="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-xl bg-gradient-to-r from-orange-50 to-pink-50 hover:from-orange-100 hover:to-pink-100 text-pink-600 transition-colors text-sm font-semibold"
+              title="Блог"
+            >
+              <Icon name="Newspaper" size={15} />
+              <span>Блог</span>
+            </button>
+            <button
+              onClick={() => navigate('/blog')}
+              className="sm:hidden w-9 h-9 rounded-xl bg-gradient-to-r from-orange-50 to-pink-50 hover:from-orange-100 hover:to-pink-100 text-pink-600 flex items-center justify-center transition-colors"
+              title="Блог"
+            >
+              <Icon name="Newspaper" size={16} />
+            </button>
             <a
               href="https://t.me/Nasha7iya"
               target="_blank"
