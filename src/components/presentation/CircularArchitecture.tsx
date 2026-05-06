@@ -489,7 +489,29 @@ export function CircularArchitecture() {
             );
           })}
 
-          {/* Толстые цветные обводки слоёв — внутренняя и внешняя окружности. */}
+          {/* Белые "прокладки" между кольцами — визуально разделяют слои, не перекрывая ячейки */}
+          {rings.map((ring, idx) => (
+            <g key={`gap-${idx}`}>
+              <circle
+                cx={CX}
+                cy={CY}
+                r={ring.rIn}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={4}
+              />
+              <circle
+                cx={CX}
+                cy={CY}
+                r={ring.rOut}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={4}
+              />
+            </g>
+          ))}
+
+          {/* Тонкие цветные контуры слоёв поверх белой прокладки */}
           {rings.map((ring, idx) => (
             <g key={`b-${idx}`}>
               <circle
@@ -498,7 +520,7 @@ export function CircularArchitecture() {
                 r={ring.rIn}
                 fill="none"
                 stroke={ring.labelColor}
-                strokeWidth={8}
+                strokeWidth={2}
               />
               <circle
                 cx={CX}
@@ -506,7 +528,7 @@ export function CircularArchitecture() {
                 r={ring.rOut}
                 fill="none"
                 stroke={ring.labelColor}
-                strokeWidth={8}
+                strokeWidth={2}
               />
             </g>
           ))}
