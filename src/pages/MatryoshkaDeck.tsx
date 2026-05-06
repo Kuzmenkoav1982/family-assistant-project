@@ -4,29 +4,24 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import { PresentationHeader } from '@/components/presentation/PresentationHeader';
-import { SlideGovFramework615 } from '@/components/presentation/SlideGovFramework615';
-import { SlideMilitaryFocus } from '@/components/presentation/SlideMilitaryFocus';
-import { CircularEcosystem } from '@/components/presentation/CircularEcosystem';
-import { CircularArchitecture } from '@/components/presentation/CircularArchitecture';
-import { SlideStrategyCards } from '@/components/presentation/SlideStrategyCards';
-import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
-import { SlideAudienceMatrix } from '@/components/presentation/SlideAudienceMatrix';
-import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
+import { CircularMatryoshka } from '@/components/presentation/CircularMatryoshka';
 
 async function captureSlides(
   onProgress: (msg: string) => void
 ): Promise<{ canvases: HTMLCanvasElement[]; count: number } | null> {
-  const container = document.getElementById('strategy-content');
+  const container = document.getElementById('matryoshka-content');
   if (!container) return null;
 
   container.classList.add('printing');
   window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: true } }));
-  await new Promise(resolve => setTimeout(resolve, 400));
+  await new Promise((resolve) => setTimeout(resolve, 400));
 
   const slides = container.querySelectorAll('[data-pdf-slide]');
   if (slides.length === 0) {
     container.classList.remove('printing');
-    window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: false } }));
+    window.dispatchEvent(
+      new CustomEvent('presentation:print-mode', { detail: { active: false } })
+    );
     return null;
   }
 
@@ -49,28 +44,39 @@ async function captureSlides(
   }
 
   container.classList.remove('printing');
-  window.dispatchEvent(new CustomEvent('presentation:print-mode', { detail: { active: false } }));
+  window.dispatchEvent(
+    new CustomEvent('presentation:print-mode', { detail: { active: false } })
+  );
   return { canvases, count: slides.length };
 }
 
-function StrategyTitleSlide() {
+function MatryoshkaTitleSlide() {
   return (
     <section
       data-pdf-slide
-      className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-700 rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-10 md:p-14 mb-6 sm:mb-8 text-white"
+      className="bg-gradient-to-br from-amber-600 via-orange-700 to-red-800 rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-10 md:p-14 mb-6 sm:mb-8 text-white"
     >
-      <div className="flex items-center gap-2 mb-5 sm:mb-7 text-purple-100 text-xs sm:text-sm uppercase tracking-wider">
-        <Icon name="Layers" size={16} />
-        Стратегия и видение
+      <div className="flex items-center gap-2 mb-5 sm:mb-7 text-amber-100 text-xs sm:text-sm uppercase tracking-wider">
+        <Icon name="Crown" size={16} />
+        Ценностная матрёшка
       </div>
       <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4 sm:mb-6">
-        «Наша Семья» —<br />Стратегия до 2036 года
+        От ценностей —<br />к каналам государства
       </h1>
-      <p className="text-base sm:text-xl text-purple-100 leading-relaxed mb-6 sm:mb-8 max-w-3xl">
-        Презентация для инвестора. Государственная рамка по Распоряжению № 615-р,
-        архитектура платформы и план первого этапа — семьи военнослужащих и участников СВО.
+      <p className="text-base sm:text-xl text-amber-100 leading-relaxed mb-6 sm:mb-8 max-w-3xl">
+        В центре — традиционные ценности по Указу № 809. Вокруг — работающее ядро продукта,
+        прикладные сервисы Стратегии 615-р и каналы дистрибуции до 2036 года.
       </p>
       <div className="flex flex-wrap gap-2 sm:gap-3">
+        <a
+          href="http://kremlin.ru/acts/bank/48502"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white/15 hover:bg-white/25 transition backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20 inline-flex items-center gap-1.5"
+        >
+          Указ № 809
+          <Icon name="ExternalLink" size={12} />
+        </a>
         <a
           href="http://government.ru/docs/54573/"
           target="_blank"
@@ -80,32 +86,98 @@ function StrategyTitleSlide() {
           Распоряжение № 615-р
           <Icon name="ExternalLink" size={12} />
         </a>
-        <a
-          href="https://национальныепроекты.рф/new-projects/semya/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-white/15 hover:bg-white/25 transition backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20 inline-flex items-center gap-1.5"
-        >
-          Нацпроект «Семья»
-          <Icon name="ExternalLink" size={12} />
-        </a>
         <div className="bg-white/15 backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20">
-          Фокус: военнослужащие и СВО
+          Версия для инвестора
         </div>
       </div>
     </section>
   );
 }
 
-function StrategyFooter() {
+function MatryoshkaLegend() {
   return (
-    <section className="text-center text-xs sm:text-sm text-gray-400 py-6">
-      <p>«Наша Семья» — стратегическая презентация · nasha-semiya.ru · частный доступ</p>
+    <section
+      data-pdf-slide
+      className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 p-6 sm:p-10 mb-6 sm:mb-8"
+    >
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full mb-3 border border-amber-200">
+          <Icon name="BookOpen" size={14} className="text-amber-700" />
+          <span className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+            Как читать матрёшку
+          </span>
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Четыре уровня — одна логика
+        </h2>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="bg-amber-50 border-l-4 border-amber-600 rounded-r-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Heart" size={18} className="text-amber-700" />
+            <h3 className="font-bold text-amber-900">Центр · Ценности 809</h3>
+          </div>
+          <p className="text-sm text-amber-900/80 leading-relaxed">
+            7 традиционных ценностей по Указу Президента. Это смысловое сердце продукта —
+            то, ради чего он существует.
+          </p>
+        </div>
+
+        <div className="bg-emerald-50 border-l-4 border-emerald-600 rounded-r-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Zap" size={18} className="text-emerald-700" />
+            <h3 className="font-bold text-emerald-900">Кольцо 2 · Ядро</h3>
+          </div>
+          <p className="text-sm text-emerald-900/80 leading-relaxed">
+            8 модулей платформы, которые уже работают. Это готовый актив —
+            фундамент, на который опирается остальное.
+          </p>
+        </div>
+
+        <div className="bg-orange-50 border-l-4 border-orange-600 rounded-r-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Target" size={18} className="text-orange-700" />
+            <h3 className="font-bold text-orange-900">Кольцо 3 · Стратегия 615-р</h3>
+          </div>
+          <p className="text-sm text-orange-900/80 leading-relaxed">
+            12 прикладных сервисов из Распоряжения Правительства. Это направление достройки
+            на горизонте до 2036 года.
+          </p>
+        </div>
+
+        <div className="bg-blue-50 border-l-4 border-blue-700 rounded-r-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Network" size={18} className="text-blue-700" />
+            <h3 className="font-bold text-blue-900">Кольцо 4 · Каналы государства</h3>
+          </div>
+          <p className="text-sm text-blue-900/80 leading-relaxed">
+            8 каналов дистрибуции — Госуслуги, MAX, Web, региональные ИС, реестр ПО.
+            Через них продукт доходит до семьи.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 border border-amber-200 rounded-xl p-5">
+        <p className="text-sm text-gray-800 leading-relaxed">
+          <strong className="text-amber-800">Логика чтения изнутри наружу:</strong> Указ
+          формирует ценности → мы построили продукт под семью → он содержательно стыкуется с
+          задачами 615-р → масштабируется через каналы государства.
+        </p>
+      </div>
     </section>
   );
 }
 
-export default function StrategyDeck() {
+function MatryoshkaFooter() {
+  return (
+    <section className="text-center text-xs sm:text-sm text-gray-400 py-6">
+      <p>«Наша Семья» — ценностная матрёшка · nasha-semiya.ru · частный доступ</p>
+    </section>
+  );
+}
+
+export default function MatryoshkaDeck() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
   const [isPptxDownloading, setIsPptxDownloading] = useState(false);
@@ -157,7 +229,7 @@ export default function StrategyDeck() {
         pdf.text(`${i + 1} / ${result.count}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
       }
 
-      pdf.save('Наша-семья-Стратегия-2036.pdf');
+      pdf.save('Наша-семья-Ценностная-матрёшка.pdf');
       toast.success('PDF готов!', { id: loadingId });
     } catch (error) {
       console.error('Ошибка при создании PDF:', error);
@@ -183,8 +255,8 @@ export default function StrategyDeck() {
       pptx.layout = 'LAYOUT_16x9';
       pptx.author = 'Наша Семья';
       pptx.company = 'ИП Кузьменко А.В.';
-      pptx.subject = 'Стратегия «Наша Семья» до 2036 года';
-      pptx.title = 'Наша Семья — Стратегия до 2036';
+      pptx.subject = 'Ценностная матрёшка «Наша Семья»';
+      pptx.title = 'Наша Семья — Ценностная матрёшка';
 
       const slideW = 10;
       const slideH = 5.625;
@@ -223,7 +295,7 @@ export default function StrategyDeck() {
         });
       }
 
-      await pptx.writeFile({ fileName: 'Наша-семья-Стратегия-2036.pptx' });
+      await pptx.writeFile({ fileName: 'Наша-семья-Ценностная-матрёшка.pptx' });
     } catch (error) {
       console.error('Ошибка при создании PPTX:', error);
     } finally {
@@ -233,7 +305,7 @@ export default function StrategyDeck() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
       <PresentationHeader
         onDownloadPDF={downloadPDF}
         isDownloading={isDownloading}
@@ -253,44 +325,14 @@ export default function StrategyDeck() {
         }
       `}</style>
 
-      <div id="strategy-content" className="max-w-4xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16">
-        <StrategyTitleSlide />
-        <SlideGovFramework615 />
-        <SlideMilitaryFocus />
-        <CircularEcosystem />
-        <CircularArchitecture />
-
-        <a
-          href="/matryoshka"
-          className="block group my-6 rounded-3xl overflow-hidden shadow-xl border border-amber-200 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 hover:shadow-2xl transition-shadow"
-        >
-          <div className="p-6 sm:p-8 text-white flex items-center gap-5 sm:gap-6">
-            <div className="bg-white/20 backdrop-blur p-3 sm:p-4 rounded-2xl flex-shrink-0">
-              <Icon name="Crown" size={32} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs uppercase tracking-wider text-amber-100 mb-1">
-                Альтернативная карта · версия для инвестора
-              </p>
-              <h3 className="text-xl sm:text-2xl font-bold mb-1">
-                Ценностная матрёшка: 809 → 615-р → продукт → каналы
-              </h3>
-              <p className="text-sm text-amber-50/90 leading-relaxed">
-                Открыть отдельную презентацию: ценности Указа № 809 в центре, ядро вокруг,
-                Стратегия 615-р и каналы государства.
-              </p>
-            </div>
-            <div className="flex-shrink-0 group-hover:translate-x-1 transition-transform">
-              <Icon name="ArrowRight" size={28} />
-            </div>
-          </div>
-        </a>
-
-        <SlideStrategyCards />
-        <SlideArchitectureCards />
-        <SlideAudienceMatrix />
-        <SlidePlatformBeforeAfter />
-        <StrategyFooter />
+      <div
+        id="matryoshka-content"
+        className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16"
+      >
+        <MatryoshkaTitleSlide />
+        <CircularMatryoshka />
+        <MatryoshkaLegend />
+        <MatryoshkaFooter />
       </div>
     </div>
   );
