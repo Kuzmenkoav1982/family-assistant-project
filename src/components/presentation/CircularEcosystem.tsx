@@ -43,13 +43,18 @@ const outerIds = [
   'compatriots',
 ];
 
-// Размер viewBox увеличен, чтобы поместились внешние подписи слоёв
-const VB = 700;
-const CX = VB / 2;
-const CY = VB / 2;
+// Размер viewBox: широкий, с местом под подписи слоёв слева/справа
+const VB_W = 900;
+const VB_H = 700;
+const CX = VB_W / 2;
+const CY = VB_H / 2;
 const CENTER_R = 60;
-const INNER_OUTER_R = 130;
-const OUTER_OUTER_R = 230;
+const INNER_OUTER_R = 140;
+const OUTER_OUTER_R = 260;
+
+// Цвета слоёв — для обводки кольца и подписей
+const LAYER_FAMILY = '#059669';
+const LAYER_STRATEGY = '#7c3aed';
 
 interface SegmentDef {
   module: ModuleDetail;
@@ -204,51 +209,37 @@ function Segment({ seg, iconSize, fontSize, maxLen, onClick }: SegmentProps) {
   );
 }
 
-// Подпись слоя сбоку с линией-выноской к кольцу
+// Подпись слоя с выноской того же цвета, что и обводка кольца
 interface LayerLabelProps {
   label: string;
   sublabel?: string;
   color: string;
-  side: 'left' | 'right';
-  ringRadius: number; // радиус, к которому ведёт линия
-  y: number;
+  ringR: number; // средний радиус кольца — точка касания
+  angleDeg: number; // угол точки касания (0=право, 180=лево)
+  labelX: number; // абсолютный X подписи
 }
 
-function LayerLabel({ label, sublabel, color, side, ringRadius, y }: LayerLabelProps) {
-  const isRight = side === 'right';
-  // Точка касания на кольце
-  const dx = isRight ? ringRadius : -ringRadius;
-  const ringX = CX + dx * 0.3; // не строго на горизонтальной оси, чуть выше/ниже
-  const angleY = y - CY;
-  const r = ringRadius;
-  // Найдём точку на кольце для уровня y
-  const dyFromCenter = Math.max(-r * 0.7, Math.min(r * 0.7, angleY));
-  const angle = Math.asin(dyFromCenter / r);
-  const ringPointX = CX + (isRight ? 1 : -1) * r * Math.cos(angle);
-  const ringPointY = CY + dyFromCenter;
-
-  // Точка изгиба
-  const bendX = isRight ? CX + OUTER_OUTER_R + 30 : CX - OUTER_OUTER_R - 30;
-  const labelX = isRight ? CX + OUTER_OUTER_R + 40 : CX - OUTER_OUTER_R - 40;
-
-  void ringX;
+function LayerLabel({ label, sublabel, color, ringR, angleDeg, labelX }: LayerLabelProps) {
+  const angle = (angleDeg * Math.PI) / 180;
+  const sx = CX + ringR * Math.cos(angle);
+  const sy = CY + ringR * Math.sin(angle);
+  const isRight = Math.cos(angle) >= 0;
 
   return (
     <g>
       <path
-        d={`M ${ringPointX} ${ringPointY} L ${bendX} ${ringPointY} L ${bendX} ${y} L ${labelX} ${y}`}
+        d={`M ${sx} ${sy} L ${labelX} ${sy}`}
         fill="none"
         stroke={color}
-        strokeWidth={1.5}
+        strokeWidth={2}
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
-      <circle cx={ringPointX} cy={ringPointY} r={3} fill={color} />
+      <circle cx={sx} cy={sy} r={3.5} fill={color} />
       <text
-        x={labelX + (isRight ? 6 : -6)}
-        y={y - (sublabel ? 5 : 0)}
+        x={labelX + (isRight ? 8 : -8)}
+        y={sy - (sublabel ? 4 : 0)}
         textAnchor={isRight ? 'start' : 'end'}
-        fontSize={13}
+        fontSize={14}
         fontWeight={800}
         fill={color}
         fontFamily="system-ui"
@@ -258,13 +249,13 @@ function LayerLabel({ label, sublabel, color, side, ringRadius, y }: LayerLabelP
       </text>
       {sublabel && (
         <text
-          x={labelX + (isRight ? 6 : -6)}
-          y={y + 11}
+          x={labelX + (isRight ? 8 : -8)}
+          y={sy + 13}
           textAnchor={isRight ? 'start' : 'end'}
-          fontSize={10}
+          fontSize={11}
           fontWeight={500}
           fill={color}
-          opacity={0.75}
+          opacity={0.8}
           fontFamily="system-ui"
         >
           {sublabel}
@@ -338,33 +329,41 @@ export function CircularEcosystem() {
 
       <div className="flex justify-center">
         <svg
-          viewBox={`0 0 ${VB} ${VB}`}
-          className="w-full max-w-[720px] h-auto"
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          className="w-full max-w-[920px] h-auto"
           style={{ filter: 'drop-shadow(0 4px 16px rgba(168,85,247,0.15))' }}
         >
-          {/* Outer ring */}
+          {/* Outer ring сегменты */}
           {outerSegs.map((seg, i) => (
             <Segment
               key={`outer-${i}`}
               seg={seg}
-              iconSize={16}
-              fontSize={11}
+              iconSize={18}
+              fontSize={12}
               maxLen={11}
               onClick={() => handleClick(outerIds[i])}
             />
           ))}
 
-          {/* Inner ring */}
+          {/* Inner ring сегменты */}
           {innerSegs.map((seg, i) => (
             <Segment
               key={`inner-${i}`}
               seg={seg}
-              iconSize={13}
-              fontSize={10}
+              iconSize={15}
+              fontSize={11}
               maxLen={10}
               onClick={() => handleClick(innerIds[i])}
             />
           ))}
+
+          {/* Цветные граничные окружности слоёв */}
+          {/* Family OS: внутренняя и внешняя границы зелёным */}
+          <circle cx={CX} cy={CY} r={CENTER_R + 1} fill="none" stroke={LAYER_FAMILY} strokeWidth={2.5} opacity={0.9} />
+          <circle cx={CX} cy={CY} r={INNER_OUTER_R} fill="none" stroke={LAYER_FAMILY} strokeWidth={2.5} opacity={0.9} />
+          {/* Стратегия 615-р: внутренняя (рядом с Family OS) и внешняя — фиолетовым */}
+          <circle cx={CX} cy={CY} r={INNER_OUTER_R + 3} fill="none" stroke={LAYER_STRATEGY} strokeWidth={2.5} opacity={0.9} />
+          <circle cx={CX} cy={CY} r={OUTER_OUTER_R} fill="none" stroke={LAYER_STRATEGY} strokeWidth={2.5} opacity={0.9} />
 
           {/* Central logo */}
           <circle cx={CX} cy={CY} r={CENTER_R} fill="url(#centerGrad)" />
@@ -375,29 +374,29 @@ export function CircularEcosystem() {
             </linearGradient>
           </defs>
 
-          <text x={CX} y={CY - 8} textAnchor="middle" fontSize="15" fontWeight="800" fill="white">
+          <text x={CX} y={CY - 8} textAnchor="middle" fontSize="16" fontWeight="800" fill="white">
             Наша Семья
           </text>
           <text x={CX} y={CY + 10} textAnchor="middle" fontSize="10" fill="white" opacity="0.9">
             Family OS
           </text>
 
-          {/* Подписи слоёв слева/справа с линиями */}
+          {/* Подписи слоёв с выносками того же цвета */}
           <LayerLabel
             label="FAMILY OS"
             sublabel="Ядро · уже работает"
-            color="#059669"
-            side="left"
-            ringRadius={(CENTER_R + INNER_OUTER_R) / 2}
-            y={CY - 60}
+            color={LAYER_FAMILY}
+            ringR={INNER_OUTER_R}
+            angleDeg={180}
+            labelX={CX - OUTER_OUTER_R - 35}
           />
           <LayerLabel
             label="СТРАТЕГИЯ 615-р"
             sublabel="Модули до 2036"
-            color="#7c3aed"
-            side="right"
-            ringRadius={(INNER_OUTER_R + OUTER_OUTER_R) / 2}
-            y={CY - 60}
+            color={LAYER_STRATEGY}
+            ringR={OUTER_OUTER_R}
+            angleDeg={0}
+            labelX={CX + OUTER_OUTER_R + 35}
           />
         </svg>
       </div>
@@ -426,7 +425,7 @@ export function CircularEcosystem() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 1 · Круговая экосистема · Версия 2.5 от 06.05.2026
+        Слайд 1 · Круговая экосистема · Версия 2.6 от 06.05.2026
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />

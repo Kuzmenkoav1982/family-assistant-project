@@ -28,9 +28,10 @@ interface RingDef {
   maxLen: number;
 }
 
-const VB = 760;
-const CX = VB / 2;
-const CY = VB / 2;
+const VB_W = 980;
+const VB_H = 760;
+const CX = VB_W / 2;
+const CY = VB_H / 2;
 
 const ringFoundation: RingItem[] = [
   { name: 'Auth', icon: 'Lock', status: 'live' },
@@ -284,38 +285,31 @@ interface LayerLabelProps {
   color: string;
   ringR: number;
   angleDeg: number;
+  labelX: number;
 }
 
-function LayerLabel({ label, sublabel, color, ringR, angleDeg }: LayerLabelProps) {
+function LayerLabel({ label, sublabel, color, ringR, angleDeg, labelX }: LayerLabelProps) {
   const angle = (angleDeg * Math.PI) / 180;
   const sx = CX + ringR * Math.cos(angle);
   const sy = CY + ringR * Math.sin(angle);
-
-  const elbowR = 250;
-  const ex = CX + elbowR * Math.cos(angle);
-  const ey = CY + elbowR * Math.sin(angle);
-
   const isRight = Math.cos(angle) >= 0;
-  const labelX = isRight ? CX + 290 : CX - 290;
-  const labelY = ey;
+  const labelY = sy;
 
   return (
     <g>
       <path
-        d={`M ${sx} ${sy} L ${ex} ${ey} L ${labelX} ${labelY}`}
+        d={`M ${sx} ${sy} L ${labelX} ${labelY}`}
         fill="none"
         stroke={color}
-        strokeWidth={1.5}
+        strokeWidth={2}
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
-      <circle cx={sx} cy={sy} r={3} fill={color} />
-      <circle cx={labelX} cy={labelY} r={2} fill={color} />
+      <circle cx={sx} cy={sy} r={3.5} fill={color} />
       <text
-        x={labelX + (isRight ? 6 : -6)}
+        x={labelX + (isRight ? 8 : -8)}
         y={labelY - (sublabel ? 4 : 0)}
         textAnchor={isRight ? 'start' : 'end'}
-        fontSize={13}
+        fontSize={14}
         fontWeight={800}
         fill={color}
         fontFamily="system-ui"
@@ -325,13 +319,13 @@ function LayerLabel({ label, sublabel, color, ringR, angleDeg }: LayerLabelProps
       </text>
       {sublabel && (
         <text
-          x={labelX + (isRight ? 6 : -6)}
-          y={labelY + 11}
+          x={labelX + (isRight ? 8 : -8)}
+          y={labelY + 13}
           textAnchor={isRight ? 'start' : 'end'}
-          fontSize={10}
+          fontSize={11}
           fontWeight={500}
           fill={color}
-          opacity={0.75}
+          opacity={0.8}
           fontFamily="system-ui"
         >
           {sublabel}
@@ -354,11 +348,17 @@ export function CircularArchitecture() {
     }
   };
 
+  // Подписи слева/справа на разной высоте, чтобы не пересекались
+  // rings[0] = КАНАЛЫ (внешнее), rings[1] = СТРАТЕГИЯ, rings[2] = FAMILY OS, rings[3] = ФУНДАМЕНТ
+  const leftX = CX - 305;
+  const rightX = CX + 305;
   const labels = [
-    { ring: rings[3], angle: 155 },
-    { ring: rings[2], angle: 205 },
-    { ring: rings[1], angle: 335 },
-    { ring: rings[0], angle: 25 },
+    // Слева: ФУНДАМЕНТ (ниже) и FAMILY OS (выше)
+    { ring: rings[2], angle: 195, labelX: leftX },
+    { ring: rings[3], angle: 165, labelX: leftX },
+    // Справа: СТРАТЕГИЯ (выше) и КАНАЛЫ (ниже)
+    { ring: rings[1], angle: 345, labelX: rightX },
+    { ring: rings[0], angle: 15, labelX: rightX },
   ];
 
   return (
@@ -394,8 +394,8 @@ export function CircularArchitecture() {
 
       <div className="flex justify-center">
         <svg
-          viewBox={`0 0 ${VB} ${VB}`}
-          className="w-full max-w-[760px] h-auto"
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          className="w-full max-w-[980px] h-auto"
           style={{ filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.08))' }}
         >
           {rings.map((ring, ringIdx) => {
@@ -416,6 +416,31 @@ export function CircularArchitecture() {
             );
           })}
 
+          {/* Цветные граничные окружности — внутренняя и внешняя для каждого слоя.
+              На стыке двух слоёв линии стоят рядом — получается двойная граница. */}
+          {rings.map((ring, idx) => (
+            <g key={`b-${idx}`}>
+              <circle
+                cx={CX}
+                cy={CY}
+                r={ring.rIn}
+                fill="none"
+                stroke={ring.labelColor}
+                strokeWidth={2.5}
+                opacity={0.85}
+              />
+              <circle
+                cx={CX}
+                cy={CY}
+                r={ring.rOut}
+                fill="none"
+                stroke={ring.labelColor}
+                strokeWidth={2.5}
+                opacity={0.85}
+              />
+            </g>
+          ))}
+
           {labels.map((l, i) => (
             <LayerLabel
               key={i}
@@ -424,10 +449,11 @@ export function CircularArchitecture() {
               color={l.ring.labelColor}
               ringR={(l.ring.rIn + l.ring.rOut) / 2}
               angleDeg={l.angle}
+              labelX={l.labelX}
             />
           ))}
 
-          <circle cx={CX} cy={CY} r={45} fill="url(#archGrad)" />
+          <circle cx={CX} cy={CY} r={55} fill="url(#archGrad)" />
           <defs>
             <linearGradient id="archGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#9333ea" />
@@ -435,10 +461,10 @@ export function CircularArchitecture() {
             </linearGradient>
           </defs>
 
-          <text x={CX} y={CY - 6} textAnchor="middle" fontSize="11" fontWeight="800" fill="white">
+          <text x={CX} y={CY - 6} textAnchor="middle" fontSize="13" fontWeight="800" fill="white">
             Наша Семья
           </text>
-          <text x={CX} y={CY + 8} textAnchor="middle" fontSize="7" fill="white" opacity="0.9">
+          <text x={CX} y={CY + 9} textAnchor="middle" fontSize="9" fill="white" opacity="0.9">
             Family OS
           </text>
         </svg>
@@ -465,7 +491,7 @@ export function CircularArchitecture() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 2 · Круговая архитектура · 4 кольца · Версия 2.5
+        Слайд 2 · Круговая архитектура · 4 кольца · Версия 2.6
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />

@@ -10,6 +10,7 @@ import { SlideHubs } from '@/components/presentation/SlideHubs';
 import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
 import { CircularEcosystem } from '@/components/presentation/CircularEcosystem';
 import { CircularArchitecture } from '@/components/presentation/CircularArchitecture';
+import { SlideStrategyCards } from '@/components/presentation/SlideStrategyCards';
 import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
@@ -223,6 +224,7 @@ export default function Presentation() {
         <PresentationContentSections />
         <CircularEcosystem />
         <CircularArchitecture />
+        <SlideStrategyCards />
         <SlidePlatformBeforeAfter />
         <SlideHubs />
         <SlideEcosystem />
