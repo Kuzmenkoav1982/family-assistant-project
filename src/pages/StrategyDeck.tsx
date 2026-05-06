@@ -10,6 +10,8 @@ import { CircularEcosystem } from '@/components/presentation/CircularEcosystem';
 import { CircularArchitecture } from '@/components/presentation/CircularArchitecture';
 import { SlideStrategyCards } from '@/components/presentation/SlideStrategyCards';
 import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
+import { SlideAudienceMatrix } from '@/components/presentation/SlideAudienceMatrix';
+import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -247,6 +249,8 @@ export default function StrategyDeck() {
         <CircularArchitecture />
         <SlideStrategyCards />
         <SlideArchitectureCards />
+        <SlideAudienceMatrix />
+        <SlidePlatformBeforeAfter />
         <StrategyFooter />
       </div>
     </div>
