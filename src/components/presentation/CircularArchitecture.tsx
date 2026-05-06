@@ -489,11 +489,9 @@ export function CircularArchitecture() {
             );
           })}
 
-          {/* Толстая цветная обводка с белой "сердцевиной" — даёт чёткое разделение слоёв.
-              Сначала рисуем толстую цветную линию, поверх — тонкую белую — получается двойная граница. */}
+          {/* Толстые цветные обводки слоёв — внутренняя и внешняя окружности. */}
           {rings.map((ring, idx) => (
             <g key={`b-${idx}`}>
-              {/* Внутренняя окружность слоя */}
               <circle
                 cx={CX}
                 cy={CY}
@@ -505,27 +503,10 @@ export function CircularArchitecture() {
               <circle
                 cx={CX}
                 cy={CY}
-                r={ring.rIn}
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth={2.5}
-              />
-              {/* Внешняя окружность слоя */}
-              <circle
-                cx={CX}
-                cy={CY}
                 r={ring.rOut}
                 fill="none"
                 stroke={ring.labelColor}
                 strokeWidth={8}
-              />
-              <circle
-                cx={CX}
-                cy={CY}
-                r={ring.rOut}
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth={2.5}
               />
             </g>
           ))}
