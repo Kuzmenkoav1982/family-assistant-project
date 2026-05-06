@@ -182,16 +182,31 @@ function buildRing(items: RingItem[], rIn: number, rOut: number): SegmentDef[] {
   });
 }
 
-// Перенос названия на до 4 строк. Если одно слово длиннее maxLen — режем по слогам/буквам.
+// Перенос названия на до 4 строк. Слова стараемся не резать —
+// допускаем небольшое превышение maxLen, чтобы не отрывать одну букву.
 function wrapName(name: string, maxLen: number): string[] {
   const MAX_LINES = 4;
+  const HARD_LIMIT = maxLen + 4;
   const words = name.split(' ');
 
-  // Разбиваем длинные слова на куски длиной maxLen
+  // Разбиваем очень длинные слова: по дефису или по буквам
   const tokens: string[] = [];
   for (const w of words) {
-    if (w.length <= maxLen) {
+    if (w.length <= HARD_LIMIT) {
       tokens.push(w);
+    } else if (w.includes('-')) {
+      const parts = w.split('-');
+      let acc = '';
+      for (let i = 0; i < parts.length; i++) {
+        const piece = parts[i] + (i < parts.length - 1 ? '-' : '');
+        if ((acc + piece).length <= HARD_LIMIT) {
+          acc += piece;
+        } else {
+          if (acc) tokens.push(acc);
+          acc = piece;
+        }
+      }
+      if (acc) tokens.push(acc);
     } else {
       for (let i = 0; i < w.length; i += maxLen) {
         tokens.push(w.slice(i, i + maxLen));

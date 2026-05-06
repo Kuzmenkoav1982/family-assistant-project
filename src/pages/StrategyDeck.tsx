@@ -71,12 +71,24 @@ function StrategyTitleSlide() {
         архитектура платформы и план первого этапа — семьи военнослужащих и участников СВО.
       </p>
       <div className="flex flex-wrap gap-2 sm:gap-3">
-        <div className="bg-white/15 backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20">
+        <a
+          href="http://government.ru/docs/54573/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white/15 hover:bg-white/25 transition backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20 inline-flex items-center gap-1.5"
+        >
           Распоряжение № 615-р
-        </div>
-        <div className="bg-white/15 backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20">
+          <Icon name="ExternalLink" size={12} />
+        </a>
+        <a
+          href="https://национальныепроекты.рф/new-projects/semya/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white/15 hover:bg-white/25 transition backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20 inline-flex items-center gap-1.5"
+        >
           Нацпроект «Семья»
-        </div>
+          <Icon name="ExternalLink" size={12} />
+        </a>
         <div className="bg-white/15 backdrop-blur rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border border-white/20">
           Фокус: военнослужащие и СВО
         </div>

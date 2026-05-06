@@ -28,7 +28,7 @@ const afterAddedBlocks: Block[] = [
   { id: 'support-navigator', icon: 'Compass', title: 'Навигатор льгот', desc: 'Что положено семье' },
   { id: 'large-family', icon: 'Users', title: 'Кабинет многодетной', desc: 'Льготы 3+ детей' },
   { id: 'pregnancy', icon: 'HeartHandshake', title: 'Маршрут беременности', desc: 'Пути 0–12 мес' },
-  { id: 'case-manager', icon: 'GitBranch', title: 'Family Case Manager', desc: 'Жизненные сценарии' },
+  { id: 'case-manager', icon: 'GitBranch', title: 'Семейный координатор', desc: 'Жизненные сценарии' },
   { id: 'svo-family', icon: 'Shield', title: 'Семья СВО', desc: 'Особый режим' },
   { id: 'student-family', icon: 'GraduationCap', title: 'Студенческая семья', desc: 'Единое окно вуза' },
   { id: 'social-contract', icon: 'FileSignature', title: 'Соцконтракт', desc: 'Преодоление бедности' },

@@ -157,12 +157,12 @@ export const MODULES: Record<string, ModuleDetail> = {
     id: 'ai-assistant',
     name: 'AI-ассистент',
     icon: 'Sparkles',
-    status: 'dev',
+    status: 'live',
     shortDesc: 'Помощник по семье',
     fullDesc:
-      'Голосовой и текстовый AI-помощник семьи. Помогает планировать, напоминает, отвечает на вопросы по детям, здоровью, льготам.',
+      'Голосовой и текстовый AI-помощник семьи с интеграцией Алисы. Помогает планировать, напоминает, отвечает на вопросы по детям, здоровью, льготам.',
     audience: ['B2C'],
-    timeline: 'В разработке Q2 2026',
+    timeline: 'Работает',
   },
 
   // ============ СТРАТЕГИЧЕСКИЕ МОДУЛИ — DEV / PLANNED ============
@@ -219,7 +219,7 @@ export const MODULES: Record<string, ModuleDetail> = {
   },
   'case-manager': {
     id: 'case-manager',
-    name: 'Family Case Manager',
+    name: 'Семейный координатор',
     icon: 'GitBranch',
     status: 'planned',
     shortDesc: 'Жизненные сценарии',

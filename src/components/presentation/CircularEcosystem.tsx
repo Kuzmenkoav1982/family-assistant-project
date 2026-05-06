@@ -112,14 +112,39 @@ function buildRing(
   });
 }
 
-// Разбиваем название на до 4 строк, длинные слова режем по буквам
+// Разбиваем название на до 4 строк. Слова стараемся не резать —
+// допускаем небольшое превышение maxLen, чтобы не отрывать одну букву.
 function wrapName(name: string, maxLen: number): string[] {
   const MAX_LINES = 4;
+  // Допустимое превышение длины строки (чтобы слова не разрывались)
+  const HARD_LIMIT = maxLen + 4;
+
+  // Сначала разбиваем по пробелам
   const words = name.split(' ');
   const tokens: string[] = [];
   for (const w of words) {
-    if (w.length <= maxLen) tokens.push(w);
-    else for (let i = 0; i < w.length; i += maxLen) tokens.push(w.slice(i, i + maxLen));
+    if (w.length <= HARD_LIMIT) {
+      tokens.push(w);
+      continue;
+    }
+    // Если слово очень длинное и содержит дефис — режем по дефису, дефис остаётся в первой части
+    if (w.includes('-')) {
+      const parts = w.split('-');
+      let acc = '';
+      for (let i = 0; i < parts.length; i++) {
+        const piece = parts[i] + (i < parts.length - 1 ? '-' : '');
+        if ((acc + piece).length <= HARD_LIMIT) {
+          acc += piece;
+        } else {
+          if (acc) tokens.push(acc);
+          acc = piece;
+        }
+      }
+      if (acc) tokens.push(acc);
+    } else {
+      // Иначе режем грубо по символам
+      for (let i = 0; i < w.length; i += maxLen) tokens.push(w.slice(i, i + maxLen));
+    }
   }
   const lines: string[] = [];
   let cur = '';
