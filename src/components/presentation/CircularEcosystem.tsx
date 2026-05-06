@@ -416,30 +416,28 @@ export function CircularEcosystem() {
           <circle cx={CX} cy={CY} r={INNER_OUTER_R + 3} fill="none" stroke={LAYER_STRATEGY} strokeWidth={2.5} opacity={0.9} />
           <circle cx={CX} cy={CY} r={OUTER_OUTER_R} fill="none" stroke={LAYER_STRATEGY} strokeWidth={2.5} opacity={0.9} />
 
-          {/* Центр — оранжево-красный обод + логотип «7Я» (мама, папа, ребёнок и буквы 7Я) */}
-          <circle cx={CX} cy={CY + 5} r={CENTER_R + 2} fill="#000" opacity="0.22" />
-          <circle cx={CX} cy={CY} r={CENTER_R + 2} fill="url(#centerGrad)" stroke="#b91c1c" strokeWidth={2} />
-          <clipPath id="ecoLogoClip">
-            <circle cx={CX} cy={CY} r={CENTER_R - 4} />
-          </clipPath>
-          <image
-            href="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/caa57807-aab3-4c53-ade9-f3f978dbc7f9.jpeg"
-            x={CX - (CENTER_R - 4)}
-            y={CY - (CENTER_R - 4)}
-            width={(CENTER_R - 4) * 2}
-            height={(CENTER_R - 4) * 2}
-            clipPath="url(#ecoLogoClip)"
-            preserveAspectRatio="xMidYMid slice"
-          />
-          <ellipse
-            cx={CX}
-            cy={CY - CENTER_R * 0.45}
-            rx={CENTER_R * 0.55}
-            ry={CENTER_R * 0.18}
-            fill="white"
-            opacity="0.22"
-            clipPath="url(#ecoLogoClip)"
-          />
+          {/* Логотип «7Я» — большой, в центре, без "матрёшки". Тень + сама картинка */}
+          <defs>
+            <clipPath id="ecoLogoClip">
+              <circle cx={CX} cy={CY} r={CENTER_R} />
+            </clipPath>
+            <filter id="ecoLogoShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#b91c1c" floodOpacity="0.35" />
+            </filter>
+          </defs>
+          <g filter="url(#ecoLogoShadow)">
+            <circle cx={CX} cy={CY} r={CENTER_R} fill="#fff" />
+            <image
+              href="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1b0ac6ec-2228-436a-822c-157151c6c28f.jpeg"
+              x={CX - CENTER_R}
+              y={CY - CENTER_R}
+              width={CENTER_R * 2}
+              height={CENTER_R * 2}
+              clipPath="url(#ecoLogoClip)"
+              preserveAspectRatio="xMidYMid slice"
+            />
+            <circle cx={CX} cy={CY} r={CENTER_R} fill="none" stroke="#b91c1c" strokeWidth={2.5} />
+          </g>
 
           {/* Подписи слоёв с выносками */}
           <LayerLabel
