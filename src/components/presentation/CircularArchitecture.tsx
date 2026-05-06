@@ -44,8 +44,8 @@ const ringFoundation: RingItem[] = [
   { name: 'Functions', icon: 'Cloud', status: 'live' },
   { name: 'S3', icon: 'HardDrive', status: 'live' },
   { name: 'Push', icon: 'Bell', status: 'live' },
-  { name: '152-ФЗ', icon: 'ShieldCheck', status: 'dev' },
-  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'planned' },
+  { name: '152-ФЗ', icon: 'ShieldCheck', status: 'live' },
+  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'dev' },
   { name: 'Аналитика', icon: 'BarChart3', status: 'live' },
 ];
 
@@ -61,7 +61,7 @@ const ringCore: RingItem[] = [
   { name: 'Места', icon: 'MapPin', status: 'live', moduleId: 'places' },
   { name: 'Покупки', icon: 'ShoppingCart', status: 'live', moduleId: 'shopping' },
   { name: 'Альбом', icon: 'Image', status: 'live', moduleId: 'memories' },
-  { name: 'AI', icon: 'Sparkles', status: 'dev', moduleId: 'ai-assistant' },
+  { name: 'AI', icon: 'Sparkles', status: 'live', moduleId: 'ai-assistant' },
 ];
 
 const ringStrategy: RingItem[] = [
@@ -83,7 +83,7 @@ const ringChannels: RingItem[] = [
   { name: 'Госуслуги', icon: 'Landmark', status: 'planned' },
   { name: 'Соцказна', icon: 'Database', status: 'planned' },
   { name: 'Регион. ИС', icon: 'Network', status: 'planned', moduleId: 'region-api' },
-  { name: 'МАХ', icon: 'Send', status: 'dev' },
+  { name: 'МАХ', icon: 'Send', status: 'live' },
   { name: 'Web', icon: 'Globe', status: 'live' },
   { name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
   { name: 'HR-системы', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
@@ -94,7 +94,7 @@ const rings: RingDef[] = [
   {
     label: 'КАНАЛЫ',
     sublabel: 'Интеграции и B2B2C',
-    labelColor: '#2563eb',
+    labelColor: '#991b1b',
     rIn: 230,
     rOut: 290,
     items: ringChannels,
@@ -105,7 +105,7 @@ const rings: RingDef[] = [
   {
     label: 'СТРАТЕГИЯ 615-р',
     sublabel: 'Модули до 2036',
-    labelColor: '#7c3aed',
+    labelColor: '#ea580c',
     rIn: 175,
     rOut: 227,
     items: ringStrategy,
@@ -127,7 +127,7 @@ const rings: RingDef[] = [
   {
     label: 'ФУНДАМЕНТ',
     sublabel: 'Платформа · 152-ФЗ',
-    labelColor: '#475569',
+    labelColor: '#ca8a04',
     rIn: 70,
     rOut: 119,
     items: ringFoundation,
@@ -412,8 +412,10 @@ export function CircularArchitecture() {
   // Каждая выноска идёт от ВНЕШНЕГО контура (rOut) своего слоя — поэтому подпись
   // относится ко всему кольцу, а не к конкретной ячейке.
   // rings[0] = КАНАЛЫ (внешнее), rings[1] = СТРАТЕГИЯ, rings[2] = FAMILY OS, rings[3] = ФУНДАМЕНТ
-  const leftX = CX - 380;
-  const rightX = CX + 380;
+  // Подвинуты ближе к центру, чтобы длинная подпись «ЯДРО · НАША СЕМЬЯ»
+  // не упиралась в левый край viewBox (раньше обрезалась первая буква).
+  const leftX = CX - 355;
+  const rightX = CX + 355;
   const labels = [
     // Слева сверху вниз: FAMILY OS, ФУНДАМЕНТ
     { ring: rings[2], angle: 200, labelX: leftX },
