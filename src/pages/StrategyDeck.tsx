@@ -6,10 +6,9 @@ import Icon from '@/components/ui/icon';
 import { PresentationHeader } from '@/components/presentation/PresentationHeader';
 import { SlideGovFramework615 } from '@/components/presentation/SlideGovFramework615';
 import { SlideMilitaryFocus } from '@/components/presentation/SlideMilitaryFocus';
-import { CircularEcosystem } from '@/components/presentation/CircularEcosystem';
-import { CircularArchitecture } from '@/components/presentation/CircularArchitecture';
-import { SlideStrategyCards } from '@/components/presentation/SlideStrategyCards';
-import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
+import { CircularMatryoshka } from '@/components/presentation/CircularMatryoshka';
+import { SlideMatryoshkaAsk } from '@/components/presentation/SlideMatryoshkaAsk';
+import { MatryoshkaPrintCards } from '@/components/presentation/MatryoshkaPrintCards';
 import { SlideAudienceMatrix } from '@/components/presentation/SlideAudienceMatrix';
 import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
 
@@ -257,37 +256,9 @@ export default function StrategyDeck() {
         <StrategyTitleSlide />
         <SlideGovFramework615 />
         <SlideMilitaryFocus />
-        <CircularEcosystem />
-        <CircularArchitecture />
-
-        <a
-          href="/matryoshka"
-          className="block group my-6 rounded-3xl overflow-hidden shadow-xl border border-amber-200 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 hover:shadow-2xl transition-shadow"
-        >
-          <div className="p-6 sm:p-8 text-white flex items-center gap-5 sm:gap-6">
-            <div className="bg-white/20 backdrop-blur p-3 sm:p-4 rounded-2xl flex-shrink-0">
-              <Icon name="Crown" size={32} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs uppercase tracking-wider text-amber-100 mb-1">
-                Альтернативная карта · версия для инвестора
-              </p>
-              <h3 className="text-xl sm:text-2xl font-bold mb-1">
-                Ценностная матрёшка: 809 → 615-р → продукт → каналы
-              </h3>
-              <p className="text-sm text-amber-50/90 leading-relaxed">
-                Открыть отдельную презентацию: ценности Указа № 809 в центре, ядро вокруг,
-                Стратегия 615-р и каналы государства.
-              </p>
-            </div>
-            <div className="flex-shrink-0 group-hover:translate-x-1 transition-transform">
-              <Icon name="ArrowRight" size={28} />
-            </div>
-          </div>
-        </a>
-
-        <SlideStrategyCards />
-        <SlideArchitectureCards />
+        <CircularMatryoshka />
+        <SlideMatryoshkaAsk />
+        <MatryoshkaPrintCards />
         <SlideAudienceMatrix />
         <SlidePlatformBeforeAfter />
         <StrategyFooter />

@@ -329,7 +329,7 @@ export function CircularEcosystem() {
       <div className="text-center mb-5">
         <div className="inline-flex items-center gap-2 bg-purple-100 px-3 py-1 rounded-full mb-3">
           <Icon name="LayoutGrid" size={14} className="text-purple-600" />
-          <span className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Экосистема платформы</span>
+          <span className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Архитектура платформы</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
           «Наша Семья» — карта продукта

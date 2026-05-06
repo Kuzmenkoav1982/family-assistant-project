@@ -36,7 +36,7 @@ const afterAddedBlocks: Block[] = [
   { id: 'nannies', icon: 'UserCheck', title: 'Каталог нянь', desc: 'Проверенные специалисты' },
   { id: 'after-school', icon: 'BookOpen', title: 'Продлёнка 1–4', desc: 'KPI 17,6% к 2030' },
   { id: 'mediation', icon: 'Handshake', title: 'Медиация', desc: 'Профилактика разводов' },
-  { id: 'b2b2c', icon: 'Building2', title: 'B2B2C', desc: 'Family-benefit' },
+  { id: 'b2b2c', icon: 'Building2', title: 'B2B2C', desc: 'Корпоративная семейная программа' },
   { id: 'region-api', icon: 'Network', title: 'API регионам', desc: 'Соцказначейство' },
   { id: 'compatriots', icon: 'Globe', title: 'Соотечественники', desc: 'Адаптация' },
   { id: 'tourism', icon: 'Mountain', title: 'Семейный туризм', desc: 'Маршруты по РФ' },

@@ -841,9 +841,14 @@ export function CircularMatryoshka() {
               </div>
               <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded">
                 <p className="text-[11px] font-semibold text-amber-800 uppercase tracking-wider mb-1">
-                  Источник
+                  Цитата из Указа
                 </p>
-                <p className="text-xs text-amber-900 italic">{selectedValue.citation}</p>
+                <p className="text-xs text-amber-900 italic leading-relaxed">
+                  {selectedValue.citation}
+                </p>
+                <p className="text-[10px] text-amber-700 mt-1.5 not-italic font-medium">
+                  — {selectedValue.citationSource}
+                </p>
               </div>
               <button
                 onClick={() => setValueOpen(false)}

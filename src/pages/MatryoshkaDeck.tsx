@@ -5,6 +5,11 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import { PresentationHeader } from '@/components/presentation/PresentationHeader';
 import { CircularMatryoshka } from '@/components/presentation/CircularMatryoshka';
+import { SlideGovFramework615 } from '@/components/presentation/SlideGovFramework615';
+import { SlideMilitaryFocus } from '@/components/presentation/SlideMilitaryFocus';
+import { SlideMatryoshkaAsk } from '@/components/presentation/SlideMatryoshkaAsk';
+import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
+import { MatryoshkaPrintCards } from '@/components/presentation/MatryoshkaPrintCards';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -330,8 +335,13 @@ export default function MatryoshkaDeck() {
         className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16"
       >
         <MatryoshkaTitleSlide />
+        <SlideGovFramework615 />
         <CircularMatryoshka />
         <MatryoshkaLegend />
+        <SlideMatryoshkaAsk />
+        <SlideMilitaryFocus />
+        <MatryoshkaPrintCards />
+        <SlidePlatformBeforeAfter />
         <MatryoshkaFooter />
       </div>
     </div>

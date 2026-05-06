@@ -9,7 +9,7 @@ export function SlideMilitaryFocus() {
           <Icon name="Shield" size={28} className="text-white hidden sm:block" />
         </div>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-          Фокус первого этапа: военнослужащие и участники СВО
+          Пилотный сегмент первого этапа: семьи военнослужащих и участников СВО
         </h2>
       </div>
 
@@ -32,7 +32,7 @@ export function SlideMilitaryFocus() {
             <li>• Высокая концентрация мер поддержки в одной аудитории</li>
             <li>• Сплочённое и понятное сообщество — быстрее «сарафан»</li>
             <li>• Острая потребность в информировании и координации</li>
-            <li>• Простой путь к B2G-контрактам через регионы</li>
+            <li>• Понятная дорожка к региональным пилотам и B2G-взаимодействию</li>
           </ul>
         </div>
 
@@ -61,7 +61,7 @@ export function SlideMilitaryFocus() {
             { icon: 'Compass', text: 'Навигатор мер поддержки — что положено именно вам' },
             { icon: 'UserCheck', text: 'Кабинет участника СВО и его семьи' },
             { icon: 'Users', text: 'Единый профиль семьи — все документы в одном месте' },
-            { icon: 'HeartHandshake', text: 'AI-психолог и сопровождение в особых ситуациях' },
+            { icon: 'HeartHandshake', text: 'Цифровые сценарии психологической поддержки и сопровождения в особых ситуациях' },
             { icon: 'Baby', text: 'Маршрут беременности 0–12 мес и помощь по детям' },
             { icon: 'GraduationCap', text: 'Организация учёбы и кружков для школьников' },
           ].map((item, i) => (
@@ -76,13 +76,14 @@ export function SlideMilitaryFocus() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200 mb-5">
         <h3 className="font-bold text-blue-900 text-sm mb-3 flex items-center gap-2">
           <Icon name="Building2" size={18} className="text-blue-700" />
-          Стратегический партнёр — оборонный банк
+          Приоритетная гипотеза партнёрства
         </h3>
         <p className="text-xs text-blue-900 leading-relaxed">
-          Естественный финансовый партнёр для первого этапа — <strong>оборонный банк</strong>, для которого
-          военнослужащие и участники СВО являются ключевой клиентской группой и стратегическим приоритетом.
-          Совмещение нашей экосистемы и его клиентской базы даёт быстрый запуск, доверие аудитории
-          и прямой канал доставки мер поддержки.
+          Приоритетный канал партнёрства для первого этапа — <strong>крупный банк с высокой
+          концентрацией клиентской базы военнослужащих и участников СВО</strong>, для которого
+          эта группа является стратегическим приоритетом. Совмещение архитектуры платформы и
+          его клиентской базы даёт быстрый запуск, доверие аудитории и прямой канал доставки
+          мер поддержки.
         </p>
       </div>
 
@@ -109,7 +110,7 @@ export function SlideMilitaryFocus() {
               num: '3',
               color: 'bg-emerald-500',
               title: 'Все семьи РФ',
-              desc: 'Выход на B2C / B2B2C — работодатели, family-benefit',
+              desc: 'Выход на B2C / B2B2C — работодатели, корпоративные семейные программы',
             },
           ].map((step, i) => (
             <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
