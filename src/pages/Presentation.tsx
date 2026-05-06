@@ -12,6 +12,7 @@ import { CircularEcosystem } from '@/components/presentation/CircularEcosystem';
 import { CircularArchitecture } from '@/components/presentation/CircularArchitecture';
 import { SlideStrategyCards } from '@/components/presentation/SlideStrategyCards';
 import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
+import { SlideAudienceMatrix } from '@/components/presentation/SlideAudienceMatrix';
 import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
@@ -227,6 +228,7 @@ export default function Presentation() {
         <CircularArchitecture />
         <SlideStrategyCards />
         <SlideArchitectureCards />
+        <SlideAudienceMatrix />
         <SlidePlatformBeforeAfter />
         <SlideHubs />
         <SlideEcosystem />
