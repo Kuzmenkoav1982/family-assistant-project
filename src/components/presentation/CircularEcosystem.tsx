@@ -43,8 +43,10 @@ const outerIds = [
   'compatriots',
 ];
 
-const CX = 250;
-const CY = 250;
+// Размер viewBox увеличен, чтобы поместились внешние подписи слоёв
+const VB = 700;
+const CX = VB / 2;
+const CY = VB / 2;
 const CENTER_R = 60;
 const INNER_OUTER_R = 130;
 const OUTER_OUTER_R = 230;
@@ -57,7 +59,6 @@ interface SegmentDef {
   textX: number;
   textY: number;
   deg: number;
-  isClickable: boolean;
 }
 
 function buildRing(
@@ -98,33 +99,54 @@ function buildRing(
     }
 
     const module = MODULES[id];
-    return {
-      module,
-      d,
-      iconX,
-      iconY,
-      textX,
-      textY,
-      deg,
-      isClickable: !!module,
-    };
+    return { module, d, iconX, iconY, textX, textY, deg };
   });
+}
+
+// Разбиваем название на 1–3 строки, длинные слова сокращаем
+function wrapName(name: string, maxLen: number): string[] {
+  const words = name.split(' ');
+  if (words.length === 1) {
+    return [name.length > maxLen ? name.slice(0, maxLen - 1) + '…' : name];
+  }
+  // Жадно собираем строки длиной ~maxLen
+  const lines: string[] = [];
+  let cur = '';
+  for (const w of words) {
+    if (!cur) {
+      cur = w;
+    } else if ((cur + ' ' + w).length <= maxLen) {
+      cur += ' ' + w;
+    } else {
+      lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  // Максимум 3 строки
+  if (lines.length > 3) {
+    const last = lines.slice(2).join(' ');
+    lines.length = 2;
+    lines.push(last.length > maxLen ? last.slice(0, maxLen - 1) + '…' : last);
+  }
+  return lines;
 }
 
 interface SegmentProps {
   seg: SegmentDef;
   iconSize: number;
   fontSize: number;
+  maxLen: number;
   onClick: () => void;
 }
 
-function Segment({ seg, iconSize, fontSize, onClick }: SegmentProps) {
+function Segment({ seg, iconSize, fontSize, maxLen, onClick }: SegmentProps) {
   const [hover, setHover] = useState(false);
   const config = STATUS_FILL[seg.module.status];
-
-  // Перенос названия по словам в 1-2 строки
-  const words = seg.module.name.split(' ');
-  const showTwoLines = words.length > 1 && seg.module.name.length > 11;
+  const lines = wrapName(seg.module.name, maxLen);
+  const lineHeight = fontSize * 1.05;
+  const totalHeight = lines.length * lineHeight;
+  const startY = seg.textY - totalHeight / 2 + lineHeight / 2;
 
   return (
     <g
@@ -141,7 +163,6 @@ function Segment({ seg, iconSize, fontSize, onClick }: SegmentProps) {
         style={{ transition: 'fill 0.2s' }}
       />
 
-      {/* Иконка */}
       <foreignObject
         x={seg.iconX - iconSize / 2}
         y={seg.iconY - iconSize / 2}
@@ -163,7 +184,6 @@ function Segment({ seg, iconSize, fontSize, onClick }: SegmentProps) {
         </div>
       </foreignObject>
 
-      {/* Текст */}
       <text
         textAnchor="middle"
         dominantBaseline="middle"
@@ -174,21 +194,82 @@ function Segment({ seg, iconSize, fontSize, onClick }: SegmentProps) {
         transform={`rotate(${seg.deg}, ${seg.textX}, ${seg.textY})`}
         style={{ pointerEvents: 'none' }}
       >
-        {showTwoLines ? (
-          <>
-            <tspan x={seg.textX} y={seg.textY - fontSize * 0.55}>
-              {words[0]}
-            </tspan>
-            <tspan x={seg.textX} y={seg.textY + fontSize * 0.55}>
-              {words.slice(1).join(' ')}
-            </tspan>
-          </>
-        ) : (
-          <tspan x={seg.textX} y={seg.textY}>
-            {seg.module.name}
+        {lines.map((line, idx) => (
+          <tspan key={idx} x={seg.textX} y={startY + idx * lineHeight}>
+            {line}
           </tspan>
-        )}
+        ))}
       </text>
+    </g>
+  );
+}
+
+// Подпись слоя сбоку с линией-выноской к кольцу
+interface LayerLabelProps {
+  label: string;
+  sublabel?: string;
+  color: string;
+  side: 'left' | 'right';
+  ringRadius: number; // радиус, к которому ведёт линия
+  y: number;
+}
+
+function LayerLabel({ label, sublabel, color, side, ringRadius, y }: LayerLabelProps) {
+  const isRight = side === 'right';
+  // Точка касания на кольце
+  const dx = isRight ? ringRadius : -ringRadius;
+  const ringX = CX + dx * 0.3; // не строго на горизонтальной оси, чуть выше/ниже
+  const angleY = y - CY;
+  const r = ringRadius;
+  // Найдём точку на кольце для уровня y
+  const dyFromCenter = Math.max(-r * 0.7, Math.min(r * 0.7, angleY));
+  const angle = Math.asin(dyFromCenter / r);
+  const ringPointX = CX + (isRight ? 1 : -1) * r * Math.cos(angle);
+  const ringPointY = CY + dyFromCenter;
+
+  // Точка изгиба
+  const bendX = isRight ? CX + OUTER_OUTER_R + 30 : CX - OUTER_OUTER_R - 30;
+  const labelX = isRight ? CX + OUTER_OUTER_R + 40 : CX - OUTER_OUTER_R - 40;
+
+  void ringX;
+
+  return (
+    <g>
+      <path
+        d={`M ${ringPointX} ${ringPointY} L ${bendX} ${ringPointY} L ${bendX} ${y} L ${labelX} ${y}`}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx={ringPointX} cy={ringPointY} r={3} fill={color} />
+      <text
+        x={labelX + (isRight ? 6 : -6)}
+        y={y - (sublabel ? 5 : 0)}
+        textAnchor={isRight ? 'start' : 'end'}
+        fontSize={13}
+        fontWeight={800}
+        fill={color}
+        fontFamily="system-ui"
+        letterSpacing={0.5}
+      >
+        {label}
+      </text>
+      {sublabel && (
+        <text
+          x={labelX + (isRight ? 6 : -6)}
+          y={y + 11}
+          textAnchor={isRight ? 'start' : 'end'}
+          fontSize={10}
+          fontWeight={500}
+          fill={color}
+          opacity={0.75}
+          fontFamily="system-ui"
+        >
+          {sublabel}
+        </text>
+      )}
     </g>
   );
 }
@@ -205,22 +286,20 @@ export function CircularEcosystem() {
     }
   };
 
-  // Outer ring: внешнее кольцо — 615-р
   const outerSegs = buildRing(
     outerIds,
     INNER_OUTER_R + 3,
     OUTER_OUTER_R,
-    INNER_OUTER_R + 22, // иконка ближе к внутреннему краю
-    (INNER_OUTER_R + OUTER_OUTER_R) / 2 + 12, // текст по центру + сдвиг наружу
+    INNER_OUTER_R + 22,
+    (INNER_OUTER_R + OUTER_OUTER_R) / 2 + 12,
   );
 
-  // Inner ring: внутреннее — Family OS
   const innerSegs = buildRing(
     innerIds,
     CENTER_R + 3,
     INNER_OUTER_R,
-    CENTER_R + 18, // иконка ближе к центру
-    (CENTER_R + INNER_OUTER_R) / 2 + 10, // текст по центру + сдвиг наружу
+    CENTER_R + 18,
+    (CENTER_R + INNER_OUTER_R) / 2 + 10,
   );
 
   return (
@@ -242,7 +321,6 @@ export function CircularEcosystem() {
         </p>
       </div>
 
-      {/* Легенда */}
       <div className="flex flex-wrap justify-center gap-3 mb-5">
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -258,11 +336,10 @@ export function CircularEcosystem() {
         </div>
       </div>
 
-      {/* Круговая схема */}
       <div className="flex justify-center">
         <svg
-          viewBox="0 0 500 500"
-          className="w-full max-w-[560px] h-auto"
+          viewBox={`0 0 ${VB} ${VB}`}
+          className="w-full max-w-[720px] h-auto"
           style={{ filter: 'drop-shadow(0 4px 16px rgba(168,85,247,0.15))' }}
         >
           {/* Outer ring */}
@@ -272,6 +349,7 @@ export function CircularEcosystem() {
               seg={seg}
               iconSize={16}
               fontSize={11}
+              maxLen={11}
               onClick={() => handleClick(outerIds[i])}
             />
           ))}
@@ -281,8 +359,9 @@ export function CircularEcosystem() {
             <Segment
               key={`inner-${i}`}
               seg={seg}
-              iconSize={14}
+              iconSize={13}
               fontSize={10}
+              maxLen={10}
               onClick={() => handleClick(innerIds[i])}
             />
           ))}
@@ -294,31 +373,32 @@ export function CircularEcosystem() {
               <stop offset="0%" stopColor="#9333ea" />
               <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
-            <filter id="centerShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#00000030" />
-            </filter>
           </defs>
 
-          <text x={CX} y={CY - 8} textAnchor="middle" fontSize="14" fontWeight="800" fill="white">
+          <text x={CX} y={CY - 8} textAnchor="middle" fontSize="15" fontWeight="800" fill="white">
             Наша Семья
           </text>
-          <text x={CX} y={CY + 10} textAnchor="middle" fontSize="9" fill="white" opacity="0.9">
+          <text x={CX} y={CY + 10} textAnchor="middle" fontSize="10" fill="white" opacity="0.9">
             Family OS
           </text>
 
-          {/* Метка кольца сверху */}
-          <text
-            x={CX}
-            y={20}
-            textAnchor="middle"
-            fontSize="11"
-            fontWeight="700"
-            fill="#7c3aed"
-            fontFamily="system-ui"
-            letterSpacing="1.5"
-          >
-            СТРАТЕГИЯ 615-р · ДО 2036
-          </text>
+          {/* Подписи слоёв слева/справа с линиями */}
+          <LayerLabel
+            label="FAMILY OS"
+            sublabel="Ядро · уже работает"
+            color="#059669"
+            side="left"
+            ringRadius={(CENTER_R + INNER_OUTER_R) / 2}
+            y={CY - 60}
+          />
+          <LayerLabel
+            label="СТРАТЕГИЯ 615-р"
+            sublabel="Модули до 2036"
+            color="#7c3aed"
+            side="right"
+            ringRadius={(INNER_OUTER_R + OUTER_OUTER_R) / 2}
+            y={CY - 60}
+          />
         </svg>
       </div>
 
@@ -327,7 +407,6 @@ export function CircularEcosystem() {
         Нажмите на любой сектор — откроется карточка с цитатой Стратегии и KPI
       </p>
 
-      {/* Каналы */}
       <div className="grid grid-cols-3 gap-2 mt-5">
         <div className="bg-white border border-blue-200 rounded-xl p-3 text-center">
           <Icon name="User" size={16} className="text-blue-600 mx-auto mb-1" />
@@ -347,7 +426,7 @@ export function CircularEcosystem() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 1 · Круговая экосистема · Версия 2.4 от 06.05.2026
+        Слайд 1 · Круговая экосистема · Версия 2.5 от 06.05.2026
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />

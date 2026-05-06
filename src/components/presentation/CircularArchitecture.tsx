@@ -10,7 +10,6 @@ const STATUS_FILL: Record<ModuleStatus, { fill: string; hover: string; stroke: s
 };
 
 interface RingItem {
-  id: string;
   name: string;
   icon: string;
   status: ModuleStatus;
@@ -19,109 +18,116 @@ interface RingItem {
 
 interface RingDef {
   label: string;
+  sublabel?: string;
   labelColor: string;
   rIn: number;
   rOut: number;
   items: RingItem[];
   fontSize: number;
   iconSize: number;
+  maxLen: number;
 }
 
-const CX = 250;
-const CY = 250;
+const VB = 760;
+const CX = VB / 2;
+const CY = VB / 2;
 
 const ringFoundation: RingItem[] = [
-  { id: 'auth', name: 'Auth', icon: 'Lock', status: 'live' },
-  { id: 'pg', name: 'PostgreSQL', icon: 'Database', status: 'live' },
-  { id: 'cf', name: 'Functions', icon: 'Cloud', status: 'live' },
-  { id: 's3', name: 'S3', icon: 'HardDrive', status: 'live' },
-  { id: 'push', name: 'Push', icon: 'Bell', status: 'live' },
-  { id: 'pdn', name: '152-ФЗ', icon: 'ShieldCheck', status: 'dev' },
-  { id: 'reestr', name: 'Реестр ПО', icon: 'BadgeCheck', status: 'planned' },
-  { id: 'analytics', name: 'Аналитика', icon: 'BarChart3', status: 'live' },
+  { name: 'Auth', icon: 'Lock', status: 'live' },
+  { name: 'PostgreSQL', icon: 'Database', status: 'live' },
+  { name: 'Functions', icon: 'Cloud', status: 'live' },
+  { name: 'S3', icon: 'HardDrive', status: 'live' },
+  { name: 'Push', icon: 'Bell', status: 'live' },
+  { name: '152-ФЗ', icon: 'ShieldCheck', status: 'dev' },
+  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'planned' },
+  { name: 'Аналитика', icon: 'BarChart3', status: 'live' },
 ];
 
 const ringCore: RingItem[] = [
-  { id: 'family-tree', name: 'Древо', icon: 'TreeDeciduous', status: 'live', moduleId: 'family-tree' },
-  { id: 'calendar', name: 'Календарь', icon: 'Calendar', status: 'live', moduleId: 'calendar' },
-  { id: 'tasks', name: 'Задачи', icon: 'CheckSquare', status: 'live', moduleId: 'tasks' },
-  { id: 'budget', name: 'Бюджет', icon: 'Wallet', status: 'live', moduleId: 'budget' },
-  { id: 'chat', name: 'Чат', icon: 'MessageCircle', status: 'live', moduleId: 'chat' },
-  { id: 'children', name: 'Дети', icon: 'Baby', status: 'live', moduleId: 'children' },
-  { id: 'health', name: 'Здоровье', icon: 'HeartPulse', status: 'live', moduleId: 'health' },
-  { id: 'docs', name: 'Документы', icon: 'FileText', status: 'live', moduleId: 'documents' },
-  { id: 'places', name: 'Места', icon: 'MapPin', status: 'live', moduleId: 'places' },
-  { id: 'shop', name: 'Покупки', icon: 'ShoppingCart', status: 'live', moduleId: 'shopping' },
-  { id: 'mem', name: 'Воспоминания', icon: 'Image', status: 'live', moduleId: 'memories' },
-  { id: 'ai', name: 'AI', icon: 'Sparkles', status: 'dev', moduleId: 'ai-assistant' },
+  { name: 'Древо', icon: 'TreeDeciduous', status: 'live', moduleId: 'family-tree' },
+  { name: 'Календарь', icon: 'Calendar', status: 'live', moduleId: 'calendar' },
+  { name: 'Задачи', icon: 'CheckSquare', status: 'live', moduleId: 'tasks' },
+  { name: 'Бюджет', icon: 'Wallet', status: 'live', moduleId: 'budget' },
+  { name: 'Чат', icon: 'MessageCircle', status: 'live', moduleId: 'chat' },
+  { name: 'Дети', icon: 'Baby', status: 'live', moduleId: 'children' },
+  { name: 'Здоровье', icon: 'HeartPulse', status: 'live', moduleId: 'health' },
+  { name: 'Документы', icon: 'FileText', status: 'live', moduleId: 'documents' },
+  { name: 'Места', icon: 'MapPin', status: 'live', moduleId: 'places' },
+  { name: 'Покупки', icon: 'ShoppingCart', status: 'live', moduleId: 'shopping' },
+  { name: 'Альбом', icon: 'Image', status: 'live', moduleId: 'memories' },
+  { name: 'AI', icon: 'Sparkles', status: 'dev', moduleId: 'ai-assistant' },
 ];
 
 const ringStrategy: RingItem[] = [
-  { id: 'sn', name: 'Навигатор льгот', icon: 'Compass', status: 'dev', moduleId: 'support-navigator' },
-  { id: 'lf', name: 'Многодетная', icon: 'Users', status: 'dev', moduleId: 'large-family' },
-  { id: 'pr', name: 'Беременность', icon: 'HeartHandshake', status: 'dev', moduleId: 'pregnancy' },
-  { id: 'cm', name: 'Case Manager', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
-  { id: 'svo', name: 'Семья СВО', icon: 'Shield', status: 'planned', moduleId: 'svo-family' },
-  { id: 'st', name: 'Студ. семья', icon: 'GraduationCap', status: 'planned', moduleId: 'student-family' },
-  { id: 'sc', name: 'Соцконтракт', icon: 'FileSignature', status: 'planned', moduleId: 'social-contract' },
-  { id: 'zo', name: 'ЗОЖ', icon: 'Activity', status: 'planned', moduleId: 'zog' },
-  { id: 'na', name: 'Няни', icon: 'UserCheck', status: 'planned', moduleId: 'nannies' },
-  { id: 're', name: 'Прокат', icon: 'Package', status: 'planned', moduleId: 'rental' },
-  { id: 'as', name: 'Продлёнка', icon: 'BookOpen', status: 'planned', moduleId: 'after-school' },
-  { id: 'me', name: 'Медиация', icon: 'Handshake', status: 'planned', moduleId: 'mediation' },
+  { name: 'Навигатор льгот', icon: 'Compass', status: 'dev', moduleId: 'support-navigator' },
+  { name: 'Многодетная', icon: 'Users', status: 'dev', moduleId: 'large-family' },
+  { name: 'Беременность', icon: 'HeartHandshake', status: 'dev', moduleId: 'pregnancy' },
+  { name: 'Case Manager', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
+  { name: 'Семья СВО', icon: 'Shield', status: 'planned', moduleId: 'svo-family' },
+  { name: 'Студ. семья', icon: 'GraduationCap', status: 'planned', moduleId: 'student-family' },
+  { name: 'Соцконтракт', icon: 'FileSignature', status: 'planned', moduleId: 'social-contract' },
+  { name: 'ЗОЖ', icon: 'Activity', status: 'planned', moduleId: 'zog' },
+  { name: 'Няни', icon: 'UserCheck', status: 'planned', moduleId: 'nannies' },
+  { name: 'Прокат', icon: 'Package', status: 'planned', moduleId: 'rental' },
+  { name: 'Продлёнка', icon: 'BookOpen', status: 'planned', moduleId: 'after-school' },
+  { name: 'Медиация', icon: 'Handshake', status: 'planned', moduleId: 'mediation' },
 ];
 
 const ringChannels: RingItem[] = [
-  { id: 'gosuslugi', name: 'Госуслуги', icon: 'Landmark', status: 'planned' },
-  { id: 'soccaz', name: 'Соцказна', icon: 'Database', status: 'planned' },
-  { id: 'regis', name: 'Регион. ИС', icon: 'Network', status: 'planned', moduleId: 'region-api' },
-  { id: 'tg', name: 'Telegram', icon: 'Send', status: 'dev' },
-  { id: 'web', name: 'Web', icon: 'Globe', status: 'live' },
-  { id: 'api', name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
-  { id: 'hr', name: 'HR-системы', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
-  { id: 'turism', name: 'Туризм', icon: 'Mountain', status: 'planned', moduleId: 'tourism' },
+  { name: 'Госуслуги', icon: 'Landmark', status: 'planned' },
+  { name: 'Соцказна', icon: 'Database', status: 'planned' },
+  { name: 'Регион. ИС', icon: 'Network', status: 'planned', moduleId: 'region-api' },
+  { name: 'Telegram', icon: 'Send', status: 'dev' },
+  { name: 'Web', icon: 'Globe', status: 'live' },
+  { name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
+  { name: 'HR-системы', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
+  { name: 'Туризм', icon: 'Mountain', status: 'planned', moduleId: 'tourism' },
 ];
 
 const rings: RingDef[] = [
-  // Внешнее: каналы и интеграции
   {
-    label: 'КАНАЛЫ И ИНТЕГРАЦИИ',
+    label: 'КАНАЛЫ',
+    sublabel: 'Интеграции и B2B2C',
     labelColor: '#2563eb',
     rIn: 195,
     rOut: 240,
     items: ringChannels,
-    fontSize: 10,
+    fontSize: 11,
     iconSize: 14,
+    maxLen: 12,
   },
-  // Стратегические модули по 615-р
   {
-    label: 'СТРАТЕГИЯ 615-р · МОДУЛИ ДО 2036',
+    label: 'СТРАТЕГИЯ 615-р',
+    sublabel: 'Модули до 2036',
     labelColor: '#7c3aed',
     rIn: 150,
     rOut: 192,
     items: ringStrategy,
-    fontSize: 9,
+    fontSize: 10,
     iconSize: 13,
+    maxLen: 11,
   },
-  // Family OS — ядро
   {
-    label: 'FAMILY OS · ЯДРО',
+    label: 'FAMILY OS',
+    sublabel: 'Ядро · уже работает',
     labelColor: '#059669',
     rIn: 105,
     rOut: 147,
     items: ringCore,
-    fontSize: 9,
+    fontSize: 10,
     iconSize: 13,
+    maxLen: 10,
   },
-  // Платформенный фундамент
   {
-    label: 'ПЛАТФОРМЕННЫЙ ФУНДАМЕНТ',
+    label: 'ФУНДАМЕНТ',
+    sublabel: 'Платформа · 152-ФЗ',
     labelColor: '#475569',
     rIn: 60,
     rOut: 102,
     items: ringFoundation,
-    fontSize: 8,
+    fontSize: 9,
     iconSize: 12,
+    maxLen: 10,
   },
 ];
 
@@ -170,23 +176,51 @@ function buildRing(items: RingItem[], rIn: number, rOut: number): SegmentDef[] {
   });
 }
 
+function wrapName(name: string, maxLen: number): string[] {
+  const words = name.split(' ');
+  if (words.length === 1) {
+    return [name.length > maxLen ? name.slice(0, maxLen - 1) + '…' : name];
+  }
+  const lines: string[] = [];
+  let cur = '';
+  for (const w of words) {
+    if (!cur) cur = w;
+    else if ((cur + ' ' + w).length <= maxLen) cur += ' ' + w;
+    else {
+      lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > 3) {
+    const last = lines.slice(2).join(' ');
+    lines.length = 2;
+    lines.push(last.length > maxLen ? last.slice(0, maxLen - 1) + '…' : last);
+  }
+  return lines;
+}
+
 function Segment({
   seg,
   iconSize,
   fontSize,
+  maxLen,
   onClick,
 }: {
   seg: SegmentDef;
   iconSize: number;
   fontSize: number;
+  maxLen: number;
   onClick: () => void;
 }) {
   const [hover, setHover] = useState(false);
   const config = STATUS_FILL[seg.item.status];
   const isClickable = !!seg.item.moduleId;
 
-  const words = seg.item.name.split(' ');
-  const showTwoLines = words.length > 1 && seg.item.name.length > 10;
+  const lines = wrapName(seg.item.name, maxLen);
+  const lineHeight = fontSize * 1.05;
+  const totalHeight = lines.length * lineHeight;
+  const startY = seg.textY - totalHeight / 2 + lineHeight / 2;
 
   return (
     <g
@@ -234,21 +268,75 @@ function Segment({
         transform={`rotate(${seg.deg}, ${seg.textX}, ${seg.textY})`}
         style={{ pointerEvents: 'none' }}
       >
-        {showTwoLines ? (
-          <>
-            <tspan x={seg.textX} y={seg.textY - fontSize * 0.55}>
-              {words[0]}
-            </tspan>
-            <tspan x={seg.textX} y={seg.textY + fontSize * 0.55}>
-              {words.slice(1).join(' ')}
-            </tspan>
-          </>
-        ) : (
-          <tspan x={seg.textX} y={seg.textY}>
-            {seg.item.name}
+        {lines.map((line, idx) => (
+          <tspan key={idx} x={seg.textX} y={startY + idx * lineHeight}>
+            {line}
           </tspan>
-        )}
+        ))}
       </text>
+    </g>
+  );
+}
+
+interface LayerLabelProps {
+  label: string;
+  sublabel?: string;
+  color: string;
+  ringR: number;
+  angleDeg: number;
+}
+
+function LayerLabel({ label, sublabel, color, ringR, angleDeg }: LayerLabelProps) {
+  const angle = (angleDeg * Math.PI) / 180;
+  const sx = CX + ringR * Math.cos(angle);
+  const sy = CY + ringR * Math.sin(angle);
+
+  const elbowR = 250;
+  const ex = CX + elbowR * Math.cos(angle);
+  const ey = CY + elbowR * Math.sin(angle);
+
+  const isRight = Math.cos(angle) >= 0;
+  const labelX = isRight ? CX + 290 : CX - 290;
+  const labelY = ey;
+
+  return (
+    <g>
+      <path
+        d={`M ${sx} ${sy} L ${ex} ${ey} L ${labelX} ${labelY}`}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx={sx} cy={sy} r={3} fill={color} />
+      <circle cx={labelX} cy={labelY} r={2} fill={color} />
+      <text
+        x={labelX + (isRight ? 6 : -6)}
+        y={labelY - (sublabel ? 4 : 0)}
+        textAnchor={isRight ? 'start' : 'end'}
+        fontSize={13}
+        fontWeight={800}
+        fill={color}
+        fontFamily="system-ui"
+        letterSpacing={0.5}
+      >
+        {label}
+      </text>
+      {sublabel && (
+        <text
+          x={labelX + (isRight ? 6 : -6)}
+          y={labelY + 11}
+          textAnchor={isRight ? 'start' : 'end'}
+          fontSize={10}
+          fontWeight={500}
+          fill={color}
+          opacity={0.75}
+          fontFamily="system-ui"
+        >
+          {sublabel}
+        </text>
+      )}
     </g>
   );
 }
@@ -266,6 +354,13 @@ export function CircularArchitecture() {
     }
   };
 
+  const labels = [
+    { ring: rings[3], angle: 155 },
+    { ring: rings[2], angle: 205 },
+    { ring: rings[1], angle: 335 },
+    { ring: rings[0], angle: 25 },
+  ];
+
   return (
     <section
       data-pdf-slide
@@ -282,7 +377,6 @@ export function CircularArchitecture() {
         </p>
       </div>
 
-      {/* Легенда */}
       <div className="flex flex-wrap justify-center gap-3 mb-5">
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -300,9 +394,9 @@ export function CircularArchitecture() {
 
       <div className="flex justify-center">
         <svg
-          viewBox="0 0 500 500"
-          className="w-full max-w-[600px] h-auto"
-          style={{ filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.1))' }}
+          viewBox={`0 0 ${VB} ${VB}`}
+          className="w-full max-w-[760px] h-auto"
+          style={{ filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.08))' }}
         >
           {rings.map((ring, ringIdx) => {
             const segs = buildRing(ring.items, ring.rIn, ring.rOut);
@@ -314,6 +408,7 @@ export function CircularArchitecture() {
                     seg={seg}
                     iconSize={ring.iconSize}
                     fontSize={ring.fontSize}
+                    maxLen={ring.maxLen}
                     onClick={() => handleClick(seg.item.moduleId)}
                   />
                 ))}
@@ -321,7 +416,17 @@ export function CircularArchitecture() {
             );
           })}
 
-          {/* Center logo */}
+          {labels.map((l, i) => (
+            <LayerLabel
+              key={i}
+              label={l.ring.label}
+              sublabel={l.ring.sublabel}
+              color={l.ring.labelColor}
+              ringR={(l.ring.rIn + l.ring.rOut) / 2}
+              angleDeg={l.angle}
+            />
+          ))}
+
           <circle cx={CX} cy={CY} r={45} fill="url(#archGrad)" />
           <defs>
             <linearGradient id="archGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -336,23 +441,6 @@ export function CircularArchitecture() {
           <text x={CX} y={CY + 8} textAnchor="middle" fontSize="7" fill="white" opacity="0.9">
             Family OS
           </text>
-
-          {/* Метки колец сверху */}
-          {rings.map((r, i) => (
-            <text
-              key={i}
-              x={CX}
-              y={CY - r.rOut - 3}
-              textAnchor="middle"
-              fontSize="8"
-              fontWeight="700"
-              fill={r.labelColor}
-              fontFamily="system-ui"
-              letterSpacing="1"
-            >
-              {r.label}
-            </text>
-          ))}
         </svg>
       </div>
 
@@ -361,7 +449,6 @@ export function CircularArchitecture() {
         Кликните на модуль — раскроется цитата из Стратегии и привязка к KPI
       </p>
 
-      {/* Итоговые цифры */}
       <div className="mt-5 grid grid-cols-3 gap-2">
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
           <p className="text-2xl font-bold text-emerald-700">11</p>
@@ -378,7 +465,7 @@ export function CircularArchitecture() {
       </div>
 
       <p className="text-[10px] text-gray-500 text-center mt-4">
-        Слайд 2 · Круговая архитектура · 4 кольца от ядра до интеграций · Версия 2.4
+        Слайд 2 · Круговая архитектура · 4 кольца · Версия 2.5
       </p>
 
       <ModuleDetailDialog module={selected} open={open} onOpenChange={setOpen} />
