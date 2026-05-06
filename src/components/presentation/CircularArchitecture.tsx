@@ -283,28 +283,54 @@ interface LayerLabelProps {
   label: string;
   sublabel?: string;
   color: string;
-  ringR: number;
+  ringROut: number;
   angleDeg: number;
   labelX: number;
 }
 
-function LayerLabel({ label, sublabel, color, ringR, angleDeg, labelX }: LayerLabelProps) {
+/**
+ * Выноска идёт от ВНЕШНЕГО контура слоя:
+ *  - точка-якорь лежит точно на окружности rOut (контур слоя)
+ *  - короткий радиальный отрезок выходит наружу перпендикулярно контуру (как стрелка от обода колеса)
+ *  - затем горизонтальная полка ведёт к подписи
+ * Это считывается как "подпись ко всему слою", а не к конкретной ячейке.
+ */
+function LayerLabel({ label, sublabel, color, ringROut, angleDeg, labelX }: LayerLabelProps) {
   const angle = (angleDeg * Math.PI) / 180;
-  const sx = CX + ringR * Math.cos(angle);
-  const sy = CY + ringR * Math.sin(angle);
+
+  // Точка на самом контуре слоя
+  const ax = CX + ringROut * Math.cos(angle);
+  const ay = CY + ringROut * Math.sin(angle);
+
+  // Короткий радиальный отрезок наружу от контура
+  const radialOut = 22;
+  const bx = CX + (ringROut + radialOut) * Math.cos(angle);
+  const by = CY + (ringROut + radialOut) * Math.sin(angle);
+
   const isRight = Math.cos(angle) >= 0;
-  const labelY = sy;
+  const labelY = by;
 
   return (
     <g>
+      {/* Радиальная "иголка" от контура наружу */}
       <path
-        d={`M ${sx} ${sy} L ${labelX} ${labelY}`}
+        d={`M ${ax} ${ay} L ${bx} ${by}`}
+        fill="none"
+        stroke={color}
+        strokeWidth={2.5}
+        strokeLinecap="round"
+      />
+      {/* Горизонтальная полка к подписи */}
+      <path
+        d={`M ${bx} ${by} L ${labelX} ${labelY}`}
         fill="none"
         stroke={color}
         strokeWidth={2}
         strokeLinecap="round"
       />
-      <circle cx={sx} cy={sy} r={3.5} fill={color} />
+      {/* Маленькая "скоба" поверх контура для усиления связи со слоем */}
+      <circle cx={ax} cy={ay} r={4.5} fill="white" stroke={color} strokeWidth={2.5} />
+
       <text
         x={labelX + (isRight ? 8 : -8)}
         y={labelY - (sublabel ? 4 : 0)}
@@ -348,17 +374,19 @@ export function CircularArchitecture() {
     }
   };
 
-  // Подписи слева/справа на разной высоте, чтобы не пересекались
+  // Подписи слева/справа на разной высоте, чтобы не пересекались.
+  // Каждая выноска идёт от ВНЕШНЕГО контура (rOut) своего слоя — поэтому подпись
+  // относится ко всему кольцу, а не к конкретной ячейке.
   // rings[0] = КАНАЛЫ (внешнее), rings[1] = СТРАТЕГИЯ, rings[2] = FAMILY OS, rings[3] = ФУНДАМЕНТ
-  const leftX = CX - 305;
-  const rightX = CX + 305;
+  const leftX = CX - 320;
+  const rightX = CX + 320;
   const labels = [
-    // Слева: ФУНДАМЕНТ (ниже) и FAMILY OS (выше)
-    { ring: rings[2], angle: 195, labelX: leftX },
-    { ring: rings[3], angle: 165, labelX: leftX },
-    // Справа: СТРАТЕГИЯ (выше) и КАНАЛЫ (ниже)
-    { ring: rings[1], angle: 345, labelX: rightX },
-    { ring: rings[0], angle: 15, labelX: rightX },
+    // Слева сверху вниз: FAMILY OS, ФУНДАМЕНТ
+    { ring: rings[2], angle: 200, labelX: leftX },
+    { ring: rings[3], angle: 160, labelX: leftX },
+    // Справа сверху вниз: СТРАТЕГИЯ, КАНАЛЫ
+    { ring: rings[1], angle: 340, labelX: rightX },
+    { ring: rings[0], angle: 20, labelX: rightX },
   ];
 
   return (
@@ -447,7 +475,7 @@ export function CircularArchitecture() {
               label={l.ring.label}
               sublabel={l.ring.sublabel}
               color={l.ring.labelColor}
-              ringR={(l.ring.rIn + l.ring.rOut) / 2}
+              ringROut={l.ring.rOut}
               angleDeg={l.angle}
               labelX={l.labelX}
             />
