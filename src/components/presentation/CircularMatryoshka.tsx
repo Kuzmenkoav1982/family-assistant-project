@@ -419,25 +419,40 @@ interface LayerLabelProps {
   sublabel?: string;
   color: string;
   ringROut: number;
-  angleDeg: number;
+  side: 'left' | 'right';
   labelX: number;
+  labelY: number;
 }
 
-function LayerLabel({ label, sublabel, color, ringROut, angleDeg, labelX }: LayerLabelProps) {
-  const angle = (angleDeg * Math.PI) / 180;
+/**
+ * Выноска идёт через ось 0°/180° (горизонтально), чтобы попадать в зазор между ячейками
+ * и не пересекать названия модулей.
+ *  - точка-якорь на контуре rOut по горизонтали (право или лево)
+ *  - короткий радиальный отрезок наружу (горизонтально)
+ *  - L-изгиб: вертикальная полка вверх/вниз до уровня подписи
+ *  - короткая горизонтальная подводка к самому тексту
+ */
+function LayerLabel({ label, sublabel, color, ringROut, side, labelX, labelY }: LayerLabelProps) {
+  const isRight = side === 'right';
+  const dir = isRight ? 1 : -1;
 
-  const ax = CX + ringROut * Math.cos(angle);
-  const ay = CY + ringROut * Math.sin(angle);
+  // Точка-якорь строго на горизонтали (0° или 180°) — гарантированно зазор между ячейками
+  const ax = CX + dir * ringROut;
+  const ay = CY;
 
-  const radialOut = 24;
-  const bx = CX + (ringROut + radialOut) * Math.cos(angle);
-  const by = CY + (ringROut + radialOut) * Math.sin(angle);
+  // Короткий радиальный отрезок наружу
+  const radialOut = 28;
+  const bx = ax + dir * radialOut;
+  const by = CY;
 
-  const isRight = Math.cos(angle) >= 0;
-  const labelY = by;
+  // Вертикальная полка до уровня подписи
+  // Затем короткая горизонтальная подводка к тексту
+  const bendX = bx;
+  const bendY = labelY;
 
   return (
     <g>
+      {/* Горизонтальная "иголка" от контура наружу */}
       <path
         d={`M ${ax} ${ay} L ${bx} ${by}`}
         fill="none"
@@ -445,17 +460,27 @@ function LayerLabel({ label, sublabel, color, ringROut, angleDeg, labelX }: Laye
         strokeWidth={2.5}
         strokeLinecap="round"
       />
+      {/* Вертикальная полка */}
       <path
-        d={`M ${bx} ${by} L ${labelX} ${labelY}`}
+        d={`M ${bx} ${by} L ${bendX} ${bendY}`}
         fill="none"
         stroke={color}
         strokeWidth={2}
         strokeLinecap="round"
       />
+      {/* Горизонтальная подводка к тексту */}
+      <path
+        d={`M ${bendX} ${bendY} L ${labelX} ${labelY}`}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      {/* Якорь на контуре */}
       <circle cx={ax} cy={ay} r={4.5} fill="white" stroke={color} strokeWidth={2.5} />
 
       <text
-        x={labelX + (isRight ? 8 : -8)}
+        x={labelX + dir * 8}
         y={labelY - (sublabel ? 4 : 0)}
         textAnchor={isRight ? 'start' : 'end'}
         fontSize={15}
@@ -468,7 +493,7 @@ function LayerLabel({ label, sublabel, color, ringROut, angleDeg, labelX }: Laye
       </text>
       {sublabel && (
         <text
-          x={labelX + (isRight ? 8 : -8)}
+          x={labelX + dir * 8}
           y={labelY + 14}
           textAnchor={isRight ? 'start' : 'end'}
           fontSize={11}
@@ -506,15 +531,20 @@ export function CircularMatryoshka() {
 
   const valueSegs = buildValuesRing();
 
-  // Подписи слоёв слева/справа
-  const leftX = CX - 430;
-  const rightX = CX + 430;
+  // Подписи слоёв слева/справа.
+  // Подвинуты ближе к матрёшке, чтобы длинные подписи не уходили за viewBox.
+  // Все выноски идут через горизонтальную ось (0°/180°) — там зазор между ячейками,
+  // поэтому полка не пересекает названия модулей.
+  // labelY разносим по высоте, чтобы 4 подписи не накладывались друг на друга.
+  const leftX = CX - 380;
+  const rightX = CX + 380;
   const labels = [
-    // Слева: ЯДРО
-    { ring: rings[2], angle: 200, labelX: leftX },
+    // Слева сверху вниз: ЯДРО, ЦЕННОСТИ
+    { ring: rings[2], side: 'left' as const, labelX: leftX, labelY: CY - 80 },
+    // ЦЕННОСТИ — отдельной записью ниже
     // Справа сверху вниз: КАНАЛЫ, СТРАТЕГИЯ
-    { ring: rings[0], angle: 25, labelX: rightX },
-    { ring: rings[1], angle: 340, labelX: rightX },
+    { ring: rings[0], side: 'right' as const, labelX: rightX, labelY: CY - 80 },
+    { ring: rings[1], side: 'right' as const, labelX: rightX, labelY: CY + 80 },
   ];
 
   return (
@@ -722,19 +752,21 @@ export function CircularMatryoshka() {
               sublabel={l.ring.sublabel}
               color={l.ring.labelColor}
               ringROut={l.ring.rOut}
-              angleDeg={l.angle}
+              side={l.side}
               labelX={l.labelX}
+              labelY={l.labelY}
             />
           ))}
 
-          {/* Подпись слоя ценностей справа */}
+          {/* Подпись слоя ценностей — слева, ниже подписи ЯДРА */}
           <LayerLabel
             label="ЦЕННОСТИ · УКАЗ № 809"
             sublabel="Сердце продукта"
             color="#7c2d12"
             ringROut={VALUES_R_OUT}
-            angleDeg={160}
+            side="left"
             labelX={leftX}
+            labelY={CY + 80}
           />
 
           {/* Логотип в центре — сердцевина */}
