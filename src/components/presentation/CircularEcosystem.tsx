@@ -3,10 +3,14 @@ import Icon from '@/components/ui/icon';
 import { MODULES, type ModuleDetail, type ModuleStatus } from './moduleData';
 import { ModuleDetailDialog } from './ModuleDetailDialog';
 
-const STATUS_FILL: Record<ModuleStatus, { fill: string; hover: string; stroke: string; text: string }> = {
-  live: { fill: '#10b981', hover: '#059669', stroke: '#047857', text: '#ffffff' },
-  dev: { fill: '#fbbf24', hover: '#f59e0b', stroke: '#d97706', text: '#451a03' },
-  planned: { fill: '#e9d5ff', hover: '#d8b4fe', stroke: '#a855f7', text: '#581c87' },
+// Светофор: насыщенные градиенты + лёгкая прозрачность = сочный 3D-эффект
+const STATUS_FILL: Record<
+  ModuleStatus,
+  { gradId: string; hoverGradId: string; stroke: string; text: string }
+> = {
+  live: { gradId: 'ecoLive', hoverGradId: 'ecoLiveH', stroke: '#047857', text: '#ffffff' },
+  dev: { gradId: 'ecoDev', hoverGradId: 'ecoDevH', stroke: '#b45309', text: '#3a1d03' },
+  planned: { gradId: 'ecoPlanned', hoverGradId: 'ecoPlannedH', stroke: '#b91c1c', text: '#ffffff' },
 };
 
 const innerIds = [
@@ -44,17 +48,17 @@ const outerIds = [
 ];
 
 // Размер viewBox: широкий, с местом под подписи слоёв слева/справа
-const VB_W = 900;
-const VB_H = 700;
+const VB_W = 1080;
+const VB_H = 820;
 const CX = VB_W / 2;
 const CY = VB_H / 2;
-const CENTER_R = 60;
-const INNER_OUTER_R = 140;
-const OUTER_OUTER_R = 260;
+const CENTER_R = 70;
+const INNER_OUTER_R = 175;
+const OUTER_OUTER_R = 305;
 
 // Цвета слоёв — для обводки кольца и подписей
 const LAYER_FAMILY = '#059669';
-const LAYER_STRATEGY = '#7c3aed';
+const LAYER_STRATEGY = '#b91c1c';
 
 interface SegmentDef {
   module: ModuleDetail;
@@ -108,30 +112,29 @@ function buildRing(
   });
 }
 
-// Разбиваем название на 1–3 строки, длинные слова сокращаем
+// Разбиваем название на до 4 строк, длинные слова режем по буквам
 function wrapName(name: string, maxLen: number): string[] {
+  const MAX_LINES = 4;
   const words = name.split(' ');
-  if (words.length === 1) {
-    return [name.length > maxLen ? name.slice(0, maxLen - 1) + '…' : name];
+  const tokens: string[] = [];
+  for (const w of words) {
+    if (w.length <= maxLen) tokens.push(w);
+    else for (let i = 0; i < w.length; i += maxLen) tokens.push(w.slice(i, i + maxLen));
   }
-  // Жадно собираем строки длиной ~maxLen
   const lines: string[] = [];
   let cur = '';
-  for (const w of words) {
-    if (!cur) {
-      cur = w;
-    } else if ((cur + ' ' + w).length <= maxLen) {
-      cur += ' ' + w;
-    } else {
+  for (const t of tokens) {
+    if (!cur) cur = t;
+    else if ((cur + ' ' + t).length <= maxLen) cur += ' ' + t;
+    else {
       lines.push(cur);
-      cur = w;
+      cur = t;
     }
   }
   if (cur) lines.push(cur);
-  // Максимум 3 строки
-  if (lines.length > 3) {
-    const last = lines.slice(2).join(' ');
-    lines.length = 2;
+  if (lines.length > MAX_LINES) {
+    const last = lines.slice(MAX_LINES - 1).join(' ');
+    lines.length = MAX_LINES - 1;
     lines.push(last.length > maxLen ? last.slice(0, maxLen - 1) + '…' : last);
   }
   return lines;
@@ -162,10 +165,11 @@ function Segment({ seg, iconSize, fontSize, maxLen, onClick }: SegmentProps) {
     >
       <path
         d={seg.d}
-        fill={hover ? config.hover : config.fill}
+        fill={`url(#${hover ? config.hoverGradId : config.gradId})`}
         stroke={config.stroke}
-        strokeWidth={1}
-        style={{ transition: 'fill 0.2s' }}
+        strokeWidth={1.2}
+        opacity={0.92}
+        style={{ transition: 'opacity 0.2s' }}
       />
 
       <foreignObject
@@ -209,35 +213,34 @@ function Segment({ seg, iconSize, fontSize, maxLen, onClick }: SegmentProps) {
   );
 }
 
-// Подпись слоя с выноской того же цвета, что и обводка кольца
+// Подпись слоя — выноска идёт от ВНЕШНЕГО контура слоя (точка-якорь на rOut),
+// потом радиальная "иголка" наружу, потом горизонтальная полка к подписи.
 interface LayerLabelProps {
   label: string;
   sublabel?: string;
   color: string;
-  ringR: number; // средний радиус кольца — точка касания
-  angleDeg: number; // угол точки касания (0=право, 180=лево)
-  labelX: number; // абсолютный X подписи
+  ringROut: number;
+  angleDeg: number;
+  labelX: number;
 }
 
-function LayerLabel({ label, sublabel, color, ringR, angleDeg, labelX }: LayerLabelProps) {
+function LayerLabel({ label, sublabel, color, ringROut, angleDeg, labelX }: LayerLabelProps) {
   const angle = (angleDeg * Math.PI) / 180;
-  const sx = CX + ringR * Math.cos(angle);
-  const sy = CY + ringR * Math.sin(angle);
+  const ax = CX + ringROut * Math.cos(angle);
+  const ay = CY + ringROut * Math.sin(angle);
+  const radialOut = 22;
+  const bx = CX + (ringROut + radialOut) * Math.cos(angle);
+  const by = CY + (ringROut + radialOut) * Math.sin(angle);
   const isRight = Math.cos(angle) >= 0;
 
   return (
     <g>
-      <path
-        d={`M ${sx} ${sy} L ${labelX} ${sy}`}
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <circle cx={sx} cy={sy} r={3.5} fill={color} />
+      <path d={`M ${ax} ${ay} L ${bx} ${by}`} fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+      <path d={`M ${bx} ${by} L ${labelX} ${by}`} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <circle cx={ax} cy={ay} r={4.5} fill="white" stroke={color} strokeWidth={2.5} />
       <text
         x={labelX + (isRight ? 8 : -8)}
-        y={sy - (sublabel ? 4 : 0)}
+        y={by - (sublabel ? 4 : 0)}
         textAnchor={isRight ? 'start' : 'end'}
         fontSize={14}
         fontWeight={800}
@@ -250,7 +253,7 @@ function LayerLabel({ label, sublabel, color, ringR, angleDeg, labelX }: LayerLa
       {sublabel && (
         <text
           x={labelX + (isRight ? 8 : -8)}
-          y={sy + 13}
+          y={by + 13}
           textAnchor={isRight ? 'start' : 'end'}
           fontSize={11}
           fontWeight={500}
@@ -279,18 +282,18 @@ export function CircularEcosystem() {
 
   const outerSegs = buildRing(
     outerIds,
-    INNER_OUTER_R + 3,
+    INNER_OUTER_R + 4,
     OUTER_OUTER_R,
-    INNER_OUTER_R + 22,
-    (INNER_OUTER_R + OUTER_OUTER_R) / 2 + 12,
+    INNER_OUTER_R + 26,
+    (INNER_OUTER_R + OUTER_OUTER_R) / 2 + 18,
   );
 
   const innerSegs = buildRing(
     innerIds,
-    CENTER_R + 3,
+    CENTER_R + 4,
     INNER_OUTER_R,
-    CENTER_R + 18,
-    (CENTER_R + INNER_OUTER_R) / 2 + 10,
+    CENTER_R + 22,
+    (CENTER_R + INNER_OUTER_R) / 2 + 14,
   );
 
   return (
@@ -307,22 +310,31 @@ export function CircularEcosystem() {
           «Наша Семья» — карта продукта
         </h2>
         <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
-          Внутренний круг — ядро Family OS, что работает уже сейчас.<br />
+          Внутренний круг — ядро «Наша Семья», что работает уже сейчас.<br />
           Внешний круг — стратегические модули по Распоряжению № 615-р до 2036 года.
         </p>
       </div>
 
       <div className="flex flex-wrap justify-center gap-3 mb-5">
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, #6ee7b7, #10b981 60%, #047857)' }}
+          />
           <span className="text-xs font-medium text-gray-700">Уже работает</span>
         </div>
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, #fef08a, #facc15 60%, #ca8a04)' }}
+          />
           <span className="text-xs font-medium text-gray-700">В разработке</span>
         </div>
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-purple-300" />
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 60%, #991b1b)' }}
+          />
           <span className="text-xs font-medium text-gray-700">План по 615-р</span>
         </div>
       </div>
@@ -330,15 +342,56 @@ export function CircularEcosystem() {
       <div className="flex justify-center">
         <svg
           viewBox={`0 0 ${VB_W} ${VB_H}`}
-          className="w-full max-w-[920px] h-auto"
-          style={{ filter: 'drop-shadow(0 4px 16px rgba(168,85,247,0.15))' }}
+          className="w-full max-w-[1080px] h-auto"
+          style={{ filter: 'drop-shadow(0 4px 16px rgba(239,68,68,0.18))' }}
         >
+          <defs>
+            {/* Светофор: насыщенные радиальные градиенты */}
+            <radialGradient id="ecoLive" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#6ee7b7" />
+              <stop offset="55%" stopColor="#10b981" />
+              <stop offset="100%" stopColor="#047857" />
+            </radialGradient>
+            <radialGradient id="ecoLiveH" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#a7f3d0" />
+              <stop offset="55%" stopColor="#34d399" />
+              <stop offset="100%" stopColor="#059669" />
+            </radialGradient>
+            <radialGradient id="ecoDev" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fef08a" />
+              <stop offset="55%" stopColor="#facc15" />
+              <stop offset="100%" stopColor="#ca8a04" />
+            </radialGradient>
+            <radialGradient id="ecoDevH" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fef9c3" />
+              <stop offset="55%" stopColor="#fde047" />
+              <stop offset="100%" stopColor="#eab308" />
+            </radialGradient>
+            <radialGradient id="ecoPlanned" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fca5a5" />
+              <stop offset="55%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#991b1b" />
+            </radialGradient>
+            <radialGradient id="ecoPlannedH" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fecaca" />
+              <stop offset="55%" stopColor="#f87171" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </radialGradient>
+            {/* Центр — оранжево-красный градиент в цвет лого 7Я */}
+            <radialGradient id="centerGrad" cx="35%" cy="30%" r="80%">
+              <stop offset="0%" stopColor="#fde68a" />
+              <stop offset="35%" stopColor="#fb923c" />
+              <stop offset="75%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </radialGradient>
+          </defs>
+
           {/* Outer ring сегменты */}
           {outerSegs.map((seg, i) => (
             <Segment
               key={`outer-${i}`}
               seg={seg}
-              iconSize={18}
+              iconSize={20}
               fontSize={12}
               maxLen={11}
               onClick={() => handleClick(outerIds[i])}
@@ -350,7 +403,7 @@ export function CircularEcosystem() {
             <Segment
               key={`inner-${i}`}
               seg={seg}
-              iconSize={15}
+              iconSize={17}
               fontSize={11}
               maxLen={10}
               onClick={() => handleClick(innerIds[i])}
@@ -358,45 +411,32 @@ export function CircularEcosystem() {
           ))}
 
           {/* Цветные граничные окружности слоёв */}
-          {/* Family OS: внутренняя и внешняя границы зелёным */}
           <circle cx={CX} cy={CY} r={CENTER_R + 1} fill="none" stroke={LAYER_FAMILY} strokeWidth={2.5} opacity={0.9} />
           <circle cx={CX} cy={CY} r={INNER_OUTER_R} fill="none" stroke={LAYER_FAMILY} strokeWidth={2.5} opacity={0.9} />
-          {/* Стратегия 615-р: внутренняя (рядом с Family OS) и внешняя — фиолетовым */}
           <circle cx={CX} cy={CY} r={INNER_OUTER_R + 3} fill="none" stroke={LAYER_STRATEGY} strokeWidth={2.5} opacity={0.9} />
           <circle cx={CX} cy={CY} r={OUTER_OUTER_R} fill="none" stroke={LAYER_STRATEGY} strokeWidth={2.5} opacity={0.9} />
 
-          {/* Central logo */}
-          <circle cx={CX} cy={CY} r={CENTER_R} fill="url(#centerGrad)" />
-          <defs>
-            <linearGradient id="centerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#9333ea" />
-              <stop offset="100%" stopColor="#ec4899" />
-            </linearGradient>
-          </defs>
+          {/* Центр — без надписей. Логотип и название уже в шапке слайда */}
+          <circle cx={CX} cy={CY + 4} r={CENTER_R} fill="#000" opacity="0.18" />
+          <circle cx={CX} cy={CY} r={CENTER_R} fill="url(#centerGrad)" stroke="#b91c1c" strokeWidth={1.5} />
+          <ellipse cx={CX} cy={CY - CENTER_R * 0.4} rx={CENTER_R * 0.6} ry={CENTER_R * 0.22} fill="white" opacity="0.28" />
 
-          <text x={CX} y={CY - 8} textAnchor="middle" fontSize="16" fontWeight="800" fill="white">
-            Наша Семья
-          </text>
-          <text x={CX} y={CY + 10} textAnchor="middle" fontSize="10" fill="white" opacity="0.9">
-            Family OS
-          </text>
-
-          {/* Подписи слоёв с выносками того же цвета */}
+          {/* Подписи слоёв с выносками */}
           <LayerLabel
-            label="FAMILY OS"
-            sublabel="Ядро · уже работает"
+            label="ЯДРО · НАША СЕМЬЯ"
+            sublabel="Уже работает"
             color={LAYER_FAMILY}
-            ringR={INNER_OUTER_R}
-            angleDeg={180}
-            labelX={CX - OUTER_OUTER_R - 35}
+            ringROut={INNER_OUTER_R}
+            angleDeg={195}
+            labelX={CX - OUTER_OUTER_R - 30}
           />
           <LayerLabel
             label="СТРАТЕГИЯ 615-р"
             sublabel="Модули до 2036"
             color={LAYER_STRATEGY}
-            ringR={OUTER_OUTER_R}
+            ringROut={OUTER_OUTER_R}
             angleDeg={0}
-            labelX={CX + OUTER_OUTER_R + 35}
+            labelX={CX + OUTER_OUTER_R + 30}
           />
         </svg>
       </div>

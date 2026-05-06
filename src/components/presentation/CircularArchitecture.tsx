@@ -3,10 +3,15 @@ import Icon from '@/components/ui/icon';
 import { MODULES, type ModuleDetail, type ModuleStatus } from './moduleData';
 import { ModuleDetailDialog } from './ModuleDetailDialog';
 
-const STATUS_FILL: Record<ModuleStatus, { fill: string; hover: string; stroke: string; text: string }> = {
-  live: { fill: '#10b981', hover: '#059669', stroke: '#047857', text: '#ffffff' },
-  dev: { fill: '#fbbf24', hover: '#f59e0b', stroke: '#d97706', text: '#451a03' },
-  planned: { fill: '#e9d5ff', hover: '#d8b4fe', stroke: '#a855f7', text: '#581c87' },
+// Цвета по принципу светофора: зелёный — работает, жёлтый — в разработке, красный — план по 615-р.
+// Используются градиенты и внутренние блики, чтобы получить сочный 3D-эффект и лёгкую полупрозрачность.
+const STATUS_FILL: Record<
+  ModuleStatus,
+  { gradId: string; hoverGradId: string; stroke: string; text: string }
+> = {
+  live: { gradId: 'gradLive', hoverGradId: 'gradLiveHover', stroke: '#047857', text: '#ffffff' },
+  dev: { gradId: 'gradDev', hoverGradId: 'gradDevHover', stroke: '#b45309', text: '#3a1d03' },
+  planned: { gradId: 'gradPlanned', hoverGradId: 'gradPlannedHover', stroke: '#b91c1c', text: '#ffffff' },
 };
 
 interface RingItem {
@@ -28,8 +33,8 @@ interface RingDef {
   maxLen: number;
 }
 
-const VB_W = 980;
-const VB_H = 760;
+const VB_W = 1080;
+const VB_H = 860;
 const CX = VB_W / 2;
 const CY = VB_H / 2;
 
@@ -63,7 +68,7 @@ const ringStrategy: RingItem[] = [
   { name: 'Навигатор льгот', icon: 'Compass', status: 'dev', moduleId: 'support-navigator' },
   { name: 'Многодетная', icon: 'Users', status: 'dev', moduleId: 'large-family' },
   { name: 'Беременность', icon: 'HeartHandshake', status: 'dev', moduleId: 'pregnancy' },
-  { name: 'Case Manager', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
+  { name: 'Кейс-менеджер семьи', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
   { name: 'Семья СВО', icon: 'Shield', status: 'planned', moduleId: 'svo-family' },
   { name: 'Студ. семья', icon: 'GraduationCap', status: 'planned', moduleId: 'student-family' },
   { name: 'Соцконтракт', icon: 'FileSignature', status: 'planned', moduleId: 'social-contract' },
@@ -78,7 +83,7 @@ const ringChannels: RingItem[] = [
   { name: 'Госуслуги', icon: 'Landmark', status: 'planned' },
   { name: 'Соцказна', icon: 'Database', status: 'planned' },
   { name: 'Регион. ИС', icon: 'Network', status: 'planned', moduleId: 'region-api' },
-  { name: 'Telegram', icon: 'Send', status: 'dev' },
+  { name: 'МАХ', icon: 'Send', status: 'dev' },
   { name: 'Web', icon: 'Globe', status: 'live' },
   { name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
   { name: 'HR-системы', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
@@ -90,44 +95,44 @@ const rings: RingDef[] = [
     label: 'КАНАЛЫ',
     sublabel: 'Интеграции и B2B2C',
     labelColor: '#2563eb',
-    rIn: 195,
-    rOut: 240,
+    rIn: 230,
+    rOut: 290,
     items: ringChannels,
     fontSize: 11,
-    iconSize: 14,
-    maxLen: 12,
+    iconSize: 16,
+    maxLen: 11,
   },
   {
     label: 'СТРАТЕГИЯ 615-р',
     sublabel: 'Модули до 2036',
     labelColor: '#7c3aed',
-    rIn: 150,
-    rOut: 192,
+    rIn: 175,
+    rOut: 227,
     items: ringStrategy,
     fontSize: 10,
-    iconSize: 13,
-    maxLen: 11,
+    iconSize: 14,
+    maxLen: 10,
   },
   {
-    label: 'FAMILY OS',
-    sublabel: 'Ядро · уже работает',
+    label: 'ЯДРО · НАША СЕМЬЯ',
+    sublabel: 'Уже работает',
     labelColor: '#059669',
-    rIn: 105,
-    rOut: 147,
+    rIn: 122,
+    rOut: 172,
     items: ringCore,
     fontSize: 10,
-    iconSize: 13,
+    iconSize: 14,
     maxLen: 10,
   },
   {
     label: 'ФУНДАМЕНТ',
     sublabel: 'Платформа · 152-ФЗ',
     labelColor: '#475569',
-    rIn: 60,
-    rOut: 102,
+    rIn: 70,
+    rOut: 119,
     items: ringFoundation,
     fontSize: 9,
-    iconSize: 12,
+    iconSize: 13,
     maxLen: 10,
   },
 ];
@@ -177,25 +182,38 @@ function buildRing(items: RingItem[], rIn: number, rOut: number): SegmentDef[] {
   });
 }
 
+// Перенос названия на до 4 строк. Если одно слово длиннее maxLen — режем по слогам/буквам.
 function wrapName(name: string, maxLen: number): string[] {
+  const MAX_LINES = 4;
   const words = name.split(' ');
-  if (words.length === 1) {
-    return [name.length > maxLen ? name.slice(0, maxLen - 1) + '…' : name];
+
+  // Разбиваем длинные слова на куски длиной maxLen
+  const tokens: string[] = [];
+  for (const w of words) {
+    if (w.length <= maxLen) {
+      tokens.push(w);
+    } else {
+      for (let i = 0; i < w.length; i += maxLen) {
+        tokens.push(w.slice(i, i + maxLen));
+      }
+    }
   }
+
   const lines: string[] = [];
   let cur = '';
-  for (const w of words) {
-    if (!cur) cur = w;
-    else if ((cur + ' ' + w).length <= maxLen) cur += ' ' + w;
+  for (const t of tokens) {
+    if (!cur) cur = t;
+    else if ((cur + ' ' + t).length <= maxLen) cur += ' ' + t;
     else {
       lines.push(cur);
-      cur = w;
+      cur = t;
     }
   }
   if (cur) lines.push(cur);
-  if (lines.length > 3) {
-    const last = lines.slice(2).join(' ');
-    lines.length = 2;
+
+  if (lines.length > MAX_LINES) {
+    const last = lines.slice(MAX_LINES - 1).join(' ');
+    lines.length = MAX_LINES - 1;
     lines.push(last.length > maxLen ? last.slice(0, maxLen - 1) + '…' : last);
   }
   return lines;
@@ -232,10 +250,11 @@ function Segment({
     >
       <path
         d={seg.d}
-        fill={hover ? config.hover : config.fill}
+        fill={`url(#${hover ? config.hoverGradId : config.gradId})`}
         stroke={config.stroke}
-        strokeWidth={1}
-        style={{ transition: 'fill 0.2s' }}
+        strokeWidth={1.2}
+        opacity={0.92}
+        style={{ transition: 'opacity 0.2s', filter: 'url(#cell3d)' }}
       />
 
       <foreignObject
@@ -378,8 +397,8 @@ export function CircularArchitecture() {
   // Каждая выноска идёт от ВНЕШНЕГО контура (rOut) своего слоя — поэтому подпись
   // относится ко всему кольцу, а не к конкретной ячейке.
   // rings[0] = КАНАЛЫ (внешнее), rings[1] = СТРАТЕГИЯ, rings[2] = FAMILY OS, rings[3] = ФУНДАМЕНТ
-  const leftX = CX - 320;
-  const rightX = CX + 320;
+  const leftX = CX - 380;
+  const rightX = CX + 380;
   const labels = [
     // Слева сверху вниз: FAMILY OS, ФУНДАМЕНТ
     { ring: rings[2], angle: 200, labelX: leftX },
@@ -401,21 +420,30 @@ export function CircularArchitecture() {
         </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Круговая карта платформы</h2>
         <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
-          От ядра наружу: фундамент → Family OS → стратегические модули по 615-р → каналы и интеграции
+          От ядра наружу: фундамент → ядро «Наша Семья» → стратегические модули по 615-р → каналы и интеграции
         </p>
       </div>
 
       <div className="flex flex-wrap justify-center gap-3 mb-5">
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, #6ee7b7, #10b981 60%, #047857)' }}
+          />
           <span className="text-xs font-medium text-gray-700">Уже работает</span>
         </div>
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, #fef08a, #facc15 60%, #ca8a04)' }}
+          />
           <span className="text-xs font-medium text-gray-700">В разработке</span>
         </div>
         <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-purple-300" />
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 60%, #991b1b)' }}
+          />
           <span className="text-xs font-medium text-gray-700">План по 615-р</span>
         </div>
       </div>
@@ -423,7 +451,7 @@ export function CircularArchitecture() {
       <div className="flex justify-center">
         <svg
           viewBox={`0 0 ${VB_W} ${VB_H}`}
-          className="w-full max-w-[980px] h-auto"
+          className="w-full max-w-[1080px] h-auto"
           style={{ filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.08))' }}
         >
           {rings.map((ring, ringIdx) => {
@@ -481,20 +509,60 @@ export function CircularArchitecture() {
             />
           ))}
 
-          <circle cx={CX} cy={CY} r={55} fill="url(#archGrad)" />
+          {/* Центр — оранжево-красный градиент в цвет лого "7Я / Наша Семья" */}
           <defs>
-            <linearGradient id="archGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#9333ea" />
-              <stop offset="100%" stopColor="#ec4899" />
-            </linearGradient>
+            <radialGradient id="archGrad" cx="35%" cy="30%" r="80%">
+              <stop offset="0%" stopColor="#fde68a" />
+              <stop offset="35%" stopColor="#fb923c" />
+              <stop offset="75%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </radialGradient>
+
+            {/* Градиенты статусов: насыщенные, сочные, лёгкая прозрачность даёт стеклянный 3D-эффект */}
+            <radialGradient id="gradLive" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#6ee7b7" />
+              <stop offset="55%" stopColor="#10b981" />
+              <stop offset="100%" stopColor="#047857" />
+            </radialGradient>
+            <radialGradient id="gradLiveHover" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#a7f3d0" />
+              <stop offset="55%" stopColor="#34d399" />
+              <stop offset="100%" stopColor="#059669" />
+            </radialGradient>
+
+            <radialGradient id="gradDev" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fef08a" />
+              <stop offset="55%" stopColor="#facc15" />
+              <stop offset="100%" stopColor="#ca8a04" />
+            </radialGradient>
+            <radialGradient id="gradDevHover" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fef9c3" />
+              <stop offset="55%" stopColor="#fde047" />
+              <stop offset="100%" stopColor="#eab308" />
+            </radialGradient>
+
+            <radialGradient id="gradPlanned" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fca5a5" />
+              <stop offset="55%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#991b1b" />
+            </radialGradient>
+            <radialGradient id="gradPlannedHover" cx="35%" cy="30%" r="85%">
+              <stop offset="0%" stopColor="#fecaca" />
+              <stop offset="55%" stopColor="#f87171" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </radialGradient>
+
+            {/* Лёгкий 3D-объём для ячеек */}
+            <filter id="cell3d" x="-5%" y="-5%" width="110%" height="110%">
+              <feGaussianBlur stdDeviation="0.4" />
+            </filter>
           </defs>
 
-          <text x={CX} y={CY - 6} textAnchor="middle" fontSize="13" fontWeight="800" fill="white">
-            Наша Семья
-          </text>
-          <text x={CX} y={CY + 9} textAnchor="middle" fontSize="9" fill="white" opacity="0.9">
-            Family OS
-          </text>
+          {/* Тень-подложка центра */}
+          <circle cx={CX} cy={CY + 4} r={62} fill="#000" opacity="0.18" filter="url(#cell3d)" />
+          <circle cx={CX} cy={CY} r={62} fill="url(#archGrad)" stroke="#b91c1c" strokeWidth={1.5} />
+          {/* Блик сверху для 3D */}
+          <ellipse cx={CX} cy={CY - 22} rx={38} ry={14} fill="white" opacity="0.28" />
         </svg>
       </div>
 
@@ -512,8 +580,8 @@ export function CircularArchitecture() {
           <p className="text-2xl font-bold text-amber-700">5</p>
           <p className="text-[10px] text-gray-600 leading-tight mt-0.5">в разработке</p>
         </div>
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
-          <p className="text-2xl font-bold text-purple-700">15+</p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+          <p className="text-2xl font-bold text-red-700">15+</p>
           <p className="text-[10px] text-gray-600 leading-tight mt-0.5">в плане по 615-р</p>
         </div>
       </div>
