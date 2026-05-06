@@ -558,11 +558,27 @@ export function CircularArchitecture() {
             </filter>
           </defs>
 
-          {/* Тень-подложка центра */}
-          <circle cx={CX} cy={CY + 4} r={62} fill="#000" opacity="0.18" filter="url(#cell3d)" />
-          <circle cx={CX} cy={CY} r={62} fill="url(#archGrad)" stroke="#b91c1c" strokeWidth={1.5} />
-          {/* Блик сверху для 3D */}
-          <ellipse cx={CX} cy={CY - 22} rx={38} ry={14} fill="white" opacity="0.28" />
+          {/* Тень-подложка + кольцевая обводка-обод центра */}
+          <circle cx={CX} cy={CY + 4} r={64} fill="#000" opacity="0.22" filter="url(#cell3d)" />
+          <circle cx={CX} cy={CY} r={64} fill="url(#archGrad)" stroke="#b91c1c" strokeWidth={2} />
+
+          {/* Логотип «7Я» — реальное изображение из CDN, обрезано в круг */}
+          <defs>
+            <clipPath id="archLogoClip">
+              <circle cx={CX} cy={CY} r={56} />
+            </clipPath>
+          </defs>
+          <image
+            href="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/caa57807-aab3-4c53-ade9-f3f978dbc7f9.jpeg"
+            x={CX - 56}
+            y={CY - 56}
+            width={112}
+            height={112}
+            clipPath="url(#archLogoClip)"
+            preserveAspectRatio="xMidYMid slice"
+          />
+          {/* Лёгкий блик сверху */}
+          <ellipse cx={CX} cy={CY - 30} rx={30} ry={10} fill="white" opacity="0.22" clipPath="url(#archLogoClip)" />
         </svg>
       </div>
 
