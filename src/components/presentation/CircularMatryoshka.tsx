@@ -56,7 +56,7 @@ const ringCore: RingItem[] = [
   { name: 'Календарь', icon: 'Calendar', status: 'live', moduleId: 'calendar' },
   { name: 'Задачи', icon: 'CheckSquare', status: 'live', moduleId: 'tasks' },
   { name: 'Места', icon: 'MapPin', status: 'live', moduleId: 'places' },
-  { name: 'Чат семьи', icon: 'MessagesSquare', status: 'live', moduleId: 'family-chat' },
+  { name: 'Чат семьи', icon: 'MessagesSquare', status: 'live', moduleId: 'chat' },
   { name: 'AI', icon: 'Sparkles', status: 'live', moduleId: 'ai-assistant' },
 ];
 

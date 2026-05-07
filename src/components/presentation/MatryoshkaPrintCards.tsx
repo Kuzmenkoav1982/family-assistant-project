@@ -11,6 +11,7 @@ const CORE_IDS = [
   'calendar',
   'tasks',
   'places',
+  'chat',
   'ai-assistant',
 ];
 
