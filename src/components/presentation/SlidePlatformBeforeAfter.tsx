@@ -95,7 +95,7 @@ export function SlidePlatformBeforeAfter() {
           Сегодня и после реализации Стратегии 615-р
         </h2>
         <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
-          Family OS как ядро уже работает. Стратегия 615-р до 2036 года задаёт чёткое направление расширения.
+          «Наша Семья» как ядро уже работает. Стратегия 615-р до 2036 года задаёт чёткое направление расширения.
         </p>
         <p className="text-[11px] text-purple-600 mt-2 font-medium flex items-center justify-center gap-1">
           <Icon name="MousePointerClick" size={11} />
@@ -110,7 +110,7 @@ export function SlidePlatformBeforeAfter() {
             <div className="flex items-center gap-2">
               <Icon name="Layers" size={16} className="text-white" />
               <div>
-                <h3 className="text-sm font-bold text-white">Сегодня · Family OS</h3>
+                <h3 className="text-sm font-bold text-white">Сегодня · «Наша Семья»</h3>
                 <p className="text-[10px] text-white/80">Q2 2026 · ядро повседневной жизни</p>
               </div>
             </div>
@@ -172,7 +172,7 @@ export function SlidePlatformBeforeAfter() {
             {/* Внутренний слой — то, что было */}
             <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 mb-2">
               <p className="text-[9px] font-bold text-emerald-800 mb-1.5 uppercase tracking-wide">
-                Ядро Family OS (как было)
+                Ядро «Наша Семья» (как было)
               </p>
               <div className="grid grid-cols-4 gap-1">
                 {beforeBlocks.slice(0, 8).map((b) => (

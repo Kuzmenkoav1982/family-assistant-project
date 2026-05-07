@@ -19,7 +19,7 @@ interface LayerDef {
 const LAYERS: LayerDef[] = [
   {
     key: 'family-os',
-    label: 'FAMILY OS',
+    label: 'НАША СЕМЬЯ',
     sublabel: 'Ядро · работает',
     color: '#059669',
     bg: 'bg-emerald-50',
@@ -205,9 +205,9 @@ export function SlideAudienceMatrix() {
 
       {/* Матрица */}
       <div className="overflow-x-auto">
-        <div className="min-w-[720px]">
+        <div className="min-w-[960px]">
           {/* Заголовки столбцов */}
-          <div className="grid grid-cols-[160px_1fr_1fr_1fr] gap-2 mb-2">
+          <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-2 mb-2">
             <div />
             {AUDIENCES.map((a) => (
               <div
@@ -233,7 +233,7 @@ export function SlideAudienceMatrix() {
 
           {/* Строки слоёв */}
           {LAYERS.map((layer) => (
-            <div key={layer.key} className="grid grid-cols-[160px_1fr_1fr_1fr] gap-2 mb-2">
+            <div key={layer.key} className="grid grid-cols-[180px_1fr_1fr_1fr] gap-2 mb-2">
               {/* Заголовок строки */}
               <div
                 className={`${layer.bg} rounded-xl px-3 py-2.5 flex flex-col justify-center border-2`}
@@ -264,12 +264,12 @@ export function SlideAudienceMatrix() {
                       items.map((it, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-gray-700"
+                          className="inline-flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-gray-700 whitespace-normal break-words leading-tight"
                           title={it.name}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[it.status]} shrink-0`} />
-                          <Icon name={it.icon} size={10} className="text-gray-500" />
-                          <span className="truncate max-w-[90px]">{it.name}</span>
+                          <Icon name={it.icon} size={10} className="text-gray-500 shrink-0" />
+                          <span className="whitespace-normal break-words">{it.name}</span>
                         </span>
                       ))
                     )}

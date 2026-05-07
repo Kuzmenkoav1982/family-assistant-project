@@ -63,6 +63,7 @@ const PermissionsManagement = lazy(() => import("./pages/PermissionsManagement")
 const Community = lazy(() => import("./pages/Community"));
 const MemberProfile = lazy(() => import("./pages/MemberProfile"));
 const FamilyCode = lazy(() => import("./pages/FamilyCode"));
+const FamilyChat = lazy(() => import("./pages/FamilyChat"));
 const Presentation = lazy(() => import("./pages/Presentation"));
 const StrategyDeck = lazy(() => import("./pages/StrategyDeck"));
 const MatryoshkaDeck = lazy(() => import("./pages/MatryoshkaDeck"));
@@ -355,6 +356,8 @@ const App = () => {
                       <Route path="/community" element={<Community />} />
                       <Route path="/member/:memberId" element={<MemberProfile />} />
                       <Route path="/family-code" element={<FamilyCode />} />
+                      <Route path="/chat" element={<FamilyChat />} />
+                      <Route path="/family-chat" element={<FamilyChat />} />
                       <Route path="/state-support" element={<StateSupport />} />
                       <Route path="/family-policy" element={<FamilyPolicy />} />
                       <Route path="/what-is-family" element={<WhatIsFamily />} />
