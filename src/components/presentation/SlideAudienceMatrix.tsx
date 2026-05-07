@@ -174,7 +174,7 @@ export function SlideAudienceMatrix() {
   return (
     <section
       data-pdf-slide
-      className="bg-white rounded-3xl shadow-xl my-6 overflow-hidden border border-gray-200 px-5 py-7 sm:px-8 sm:py-10"
+      className="bg-white rounded-3xl shadow-xl my-6 overflow-hidden border border-gray-200 px-3 py-7 sm:px-5 sm:py-10"
     >
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full mb-3">
@@ -205,27 +205,27 @@ export function SlideAudienceMatrix() {
 
       {/* Матрица */}
       <div className="overflow-x-auto">
-        <div className="min-w-[960px]">
+        <div className="min-w-[640px] lg:min-w-0">
           {/* Заголовки столбцов */}
-          <div className="grid grid-cols-[180px_1fr_1fr_1fr] gap-2 mb-2">
+          <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[150px_1fr_1fr_1fr] gap-1.5 sm:gap-2 mb-2">
             <div />
             {AUDIENCES.map((a) => (
               <div
                 key={a.key}
-                className={`${a.bg} rounded-xl px-3 py-2.5 flex items-center gap-2.5 border-2`}
+                className={`${a.bg} rounded-xl px-2 sm:px-3 py-2 sm:py-2.5 flex items-center gap-1.5 sm:gap-2.5 border-2 min-w-0`}
                 style={{ borderColor: a.color }}
               >
                 <div
-                  className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm"
+                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm"
                   style={{ color: a.color }}
                 >
-                  <Icon name={a.iconName} size={18} />
+                  <Icon name={a.iconName} size={16} />
                 </div>
-                <div>
-                  <p className="text-sm font-bold" style={{ color: a.color }}>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-bold leading-tight" style={{ color: a.color }}>
                     {a.label}
                   </p>
-                  <p className="text-[10px] text-gray-700">{a.sublabel}</p>
+                  <p className="text-[10px] text-gray-700 leading-tight truncate">{a.sublabel}</p>
                 </div>
               </div>
             ))}
@@ -233,19 +233,19 @@ export function SlideAudienceMatrix() {
 
           {/* Строки слоёв */}
           {LAYERS.map((layer) => (
-            <div key={layer.key} className="grid grid-cols-[180px_1fr_1fr_1fr] gap-2 mb-2">
+            <div key={layer.key} className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[150px_1fr_1fr_1fr] gap-1.5 sm:gap-2 mb-2">
               {/* Заголовок строки */}
               <div
-                className={`${layer.bg} rounded-xl px-3 py-2.5 flex flex-col justify-center border-2`}
+                className={`${layer.bg} rounded-xl px-2 sm:px-3 py-2 sm:py-2.5 flex flex-col justify-center border-2 min-w-0`}
                 style={{ borderColor: layer.color }}
               >
-                <div className="flex items-center gap-2">
-                  <Icon name={layer.iconName} size={14} style={{ color: layer.color }} />
-                  <p className="text-[12px] font-bold leading-tight" style={{ color: layer.color }}>
+                <div className="flex items-center gap-1.5">
+                  <Icon name={layer.iconName} size={13} style={{ color: layer.color }} />
+                  <p className="text-[11px] sm:text-[12px] font-bold leading-tight break-words" style={{ color: layer.color }}>
                     {layer.label}
                   </p>
                 </div>
-                <p className="text-[10px] text-gray-600 mt-0.5">{layer.sublabel}</p>
+                <p className="text-[9px] sm:text-[10px] text-gray-600 mt-0.5 leading-tight">{layer.sublabel}</p>
               </div>
 
               {/* Ячейки по аудиториям */}
