@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 
 const segments = [
-  { id: 1, label: 'Семья', color: '#ec4899', lightColor: '#fce7f3', icon: 'Users', items: ['Профили семьи', 'Семейное древо', 'Дети', 'Семейный маячок'] },
+  { id: 1, label: 'Семья', color: '#ec4899', lightColor: '#fce7f3', icon: 'Users', items: ['Профили семьи', 'Семейное древо', 'Дети', 'Семейный маячок', 'Чат семьи'] },
   { id: 2, label: 'Здоровье', color: '#ef4444', lightColor: '#fee2e2', icon: 'Heart', items: ['Здоровье семьи'] },
   { id: 3, label: 'Питание', color: '#f97316', lightColor: '#ffedd5', icon: 'Apple', items: ['ИИ-Диета', 'Готовые режимы', 'Рецепт из продуктов', 'Счётчик БЖУ', 'Меню на неделю', 'Рецепты'] },
   { id: 4, label: 'Ценности', color: '#f59e0b', lightColor: '#fef3c7', icon: 'Sparkles', items: ['Вера', 'Традиции', 'Мудрость народа', 'Правила дома'] },
@@ -13,7 +13,7 @@ const segments = [
   { id: 9, label: 'Развитие', color: '#6366f1', lightColor: '#e0e7ff', icon: 'GraduationCap', items: ['Развитие', 'Психолог ИИ', 'Мастерская жизни'] },
   { id: 10, label: 'Семейный код', color: '#a855f7', lightColor: '#f3e8ff', icon: 'KeyRound', items: ['Личный код', 'Код пары', 'Код семьи', 'Имя для малыша', 'Астрология', 'Зеркало родителя'] },
   { id: 11, label: 'Питомцы', color: '#84cc16', lightColor: '#ecfccb', icon: 'PawPrint', items: ['ИИ-ветеринар', 'Вакцинация', 'Лекарства', 'Питание', 'Груминг', 'Расходы'] },
-  { id: 12, label: 'Госуслуги', color: '#0d9488', lightColor: '#ccfbf1', icon: 'Landmark', items: ['Семейный кодекс РФ', 'Господдержка', 'Семейная политика', 'Новости'] },
+  { id: 12, label: 'Госуслуги', color: '#0d9488', lightColor: '#ccfbf1', icon: 'Landmark', items: ['Навигатор мер поддержки', 'Семейный кодекс РФ', 'Господдержка', 'Семейная политика', 'Новости'] },
 ];
 
 function Ring() {
