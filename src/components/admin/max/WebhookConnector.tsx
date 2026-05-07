@@ -10,6 +10,7 @@ interface WebhookStatus {
   connected: boolean;
   count: number;
   our_url: string;
+  subscriptions?: { url: string; time?: number }[];
 }
 
 export default function WebhookConnector() {
@@ -26,7 +27,12 @@ export default function WebhookConnector() {
       });
       const data = await res.json();
       if (data.ok) {
-        setStatus({ connected: data.connected, count: data.count, our_url: data.our_url });
+        setStatus({
+          connected: data.connected,
+          count: data.count,
+          our_url: data.our_url,
+          subscriptions: data.subscriptions || [],
+        });
       } else {
         toast.error(data.error || 'Не удалось получить статус');
       }
@@ -56,6 +62,35 @@ export default function WebhookConnector() {
         await loadStatus();
       } else {
         toast.error(`Не получилось: ${data.error || JSON.stringify(data.response)}`);
+      }
+    } catch (e) {
+      toast.error(`Ошибка: ${(e as Error).message}`);
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const handleCleanForeign = async () => {
+    if (!confirm('Удалить все ЧУЖИЕ webhook-подписки у бота? Своя подписка останется. Это нужно делать, если посты из MAX перестали приходить из-за конфликта подписок.')) return;
+    setActing(true);
+    try {
+      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
+      const res = await fetch(`${MAX_BOT_URL}?action=webhook-clean-foreign`, {
+        method: 'POST',
+        headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const removedCount = (data.removed || []).length;
+        if (removedCount > 0) {
+          toast.success(`Удалено чужих подписок: ${removedCount}. Теперь посты пойдут только к нам.`);
+        } else {
+          toast.info('Чужих подписок не найдено — всё чисто.');
+        }
+        await loadStatus();
+      } else {
+        toast.error('Не удалось очистить подписки');
       }
     } catch (e) {
       toast.error(`Ошибка: ${(e as Error).message}`);
@@ -98,6 +133,8 @@ export default function WebhookConnector() {
   }
 
   if (status?.connected) {
+    const foreignSubs = (status.subscriptions || []).filter((s) => s.url !== status.our_url);
+    const hasConflict = foreignSubs.length > 0;
     return (
       <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-3">
@@ -113,6 +150,37 @@ export default function WebhookConnector() {
             </p>
           </div>
         </div>
+
+        {hasConflict && (
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <Icon name="AlertTriangle" size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-amber-900">
+                  Внимание: у бота есть чужие подписки ({foreignSubs.length})
+                </p>
+                <p className="text-xs text-amber-800 mt-1">
+                  MAX может слать события не нам, а в чужой webhook. Из-за этого посты могут не доходить до сайта. Рекомендуем очистить.
+                </p>
+                <ul className="text-[10px] text-amber-700 font-mono mt-2 space-y-1">
+                  {foreignSubs.map((s, i) => (
+                    <li key={i} className="break-all bg-white rounded px-2 py-1">{s.url}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleCleanForeign}
+              disabled={acting}
+              className="bg-amber-600 hover:bg-amber-700 text-white w-full"
+            >
+              <Icon name="Trash2" size={14} className="mr-1.5" />
+              Удалить чужие подписки ({foreignSubs.length})
+            </Button>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg p-3 text-xs text-gray-600 space-y-1">
           <div className="flex items-center gap-2">
             <Icon name="Link2" size={14} className="text-green-600" />

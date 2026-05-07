@@ -28,6 +28,7 @@ import {
   formatBlogDate,
 } from '@/lib/blogApi';
 import BlogPostEditDialog from '@/components/admin/blog/BlogPostEditDialog';
+import ManualMirrorDialog from '@/components/admin/max/ManualMirrorDialog';
 import { useBlogCoverJob } from '@/contexts/BlogCoverJobContext';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -49,6 +50,7 @@ export default function AdminBlog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mirrorOpen, setMirrorOpen] = useState(false);
 
   const loadPosts = useCallback(() => {
     setLoading(true);
@@ -149,6 +151,13 @@ export default function AdminBlog() {
                 Генерация в фоне ({progress.done + progress.failed}/{progress.total})
               </Button>
             )}
+            <Button
+              onClick={() => setMirrorOpen(true)}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+            >
+              <Icon name="Upload" size={16} className="mr-2" />
+              Залить из MAX вручную
+            </Button>
             <Button
               onClick={() => window.open('/blog', '_blank')}
               className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
@@ -393,6 +402,12 @@ export default function AdminBlog() {
         open={dialogOpen}
         onClose={() => { setDialogOpen(false); setEditingId(null); }}
         onSaved={() => { loadPosts(); loadStats(); }}
+      />
+
+      <ManualMirrorDialog
+        open={mirrorOpen}
+        onOpenChange={setMirrorOpen}
+        onSuccess={() => { loadPosts(); loadStats(); }}
       />
     </div>
   );
