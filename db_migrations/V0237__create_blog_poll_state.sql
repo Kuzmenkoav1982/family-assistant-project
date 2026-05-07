@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS blog_poll_state (id INTEGER PRIMARY KEY DEFAULT 1, last_polled_at TIMESTAMP, last_result JSONB, CHECK (id = 1));
+INSERT INTO blog_poll_state (id, last_polled_at) VALUES (1, NULL) ON CONFLICT (id) DO NOTHING;

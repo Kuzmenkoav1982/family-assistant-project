@@ -19,9 +19,15 @@ POST /?action=admin-delete — удаление поста
 import json
 import os
 import hashlib
+import threading
 from typing import Dict, Any, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
+try:
+    import requests
+except ImportError:
+    requests = None
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 ADMIN_TOKEN_DEFAULT = 'admin_authenticated'
@@ -73,6 +79,64 @@ def db_conn():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
 
+MAX_BOT_FUNCTION_URL = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
+POLL_INTERVAL_MINUTES = 5
+
+
+def _fire_poll_request() -> None:
+    """Фоновый вызов max-bot poll-channel. Полностью fire-and-forget."""
+    if requests is None:
+        return
+    try:
+        admin_token = os.environ.get('ADMIN_TOKEN') or 'admin_authenticated'
+        requests.post(
+            f"{MAX_BOT_FUNCTION_URL}?action=poll-channel&limit=30",
+            headers={
+                'Content-Type': 'application/json',
+                'X-Admin-Token': admin_token,
+                'X-Cron': '1',
+            },
+            timeout=20,
+        )
+    except Exception as e:
+        print(f"[BLOG-API] background poll failed: {e}")
+
+
+def maybe_trigger_poll() -> None:
+    """Если последний polling был более POLL_INTERVAL_MINUTES минут назад — запускаем фоновый. Не блокирует ответ."""
+    try:
+        conn = db_conn()
+        cur = conn.cursor()
+        cur.execute(f"""
+            SELECT last_polled_at,
+                   (last_polled_at IS NULL
+                    OR last_polled_at < NOW() - INTERVAL '{POLL_INTERVAL_MINUTES} minutes') AS need_poll
+            FROM {SCHEMA}.blog_poll_state WHERE id = 1
+        """)
+        row = cur.fetchone()
+        if not row or not row[1]:
+            cur.close()
+            conn.close()
+            return
+        cur.execute(f"""
+            UPDATE {SCHEMA}.blog_poll_state
+            SET last_polled_at = NOW()
+            WHERE id = 1
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"[BLOG-API] maybe_trigger_poll DB error: {e}")
+        return
+
+    try:
+        t = threading.Thread(target=_fire_poll_request, daemon=True)
+        t.start()
+    except Exception as e:
+        print(f"[BLOG-API] thread start failed: {e}")
+
+
 def respond(data: Any, status: int = 200) -> Dict:
     return {
         'statusCode': status,
@@ -83,6 +147,7 @@ def respond(data: Any, status: int = 200) -> Dict:
 
 
 def list_posts(params: Dict) -> Dict:
+    maybe_trigger_poll()
     page = max(1, int(params.get('page', '1') or 1))
     limit = min(50, max(1, int(params.get('limit', '12') or 12)))
     offset = (page - 1) * limit
@@ -364,6 +429,7 @@ def list_tags(params: Dict) -> Dict:
 
 
 def feed(params: Dict) -> Dict:
+    maybe_trigger_poll()
     limit = min(20, max(1, int(params.get('limit', '6') or 6)))
     conn = db_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
