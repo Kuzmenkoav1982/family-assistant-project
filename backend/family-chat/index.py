@@ -7,6 +7,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = 't_p5815085_family_assistant_pro'
+MESSAGES_TABLE = 'family_chat_messages'
 
 
 def escape(value: Any) -> str:
@@ -240,14 +241,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     r = cur.fetchone()
                     if r:
                         cur.execute(
-                            f"SELECT COUNT(*) AS c FROM {SCHEMA}.chat_messages "
+                            f"SELECT COUNT(*) AS c FROM {SCHEMA}.{MESSAGES_TABLE} "
                             f"WHERE conversation_id = '{escape(chat['id'])}' "
                             f"AND created_at > '{escape(r['last_read_at'])}' "
                             f"AND sender_member_id != '{escape(me_id)}'"
                         )
                     else:
                         cur.execute(
-                            f"SELECT COUNT(*) AS c FROM {SCHEMA}.chat_messages "
+                            f"SELECT COUNT(*) AS c FROM {SCHEMA}.{MESSAGES_TABLE} "
                             f"WHERE conversation_id = '{escape(chat['id'])}' "
                             f"AND sender_member_id != '{escape(me_id)}'"
                         )
@@ -282,7 +283,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(
                     f"SELECT m.id, m.conversation_id, m.sender_member_id, m.content, m.reactions, m.created_at, "
                     f"fm.name AS sender_name, fm.photo_url AS sender_photo, fm.avatar AS sender_avatar "
-                    f"FROM {SCHEMA}.chat_messages m "
+                    f"FROM {SCHEMA}.{MESSAGES_TABLE} m "
                     f"LEFT JOIN {SCHEMA}.family_members fm ON fm.id = m.sender_member_id "
                     f"WHERE m.conversation_id = '{escape(conv_id)}' {where_extra} "
                     f"ORDER BY m.created_at ASC LIMIT {limit}"
@@ -311,7 +312,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     return resp(403, {'error': 'Нет доступа'})
 
                 cur.execute(
-                    f"INSERT INTO {SCHEMA}.chat_messages(conversation_id, sender_member_id, content) "
+                    f"INSERT INTO {SCHEMA}.{MESSAGES_TABLE}(conversation_id, sender_member_id, content) "
                     f"VALUES ('{escape(conv_id)}', '{escape(me_id)}', '{escape(content)}') "
                     f"RETURNING id, conversation_id, sender_member_id, content, reactions, created_at"
                 )
@@ -353,7 +354,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     return resp(403, {'error': 'Нет доступа'})
 
                 cur.execute(
-                    f"SELECT reactions FROM {SCHEMA}.chat_messages "
+                    f"SELECT reactions FROM {SCHEMA}.{MESSAGES_TABLE} "
                     f"WHERE id = '{escape(msg_id)}' AND conversation_id = '{escape(conv_id)}'"
                 )
                 row = cur.fetchone()
@@ -368,7 +369,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 reactions[emoji] = int(reactions.get(emoji, 0)) + 1
 
                 cur.execute(
-                    f"UPDATE {SCHEMA}.chat_messages SET reactions = '{escape(json.dumps(reactions))}'::jsonb "
+                    f"UPDATE {SCHEMA}.{MESSAGES_TABLE} SET reactions = '{escape(json.dumps(reactions))}'::jsonb "
                     f"WHERE id = '{escape(msg_id)}'"
                 )
                 conn.commit()
