@@ -18,6 +18,7 @@ const DOMOVOY_IMG = 'https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc984
 const HUB_ITEMS: NavItem[] = [
   { id: 'dashboard', path: '/dashboard', icon: 'LayoutDashboard', label: 'Дашборд' },
   { id: 'family', path: '/family-hub', icon: 'Users', label: 'Семья' },
+  { id: 'chat', path: '/chat', icon: 'MessageCircle', label: 'Чат' },
   { id: 'health', path: '/health-hub', icon: 'HeartPulse', label: 'Здоровье' },
   { id: 'nutrition', path: '/nutrition', icon: 'Apple', label: 'Питание' },
   { id: 'values', path: '/values-hub', icon: 'Heart', label: 'Ценности' },
@@ -32,8 +33,9 @@ const HUB_ITEMS: NavItem[] = [
 
 const ALL_ITEMS: NavItem[] = [HOME_ITEM, ...HUB_ITEMS];
 
-const DEFAULT_IDS = ['home', 'dashboard', 'family', 'health', 'nutrition', 'planning', 'finance', 'development'];
+const DEFAULT_IDS = ['home', 'dashboard', 'family', 'chat', 'health', 'nutrition', 'planning', 'finance'];
 const STORAGE_KEY = 'bottomBarItems';
+const CHAT_MIGRATION_KEY = 'bottomBarChatMigrated_v1';
 const MAX_MIDDLE = 8;
 
 const HIDDEN_ROUTES = [
@@ -57,7 +59,22 @@ export default function GlobalBottomBar() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
+        if (Array.isArray(parsed) && parsed.length) {
+          const chatMigrated = localStorage.getItem(CHAT_MIGRATION_KEY) === 'true';
+          if (!chatMigrated && !parsed.includes('chat')) {
+            const next = [...parsed];
+            if (next.length < MAX_MIDDLE + 1) {
+              const insertAt = Math.min(3, next.length);
+              next.splice(insertAt, 0, 'chat');
+            }
+            localStorage.setItem(CHAT_MIGRATION_KEY, 'true');
+            return next;
+          }
+          if (!chatMigrated) {
+            localStorage.setItem(CHAT_MIGRATION_KEY, 'true');
+          }
+          return parsed;
+        }
       }
     } catch {
       // ignore
