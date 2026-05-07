@@ -124,7 +124,18 @@ def save_post_to_blog(parsed: Dict, source: str = 'max') -> Optional[int]:
     try:
         cur = conn.cursor()
 
-        if parsed.get('max_message_id'):
+        if parsed.get('max_message_id_str'):
+            safe_mid = str(parsed['max_message_id_str']).replace("'", "''")
+            cur.execute(f"""
+                SELECT id FROM {SCHEMA}.public_blog_posts
+                WHERE max_message_id_str = '{safe_mid}' LIMIT 1
+            """)
+            existing = cur.fetchone()
+            if existing:
+                cur.close()
+                conn.close()
+                return existing[0]
+        elif parsed.get('max_message_id'):
             cur.execute(f"""
                 SELECT id FROM {SCHEMA}.public_blog_posts
                 WHERE max_message_id = {int(parsed['max_message_id'])} LIMIT 1
@@ -158,14 +169,17 @@ def save_post_to_blog(parsed: Dict, source: str = 'max') -> Optional[int]:
         source_sql = esc(source)
         published = esc(parsed['published_at'].isoformat() if isinstance(parsed.get('published_at'), datetime) else parsed.get('published_at'))
 
+        msg_id_str_val = parsed.get('max_message_id_str')
+        msg_id_str_sql = esc(msg_id_str_val) if msg_id_str_val else 'NULL'
+
         cur.execute(f"""
             INSERT INTO {SCHEMA}.public_blog_posts
             (slug, title, excerpt, content, cover_image_url, category_id,
              seo_title, seo_description, seo_keywords, source, max_message_id,
-             max_chat_id, reading_time_min, published_at, status)
+             max_message_id_str, max_chat_id, reading_time_min, published_at, status)
             VALUES ({slug_sql}, {title}, {excerpt}, {content}, {cover},
                     {category_sql}, {seo_title}, {seo_desc}, {seo_kw},
-                    {source_sql}, {msg_id}, {chat_id}, {reading}, {published},
+                    {source_sql}, {msg_id}, {msg_id_str_sql}, {chat_id}, {reading}, {published},
                     'published')
             RETURNING id
         """)
@@ -267,6 +281,104 @@ def is_channel_message(message: Dict) -> bool:
     body = message.get('body', {})
     text = (body.get('text') or '')
     return len(text) > 200
+
+
+def poll_channel_messages(chat_id: int, limit: int = 50) -> Dict[str, Any]:
+    """Тянет последние сообщения канала через MAX API и зеркалирует новые посты в блог."""
+    if not chat_id:
+        return {'ok': False, 'error': 'chat_id required'}
+
+    api_resp = max_api_request('GET', f'/messages?chat_id={int(chat_id)}&count={int(limit)}')
+    if not api_resp.get('ok'):
+        return {
+            'ok': False,
+            'error': 'MAX API error',
+            'status': api_resp.get('status'),
+            'response': api_resp.get('data'),
+        }
+
+    data = api_resp.get('data') or {}
+    messages = data.get('messages') or []
+    fetched = len(messages)
+
+    saved: List[Dict[str, Any]] = []
+    skipped_short = 0
+    skipped_existing = 0
+    errors = 0
+
+    conn = db_connect()
+    if conn is None:
+        return {'ok': False, 'error': 'no DB'}
+
+    try:
+        for msg in messages:
+            try:
+                body = msg.get('body') or {}
+                text = (body.get('text') or '').strip()
+                msg_id = body.get('mid') or msg.get('message_id')
+                timestamp = msg.get('timestamp')
+
+                if not text or len(text) < 100:
+                    skipped_short += 1
+                    continue
+
+                if msg_id:
+                    cur = conn.cursor()
+                    safe_mid = str(msg_id).replace("'", "''")
+                    cur.execute(
+                        f"SELECT id FROM {SCHEMA}.public_blog_posts WHERE max_message_id_str = '{safe_mid}' LIMIT 1"
+                    )
+                    existing = cur.fetchone()
+                    cur.close()
+                    if existing:
+                        skipped_existing += 1
+                        continue
+
+                attachments = body.get('attachments') or []
+                image_url = extract_image_from_attachments(attachments)
+                published_at = datetime.fromtimestamp(timestamp / 1000) if timestamp else datetime.now()
+
+                msg_id_int = None
+                try:
+                    if msg_id is not None:
+                        msg_id_int = int(msg_id)
+                except (TypeError, ValueError):
+                    msg_id_int = None
+
+                parsed = parse_max_post(
+                    text=text,
+                    image_url=image_url,
+                    max_message_id=msg_id_int,
+                    max_chat_id=int(chat_id),
+                    published_at=published_at,
+                )
+                if msg_id is not None:
+                    parsed['max_message_id_str'] = str(msg_id)
+
+                post_id = save_post_to_blog(parsed, source='max')
+                if post_id:
+                    saved.append({'post_id': post_id, 'slug': parsed['slug'], 'title': parsed['title']})
+                else:
+                    errors += 1
+            except Exception as inner:
+                print(f"[POLL] message error: {inner}")
+                errors += 1
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+    return {
+        'ok': True,
+        'chat_id': chat_id,
+        'fetched': fetched,
+        'saved': len(saved),
+        'skipped_short': skipped_short,
+        'skipped_existing': skipped_existing,
+        'errors': errors,
+        'posts': saved,
+    }
 
 
 def handle_webhook(body: dict) -> Dict[str, Any]:
@@ -631,6 +743,33 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': CORS_HEADERS,
             'body': json.dumps({'ok': True, 'count': len(rows), 'events': rows}, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if (method == 'POST' or method == 'GET') and action == 'poll-channel':
+        is_cron = (event.get('headers') or {}).get('X-Cron') or (event.get('headers') or {}).get('x-cron')
+        if not is_cron and not _is_admin(event):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        params_qs = event.get('queryStringParameters') or {}
+        chat_id_param = params_qs.get('chat_id') or os.environ.get('MAX_CHANNEL_CHAT_ID') or '-70410824040551'
+        try:
+            chat_id_int = int(chat_id_param)
+        except (TypeError, ValueError):
+            chat_id_int = -70410824040551
+        try:
+            limit_int = int(params_qs.get('limit') or '50')
+        except (TypeError, ValueError):
+            limit_int = 50
+        result = poll_channel_messages(chat_id_int, limit=limit_int)
+        return {
+            'statusCode': 200 if result.get('ok') else 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps(result, ensure_ascii=False),
             'isBase64Encoded': False
         }
 

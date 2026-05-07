@@ -1,4 +1,5 @@
 {
+  "max-poll-cron": "https://functions.poehali.dev/0525d997-7f30-46bd-b8b8-f7ca0ca39236",
   "support-navigator": "https://functions.poehali.dev/c1bb6446-4fad-4718-8db6-432aeda8252e",
   "blog-cover-generator": "https://functions.poehali.dev/62fc2d89-a73c-44b2-84cd-2e02f256af7a",
   "blog-prerender": "https://functions.poehali.dev/d869c620-57b6-4106-a9db-770f7e8fa753",

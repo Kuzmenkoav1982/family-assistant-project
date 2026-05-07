@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import WebhookConnector from '@/components/admin/max/WebhookConnector';
+import ChannelPoller from '@/components/admin/max/ChannelPoller';
 
 const SITEMAP_URL = 'https://nasha-semiya.ru/sitemap-blog.xml';
 
@@ -259,6 +260,22 @@ export default function AdminMaxInstructions() {
             </div>
 
             <WebhookConnector />
+
+            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-4">
+              <div className="flex items-start gap-2 mb-3">
+                <Icon name="ShieldCheck" size={20} className="text-emerald-700 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-emerald-900 text-sm">
+                    Резервный канал: автоматический polling
+                  </h4>
+                  <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
+                    Если webhook от MAX по какой-то причине молчит — этот режим раз в 5 минут сам забирает свежие посты канала через MAX API. Работает даже без webhook. Дубликаты не создаёт.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <ChannelPoller />
 
             <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
               <h4 className="font-bold text-gray-900 text-sm mb-2 flex items-center gap-2">
