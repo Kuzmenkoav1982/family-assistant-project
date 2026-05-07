@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS max_webhook_log (id SERIAL PRIMARY KEY, received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, update_type VARCHAR(80), chat_id BIGINT, chat_type VARCHAR(40), text_preview VARCHAR(500), raw_body TEXT, processed_action VARCHAR(80));
+CREATE INDEX IF NOT EXISTS idx_max_webhook_log_received ON max_webhook_log(received_at DESC);

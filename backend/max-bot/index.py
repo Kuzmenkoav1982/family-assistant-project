@@ -377,8 +377,49 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     action = params.get('action', '')
 
     if method == 'POST' and not action:
+        raw_body = event.get('body', '{}') or '{}'
+        print(f"[WEBHOOK] incoming raw body (first 1000): {raw_body[:1000]}")
         try:
-            body = json.loads(event.get('body', '{}'))
+            body = json.loads(raw_body)
+        except Exception as e:
+            print(f"[WEBHOOK] invalid JSON: {e}")
+            body = {}
+
+        try:
+            update_type = body.get('update_type') or ''
+            msg = body.get('message') or {}
+            recipient = msg.get('recipient') or {}
+            chat_id_val = recipient.get('chat_id') or body.get('chat_id')
+            chat_type_val = recipient.get('chat_type') or ''
+            text_preview = ((msg.get('body') or {}).get('text') or '')[:480]
+            conn = db_connect()
+            if conn:
+                try:
+                    cur = conn.cursor()
+                    safe_type = (update_type or '').replace("'", "''")
+                    safe_chat_type = (chat_type_val or '').replace("'", "''")
+                    safe_text = (text_preview or '').replace("'", "''")
+                    safe_raw = raw_body[:8000].replace("'", "''")
+                    chat_sql = str(int(chat_id_val)) if chat_id_val else 'NULL'
+                    cur.execute(f"""
+                        INSERT INTO {SCHEMA}.max_webhook_log
+                        (update_type, chat_id, chat_type, text_preview, raw_body)
+                        VALUES ('{safe_type}', {chat_sql}, '{safe_chat_type}', '{safe_text}', '{safe_raw}')
+                        RETURNING id
+                    """)
+                    conn.commit()
+                    cur.close()
+                    conn.close()
+                except Exception as log_err:
+                    print(f"[WEBHOOK] log error: {log_err}")
+                    try:
+                        conn.close()
+                    except:
+                        pass
+        except Exception as e:
+            print(f"[WEBHOOK] preprocess error: {e}")
+
+        try:
             result = handle_webhook(body)
             return {
                 'statusCode': 200,
@@ -552,6 +593,63 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 'status': result.get('status'),
                 'response': result.get('data'),
                 'error': result.get('error'),
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if method == 'GET' and action == 'webhook-debug':
+        if not _is_admin(event):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        rows = []
+        conn = db_connect()
+        if conn:
+            try:
+                cur = conn.cursor(cursor_factory=RealDictCursor)
+                cur.execute(f"""
+                    SELECT id, received_at, update_type, chat_id, chat_type, text_preview, processed_action
+                    FROM {SCHEMA}.max_webhook_log
+                    ORDER BY received_at DESC LIMIT 30
+                """)
+                rows = [dict(r) for r in cur.fetchall()]
+                for r in rows:
+                    if r.get('received_at'):
+                        r['received_at'] = r['received_at'].isoformat()
+                cur.close()
+                conn.close()
+            except Exception as e:
+                print(f"[ERROR] webhook-debug: {e}")
+                try:
+                    conn.close()
+                except:
+                    pass
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'ok': True, 'count': len(rows), 'events': rows}, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if method == 'GET' and action == 'chats':
+        if not _is_admin(event):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        result = max_api_request('GET', '/chats')
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({
+                'ok': result.get('ok'),
+                'data': result.get('data'),
+                'status': result.get('status'),
             }, ensure_ascii=False),
             'isBase64Encoded': False
         }
