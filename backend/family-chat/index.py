@@ -1,13 +1,33 @@
-"""API семейного чата: общий чат + тет-а-тет, опрос новых сообщений, реакции, уведомления в колокольчик"""
+"""API семейного чата: общий чат + тет-а-тет, опрос новых сообщений, реакции, уведомления в колокольчик и MAX-бот"""
 
 import json
 import os
 from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import requests
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 MESSAGES_TABLE = 'family_chat_messages'
+MAX_API_BASE = 'https://platform-api.max.ru'
+
+
+def send_max_message(chat_id: int, text: str) -> bool:
+    """Отправить сообщение пользователю в MAX от имени бота"""
+    token = os.environ.get('MAX_BOT_TOKEN')
+    if not token or not chat_id:
+        return False
+    try:
+        resp = requests.post(
+            f'{MAX_API_BASE}/messages?access_token={token}&chat_id={int(chat_id)}',
+            headers={'Content-Type': 'application/json'},
+            json={'text': text},
+            timeout=5,
+        )
+        return resp.status_code == 200
+    except Exception as e:
+        print(f"[max-bot] send error: {e}")
+        return False
 
 
 def escape(value: Any) -> str:
@@ -124,25 +144,43 @@ def get_recipients(cur, conv: dict, sender_id: str, family_id: str) -> list:
 
 
 def create_chat_notifications(cur, recipient_member_ids: list, sender_name: str, content: str, conv_kind: str):
-    """Создаёт уведомления в колокольчике для получателей"""
+    """Создаёт уведомления в колокольчике + отправляет в MAX-бот, у кого привязан"""
     if not recipient_member_ids:
         return
-    preview = content[:80] + ('…' if len(content) > 80 else '')
+    preview = content[:160] + ('…' if len(content) > 160 else '')
+    short_preview = content[:80] + ('…' if len(content) > 80 else '')
     title = f'Сообщение от {sender_name}'
     if conv_kind == 'family':
         title = f'{sender_name} в чате семьи'
+
+    max_targets = []  # (max_chat_id, text)
+
     for mid in recipient_member_ids:
         cur.execute(
-            f"SELECT user_id FROM {SCHEMA}.family_members WHERE id = '{escape(mid)}' LIMIT 1"
+            f"SELECT fm.user_id, u.max_chat_id "
+            f"FROM {SCHEMA}.family_members fm "
+            f"LEFT JOIN {SCHEMA}.users u ON u.id = fm.user_id "
+            f"WHERE fm.id = '{escape(mid)}' LIMIT 1"
         )
         row = cur.fetchone()
         if not row or not row['user_id']:
             continue
         target_user_id = str(row['user_id'])
+
+        # Уведомление в колокольчик
         cur.execute(
             f"INSERT INTO {SCHEMA}.notifications(user_id, type, title, message, target_url, channel, status) "
-            f"VALUES ('{escape(target_user_id)}', 'chat', '{escape(title)}', '{escape(preview)}', '/family-chat', 'push', 'sent')"
+            f"VALUES ('{escape(target_user_id)}', 'chat', '{escape(title)}', '{escape(short_preview)}', '/family-chat', 'push', 'sent')"
         )
+
+        # Если у пользователя привязан MAX — добавим в очередь отправки
+        max_chat_id = row.get('max_chat_id')
+        if max_chat_id:
+            text = f"💬 {title}\n\n{preview}\n\nОткрыть чат: https://nasha-semiya.ru/family-chat"
+            max_targets.append((int(max_chat_id), text))
+
+    # Отправляем в MAX после коммита БД-операций (вне цикла INSERT, чтобы не блокировать транзакцию долгими HTTP)
+    return max_targets
 
 
 def serialize_message(row: dict) -> dict:
@@ -330,11 +368,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     f"ON CONFLICT (conversation_id, member_id) DO UPDATE SET last_read_at = NOW()"
                 )
 
-                # Уведомления в колокольчик
+                # Уведомления в колокольчик + сбор целей для MAX
                 recipients = get_recipients(cur, conv, me_id, family_id)
-                create_chat_notifications(cur, recipients, ctx['member_name'], content, conv['kind'])
+                max_targets = create_chat_notifications(cur, recipients, ctx['member_name'], content, conv['kind']) or []
 
                 conn.commit()
+
+                # Отправка в MAX-бот после коммита БД (best-effort)
+                for max_chat_id, max_text in max_targets:
+                    try:
+                        send_max_message(max_chat_id, max_text)
+                    except Exception as e:
+                        print(f"[max-bot] notify failed: {e}")
 
                 msg_dict = dict(msg_row)
                 msg_dict['sender_name'] = ctx['member_name']
