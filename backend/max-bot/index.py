@@ -536,17 +536,61 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Требуются права администратора'}),
                 'isBase64Encoded': False
             }
-        our_url = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
+        try:
+            body = json.loads(event.get('body') or '{}')
+        except Exception:
+            body = {}
+        target_url = body.get('url') or 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
         from urllib.parse import quote
-        result = max_api_request('DELETE', f'/subscriptions?url={quote(our_url, safe="")}')
+        result = max_api_request('DELETE', f'/subscriptions?url={quote(target_url, safe="")}')
         return {
             'statusCode': 200 if result.get('ok') else 500,
             'headers': CORS_HEADERS,
             'body': json.dumps({
                 'ok': result.get('ok'),
+                'removed_url': target_url,
                 'status': result.get('status'),
                 'response': result.get('data'),
                 'error': result.get('error'),
+            }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if method == 'POST' and action == 'webhook-clean-foreign':
+        if not _is_admin(event):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        our_url = 'https://functions.poehali.dev/328084f0-b0e7-4354-9199-db44e75811ac'
+        from urllib.parse import quote
+        list_result = max_api_request('GET', '/subscriptions')
+        if not list_result.get('ok'):
+            return {
+                'statusCode': 500,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'ok': False, 'error': 'cannot list subscriptions'}, ensure_ascii=False),
+                'isBase64Encoded': False
+            }
+        subs = list_result.get('data', {}).get('subscriptions', []) or []
+        removed = []
+        kept = []
+        for s in subs:
+            url = s.get('url', '')
+            if url and url != our_url:
+                r = max_api_request('DELETE', f'/subscriptions?url={quote(url, safe="")}')
+                removed.append({'url': url, 'ok': r.get('ok'), 'status': r.get('status')})
+            else:
+                kept.append(url)
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({
+                'ok': True,
+                'removed': removed,
+                'kept': kept,
             }, ensure_ascii=False),
             'isBase64Encoded': False
         }
