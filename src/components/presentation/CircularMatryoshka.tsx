@@ -47,7 +47,7 @@ const VB_H = 1000;
 const CX = VB_W / 2;
 const CY = VB_H / 2;
 
-// ============ КОЛЬЦО 2 — ЯДРО (8 модулей, оставляем только то что REAL и связано с гос-повесткой) ============
+// ============ КОЛЬЦО 2 — ЯДРО (9 модулей в продакшене, базовая инфраструктура семьи) ============
 const ringCore: RingItem[] = [
   { name: 'Древо', icon: 'TreeDeciduous', status: 'live', moduleId: 'family-tree' },
   { name: 'Дети', icon: 'Baby', status: 'live', moduleId: 'children' },
@@ -56,17 +56,18 @@ const ringCore: RingItem[] = [
   { name: 'Календарь', icon: 'Calendar', status: 'live', moduleId: 'calendar' },
   { name: 'Задачи', icon: 'CheckSquare', status: 'live', moduleId: 'tasks' },
   { name: 'Места', icon: 'MapPin', status: 'live', moduleId: 'places' },
+  { name: 'Чат семьи', icon: 'MessagesSquare', status: 'live', moduleId: 'family-chat' },
   { name: 'AI', icon: 'Sparkles', status: 'live', moduleId: 'ai-assistant' },
 ];
 
 // ============ КОЛЬЦО 3 — СТРАТЕГИЯ 615-р (12 ячеек) ============
 // СВО — одна из ячеек, не в центре (по согласованию с экспертом)
 const ringStrategy: RingItem[] = [
-  { name: 'Навигатор льгот', icon: 'Compass', status: 'dev', moduleId: 'support-navigator' },
+  { name: 'Навигатор льгот', icon: 'Compass', status: 'live', moduleId: 'support-navigator' },
   { name: 'Многодетная', icon: 'Users', status: 'dev', moduleId: 'large-family' },
   { name: 'Беременность', icon: 'HeartHandshake', status: 'dev', moduleId: 'pregnancy' },
   { name: 'Кейс-менеджер', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
-  { name: 'Семья СВО', icon: 'Shield', status: 'planned', moduleId: 'svo-family' },
+  { name: 'Семья СВО', icon: 'Shield', status: 'dev', moduleId: 'svo-family' },
   { name: 'Студ. семья', icon: 'GraduationCap', status: 'planned', moduleId: 'student-family' },
   { name: 'Соцконтракт', icon: 'FileSignature', status: 'planned', moduleId: 'social-contract' },
   { name: 'ЗОЖ', icon: 'Activity', status: 'planned', moduleId: 'zog' },
@@ -85,7 +86,7 @@ const ringChannels: RingItem[] = [
   { name: 'Web', icon: 'Globe', status: 'live' },
   { name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
   { name: 'HR / B2B2C', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
-  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'dev' },
+  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'dev', moduleId: 'rpo' }, // заявка подана, ждём включения
 ];
 
 const rings: RingDef[] = [
